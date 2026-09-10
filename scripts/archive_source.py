@@ -26,6 +26,10 @@ a.output.parent.mkdir(parents=True, exist_ok=True)
 subprocess.run(
     [
         "git",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.eol=lf",
         "-C",
         str(a.repository),
         "archive",
