@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "checks": [
+    "packaged launcher starts embedded service in Chinese data path",
+    "unauthenticated and cross-origin requests rejected",
+    "all real engine tasks succeeded",
+    "ppocr retains exact long identifier",
+    "ppocr resident session reused",
+    "ppocr truthful table capability",
+    "paddlevl retains exact long identifier",
+    "paddlevl resident session reused",
+    "paddlevl truthful table capability",
+    "glm retains exact long identifier",
+    "glm resident session reused",
+    "glm truthful table capability",
+    "hunyuan retains exact long identifier",
+    "hunyuan resident session reused",
+    "hunyuan truthful table capability",
+    "GPU tasks serialized",
+    "engine processes released after queue idle",
+    "graceful launcher/service exit and token cleanup"
+  ],
+  "engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "4d349fa4f4ec4eec8771d5747d58d880",
+      "elapsed_seconds": 0.9939744999974209,
+      "session": {
+        "id": "892180253e0a4a65b5b94a1342a37763",
+        "load_seconds": 8.355594900000142,
+        "pid": 34340
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "d91c7f5834a34a89aff5c93fdd6eeccd",
+      "elapsed_seconds": 3.1049082999998063,
+      "session": {
+        "id": "abeaf52b828b4d9ba7c70dae3cce65a7",
+        "load_seconds": 11.544494900001155,
+        "pid": 4836
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "be15231572004d66a4e038e1aa0c71fd",
+      "elapsed_seconds": 4.555914900000062,
+      "session": {
+        "id": "f17bcd5b88c549989bd5eed99d52f12e",
+        "load_seconds": 2.7247496000018145,
+        "pid": 36068
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "11131cdd5cc04c0d9a903a9282092178",
+      "elapsed_seconds": 1.528592300001037,
+      "session": {
+        "id": "1e9182b202264324bafb050233bc61b8",
+        "load_seconds": 4.47369560000152,
+        "pid": 36140
+      }
+    }
+  ],
+  "errors": []
+}

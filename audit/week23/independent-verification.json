@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "checks": [
+    "all acceptance receipts passed",
+    "dependency closure and npm audit",
+    "browser XLSX edited text, string identifier and merged cells",
+    "TXT and Markdown edited cells",
+    "JSON original isolated from edits"
+  ],
+  "files": [
+    {
+      "path": "browser/edited.json",
+      "sha256": "983966123e793b62def94f726efe9372236dc0cb59cd0c1365fce493cebff5c3"
+    },
+    {
+      "path": "browser/edited.md",
+      "sha256": "3b6347c37dbcbdd4a510eb16025cabf13317e231b61db6a7abc7f6126ec3f37b"
+    },
+    {
+      "path": "browser/edited.txt",
+      "sha256": "b5fbd79e0a0c3eb2d3ae3ade4bea0014c2eb83fcc0aa6b871305d36b718cf338"
+    },
+    {
+      "path": "browser/edited.xlsx",
+      "sha256": "a04fc47b444b6961b801e0b126442900e2557c6e970b3c09ca2dd3700229249c"
+    }
+  ]
+}

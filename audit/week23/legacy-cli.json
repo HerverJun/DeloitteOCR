@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "engine": "ppocr",
+      "status": "success",
+      "tables": 0,
+      "seconds": 5.043328899999324
+    },
+    {
+      "engine": "paddlevl",
+      "status": "success",
+      "tables": 1,
+      "seconds": 12.580410599999595
+    },
+    {
+      "engine": "glm",
+      "status": "success",
+      "tables": 1,
+      "seconds": 14.833158000001276
+    },
+    {
+      "engine": "hunyuan",
+      "status": "success",
+      "tables": 1,
+      "seconds": 2.951230200000282
+    }
+  ]
+}

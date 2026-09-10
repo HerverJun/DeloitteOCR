@@ -15,6 +15,8 @@ root_requirements={
     'paddlevl':['paddlepaddle-gpu','paddleocr[doc-parser]','openpyxl','pillow-heif'],
     'glm':['glmocr[selfhosted]','transformers','torchvision','openpyxl','pillow-heif'],
     'hunyuan':['Pillow','pillow-heif','openpyxl']}
+if (a.bundle/'runtimes/service/python.exe').exists():
+    root_requirements['service']=['fastapi','uvicorn','python-multipart','Pillow','pillow-heif','openpyxl','numpy','opencv-python-headless']
 code='import importlib.metadata as m,json; print(json.dumps({d.metadata["Name"]:{"version":d.version,"requires":d.requires or []} for d in m.distributions()}))'
 reports=[]
 for runtime,roots in root_requirements.items():

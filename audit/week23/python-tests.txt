@@ -1,0 +1,34 @@
+test_html_replaced_without_stale_duplicate (test_editing.EditingTests.test_html_replaced_without_stale_duplicate) ... ok
+test_markdown_table_replaced (test_editing.EditingTests.test_markdown_table_replaced) ... ok
+test_mixed_html_markdown_document_order (test_editing.EditingTests.test_mixed_html_markdown_document_order) ... ok
+test_overlap_and_excel_limits_rejected (test_editing.EditingTests.test_overlap_and_excel_limits_rejected) ... ok
+test_plain_text_uses_edited_cells (test_editing.EditingTests.test_plain_text_uses_edited_cells) ... ok
+test_unrepresented_table_is_appended (test_editing.EditingTests.test_unrepresented_table_is_appended) ... ok
+test_background_dewarp_does_not_override_newer_user_version (test_imaging.ImagingTests.test_background_dewarp_does_not_override_newer_user_version) ... ok
+test_cancelled_dewarp_does_not_activate_a_late_version (test_imaging.ImagingTests.test_cancelled_dewarp_does_not_activate_a_late_version) ... ok
+test_exif_original_hash_and_immutable_processing_chain (test_imaging.ImagingTests.test_exif_original_hash_and_immutable_processing_chain) ... ok
+test_invalid_images_and_crops_leave_no_new_version (test_imaging.ImagingTests.test_invalid_images_and_crops_leave_no_new_version) ... ok
+test_transparency_flattens_white_and_perspective_preserves_colors (test_imaging.ImagingTests.test_transparency_flattens_white_and_perspective_preserves_colors) ... ok
+test_external_network_blocked_loopback_allowed (test_offline.OfflineTests.test_external_network_blocked_loopback_allowed) ... ok
+test_job_close_terminates_worker_and_descendant (test_processes.ProcessTests.test_job_close_terminates_worker_and_descendant) ... ok
+test_cancel_while_loading_cannot_publish_result (test_queue.QueueTests.test_cancel_while_loading_cannot_publish_result) ... ok
+test_pause_resume_and_engine_switch_release_old_session (test_queue.QueueTests.test_pause_resume_and_engine_switch_release_old_session) ... ok
+test_stop_interrupts_loading_and_recovery_pauses_queued (test_queue.QueueTests.test_stop_interrupts_loading_and_recovery_pauses_queued) ... ok
+test_batch_groups_by_engine_and_duplicate_complete_is_idempotent (test_store.StoreTests.test_batch_groups_by_engine_and_duplicate_complete_is_idempotent) ... ok
+test_cancelled_task_cannot_commit_late_result (test_store.StoreTests.test_cancelled_task_cannot_commit_late_result) ... ok
+test_conflict_and_branching_undo_history (test_store.StoreTests.test_conflict_and_branching_undo_history) ... ok
+test_cross_project_version_and_bad_table_rejected_atomically (test_store.StoreTests.test_cross_project_version_and_bad_table_rejected_atomically) ... ok
+test_edit_history_persists_and_never_changes_original (test_store.StoreTests.test_edit_history_persists_and_never_changes_original) ... ok
+test_recovery_requires_resume_and_preserves_success (test_store.StoreTests.test_recovery_requires_resume_and_preserves_success) ... ok
+test_caption_preserved_without_inventing_a_span (test_tables.TableTests.test_caption_preserved_without_inventing_a_span) ... ok
+test_multiple_tables_and_markdown (test_tables.TableTests.test_multiple_tables_and_markdown) ... ok
+test_spans_empty_cells_and_exact_excel_strings (test_tables.TableTests.test_spans_empty_cells_and_exact_excel_strings) ... ok
+test_truncated_invalid_or_overlapping_table_fails (test_tables.TableTests.test_truncated_invalid_or_overlapping_table_fails) ... ok
+test_version_and_dependency_repaired_for_lf_and_crlf (test_wheel_patch.WheelPatchTests.test_version_and_dependency_repaired_for_lf_and_crlf) ... ok
+test_exception_still_removes_alias_and_preserves_model (test_windows_paths.PathTests.test_exception_still_removes_alias_and_preserves_model) ... ok
+test_unicode_model_alias_reads_real_bytes_and_cleans_only_link (test_windows_paths.PathTests.test_unicode_model_alias_reads_real_bytes_and_cleans_only_link) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.675s
+
+OK

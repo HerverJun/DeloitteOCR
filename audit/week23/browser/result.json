@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    "named project import waits for project creation",
+    "four real model comparison, timing, differences and adoption",
+    "table edit, insert/delete, merge/split, undo/redo and autosave",
+    "text editing, search selection and clipboard",
+    "text block locates matching image coordinates",
+    "browser downloads XLSX, TXT, Markdown and JSON",
+    "image zoom controls",
+    "rotation, contrast, crop and draggable four-point perspective create versions",
+    "region crop runs selected real engine",
+    "optional real dewarp from UI",
+    "immediate project switch and reload preserve pending edit",
+    "1366 by 768 viewport has no horizontal page overflow",
+    "folder import and dropped file"
+  ],
+  "errors": [],
+  "project": "e82ab0fd285a4b34bdf38dcdd4492f2c"
+}

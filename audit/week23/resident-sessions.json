@@ -1,0 +1,74 @@
+[
+  {
+    "engine": "ppocr",
+    "fixture": "printed",
+    "pid": 38428,
+    "session": "4ff0020fa96349ffb3fd3d6a1ea7f598",
+    "load_seconds": 8.190262099999018,
+    "seconds": 1.2384192000008625,
+    "tables": 0
+  },
+  {
+    "engine": "ppocr",
+    "fixture": "table",
+    "pid": 38428,
+    "session": "4ff0020fa96349ffb3fd3d6a1ea7f598",
+    "load_seconds": 0,
+    "seconds": 0.28797669999948994,
+    "tables": 0
+  },
+  {
+    "engine": "paddlevl",
+    "fixture": "printed",
+    "pid": 32904,
+    "session": "80bb23e48bde4a69a797bb61ce6c03ed",
+    "load_seconds": 34.21963030000006,
+    "seconds": 3.7324588999981643,
+    "tables": 0
+  },
+  {
+    "engine": "paddlevl",
+    "fixture": "table",
+    "pid": 32904,
+    "session": "80bb23e48bde4a69a797bb61ce6c03ed",
+    "load_seconds": 0,
+    "seconds": 3.4306737999977486,
+    "tables": 1
+  },
+  {
+    "engine": "glm",
+    "fixture": "printed",
+    "pid": 15912,
+    "session": "321fcd31aa8e4fbc95f8d24125c5b211",
+    "load_seconds": 3.695100100001582,
+    "seconds": 5.065806800001155,
+    "tables": 0
+  },
+  {
+    "engine": "glm",
+    "fixture": "table",
+    "pid": 15912,
+    "session": "321fcd31aa8e4fbc95f8d24125c5b211",
+    "load_seconds": 0,
+    "seconds": 8.008536299999832,
+    "tables": 1
+  },
+  {
+    "engine": "hunyuan",
+    "fixture": "printed",
+    "pid": 34120,
+    "session": "cadef9fc10b748a1bfe397f0f5d3997e",
+    "load_seconds": 4.8876571000000695,
+    "seconds": 1.3096385000026203,
+    "tables": 0
+  },
+  {
+    "engine": "hunyuan",
+    "fixture": "table",
+    "pid": 34120,
+    "session": "cadef9fc10b748a1bfe397f0f5d3997e",
+    "load_seconds": 0,
+    "seconds": 1.107331899998826,
+    "tables": 1
+  }
+]

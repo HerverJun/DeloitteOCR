@@ -10,6 +10,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--bundle',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--application',action='store_true')
     a=p.parse_args()
     if a.output.exists() and any(a.output.iterdir()):
         raise ValueError('Use an empty OS-isolation evidence directory')
@@ -24,7 +25,7 @@ print(json.dumps({'external_connect_error':code,'loopback':'passed'}))
 raise SystemExit(0 if code==10013 else 1)
 '''
     results=[]
-    for runtime in ['control','ppocr','paddlevl','glm','hunyuan']:
+    for runtime in ['control','ppocr','paddlevl','glm','hunyuan']+(['service'] if a.application else []):
         res=subprocess.run([str(a.bundle/'runtimes'/runtime/'python.exe'),'-X','utf8','-I','-c',probe],
                            capture_output=True,text=True,encoding='utf-8',timeout=15)
         results.append({'runtime':runtime,'exit_code':res.returncode,'stdout':res.stdout,'stderr':res.stderr})
@@ -34,8 +35,9 @@ raise SystemExit(0 if code==10013 else 1)
     (a.output/'os-network-probes.json').write_text(json.dumps({'passed':passed,'results':results},indent=2),encoding='utf-8')
     if not passed:
         raise RuntimeError('OS network isolation was not demonstrated; refusing to label inference as air-gapped')
-    res=subprocess.run([sys.executable,'-X','utf8','-I',str(a.bundle/'tools/run_acceptance.py'),
-                        '--bundle',str(a.bundle),'--output',str(a.output/'inference')],timeout=40*60)
+    script='audit_application.py' if a.application else 'run_acceptance.py'
+    res=subprocess.run([sys.executable,'-X','utf8','-I',str(a.bundle/'tools'/script),
+                        '--bundle',str(a.bundle),'--output',str(a.output/'inference')]+(['--quick'] if a.application else []),timeout=40*60)
     (a.output/'os-isolation-result.json').write_text(json.dumps({'passed':res.returncode==0,
        'method':'Windows Filtering Platform ALE_AUTH_CONNECT V4/V6 per executable, dynamic session',
        'external_probe':'WSAEACCES 10013 required for all Python runtimes and native Winsock',

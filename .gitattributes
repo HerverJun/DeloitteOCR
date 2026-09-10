@@ -1,0 +1,2 @@
+# Preserve byte-exact acceptance exports, including TSV trailing empty cells.
+audit/week23/** -text -whitespace

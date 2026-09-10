@@ -6,3 +6,7 @@ build/
 dist/
 *.part
 audit/runs/
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+audit/week23/raw-projects/

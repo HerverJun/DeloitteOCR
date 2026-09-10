@@ -1,0 +1,15 @@
+{
+  "platform": "Windows-11-10.0.22631-SP0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "bundle": "D:\\OCR 第二三周 验收\\便携工作台",
+  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER, 595.97, 16376 MiB, 14053 MiB",
+  "gpu_exit": 0,
+  "disk_free_bytes": 42760024064,
+  "missing": [],
+  "runtimes": {
+    "ppocr": true,
+    "paddlevl": true,
+    "glm": true,
+    "hunyuan": true
+  }
+}

@@ -40,7 +40,8 @@ int wmain(int argc, wchar_t** argv) {
         std::cout << "{\"native_connect_error\":" << error << "}\n";
         return error == WSAEACCES ? 0 : 4;
     }
-    if (argc != 3) {
+    const bool application = argc == 4 && std::wstring(argv[3]) == L"--application";
+    if (argc != 3 && !application) {
         std::wcerr << L"Usage: offline_guard.exe BUNDLE OUTPUT (requires Administrator)\n";
         return 2;
     }
@@ -53,6 +54,10 @@ int wmain(int argc, wchar_t** argv) {
         programs.push_back(root/L"runtimes"/name/L"python.exe");
     programs.push_back(root/L"runtimes/llama/llama-server.exe");
     programs.push_back(root/L"tools/offline_guard.exe");
+    if (application) {
+        programs.push_back(root/L"runtimes/service/python.exe");
+        programs.push_back(root/L"launcher/OfflineOCRLauncher.exe");
+    }
     for (const auto& path : programs) if (!fs::is_regular_file(path)) {
         std::wcerr << L"Missing executable: " << path << L"\n"; return 2;
     }
@@ -96,9 +101,10 @@ int wmain(int argc, wchar_t** argv) {
         FwpmFreeMemory0(reinterpret_cast<void**>(&app));
     }
     std::cout << "Installed " << count << " temporary WFP filters; loopback remains available.\n";
-    const fs::path python = root/L"runtimes/control/python.exe";
+    const fs::path python = root/(application ? L"runtimes/service/python.exe" : L"runtimes/control/python.exe");
     std::wstring command = L"\"" + python.wstring() + L"\" -X utf8 -I -m ocr_workbench.airgap --bundle \"" +
                           root.wstring() + L"\" --output \"" + output.wstring() + L"\"";
+    if (application) command += L" --application";
     STARTUPINFOW startup{}; startup.cb = sizeof(startup);
     PROCESS_INFORMATION process{};
     HANDLE job = CreateJobObjectW(nullptr, nullptr);

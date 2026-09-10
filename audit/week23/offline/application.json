@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "checks": [
+    "packaged launcher starts embedded service in Chinese data path",
+    "unauthenticated and cross-origin requests rejected",
+    "all real engine tasks succeeded",
+    "ppocr retains exact long identifier",
+    "ppocr resident session reused",
+    "ppocr truthful table capability",
+    "paddlevl retains exact long identifier",
+    "paddlevl resident session reused",
+    "paddlevl truthful table capability",
+    "glm retains exact long identifier",
+    "glm resident session reused",
+    "glm truthful table capability",
+    "hunyuan retains exact long identifier",
+    "hunyuan resident session reused",
+    "hunyuan truthful table capability",
+    "GPU tasks serialized",
+    "engine processes released after queue idle",
+    "graceful launcher/service exit and token cleanup"
+  ],
+  "engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "911aca47affe42e6aa7c06969c0d73d0",
+      "elapsed_seconds": 0.5322492000013881,
+      "session": {
+        "id": "3faa3a3aa6394668bec6fac2055e5763",
+        "load_seconds": 3.5445182000003115,
+        "pid": 29412
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "5fb56ec6b0094e1eb51a0d1b49ae54de",
+      "elapsed_seconds": 2.9305888999988383,
+      "session": {
+        "id": "607b3360681f4ea4832c9c0ca37463bc",
+        "load_seconds": 5.677484100000584,
+        "pid": 6652
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "bd6ca25a4ad64cd08edb883e2cb8b0f8",
+      "elapsed_seconds": 4.477276999998139,
+      "session": {
+        "id": "b9baf0890d524fe8aab998e9fc321753",
+        "load_seconds": 2.3155041000027268,
+        "pid": 25712
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "c93bf7503d714941ba4122068f10e0bc",
+      "elapsed_seconds": 1.1833764000002702,
+      "session": {
+        "id": "993a6d815d5a4fd8bca306d01bd3cde7",
+        "load_seconds": 1.311878100001195,
+        "pid": 11784
+      }
+    }
+  ],
+  "errors": []
+}

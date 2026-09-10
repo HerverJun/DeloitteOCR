@@ -1,0 +1,135 @@
+{
+  "passed": true,
+  "checks": [
+    "packaged launcher starts embedded service in Chinese data path",
+    "unauthenticated and cross-origin requests rejected",
+    "all real engine tasks succeeded",
+    "ppocr retains exact long identifier",
+    "ppocr resident session reused",
+    "ppocr truthful table capability",
+    "paddlevl retains exact long identifier",
+    "paddlevl resident session reused",
+    "paddlevl truthful table capability",
+    "glm retains exact long identifier",
+    "glm resident session reused",
+    "glm truthful table capability",
+    "hunyuan retains exact long identifier",
+    "hunyuan resident session reused",
+    "hunyuan truthful table capability",
+    "GPU tasks serialized",
+    "engine processes released after queue idle",
+    "decode jpg",
+    "decode bmp",
+    "decode tiff",
+    "decode webp",
+    "decode heic",
+    "corrupt import reported without adding image",
+    "immutable rotate",
+    "immutable crop",
+    "immutable perspective",
+    "immutable contrast",
+    "actual UVDoc creates a version, not an OCR result",
+    "UVDoc RGB colors preserved",
+    "blank OCR fails without fabricated success",
+    "failed item can retry and remains truthful",
+    "pause queued tasks",
+    "cancel running model load",
+    "retry cancelled and resume paused succeed",
+    "undo restores original edit",
+    "redo and immutable original",
+    "Markdown exports edited cells without stale duplicate",
+    "Excel preserves edited cell and long string",
+    "Excel preserves merged heading",
+    "aggregate exports tables to separate sheets",
+    "crash recovery requires deliberate resume",
+    "edits survive application crash",
+    "completed results not duplicated",
+    "resume after crash succeeds",
+    "original file hash unchanged printed.png",
+    "original file hash unchanged table.png",
+    "graceful launcher/service exit and token cleanup"
+  ],
+  "engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "e307dca7626343728eb9b70721004542",
+      "elapsed_seconds": 0.4016319000002113,
+      "session": {
+        "id": "491cee9a9ec0438898dd1e16f70836d7",
+        "load_seconds": 3.7242175999999745,
+        "pid": 11552
+      }
+    },
+    {
+      "engine": "ppocr",
+      "result_id": "d329e0bb1f5249749ebe31cd46cfc0eb",
+      "elapsed_seconds": 0.18674939999982598,
+      "session": {
+        "id": "491cee9a9ec0438898dd1e16f70836d7",
+        "load_seconds": 3.7242175999999745,
+        "pid": 11552
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "532d4403b1024ce9beca09d6c8a388e2",
+      "elapsed_seconds": 2.046817700000247,
+      "session": {
+        "id": "d0b23baf430b4ca09bc11cac1729985f",
+        "load_seconds": 5.79993739999918,
+        "pid": 12448
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "4a9fb822e93c4ae18567ad3160c61947",
+      "elapsed_seconds": 2.044040499997209,
+      "session": {
+        "id": "d0b23baf430b4ca09bc11cac1729985f",
+        "load_seconds": 5.79993739999918,
+        "pid": 12448
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "324af1ef3b504877bdd5591d9896cb23",
+      "elapsed_seconds": 2.4836295999994036,
+      "session": {
+        "id": "f6acc748f931403e9eeee978dd1e5b58",
+        "load_seconds": 2.5870078000007197,
+        "pid": 10468
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "5501c5ba34904b0487791ff450a8590b",
+      "elapsed_seconds": 3.765877999998338,
+      "session": {
+        "id": "f6acc748f931403e9eeee978dd1e5b58",
+        "load_seconds": 2.5870078000007197,
+        "pid": 10468
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "1183c27c87c14c6fb3bae7569dd5d693",
+      "elapsed_seconds": 0.7890303999993193,
+      "session": {
+        "id": "821dfebfb94f463c84f2eb73bbf9dc6c",
+        "load_seconds": 1.3660472000010486,
+        "pid": 22608
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "b813d175c5d04d3b924f4aa7ffa77255",
+      "elapsed_seconds": 1.12449800000104,
+      "session": {
+        "id": "821dfebfb94f463c84f2eb73bbf9dc6c",
+        "load_seconds": 1.3660472000010486,
+        "pid": 22608
+      }
+    }
+  ],
+  "errors": []
+}

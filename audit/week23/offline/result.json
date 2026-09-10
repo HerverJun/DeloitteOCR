@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "method": "Windows Filtering Platform ALE_AUTH_CONNECT V4/V6 per executable, dynamic session",
+  "external_probe": "WSAEACCES 10013 required for all Python runtimes and native Winsock",
+  "loopback": "allowed and tested",
+  "acceptance_exit_code": 0
+}

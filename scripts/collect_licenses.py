@@ -13,7 +13,7 @@ dest=a.bundle/'licenses'
 dest.mkdir(exist_ok=True)
 shutil.copy2(a.llama_source/'LICENSE',dest/'llama.cpp-LICENSE')
 records=[]
-for top in ['runtimes','models','licenses']:
+for top in ['runtimes','models','licenses','launcher']:
     for path in sorted((a.bundle/top).rglob('*')):
         if path.is_file() and any(word in path.name.upper() for word in ['LICENSE','NOTICE','COPYING','EULA']):
             with path.open('rb') as stream:

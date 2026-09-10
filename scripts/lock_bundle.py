@@ -14,7 +14,7 @@ locks = root/'locks'
 locks.mkdir(exist_ok=True)
 code = '''import importlib.metadata as m,json
 print(json.dumps(sorted([{'name':d.metadata['Name'],'version':d.version,'requires':d.requires or [],'license':d.metadata.get('License-Expression') or d.metadata.get('License')} for d in m.distributions()],key=lambda d:d['name'].lower())))'''
-for name in ['control', 'ppocr', 'paddlevl', 'glm', 'hunyuan']:
+for name in ['control', 'ppocr', 'paddlevl', 'glm', 'hunyuan']+(['service'] if (root/'runtimes/service/python.exe').exists() else []):
     exe = root/'runtimes'/name/'python.exe'
     info = json.loads(subprocess.check_output([str(exe),'-I','-c',code],text=True,encoding='utf-8'))
     (locks/f'{name}.json').write_text(json.dumps(info,ensure_ascii=False,indent=2),encoding='utf-8')
