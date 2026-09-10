@@ -1,0 +1,82 @@
+{
+  "regions": [
+    {
+      "index": 0,
+      "label": "table",
+      "score": 0.9605441689491272,
+      "bbox_2d": [
+        55,
+        176,
+        943,
+        672
+      ],
+      "polygon": [
+        [
+          55,
+          176
+        ],
+        [
+          55,
+          671
+        ],
+        [
+          942,
+          671
+        ],
+        [
+          942,
+          176
+        ]
+      ],
+      "task_type": "table",
+      "content": "<table border=\"1\"><tr><td colspan=\"4\">采购记录(合并标题)</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>"
+    }
+  ],
+  "generated": [
+    {
+      "bbox_2d": [
+        55,
+        176,
+        943,
+        672
+      ],
+      "task": "table",
+      "content": "<table border=\"1\"><tr><td colspan=\"4\">采购记录(合并标题)</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>"
+    }
+  ],
+  "official_formatted_json": [
+    [
+      {
+        "index": 0,
+        "label": "table",
+        "bbox_2d": [
+          55,
+          176,
+          943,
+          672
+        ],
+        "polygon": [
+          [
+            55,
+            176
+          ],
+          [
+            55,
+            671
+          ],
+          [
+            942,
+            671
+          ],
+          [
+            942,
+            176
+          ]
+        ],
+        "content": "<table border=\"1\"><tr><td colspan=\"4\">采购记录(合并标题)</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>",
+        "native_label": "table"
+      }
+    ]
+  ],
+  "official_markdown": "<table border=\"1\"><tr><td colspan=\"4\">采购记录(合并标题)</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>"
+}

@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "status": "success",
+  "engine": "hunyuan",
+  "engine_info": {
+    "name": "HunyuanOCR-1.5",
+    "route": "llama.cpp b10894 Windows CUDA 12.4, F16 GGUF and visual projector",
+    "models": [
+      "HunyuanOCR-GGUF"
+    ],
+    "capabilities": {
+      "text": true,
+      "text_coordinates": false,
+      "confidence": false,
+      "tables": true
+    }
+  },
+  "model_revisions": {
+    "HunyuanOCR-GGUF": "47644ecc4fc854efa4f505155158831f36773ee4"
+  },
+  "image": {
+    "source": "D:\\OCR 第一周 验收\\便携工作台\\fixtures\\printed.png",
+    "sha256": "fca9b0d75e9478fb62696496eaeb482ff354f7bd1d5032b43d0b90d5a4e00018",
+    "version": "93d74eef9707409a66da93de7a637b3aa3d8f5cea00e9a698341445d647668c7",
+    "width": 1400,
+    "height": 1000,
+    "coordinates": "prepared_image_pixels"
+  },
+  "elapsed_seconds": 3.8375464000000648,
+  "load_seconds": 2.8949155999998766,
+  "text": "离线识别兼容性测试\n\nOffline OCR Windows Test\n\n产品编号：00123456789012345678\n\n日期：2026-09-10 金额：128.50",
+  "blocks": [
+    {
+      "kind": "document",
+      "text": "离线识别兼容性测试\n\nOffline OCR Windows Test\n\n产品编号：00123456789012345678\n\n日期：2026-09-10 金额：128.50",
+      "confidence": null,
+      "polygon": null
+    }
+  ],
+  "tables": [],
+  "raw": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "离线识别兼容性测试\n\nOffline OCR Windows Test\n\n产品编号：00123456789012345678\n\n日期：2026-09-10 金额：128.50"
+        }
+      }
+    ],
+    "created": 1789054575,
+    "model": "HYVL",
+    "system_fingerprint": "b10894-d344123fe",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 36,
+      "prompt_tokens": 1443,
+      "total_tokens": 1479,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "id": "chatcmpl-PXPYMPiEIvRd5vzH6yJULWpWnXR9QHng",
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 1443,
+      "prompt_ms": 524.342,
+      "prompt_per_token_ms": 0.36336936936936937,
+      "prompt_per_second": 2752.0206277582192,
+      "predicted_n": 36,
+      "predicted_ms": 122.871,
+      "predicted_per_token_ms": 3.5105999999999997,
+      "predicted_per_second": 284.8515923204011
+    }
+  },
+  "runtime_audit": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "executable": "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\python.exe",
+    "loaded_modules": [
+      "C:\\Windows\\System32\\IPHLPAPI.DLL",
+      "C:\\Windows\\System32\\KernelBase.dll",
+      "C:\\Windows\\System32\\advapi32.dll",
+      "C:\\Windows\\System32\\bcrypt.dll",
+      "C:\\Windows\\System32\\bcryptprimitives.dll",
+      "C:\\Windows\\System32\\combase.dll",
+      "C:\\Windows\\System32\\crypt32.dll",
+      "C:\\Windows\\System32\\cryptbase.dll",
+      "C:\\Windows\\System32\\gdi32.dll",
+      "C:\\Windows\\System32\\gdi32full.dll",
+      "C:\\Windows\\System32\\imm32.dll",
+      "C:\\Windows\\System32\\kernel.appcore.dll",
+      "C:\\Windows\\System32\\kernel32.dll",
+      "C:\\Windows\\System32\\msasn1.dll",
+      "C:\\Windows\\System32\\msvcp_win.dll",
+      "C:\\Windows\\System32\\msvcrt.dll",
+      "C:\\Windows\\System32\\mswsock.dll",
+      "C:\\Windows\\System32\\ntdll.dll",
+      "C:\\Windows\\System32\\ole32.dll",
+      "C:\\Windows\\System32\\oleaut32.dll",
+      "C:\\Windows\\System32\\rpcrt4.dll",
+      "C:\\Windows\\System32\\sechost.dll",
+      "C:\\Windows\\System32\\ucrtbase.dll",
+      "C:\\Windows\\System32\\user32.dll",
+      "C:\\Windows\\System32\\version.dll",
+      "C:\\Windows\\System32\\win32u.dll",
+      "C:\\Windows\\System32\\ws2_32.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\PIL\\_imaging.cp312-win_amd64.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\_pillow_heif.cp312-win_amd64.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libde265-0-917e506a532d55cfb99a65f420b94dad.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libgcc_s_seh-1-35347f88da2137d3acaf083f81128552.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libheif-b635e78a7344f62641d67e07394f8251.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libstdc++-6-9fabacf176759adf41c62dee1152fe69.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libwinpthread-1-199474f4885374778124211409eb94f5.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\Lib\\site-packages\\libx265-215-6f48200d6b1de3157e62a6336079e247.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_bz2.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_ctypes.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_decimal.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_hashlib.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_lzma.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_socket.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\_ssl.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\libcrypto-3.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\libffi-8.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\libssl-3.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\python.exe",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\python3.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\python312.dll",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\select.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\unicodedata.pyd",
+      "D:\\OCR 第一周 验收\\便携工作台\\runtimes\\hunyuan\\vcruntime140.dll"
+    ],
+    "os_security_modules": [],
+    "non_system_modules_inside_bundle": true
+  }
+}

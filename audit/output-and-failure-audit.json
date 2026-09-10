@@ -1,0 +1,216 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "kind": "real_xlsx",
+      "case": "00-glm-table",
+      "passed": true,
+      "sheets": [
+        {
+          "name": "Table 1",
+          "merges": [
+            "A1:D1"
+          ],
+          "rows": 5,
+          "columns": 4,
+          "values": [
+            [
+              "采购记录(合并标题)",
+              null,
+              null,
+              null
+            ],
+            [
+              "编号",
+              "名称",
+              "数量",
+              "备注"
+            ],
+            [
+              "00123456789012345678",
+              "扫描仪",
+              "02",
+              "通过"
+            ],
+            [
+              "00002",
+              "打印机",
+              "01",
+              null
+            ],
+            [
+              "00003",
+              "相机",
+              "03",
+              "复核"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "real_xlsx",
+      "case": "00-hunyuan-table",
+      "passed": true,
+      "sheets": [
+        {
+          "name": "Table 1",
+          "merges": [],
+          "rows": 5,
+          "columns": 4,
+          "values": [
+            [
+              "采购记录（合并标题）",
+              null,
+              null,
+              null
+            ],
+            [
+              "编号",
+              "名称",
+              "数量",
+              "备注"
+            ],
+            [
+              "00123456789012345678",
+              "扫描仪",
+              "02",
+              "通过"
+            ],
+            [
+              "00002",
+              "打印机",
+              "01",
+              null
+            ],
+            [
+              "00003",
+              "相机",
+              "03",
+              "复核"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "real_xlsx",
+      "case": "00-paddlevl-table",
+      "passed": true,
+      "sheets": [
+        {
+          "name": "Table 1",
+          "merges": [
+            "A1:D1"
+          ],
+          "rows": 5,
+          "columns": 4,
+          "values": [
+            [
+              "采购记录（合并标题）",
+              null,
+              null,
+              null
+            ],
+            [
+              "编号",
+              "名称",
+              "数量",
+              "备注"
+            ],
+            [
+              "00123456789012345678",
+              "扫描仪",
+              "02",
+              "通过"
+            ],
+            [
+              "00002",
+              "打印机",
+              "01",
+              null
+            ],
+            [
+              "00003",
+              "相机",
+              "03",
+              "复核"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "corrupt_image",
+      "engine": "ppocr",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "UnidentifiedImageError",
+      "message": "cannot identify image file 'C:\\\\Users\\\\A\\\\AppData\\\\Local\\\\Temp\\\\ocr-negative-475gvaxc\\\\corrupt.png'",
+      "success_file_absent": true
+    },
+    {
+      "kind": "missing_model_manifest",
+      "engine": "ppocr",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "FileNotFoundError",
+      "message": "Missing model provenance manifest: C:\\Users\\A\\AppData\\Local\\Temp\\ocr-negative-475gvaxc\\missing-assets\\models\\PP-OCRv6_medium_det\\source-manifest.json",
+      "success_file_absent": true
+    },
+    {
+      "kind": "corrupt_image",
+      "engine": "paddlevl",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "UnidentifiedImageError",
+      "message": "cannot identify image file 'C:\\\\Users\\\\A\\\\AppData\\\\Local\\\\Temp\\\\ocr-negative-475gvaxc\\\\corrupt.png'",
+      "success_file_absent": true
+    },
+    {
+      "kind": "missing_model_manifest",
+      "engine": "paddlevl",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "FileNotFoundError",
+      "message": "Missing model provenance manifest: C:\\Users\\A\\AppData\\Local\\Temp\\ocr-negative-475gvaxc\\missing-assets\\models\\PaddleOCR-VL-1.6\\source-manifest.json",
+      "success_file_absent": true
+    },
+    {
+      "kind": "corrupt_image",
+      "engine": "glm",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "UnidentifiedImageError",
+      "message": "cannot identify image file 'C:\\\\Users\\\\A\\\\AppData\\\\Local\\\\Temp\\\\ocr-negative-475gvaxc\\\\corrupt.png'",
+      "success_file_absent": true
+    },
+    {
+      "kind": "missing_model_manifest",
+      "engine": "glm",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "FileNotFoundError",
+      "message": "Missing model provenance manifest: C:\\Users\\A\\AppData\\Local\\Temp\\ocr-negative-475gvaxc\\missing-assets\\models\\GLM-OCR\\source-manifest.json",
+      "success_file_absent": true
+    },
+    {
+      "kind": "corrupt_image",
+      "engine": "hunyuan",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "UnidentifiedImageError",
+      "message": "cannot identify image file 'C:\\\\Users\\\\A\\\\AppData\\\\Local\\\\Temp\\\\ocr-negative-475gvaxc\\\\corrupt.png'",
+      "success_file_absent": true
+    },
+    {
+      "kind": "missing_model_manifest",
+      "engine": "hunyuan",
+      "passed": true,
+      "exit_code": 1,
+      "error_type": "FileNotFoundError",
+      "message": "Missing model provenance manifest: C:\\Users\\A\\AppData\\Local\\Temp\\ocr-negative-475gvaxc\\missing-assets\\models\\HunyuanOCR-GGUF\\source-manifest.json",
+      "success_file_absent": true
+    }
+  ]
+}

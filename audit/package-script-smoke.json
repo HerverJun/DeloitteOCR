@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "archive": "test.zip",
+  "files": 102,
+  "bytes": 302990,
+  "method": "Full ZIP decompression/CRC and SHA-256 for every manifest file",
+  "seconds": 0.01600000000144064
+}

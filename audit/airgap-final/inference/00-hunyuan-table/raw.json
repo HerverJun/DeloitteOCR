@@ -1,0 +1,36 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "# 设备验收清单 / Equipment list\n\n<table><caption>采购记录（合并标题）</caption><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>"
+      }
+    }
+  ],
+  "created": 1789053759,
+  "model": "HYVL",
+  "system_fingerprint": "b10894-d344123fe",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 143,
+    "prompt_tokens": 1443,
+    "total_tokens": 1586,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "id": "chatcmpl-s1PtfWQFsT4iuh9sLmLPv6qFyGlZaYMY",
+  "timings": {
+    "cache_n": 0,
+    "prompt_n": 1443,
+    "prompt_ms": 523.548,
+    "prompt_per_token_ms": 0.3628191268191268,
+    "prompt_per_second": 2756.1942744504804,
+    "predicted_n": 143,
+    "predicted_ms": 483.131,
+    "predicted_per_token_ms": 3.402330985915493,
+    "predicted_per_second": 293.9161428266868
+  }
+}

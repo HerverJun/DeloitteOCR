@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "runtime": "control",
+      "exit_code": 0,
+      "stdout": "{\"external_connect_error\": 10013, \"loopback\": \"passed\"}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "ppocr",
+      "exit_code": 0,
+      "stdout": "{\"external_connect_error\": 10013, \"loopback\": \"passed\"}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "paddlevl",
+      "exit_code": 0,
+      "stdout": "{\"external_connect_error\": 10013, \"loopback\": \"passed\"}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "glm",
+      "exit_code": 0,
+      "stdout": "{\"external_connect_error\": 10013, \"loopback\": \"passed\"}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "hunyuan",
+      "exit_code": 0,
+      "stdout": "{\"external_connect_error\": 10013, \"loopback\": \"passed\"}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "native_winsock",
+      "exit_code": 0,
+      "stdout": "{\"native_connect_error\":10013}\n",
+      "stderr": ""
+    }
+  ]
+}

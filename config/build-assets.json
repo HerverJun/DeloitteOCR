@@ -1,0 +1,27 @@
+[
+  {
+    "file": "python-proxy.zip",
+    "url": "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
+    "sha256": "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3",
+    "bytes": 11133606
+  },
+  {
+    "file": "llama-b10894-bin-win-cuda-12.4-x64.zip",
+    "url": "https://github.com/ggml-org/llama.cpp/releases/download/b10894/llama-b10894-bin-win-cuda-12.4-x64.zip",
+    "sha256": "e0d7919b7bd00c60974a48d813025ef976df6ff3cfd2b6551e4c56155837308e",
+    "bytes": 254081147
+  },
+  {
+    "file": "cudart-llama-bin-win-cuda-12.4-x64.zip",
+    "url": "https://github.com/ggml-org/llama.cpp/releases/download/b10894/cudart-llama-bin-win-cuda-12.4-x64.zip",
+    "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+    "bytes": 391443627
+  },
+  {
+    "file": "llama-source.zip",
+    "url": "https://github.com/ggml-org/llama.cpp/archive/d344123fe2de081a72e02d6869360dfcbc0b528b.zip",
+    "sha256": "3b00a2d9c19a9976082c17c68d1e3225432c2ef2ed3d201bb219db2b6f1fc49e",
+    "bytes": 39395365,
+    "converter_sha256": "e9a1da876330bbce9687541ab31736542a01b4ac43c6686126514a50f122fb7f"
+  }
+]

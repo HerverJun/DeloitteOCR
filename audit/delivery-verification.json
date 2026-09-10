@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "created_at": "2026-09-10T15:45:20.053249+00:00",
+  "portable_archive": {
+    "archive": "OCR-week1-windows-x64.zip",
+    "bytes": 23368496471,
+    "sha256": "71d0af0f45b95278fc9118da32f413a41cdff6a22e39e54f659893ca54bfde75",
+    "files": 62629,
+    "uncompressed_bytes": 23888382295,
+    "seconds": 89.67200000000048
+  },
+  "archive_verification": {
+    "passed": true,
+    "archive": "OCR-week1-windows-x64.zip",
+    "files": 62629,
+    "bytes": 23888382295,
+    "method": "Full ZIP decompression/CRC and SHA-256 for every manifest file",
+    "seconds": 23.26599999999962
+  },
+  "directory_verification": {
+    "status": "success",
+    "errors": []
+  },
+  "os_isolation": {
+    "passed": true,
+    "method": "Windows Filtering Platform ALE_AUTH_CONNECT V4/V6 per executable, dynamic session",
+    "external_probe": "WSAEACCES 10013 required for all Python runtimes and native Winsock",
+    "loopback": "allowed and tested",
+    "acceptance_exit_code": 0
+  },
+  "real_engine_cases_passed": 8,
+  "unit_tests_passed": 9,
+  "xlsx_and_negative_checks_passed": 11,
+  "tested_gpu": "RTX 4070 Ti SUPER 16 GB, NVIDIA driver 595.97",
+  "scope": "Week 1 Windows compatibility; clean second machine/A4000/GUI/500-image batch remain later milestones"
+}

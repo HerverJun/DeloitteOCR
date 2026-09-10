@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "archive": "OCR-week1-windows-x64.zip",
+  "files": 62629,
+  "bytes": 23888382295,
+  "method": "Full ZIP decompression/CRC and SHA-256 for every manifest file",
+  "seconds": 23.26599999999962
+}

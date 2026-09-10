@@ -1,0 +1,98 @@
+{
+  "created_at": "2026-09-10T15:07:05.817308+00:00",
+  "bundle": "D:\\OCR 第一周 验收\\便携工作台",
+  "offline_evidence": "Python external sockets blocked; model offline flags; llama.cpp --offline. Not OS disconnection.",
+  "passed": false,
+  "records": [
+    {
+      "engine": "ppocr",
+      "fixture": "printed",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 43.13999999999942,
+      "stdout": "{\"engine\": \"ppocr\", \"status\": \"failed\", \"message\": \"ppocr failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-ppocr-printed\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "ppocr",
+      "fixture": "table",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 3.610000000000582,
+      "stdout": "{\"engine\": \"ppocr\", \"status\": \"failed\", \"message\": \"ppocr failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-ppocr-table\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "paddlevl",
+      "fixture": "printed",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 38.5619999999999,
+      "stdout": "{\"engine\": \"paddlevl\", \"status\": \"failed\", \"message\": \"paddlevl failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-paddlevl-printed\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "paddlevl",
+      "fixture": "table",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 3.5780000000013388,
+      "stdout": "{\"engine\": \"paddlevl\", \"status\": \"failed\", \"message\": \"paddlevl failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-paddlevl-table\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "glm",
+      "fixture": "printed",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 48.6869999999999,
+      "stdout": "{\"engine\": \"glm\", \"status\": \"failed\", \"message\": \"glm failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-glm-printed\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "glm",
+      "fixture": "table",
+      "cycle": 0,
+      "exit_code": 1,
+      "wall_seconds": 11.296999999998661,
+      "stdout": "{\"engine\": \"glm\", \"status\": \"failed\", \"message\": \"glm failed (1); see D:\\\\OCR \\u7b2c\\u4e00\\u5468 \\u9a8c\\u6536\\\\\\u6d4b\\u8bd5\\u7ed3\\u679c\\\\\\u7cfb\\u7edf\\u9694\\u79bb\\u6700\\u7ec8\\u9a8c\\u6536\\\\inference\\\\00-glm-table\\\\worker.log\"}\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "hunyuan",
+      "fixture": "printed",
+      "cycle": 0,
+      "exit_code": 0,
+      "wall_seconds": 2.6719999999986612,
+      "stdout": "{\"engine\": \"hunyuan\", \"status\": \"success\", \"seconds\": 2.5127675000003364, \"blocks\": 1, \"tables\": 0}\n",
+      "stderr": "",
+      "issues": [],
+      "elapsed_seconds": 2.5127675000003364,
+      "load_seconds": 1.6082323000009637,
+      "blocks": 1,
+      "tables": 0,
+      "passed": true
+    },
+    {
+      "engine": "hunyuan",
+      "fixture": "table",
+      "cycle": 0,
+      "exit_code": 0,
+      "wall_seconds": 3.140000000001237,
+      "stdout": "{\"engine\": \"hunyuan\", \"status\": \"success\", \"seconds\": 2.833181300000433, \"blocks\": 1, \"tables\": 1}\n",
+      "stderr": "",
+      "issues": [],
+      "elapsed_seconds": 2.833181300000433,
+      "load_seconds": 1.5755709999993996,
+      "blocks": 1,
+      "tables": 1,
+      "passed": true
+    }
+  ]
+}

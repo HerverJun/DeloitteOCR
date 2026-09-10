@@ -1,0 +1,247 @@
+0.00.078.071 I load_backend: loaded CUDA backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-cuda.dll
+0.00.078.270 I load_backend: loaded RPC backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-rpc.dll
+0.00.082.412 I load_backend: loaded CPU backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-cpu-alderlake.dll
+0.00.082.697 I load_backend: loaded CUDA backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-cuda.dll
+0.00.082.885 I load_backend: loaded RPC backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-rpc.dll
+0.00.086.629 I load_backend: loaded CPU backend from D:\OCR 第一周 验收\便携工作台\runtimes\llama\ggml-cpu-alderlake.dll
+0.00.086.746 I cmn  common_param: common_params_print_info: build 10894 (d344123fe) with Clang 20.1.8 for Windows x86_64
+0.00.086.748 I cmn  common_param: common_params_print_info: verbosity = 4 (adjust with the `-lv N` CLI arg)
+0.00.086.749 I cmn  common_param: device_info:
+0.00.160.574 I cmn  common_param:   - CUDA0   : NVIDIA GeForce RTX 4070 Ti SUPER (16375 MiB, 15111 MiB free)
+0.00.160.584 I cmn  common_param:   - CPU     : 13th Gen Intel(R) Core(TM) i5-13600KF (32581 MiB, 18669 MiB free)
+0.00.160.638 I cmn  common_param: system_info: n_threads = 14 (n_threads_batch = 14) / 20 | CUDA : ARCHS = 500,610,700,750,800,860,890,900 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX_VNNI = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.00.160.678 I srv          init: running without SSL
+0.00.160.691 I srv          init: api_keys: ****2e30
+0.00.160.733 I srv          init: using 19 threads for HTTP server
+0.00.160.909 I srv         start: binding port with default address family
+0.00.162.749 I srv    load_model: loading model 'D:\OCR 第一周 验收\便携工作台\models\HunyuanOCR-GGUF\hyocr-f16.gguf'
+0.00.162.751 I srv    load_model: local path 'D:\OCR 第一周 验收\便携工作台\models\HunyuanOCR-GGUF\hyocr-f16.gguf'
+0.00.183.995 I llama_model_loader: loaded meta data with 37 key-value pairs and 266 tensors from D:\OCR 第一周 验收\便携工作台\models\HunyuanOCR-GGUF\hyocr-f16.gguf (version GGUF V3 (latest))
+0.00.184.006 I llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+0.00.184.012 I llama_model_loader: - kv   0:                       general.architecture str              = hunyuan_vl
+0.00.184.013 I llama_model_loader: - kv   1:                               general.type str              = model
+0.00.184.013 I llama_model_loader: - kv   2:                               general.name str              = HunyuanOCR
+0.00.184.013 I llama_model_loader: - kv   3:                         general.size_label str              = 539M
+0.00.184.014 I llama_model_loader: - kv   4:                            general.license str              = other
+0.00.184.016 I llama_model_loader: - kv   5:                       general.license.name str              = tencent-hunyuan-community
+0.00.184.017 I llama_model_loader: - kv   6:                       general.license.link str              = https://huggingface.co/tencent/Hunyua...
+0.00.184.031 I llama_model_loader: - kv   7:                               general.tags arr[str,7]       = ["ocr", "vision-language-model", "doc...
+0.00.184.033 I llama_model_loader: - kv   8:                          general.languages arr[str,3]       = ["multilingual", "en", "zh"]
+0.00.184.036 I llama_model_loader: - kv   9:                     hunyuan_vl.block_count u32              = 24
+0.00.184.036 I llama_model_loader: - kv  10:                  hunyuan_vl.context_length u32              = 131072
+0.00.184.037 I llama_model_loader: - kv  11:                hunyuan_vl.embedding_length u32              = 1024
+0.00.184.037 I llama_model_loader: - kv  12:             hunyuan_vl.feed_forward_length u32              = 3584
+0.00.184.038 I llama_model_loader: - kv  13:            hunyuan_vl.attention.head_count u32              = 16
+0.00.184.038 I llama_model_loader: - kv  14:         hunyuan_vl.attention.head_count_kv u32              = 8
+0.00.184.041 I llama_model_loader: - kv  15:         hunyuan_vl.rope.dimension_sections arr[i32,4]       = [16, 16, 16, 16]
+0.00.184.045 I llama_model_loader: - kv  16:                  hunyuan_vl.rope.freq_base f32              = 10000.000000
+0.00.184.047 I llama_model_loader: - kv  17: hunyuan_vl.attention.layer_norm_rms_epsilon f32              = 0.000010
+0.00.184.047 I llama_model_loader: - kv  18:            hunyuan_vl.attention.key_length u32              = 128
+0.00.184.047 I llama_model_loader: - kv  19:          hunyuan_vl.attention.value_length u32              = 128
+0.00.184.048 I llama_model_loader: - kv  20:                          general.file_type u32              = 1
+0.00.184.048 I llama_model_loader: - kv  21:               hunyuan_vl.rope.scaling.type str              = none
+0.00.184.049 I llama_model_loader: - kv  22:             hunyuan_vl.rope.scaling.factor f32              = 1.000000
+0.00.184.050 I llama_model_loader: - kv  23:              hunyuan_vl.rope.scaling.alpha f32              = 1000.000000
+0.00.184.051 I llama_model_loader: - kv  24: hunyuan_vl.rope.scaling.original_context_length u32              = 131072
+0.00.184.051 I llama_model_loader: - kv  25:               general.quantization_version u32              = 2
+0.00.184.051 I llama_model_loader: - kv  26:                       tokenizer.ggml.model str              = gpt2
+0.00.184.052 I llama_model_loader: - kv  27:                         tokenizer.ggml.pre str              = hunyuan-dense
+0.00.200.404 I llama_model_loader: - kv  28:                      tokenizer.ggml.tokens arr[str,120818]  = ["!", "\"", "#", "$", "%", "&", "'", ...
+0.00.205.913 I llama_model_loader: - kv  29:                  tokenizer.ggml.token_type arr[i32,120818]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+0.00.222.195 I llama_model_loader: - kv  30:                      tokenizer.ggml.merges arr[str,119758]  = ["Ġ Ġ", "Ġ t", "Ġ a", "i n", "h e...
+0.00.222.203 I llama_model_loader: - kv  31:                tokenizer.ggml.bos_token_id u32              = 120000
+0.00.222.204 I llama_model_loader: - kv  32:                tokenizer.ggml.eos_token_id u32              = 120020
+0.00.222.206 I llama_model_loader: - kv  33:            tokenizer.ggml.padding_token_id u32              = 120002
+0.00.222.206 I llama_model_loader: - kv  34:          tokenizer.ggml.seperator_token_id u32              = 0
+0.00.222.209 I llama_model_loader: - kv  35:                    tokenizer.chat_template str              = {% if messages[0]['role'] == 'system'...
+0.00.222.209 I llama_model_loader: - kv  36:                tokenizer.ggml.eot_token_id u32              = 120007
+0.00.222.214 I llama_model_loader: - type  f32:   97 tensors
+0.00.222.214 I llama_model_loader: - type  f16:  169 tensors
+0.00.222.218 I print_info: file format = GGUF V3 (latest)
+0.00.222.218 I print_info: file type   = F16
+0.00.222.222 I print_info: file size   = 1.00 GiB (16.00 BPW) 
+0.00.222.268 I llama_prepare_model_devices: using device CUDA0 (NVIDIA GeForce RTX 4070 Ti SUPER) (0000:01:00.0) - 15111 MiB free
+0.00.259.236 I load: 0 unused tokens
+0.00.272.650 W load: special_eos_id is not in special_eog_ids - the tokenizer config may be incorrect
+0.00.272.658 W load: special_eot_id is not in special_eog_ids - the tokenizer config may be incorrect
+0.00.272.658 I load: printing all EOG tokens:
+0.00.272.659 I load:   - 120007 ('<｜hy_Assistant｜>')
+0.00.272.664 I load:   - 120020 ('<｜hy_place▁holder▁no▁2｜>')
+0.00.272.841 I load: special tokens cache size = 818
+0.00.286.757 I load: token to piece cache size = 0.8089 MB
+0.00.286.774 I print_info: arch                  = hunyuan_vl
+0.00.286.775 I print_info: vocab_only            = 0
+0.00.286.775 I print_info: no_alloc              = 0
+0.00.286.775 I print_info: n_ctx_train           = 131072
+0.00.286.776 I print_info: n_embd_inp            = 1024
+0.00.286.776 I print_info: n_embd                = 1024
+0.00.286.776 I print_info: n_embd_out            = 1024
+0.00.286.776 I print_info: n_layer               = 24
+0.00.286.777 I print_info: n_layer_all           = 24
+0.00.286.787 I print_info: n_head                = 16
+0.00.286.789 I print_info: n_head_kv             = 8
+0.00.286.789 I print_info: n_rot                 = 128
+0.00.286.789 I print_info: n_swa                 = 0
+0.00.286.790 I print_info: is_swa_any            = 0
+0.00.286.790 I print_info: non_causal_type       = 0
+0.00.286.790 I print_info: n_embd_head_k         = 128
+0.00.286.790 I print_info: n_embd_head_v         = 128
+0.00.286.791 I print_info: n_gqa                 = 2
+0.00.286.793 I print_info: n_embd_k_gqa          = 1024
+0.00.286.794 I print_info: n_embd_v_gqa          = 1024
+0.00.286.797 I print_info: f_norm_eps            = 0.0e+00
+0.00.286.798 I print_info: f_norm_rms_eps        = 1.0e-05
+0.00.286.798 I print_info: f_clamp_kqv           = 0.0e+00
+0.00.286.798 I print_info: f_max_alibi_bias      = 0.0e+00
+0.00.286.799 I print_info: f_logit_scale         = 0.0e+00
+0.00.286.799 I print_info: f_attn_scale          = 0.0e+00
+0.00.286.799 I print_info: f_attn_value_scale    = 0.0000
+0.00.286.800 I print_info: n_ff                  = 3584
+0.00.286.801 I print_info: n_expert              = 0
+0.00.286.801 I print_info: n_expert_used         = 0
+0.00.286.801 I print_info: n_expert_groups       = 0
+0.00.286.801 I print_info: n_group_used          = 0
+0.00.286.802 I print_info: causal attn           = 1
+0.00.286.802 I print_info: pooling type          = -1
+0.00.286.802 I print_info: rope type             = 8
+0.00.286.802 I print_info: rope scaling          = none
+0.00.286.803 I print_info: freq_base_train       = 11158844.0
+0.00.286.804 I print_info: freq_scale_train      = 1
+0.00.286.804 I print_info: n_ctx_orig_yarn       = 131072
+0.00.286.804 I print_info: rope_yarn_log_mul     = 0.0000
+0.00.286.805 I print_info: rope_finetuned        = unknown
+0.00.286.805 I print_info: mrope sections        = [16, 16, 16, 16]
+0.00.286.806 I print_info: model type            = 0.5B
+0.00.286.806 I print_info: model params          = 539.01 M
+0.00.286.807 I print_info: general.name          = HunyuanOCR
+0.00.286.808 I print_info: vocab type            = BPE
+0.00.286.808 I print_info: n_vocab               = 120818
+0.00.286.809 I print_info: n_merges              = 119758
+0.00.286.809 I print_info: BOS token             = 120000 '<｜hy_begin▁of▁sentence｜>'
+0.00.286.809 I print_info: EOS token             = 120020 '<｜hy_place▁holder▁no▁2｜>'
+0.00.286.810 I print_info: EOT token             = 120007 '<｜hy_Assistant｜>'
+0.00.286.810 I print_info: SEP token             = 0 '!'
+0.00.286.810 I print_info: PAD token             = 120002 '<｜hy_▁pad▁｜>'
+0.00.286.811 I print_info: LF token              = 185 'Ċ'
+0.00.286.811 I print_info: EOG token             = 120007 '<｜hy_Assistant｜>'
+0.00.286.811 I print_info: EOG token             = 120020 '<｜hy_place▁holder▁no▁2｜>'
+0.00.286.812 I print_info: max token length      = 1024
+0.00.286.835 I load_tensors: loading model tensors, this can take a while... (load_mode = mmap)
+0.00.346.389 I load_tensors: offloading output layer to GPU
+0.00.346.394 I load_tensors: offloading 23 repeating layers to GPU
+0.00.346.394 I load_tensors: offloaded 25/25 layers to GPU
+0.00.346.398 I load_tensors:   CPU_Mapped model buffer size =   235.97 MiB
+0.00.346.399 I load_tensors:        CUDA0 model buffer size =  1028.19 MiB
+0.00.624.053 I cmn  common_init_: added <｜hy_Assistant｜> logit bias = -inf
+0.00.624.059 I cmn  common_init_: added <｜hy_place▁holder▁no▁2｜> logit bias = -inf
+0.00.624.110 I llama_context: constructing llama_context
+0.00.624.115 I llama_context: n_seq_max             = 1
+0.00.624.115 I llama_context: n_ctx                 = 10240
+0.00.624.116 I llama_context: n_ctx_seq             = 10240
+0.00.624.116 I llama_context: n_batch               = 2048
+0.00.624.116 I llama_context: n_ubatch              = 512
+0.00.624.116 I llama_context: causal_attn           = 1
+0.00.624.117 I llama_context: flash_attn            = auto
+0.00.624.117 I llama_context: kv_unified            = false
+0.00.624.120 I llama_context: freq_base             = 11158844.0
+0.00.624.120 I llama_context: freq_scale            = 1
+0.00.624.121 I llama_context: n_rs_seq              = 0
+0.00.624.121 I llama_context: n_outputs_max         = 1
+0.00.624.121 I llama_context: n_outputs_max_per_seq = 1
+0.00.624.122 I llama_context: n_ctx_seq (10240) < n_ctx_train (131072) -- the full capacity of the model will not be utilized
+0.00.624.462 I llama_context:  CUDA_Host  output buffer size =     0.46 MiB
+0.00.625.461 I llama_kv_cache:      CUDA0 KV buffer size =   960.00 MiB
+0.00.646.124 I llama_kv_cache: size =  960.00 MiB ( 10240 cells,  24 layers,  1/1 seqs), K (f16):  480.00 MiB, V (f16):  480.00 MiB
+0.00.646.139 I llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+0.00.646.139 I llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 128
+0.00.646.153 I sched_reserve: reserving ...
+0.00.647.159 I resolve_fused_ops: Flash Attention enabled
+0.00.647.162 I resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+0.00.647.314 I resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+0.00.647.461 I resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+0.00.647.606 I resolve_fused_ops: fused DeepSeek V4 HC post enabled
+0.00.650.183 I sched_reserve:      CUDA0 compute buffer size =    39.02 MiB
+0.00.650.188 I sched_reserve:  CUDA_Host compute buffer size =    14.02 MiB
+0.00.650.189 I sched_reserve: graph nodes  = 846
+0.00.650.189 I sched_reserve: graph splits = 2
+0.00.650.189 I sched_reserve: reserve took 4.03 ms, sched copies = 1
+0.00.650.318 I cmn          init: llama threadpool init, n_threads = 14
+0.00.650.331 I cmn  common_init_: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.00.680.606 I clip_model_loader: model name:   HunyuanOCR
+0.00.680.611 I clip_model_loader: description:  
+0.00.680.612 I clip_model_loader: GGUF version: 3
+0.00.680.614 I clip_model_loader: alignment:    32
+0.00.680.615 I clip_model_loader: n_tensors:    447
+0.00.680.616 I clip_model_loader: n_kv:         27
+0.00.680.616 I 
+0.00.680.617 I clip_model_loader: has vision encoder
+0.00.681.402 I clip_ctx: CLIP using CUDA0 backend
+0.00.681.490 I load_hparams: projector:          hunyuanvl
+0.00.681.492 I load_hparams: n_embd:             1152
+0.00.681.493 I load_hparams: n_head:             16
+0.00.681.493 I load_hparams: n_ff:               4304
+0.00.681.493 I load_hparams: n_layer:            27
+0.00.681.493 I load_hparams: ffn_op:             gelu
+0.00.681.494 I load_hparams: projection_dim:     1024
+0.00.681.495 I 
+--- vision hparams ---
+0.00.681.495 I load_hparams: image_size:         2048
+0.00.681.496 I load_hparams: patch_size:         16
+0.00.681.496 I load_hparams: has_llava_proj:     0
+0.00.681.496 I load_hparams: minicpmv_version:   0
+0.00.681.496 I load_hparams: n_merge:            2
+0.00.681.496 I load_hparams: n_wa_pattern: 0
+0.00.681.497 I load_hparams: image_min_pixels:   262144
+0.00.681.497 I load_hparams: image_max_pixels:   16777216
+0.00.681.497 I 
+0.00.681.501 I load_hparams: model size:         908.83 MiB
+0.00.681.502 I load_hparams: metadata size:      0.16 MiB
+0.01.173.225 I get_dummy_batch: warmup with image size = 1024 x 1024
+0.01.177.098 I get_dummy_batch: warmup with image size = 1024 x 1024
+0.01.179.805 I reserve_compute_meta:      CUDA0 compute buffer size =   133.25 MiB
+0.01.179.809 I reserve_compute_meta:        CPU compute buffer size =    30.00 MiB
+0.01.179.810 I reserve_compute_meta: graph splits = 1, nodes = 888
+0.01.179.845 I warmup: flash attention is enabled
+0.01.180.271 I srv    load_model: loaded multimodal model, 'D:\OCR 第一周 验收\便携工作台\models\HunyuanOCR-GGUF\mmproj-hyocr-f16.gguf'
+0.01.191.975 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 10240, kv_unified = 'false'
+0.01.191.988 I spec common_specu: no implementations specified for speculative decoding
+0.01.191.993 I slot   load_model: id  0 | task -1 | new slot, n_ctx = 10240
+0.01.192.057 I srv    load_model: prompt cache is enabled, size limit: 8192 MiB
+0.01.192.059 I srv    load_model: use `--cache-ram 0` to disable the prompt cache
+0.01.192.060 I srv    load_model: for more info see https://github.com/ggml-org/llama.cpp/pull/16391
+0.01.192.060 I srv    load_model: context checkpoints enabled, max = 32, min spacing = 8192
+0.01.192.075 I srv          init: idle slots will be saved to prompt cache upon starting a new task
+0.01.194.764 I srv          init: init: chat template, example_format: '<｜hy_begin▁of▁sentence｜>You are a helpful assistant<｜hy_place▁holder▁no▁3｜>Hello<｜hy_User｜>Hi there<｜hy_Assistant｜>How are you?<｜hy_User｜>'
+0.01.195.704 I srv          init: init: chat template, thinking = 0
+0.01.195.713 I srv          init: preserve_reasoning kwarg: not supported by template
+0.01.195.726 I srv  llama_server: model loaded
+0.01.195.729 I srv  llama_server: listening on http://127.0.0.1:34171
+0.01.195.765 I srv  update_slots: all slots are idle
+0.01.260.191 I srv  server_strea: conv_id= (empty=1)
+0.01.291.132 I srv    operator(): chat format: peg-native
+0.01.291.275 I slot get_availabl: id  0 | task -1 |  - skipping, slot is empty
+0.01.291.280 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+0.01.291.280 I srv  get_availabl: updating prompt cache
+0.01.291.287 I srv          load:  - looking for better prompt, base f_keep = -1.000, f_sim = 0.000
+0.01.291.290 I srv        update:  - cache state: 0 prompts, 0.000 MiB (limits: 8192.000 MiB, 10240 tokens, 8589934592 est)
+0.01.291.291 I srv  get_availabl: prompt cache update took 0.01 ms
+0.01.291.314 I slot launch_slot_: id  0 | task -1 | sampler chain: logits -> penalties -> ?dry -> ?top-n-sigma -> ?top-k -> ?typical -> ?top-p -> min-p -> ?xtc -> temp-ext -> dist 
+0.01.291.322 I slot launch_slot_: id  0 | task -1 | sampler params: 
+	repeat_last_n = 64, repeat_penalty = 1.080, frequency_penalty = 0.000, presence_penalty = 0.000
+	dry_multiplier = 0.000, dry_base = 1.750, dry_allowed_length = 2, dry_penalty_last_n = 64
+	top_k = 0, top_p = 1.000, min_p = 0.050, xtc_probability = 0.000, xtc_threshold = 0.100, typical_p = 1.000, top_n_sigma = -1.000, temp = 0.000
+	mirostat = 0, mirostat_lr = 0.100, mirostat_ent = 5.000, adaptive_target = -1.000, adaptive_decay = 0.900
+0.01.291.323 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.01.291.329 I slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 10240, n_keep = 0, task.n_tokens = 1443
+0.01.291.334 I slot   operator(): id  0 | task 0 | cached n_tokens = 0, memory_seq_rm [0, end)
+0.01.294.300 I slot   operator(): id  0 | task 0 | cached n_tokens = 2, memory_seq_rm [2, end)
+0.01.294.315 I slot process_mtmd: id  0 | task 0 | encoding mtmd batch from idx = 2, n_chunks = 1
+0.01.770.297 I decoding image batch 1/1, n_tokens_batch = 1397
+0.01.800.227 I image decoded (batch 1/1) in 29 ms
+0.01.800.287 I slot init_sampler: id  0 | task 0 | init sampler, took 0.01 ms, tokens: text = 46, total = 1443
+0.01.936.554 I slot print_timing: id  0 | task 0 | prompt eval time =     522.23 ms /  1443 tokens (    0.36 ms per token,  2763.14 tokens per second)
+0.01.936.559 I slot print_timing: id  0 | task 0 |        eval time =     122.98 ms /    36 tokens (    3.51 ms per token,   284.60 tokens per second)
+0.01.936.560 I slot print_timing: id  0 | task 0 |       total time =     645.21 ms /  1479 tokens
+0.01.936.561 I slot print_timing: id  0 | task 0 |    graphs reused =         35
+0.01.936.580 I slot      release: id  0 | task 0 | stop processing: n_tokens = 1478, truncated = 0
+0.01.936.784 I srv  update_slots: all slots are idle

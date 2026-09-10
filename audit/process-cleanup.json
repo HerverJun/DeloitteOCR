@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "matching_bundle_python_or_llama_or_guard_processes": [],
+  "checked_after": "Final WFP 8-inference acceptance and negative cases"
+}

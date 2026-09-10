@@ -1,0 +1,12 @@
+{
+  "upstream_file": "paddlepaddle_gpu-3.3.1-cp312-cp312-win_amd64.whl",
+  "upstream_sha256": "ad733bfe59cf5978de2b338b6f29a7b3855bfb34d92b65fcb2d88c77aa312cbf",
+  "patched_file": "paddlepaddle_gpu-3.3.1+ocr.1-cp312-cp312-win_amd64.whl",
+  "patched_sha256": "2d722ae24a790f369ceadbf8f9e8792e1134dc736a4413d5f074e2e2ca76a952",
+  "changes": [
+    "Distribution version 3.3.1+ocr.1",
+    "cuDNN Requires-Dist 9.5.1.17 -> 9.9.0.52",
+    "Regenerated wheel RECORD"
+  ],
+  "inference_code_and_binaries": "byte-for-byte unchanged"
+}

@@ -1,0 +1,160 @@
+[
+  {
+    "res": {
+      "input_path": null,
+      "page_index": null,
+      "page_count": null,
+      "width": 1400,
+      "height": 1000,
+      "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+          "number",
+          "footnote",
+          "header",
+          "header_image",
+          "footer",
+          "footer_image",
+          "aside_text"
+        ],
+        "return_layout_polygon_points": true
+      },
+      "parsing_res_list": [
+        {
+          "block_label": "header",
+          "block_content": "设备验收清单 / Equipment list",
+          "block_bbox": [
+            72,
+            69,
+            560,
+            110
+          ],
+          "block_id": 0,
+          "block_order": null,
+          "group_id": 0,
+          "block_polygon_points": [
+            [
+              72.0,
+              69.0
+            ],
+            [
+              560.0,
+              69.0
+            ],
+            [
+              560.0,
+              110.0
+            ],
+            [
+              72.0,
+              110.0
+            ]
+          ]
+        },
+        {
+          "block_label": "table",
+          "block_content": "<table><tr><td colspan=\"4\">采购记录（合并标题）</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>",
+          "block_bbox": [
+            78,
+            177,
+            1322,
+            673
+          ],
+          "block_id": 1,
+          "block_order": null,
+          "group_id": 1,
+          "block_polygon_points": [
+            [
+              78.0,
+              177.0
+            ],
+            [
+              1322.0,
+              177.0
+            ],
+            [
+              1322.0,
+              673.0
+            ],
+            [
+              78.0,
+              673.0
+            ]
+          ]
+        }
+      ],
+      "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+          {
+            "cls_id": 12,
+            "label": "header",
+            "score": 0.42635971307754517,
+            "coordinate": [
+              72,
+              69,
+              560,
+              110
+            ],
+            "order": null,
+            "polygon_points": [
+              [
+                72.0,
+                69.0
+              ],
+              [
+                560.0,
+                69.0
+              ],
+              [
+                560.0,
+                110.0
+              ],
+              [
+                72.0,
+                110.0
+              ]
+            ]
+          },
+          {
+            "cls_id": 21,
+            "label": "table",
+            "score": 0.9605684876441956,
+            "coordinate": [
+              78,
+              177,
+              1322,
+              673
+            ],
+            "order": null,
+            "polygon_points": [
+              [
+                78.0,
+                177.0
+              ],
+              [
+                1322.0,
+                177.0
+              ],
+              [
+                1322.0,
+                673.0
+              ],
+              [
+                78.0,
+                673.0
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

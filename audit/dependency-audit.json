@@ -1,0 +1,32 @@
+[
+  {
+    "runtime": "control",
+    "status": "passed",
+    "checked": 0,
+    "errors": []
+  },
+  {
+    "runtime": "ppocr",
+    "status": "passed",
+    "checked": 111,
+    "errors": []
+  },
+  {
+    "runtime": "paddlevl",
+    "status": "passed",
+    "checked": 111,
+    "errors": []
+  },
+  {
+    "runtime": "glm",
+    "status": "passed",
+    "checked": 56,
+    "errors": []
+  },
+  {
+    "runtime": "hunyuan",
+    "status": "passed",
+    "checked": 4,
+    "errors": []
+  }
+]

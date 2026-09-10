@@ -1,0 +1,14 @@
+test_external_network_blocked_loopback_allowed (test_offline.OfflineTests.test_external_network_blocked_loopback_allowed) ... ok
+test_job_close_terminates_worker_and_descendant (test_processes.ProcessTests.test_job_close_terminates_worker_and_descendant) ... ok
+test_caption_preserved_without_inventing_a_span (test_tables.TableTests.test_caption_preserved_without_inventing_a_span) ... ok
+test_multiple_tables_and_markdown (test_tables.TableTests.test_multiple_tables_and_markdown) ... ok
+test_spans_empty_cells_and_exact_excel_strings (test_tables.TableTests.test_spans_empty_cells_and_exact_excel_strings) ... ok
+test_truncated_invalid_or_overlapping_table_fails (test_tables.TableTests.test_truncated_invalid_or_overlapping_table_fails) ... ok
+test_version_and_dependency_repaired_for_lf_and_crlf (test_wheel_patch.WheelPatchTests.test_version_and_dependency_repaired_for_lf_and_crlf) ... ok
+test_exception_still_removes_alias_and_preserves_model (test_windows_paths.PathTests.test_exception_still_removes_alias_and_preserves_model) ... ok
+test_unicode_model_alias_reads_real_bytes_and_cleans_only_link (test_windows_paths.PathTests.test_unicode_model_alias_reads_real_bytes_and_cleans_only_link) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.020s
+
+OK

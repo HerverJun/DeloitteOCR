@@ -1,0 +1,156 @@
+[
+  {
+    "model": "GLM-OCR",
+    "repo": "zai-org/GLM-OCR",
+    "revision": "ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+    "status": "verified",
+    "files": [
+      {
+        "file": "model.safetensors",
+        "sha256": "a16eb0de98d199293371c560f95f83130d2a2c9612449df16839f08ff9498815",
+        "bytes": 2650579464
+      }
+    ]
+  },
+  {
+    "model": "HunyuanOCR",
+    "repo": "tencent/HunyuanOCR",
+    "revision": "47644ecc4fc854efa4f505155158831f36773ee4",
+    "status": "verified",
+    "files": [
+      {
+        "file": "assets/HyOCR_1_5_teaser.png",
+        "sha256": "ec7042ae514e22c3b422ba7ad960b61e2ea3a585c6559ed2259b22de2302874f",
+        "bytes": 1713948
+      },
+      {
+        "file": "model.safetensors",
+        "sha256": "632a1e082c4dd5a3284cf1ffcdba2fdaa06f435762c58c2f34aff0f3bd6c0249",
+        "bytes": 2239932512
+      }
+    ]
+  },
+  {
+    "model": "HunyuanOCR-GGUF",
+    "status": "derived",
+    "conversion": {
+      "llama_commit": "d344123fe2de081a72e02d6869360dfcbc0b528b",
+      "outtype": "f16",
+      "source_sha256": "632a1e082c4dd5a3284cf1ffcdba2fdaa06f435762c58c2f34aff0f3bd6c0249"
+    }
+  },
+  {
+    "model": "PaddleOCR-VL-1.6",
+    "repo": "PaddlePaddle/PaddleOCR-VL-1.6",
+    "revision": "c5630abae1d940eafe0697512a0325494b02ab42",
+    "status": "verified",
+    "files": [
+      {
+        "file": "model.safetensors",
+        "sha256": "85a479d506a11e724e7285d395c551be69f41dbc16b6342d3cacfb189aed71db",
+        "bytes": 1917255968
+      },
+      {
+        "file": "tokenizer.json",
+        "sha256": "c8a215a59183d0d0781adc33bacd3ce6162716f7fd568fb30234a74d69803a7d",
+        "bytes": 11189060
+      },
+      {
+        "file": "tokenizer.model",
+        "sha256": "34ef7db83df785924fb83d7b887b6e822a031c56e15cff40aaf9b982988180df",
+        "bytes": 1614363
+      }
+    ]
+  },
+  {
+    "model": "PP-DocLayoutV3",
+    "repo": "PaddlePaddle/PP-DocLayoutV3",
+    "revision": "7b48a7566925fa464281f930c58eee04fe2c862a",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "70bd316b0582769ec968829fd1feb1a6a58b7c941b938327e551b6b12b45c137",
+        "bytes": 130806572
+      }
+    ]
+  },
+  {
+    "model": "PP-DocLayoutV3_safetensors",
+    "repo": "PaddlePaddle/PP-DocLayoutV3_safetensors",
+    "revision": "97d101e6db2642e162a1d05392d1b0231c91033e",
+    "status": "verified",
+    "files": [
+      {
+        "file": "model.safetensors",
+        "sha256": "5ea422c6cc5fe759a47e1357c35639b58173508e025a3131cbe4b6ac59e2b85e",
+        "bytes": 133270468
+      }
+    ]
+  },
+  {
+    "model": "PP-LCNet_x1_0_doc_ori",
+    "repo": "PaddlePaddle/PP-LCNet_x1_0_doc_ori",
+    "revision": "d3b95a6dff5fe8a94f2748e12b61cb26818a0df8",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "e8d6e7c5d264507e40e58a655779059d616b20d7441ea22047d829eb3931989c",
+        "bytes": 6754166
+      }
+    ]
+  },
+  {
+    "model": "PP-LCNet_x1_0_textline_ori",
+    "repo": "PaddlePaddle/PP-LCNet_x1_0_textline_ori",
+    "revision": "cd237a44b0e359d4fe38310a416203cf7403faa5",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "0de2bcf996cf553e2b848dd7b1769dafffc6917b1ccdf55c1d8efe7909fbf743",
+        "bytes": 6743918
+      }
+    ]
+  },
+  {
+    "model": "PP-OCRv6_medium_det",
+    "repo": "PaddlePaddle/PP-OCRv6_medium_det",
+    "revision": "8e0f56fb2ef86b461d99cfc7ac5c137738985f61",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "85218d2e3d98f5a21c58b4220627be923a97aee5db3cc71f39536ab31ac53960",
+        "bytes": 61960476
+      }
+    ]
+  },
+  {
+    "model": "PP-OCRv6_medium_rec",
+    "repo": "PaddlePaddle/PP-OCRv6_medium_rec",
+    "revision": "e5a92bcbc5cc1b494628e458d267778f0704fd7c",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "1b01c79a914587933f615569e75de54f2e638ebb5d3f3b3c1b38c24ede8c7319",
+        "bytes": 76465087
+      }
+    ]
+  },
+  {
+    "model": "UVDoc",
+    "repo": "PaddlePaddle/UVDoc",
+    "revision": "16c3f0ea9c2f0c6a57e24160f7eeaa7574613fa3",
+    "status": "verified",
+    "files": [
+      {
+        "file": "inference.pdiparams",
+        "sha256": "810488899520e0da843b9bd9769ba4949f1c81e357f0eceb12d4a7da459c3eca",
+        "bytes": 32054311
+      }
+    ]
+  }
+]

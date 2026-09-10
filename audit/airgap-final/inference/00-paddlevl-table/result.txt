@@ -1,0 +1,2 @@
+设备验收清单 / Equipment list
+<table><tr><td colspan="4">采购记录（合并标题）</td></tr><tr><td>编号</td><td>名称</td><td>数量</td><td>备注</td></tr><tr><td>00123456789012345678</td><td>扫描仪</td><td>02</td><td>通过</td></tr><tr><td>00002</td><td>打印机</td><td>01</td><td></td></tr><tr><td>00003</td><td>相机</td><td>03</td><td>复核</td></tr></table>

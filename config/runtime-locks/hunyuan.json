@@ -1,0 +1,77 @@
+[
+  {
+    "name": "et_xmlfile",
+    "version": "2.0.0",
+    "requires": [],
+    "license": "MIT"
+  },
+  {
+    "name": "openpyxl",
+    "version": "3.1.5",
+    "requires": [
+      "et-xmlfile"
+    ],
+    "license": "MIT"
+  },
+  {
+    "name": "pillow",
+    "version": "12.3.0",
+    "requires": [
+      "furo; extra == \"docs\"",
+      "olefile; extra == \"docs\"",
+      "sphinx>=8.2; extra == \"docs\"",
+      "sphinx-autobuild; extra == \"docs\"",
+      "sphinx-copybutton; extra == \"docs\"",
+      "sphinx-inline-tabs; extra == \"docs\"",
+      "sphinxext-opengraph; extra == \"docs\"",
+      "olefile; extra == \"fpx\"",
+      "olefile; extra == \"mic\"",
+      "arro3-compute; extra == \"test-arrow\"",
+      "arro3-core; extra == \"test-arrow\"",
+      "nanoarrow; extra == \"test-arrow\"",
+      "pyarrow; extra == \"test-arrow\"",
+      "coverage>=7.4.2; extra == \"tests\"",
+      "defusedxml; extra == \"tests\"",
+      "markdown2; extra == \"tests\"",
+      "olefile; extra == \"tests\"",
+      "packaging; extra == \"tests\"",
+      "pytest; extra == \"tests\"",
+      "pytest-cov; extra == \"tests\"",
+      "pytest-timeout; extra == \"tests\"",
+      "pytest-xdist; extra == \"tests\"",
+      "setuptools; extra == \"tests\"",
+      "trove-classifiers>=2024.10.12; extra == \"tests\"",
+      "defusedxml; extra == \"xmp\""
+    ],
+    "license": "MIT-CMU"
+  },
+  {
+    "name": "pillow_heif",
+    "version": "1.3.0",
+    "requires": [
+      "pillow>=11.1.0",
+      "sphinx>=4.4; extra == \"docs\"",
+      "sphinx-issues>=3.0.1; extra == \"docs\"",
+      "sphinx-rtd-theme>=1.0; extra == \"docs\"",
+      "pytest; extra == \"tests-min\"",
+      "defusedxml; extra == \"tests-min\"",
+      "packaging; extra == \"tests-min\"",
+      "pytest; extra == \"tests\"",
+      "defusedxml; extra == \"tests\"",
+      "packaging; extra == \"tests\"",
+      "numpy; extra == \"tests\"",
+      "pympler; extra == \"tests\"",
+      "pytest; extra == \"dev\"",
+      "defusedxml; extra == \"dev\"",
+      "packaging; extra == \"dev\"",
+      "numpy; extra == \"dev\"",
+      "pympler; extra == \"dev\"",
+      "opencv-python==4.13.0.92; extra == \"dev\"",
+      "pre-commit; extra == \"dev\"",
+      "pylint; extra == \"dev\"",
+      "coverage; extra == \"dev\"",
+      "setuptools; extra == \"dev\""
+    ],
+    "license": "BSD-3-Clause"
+  }
+]

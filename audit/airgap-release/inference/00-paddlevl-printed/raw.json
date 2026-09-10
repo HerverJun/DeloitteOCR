@@ -1,0 +1,282 @@
+[
+  {
+    "res": {
+      "input_path": null,
+      "page_index": null,
+      "page_count": null,
+      "width": 1400,
+      "height": 1000,
+      "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+          "number",
+          "footnote",
+          "header",
+          "header_image",
+          "footer",
+          "footer_image",
+          "aside_text"
+        ],
+        "return_layout_polygon_points": true
+      },
+      "parsing_res_list": [
+        {
+          "block_label": "text",
+          "block_content": "离线识别兼容性测试",
+          "block_bbox": [
+            77,
+            93,
+            390,
+            134
+          ],
+          "block_id": 0,
+          "block_order": 1,
+          "group_id": 0,
+          "block_polygon_points": [
+            [
+              77.0,
+              93.0
+            ],
+            [
+              390.0,
+              93.0
+            ],
+            [
+              390.0,
+              134.0
+            ],
+            [
+              77.0,
+              134.0
+            ]
+          ]
+        },
+        {
+          "block_label": "text",
+          "block_content": "Offline OCR Windows Test",
+          "block_bbox": [
+            77,
+            189,
+            516,
+            228
+          ],
+          "block_id": 1,
+          "block_order": 2,
+          "group_id": 1,
+          "block_polygon_points": [
+            [
+              77.0,
+              189.0
+            ],
+            [
+              516.0,
+              189.0
+            ],
+            [
+              516.0,
+              228.0
+            ],
+            [
+              77.0,
+              228.0
+            ]
+          ]
+        },
+        {
+          "block_label": "text",
+          "block_content": "产品编号：00123456789012345678",
+          "block_bbox": [
+            74,
+            283,
+            653,
+            324
+          ],
+          "block_id": 2,
+          "block_order": 3,
+          "group_id": 2,
+          "block_polygon_points": [
+            [
+              74.0,
+              283.0
+            ],
+            [
+              653.0,
+              283.0
+            ],
+            [
+              653.0,
+              324.0
+            ],
+            [
+              74.0,
+              324.0
+            ]
+          ]
+        },
+        {
+          "block_label": "text",
+          "block_content": "日期：2026-09-10 金额：128.50",
+          "block_bbox": [
+            79,
+            378,
+            606,
+            420
+          ],
+          "block_id": 3,
+          "block_order": 4,
+          "group_id": 3,
+          "block_polygon_points": [
+            [
+              79.0,
+              378.0
+            ],
+            [
+              606.0,
+              378.0
+            ],
+            [
+              606.0,
+              420.0
+            ],
+            [
+              79.0,
+              420.0
+            ]
+          ]
+        }
+      ],
+      "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+          {
+            "cls_id": 22,
+            "label": "text",
+            "score": 0.8038533329963684,
+            "coordinate": [
+              77,
+              93,
+              390,
+              134
+            ],
+            "order": 1,
+            "polygon_points": [
+              [
+                77.0,
+                93.0
+              ],
+              [
+                390.0,
+                93.0
+              ],
+              [
+                390.0,
+                134.0
+              ],
+              [
+                77.0,
+                134.0
+              ]
+            ]
+          },
+          {
+            "cls_id": 22,
+            "label": "text",
+            "score": 0.7132335305213928,
+            "coordinate": [
+              77,
+              189,
+              516,
+              228
+            ],
+            "order": 2,
+            "polygon_points": [
+              [
+                77.0,
+                189.0
+              ],
+              [
+                516.0,
+                189.0
+              ],
+              [
+                516.0,
+                228.0
+              ],
+              [
+                77.0,
+                228.0
+              ]
+            ]
+          },
+          {
+            "cls_id": 22,
+            "label": "text",
+            "score": 0.7917352914810181,
+            "coordinate": [
+              74,
+              283,
+              653,
+              324
+            ],
+            "order": 3,
+            "polygon_points": [
+              [
+                74.0,
+                283.0
+              ],
+              [
+                653.0,
+                283.0
+              ],
+              [
+                653.0,
+                324.0
+              ],
+              [
+                74.0,
+                324.0
+              ]
+            ]
+          },
+          {
+            "cls_id": 22,
+            "label": "text",
+            "score": 0.8029302954673767,
+            "coordinate": [
+              79,
+              378,
+              606,
+              420
+            ],
+            "order": 4,
+            "polygon_points": [
+              [
+                79.0,
+                378.0
+              ],
+              [
+                606.0,
+                378.0
+              ],
+              [
+                606.0,
+                420.0
+              ],
+              [
+                79.0,
+                420.0
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  }
+]
