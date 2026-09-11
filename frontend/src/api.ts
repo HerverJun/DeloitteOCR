@@ -35,10 +35,14 @@ export async function api<T = any>(
     })
   ).json();
 }
-export async function download(ids: string[], format: string) {
+export async function download(
+  ids: string[],
+  format: string,
+  aggregate = false,
+) {
   const response = await request("/export", {
     method: "POST",
-    body: JSON.stringify({ result_ids: ids, format }),
+    body: JSON.stringify({ result_ids: ids, format, aggregate }),
   });
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);

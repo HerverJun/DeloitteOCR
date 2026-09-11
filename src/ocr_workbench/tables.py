@@ -118,6 +118,6 @@ def export_xlsx(tables, path):
                                   end_column=col + cell['column_span'] - 1)
         for col in range(1, table['columns'] + 1):
             sheet.column_dimensions[get_column_letter(col)].width = 24
-    if not tables:
+    if not book.worksheets:
         raise ValueError('No recognized tables; refusing to export an empty workbook')
     book.save(path)

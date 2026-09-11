@@ -4,14 +4,14 @@ import path from "node:path";
 const root = process.env.OCR_BUILD_ROOT || "E:/OCR-week23-build";
 const state = JSON.parse(
   await fs.readFile(
-    path.join(root, "ui-project/launcher/launcher-state.json"),
+    process.env.OCR_STATE_FILE || path.join(root, "ui-project/launcher/launcher-state.json"),
     "utf8",
   ),
 );
 const token = (
   await fs.readFile(path.join(state.data, "launcher/session-token.txt"), "utf8")
 ).trim();
-const out = path.join(root, "ui-audit");
+const out = process.env.OCR_UI_OUTPUT || path.join(root, "ui-audit");
 await fs.mkdir(out, { recursive: true });
 const base = "http://127.0.0.1:" + state.port;
 const browser = await chromium.launch({
@@ -86,8 +86,7 @@ try {
     page.getByLabel("当前项目").locator("option:checked"),
   ).toHaveText("浏览器完整验收");
   await page
-    .locator("input[type=file]")
-    .first()
+    .locator("input[type=file][accept*=png]")
     .setInputFiles(path.join(root, "bundle/fixtures/table.png"));
   await expect(page.getByRole("img", { name: "当前图片版本" })).toBeVisible();
   check("named project import waits for project creation");
@@ -311,7 +310,7 @@ try {
     path.join(root, "bundle/fixtures/printed.png"),
     path.join(folder, "folder.png"),
   );
-  await page.locator("input[type=file]").nth(1).setInputFiles(folder);
+  await page.locator("input[webkitdirectory]").setInputFiles(folder);
   await expect(page.locator(".photo-name strong")).toHaveCount(2);
   const bytes = await fs.readFile(
     path.join(root, "bundle/fixtures/printed.png"),

@@ -10,6 +10,7 @@ import time
 import uuid
 from ocr_workbench.processes import ProcessJob
 from ocr_workbench.engine_host import publish
+from ocr_workbench.atomic_files import read_json
 
 
 class Cancelled(Exception):
@@ -79,6 +80,7 @@ class EngineAdapter:
             self.process = subprocess.Popen(
                 [
                     str(runtime),
+                    "-B",
                     "-X",
                     "utf8",
                     "-I",
@@ -112,7 +114,7 @@ class EngineAdapter:
             if self.cancelled.is_set():
                 raise Cancelled("任务已取消")
             if path.exists():
-                return json.loads(path.read_text(encoding="utf-8"))
+                return read_json(path)
             if self.process is None or self.process.poll() is not None:
                 raise RuntimeError(f'引擎异常退出，请查看 {self.ipc / "engine.log"}')
             self.cancelled.wait(0.05)

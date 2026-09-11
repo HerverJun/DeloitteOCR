@@ -10,9 +10,9 @@ from types import SimpleNamespace
 
 
 def publish(path, data):
-    pending = path.with_suffix(".tmp")
-    pending.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
-    pending.replace(path)
+    from ocr_workbench.atomic_files import write_json
+
+    write_json(path, data)
 
 
 class Resident:
@@ -69,6 +69,15 @@ class Resident:
             raw, blocks, _ = paddle_engine(
                 self.engine, self.models, image, self.session, self.loaded
             )
+            if self.engine == "paddlevl":
+                # Variable page shapes otherwise retain gigabytes of unused
+                # allocator blocks between tasks. Outputs are already on CPU;
+                # keep live model tensors, precision and decoding unchanged.
+                import gc
+                import paddle
+
+                gc.collect()
+                paddle.device.cuda.empty_cache()
         elif self.engine == "glm":
             from ocr_workbench.glm import recognize
 

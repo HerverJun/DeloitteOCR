@@ -59,7 +59,17 @@ class Store:
                 )
             if "result_version_id" not in columns:
                 db.execute("ALTER TABLE tasks ADD COLUMN result_version_id TEXT")
-            db.execute("PRAGMA user_version=2")
+            if "preprocess" not in columns:
+                db.execute(
+                    "ALTER TABLE tasks ADD COLUMN preprocess TEXT NOT NULL DEFAULT '[]'"
+                )
+            if "input_version_id" not in columns:
+                db.execute("ALTER TABLE tasks ADD COLUMN input_version_id TEXT")
+            if "engine_package" not in columns:
+                db.execute(
+                    "ALTER TABLE tasks ADD COLUMN engine_package TEXT NOT NULL DEFAULT 'builtin'"
+                )
+            db.execute("PRAGMA user_version=4")
 
     @contextmanager
     def transaction(self):
@@ -114,15 +124,23 @@ class Store:
                 "UPDATE tasks SET status='paused',phase='等待继续' WHERE status='queued'"
             )
 
-    def enqueue(self, project_id, versions, engines):
+    def enqueue(
+        self, project_id, versions, engines, preprocess=None, engine_packages=None
+    ):
+        from ocr_workbench.imaging import validate_preset
+
+        preprocess = validate_preset(preprocess or [])
         self.one("projects", project_id)
-        if not versions or len(versions) > 1000 or not engines or len(engines) > 4:
+        packages = engine_packages or {
+            e: "builtin" for e in ["ppocr", "paddlevl", "glm", "hunyuan"]
+        }
+        if not versions or len(versions) > 1000 or not engines or len(engines) > 16:
             raise ValueError("请选择图片与引擎；单次最多 1000 张")
         batch = now() + "-" + uid()
         tasks = []
         with self.transaction() as db:
             for engine in dict.fromkeys(engines):
-                if engine not in {"ppocr", "paddlevl", "glm", "hunyuan"}:
+                if engine not in packages:
                     raise ValueError("未知识别引擎")
                 for version_id in dict.fromkeys(versions):
                     version = db.execute(
@@ -133,7 +151,7 @@ class Store:
                         raise ValueError("图片版本不属于当前项目")
                     key = uid()
                     db.execute(
-                        "INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created) VALUES(?,?,?,?,?,?,?,?,?)",
+                        "INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,preprocess,input_version_id,engine_package) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                         (
                             key,
                             project_id,
@@ -144,6 +162,9 @@ class Store:
                             "queued",
                             "等待识别",
                             now(),
+                            encoded(preprocess),
+                            version_id,
+                            packages[engine],
                         ),
                     )
                     tasks.append(key)

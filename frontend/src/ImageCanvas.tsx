@@ -452,6 +452,7 @@ export function operationName(value: string) {
         perspective: "透视校正",
         contrast: "对比度",
         dewarp: "去弯曲",
+        batch: "批次预处理",
       } as Record<string, string>
     )[kind] || kind
   );

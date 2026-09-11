@@ -1,0 +1,5 @@
+{
+  "machine_sha256": "948d9c2a5c04299e265546db570af92d7d9a858f50325921c7d57dd76e018360",
+  "windows": "Windows-11-10.0.22631-SP0",
+  "purpose": "Reject development PC evidence for required separate clean Windows and A4000 gates; no raw machine identifier retained."
+}

@@ -15,6 +15,7 @@ import uuid
 from PIL import Image, ImageDraw
 from pillow_heif import register_heif_opener
 from openpyxl import load_workbook
+from ocr_workbench import __version__
 
 
 def alive(pid):
@@ -52,6 +53,7 @@ class Application:
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
     def start(self):
+        launched_at = time.time()
         self.process = subprocess.Popen(
             [
                 str(self.bundle / "launcher/OfflineOCRLauncher.exe"),
@@ -63,6 +65,20 @@ class Application:
         )
 
         def ready():
+            startup_file = self.data / "launcher/startup-state.json"
+            try:
+                startup = json.loads(startup_file.read_text("utf-8"))
+                if (
+                    startup.get("status") == "failed"
+                    and self.process.poll() is None
+                    and startup_file.stat().st_mtime >= launched_at
+                ):
+                    # Only terminate this auditor's own failed launcher (service is dead).
+                    self.process.terminate()
+                    self.process.wait(15)
+                    raise RuntimeError(startup.get("message", "Startup check failed"))
+            except (OSError, ValueError):
+                pass
             try:
                 self.state = json.loads(
                     (self.data / "launcher/launcher-state.json").read_text("utf-8")
@@ -75,13 +91,19 @@ class Application:
                     .strip()
                 )
                 self.base = "http://127.0.0.1:" + str(self.state["port"])
-                return self.api("/health")["status"] == "ready"
+                health = self.api("/health")
+                if health["status"] == "ready":
+                    if health.get("version") != __version__:
+                        raise RuntimeError("Service version differs from packaged application version")
+                    self.health = health
+                    return True
+                return False
             except (OSError, ValueError, urllib.error.URLError):
                 return False
 
-        until(ready, 60)
+        until(ready, 600)
 
-    def api(self, path, method="GET", body=None, raw=False, headers=None):
+    def api(self, path, method="GET", body=None, raw=False, headers=None, timeout=120):
         request_headers = {"Authorization": "Bearer " + self.token}
         if headers is not None:
             request_headers = headers
@@ -91,7 +113,7 @@ class Application:
         request = urllib.request.Request(
             self.base + "/api" + path, data=body, method=method, headers=request_headers
         )
-        with self.opener.open(request, timeout=120) as response:
+        with self.opener.open(request, timeout=timeout) as response:
             value = response.read()
         return value if raw else json.loads(value)
 
@@ -155,7 +177,7 @@ def main():
         raise ValueError("Use a fresh evidence directory")
     args.output.mkdir(parents=True, exist_ok=True)
     app = Application(args.bundle.resolve(), args.output.resolve())
-    report = {"passed": False, "checks": [], "engines": [], "errors": []}
+    report = {"passed": False, "quick": args.quick, "checks": [], "engines": [], "errors": []}
 
     def check(name, condition=True):
         if not condition:
@@ -173,7 +195,10 @@ def main():
 
     try:
         app.start()
+        report["health"] = app.health
+        report["bundle_manifest_sha256"] = hashlib.sha256((args.bundle / "manifest.json").read_bytes()).hexdigest()
         check("packaged launcher starts embedded service in Chinese data path")
+        check("health reports packaged application version")
         expect_status(lambda: app.api("/state", headers={}), 401)
         expect_status(
             lambda: app.api("/state", headers={"Origin": "https://example.com"}), 403
@@ -435,6 +460,7 @@ def main():
                 {
                     "result_ids": [r["id"] for r in results if r["edited"]["tables"]],
                     "format": "xlsx",
+                    "aggregate": True,
                 },
                 raw=True,
             )

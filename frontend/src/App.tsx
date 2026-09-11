@@ -42,6 +42,8 @@ import { api, request, download } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { useEditor } from "./useEditor";
+import { ProjectStorage } from "./ProjectStorage";
+import { EnginePackages } from "./EnginePackages";
 import { engineNames, statuses } from "./types";
 import type {
   Project,
@@ -93,6 +95,7 @@ export function App() {
   const [selected, setSelected] = useState<string[]>([]);
   const [mode, setMode] = useState("text");
   const [engine, setEngine] = useState("ppocr");
+  const [preprocess, setPreprocess] = useState("none");
   const [tab, setTab] = useState("text");
   const [busy, setBusy] = useState(false);
   const [initial, setInitial] = useState(true);
@@ -107,6 +110,7 @@ export function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("xlsx");
   const [exportMany, setExportMany] = useState(false);
+  const [exportAggregate, setExportAggregate] = useState(false);
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -296,6 +300,17 @@ export function App() {
     if (!photos.length) throw Error("请先导入或选择图片");
     await api("/projects/" + projectId + "/tasks", "POST", {
       version_ids: photos.map((p) => p.active_version),
+      preprocess:
+        preprocess === "contrast"
+          ? [{ kind: "contrast", factor: 1.3 }]
+          : preprocess === "rotate"
+            ? [{ kind: "rotate", degrees: 90 }]
+            : preprocess === "rotate-contrast"
+              ? [
+                  { kind: "rotate", degrees: 90 },
+                  { kind: "contrast", factor: 1.3 },
+                ]
+              : [],
       engines: engine === "all" ? Object.keys(engines) : [engine],
     });
     setShowQueue(true);
@@ -360,21 +375,30 @@ export function App() {
     await editor.flush();
     let ids: string[] = [];
     if (exportMany) {
+      const latest = await api<ProjectState>("/projects/" + projectId);
       const photos =
-        project?.images.filter(
+        latest.images.filter(
           (p) => !selected.length || selected.includes(p.id),
         ) || [];
       ids = photos
         .map(
           (p) =>
             p.selected_result ||
-            project?.tasks
+            latest.tasks
               .filter((t) => t.image_id === p.id && t.result_id)
               .at(-1)?.result_id,
         )
         .filter(Boolean) as string[];
+      if (ids.length !== photos.length)
+        throw new Error(
+          `所选 ${photos.length} 张图片中有 ${photos.length - ids.length} 张尚无可导出的结果，请等待识别或调整选择。`,
+        );
     } else if (editor.result) ids = [editor.result.id];
-    await download(ids, exportFormat);
+    await download(
+      ids,
+      exportFormat,
+      exportMany && exportFormat === "xlsx" && exportAggregate,
+    );
     setExportOpen(false);
     notify("导出文件已生成");
   };
@@ -420,6 +444,14 @@ export function App() {
           <span>离线 OCR 工作台</span>
         </a>
         <div className="header-right">
+          <EnginePackages
+            onError={onError}
+            onChange={async () => {
+              const value = await api("/state");
+              setEngines(value.engines);
+              notify("引擎版本已更新，已有任务仍使用原版本");
+            }}
+          />
           <span className="offline-status">
             <span />
             仅在本机处理
@@ -482,6 +514,25 @@ export function App() {
               <PenLine size={14} />
             </button>
           </div>
+          <ProjectStorage
+            id={projectId}
+            name={project?.project.name || ""}
+            onError={onError}
+            onDelete={async (confirmation) => {
+              await editor.flush();
+              const value = await api("/projects/" + projectId, "DELETE", {
+                confirmation,
+              });
+              const remaining = projects.filter((p) => p.id !== projectId);
+              setProjects(remaining);
+              await chooseProject(remaining[0]?.id || "");
+              notify(
+                value.cleanup_pending
+                  ? "项目已删除，部分文件将在下次启动继续清理"
+                  : "项目已清理",
+              );
+            }}
+          />
           <div className="import-actions">
             <Button
               appearance="primary"
@@ -636,6 +687,19 @@ export function App() {
               ))}
             </div>
             <div className="engine-choice">
+              <label>
+                批次预处理
+                <select
+                  aria-label="批次预处理"
+                  value={preprocess}
+                  onChange={(e) => setPreprocess(e.target.value)}
+                >
+                  <option value="none">保留当前图像</option>
+                  <option value="contrast">增强对比度</option>
+                  <option value="rotate">顺时针旋转 90°</option>
+                  <option value="rotate-contrast">旋转并增强对比度</option>
+                </select>
+              </label>
               <label>
                 识别引擎
                 <select
@@ -1229,11 +1293,21 @@ export function App() {
                   checked={exportMany}
                   onChange={(e) => setExportMany(e.target.checked)}
                 />
-                汇总选中图片采用的结果
+                导出选中图片采用的结果
                 {selected.length ? ` (${selected.length} 张)` : " (当前项目)"}
               </label>
+              {exportFormat === "xlsx" && exportMany && (
+                <label className="export-scope">
+                  <input
+                    type="checkbox"
+                    checked={exportAggregate}
+                    onChange={(e) => setExportAggregate(e.target.checked)}
+                  />
+                  汇总为一个工作簿
+                </label>
+              )}
               <p className="dialog-description">
-                Excel
+                默认每张图片独立文件，多张打包为 ZIP。Excel
                 中每个表格单独一页，保留合并关系、前导零与长编号。导出前会先保存当前校对。
               </p>
             </DialogContent>
@@ -1298,7 +1372,7 @@ function Thumbnail({ id }: { id: string }) {
   useEffect(() => {
     let alive = true;
     let value = "";
-    request("/versions/" + id + "/image")
+    request("/versions/" + id + "/thumbnail")
       .then((r) => r.blob())
       .then((blob) => {
         value = URL.createObjectURL(blob);

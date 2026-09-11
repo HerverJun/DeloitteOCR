@@ -1,0 +1,47 @@
+{
+  "method": "Codex visual inspection of all 40 table crops before inference; these are source-image characteristics, not OCR success claims. Structural merge/empty labels are also available in original HTML annotations.",
+  "samples": [
+    {
+      "id": "0165",
+      "image_sha256": "152d84557f7cd75d7902df5d02b70b14c91cb23634a164c3a7f2c55847c0baf6",
+      "tags": [
+        "real_handwritten_table"
+      ]
+    },
+    {
+      "id": "0169",
+      "image_sha256": "c6594349a52c567497dba38c80cdbab9e850c70341664703b86a002569c06dd4",
+      "tags": [
+        "rotated_90_degrees"
+      ]
+    },
+    {
+      "id": "0172",
+      "image_sha256": "db7b42f8f2c7ba1761fa637fce81f95ed805040ac97d606c3d5e7d88b6e289f4",
+      "tags": [
+        "long_alphanumeric_identifier"
+      ]
+    },
+    {
+      "id": "0176",
+      "image_sha256": "d088b871ba2bc57fbe20cc3c26bfab3822ad102d736fa208514854842becf581",
+      "tags": [
+        "real_handwritten_table"
+      ]
+    },
+    {
+      "id": "0180",
+      "image_sha256": "23cf7733b0bb34000453fd7cc90589994273c6854983880559f3a24c7b92b704",
+      "tags": [
+        "no_visible_table_borders"
+      ]
+    },
+    {
+      "id": "0188",
+      "image_sha256": "3c8aad56af1c08aa1042a888685dcb448eeff6c9a12ba95d910a87ede772a0de",
+      "tags": [
+        "real_handwritten_table"
+      ]
+    }
+  ]
+}

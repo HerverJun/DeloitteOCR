@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import threading
+from functools import wraps
 from pathlib import Path
 from PIL import Image, ImageOps, ImageEnhance
 from pillow_heif import register_heif_opener
@@ -21,6 +23,125 @@ SUPPORTED = {
     ".heic",
     ".heif",
 }
+CPU_GATE = threading.BoundedSemaphore(2)
+
+
+def bounded_image_work(function):
+    @wraps(function)
+    def limited(*args, **kwargs):
+        with CPU_GATE:
+            return function(*args, **kwargs)
+
+    return limited
+
+
+def validate_preset(operations):
+    if not isinstance(operations, list) or len(operations) > 2:
+        raise ValueError("预处理最多包含一次旋转和一次对比度增强")
+    seen = set()
+    for op in operations:
+        if not isinstance(op, dict) or op.get("kind") in seen:
+            raise ValueError("无效或重复的预处理")
+        kind = op.get("kind")
+        seen.add(kind)
+        if (
+            kind == "rotate"
+            and set(op) == {"kind", "degrees"}
+            and op["degrees"] in [90, 180, 270, -90]
+        ):
+            continue
+        if (
+            kind == "contrast"
+            and set(op) == {"kind", "factor"}
+            and type(op["factor"]) in {int, float}
+            and 0.2 <= op["factor"] <= 3
+        ):
+            continue
+        raise ValueError("批次预处理仅支持旋转与对比度，原图始终保留")
+    return operations
+
+
+@bounded_image_work
+def prepare_task(store, task):
+    """One persistent processed version per source/batch, reused across engines."""
+    operations = validate_preset(json.loads(task.get("preprocess") or "[]"))
+    if not operations:
+        return task
+    source = store.one("versions", task.get("input_version_id") or task["version_id"])
+    provenance = {"kind": "batch", "preset": operations, "batch": task["batch"]}
+    existing = store.rows(
+        "SELECT * FROM versions WHERE parent_id=? AND operations=?",
+        (source["id"], encoded(provenance)),
+    )
+    path = None
+    if existing:
+        version = existing[0]
+    else:
+        with Image.open(store.file(source["path"])) as image:
+            image = image.convert("RGB")
+            for op in operations:
+                image = (
+                    image.rotate(-op["degrees"], expand=True)
+                    if op["kind"] == "rotate"
+                    else ImageEnhance.Contrast(image).enhance(op["factor"])
+                )
+            key = uid()
+            path = store.file(source["path"]).with_name(key + ".png")
+            image.save(path)
+            version = {
+                "id": key,
+                "width": image.width,
+                "height": image.height,
+                "path": str(path.relative_to(store.root)),
+                "sha256": digest(path),
+            }
+    with store.transaction() as db:
+        current = db.execute(
+            "SELECT status FROM tasks WHERE id=?", (task["id"],)
+        ).fetchone()
+        if not current or current["status"] != "running":
+            if path:
+                path.unlink(missing_ok=True)
+            return None
+        if path:
+            db.execute(
+                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
+                (
+                    version["id"],
+                    source["image_id"],
+                    source["id"],
+                    version["path"],
+                    version["width"],
+                    version["height"],
+                    version["sha256"],
+                    encoded(provenance),
+                    now(),
+                ),
+            )
+        db.execute(
+            "UPDATE tasks SET version_id=? WHERE id=?", (version["id"], task["id"])
+        )
+        db.execute(
+            "UPDATE images SET active_version=? WHERE id=? AND active_version=?",
+            (version["id"], source["image_id"], source["id"]),
+        )
+    return store.one("tasks", task["id"])
+
+
+@bounded_image_work
+def thumbnail(store, version_id):
+    version = store.one("versions", version_id)
+    folder = store.root / "thumbnails"
+    folder.mkdir(exist_ok=True)
+    target = folder / (version_id + ".jpg")
+    if not target.exists():
+        with Image.open(store.file(version["path"])) as image:
+            image = image.convert("RGB")
+            image.thumbnail((160, 160))
+            temporary = folder / (version_id + "-" + uid() + ".tmp")
+            image.save(temporary, format="JPEG", quality=80)
+            temporary.replace(target)
+    return target
 
 
 def digest(path):
@@ -28,6 +149,7 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+@bounded_image_work
 def add_image(store, project_id, name, temporary):
     store.one("projects", project_id)
     suffix = Path(name).suffix.lower()
@@ -76,6 +198,7 @@ def add_image(store, project_id, name, temporary):
     return store.one("images", key)
 
 
+@bounded_image_work
 def transform(store, version_id, operation):
     import cv2
     import numpy as np

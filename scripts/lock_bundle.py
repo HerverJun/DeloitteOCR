@@ -29,7 +29,7 @@ if a.metadata_only:
     raise SystemExit(0)
 files = []
 for path in sorted(root.rglob('*')):
-    if not path.is_file() or path.name == 'manifest.json' or '__pycache__' in path.parts:
+    if not path.is_file() or path == root/'manifest.json' or '__pycache__' in path.parts:
         continue
     rel = path.relative_to(root)
     if rel.parts[0] in {'runs', 'cache', 'results'}:

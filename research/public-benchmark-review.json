@@ -1,0 +1,407 @@
+{
+  "dataset_revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+  "annotation_sha256": "a45cd84b04ad8b793e775089640e6b681209abea33ead54c1828ddca35fae496",
+  "method": "Codex visual inspection of all 80 note-region crops in eight contact sheets before inference. 0031 and 0063 are printed text; the other 78 are visibly handwritten. This confirms writing type, not independent transcription correctness. Source crop boxes sometimes retain fragments of neighboring lines; source annotations are unchanged.",
+  "samples": [
+    {
+      "id": "0001",
+      "image_sha256": "f6a723d9a4fb85453c37432c58439045ee36ba69a2fe0da72dfbd505f7a66e54",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0002",
+      "image_sha256": "c522a93745f6f2b2913477d81b6c596cb6b957171f24fb3f872306a4d2ffdfb2",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0003",
+      "image_sha256": "c1ee5b8feec29e4aa58c6efb935d8ccee2a45c424d6ced44165a7034d38da222",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0004",
+      "image_sha256": "52e6a87ebd1bfa3c65e3d9c3bedab28706c354f95b0104dac64c9ba9596f88fd",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0005",
+      "image_sha256": "69b795d4521b4b1757bfd2c44b62b1e7f389fe5c942881abe0c09ebb81aaebd3",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0006",
+      "image_sha256": "757f7eb61cf6fdc85d00a56786be0e8c1be8e70dcd8f8fc2bb78ca22fea1b2f0",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0007",
+      "image_sha256": "00349f6303600cfb6f6a90c68a60b4a4eb8f834d9a35794f56b600d5c2425198",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0008",
+      "image_sha256": "6a9b3f64ef2d7fc5493d6519713c4b07289476829644d2a5bad93b80e90fe2dd",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0009",
+      "image_sha256": "29a9adfbd8f55e07bc6d12ca13e3a1b3a23b0fd8cec87f0dffc980c0885dea03",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0010",
+      "image_sha256": "916b07acd3d7fb7327c70a7308e83fea578362bd2b7e2c4e3689239ef9e505fd",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0011",
+      "image_sha256": "1eae0e2c3d98f46e3b152a14cd7880d272309642e8e7e0583ee0dca2ea670788",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0012",
+      "image_sha256": "6fd59618b32d4ff69a61802e4a84ebab01bac89f88928597464f36087c6a0201",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0013",
+      "image_sha256": "9e0326531404e290a2816c799a24615127da1890826c118edacf2961f5beb914",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0014",
+      "image_sha256": "a3eaa6d9b6d7040d49ba1643521318539f9ecd2ba9c86d7a21736fa698df18c0",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0015",
+      "image_sha256": "4894077d3615be225595fe1005559a53e53901a2ef37ae3b04bf63732af19d0b",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0016",
+      "image_sha256": "fcedbdf63fbd9c9918d27649192cff90bb569f3909c68971773de7371895f73e",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0017",
+      "image_sha256": "82e9d3f35e4cf4645db14d89df27fc1dd1dd232be08fd4502c3e204bfbb75d7b",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0018",
+      "image_sha256": "9c30974042dbc6332ccbad6d4752cda59cba22530a0487d2e7fa34deb2e78e20",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0019",
+      "image_sha256": "b4b060c3d8ce835327b7094fd244fd4c671ac826b2a0da3a6b28540afa1851be",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0020",
+      "image_sha256": "8ed0cc7896c7dacb0bec934087694332ee8de69f0970d5cf680b288b3ea2f98c",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0021",
+      "image_sha256": "000eae6558a995a0bf9a21563274b1f02cd054bd5ad34c276a06af654764ca82",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0022",
+      "image_sha256": "7f7b3b5ae1338cdfd778d20f1ee01d73daef7b9b3bcb6a460932758211066c0e",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0023",
+      "image_sha256": "095c40430fa34173039aa5f573e03ce1e07f90477680847edec2fc595b896114",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0024",
+      "image_sha256": "020c0612dd7b08d9be0e3cb84cdac5a36418d14209063887b9816ec56e233a5a",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0025",
+      "image_sha256": "901a741545f10f05219cf292157cf4d7aaa56a080f76d405b442430dad88568c",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0026",
+      "image_sha256": "cc1d8c3602b17df8ef832ee72bdfb6964f97ac9be3df380ed2cdb64561a965c8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0027",
+      "image_sha256": "6691d36812ac8ec569eec68176dccc58b7e98d8242f140d3fa37c35338880124",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0028",
+      "image_sha256": "92aa9d8d03977c7c51471b7051bae7841a6a3d6f12660dfc6c8bda68dfdd0654",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0029",
+      "image_sha256": "8010e2b40b23f1d6635247345e421511984476356152324e8ba4f303e9e2bb40",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0030",
+      "image_sha256": "ff78e521e5aec80a1310ab3f55cb6fff08e811845b7a075c17f2dd659184a4ba",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0031",
+      "image_sha256": "663035480648ee7894bd1b65ada9627b8918be10e657419bc9672deb0b226024",
+      "kind": "print"
+    },
+    {
+      "id": "0032",
+      "image_sha256": "89d43e49ae5a088298b9b2c4b275bc4fa2db151e2f042fe49fe50b2765975c83",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0033",
+      "image_sha256": "6683b65f30c29c08cb3d1ad800b57999e52b8b7d7094e6bd378eee68cbfb7186",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0034",
+      "image_sha256": "f3141947dc4b47645cbefcde0576b77513dd49db9b58aacbd93cb84fb3c4a36d",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0035",
+      "image_sha256": "406c1ed46106bb9570f7f47f19ea7b153720f0ff10afd6b6cb3f03d77b41087f",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0036",
+      "image_sha256": "1a0b3b5a05282479dd3b1b5c5ed8ae044d8a343acf15ee561213b5b08ae1c59d",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0037",
+      "image_sha256": "32b985146d7d3be636ccc2fd7594e0313035b02e90c17841ef3687fecbd0bed2",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0038",
+      "image_sha256": "054fd827689ed7a1844db164db5371f7cff259592cfc8551ca5102a924132b15",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0039",
+      "image_sha256": "87c1dd02feb2b83255e589caa6c397adb8a0edf124d2d3848d79f8dceb011aa4",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0040",
+      "image_sha256": "8512d41e01e041aef521841367be35f17ceb83cb61ff2b9ad224e574819ede84",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0041",
+      "image_sha256": "941712410101545ae6a1f0ff8535ade54bd4a6131b5ad99c3ee092d13cead969",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0042",
+      "image_sha256": "0fac17517d90431a88784f4d98538c91ebd20aff99b5e651192abc7a57fdf097",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0043",
+      "image_sha256": "dbed41e87fdb2bf4de59d9a443c8884ab4eecee012459652e02720d37b22b87a",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0044",
+      "image_sha256": "9927abc6b270d15fc4754ceea380d91f180f4eb69a8e21b84641536b100bab3f",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0045",
+      "image_sha256": "f222b41ab0f475122f71ae463a5620f59e7e2a9cf60ea1b54982219926bbb7df",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0046",
+      "image_sha256": "3827e4e2cf704bfd5e28bf38e7b106924602013ec24a9856f8035fada53c0fc6",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0047",
+      "image_sha256": "cc8c699b6b928203e41b63d84e8becfb438112bf43cc9cfd23a380a6173de53c",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0048",
+      "image_sha256": "58409631533cc8f0977ff8bc2416690cc7e049a9b8fd63cc108f51408b3c5ca8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0049",
+      "image_sha256": "ad5810178f6c6ff972600b078fd2ab704655953345eb34fdcb1613fcb74cb8d8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0050",
+      "image_sha256": "862adbb03ca7e068be0c6b1ff5352670eae16539b29ae96004dddc2f51aca3cf",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0051",
+      "image_sha256": "6f5f4c5a440bc115cf87d5503735dba591603a1b2efae6f8235a50eee34dcd81",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0052",
+      "image_sha256": "7d358e029cc55fe858dc58b48d005c4a6c1ddfb94e9e7be02c6dec3bba9ab326",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0053",
+      "image_sha256": "0ba56e1f7d41f2e8ee677a3f030e2dc5f96b9439ae8eda6b774dec9fb1a279a3",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0054",
+      "image_sha256": "39e0cb603bd55d4acf44f9017c49431c14f2c92216bb2c627848824e2d3eb684",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0055",
+      "image_sha256": "f8c8a11339c5eb5e84927c53654bee085825a3c0c6a3599d4b8e3e89512d143a",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0056",
+      "image_sha256": "f1b3fbf61fec0efbfdf2305112affad1aedaeecb61352bf408dd562ab8c1daa2",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0057",
+      "image_sha256": "cb191a39e244b2995fed9cf965f8e994419f6e53f2617e8ee921faddf7faf36a",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0058",
+      "image_sha256": "01f210253986a66c174740b17cc95c5708010a81a95daca54112da7c2ecd7fb8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0059",
+      "image_sha256": "e6176d44f88799bfa6db086d1a9ad8219c7d82bc95d29fd4f434077d48c58cc9",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0060",
+      "image_sha256": "6fb2d8ac056aaf5c8ac60131b944b6c7980e49ef701c9e3815c3d451aefee98f",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0061",
+      "image_sha256": "42fa93e6a23f122b553ef44ed9cb5456b5b89e88e7fe753fe26378e711c94fdd",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0062",
+      "image_sha256": "ad48ec1728929ca4521de04c8452c0bf20e59c115edcc5dba20f5ef88d50eec8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0063",
+      "image_sha256": "3cd2c74a668f4cd3b7e178b511abdfaba42b824a17dd54e87993705264bba052",
+      "kind": "print"
+    },
+    {
+      "id": "0064",
+      "image_sha256": "74122df639b260b6ffd40401dbba223652fec5eb79b72b1ed596a32ceccff9fe",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0065",
+      "image_sha256": "ed2402015dc16a7579dd2d4279b1b91b75a3e58071b0fbe38585e7a08cbd57eb",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0066",
+      "image_sha256": "bfbdd143e5b2208c6ce8d4c315cfa67d3edc3686aef76dff47db939be5b21686",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0067",
+      "image_sha256": "6eb433d0aaaa46b4a7c6d1f19922424150ed1c8881a2f88fa9cfe08b9d088fdf",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0068",
+      "image_sha256": "eddf3c028c189985aeecb366232ce55576c32b6c1a4a2349047687ec2d86e9ed",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0069",
+      "image_sha256": "84bd8571f4eece6cd04fe17ce86b772882f19f48773504f015163208a0abb4cd",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0070",
+      "image_sha256": "b5ef99691bafdefe4554d405527eb75a337ae391f2a99b28c5b015c179f89cd1",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0071",
+      "image_sha256": "aba4ef6a5c89277a7cfa0044cc6c0b8bf153020b66120f3be05f2163db952ce8",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0072",
+      "image_sha256": "7119a7ba747466c0270cbf98d287217377cb4e8a7762a79f78daacfe752d6fdb",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0073",
+      "image_sha256": "99b7fedad8e0c99f8952640af8b13ce8d97869fd1dfb27f94fc6caa525fff99b",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0074",
+      "image_sha256": "2d049ee73cd6abc7cbfd53e88680350a7d105ee072be6f359f7ccd24aad097fa",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0075",
+      "image_sha256": "674dde46cbdd5fd8ba6462840cb38648e12cc185d6c4929df53424b374f72b7d",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0076",
+      "image_sha256": "144473b571a5356147672db035a271615551847e295e1293239aa46f18438338",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0077",
+      "image_sha256": "7baba0026f61c860d774bfa1d94145af68aaa7f6a69f689d74a3447237d02f3d",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0078",
+      "image_sha256": "f4a9968c5c4b6e157f05be6c7f236706288208b1f012b1e69144e8f2ab76d5d7",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0079",
+      "image_sha256": "d46188f3aee20a41d61372e865dc34e1ca88c535e9316240904ca241fd0308db",
+      "kind": "handwriting"
+    },
+    {
+      "id": "0080",
+      "image_sha256": "ed5343c6ee349f441d72a663915a6928eb97becbb982c16136a73744c1eb1eed",
+      "kind": "handwriting"
+    }
+  ]
+}

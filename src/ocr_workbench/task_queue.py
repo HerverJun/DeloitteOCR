@@ -1,5 +1,6 @@
 """Durable queue, one owning thread and one GPU model session at a time."""
 
+from contextlib import contextmanager
 import threading
 import time
 from ocr_workbench.adapter import EngineAdapter, Cancelled
@@ -7,15 +8,17 @@ from ocr_workbench.store import now
 
 
 class TaskQueue:
-    def __init__(self, store, bundle, adapter_factory=EngineAdapter):
+    def __init__(self, store, bundle, adapter_factory=EngineAdapter, registry=None):
         self.store, self.bundle, self.factory = store, bundle, adapter_factory
         self.stopping = threading.Event()
         self.wake = threading.Event()
         self.guard = threading.RLock()
+        self.gpu_guard = threading.RLock()
         self.adapter = None
         self.current = None
         self.cancel_event = threading.Event()
         self.thread = None
+        self.registry = registry
 
     def start(self):
         self.store.recover()
@@ -44,114 +47,142 @@ class TaskQueue:
         if adapter:
             adapter.unload()
 
+    @contextmanager
+    def engine_maintenance(self):
+        if not self.gpu_guard.acquire(timeout=0.1):
+            raise ValueError(
+                "识别任务正在运行，请暂停队列并等待当前项完成后再启用引擎包"
+            )
+        try:
+            self.unload()
+            yield
+        finally:
+            self.gpu_guard.release()
+            self.wake.set()
+
     def run(self):
         try:
             while not self.stopping.is_set():
-                task = self.store.claim()
-                if task is None:
-                    self.unload()
+                with self.gpu_guard:
+                    if self.stopping.is_set():
+                        break
+                    worked = self.step()
+                if not worked:
                     self.wake.wait(0.3)
                     self.wake.clear()
-                    continue
-                with self.guard:
-                    self.current = task["id"]
-                    self.cancel_event = threading.Event()
-                    if self.stopping.is_set():
-                        self.cancel_event.set()
-                    if self.store.one("tasks", task["id"])["status"] != "running":
-                        self.current = None
-                        continue
-                try:
-                    if self.adapter and self.adapter.engine != task["engine"]:
-                        self.unload()
-                    if self.adapter is None:
-                        with self.guard:
-                            self.adapter = self.factory(
-                                self.bundle,
-                                task["engine"],
-                                self.store.root / "sessions",
-                            )
-                            self.adapter.cancelled = self.cancel_event
-                        self.adapter.load()
-                    else:
-                        self.adapter.cancelled = self.cancel_event
-                    if self.cancel_event.is_set() or self.stopping.is_set():
-                        raise Cancelled()
-                    with self.store.transaction() as db:
-                        if (
-                            db.execute(
-                                "UPDATE tasks SET phase=? WHERE id=? AND status='running'",
-                                (
-                                    (
-                                        "去弯曲中"
-                                        if task.get("kind") == "dewarp"
-                                        else "识别中"
-                                    ),
-                                    task["id"],
-                                ),
-                            ).rowcount
-                            != 1
-                        ):
-                            raise Cancelled()
-                    version = self.store.one("versions", task["version_id"])
-                    output = (
-                        self.store.root
-                        / "task-results"
-                        / task["id"]
-                        / str(time.time_ns())
-                    )
-                    output.mkdir(parents=True)
-                    data = self.adapter.recognize(
-                        self.store.file(version["path"]), output
-                    )
-                    if task.get("kind") == "dewarp":
-                        from ocr_workbench.imaging import save_version
-                        from PIL import Image
-
-                        with Image.open(data["image"]) as image:
-                            save_version(
-                                self.store,
-                                version,
-                                image,
-                                {
-                                    "kind": "dewarp",
-                                    "model": data["model"],
-                                    "revision": data["revision"],
-                                },
-                                task_id=task["id"],
-                            )
-                    else:
-                        data["project_image_version"] = version["id"]
-                        data["version_operations"] = version["operations"]
-                        self.store.complete(task["id"], data)
-                except Cancelled:
-                    with self.store.transaction() as db:
-                        db.execute(
-                            "UPDATE tasks SET status=?,phase=?,finished=? WHERE id=? AND status='running'",
-                            (
-                                (
-                                    "interrupted"
-                                    if self.stopping.is_set()
-                                    else "cancelled"
-                                ),
-                                "等待继续" if self.stopping.is_set() else "已取消",
-                                now(),
-                                task["id"],
-                            ),
-                        )
-                    self.unload()
-                except Exception as error:
-                    with self.store.transaction() as db:
-                        db.execute(
-                            "UPDATE tasks SET status='failed',phase='识别失败',error=?,finished=? WHERE id=? AND status='running'",
-                            (str(error), now(), task["id"]),
-                        )
-                    self.unload()
-                finally:
-                    with self.guard:
-                        self.current = None
         finally:
             self.unload()
+
+    def step(self):
+        task = self.store.claim()
+        if task is None:
+            self.unload()
+            return False
+        with self.guard:
+            self.current = task["id"]
+            self.cancel_event = threading.Event()
+            if self.stopping.is_set():
+                self.cancel_event.set()
+            if self.store.one("tasks", task["id"])["status"] != "running":
+                self.current = None
+                return True
+        try:
+            from ocr_workbench.imaging import prepare_task
+
+            prepared = prepare_task(self.store, task)
+            if prepared is None:
+                raise Cancelled()
+            task = prepared
+            resolved = (
+                self.registry.resolve(
+                    task["engine"], task.get("engine_package", "builtin")
+                )
+                if self.registry
+                else self.bundle
+            )
+            if self.adapter and (
+                self.adapter.engine != task["engine"]
+                or getattr(self.adapter, "bundle", self.bundle) != resolved
+            ):
+                self.unload()
+            if self.adapter is None:
+                with self.guard:
+                    self.adapter = self.factory(
+                        resolved,
+                        task["engine"],
+                        self.store.root / "sessions",
+                    )
+                    self.adapter.cancelled = self.cancel_event
+                self.adapter.load()
+            else:
+                self.adapter.cancelled = self.cancel_event
+            if self.cancel_event.is_set() or self.stopping.is_set():
+                raise Cancelled()
+            with self.store.transaction() as db:
+                if (
+                    db.execute(
+                        "UPDATE tasks SET phase=? WHERE id=? AND status='running'",
+                        (
+                            ("去弯曲中" if task.get("kind") == "dewarp" else "识别中"),
+                            task["id"],
+                        ),
+                    ).rowcount
+                    != 1
+                ):
+                    raise Cancelled()
+            version = self.store.one("versions", task["version_id"])
+            output = self.store.root / "task-results" / task["id"] / str(time.time_ns())
+            output.mkdir(parents=True)
+            data = self.adapter.recognize(self.store.file(version["path"]), output)
+            if task.get("kind") == "dewarp":
+                from ocr_workbench.imaging import save_version
+                from PIL import Image
+
+                with Image.open(data["image"]) as image:
+                    save_version(
+                        self.store,
+                        version,
+                        image,
+                        {
+                            "kind": "dewarp",
+                            "model": data["model"],
+                            "revision": data["revision"],
+                        },
+                        task_id=task["id"],
+                    )
+            else:
+                data["project_image_version"] = version["id"]
+                data["version_operations"] = version["operations"]
+                data["engine_package"] = {
+                    "id": task.get("engine_package", "builtin"),
+                    "bundle": str(resolved),
+                }
+                self.store.complete(task["id"], data)
+        except Cancelled:
+            with self.store.transaction() as db:
+                db.execute(
+                    "UPDATE tasks SET status=?,phase=?,finished=? WHERE id=? AND status='running'",
+                    (
+                        ("interrupted" if self.stopping.is_set() else "cancelled"),
+                        "等待继续" if self.stopping.is_set() else "已取消",
+                        now(),
+                        task["id"],
+                    ),
+                )
+            self.unload()
+        except Exception as error:
+            from ocr_workbench.errors import friendly_engine_error
+
+            with self.store.transaction() as db:
+                db.execute(
+                    "UPDATE tasks SET status='failed',phase='识别失败',error=?,finished=? WHERE id=? AND status='running'",
+                    (friendly_engine_error(error), now(), task["id"]),
+                )
+            self.unload()
+        finally:
+            with self.guard:
+                self.current = None
+        return True
 
     def action(self, project_id, action, task_ids=None):
         self.store.one("projects", project_id)

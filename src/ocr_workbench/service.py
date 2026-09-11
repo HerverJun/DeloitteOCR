@@ -2,7 +2,6 @@
 
 import argparse
 from contextlib import asynccontextmanager
-import io
 import json
 import os
 from pathlib import Path
@@ -12,22 +11,37 @@ import subprocess
 import sys
 import tempfile
 import threading
-import zipfile
 from fastapi import FastAPI, Request, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse, FileResponse, Response
+from fastapi.responses import JSONResponse, FileResponse
+from starlette.background import BackgroundTask
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
+from ocr_workbench import __version__
 from ocr_workbench.store import Store, Conflict, uid, now
 from ocr_workbench.task_queue import TaskQueue
-from ocr_workbench.imaging import add_image, transform
-from ocr_workbench.editing import validate_edit, export_markdown, export_text
-from ocr_workbench.tables import export_xlsx
+from ocr_workbench.imaging import add_image, transform, thumbnail
+from ocr_workbench.exporting import build_export
 
 
 def create_app(bundle, data, token, *, start_queue=True):
     bundle = Path(bundle).resolve()
     store = Store(data)
-    queue = TaskQueue(store, bundle)
+    from ocr_workbench.engine_packages import EnginePackages
+
+    exports = store.root / "exports"
+    if exports.exists():
+        for folder in exports.glob("export-*"):
+            if folder.is_dir() and not folder.is_symlink() and not folder.is_junction():
+                shutil.rmtree(folder)
+    registry = EnginePackages(bundle, store.root)
+    queue = TaskQueue(store, bundle, registry=registry)
+    from ocr_workbench.maintenance import ProjectMaintenance
+
+    maintenance = ProjectMaintenance(store, queue)
+
+    def import_one(key, name, temporary):
+        with maintenance.guard:
+            return add_image(store, key, name, temporary)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -96,15 +110,13 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.get("/api/health")
     def health():
-        return {"status": "ready", "version": "0.3.0"}
+        return {"status": "ready", "version": __version__}
 
     @app.get("/api/state")
     def state():
         return {
             "projects": store.rows("SELECT * FROM projects ORDER BY updated DESC"),
-            "engines": json.loads(
-                (bundle / "config/engines.json").read_text(encoding="utf-8")
-            ),
+            "engines": registry.engines(),
             "queue": queue.status(),
             "data_directory": str(store.root),
         }
@@ -143,6 +155,14 @@ def create_app(bundle, data, token, *, start_queue=True):
             "queue": queue.status(),
         }
 
+    @app.get("/api/projects/{key}/storage")
+    def project_storage(key: str):
+        return maintenance.usage(key)
+
+    @app.delete("/api/projects/{key}")
+    def delete_project(key: str, body: dict):
+        return maintenance.delete(key, body.get("confirmation"))
+
     @app.post("/api/projects/{key}/images")
     async def import_images(key: str, files: list[UploadFile] = File(...)):
         store.one("projects", key)
@@ -164,7 +184,7 @@ def create_app(bundle, data, token, *, start_queue=True):
                         target.write(chunk)
                 name = (upload.filename or "图片.png").replace("\\", "/").split("/")[-1]
                 imported.append(
-                    await run_in_threadpool(add_image, store, key, name, temporary)
+                    await run_in_threadpool(import_one, key, name, temporary)
                 )
             except Exception as error:
                 errors.append({"name": upload.filename, "message": str(error)})
@@ -184,7 +204,13 @@ def create_app(bundle, data, token, *, start_queue=True):
             task_id = store.enqueue_dewarp(key)
             queue.wake.set()
             return {"task_id": task_id, "queued": True}
-        return transform(store, key, body)
+        with maintenance.guard:
+            return transform(store, key, body)
+
+    @app.get("/api/versions/{key}/thumbnail")
+    def image_thumbnail(key: str):
+        with maintenance.guard:
+            return FileResponse(thumbnail(store, key), media_type="image/jpeg")
 
     @app.put("/api/images/{key}/version")
     def select_version(key: str, body: dict):
@@ -200,7 +226,13 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.post("/api/projects/{key}/tasks")
     def create_tasks(key: str, body: dict):
-        ids = store.enqueue(key, body.get("version_ids", []), body.get("engines", []))
+        ids = store.enqueue(
+            key,
+            body.get("version_ids", []),
+            body.get("engines", []),
+            body.get("preprocess", []),
+            {name: spec["package_id"] for name, spec in registry.engines().items()},
+        )
         queue.wake.set()
         return {"task_ids": ids}
 
@@ -235,56 +267,17 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.post("/api/export")
     def export(body: dict):
-        keys = body.get("result_ids", [])
-        if not keys or len(keys) > 1000:
-            raise ValueError("请选择需要导出的结果")
-        format = body.get("format")
-        if format not in {"txt", "md", "json", "xlsx"}:
-            raise ValueError("未知导出格式")
-        results = [store.result(key) for key in dict.fromkeys(keys)]
-        for result in results:
-            validate_edit(result["edited"])
-        if format == "xlsx":
-            tables = [
-                table for result in results for table in result["edited"]["tables"]
-            ]
-            if not tables:
-                raise ValueError("选中结果没有结构化表格，请选择其他格式或表格引擎")
-            stream = io.BytesIO()
-            export_xlsx(tables, stream)
-            return Response(
-                stream.getvalue(),
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                headers={
-                    "Content-Disposition": 'attachment; filename="OCR-tables.xlsx"'
-                },
+        with maintenance.guard:
+            target = build_export(
+                store,
+                body.get("result_ids", []),
+                body.get("format"),
+                body.get("aggregate", False),
             )
-
-        def content(result):
-            if format == "json":
-                return json.dumps(result, ensure_ascii=False, indent=2)
-            if format == "md":
-                return export_markdown(result["edited"])
-            return export_text(result["edited"])
-
-        if len(results) == 1:
-            return Response(
-                content(results[0]).encode("utf-8"),
-                media_type="application/json" if format == "json" else "text/plain",
-                headers={
-                    "Content-Disposition": f'attachment; filename="OCR-result.{format}"'
-                },
-            )
-        stream = io.BytesIO()
-        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for index, result in enumerate(results, 1):
-                archive.writestr(
-                    f'{index:04d}-{result["id"]}.{format}', content(result)
-                )
-        return Response(
-            stream.getvalue(),
-            media_type="application/zip",
-            headers={"Content-Disposition": 'attachment; filename="OCR-results.zip"'},
+        return FileResponse(
+            target,
+            filename=target.name,
+            background=BackgroundTask(shutil.rmtree, target.parent),
         )
 
     @app.get("/api/diagnostics")
@@ -302,6 +295,41 @@ def create_app(bundle, data, token, *, start_queue=True):
             "details": check.stdout,
             "free_bytes": shutil.disk_usage(store.root).free,
         }
+
+    @app.get("/api/engine-packages")
+    def engine_inventory():
+        return registry.inventory()
+
+    @app.post("/api/engine-packages/stage")
+    async def import_engine(request: Request):
+        inbox = registry.root / "incoming"
+        inbox.mkdir(exist_ok=True)
+        path = inbox / (uid() + ".zip")
+        count = 0
+        try:
+            with path.open("wb") as stream:
+                async for chunk in request.stream():
+                    count += len(chunk)
+                    if count > 128 * 1024**3 or shutil.disk_usage(inbox).free < 1024**3:
+                        raise ValueError("引擎包过大或磁盘空间不足")
+                    await run_in_threadpool(stream.write, chunk)
+            return await run_in_threadpool(registry.stage, path)
+        finally:
+            path.unlink(missing_ok=True)
+
+    @app.post("/api/engine-packages/activate")
+    def activate_engine(body: dict):
+        with queue.engine_maintenance():
+            return registry.activate(body.get("staging_id"), body.get("sha256"))
+
+    @app.post("/api/engine-packages/switch")
+    def switch_engine(body: dict):
+        with queue.engine_maintenance():
+            return registry.switch(body.get("engine"), body.get("package_id"))
+
+    @app.delete("/api/engine-packages/staging/{key}")
+    def discard_engine(key: str):
+        return registry.discard(key)
 
     @app.post("/api/shutdown")
     def shutdown():
@@ -327,6 +355,11 @@ def main():
     )
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--token-file", type=Path, required=True)
+    p.add_argument(
+        "--verify-startup",
+        action="store_true",
+        help="Run complete offline startup gates before serving requests",
+    )
     args = p.parse_args()
     token = args.token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
@@ -341,6 +374,15 @@ def main():
             msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
         except OSError:
             raise RuntimeError("该项目目录已由另一个工作台使用")
+        if args.verify_startup:
+            from ocr_workbench.startup import run_checks
+            from ocr_workbench.engine_packages import EnginePackages
+
+            report = run_checks(
+                args.bundle, args.data, EnginePackages(args.bundle, args.data)
+            )
+            if report["status"] != "passed":
+                raise SystemExit(2)
         app = create_app(args.bundle, args.data, token)
         # A reset loopback socket must not hold shutdown forever (observed under WFP).
         server = uvicorn.Server(

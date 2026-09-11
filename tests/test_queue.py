@@ -26,6 +26,7 @@ class QueueTests(unittest.TestCase):
         self.release = threading.Event()
         self.unloaded = []
         self.factories = []
+        self.failure = None
         owner = self
 
         class Fake:
@@ -41,6 +42,9 @@ class QueueTests(unittest.TestCase):
                 while not owner.release.wait(0.01):
                     if self.cancelled.is_set():
                         raise Cancelled()
+                if owner.failure:
+                    failure, owner.failure = owner.failure, None
+                    raise RuntimeError(failure)
 
             def recognize(self, image, output):
                 if self.cancelled.is_set():
@@ -108,3 +112,44 @@ class QueueTests(unittest.TestCase):
         self.wait(lambda: self.store.one("tasks", ppocr)["status"] == "succeeded")
         self.wait(lambda: len(self.unloaded) == 2)
         self.assertEqual(self.unloaded, ["glm", "ppocr"])
+
+    def test_package_checks_cannot_overlap_queue_gpu_owner(self):
+        key = self.enqueue(["ppocr"])[0]
+        self.assertTrue(self.loaded.wait(3))
+        with self.assertRaisesRegex(ValueError, "识别任务正在运行"):
+            with self.queue.engine_maintenance():
+                self.fail("second GPU owner admitted")
+        self.release.set()
+        self.wait(lambda: self.store.one("tasks", key)["status"] == "succeeded")
+        self.wait(lambda: self.queue.status()["task_id"] is None)
+        with self.queue.engine_maintenance():
+            self.assertIsNone(self.queue.adapter)
+            self.loaded.clear()
+            next_key = self.enqueue(["glm"])[0]
+            self.assertFalse(self.loaded.wait(0.1))
+            self.assertEqual(self.store.one("tasks", next_key)["status"], "queued")
+        self.wait(lambda: self.store.one("tasks", next_key)["status"] == "succeeded")
+
+    def test_simulated_oom_releases_engine_continues_batch_and_retries_same_engine(
+        self,
+    ):
+        self.failure = "CUDA out of memory: allocating test tensor"
+        self.release.set()
+        ids = self.enqueue(["glm", "ppocr"])
+        self.wait(
+            lambda: all(
+                self.store.one("tasks", k)["status"] in {"failed", "succeeded"}
+                for k in ids
+            )
+        )
+        first, second = [self.store.one("tasks", k) for k in ids]
+        self.assertEqual(first["status"], "failed")
+        self.assertIn("显存", first["error"])
+        self.assertIn("glm", self.unloaded)
+        self.assertEqual(second["status"], "succeeded")
+        preserved = second["result_id"]
+        self.queue.action(self.project, "retry", [first["id"]])
+        self.wait(lambda: self.store.one("tasks", first["id"])["status"] == "succeeded")
+        self.assertEqual(self.store.one("tasks", first["id"])["engine"], "glm")
+        self.assertEqual(self.store.one("tasks", second["id"])["result_id"], preserved)
+        self.assertEqual(self.factories, ["glm", "ppocr", "glm"])

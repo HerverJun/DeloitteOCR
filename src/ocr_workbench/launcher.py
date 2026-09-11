@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from ocr_workbench.processes import ProcessJob
+from ocr_workbench.atomic_files import read_json
 
 
 def icon():
@@ -54,6 +55,8 @@ class Launcher(QWidget):
         self.token = secrets.token_urlsafe(36)
         self.session = data / "launcher"
         self.session.mkdir(parents=True, exist_ok=True)
+        self.startup_file = self.session / "startup-state.json"
+        self.startup_file.unlink(missing_ok=True)
         self.token_file = self.session / "session-token.txt"
         self.token_file.write_text(self.token, encoding="utf-8")
         self.setWindowTitle("纸页 · 运行状态")
@@ -128,6 +131,7 @@ class Launcher(QWidget):
                 "-I",
                 "-m",
                 "ocr_workbench.service",
+                "--verify-startup",
                 "--bundle",
                 str(bundle),
                 "--data",
@@ -166,7 +170,13 @@ class Launcher(QWidget):
             if self.quitting or self.ready:
                 QApplication.quit()
                 return
-            self.status.setText("服务启动失败。请在托盘菜单中查看日志。")
+            detail = "服务启动失败。请查看项目目录中的 launcher/service.log。"
+            if self.startup_file.exists():
+                try:
+                    detail = read_json(self.startup_file).get("message", detail)
+                except (OSError, ValueError):
+                    pass
+            self.status.setText(detail)
             self.exit_button.setEnabled(True)
             self.show()
             return
@@ -175,6 +185,14 @@ class Launcher(QWidget):
                 self.job.close()
             return
         if not self.ready:
+            checking = False
+            if self.startup_file.exists():
+                try:
+                    state = read_json(self.startup_file)
+                    checking = state.get("status") == "checking"
+                    self.status.setText(state.get("message", "正在启动检查…"))
+                except (OSError, ValueError):
+                    pass
             try:
                 with self.opener.open(
                     self.base + "/api/health", timeout=0.2
@@ -188,7 +206,7 @@ class Launcher(QWidget):
                 if not self.no_browser:
                     self.open_browser()
                     self.hide()
-            elif time.monotonic() - self.started > 45:
+            elif not checking and time.monotonic() - self.started > 45:
                 self.status.setText("启动时间较长，请查看服务日志。")
                 self.show()
 
@@ -212,6 +230,9 @@ class Launcher(QWidget):
         webbrowser.open(url)
 
     def quit(self):
+        if self.process is None or self.process.poll() is not None:
+            QApplication.quit()
+            return
         if self.quitting:
             return
         self.quitting = True
