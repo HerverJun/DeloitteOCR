@@ -42,6 +42,18 @@ for relative, info in lock["packages"].items():
             "files": copied,
         }
     )
+font_notice = args.frontend / "public/brand/fonts/OFL.txt"
+if font_notice.is_file():
+    target = dest / "frontend/NotoSansSC/OFL.txt"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(font_notice, target)
+    records.append({
+        "package": "Noto Sans SC",
+        "version": "variable wght 100-900",
+        "license": "OFL-1.1",
+        "dev": False,
+        "files": [target.relative_to(args.bundle).as_posix()],
+    })
 (dest / "frontend-index.json").write_text(
     json.dumps(records, ensure_ascii=False, indent=2), "utf-8"
 )

@@ -12,7 +12,7 @@ import time
 import urllib.request
 import webbrowser
 from PySide6.QtCore import QTimer, Qt, QLockFile
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QFont, QAction
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QAction
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
@@ -32,12 +32,18 @@ def icon():
     pixmap.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pixmap)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor("#176a95"))
+    painter.setBrush(QColor("#000000"))
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawRoundedRect(2, 2, 60, 60, 12, 12)
-    painter.setPen(QColor("white"))
-    painter.setFont(QFont("Microsoft YaHei", 30, QFont.Weight.Medium))
-    painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "页")
+    painter.setPen(QPen(QColor("white"), 3))
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawRect(18, 12, 27, 40)
+    painter.drawLine(25, 26, 38, 26)
+    painter.drawLine(25, 34, 38, 34)
+    painter.drawLine(25, 42, 34, 42)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QColor("#86BC25"))
+    painter.drawEllipse(40, 41, 17, 17)
     painter.end()
     return QIcon(pixmap)
 
@@ -59,15 +65,22 @@ class Launcher(QWidget):
         self.startup_file.unlink(missing_ok=True)
         self.token_file = self.session / "session-token.txt"
         self.token_file.write_text(self.token, encoding="utf-8")
-        self.setWindowTitle("纸页 · 运行状态")
+        self.setWindowTitle("Deloitte ｜ OCR 工作台")
         self.setWindowIcon(icon())
-        self.resize(390, 205)
+        self.resize(440, 290)
         self.setStyleSheet(
-            'QWidget {background:#f8fafb;color:#344f5e;font-family:"Microsoft YaHei";} QLabel {padding:8px;} QPushButton {padding:9px;background:#176a95;color:white;border-radius:5px;}'
+            'QWidget {background:#151515;color:#f2f4ee;font-family:"Microsoft YaHei";font-size:13px;} QLabel {padding:8px;} QPushButton {padding:9px;background:#86bc25;color:#152008;border-radius:4px;font-weight:600;} QPushButton:hover {background:#95c840;} QPushButton:disabled {background:#353b2d;color:#b6bbb1;} QPushButton:focus {border:2px solid white;}'
         )
         layout = QVBoxLayout(self)
-        title = QLabel("纸页 · 离线 OCR 工作台")
-        title.setStyleSheet("font-size:18px;font-weight:600;")
+        brand = QLabel()
+        logo = QPixmap(str(bundle / "web/brand/deloitte.svg"))
+        if not logo.isNull():
+            brand.setPixmap(logo.scaledToWidth(152, Qt.TransformationMode.SmoothTransformation))
+        else:
+            brand.setText("Deloitte")
+        layout.addWidget(brand)
+        title = QLabel("OCR 工作台 · 本机运行")
+        title.setStyleSheet("font-size:16px;font-weight:600;")
         layout.addWidget(title)
         self.status = QLabel("正在启动本机服务…")
         self.status.setWordWrap(True)
@@ -80,7 +93,7 @@ class Launcher(QWidget):
         self.exit_button.clicked.connect(self.quit)
         layout.addWidget(self.exit_button)
         self.tray = QSystemTrayIcon(icon(), self)
-        self.tray.setToolTip("纸页 · 离线 OCR 工作台")
+        self.tray.setToolTip("Deloitte ｜ OCR 工作台")
         menu = QMenu()
         menu.addAction("打开工作台", self.open_browser)
         menu.addAction("查看运行状态", self.show)
@@ -289,7 +302,7 @@ def main():
     )
     app = QApplication(sys.argv[:1])
     app.setQuitOnLastWindowClosed(False)
-    app.setApplicationName("纸页 OCR")
+    app.setApplicationName("Deloitte ｜ OCR 工作台")
     args.data.mkdir(parents=True, exist_ok=True)
     lock = QLockFile(str(args.data / "launcher.lock"))
     lock.setStaleLockTime(0)

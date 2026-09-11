@@ -241,6 +241,7 @@ try {
       : "GUI returns to built-in engine after real complete-package activation",
   );
   if (!process.env.OCR_DIALOG_ONLY) {
+    await page.locator(".project-menu summary").click();
     await button("项目占用与清理").click();
     await expect(page.getByLabel("确认清理项目名称")).toBeVisible();
     await expect(button("清理并删除项目")).toBeDisabled();

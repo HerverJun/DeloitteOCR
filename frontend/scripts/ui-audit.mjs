@@ -4,7 +4,8 @@ import path from "node:path";
 const root = process.env.OCR_BUILD_ROOT || "E:/OCR-week23-build";
 const state = JSON.parse(
   await fs.readFile(
-    process.env.OCR_STATE_FILE || path.join(root, "ui-project/launcher/launcher-state.json"),
+    process.env.OCR_STATE_FILE ||
+      path.join(root, "ui-project/launcher/launcher-state.json"),
     "utf8",
   ),
 );
@@ -57,7 +58,19 @@ const selectedProject = () => page.getByLabel("当前项目").inputValue();
 const activeVersion = () => page.getByLabel("图片版本").inputValue();
 const transform = async (name) => {
   const old = await activeVersion();
+  if (
+    ["顺时针旋转", "增强对比度", "去弯曲"].includes(name) &&
+    !(await page.locator(".image-more").getAttribute("open"))
+  ) {
+    if (!(await button(name).isVisible()))
+      await page.locator(".image-more summary").click();
+  }
   await button(name).click();
+  if (
+    ["顺时针旋转", "增强对比度", "去弯曲"].includes(name) &&
+    (await button(name).isVisible())
+  )
+    await page.locator(".image-more summary").click();
   await expect.poll(activeVersion).not.toBe(old);
   await expect(page.getByRole("img", { name: "当前图片版本" })).toBeVisible();
 };
@@ -110,6 +123,10 @@ try {
     )
     .toBe(4);
   await button("收起任务队列").click();
+  await page
+    .locator(".result-tabs")
+    .getByRole("button", { name: "模型对比", exact: true })
+    .click();
   await expect(page.locator(".comparison-result")).toHaveCount(4);
   await page
     .locator(".comparison-result")
@@ -188,11 +205,15 @@ try {
     .locator("option")
     .allTextContents();
   const ppIndex = pp.findIndex((x) => x.startsWith("PP-OCR"));
+  const ppId = await page.getByLabel("当前识别结果").locator("option").nth(ppIndex).getAttribute("value");
+  const ppResult = await api("/results/" + ppId);
   await page.getByLabel("当前识别结果").selectOption({ index: ppIndex });
+  await expect(text).toHaveValue(ppResult.edited.text);
+  await expect(button("开始识别")).toBeEnabled();
   await page.locator(".text-blocks summary").click();
   await page.locator(".text-blocks button:not([disabled])").first().click();
   await expect(
-    page.locator('.image-overlay polygon[fill="#106bcb25"]'),
+    page.locator('.image-overlay polygon[fill="#86bc2525"]'),
   ).toHaveCount(1);
   check("text block locates matching image coordinates");
   const vlIndex = pp.findIndex((x) => x.startsWith("PaddleOCR-VL"));
@@ -265,7 +286,9 @@ try {
   await button("收起任务队列").click();
   check("region crop runs selected real engine");
   const beforeDewarp = await activeVersion();
+  await page.locator(".image-more summary").click();
   await button("去弯曲").click();
+  await page.locator(".image-more summary").click();
   await expect
     .poll(
       async () => {
@@ -290,6 +313,10 @@ try {
   await page.getByLabel("当前项目").selectOption(currentProject);
   await expect(text).toHaveValue(/切换前自动保存/);
   await page.reload();
+  await page
+    .locator(".result-tabs")
+    .getByRole("button", { name: "文字", exact: true })
+    .click();
   await expect(text).toHaveValue(/切换前自动保存/);
   check("immediate project switch and reload preserve pending edit");
   await page.setViewportSize({ width: 1366, height: 768 });

@@ -16,10 +16,14 @@ from audit_application import Application, until
 p = argparse.ArgumentParser()
 p.add_argument("--build-root", type=Path, required=True)
 p.add_argument("--features-only", action="store_true")
+p.add_argument("--redesign-only", action="store_true", help="Run layout, visual and save-state regression on the existing isolated UI project")
+p.add_argument("--with-redesign", action="store_true", help="Run layout regression after the selected suite using the same verified launcher")
 p.add_argument("--output", type=Path, help="New evidence directory; leaves earlier audit evidence intact")
 p.add_argument("--data", type=Path, help="Isolated project directory shared by core and feature audits")
 p.add_argument("--diagnostic-service-only", action="store_true", help="Only debug dialog behavior; cannot produce full acceptance evidence")
 a = p.parse_args()
+if a.features_only and a.redesign_only:
+    p.error("Choose either features-only or redesign-only")
 root = a.build_root.resolve()
 audit_output = a.output.resolve() if a.output else root / ("ui-feature-audit" if a.features_only else "ui-audit")
 if a.output and audit_output.exists() and any(audit_output.iterdir()):
@@ -60,7 +64,9 @@ try:
             str(
                 Path(__file__).resolve().parents[1]
                 / (
-                    "frontend/scripts/ui-features.mjs"
+                    "frontend/scripts/ui-redesign.mjs"
+                    if a.redesign_only
+                    else "frontend/scripts/ui-features.mjs"
                     if a.features_only
                     else "frontend/scripts/ui-audit.mjs"
                 )
@@ -74,6 +80,20 @@ try:
         report["bundle_manifest_sha256"] = hashlib.sha256((root / "bundle/manifest.json").read_bytes()).hexdigest()
         report["health"] = app.health
         receipt.write_text(json.dumps(report, ensure_ascii=False, indent=2), "utf-8")
+    if result.returncode == 0 and a.with_redesign:
+        redesign_output = audit_output.parent / (audit_output.name + "-redesign")
+        if redesign_output.exists() and any(redesign_output.iterdir()):
+            raise ValueError("Fresh redesign evidence directory required")
+        result = subprocess.run(
+            ["node", str(Path(__file__).resolve().parents[1] / "frontend/scripts/ui-redesign.mjs")],
+            env={**os.environ, "OCR_BUILD_ROOT": str(root), "OCR_UI_OUTPUT": str(redesign_output), "OCR_STATE_FILE": str(app.data / "launcher/launcher-state.json")},
+        )
+        if result.returncode == 0:
+            receipt = redesign_output / "result.json"
+            report = json.loads(receipt.read_text("utf-8"))
+            report["bundle_manifest_sha256"] = hashlib.sha256((root / "bundle/manifest.json").read_bytes()).hexdigest()
+            report["health"] = app.health
+            receipt.write_text(json.dumps(report, ensure_ascii=False, indent=2), "utf-8")
     raise SystemExit(result.returncode)
 finally:
     try:

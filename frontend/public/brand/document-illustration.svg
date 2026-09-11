@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="640"
+     height="480"
+     viewBox="0 0 640 480"
+     fill="none"
+     role="img"
+     aria-labelledby="title desc">
+  <title id="title">Document workspace</title>
+  <desc id="desc">
+    Three finely outlined ivory documents with a precise abstract table
+    and a small green verification mark. The background is transparent.
+  </desc>
+
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="200" y2="248"
+                    gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F5F6F3"/>
+    </linearGradient>
+
+    <linearGradient id="rear-paper" x1="0" y1="0" x2="188" y2="248"
+                    gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F5F6F3"/>
+    </linearGradient>
+
+    <linearGradient id="overlap" x1="0" y1="0" x2="12" y2="0"
+                    gradientUnits="userSpaceOnUse">
+      <stop stop-color="#30363B" stop-opacity="0"/>
+      <stop offset="1" stop-color="#30363B" stop-opacity=".065"/>
+    </linearGradient>
+
+    <radialGradient id="contact-shadow">
+      <stop stop-color="#30363B" stop-opacity=".085"/>
+      <stop offset=".55" stop-color="#30363B" stop-opacity=".035"/>
+      <stop offset="1" stop-color="#30363B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- A soft vector shadow; no opaque background or raster effects. -->
+  <ellipse cx="326" cy="376" rx="154" ry="27"
+           transform="rotate(-16 326 376)"
+           fill="url(#contact-shadow)"/>
+
+  <!-- Rear sheet. All sheet details share the same projection. -->
+  <g transform="matrix(1 -.29 0 1 188 126)">
+    <rect x="1" y="2" width="188" height="248" rx="2.5"
+          fill="#30363B" fill-opacity=".035"/>
+    <rect width="188" height="248" rx="2.5"
+          fill="url(#rear-paper)"
+          stroke="#30363B" stroke-opacity=".72" stroke-width="1.5"/>
+
+    <g fill="#30363B" fill-opacity=".25">
+      <rect x="19" y="31" width="82" height="2.5" rx=".6"/>
+      <rect x="19" y="43" width="59" height="2" rx=".5"/>
+      <rect x="19" y="78" width="96" height="2" rx=".5"/>
+      <rect x="19" y="90" width="71" height="2" rx=".5"/>
+    </g>
+
+    <path d="M22 26H34V248H22Z" fill="url(#overlap)"
+          transform="translate(22 0)"/>
+  </g>
+
+  <!-- Middle sheet. -->
+  <g transform="matrix(1 -.29 0 1 220 144)">
+    <rect x="1" y="2" width="192" height="248" rx="2.5"
+          fill="#30363B" fill-opacity=".04"/>
+    <rect width="192" height="248" rx="2.5"
+          fill="url(#rear-paper)"
+          stroke="#30363B" stroke-opacity=".78" stroke-width="1.5"/>
+
+    <g fill="#30363B" fill-opacity=".3">
+      <rect x="19" y="27" width="74" height="2.5" rx=".6"/>
+      <rect x="19" y="54" width="105" height="2" rx=".5"/>
+      <rect x="19" y="66" width="82" height="2" rx=".5"/>
+      <rect x="19" y="101" width="101" height="2" rx=".5"/>
+      <rect x="19" y="113" width="67" height="2" rx=".5"/>
+      <rect x="19" y="125" width="89" height="2" rx=".5"/>
+    </g>
+
+    <rect x="20" y="24" width="12" height="224"
+          fill="url(#overlap)"/>
+  </g>
+
+  <!-- Front sheet. -->
+  <g transform="matrix(1 -.29 0 1 252 164)">
+    <rect x="1" y="2" width="200" height="248" rx="2.5"
+          fill="#30363B" fill-opacity=".055"/>
+    <rect width="200" height="248" rx="2.5"
+          fill="url(#paper)"
+          stroke="#30363B" stroke-width="1.5"/>
+
+    <!-- Abstract heading strokes, without lettering. -->
+    <g fill="#30363B">
+      <rect x="20" y="28" width="84" height="3" rx=".65"
+            fill-opacity=".4"/>
+      <rect x="20" y="40" width="58" height="2" rx=".5"
+            fill-opacity=".32"/>
+    </g>
+
+    <!-- Table: three columns and six precisely aligned rows. -->
+    <g transform="translate(20 58)">
+      <path d="M55 44H119V66H55Z"
+            fill="#86BC25" fill-opacity=".86"/>
+
+      <rect width="160" height="132"
+            stroke="#30363B" stroke-opacity=".65" stroke-width="1.15"/>
+
+      <path d="M55 0V132
+               M119 0V132
+               M0 22H160
+               M0 44H160
+               M0 66H160
+               M0 88H160
+               M0 110H160"
+            stroke="#30363B"
+            stroke-opacity=".5"
+            stroke-width="1.05"/>
+
+      <g fill="#30363B" fill-opacity=".36">
+        <rect x="7" y="10" width="31" height="2" rx=".4"/>
+        <rect x="7" y="32" width="25" height="2" rx=".4"/>
+        <rect x="7" y="54" width="31" height="2" rx=".4"/>
+        <rect x="7" y="76" width="22" height="2" rx=".4"/>
+        <rect x="7" y="98" width="28" height="2" rx=".4"/>
+      </g>
+    </g>
+
+    <!-- Quiet footer details. -->
+    <g fill="#30363B" fill-opacity=".3">
+      <rect x="20" y="211" width="72" height="2.5" rx=".5"/>
+      <rect x="20" y="223" width="49" height="2" rx=".5"/>
+    </g>
+
+    <!-- Verification mark stays on the paper plane. -->
+    <g transform="translate(165 216)"
+       stroke="#86BC25"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+      <circle r="13" stroke-width="1.6"/>
+      <path d="M-6 0L-1.5 4.5L6.5-5"
+            stroke-width="2.6"/>
+    </g>
+  </g>
+</svg>

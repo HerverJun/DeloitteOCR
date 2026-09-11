@@ -162,15 +162,51 @@ export function ImageCanvas({
   };
   return (
     <section className="image-workspace" aria-label="图片工作区">
+      <header className="canvas-panel-heading">
+        <h2>原始文档</h2>{" "}
+        {version && (
+          <div className="version-bar">
+            <select
+              aria-label="图片版本"
+              value={version.id}
+              onChange={(e) => onVersion(e.target.value)}
+            >
+              {versions.map((v, i) => (
+                <option key={v.id} value={v.id}>
+                  {i === 0
+                    ? "原始图片"
+                    : `版本 ${i + 1} · ${operationName(v.operations)}`}
+                </option>
+              ))}
+            </select>
+            <span>
+              {version.width} × {version.height}
+            </span>
+            {version.parent_id && (
+              <Button
+                size="small"
+                appearance="subtle"
+                icon={<CornerUpLeft size={14} />}
+                onClick={() => onVersion(versions[0].id)}
+              >
+                查看原图
+              </Button>
+            )}
+          </div>
+        )}
+      </header>
       <div className="image-toolbar">
-        <div className="tool-group">
+        <div className="tool-group" role="group" aria-label="图像浏览">
           <Button
             title="拖动图片"
             aria-label="拖动图片"
-            appearance={mode === "pan" ? "primary" : "subtle"}
+            appearance="subtle"
+            className={mode === "pan" ? "tool-active" : undefined}
             icon={<Hand size={17} />}
             onClick={() => choose("pan")}
           />
+        </div>
+        <div className="tool-group" role="group" aria-label="区域选择">
           <Button
             title="裁剪"
             aria-label="裁剪"
@@ -193,26 +229,42 @@ export function ImageCanvas({
             onClick={() => choose("region")}
           />
         </div>
-        <div className="tool-group">
-          <Button
-            title="顺时针旋转"
-            aria-label="顺时针旋转"
-            icon={<RotateCw size={17} />}
-            appearance="subtle"
-            disabled={!version || busy}
-            onClick={() => onTransform({ kind: "rotate", degrees: 90 })}
-          />
-          <Button
-            title="增强对比度"
-            aria-label="增强对比度"
-            icon={<Contrast size={17} />}
-            appearance="subtle"
-            disabled={!version || busy}
-            onClick={() => onTransform({ kind: "contrast", factor: 1.3 })}
-          />
-        </div>
+        <details className="image-more">
+          <summary title="更多图像修正">更多</summary>
+          <div className="image-more-content">
+            <Button
+              title="顺时针旋转"
+              aria-label="顺时针旋转"
+              icon={<RotateCw size={17} />}
+              appearance="subtle"
+              disabled={!version || busy}
+              onClick={() => onTransform({ kind: "rotate", degrees: 90 })}
+            >
+              顺时针旋转
+            </Button>
+            <Button
+              title="增强对比度"
+              aria-label="增强对比度"
+              icon={<Contrast size={17} />}
+              appearance="subtle"
+              disabled={!version || busy}
+              onClick={() => onTransform({ kind: "contrast", factor: 1.3 })}
+            >
+              增强对比度
+            </Button>
+            <Button
+              size="small"
+              appearance="subtle"
+              disabled={!version || busy}
+              onClick={() => onTransform({ kind: "dewarp" })}
+            >
+              去弯曲
+            </Button>
+          </div>
+        </details>
         <div className="zoom-tools">
           <Button
+            title="缩小"
             aria-label="缩小"
             icon={<ZoomOut size={16} />}
             appearance="subtle"
@@ -226,6 +278,7 @@ export function ImageCanvas({
             {Math.round(scale * 100)}%
           </button>
           <Button
+            title="放大"
             aria-label="放大"
             icon={<ZoomIn size={16} />}
             appearance="subtle"
@@ -233,44 +286,6 @@ export function ImageCanvas({
           />
         </div>
       </div>
-      {version && (
-        <div className="version-bar">
-          <select
-            aria-label="图片版本"
-            value={version.id}
-            onChange={(e) => onVersion(e.target.value)}
-          >
-            {versions.map((v, i) => (
-              <option key={v.id} value={v.id}>
-                {i === 0
-                  ? "原始图片"
-                  : `版本 ${i + 1} · ${operationName(v.operations)}`}
-              </option>
-            ))}
-          </select>
-          <span>
-            {version.width} × {version.height}
-          </span>
-          <Button
-            size="small"
-            appearance="subtle"
-            disabled={busy}
-            onClick={() => onTransform({ kind: "dewarp" })}
-          >
-            去弯曲
-          </Button>
-          {version.parent_id && (
-            <Button
-              size="small"
-              appearance="subtle"
-              icon={<CornerUpLeft size={14} />}
-              onClick={() => onVersion(versions[0].id)}
-            >
-              查看原图
-            </Button>
-          )}
-        </div>
-      )}
       {mode !== "pan" && (
         <div className="selection-bar">
           <span>
@@ -315,11 +330,17 @@ export function ImageCanvas({
       >
         {!version ? (
           <div className="canvas-empty">
-            <div className="paper-outline">
-              <ImageIcon size={36} />
-            </div>
-            <h2>让图片里的信息可编辑</h2>
-            <p>导入照片，选择识别方式，即可开始校对。</p>
+            <img
+              className="empty-illustration"
+              src="./brand/document-illustration.svg"
+              alt=""
+            />
+            <h2>从一份文档开始</h2>
+            <p>
+              将图片或文件夹拖入工作台，
+              <br />
+              识别、校对并整理为可用的数据。
+            </p>
             <span>JPG · PNG · TIFF · WebP · HEIC</span>
           </div>
         ) : loadError ? (
@@ -363,8 +384,8 @@ export function ImageCanvas({
                       <polygon
                         key={i}
                         points={block.polygon.map((p) => p.join(",")).join(" ")}
-                        fill={highlight === i ? "#106bcb25" : "transparent"}
-                        stroke={highlight === i ? "#126ac9" : "#126ac955"}
+                        fill={highlight === i ? "#86bc2525" : "transparent"}
+                        stroke={highlight === i ? "#386a12" : "#386a1266"}
                         strokeWidth={highlight === i ? 3 / scale : 1 / scale}
                       />
                     ),
@@ -375,8 +396,8 @@ export function ImageCanvas({
                     y={box[1]}
                     width={box[2] - box[0]}
                     height={box[3] - box[1]}
-                    fill="#146ac320"
-                    stroke="#146ac3"
+                    fill="#86bc2520"
+                    stroke="#386a12"
                     strokeWidth={2 / scale}
                     strokeDasharray={`${6 / scale} ${4 / scale}`}
                   />
@@ -389,8 +410,8 @@ export function ImageCanvas({
                     )
                       .map((p) => p.join(","))
                       .join(" ")}
-                    fill={points.length === 4 ? "#126ac922" : "none"}
-                    stroke="#126ac9"
+                    fill={points.length === 4 ? "#86bc2522" : "none"}
+                    stroke="#386a12"
                     strokeWidth={2 / scale}
                   />
                 )}
@@ -412,7 +433,7 @@ export function ImageCanvas({
                       cx={p[0]}
                       cy={p[1]}
                       r={9 / scale}
-                      fill="#126ac9"
+                      fill="#386a12"
                       stroke="white"
                       strokeWidth={2 / scale}
                     />

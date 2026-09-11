@@ -53,93 +53,109 @@ export function TableEditor({
     Math.max(ar, br),
     Math.max(ac, bc),
   ];
+  const columnName = (index: number) => {
+    let text = "";
+    for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26))
+      text = String.fromCharCode(65 + ((n - 1) % 26)) + text;
+    return text;
+  };
   const pick = (r: number, c: number, shift: boolean) =>
     setSelection(shift ? [ar, ac, r, c] : [r, c, r, c]);
   return (
     <div className="table-editor">
-      <div className="table-selector">
-        <label>
-          表格
-          <select
-            aria-label="选择表格"
-            value={index}
-            onChange={(e) => {
-              setIndex(+e.target.value);
-              setSelection([0, 0, 0, 0]);
-            }}
-          >
-            {tables.map((_, i) => (
-              <option key={i} value={i}>
-                表 {i + 1}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span>
-          {table.rows} 行 × {table.columns} 列
+      <div className="table-command-row">
+        <div className="table-selector">
+          <label>
+            <select
+              aria-label="选择表格"
+              value={index}
+              onChange={(e) => {
+                setIndex(+e.target.value);
+                setSelection([0, 0, 0, 0]);
+              }}
+            >
+              {tables.map((_, i) => (
+                <option key={i} value={i}>
+                  表 {i + 1}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span>
+            {table.rows} 行 × {table.columns} 列
+          </span>
+        </div>
+        <span className="cell-address" aria-label="当前单元格">
+          {columnName(rect[1])}
+          {rect[0] + 1}
         </span>
+        <div className="table-actions">
+          <Button
+            size="small"
+            icon={<Plus size={14} />}
+            onClick={() =>
+              action(() =>
+                insertAxis(table, "row", Math.min(ar + 1, table.rows)),
+              )
+            }
+          >
+            加行
+          </Button>
+          <Button
+            size="small"
+            icon={<Plus size={14} />}
+            onClick={() =>
+              action(() =>
+                insertAxis(table, "column", Math.min(ac + 1, table.columns)),
+              )
+            }
+          >
+            加列
+          </Button>
+          <Button
+            size="small"
+            icon={<Minus size={14} />}
+            onClick={() => action(() => deleteAxis(table, "row", ar))}
+          >
+            删行
+          </Button>
+          <Button
+            size="small"
+            icon={<Minus size={14} />}
+            onClick={() => action(() => deleteAxis(table, "column", ac))}
+          >
+            删列
+          </Button>
+          <Button
+            size="small"
+            icon={<Merge size={14} />}
+            onClick={() => action(() => merge(table, rect))}
+          >
+            合并
+          </Button>
+          <Button
+            size="small"
+            icon={<Split size={14} />}
+            onClick={() => action(() => split(table, ar, ac))}
+          >
+            拆分
+          </Button>
+        </div>
       </div>
-      <div className="table-actions">
-        <Button
-          size="small"
-          icon={<Plus size={14} />}
-          onClick={() =>
-            action(() => insertAxis(table, "row", Math.min(ar + 1, table.rows)))
-          }
-        >
-          加行
-        </Button>
-        <Button
-          size="small"
-          icon={<Plus size={14} />}
-          onClick={() =>
-            action(() =>
-              insertAxis(table, "column", Math.min(ac + 1, table.columns)),
-            )
-          }
-        >
-          加列
-        </Button>
-        <Button
-          size="small"
-          icon={<Minus size={14} />}
-          onClick={() => action(() => deleteAxis(table, "row", ar))}
-        >
-          删行
-        </Button>
-        <Button
-          size="small"
-          icon={<Minus size={14} />}
-          onClick={() => action(() => deleteAxis(table, "column", ac))}
-        >
-          删列
-        </Button>
-        <Button
-          size="small"
-          icon={<Merge size={14} />}
-          onClick={() => action(() => merge(table, rect))}
-        >
-          合并
-        </Button>
-        <Button
-          size="small"
-          icon={<Split size={14} />}
-          onClick={() => action(() => split(table, ar, ac))}
-        >
-          拆分
-        </Button>
-      </div>
-      <label className="caption-input">
-        表格标题
-        <input
-          aria-label="表格标题"
-          value={table.caption || ""}
-          onChange={(e) => update({ ...table, caption: e.target.value })}
-        />
-      </label>
-      <p className="table-hint">
-        按住 Shift 点击选择矩形区域。合并保留文字；编号始终按文本导出。
-      </p>
+      <details className="table-settings">
+        <summary>表格标题与操作说明</summary>
+        <label className="caption-input">
+          表格标题
+          <input
+            aria-label="表格标题"
+            value={table.caption || ""}
+            onChange={(e) => update({ ...table, caption: e.target.value })}
+          />
+        </label>
+        <p className="table-hint">
+          按住 Shift 点击选择矩形区域。合并保留文字；编号始终按文本导出。
+        </p>
+      </details>
       <div className="table-scroll">
         <table className="editable-grid">
           <thead>
@@ -148,9 +164,18 @@ export function TableEditor({
               {Array.from({ length: table.columns }, (_, c) => (
                 <th
                   key={c}
+                  scope="col"
+                  tabIndex={0}
+                  aria-label={`选择第 ${c + 1} 列`}
+                  onKeyDown={(e) => {
+                    if (["Enter", " "].includes(e.key)) {
+                      e.preventDefault();
+                      setSelection([0, c, table.rows - 1, c]);
+                    }
+                  }}
                   onClick={() => setSelection([0, c, table.rows - 1, c])}
                 >
-                  {c + 1}
+                  {columnName(c)}
                 </th>
               ))}
             </tr>
@@ -160,6 +185,15 @@ export function TableEditor({
               <tr key={r}>
                 <th
                   className="row-header"
+                  scope="row"
+                  tabIndex={0}
+                  aria-label={`选择第 ${r + 1} 行`}
+                  onKeyDown={(e) => {
+                    if (["Enter", " "].includes(e.key)) {
+                      e.preventDefault();
+                      setSelection([r, 0, r, table.columns - 1]);
+                    }
+                  }}
                   onClick={() => setSelection([r, 0, r, table.columns - 1])}
                 >
                   {r + 1}
@@ -183,6 +217,21 @@ export function TableEditor({
                       <textarea
                         aria-label={`第 ${r + 1} 行第 ${c + 1} 列`}
                         spellCheck={false}
+                        wrap="off"
+                        rows={Math.min(
+                          4,
+                          Math.max(1, cell.text.split("\n").length),
+                        )}
+                        style={
+                          /^\d{12,}$/.test(cell.text.trim())
+                            ? {
+                                minWidth: Math.min(
+                                  360,
+                                  cell.text.trim().length * 8.5 + 24,
+                                ),
+                              }
+                            : undefined
+                        }
                         value={cell.text}
                         onChange={(e) =>
                           update({

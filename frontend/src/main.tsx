@@ -1,20 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider } from "@fluentui/react-components";
 import { App } from "./App";
 import "./style.css";
+import { workbenchTheme } from "./theme";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FluentProvider
-      theme={{
-        ...webLightTheme,
-        colorBrandBackground: "#176a95",
-        colorBrandBackgroundHover: "#125b83",
-        colorBrandForeground1: "#176a95",
-        colorBrandStroke1: "#176a95",
-      }}
-    >
+    <FluentProvider theme={workbenchTheme}>
       <App />
     </FluentProvider>
   </React.StrictMode>,
 );
+import "./professional.css";

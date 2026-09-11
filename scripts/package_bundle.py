@@ -24,7 +24,7 @@ started = time.monotonic()
 last = started
 
 def included_paths():
-    for path in sorted(root.rglob('*')):
+    for path in sorted(root.rglob('*'), key=lambda p: p.relative_to(root).as_posix()):
         rel=path.relative_to(root)
         if path.is_file() and '__pycache__' not in rel.parts and rel.parts[0] not in {'cache','runs','results'} and rel.as_posix()!='manifest.json':
             yield path

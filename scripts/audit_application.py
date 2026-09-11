@@ -83,7 +83,7 @@ class Application:
                 self.state = json.loads(
                     (self.data / "launcher/launcher-state.json").read_text("utf-8")
                 )
-                if self.state["pid"] != self.process.pid:
+                if self.state.get("pid") != self.process.pid:
                     return False
                 self.token = (
                     (self.data / "launcher/session-token.txt")
