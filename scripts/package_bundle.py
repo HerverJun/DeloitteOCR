@@ -68,8 +68,9 @@ with zipfile.ZipFile(partial, 'w', compression=zipfile.ZIP_DEFLATED, compresslev
             print(json.dumps({'files': len(records), 'bytes': sum(r['bytes'] for r in records), 'current': rel.as_posix()}), flush=True)
             last = time.monotonic()
     manifest = json.dumps({'schema_version': 1, 'files': records}, ensure_ascii=False, indent=2)
-    (root/'manifest.json').write_text(manifest, encoding='utf-8')
-    archive.writestr('OfflineOCR/manifest.json', manifest.encode('utf-8'))
+    manifest_bytes = manifest.encode('utf-8')
+    (root/'manifest.json').write_bytes(manifest_bytes)
+    archive.writestr('OfflineOCR/manifest.json', manifest_bytes)
 partial.replace(a.output)
 with a.output.open('rb') as stream:
     digest = hashlib.file_digest(stream, 'sha256').hexdigest()

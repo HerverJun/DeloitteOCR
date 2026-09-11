@@ -38,6 +38,9 @@ def main():
         "intranet-evaluation/review.json": "passed",
         "release/archive-verification.json": "passed",
         "release/source-verification.json": "passed",
+        "release/source-bundle-verification.json": "passed",
+        "release/packaging-regression.json": "passed",
+        "release/extraction-verification.json": "passed",
         "release/tested-components.json": "passed",
     }
     # These earlier receipts retain their actual scope/version in the audit report.
@@ -55,6 +58,7 @@ def main():
         "tested-build/application-manifest.json",
         "load-cycles/load-cycles.json",
         "application-regression-fixed/application-audit.json",
+        "release/final-delivery.json",
     ]
     for name in ["01-import.png", "02-comparison.png", "03-table.png", "04-perspective.png", "05-laptop.png"]:
         additional.append("ui-audit-final/" + name)
