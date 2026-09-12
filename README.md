@@ -6,7 +6,7 @@ Windows 单机中文 OCR 工作台，提供原生托盘启动器、本地项目�
 
 ## 当前开发计划
 
-多引擎融合与快速校对已在 0.8.0rc2 候选版实现，含 CPU 融合、预览采用、候选校对、保存恢复、来源导出。两档当前均仅建议，自动候选替换未开放；公开数据结果为回顾性验证，固定 20 张真人试用尚未完成，整体计划仍在进行中。见 [实施记录](docs/fusion-implementation-status.md)、[使用与恢复](docs/fusion-usage-and-recovery.md) 及 [质量报告](docs/fusion-quality-report.md)。新候选交付目录为 `E:\OCR-fusion-20260912`，以目录内实际验证回执为准。
+多引擎融合与快速校对已在 0.8.0rc2 候选版完成当前范围的开发、工程验证和交付，含 CPU 融合、预览采用、候选校对、保存恢复、来源导出。2026-09-12 已按用户要求删除文档中的人工验收条款。两档当前均仅建议，自动候选替换未开放；公开数据结果为回顾性验证，没有独立留出或人工效率结论。见 [实施记录](docs/fusion-implementation-status.md)、[使用与恢复](docs/fusion-usage-and-recovery.md) 及 [质量报告](docs/fusion-quality-report.md)。新候选交付目录为 `E:\OCR-fusion-20260912`，以目录内实际验证回执为准。
 
 ## 运行便携包
 
