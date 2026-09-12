@@ -33,14 +33,23 @@ export function TableEditor({
   onError,
   disabled = false,
   focusTarget,
+  activeIndex = 0,
+  onIndexChange,
 }: {
   tables: Table[];
   onChange: (tables: Table[]) => void;
   onError: (message: string) => void;
   disabled?: boolean;
+  activeIndex?: number;
+  onIndexChange?: (index: number) => void;
   focusTarget?: { tableId: string; row: number; column: number; nonce: number } | null;
 }) {
-  const [index, setIndex] = useState(0);
+  const [localIndex, setLocalIndex] = useState(activeIndex);
+  const index = onIndexChange ? activeIndex : localIndex;
+  const setIndex = (next: number) => {
+    setLocalIndex(next);
+    onIndexChange?.(next);
+  };
   const [selection, setSelection] = useState([0, 0, 0, 0]);
   const [creating, setCreating] = useState(false);
   const [newRows, setNewRows] = useState(2);
@@ -52,7 +61,7 @@ export function TableEditor({
   const keyboardSelection = useRef(false);
   const editorElement = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setIndex((i) => Math.min(i, Math.max(0, tables.length - 1)));
+    if (index >= tables.length && index !== 0) setIndex(Math.max(0, tables.length - 1));
   }, [tables.length]);
   useEffect(() => {
     if (!focusTarget) return;
@@ -67,6 +76,7 @@ export function TableEditor({
   }, [focusTarget?.nonce]);
   const addTable = () => {
     try {
+      if (tables.length >= 100) throw Error("单个结果最多支持 100 张表格，请先整理已有表格");
       onChange([...tables, createTable(newRows, newColumns)]);
       setIndex(tables.length);
       setSelection([0, 0, 0, 0]);
@@ -89,7 +99,7 @@ export function TableEditor({
           aria-label="新表格行数"
           type="number"
           min={1}
-          max={50000}
+          max={10000}
           required
           value={Number.isFinite(newRows) ? newRows : ""}
           onChange={(event) => setNewRows(event.target.valueAsNumber)}
@@ -101,7 +111,7 @@ export function TableEditor({
           aria-label="新表格列数"
           type="number"
           min={1}
-          max={50000}
+          max={1000}
           required
           value={Number.isFinite(newColumns) ? newColumns : ""}
           onChange={(event) => setNewColumns(event.target.valueAsNumber)}

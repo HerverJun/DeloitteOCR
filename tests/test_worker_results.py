@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from PIL import Image
-from ocr_workbench.editing import validate_edit
+from ocr_workbench.editing import validate_edit, export_text
 from ocr_workbench.worker import process_image
 
 
@@ -36,7 +36,8 @@ class WorkerResultTests(unittest.TestCase):
         result = json.loads((self.args.output / 'result.json').read_text('utf-8'))
         self.assertEqual(result['status'], 'success')
         self.assertEqual(result['text'], text)
-        self.assertEqual((self.args.output / 'result.txt').read_text('utf-8'), text)
+        self.assertEqual((self.args.output / 'result.txt').read_text('utf-8'),
+                         export_text({'text': text, 'tables': result['tables']}))
         self.assertEqual((self.args.output / 'result.md').read_text('utf-8'), text)
         self.assertEqual(json.loads((self.args.output / 'raw.json').read_text('utf-8')),
                          {'complete_output': text})

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Result, Edit } from "./types";
 import { recoveryClient, readRecovery, writeRecovery } from "./editorRecovery";
+import { editableResult, savedEdit } from "./documentText";
 
 export function useEditor(onError: (message: string) => void) {
   const [result, setResult] = useState<Result | null>(null);
@@ -52,7 +53,7 @@ export function useEditor(onError: (message: string) => void) {
         if (current.current?.id !== intent.resultId) throw Error("决策保存期间结果已切换，请重新加载。");
         current.current = saved;
         setResult(saved);
-        if (!pending.current) setEdit(saved.edited);
+        if (!pending.current) setEdit(editableResult(saved));
         decision.current = null;
         reviewDraft.current = null;
         persistRecovery();
@@ -71,14 +72,14 @@ export function useEditor(onError: (message: string) => void) {
       setSaveState("保存中");
       try {
         const saved = await api<Result>("/results/" + target.id, "PUT", {
-          edited: value,
+          edited: savedEdit(value),
           revision: target.revision,
         });
         current.current = saved;
         persistRecovery();
         if (generation === loadGeneration.current) setResult(saved);
         if (!pending.current && generation === loadGeneration.current) {
-          setEdit(saved.edited);
+          setEdit(editableResult(saved));
           setSaveState("已保存");
         }
       } catch (error) {
@@ -103,7 +104,7 @@ export function useEditor(onError: (message: string) => void) {
       setLoadError("");
       if (id === current.current?.id) {
         setResult(current.current);
-        setEdit(current.current.edited);
+        setEdit(editableResult(current.current));
         setSaveState("已保存");
         setLoadState("ready");
         return;
@@ -134,11 +135,11 @@ export function useEditor(onError: (message: string) => void) {
           // changed server result produces a conflict instead of an overwrite.
           if (recovery.edit && recovery.revision !== value.revision)
             current.current = { ...value, revision: recovery.revision };
-          setEdit(recovery.edit || value.edited);
+          setEdit(recovery.edit || editableResult(value));
           setSaveState(recovery.decision ? "上次提交待核实" : recovery.revision !== value.revision ? "保存失败" : "已恢复未提交草稿");
           if (!recovery.decision && recovery.revision !== value.revision) onError("已恢复本地草稿，但服务器修订已变化。请下载草稿并核对差异后重新加载。");
         } else {
-          setEdit(value.edited);
+          setEdit(editableResult(value));
           setSaveState("已保存");
         }
         setLoadState("ready");
@@ -189,7 +190,7 @@ export function useEditor(onError: (message: string) => void) {
         current.current = value;
         if (generation !== loadGeneration.current) return;
         setResult(value);
-        setEdit(value.edited);
+        setEdit(editableResult(value));
         setSaveState("已保存");
       });
     },
@@ -232,7 +233,7 @@ export function useEditor(onError: (message: string) => void) {
         current.current = value;
         persistRecovery();
         setResult(value);
-        setEdit(value.edited);
+        setEdit(editableResult(value));
         setSaveState("已保存");
         setLoadState("ready");
         setLoadError("");

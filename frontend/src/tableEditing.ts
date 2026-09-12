@@ -1,18 +1,11 @@
 import type { Cell, Table } from "./types";
 import { normalize } from "./tableOps";
+import { validateTableSize } from "./tableLimits";
 
 const MAX_CELLS = 50_000;
 
 export function createTable(rows: number, columns: number): Table {
-  if (
-    !Number.isInteger(rows) ||
-    !Number.isInteger(columns) ||
-    rows < 1 ||
-    columns < 1
-  )
-    throw Error("行数和列数必须是正整数");
-  if (rows * columns > MAX_CELLS)
-    throw Error("单个表格最多支持 50,000 个单元格，请缩小区域");
+  validateTableSize(rows, columns, MAX_CELLS);
   return normalize({ rows, columns, cells: [] });
 }
 
@@ -85,8 +78,7 @@ export function pasteTsv(
   const endColumn = column + values[0].length;
   const rows = Math.max(input.rows, endRow);
   const columns = Math.max(input.columns, endColumn);
-  if (rows * columns > MAX_CELLS)
-    throw Error("粘贴后的表格超过 50,000 个单元格");
+  validateTableSize(rows, columns, MAX_CELLS);
   const overlaps = (cell: Cell) =>
     cell.row < endRow &&
     cell.row + cell.row_span > row &&

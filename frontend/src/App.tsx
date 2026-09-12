@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Dialog,
@@ -53,6 +53,7 @@ import { QuickReview } from "./QuickReview";
 import { FusionLauncher, type FusionRequest } from "./FusionLauncher";
 import { adoptedResult, exportPhotos, reviewNames } from "./resultWorkflow";
 import { useEditor } from "./useEditor";
+import { changeDocumentTables, changeDocumentText, displayOffset, documentText } from "./documentText";
 import { ProjectStorage } from "./ProjectStorage";
 import { EnginePackages } from "./EnginePackages";
 import { engineNames } from "./types";
@@ -143,6 +144,8 @@ export function App() {
   }, []);
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
+  const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
+  const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
   const refresh = useCallback(async (id: string, incremental = false) => {
     if (!id) return;
     const suffix =
@@ -521,7 +524,12 @@ export function App() {
       chooseTab("text");
       requestAnimationFrame(() => {
         textInput.current?.focus();
-        textInput.current?.setSelectionRange(issue.target.start || 0, issue.target.end ?? editor.edit?.text.length ?? 0);
+        if (editor.edit) {
+          const chars = Array.from(editor.edit.text);
+          textInput.current?.setSelectionRange(
+            displayOffset(editor.edit, chars.slice(0, issue.target.start || 0).join("").length),
+            displayOffset(editor.edit, chars.slice(0, issue.target.end ?? chars.length).join("").length));
+        }
       });
     }
   };
@@ -580,8 +588,8 @@ export function App() {
   };
   const findNext = () => {
     if (!editor.edit || !search) return;
-    let i = editor.edit.text.indexOf(search, searchIndex);
-    if (i < 0) i = editor.edit.text.indexOf(search);
+    let i = textView.indexOf(search, searchIndex);
+    if (i < 0) i = textView.indexOf(search);
     if (i < 0) {
       notify("未找到匹配文字");
       return;
@@ -1384,13 +1392,13 @@ export function App() {
                       aria-label="校对文字"
                       readOnly={busy}
                       spellCheck={false}
-                      value={editor.edit.text}
-                      onChange={(e) =>
-                        editor.change({
-                          ...editor.edit!,
-                          text: e.target.value,
-                        })
-                      }
+                      wrap={editor.edit.tables.length || editor.edit.text_sources?.length ? "off" : "soft"}
+                      className={editor.edit.tables.length || editor.edit.text_sources?.length ? "tabular-text" : undefined}
+                      value={textView}
+                      onChange={(e) => {
+                        try { editor.change(changeDocumentText(editor.edit!, e.target.value)); }
+                        catch (error) { onError(String(error)); }
+                      }}
                     />
                     <details className="text-blocks">
                       <summary>
@@ -1467,7 +1475,7 @@ export function App() {
                       ))}
                     </details>
                     <div className="text-count">
-                      {editor.edit.text.length} 字符
+                      {textView.length} 字符
                       <span>UTF-8 · 保留原始编号</span>
                     </div>
                   </div>
@@ -1475,12 +1483,14 @@ export function App() {
                 {tab === "table" && (
                   <TableEditor
                     key={editor.result.id}
+                    activeIndex={tablePositions[editor.result.id] || 0}
+                    onIndexChange={index => setTablePositions(old => ({ ...old, [editor.result!.id]: index }))}
                     disabled={busy}
                     focusTarget={reviewFocus}
                     tables={editor.edit.tables}
                     onError={onError}
                     onChange={(tables) =>
-                      editor.change({ ...editor.edit!, tables })
+                      editor.change(changeDocumentTables(editor.edit!, tables))
                     }
                   />
                 )}

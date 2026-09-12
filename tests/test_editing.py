@@ -1,6 +1,6 @@
 import unittest
 from copy import deepcopy
-from ocr_workbench.editing import export_markdown, export_text, validate_edit
+from ocr_workbench.editing import export_markdown, export_text, validate_edit, text_sources
 from ocr_workbench.tables import parse_tables
 
 
@@ -93,8 +93,9 @@ class EditingTests(unittest.TestCase):
     def test_mismatched_legacy_tables_do_not_delete_or_replace_source(self):
         text = "| MD_HEADER |\n| --- |\n| MD_VALUE |\nBETWEEN\n<table><tr><td>HTML_VALUE</td></tr></table>"
         edit = {"text": text, "tables": [self.table]}
+        self.assertTrue(export_markdown(edit).startswith(text))
+        self.assertTrue(export_text(edit).startswith("MD_HEADER\nMD_VALUE\nBETWEEN\nHTML_VALUE"))
         for render in [export_text, export_markdown]:
-            self.assertTrue(render(edit).startswith(text))
             self.assertIn("校对", render(edit))
 
     def test_source_matching_survives_shift_and_preserves_unmatched_tables(self):
@@ -103,7 +104,44 @@ class EditingTests(unittest.TestCase):
         html = deepcopy(tables[1])
         html["cells"][0]["text"] = "HTML_EDIT"
         rendered = export_text({"text": "NEW PREFIX\n" + text, "tables": [html]})
-        self.assertEqual(rendered, "NEW PREFIX\n| MD |\n| --- |\n| VALUE |\nBETWEEN\nHTML_EDIT")
+        self.assertEqual(rendered, "NEW PREFIX\nMD\nVALUE\nBETWEEN\nHTML_EDIT")
+
+    def test_clipboard_tsv_round_trip_retains_newlines_quotes_and_identifiers(self):
+        import csv
+        import io
+        text = '<table><tr><td>00001</td><td>line 1<br>line 2</td></tr><tr><td>00002</td><td>&quot;quoted&quot;</td></tr></table>'
+        result = export_text({'text': text, 'tables': parse_tables(text)})
+        self.assertEqual(list(csv.reader(io.StringIO(result), delimiter='\t')),
+                         [['00001', 'line 1\nline 2'], ['00002', '"quoted"']])
+
+    def test_presentation_spans_use_utf16_and_the_same_saved_table_binding_as_export(self):
+        table = '<table><tr><td>old</td></tr></table>'
+        text = '😀before\n' + table + '\nafter'
+        tables = parse_tables(text)
+        tables[0]['cells'][0]['text'] = 'corrected'
+        edit = {'text': text, 'tables': tables}
+        source = text_sources(edit)[0]
+        self.assertEqual(source['start'], len('😀before\n'.encode('utf-16-le'))//2)
+        self.assertEqual(source['table_index'], 0)
+        self.assertEqual(export_text(edit), '😀before\ncorrected\nafter')
+        self.assertEqual(text_sources({'text': text, 'tables': []})[0]['table_index'], None)
+        self.assertEqual(export_text({'text': text, 'tables': []}), '😀before\nold\nafter')
+
+    def test_fenced_html_code_stays_literal_and_duplicate_tables_remain_distinct(self):
+        table = '<table><tr><td>old</td></tr></table>'
+        prefix = '```html\n' + table + '\n```\n'
+        text = prefix + table + '\n' + table
+        tables = parse_tables(text)
+        tables[1]['cells'][0]['text'] = 'second only'
+        sources = text_sources({'text': text, 'tables': tables})
+        self.assertEqual([source['table_index'] for source in sources], [0, 1])
+        self.assertEqual(export_text({'text': text, 'tables': tables}), prefix + 'old\nsecond only')
+
+    def test_unusable_source_table_is_never_expanded_by_plain_text_presentation(self):
+        text = '<table><tr><td colspan="1000" rowspan="101">oversized</td></tr></table>'
+        edit = {'text': text, 'tables': []}
+        self.assertEqual(text_sources(edit), [])
+        self.assertEqual(export_text(edit), text)
 
     def test_incomplete_manual_markup_retains_source_and_edited_cells(self):
         text = "<table><tr><td>UNFINISHED"

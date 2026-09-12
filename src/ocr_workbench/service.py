@@ -22,6 +22,7 @@ from ocr_workbench.store import Store, Conflict, uid, now
 from ocr_workbench.task_queue import TaskQueue, FusionQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
+from ocr_workbench.editing import present_result
 
 
 def create_app(bundle, data, token, *, start_queue=True, review_only=False):
@@ -307,7 +308,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @app.post("/api/results/{key}/issues/{issue_id}/decision")
     def decide(key: str, issue_id: str, body: dict):
-        return store.decide_issue(key, issue_id, body)
+        return present_result(store.decide_issue(key, issue_id, body))
 
     @app.get("/api/results/{key}/evidence")
     def evidence(key: str, offset: int = 0, limit: int = 50):
@@ -332,15 +333,15 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @app.get("/api/results/{key}")
     def result(key: str):
-        return store.result(key)
+        return present_result(store.result(key))
 
     @app.put("/api/results/{key}")
     def save_result(key: str, body: dict):
-        return store.save(key, body["edited"], body["revision"])
+        return present_result(store.save(key, body["edited"], body["revision"]))
 
     @app.post("/api/results/{key}/history")
     def history(key: str, body: dict):
-        return store.history(key, body["direction"], body["revision"])
+        return present_result(store.history(key, body["direction"], body["revision"]))
 
     @app.put("/api/images/{key}/selection")
     def select_result(key: str, body: dict):

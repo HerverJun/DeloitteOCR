@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import type { Result, Version } from "./types";
 import { engineNames } from "./types";
+import { documentText, editableResult } from "./documentText";
 import {
   alignedTextDiff,
   groupResults,
@@ -31,9 +32,11 @@ function ResultDifference({
 }) {
   const left = original ? baseline.original : baseline.edited;
   const right = original ? candidate.original : candidate.edited;
+  const leftText = original ? left.text : documentText(editableResult(baseline)).text;
+  const rightText = original ? right.text : documentText(editableResult(candidate)).text;
   const diff = useMemo(
-    () => alignedTextDiff(left.text, right.text),
-    [left.text, right.text],
+    () => alignedTextDiff(leftText, rightText),
+    [leftText, rightText],
   );
   const tableDiff = useMemo(
     () => tableDifferences(left.tables, right.tables),
@@ -275,6 +278,7 @@ export function ResultComparison({
               ? "有疑问"
               : "待校对";
         const content = original ? result.original : result.edited;
+        const contentText = original ? content.text : documentText(editableResult(result)).text;
         return (
           <article className="comparison-result" key={result.id}>
             <header>
@@ -337,9 +341,9 @@ export function ResultComparison({
             <details>
               <summary>
                 {original ? "查看模型原文" : "查看保存的校对文字"} ·{" "}
-                {content.text.length} 字符 / {content.tables.length} 个表格
+                {contentText.length} 字符 / {content.tables.length} 个表格
               </summary>
-              <pre>{content.text}</pre>
+              <pre>{contentText}</pre>
             </details>
             {baseline && result.id !== baseline.id && (
               <ResultDifference

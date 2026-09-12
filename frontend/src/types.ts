@@ -15,7 +15,9 @@ export type Table = {
   source?: { start: number; end: number; format: string; sha256: string };
   cells: Cell[];
 };
-export type Edit = { text: string; tables: Table[] };
+export type TextSource = { start: number; end: number; table_index: number | null; original_table: Table };
+// text_sources is presentation metadata, never part of the saved edit payload.
+export type Edit = { text: string; tables: Table[]; text_sources?: TextSource[] };
 export type Block = {
   text: string;
   kind: string;
@@ -23,6 +25,7 @@ export type Block = {
   polygon: number[][] | null;
 };
 export type Result = {
+  text_sources?: TextSource[];
   id: string;
   task_id: string;
   revision: number;

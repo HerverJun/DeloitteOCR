@@ -81,17 +81,15 @@ def tables_html(tables):
     return "\n\n".join(output)
 
 
-def render_edited(edit, renderer):
-    """Use the parser's source ranges; never discard unmatched source text."""
+def table_bindings(edit):
+    """Share exact source matching between the editor presentation and exports."""
     tables = edit["tables"]
     text = edit["text"]
-    if not tables:
-        return text
     try:
-        sources = [table["source"] for table in parse_tables(text, warnings=[])]
+        parsed = parse_tables(text, warnings=[])
     except ValueError:
-        # A manual text edit may leave incomplete markup. Keep it intact.
-        sources = []
+        parsed = []
+    sources = [table["source"] for table in parsed]
     replacements = {}
     used = set()
     legacy_order = len(sources) == len(tables) and not any(t.get("source") for t in tables)
@@ -108,13 +106,53 @@ def render_edited(edit, renderer):
         else:
             matches = []
         if len(matches) == 1:
-            replacements[matches[0]] = table
+            replacements[matches[0]] = index
             used.add(index)
+    return parsed, replacements, used
+
+
+def text_sources(edit):
+    """Describe source spans in browser UTF-16 offsets without changing storage."""
+    parsed, replacements, _ = table_bindings(edit)
+    output, offset, utf16 = [], 0, 0
+    for index, table in enumerate(parsed):
+        source = table["source"]
+        start, end = source["start"], source["end"]
+        utf16 += len(edit["text"][offset:start].encode("utf-16-le")) // 2
+        width = len(edit["text"][start:end].encode("utf-16-le")) // 2
+        try:
+            validate_edit({"text": "", "tables": [table]})
+        except ValueError:
+            pass  # Unusable model structure stays literal, never expanded in UI.
+        else:
+            output.append({"start": utf16, "end": utf16 + width,
+                           "table_index": replacements.get(index), "original_table": table})
+        offset, utf16 = end, utf16 + width
+    return output
+
+
+def present_result(result):
+    return {**result, "text_sources": text_sources(result["edited"])}
+
+
+def render_edited(edit, renderer, *, include_unbound=False):
+    """Use the parser's source ranges; never discard unmatched source text."""
+    text, tables = edit["text"], edit["tables"]
+    if not tables and not include_unbound:
+        return text
+    parsed, replacements, used = table_bindings(edit)
     parts, offset = [], 0
-    for index, source in enumerate(sources):
-        if index not in replacements:
+    for index, parsed_table in enumerate(parsed):
+        source = parsed_table["source"]
+        if index not in replacements and not include_unbound:
             continue
-        parts.extend([text[offset:source["start"]], renderer([replacements[index]])])
+        value = tables[replacements[index]] if index in replacements else parsed_table
+        if include_unbound and index not in replacements:
+            try:
+                validate_edit({"text": "", "tables": [value]})
+            except ValueError:
+                continue
+        parts.extend([text[offset:source["start"]], renderer([value])])
         offset = source["end"]
     parts.append(text[offset:])
     remaining = [table for i, table in enumerate(tables) if i not in used]
@@ -127,13 +165,18 @@ def export_markdown(edit):
     return render_edited(edit, tables_html)
 
 
+def tsv_value(value):
+    # Match spreadsheet TSV parsing, including literal leading quotes.
+    return '"' + value.replace('"', '""') + '"' if any(c in value for c in '\t\r\n"') else value
+
+
 def tables_text(tables):
     output = []
     for table in tables:
         cells = {(c["row"], c["column"]): c["text"] for c in table["cells"]}
         lines = [table["caption"]] if table.get("caption") else []
         lines.extend(
-            "\t".join(cells.get((r, c), "") for c in range(table["columns"]))
+            "\t".join(tsv_value(cells.get((r, c), "")) for c in range(table["columns"]))
             for r in range(table["rows"])
         )
         output.append("\n".join(lines))
@@ -141,4 +184,4 @@ def tables_text(tables):
 
 
 def export_text(edit):
-    return render_edited(edit, tables_text)
+    return render_edited(edit, tables_text, include_unbound=True)

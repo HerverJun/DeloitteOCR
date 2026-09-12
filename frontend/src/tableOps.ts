@@ -1,4 +1,5 @@
 import type { Table, Cell } from "./types";
+import { validateTableSize } from "./tableLimits";
 const empty = (r: number, c: number): Cell => ({
   row: r,
   column: c,
@@ -78,6 +79,7 @@ export function insertAxis(
   axis: "row" | "column",
   position: number,
 ): Table {
+  validateTableSize(input.rows + (axis === "row" ? 1 : 0), input.columns + (axis === "column" ? 1 : 0));
   const table = structuredClone(input);
   const size = axis === "row" ? "rows" : "columns";
   const span = axis === "row" ? "row_span" : "column_span";

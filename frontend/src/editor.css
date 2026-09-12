@@ -1,3 +1,9 @@
+.text-editor textarea.tabular-text {
+  font-family: Consolas, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  tab-size: 4;
+  overflow-x: auto;
+}
+
 /* Visual tokens and surfaces for the document editor. Functional layout and
    responsive pane behavior remain in professional.css. */
 :root {

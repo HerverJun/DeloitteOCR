@@ -1,0 +1,164 @@
+- banner:
+  - link "跳到工作区":
+    - /url: "#workspace"
+  - img "Deloitte"
+  - generic: OCR 工作台
+  - button "引擎管理"
+  - generic: 仅在本机处理
+  - button "环境检查":
+    - text: 环境检查
+- complementary "项目资料":
+  - generic: 项目资料
+  - button "新建项目":
+  - combobox "当前项目":
+    - option "选择或新建项目" [disabled]
+    - option "隐藏问题隔离测试" [selected]
+    - option "切换项目测试"
+  - generic "项目管理"
+  - button "导入图片":
+    - text: 导入图片
+  - button "导入文件夹":
+  - textbox "搜索图片文件名":
+    - /placeholder: 搜索文件名
+  - combobox "筛选图片状态":
+    - option "全部状态" [selected]
+    - option "未识别"
+    - option "处理中"
+    - option "已完成"
+    - option "失败"
+    - option "待校对"
+    - option "已确认"
+    - option "有疑问"
+  - checkbox "选择全部图片"
+  - text: 图片
+  - generic: 7 / 7
+  - checkbox "选择 真实GLM表格.png"
+  - button "打开 真实GLM表格.png":
+    - strong: 真实GLM表格.png
+    - text: 已完成
+    - generic: 可用结果 · 待校对
+  - checkbox "选择 混排双表.png"
+  - button "打开 混排双表.png":
+    - strong: 混排双表.png
+    - text: 已完成
+    - generic: 可用结果 · 待校对
+  - checkbox "选择 纯文字.png"
+  - button "打开 纯文字.png":
+    - strong: 纯文字.png
+    - text: 已完成
+    - generic: 可用结果 · 待校对
+  - checkbox "选择 引号换行.png"
+  - button "打开 引号换行.png":
+    - strong: 引号换行.png
+    - text: 已完成
+    - generic: 可用结果 · 待校对
+  - checkbox "选择 旧版本结果.png"
+  - button "打开 旧版本结果.png":
+    - strong: 旧版本结果.png
+    - text: 已完成
+    - generic: 可用结果 · 待校对
+  - checkbox "选择 未识别.png"
+  - button "打开 未识别.png":
+    - strong: 未识别.png
+    - text: 尚未识别
+  - checkbox "选择 import-ok.png"
+  - button "打开 import-ok.png":
+    - strong: import-ok.png
+    - text: 已取消
+  - button "导出所选" [disabled]:
+    - text: 导出所选
+  - button "任务队列 5 项已完成":
+    - text: 任务队列
+    - generic: 5 项已完成
+  - text: 项目与校对自动保存在本机
+- main:
+  - button "收起资料栏" [expanded]:
+    - text: 资料
+  - generic: 工作空间 / 隐藏问题隔离测试
+  - heading "文档识别与校对" [level=1]
+  - button "紧凑显示":
+    - text: 舒适
+  - button "展开校对区":
+    - text: 展开校对区
+  - region "识别设置":
+    - group "识别模式":
+      - button "照片文字":
+        - text: 照片文字
+      - button "手写":
+        - text: 手写
+      - button "表格" [pressed]:
+        - text: 表格
+      - button "模型对比":
+        - text: 模型对比
+    - generic: 当前图片 · 1 张
+    - generic: 引擎
+    - combobox "识别引擎":
+      - option "PP-OCRv6 medium"
+      - option "PaddleOCR-VL-1.6"
+      - option "GLM-OCR" [selected]
+      - option "HunyuanOCR-1.5"
+      - option "四引擎顺序对比"
+    - button "批次预处理设置，当前：保留当前图像":
+      - generic: 保留当前图像
+    - button "开始识别":
+      - text: 开始识别
+  - generic "融合识别 · 生成有来源的校对草稿"
+  - option "表格" [selected]
+  - option "印刷体文字"
+  - option "手写文字"
+  - option "保守（默认）" [selected]
+  - option "积极"
+  - option "批次 1 · 1/1 份成功" [selected]
+  - button "任务队列 · 0 项处理中 · 5 项完成"
+  - region "图片工作区":
+    - heading "原始文档" [level=2]
+    - combobox "图片版本":
+      - option "原始图片" [selected]
+    - group "图像浏览":
+      - button "拖动图片" [pressed]:
+    - group "区域选择":
+      - button "裁剪":
+      - button "四角透视":
+      - button "区域重识别":
+    - generic "更多"
+    - button "缩小":
+    - button "30%"
+    - button "放大":
+    - img "当前图片版本"
+    - text: 原图始终保留
+    - generic: 1 个图像版本
+  - separator "调整原图与校对区宽度"
+  - region "识别与校对结果":
+    - heading "校对结果" [level=2]
+    - generic "真实GLM表格.png": 真实GLM表格.png · 1/7
+    - text: 已保存
+    - combobox "当前识别结果":
+      - option "GLM-OCR · 结果 1 · 已采用" [selected]
+    - button "已采用" [disabled]
+    - generic: 9.82 秒
+    - tablist "结果视图":
+      - tab "表格 1":
+        - text: 表格 1
+      - tab "文字" [active] [selected]:
+        - text: 文字
+      - tab "模型对比":
+        - text: 模型对比
+    - button "撤销":
+    - button "重做" [disabled]:
+    - button "复制":
+      - text: 复制
+    - tabpanel "文字":
+      - text: 复核：待校对
+      - button "确认此结果":
+        - text: 确认此结果
+      - generic "复核操作"
+      - textbox "搜索识别文字":
+        - /placeholder: 查找文字
+      - button "下一个匹配":
+      - textbox "校对文字": 采购记录(合并标题) 编号 名称 数量 备注 00123456789012345678 扫描仪（文字回写） 02 通过 00002 打印机 01 00003 相机 03 复核
+      - generic "定位文字区域与置信度 (1)"
+      - text: 91 字符
+      - generic: UTF-8 · 保留原始编号
+    - generic: 1 个表格可导出
+    - button "导出结果":
+      - text: 导出结果

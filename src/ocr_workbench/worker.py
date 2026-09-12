@@ -240,7 +240,8 @@ def process_image(args, session, started):
         "warnings": warnings,
         "artifacts": {"xlsx": {"status": "unavailable"}},
     }
-    (args.output / "result.txt").write_text(text, encoding="utf-8")
+    from ocr_workbench.editing import export_text
+    (args.output / "result.txt").write_text(export_text({"text": text, "tables": tables}), encoding="utf-8")
     (args.output / "result.md").write_text(text, encoding="utf-8")
     if tables:
         excel = args.output / "result.xlsx"
