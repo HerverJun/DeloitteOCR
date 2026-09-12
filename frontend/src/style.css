@@ -1285,7 +1285,7 @@ input::placeholder {
   min-height: 0;
 }
 .app-header {
-  height: 64px;
+  height: var(--header-height, 44px);
   background: #000;
   border: 0;
   color: #fff;
@@ -2153,7 +2153,7 @@ input::placeholder {
   font-size: 12px;
 }
 .drop-overlay {
-  inset: 64px 0 0;
+  inset: var(--header-height, 44px) 0 0;
   color: #386a12;
   background: #f1f8e9ed;
   border-color: #86bc25;

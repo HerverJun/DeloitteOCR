@@ -9,8 +9,8 @@ export function BrandHeader({ children }: { children: ReactNode }) {
         <img
           src="./brand/deloitte.svg"
           alt="Deloitte"
-          width="132"
-          height="25"
+          width="92"
+          height="18"
         />
         <span>OCR 工作台</span>
       </div>
