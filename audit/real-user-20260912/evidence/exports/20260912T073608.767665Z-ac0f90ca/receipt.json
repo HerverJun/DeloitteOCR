@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-12T07:36:08.767665+00:00",
+  "endpoint": "/api/export",
+  "parameters": {
+    "result_ids": [
+      "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+    ],
+    "format": "xlsx",
+    "aggregate": false,
+    "confirmed_only": false
+  },
+  "original_response_file": "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\data\\exports\\export-2k0n1_lz\\OCR-result.xlsx",
+  "preserved_file": "C:\\Users\\A\\Desktop\\OCR\\audit\\real-user-20260912\\evidence\\exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx",
+  "bytes": 6892,
+  "source_sha256": "60c1acac40c2902db22900ecda134eb1832663d44298ea1620b0188f694bb1aa",
+  "preserved_sha256": "60c1acac40c2902db22900ecda134eb1832663d44298ea1620b0188f694bb1aa",
+  "byte_identical": true,
+  "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+  "business_result_modified": false,
+  "release_integrity_acceptance": false
+}

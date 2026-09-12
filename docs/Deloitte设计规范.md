@@ -1,4 +1,4 @@
-# Deloitte ｜ OCR 工作台设计规范
+# DeloitteOCR 工作台设计规范
 
 版本：0.7.0rc2。面向 Windows 单机离线使用，优先支持表格、凭证与长编号校对。
 
@@ -8,7 +8,7 @@
 - 官方字标：https://www.deloitte.com/content/dam/assets-shared/logos/svg/a-d/deloitte.svg
 - 字标保持白字与 #86BC25 圆点的原始矢量路径、比例；位于黑色顶栏左上角，宽 92px，左侧留白 16px，与工作台名称间隔 12px。
 - 资源文件为 `frontend/public/brand/deloitte.svg`。它随包本地提供，应用不向官网发起请求。
-- 标题统一为“Deloitte ｜ OCR 工作台”。小尺寸 favicon 使用黑底文档及绿色圆点，避免缩小完整英文文字。
+- 产品名称统一为“DeloitteOCR”，浏览器、启动器、托盘和 API 标题统一为“DeloitteOCR · 离线 OCR 工作台”。小尺寸 favicon 使用黑底文档及绿色圆点，避免缩小完整英文文字。
 
 ## 颜色与组件
 

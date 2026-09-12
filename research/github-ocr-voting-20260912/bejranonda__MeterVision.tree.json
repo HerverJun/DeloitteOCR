@@ -1,0 +1,641 @@
+{
+  "sha": "7cffff482e6babf5a84458dceda3a50fe4738968",
+  "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/7cffff482e6babf5a84458dceda3a50fe4738968",
+  "tree": [
+    {
+      "path": ".dev_info",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a7db8d90245090934ae5fd06f7194ac00f56c4c5",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/a7db8d90245090934ae5fd06f7194ac00f56c4c5"
+    },
+    {
+      "path": ".dev_info/improved_installation_prompt.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0424a7dbd407d4654aae7ecf00491a85d7bfa6b0",
+      "size": 2695,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/0424a7dbd407d4654aae7ecf00491a85d7bfa6b0"
+    },
+    {
+      "path": ".env.example",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2d4295c9ddb13b4d5105768c4311485d9d8fda5f",
+      "size": 448,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/2d4295c9ddb13b4d5105768c4311485d9d8fda5f"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2b9963231bf189e89dec651d773b290264a9fc7c",
+      "size": 342,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/2b9963231bf189e89dec651d773b290264a9fc7c"
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "de0819acb11dda37f5520137a455d06e412ba01b",
+      "size": 13579,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/de0819acb11dda37f5520137a455d06e412ba01b"
+    },
+    {
+      "path": "GEMINI.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d84a13b923bafe34c6cf5f17ec7871fda1dcafcb",
+      "size": 13628,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/d84a13b923bafe34c6cf5f17ec7871fda1dcafcb"
+    },
+    {
+      "path": "GITHUB_ABOUT.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "016c619d32f4e46b0393b28ea8b2043cf49831ff",
+      "size": 386,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/016c619d32f4e46b0393b28ea8b2043cf49831ff"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "30679699dbc14824635e12b2e354ec06c37f05a7",
+      "size": 1064,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/30679699dbc14824635e12b2e354ec06c37f05a7"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c2c770bbaf32941b9700dbb70abf1514bb4e0629",
+      "size": 5593,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/c2c770bbaf32941b9700dbb70abf1514bb4e0629"
+    },
+    {
+      "path": "SMARTRPLACE_Signet_RGB-Negativ.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd78ef2aa8b0478ec9c31fea026661c7cd541cf2",
+      "size": 744,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/fd78ef2aa8b0478ec9c31fea026661c7cd541cf2"
+    },
+    {
+      "path": "app",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d9c01c37e80feafb453c889ca741ea7194a0a5fe",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/d9c01c37e80feafb453c889ca741ea7194a0a5fe"
+    },
+    {
+      "path": "app/auth.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8ff0f83de9e155607a457f403dca95c1493a935c",
+      "size": 2030,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/8ff0f83de9e155607a457f403dca95c1493a935c"
+    },
+    {
+      "path": "app/database.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9da93359273febbb190cd9ce05c67d60cabeb050",
+      "size": 912,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/9da93359273febbb190cd9ce05c67d60cabeb050"
+    },
+    {
+      "path": "app/main.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f5fe2e024cc1387dadcc2346756aa3c4e484ff2",
+      "size": 17845,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/0f5fe2e024cc1387dadcc2346756aa3c4e484ff2"
+    },
+    {
+      "path": "app/middleware",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a00a7bae2afc106462041abc8e2d85befbeae734",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/a00a7bae2afc106462041abc8e2d85befbeae734"
+    },
+    {
+      "path": "app/middleware/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9076412b3abaefdcd083c1d7e9e014cbeab764e2",
+      "size": 341,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/9076412b3abaefdcd083c1d7e9e014cbeab764e2"
+    },
+    {
+      "path": "app/middleware/rbac.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "69c4b1ca62359dd514d19735d2cc475cfe6ecc82",
+      "size": 5942,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/69c4b1ca62359dd514d19735d2cc475cfe6ecc82"
+    },
+    {
+      "path": "app/models",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "53ad1b9927fad41a18002e1c3a931adc39cba305",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/53ad1b9927fad41a18002e1c3a931adc39cba305"
+    },
+    {
+      "path": "app/models/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28e6de183e3e967c1c23b40c314f04ed6f3c0eb0",
+      "size": 1803,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/28e6de183e3e967c1c23b40c314f04ed6f3c0eb0"
+    },
+    {
+      "path": "app/models/asset.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a38b19e08c88b04177c970a2c44db4603be2034",
+      "size": 4824,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/7a38b19e08c88b04177c970a2c44db4603be2034"
+    },
+    {
+      "path": "app/models/base.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "244471e5ca75aef29662943ebed58325d756aa9c",
+      "size": 563,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/244471e5ca75aef29662943ebed58325d756aa9c"
+    },
+    {
+      "path": "app/models/device.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b728104a48977564274571fcb4cc4eeca54748a",
+      "size": 2472,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/6b728104a48977564274571fcb4cc4eeca54748a"
+    },
+    {
+      "path": "app/models/installation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5263cc15bc9799ab2a98959e594f2a585d36f520",
+      "size": 2929,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/5263cc15bc9799ab2a98959e594f2a585d36f520"
+    },
+    {
+      "path": "app/models/log.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a8c46ef196e23443f6f9bfc9f4a0ee90dd50028c",
+      "size": 618,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/a8c46ef196e23443f6f9bfc9f4a0ee90dd50028c"
+    },
+    {
+      "path": "app/models/tenant.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e6b30d1aae443a1e411aa47dcc7188763ae37db",
+      "size": 2106,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/0e6b30d1aae443a1e411aa47dcc7188763ae37db"
+    },
+    {
+      "path": "app/models/user_rbac.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e62e8c6197355c7fbc720b6f4d84d064e67ba541",
+      "size": 2503,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/e62e8c6197355c7fbc720b6f4d84d064e67ba541"
+    },
+    {
+      "path": "app/models_old.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74c7dae31cad7215c97ce4dfd237d82a66f32285",
+      "size": 2634,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/74c7dae31cad7215c97ce4dfd237d82a66f32285"
+    },
+    {
+      "path": "app/routers",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "22a4abf173526a5040c48308fe1911349724e4b5",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/22a4abf173526a5040c48308fe1911349724e4b5"
+    },
+    {
+      "path": "app/routers/installation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "017376aea4e79024df70d16f82e4936722557adc",
+      "size": 11432,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/017376aea4e79024df70d16f82e4936722557adc"
+    },
+    {
+      "path": "app/routers/logs.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5b5b32bd700e8c540b4d3bbf441f81a170b09fec",
+      "size": 1448,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/5b5b32bd700e8c540b4d3bbf441f81a170b09fec"
+    },
+    {
+      "path": "app/routers/organizations.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "db24fb2ae779a1c81d024f54421adf68ad91e21e",
+      "size": 5614,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/db24fb2ae779a1c81d024f54421adf68ad91e21e"
+    },
+    {
+      "path": "app/services",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ea2690fffcbd8beb9d042c9fd7b48d0bb63a0f97",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/ea2690fffcbd8beb9d042c9fd7b48d0bb63a0f97"
+    },
+    {
+      "path": "app/services/camera_service.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dfce15133141979eff0fc1996f90080d1088b2ef",
+      "size": 6630,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/dfce15133141979eff0fc1996f90080d1088b2ef"
+    },
+    {
+      "path": "app/services/installation_service.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e109aab952332c1dde1cdb94e920bc5444c0373",
+      "size": 12433,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/7e109aab952332c1dde1cdb94e920bc5444c0373"
+    },
+    {
+      "path": "app/services/log_service.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "009ee59c426704d823ec6077c87c2d796351743f",
+      "size": 316,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/009ee59c426704d823ec6077c87c2d796351743f"
+    },
+    {
+      "path": "app/services/ocr.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "230c59f746271b6c59068c3991ea71436fc02466",
+      "size": 13721,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/230c59f746271b6c59068c3991ea71436fc02466"
+    },
+    {
+      "path": "app/services/rbac_service.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d9955621fb030b71a7a0ba67a74be652011df9a2",
+      "size": 6753,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/d9955621fb030b71a7a0ba67a74be652011df9a2"
+    },
+    {
+      "path": "app/services/validation_service.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "854e520913ff096e8408536a2bd1287238a53372",
+      "size": 6556,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/854e520913ff096e8408536a2bd1287238a53372"
+    },
+    {
+      "path": "business",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2f2a28fe93cfa7d6b91f3becff3dcb2834596e0e",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/2f2a28fe93cfa7d6b91f3becff3dcb2834596e0e"
+    },
+    {
+      "path": "business/RULES.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f034870c0d675544b1a9d50d89a645c1433ea1f7",
+      "size": 2443,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/f034870c0d675544b1a9d50d89a645c1433ea1f7"
+    },
+    {
+      "path": "decode_image.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc89cf9d87e7ea60b9b27e7bab50917297adb505",
+      "size": 8839,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/fc89cf9d87e7ea60b9b27e7bab50917297adb505"
+    },
+    {
+      "path": "deploy.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "2643d746b8144eef236b2077da2ee590fc95ea03",
+      "size": 1379,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/2643d746b8144eef236b2077da2ee590fc95ea03"
+    },
+    {
+      "path": "docker-compose.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bc8f19a2c76fbc22abded075a07f0cde6b3b1bad",
+      "size": 486,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/bc8f19a2c76fbc22abded075a07f0cde6b3b1bad"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "06682bc849ac85c894245c3ae9f9aab00947b9b8",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/06682bc849ac85c894245c3ae9f9aab00947b9b8"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e70699a637b7b93097b227eeb87a7242fcf42a25",
+      "size": 3541,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/e70699a637b7b93097b227eeb87a7242fcf42a25"
+    },
+    {
+      "path": "docs/CONCEPTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8315e5a653e6fbb05c15d629198ca677d434e031",
+      "size": 3025,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/8315e5a653e6fbb05c15d629198ca677d434e031"
+    },
+    {
+      "path": "list_models.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "232a33b76e667e9d156084d5a33cec3f87ad3590",
+      "size": 491,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/232a33b76e667e9d156084d5a33cec3f87ad3590"
+    },
+    {
+      "path": "logs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d6bfef91582a6e71b04e5c4b9de0109f499d812a",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/d6bfef91582a6e71b04e5c4b9de0109f499d812a"
+    },
+    {
+      "path": "logs/uvicorn.log",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2cf9a8cd5a38c04ecba213820c5ff0fca857915a",
+      "size": 27066,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/2cf9a8cd5a38c04ecba213820c5ff0fca857915a"
+    },
+    {
+      "path": "metervision-mqtt.service",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1743f7510dd92771d5ad0d8d5ab800fa66edcd26",
+      "size": 412,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/1743f7510dd92771d5ad0d8d5ab800fa66edcd26"
+    },
+    {
+      "path": "metervision.service",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "48fa5773f791b6eec56216fea0a99077e495672e",
+      "size": 365,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/48fa5773f791b6eec56216fea0a99077e495672e"
+    },
+    {
+      "path": "mosquitto",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "56167caeae7faa84418cb887b7bee3a9e8a731a8",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/56167caeae7faa84418cb887b7bee3a9e8a731a8"
+    },
+    {
+      "path": "mosquitto/certs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6b0e691ba50d895c3d1fa3a2b06c5332e673ad74",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/6b0e691ba50d895c3d1fa3a2b06c5332e673ad74"
+    },
+    {
+      "path": "mosquitto/certs/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c4aa25294d92e8c6f8adef94911ec27dbfd94b6e",
+      "size": 385,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/c4aa25294d92e8c6f8adef94911ec27dbfd94b6e"
+    },
+    {
+      "path": "mosquitto/certs/generate_certs.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "b906ecad286b570657d5e4e7cd80f03f56f801bf",
+      "size": 587,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/b906ecad286b570657d5e4e7cd80f03f56f801bf"
+    },
+    {
+      "path": "mosquitto/config",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ce43a3ea7925df8cfd189e9cc0e922ee358f8a6e",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/ce43a3ea7925df8cfd189e9cc0e922ee358f8a6e"
+    },
+    {
+      "path": "mosquitto/config/mosquitto.conf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8c2a85ea1876a4e54153eeb4926c9a4e2ff0921b",
+      "size": 459,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/8c2a85ea1876a4e54153eeb4926c9a4e2ff0921b"
+    },
+    {
+      "path": "mosquitto/entrypoint.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "1f8804f21e468e3d5e565e0ece4810b110e96776",
+      "size": 582,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/1f8804f21e468e3d5e565e0ece4810b110e96776"
+    },
+    {
+      "path": "mqtt_listener.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "79f9ef8a2c81e8a15d99b753f402e93598372dc9",
+      "size": 2206,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/79f9ef8a2c81e8a15d99b753f402e93598372dc9"
+    },
+    {
+      "path": "reference",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4d9e3994ad40e7d0dfebfb50302970a8ff59cb3e",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/4d9e3994ad40e7d0dfebfb50302970a8ff59cb3e"
+    },
+    {
+      "path": "reference/API.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eecbaac925923c4b07ea3987b64e185560c72e4a",
+      "size": 2226,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/eecbaac925923c4b07ea3987b64e185560c72e4a"
+    },
+    {
+      "path": "reference/OCR_RESEARCH.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f5d1e12ec3731612a6c54fde92ce5e07eb6bff20",
+      "size": 8064,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/f5d1e12ec3731612a6c54fde92ce5e07eb6bff20"
+    },
+    {
+      "path": "reference/payload.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0d1c20b45e2a3d2e835b09ca5be76ab93b65cfd2",
+      "size": 31900,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/0d1c20b45e2a3d2e835b09ca5be76ab93b65cfd2"
+    },
+    {
+      "path": "reference/payload2.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "810c4f93531935854436c6d85fe5738898789297",
+      "size": 61531,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/810c4f93531935854436c6d85fe5738898789297"
+    },
+    {
+      "path": "requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "414f80019b71be6f2ab503957d94d01becfe04e8",
+      "size": 228,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/414f80019b71be6f2ab503957d94d01becfe04e8"
+    },
+    {
+      "path": "server_start_test.log",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fddd1e5d08d0da9dcbeb7c4db6a271f0db411e7d",
+      "size": 2896,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/fddd1e5d08d0da9dcbeb7c4db6a271f0db411e7d"
+    },
+    {
+      "path": "setup.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "f1be5f46bb4c4b0aa731b8298218ec9849b2d1be",
+      "size": 1884,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/f1be5f46bb4c4b0aa731b8298218ec9849b2d1be"
+    },
+    {
+      "path": "static",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8fe7814ada104feb346997efda63c742b9604e97",
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/trees/8fe7814ada104feb346997efda63c742b9604e97"
+    },
+    {
+      "path": "static/app.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9b69f177e3d76bead2e74e0a8e1446901d9dc049",
+      "size": 40959,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/9b69f177e3d76bead2e74e0a8e1446901d9dc049"
+    },
+    {
+      "path": "static/favicon.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8aea6ce8ee9bab88f9f5774ddf3a8fb68ebdcc29",
+      "size": 30899,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/8aea6ce8ee9bab88f9f5774ddf3a8fb68ebdcc29"
+    },
+    {
+      "path": "static/index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f074b5c4a8da4a76bfbe76c3e6d7edc1cb932e54",
+      "size": 23181,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/f074b5c4a8da4a76bfbe76c3e6d7edc1cb932e54"
+    },
+    {
+      "path": "static/installer.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a4e3f28ea70d84bc7e62cf2edfb9134e1686eb17",
+      "size": 13677,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/a4e3f28ea70d84bc7e62cf2edfb9134e1686eb17"
+    },
+    {
+      "path": "static/installer.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e674cd4b5b1fb23320c624f810f2700c965d6b1b",
+      "size": 17668,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/e674cd4b5b1fb23320c624f810f2700c965d6b1b"
+    },
+    {
+      "path": "static/installer.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c74b98aa0b1afcfa461b49b87c2e330b03c0269c",
+      "size": 15539,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/c74b98aa0b1afcfa461b49b87c2e330b03c0269c"
+    },
+    {
+      "path": "static/logo.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd78ef2aa8b0478ec9c31fea026661c7cd541cf2",
+      "size": 744,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/fd78ef2aa8b0478ec9c31fea026661c7cd541cf2"
+    },
+    {
+      "path": "static/style.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7c5e6a1c2b3538e75f66d1c27eacc7000614a97e",
+      "size": 11156,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/7c5e6a1c2b3538e75f66d1c27eacc7000614a97e"
+    },
+    {
+      "path": "test_image.jpg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81a1e3b7e9149a64c11fc2e89bbedbad1ade73d9",
+      "size": 18,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/81a1e3b7e9149a64c11fc2e89bbedbad1ade73d9"
+    },
+    {
+      "path": "test_multi_tenant.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c9650cf1b5ee6a4490b8d36f9790d3b8970807d2",
+      "size": 6153,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/c9650cf1b5ee6a4490b8d36f9790d3b8970807d2"
+    },
+    {
+      "path": "verify_installation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a06d7421ac7b70c64b9806524df1ee9870467994",
+      "size": 7149,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/a06d7421ac7b70c64b9806524df1ee9870467994"
+    },
+    {
+      "path": "verify_ocr.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc61ca8b09af8479ea67f0fd692b47f4fbdd9039",
+      "size": 666,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/cc61ca8b09af8479ea67f0fd692b47f4fbdd9039"
+    },
+    {
+      "path": "verify_setup.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0fb887f8b9e8beecd8d9860a4d3451ac2e2871ae",
+      "size": 4217,
+      "url": "https://api.github.com/repos/bejranonda/MeterVision/git/blobs/0fb887f8b9e8beecd8d9860a4d3451ac2e2871ae"
+    }
+  ],
+  "truncated": false
+}

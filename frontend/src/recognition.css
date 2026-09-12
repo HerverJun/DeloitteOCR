@@ -1,0 +1,213 @@
+.recognition-bar.ocr-recognition {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 54px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  overflow: visible;
+  border: 1px solid #e3e5e3;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.ocr-recognition .ocr-recognition__modes {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: #f3f4f3;
+}
+
+.ocr-recognition .ocr-recognition__modes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  color: #646963;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ocr-recognition .ocr-recognition__modes button:hover {
+  color: #292d28;
+  background: #e9ece7;
+}
+
+.ocr-recognition .ocr-recognition__modes button.active {
+  color: #3f6011;
+  background: #fff;
+  box-shadow: 0 1px 2px #17210d12;
+  font-weight: 600;
+}
+
+.ocr-recognition .ocr-recognition__actions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.ocr-recognition .ocr-recognition__scope {
+  position: static;
+  width: auto;
+  padding: 0;
+  color: var(--muted, #646e68);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.ocr-recognition label.ocr-recognition__engine {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--muted, #646e68);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ocr-recognition .ocr-recognition__engine select,
+.ocr-recognition-popover select {
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
+  max-width: 164px;
+  padding: 0 24px 0 9px;
+  border: 1px solid #dee2db;
+  border-radius: 6px;
+  color: #41483d;
+  background-color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ocr-recognition .ocr-recognition__preprocess {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #6a7263;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.ocr-recognition .ocr-recognition__preprocess:hover,
+.ocr-recognition .ocr-recognition__preprocess[aria-expanded="true"] {
+  border-color: #e2e6dd;
+  color: #414b37;
+  background: #f5f6f3;
+}
+
+.ocr-recognition .ocr-recognition__run {
+  flex: 0 0 auto;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 15px;
+  border: 1px solid #86bc25;
+  border-radius: 6px;
+  color: #172704;
+  background: #86bc25;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.ocr-recognition .ocr-recognition__run:hover:not(:disabled) {
+  border-color: #79ac1f;
+  background: #79ac1f;
+}
+
+.ocr-recognition .ocr-recognition__run:active:not(:disabled) {
+  border-color: #6f9d1e;
+  background: #6f9d1e;
+}
+
+.ocr-recognition .ocr-recognition__run:disabled {
+  border-color: #e5e8e1;
+  color: #9ba293;
+  background: #edf0e7;
+}
+
+.ocr-recognition button:focus-visible,
+.ocr-recognition select:focus-visible,
+.ocr-recognition-popover select:focus-visible {
+  outline: 2px solid #5f8f16;
+  outline-offset: 2px;
+}
+
+.ocr-recognition-popover {
+  box-sizing: border-box;
+  width: 272px;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  border: 1px solid #dfe4d9;
+  border-radius: 6px;
+  color: #353d2e;
+  background: #fff;
+  box-shadow: 0 8px 24px #2530191a;
+}
+
+.ocr-recognition-popover__heading {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ocr-recognition-popover p {
+  margin: 5px 0 12px;
+  color: var(--muted, #646e68);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.ocr-recognition-popover select {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 800px) {
+  .recognition-bar.ocr-recognition {
+    padding: 8px;
+  }
+
+  .ocr-recognition .ocr-recognition__actions {
+    justify-content: flex-start;
+  }
+
+  .ocr-recognition .ocr-recognition__scope {
+    margin-right: auto;
+  }
+}

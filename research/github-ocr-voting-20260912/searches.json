@@ -1,0 +1,178 @@
+[
+  {
+    "query": "ocr ensemble voting",
+    "total": 2,
+    "items": [
+      {
+        "full_name": "bejranonda/MeterVision",
+        "description": "👁️ MeterVision: Enterprise-grade meter infrastructure management with a voting OCR ensemble (Gemini 3 Flash + Tesseract + EasyOCR). Hierarchical asset tracking for industrial & utility scale.",
+        "stars": 1,
+        "url": "https://github.com/bejranonda/MeterVision",
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main",
+        "pushed_at": "2026-06-27T22:13:22Z"
+      },
+      {
+        "full_name": "Sa3935/practice-screen-analyzer",
+        "description": "Windows desktop practice-question assistant: OCR/vision/speech extraction + multi-model AI ensemble voting",
+        "stars": 0,
+        "url": "https://github.com/Sa3935/practice-screen-analyzer",
+        "license": null,
+        "default_branch": "master",
+        "pushed_at": "2026-08-09T06:28:36Z"
+      }
+    ]
+  },
+  {
+    "query": "ocr majority voting",
+    "total": 3,
+    "items": [
+      {
+        "full_name": "meemansha004/YOLO-OCR-License-Plate-Recognition-",
+        "description": "Real-time license plate detection and recognition system using a fine-tuned YOLOv8 model for localization and EasyOCR for character extraction. Features custom OCR correction logic, Otsu thresholding preprocessing, and a majority-vote stabilization buffer to ensure accurate, flicker-free plate reads on video.",
+        "stars": 0,
+        "url": "https://github.com/meemansha004/YOLO-OCR-License-Plate-Recognition-",
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "master",
+        "pushed_at": "2026-04-16T14:50:52Z"
+      },
+      {
+        "full_name": "Bxster/ngs2026",
+        "description": "Edge AI pipeline for vehicle detection and license plate reading, running entirely on Raspberry Pi 5 + Hailo-8. Detects and classifies vehicles, reads license plates via on-device OCR, and tracks vehicles across frames with weighted majority voting.",
+        "stars": 0,
+        "url": "https://github.com/Bxster/ngs2026",
+        "license": null,
+        "default_branch": "main",
+        "pushed_at": "2026-07-29T11:33:53Z"
+      },
+      {
+        "full_name": "Sujoy2005/indian-currency-live-detector",
+        "description": "Real-time Indian currency note detector and classifier using OpenCV, SIFT+BoVW features, and a Random Forest classifier enhanced with OCR-based denomination verification (Tesseract), majority-vote smoothing, and text-to-speech announcements for accessibility.",
+        "stars": 0,
+        "url": "https://github.com/Sujoy2005/indian-currency-live-detector",
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main",
+        "pushed_at": "2026-07-28T07:20:48Z"
+      }
+    ]
+  },
+  {
+    "query": "ocr multi engine consensus",
+    "total": 4,
+    "items": [
+      {
+        "full_name": "alessandromaddaloni98/ocr-read-packaging",
+        "description": "Multi-engine OCR text comparison with cross-engine consensus and VLM arbitration",
+        "stars": 0,
+        "url": "https://github.com/alessandromaddaloni98/ocr-read-packaging",
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main",
+        "pushed_at": "2026-09-01T14:35:30Z"
+      },
+      {
+        "full_name": "MxxScott/FusionOCR",
+        "description": "Multi-engine OCR pipeline — fuses Tesseract, EasyOCR, and Calamari via Levenshtein consensus voting, refined with FLAN-T5.",
+        "stars": 0,
+        "url": "https://github.com/MxxScott/FusionOCR",
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main",
+        "pushed_at": "2026-06-13T06:45:13Z"
+      },
+      {
+        "full_name": "R-NaveenK/Document-Intelligence-Platform",
+        "description": "Enterprise Intelligent Document Processing (IDP) with Multi-Engine Consensus, Dynamic Form Schemas & Human Review Center",
+        "stars": 0,
+        "url": "https://github.com/R-NaveenK/Document-Intelligence-Platform",
+        "license": null,
+        "default_branch": "main",
+        "pushed_at": "2026-09-07T10:32:47Z"
+      },
+      {
+        "full_name": "andenick/hdarp",
+        "description": "HDARP: multi-engine OCR consensus for PDF extraction in AI agent pipelines. Accuracy figures in the docs are indicative, not audited benchmarks.",
+        "stars": 0,
+        "url": "https://github.com/andenick/hdarp",
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "master",
+        "pushed_at": "2026-08-29T16:06:30Z"
+      }
+    ]
+  },
+  {
+    "query": "ocr text alignment voting",
+    "total": 1,
+    "items": [
+      {
+        "full_name": "Eljuanina/agentic-corpus-builder",
+        "description": "AI-agent that autonomously builds multilingual parallel corpora from Swiss federal voting booklets using OCR, text cleaning, and SwissBERT alignment.",
+        "stars": 0,
+        "url": "https://github.com/Eljuanina/agentic-corpus-builder",
+        "license": null,
+        "default_branch": "main",
+        "pushed_at": "2026-04-19T19:04:43Z"
+      }
+    ]
+  },
+  {
+    "query": "ocr ensemble table",
+    "total": 1,
+    "items": [
+      {
+        "full_name": "craigtrim/text-peeler",
+        "description": "PDF and ebook text, table, image, and form extraction toolkit with auto-detection, OCR, and ensemble mode",
+        "stars": 0,
+        "url": "https://github.com/craigtrim/text-peeler",
+        "license": {
+          "key": "agpl-3.0",
+          "name": "GNU Affero General Public License v3.0",
+          "spdx_id": "AGPL-3.0",
+          "url": "https://api.github.com/licenses/agpl-3.0",
+          "node_id": "MDc6TGljZW5zZTE="
+        },
+        "default_branch": "master",
+        "pushed_at": "2026-02-10T16:11:57Z"
+      }
+    ]
+  },
+  {
+    "query": "OCR 多引擎 投票",
+    "total": 0,
+    "items": []
+  }
+]

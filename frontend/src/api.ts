@@ -39,10 +39,16 @@ export async function download(
   ids: string[],
   format: string,
   aggregate = false,
+  confirmedOnly = false,
 ) {
   const response = await request("/export", {
     method: "POST",
-    body: JSON.stringify({ result_ids: ids, format, aggregate }),
+    body: JSON.stringify({
+      result_ids: ids,
+      format,
+      aggregate,
+      confirmed_only: confirmedOnly,
+    }),
   });
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);

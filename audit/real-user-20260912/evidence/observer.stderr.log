@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\build\real-user-20260912\observe_tasks.py", line 131, in <module>
+    main()
+  File "C:\Users\A\Desktop\OCR\build\real-user-20260912\observe_tasks.py", line 117, in main
+    snapshot, events = record(args.database, args.evidence)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\build\real-user-20260912\observe_tasks.py", line 92, in record
+    pending.replace(state_path)
+  File "pathlib.py", line 1376, in replace
+PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\A\\Desktop\\OCR\\audit\\real-user-20260912\\evidence\\tasks-latest.json.tmp' -> 'C:\\Users\\A\\Desktop\\OCR\\audit\\real-user-20260912\\evidence\\tasks-latest.json'

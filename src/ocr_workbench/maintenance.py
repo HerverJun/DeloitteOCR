@@ -3,18 +3,21 @@
 import json
 import re
 import shutil
-import threading
+import os
 from pathlib import Path
-from ocr_workbench.store import uid
+from ocr_workbench.store import uid, now
+from ocr_workbench.atomic_files import write_json
 
 
 class ProjectMaintenance:
     def __init__(self, store, queue):
         self.store, self.queue = store, queue
-        self.guard = threading.RLock()
+        self.guard = store.file_lock
         self.trash = store.root / "cleanup"
         self.trash.mkdir(exist_ok=True)
         self.recover()
+        # Only inventory crash leftovers; never silently delete user files.
+        self.orphan_report = self.orphans()
 
     def paths(self, key):
         self.store.one("projects", key)
@@ -60,14 +63,177 @@ class ProjectMaintenance:
             total = 0
             files = 0
             for path in paths:
-                for file in [path] if path.is_file() else path.rglob("*"):
-                    if file.is_file():
-                        total += file.stat().st_size
-                        files += 1
+                for file in self._files(path):
+                    total += file.stat().st_size
+                    files += 1
+            result_bytes = self.store.rows(
+                "SELECT COALESCE(SUM(length(CAST(r.original AS BLOB))+length(CAST(r.edited AS BLOB))),0) bytes FROM results r JOIN tasks t ON t.id=r.task_id WHERE t.project_id=?",
+                (key,),
+            )[0]["bytes"]
+            history_bytes = self.store.rows(
+                "SELECT COALESCE(SUM(length(CAST(e.value AS BLOB))),0) bytes,COUNT(*) count FROM edits e JOIN results r ON r.id=e.result_id JOIN tasks t ON t.id=r.task_id WHERE t.project_id=?",
+                (key,),
+            )[0]
             return {
-                "bytes": total,
+                "bytes": total + result_bytes + history_bytes["bytes"],
+                "file_bytes": total,
+                "database_payload_bytes": result_bytes + history_bytes["bytes"],
+                "result_bytes": result_bytes,
+                "history_bytes": history_bytes["bytes"],
+                "history_entries": history_bytes["count"],
                 "files": files,
-                "scope": "原图、处理版本、任务输出和缩略图；共享引擎与诊断日志保留",
+                "scope": "项目文件 + 结果及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
+                **self.disk_status(),
+            }
+
+    def disk_status(self):
+        disk = shutil.disk_usage(self.store.root)
+
+        def size(path):
+            try:
+                return path.stat().st_size
+            except FileNotFoundError:
+                # A closed SQLite connection may checkpoint and unlink its WAL.
+                return 0
+
+        database = sum(
+            size(path)
+            for path in (
+                self.store.root / "workbench.sqlite3",
+                self.store.root / "workbench.sqlite3-wal",
+                self.store.root / "workbench.sqlite3-shm",
+            )
+        )
+        backups = self.store.root / "database-backups"
+        return {
+            "workspace_database_bytes": database,
+            "migration_backup_bytes": sum(
+                p.stat().st_size for p in backups.glob("*.sqlite3") if p.is_file()
+            ),
+            "free_bytes": disk.free,
+            "low_space": disk.free < 2 * 1024**3,
+            "warning": (
+                "项目磁盘剩余空间不足 2 GB，请先导出重要结果并清理磁盘或迁移工作区；撤销历史仍保留"
+                if disk.free < 2 * 1024**3
+                else None
+            ),
+        }
+
+    @staticmethod
+    def _files(root):
+        """Walk regular managed paths without following Windows reparse points."""
+        if not root.exists() or root.is_symlink() or root.is_junction():
+            return
+        if root.is_file():
+            yield root
+            return
+        stack = [root]
+        while stack:
+            for entry in os.scandir(stack.pop()):
+                path = Path(entry.path)
+                if path.is_symlink() or path.is_junction():
+                    continue
+                if entry.is_dir(follow_symlinks=False):
+                    stack.append(path)
+                elif entry.is_file(follow_symlinks=False):
+                    yield path
+
+    def orphans(self):
+        with self.guard:
+            referenced = {
+                self.store.file(row["path"])
+                for row in self.store.rows(
+                    "SELECT original_path path FROM images UNION SELECT path FROM versions"
+                )
+            }
+            entries = []
+            staging = self.store.root / ".image-staging"
+            if (
+                staging.is_dir()
+                and not staging.is_symlink()
+                and not staging.is_junction()
+            ):
+                for folder in staging.iterdir():
+                    if (
+                        re.fullmatch("[a-f0-9]{32}", folder.name)
+                        and folder.is_dir()
+                        and not folder.is_symlink()
+                        and not folder.is_junction()
+                    ):
+                        entries.append(
+                            {
+                                "path": folder.relative_to(self.store.root).as_posix(),
+                                "bytes": sum(
+                                    p.stat().st_size for p in self._files(folder)
+                                ),
+                                "reason": "未完成的图像暂存",
+                            }
+                        )
+            for path in self._files(self.store.root / "projects"):
+                parts = path.relative_to(self.store.root).parts
+                if (
+                    len(parts) == 5
+                    and parts[2] == "images"
+                    and re.fullmatch("[a-f0-9]{32}", parts[1])
+                    and re.fullmatch("[a-f0-9]{32}", parts[3])
+                    and (
+                        re.fullmatch(r"[a-f0-9]{32}\.png", parts[4])
+                        or parts[4].startswith("original.")
+                    )
+                    and path.resolve() not in referenced
+                ):
+                    entries.append(
+                        {
+                            "path": path.relative_to(self.store.root).as_posix(),
+                            "bytes": path.stat().st_size,
+                            "reason": "没有图片或版本记录引用",
+                        }
+                    )
+            return {
+                "files": entries,
+                "bytes": sum(entry["bytes"] for entry in entries),
+                "count": len(entries),
+                "scanned_at": now(),
+                "policy": "仅列出；经明确选择后移入隔离目录并保留恢复清单",
+            }
+
+    def quarantine_orphans(self, paths):
+        if (
+            not isinstance(paths, list)
+            or not paths
+            or len(paths) > 1000
+            or any(not isinstance(p, str) for p in paths)
+        ):
+            raise ValueError("请选择最多 1000 个待隔离的孤儿路径")
+        with self.guard, self.store.lock:
+            available = {item["path"]: item for item in self.orphans()["files"]}
+            chosen = list(dict.fromkeys(paths))
+            if any(path not in available for path in chosen):
+                raise ValueError("孤儿清单已变化或路径仍被使用，请重新扫描后选择")
+            folder = self.store.root / "orphan-quarantine" / uid()
+            folder.mkdir(parents=True)
+            ledger = {
+                "created": now(),
+                "paths": chosen,
+                "files": [available[p] for p in chosen],
+            }
+            write_json(folder / "ledger.json", ledger)
+            moved = []
+            try:
+                for index, relative in enumerate(chosen):
+                    original = self.store.file(relative)
+                    original.replace(folder / str(index))
+                    moved.append((index, original))
+            except BaseException:
+                for index, original in reversed(moved):
+                    (folder / str(index)).replace(original)
+                raise
+            self.orphan_report = self.orphans()
+            return {
+                "quarantined": len(chosen),
+                "bytes": sum(available[p]["bytes"] for p in chosen),
+                "directory": str(folder),
+                "ledger": str(folder / "ledger.json"),
             }
 
     def recover(self):

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button, Spinner } from "@fluentui/react-components";
 import {
   Pause,
@@ -14,12 +15,15 @@ export function TaskQueue({
   onAction,
   onView,
   onClose,
+  recognitionDisabled = false,
 }: {
   project: ProjectState;
   onAction: (name: string, task?: Task) => void;
   onView: (task: Task) => void;
   onClose: () => void;
+  recognitionDisabled?: boolean;
 }) {
+  const [limit, setLimit] = useState(60);
   return (
     <section className="task-drawer" aria-label="任务队列">
       <header>
@@ -42,6 +46,7 @@ export function TaskQueue({
           <Button
             size="small"
             icon={<Play size={14} />}
+            disabled={recognitionDisabled}
             onClick={() => onAction("resume")}
           >
             继续
@@ -49,6 +54,7 @@ export function TaskQueue({
           <Button
             size="small"
             icon={<RefreshCw size={14} />}
+            disabled={recognitionDisabled}
             onClick={() => onAction("retry")}
           >
             重试失败项
@@ -66,6 +72,7 @@ export function TaskQueue({
         {project.tasks
           .slice()
           .reverse()
+          .slice(0, limit)
           .map((t) => (
             <div className="task-row" key={t.id}>
               <span className={"task-status " + t.status}>
@@ -101,6 +108,12 @@ export function TaskQueue({
                 ) : (
                   <Button
                     size="small"
+                    disabled={
+                      recognitionDisabled &&
+                      ["failed", "cancelled", "paused", "interrupted"].includes(
+                        t.status,
+                      )
+                    }
                     onClick={() =>
                       onAction(
                         ["failed", "cancelled"].includes(t.status)
@@ -122,6 +135,11 @@ export function TaskQueue({
               </div>
             </div>
           ))}
+        {project.tasks.length > limit && (
+          <button className="load-more" onClick={() => setLimit((n) => n + 60)}>
+            继续显示历史任务 ({limit}/{project.tasks.length})
+          </button>
+        )}
         {!project.tasks.length && (
           <p className="queue-empty">尚无任务。选择图片后开始识别。</p>
         )}

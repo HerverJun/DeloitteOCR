@@ -1,4 +1,4 @@
-# Deloitte OCR 工作台改版审计报告
+# DeloitteOCR 工作台改版审计报告
 
 日期：2026-09-12。版本：0.7.0rc2。源码分支：codex/deloitte-workbench。
 
@@ -6,7 +6,7 @@
 
 第二轮视觉精修及本机回归完成。新版使用官方 Deloitte 字标、黑绿框架、独立原图与校对面板、本地中文可变字体、14px 表格正文、可调分栏和底部队列。长编号保持文本显示，结果与原图版本提示保留。旧 D 盘已验收包未被覆盖。
 
-独立可运行目录：E:/OCR-deloitte-build/bundle。测试及示例数据与旧包隔离。桌面已建立“Deloitte OCR 新版预览”和“Deloitte OCR 新版交付”快捷方式。
+独立可运行目录：E:/OCR-deloitte-build/bundle。测试及示例数据与旧包隔离。当时桌面建立的快捷方式名称为“Deloitte OCR 新版预览”和“Deloitte OCR 新版交付”（历史交付记录，保留原名）。
 
 ## 验证记录
 
@@ -30,7 +30,7 @@ GUI 均使用外部 Edge/Chromium，并传入 --disable-gpu、--disable-gpu-comp
 
 ## 资源与视觉证据
 
-官方字标来源 https://www.deloitte.com/content/dam/assets-shared/logos/svg/a-d/deloitte.svg ，原 SVG 未重画。通过用户指定 sub2api Responses 接口，由 gpt-6-astra 主模型调用 image_generation 生成纸页插画参考，并输出独立可编辑 SVG；实际工具调用 1 次，回执为 completed。提示词、模型文本、PNG、SVG 和回执均保存在 asset-generation。
+官方字标来源 https://www.deloitte.com/content/dam/assets-shared/logos/svg/a-d/deloitte.svg ，原 SVG 未重画。通过用户指定 sub2api Responses 接口，由 gpt-6-astra 主模型调用 image_generation 生成文档页面插画参考，并输出独立可编辑 SVG；实际工具调用 1 次，回执为 completed。提示词、模型文本、PNG、SVG 和回执均保存在 asset-generation。
 
 Noto Sans SC 字体及 SIL OFL 1.1 许可随包提供，许可收集脚本已支持该资源并在独立目录验证。品牌商标不宣称属于应用代码的开源授权范围。
 

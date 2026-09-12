@@ -1,0 +1,62 @@
+[
+  {
+    "file": "real_table.jpg",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/table.jpg",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/tests/test_files/table.jpg?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "tests/test_files/table.jpg",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "acd113bb3a89b488941ee0962776a28e45897fa2802cd306ec3bb68d9043115c",
+    "width": 551,
+    "height": 132,
+    "format": "JPEG",
+    "bytes": 16208
+  },
+  {
+    "file": "chinese_document.jpg",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/langchain-paddleocr/tests/data/sample_img.jpg",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/langchain-paddleocr/tests/data/sample_img.jpg?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "langchain-paddleocr/tests/data/sample_img.jpg",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "30d67a35ad0a7fcc521f5f8ae8446e770dd69b2d66fec8e49e6ec8f09cb9daa3",
+    "width": 800,
+    "height": 600,
+    "format": "JPEG",
+    "bytes": 113317
+  },
+  {
+    "file": "chinese_scene.jpg",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/images/test_add_91.jpg",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/docs/images/test_add_91.jpg?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "docs/images/test_add_91.jpg",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "5a6f7ff13caa0cff5247d5a5c9a15c438f655cc67de03250dfe061e131b1fa4b",
+    "width": 1058,
+    "height": 323,
+    "format": "JPEG",
+    "bytes": 80229
+  },
+  {
+    "file": "english_receipt.jpeg",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/datasets/images/wildreceipt_demo/2769.jpeg",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/docs/datasets/images/wildreceipt_demo/2769.jpeg?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "docs/datasets/images/wildreceipt_demo/2769.jpeg",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "d5b9225067091769703bff7993b22d02173b7f3d5dfb367a0351111d495ef26e",
+    "width": 750,
+    "height": 1000,
+    "format": "JPEG",
+    "bytes": 178786
+  },
+  {
+    "file": "document_formula.png",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/doc_with_formula.png",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/tests/test_files/doc_with_formula.png?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "tests/test_files/doc_with_formula.png",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "6b07d28527dc9e930804fa73df562f1a81599c6b8a1a8bbc2a80742fa9f26e80",
+    "width": 816,
+    "height": 1056,
+    "format": "PNG",
+    "bytes": 493450
+  }
+]

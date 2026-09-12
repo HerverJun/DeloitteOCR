@@ -199,7 +199,24 @@ def process_image(args, session, started):
         json.dumps(raw, ensure_ascii=False, indent=2, default=json_safe),
         encoding="utf-8",
     )
-    tables = parse_tables(text)
+    warnings = []
+    tables = parse_tables(text, warnings=warnings)
+    from ocr_workbench.editing import validate_edit
+
+    usable_tables = []
+    for index, table in enumerate(tables, 1):
+        try:
+            validate_edit({"text": "", "tables": [table]})
+            if len(usable_tables) >= 100:
+                raise ValueError("表格数量超出编辑器限制")
+            usable_tables.append(table)
+        except ValueError as error:
+            warnings.append({
+                "code": "table_structure_invalid", "stage": "table_parse",
+                "message": f"第 {index} 张表格结构无法编辑，原文与原始输出已保留，可继续导出 TXT / JSON。",
+                "detail": str(error), "source": table.get("source"),
+            })
+    tables = usable_tables
     result = {
         "schema_version": 1,
         "status": "success",
@@ -220,11 +237,26 @@ def process_image(args, session, started):
         "blocks": blocks,
         "tables": tables,
         "raw": raw,
+        "warnings": warnings,
+        "artifacts": {"xlsx": {"status": "unavailable"}},
     }
     (args.output / "result.txt").write_text(text, encoding="utf-8")
     (args.output / "result.md").write_text(text, encoding="utf-8")
     if tables:
-        export_xlsx(tables, args.output / "result.xlsx")
+        excel = args.output / "result.xlsx"
+        pending_excel = args.output / "result.xlsx.tmp"
+        try:
+            export_xlsx(tables, pending_excel)
+            pending_excel.replace(excel)
+            result["artifacts"]["xlsx"] = {"status": "ready"}
+        except Exception as error:
+            pending_excel.unlink(missing_ok=True)
+            warnings.append({
+                "code": "xlsx_export_failed", "stage": "xlsx_export",
+                "message": "附带 Excel 生成失败，识别结果已保留，可继续校对或导出 TXT / JSON。",
+                "detail": str(error),
+            })
+            result["artifacts"]["xlsx"] = {"status": "failed", "message": str(error)}
     from ocr_workbench.runtime_audit import inspect_runtime
 
     result["runtime_audit"] = inspect_runtime(args.bundle)

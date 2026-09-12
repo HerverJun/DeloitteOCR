@@ -1,12 +1,13 @@
 """Validate user edits independently of the browser and export literal text."""
 
 import html
-import re
+from ocr_workbench.tables import parse_tables
 
 
 def validate_edit(edit):
     if (
-        set(edit) != {"text", "tables"}
+        not isinstance(edit, dict)
+        or set(edit) != {"text", "tables"}
         or not isinstance(edit["text"], str)
         or len(edit["text"]) > 5_000_000
     ):
@@ -14,6 +15,8 @@ def validate_edit(edit):
     if not isinstance(edit["tables"], list) or len(edit["tables"]) > 100:
         raise ValueError("表格数量超出限制")
     for table in edit["tables"]:
+        if not isinstance(table, dict):
+            raise ValueError("无效的表格内容")
         rows, columns = table.get("rows"), table.get("columns")
         if (
             type(rows) is not int
@@ -24,19 +27,23 @@ def validate_edit(edit):
             raise ValueError("无效的表格行列数")
         if (
             not isinstance(table.get("caption", ""), str)
-            or len(table.get("caption", "")) > 32767
+            or len(table.get("caption", "")) > 5_000_000
         ):
             raise ValueError("表格标题过长")
+        if not isinstance(table.get("cells"), list) or len(table["cells"]) > rows * columns:
+            raise ValueError("无效的表格单元格列表")
         occupied = set()
         for cell in table["cells"]:
+            if not isinstance(cell, dict):
+                raise ValueError("无效的单元格内容")
             values = [cell.get(k) for k in ["row", "column", "row_span", "column_span"]]
             if any(type(v) is not int for v in values):
                 raise ValueError("单元格坐标必须为整数")
             r, c, rs, cs = values
             if min(r, c) < 0 or min(rs, cs) < 1 or r + rs > rows or c + cs > columns:
                 raise ValueError("单元格超出表格边界")
-            if not isinstance(cell.get("text"), str) or len(cell["text"]) > 32767:
-                raise ValueError("单元格文本超过 Excel 限制")
+            if not isinstance(cell.get("text"), str) or len(cell["text"]) > 5_000_000:
+                raise ValueError("单元格文本过长或格式无效")
             for y in range(r, r + rs):
                 for x in range(c, c + cs):
                     if (y, x) in occupied:
@@ -75,25 +82,45 @@ def tables_html(tables):
 
 
 def render_edited(edit, renderer):
-    """Replace table markup in document order, preserving surrounding text."""
+    """Use the parser's source ranges; never discard unmatched source text."""
     tables = edit["tables"]
-    index = 0
+    text = edit["text"]
     if not tables:
-        return edit["text"]
-
-    def replace(match):
-        nonlocal index
-        if index >= len(tables):
-            return ""
-        value = renderer([tables[index]])
-        index += 1
-        return value
-
-    pattern = r"<table\b[^>]*>.*?</table\s*>|^[ \t]*\|[^\n]+\|[ \t]*\n[ \t]*\|[ :|\-]+\|[ \t]*\n(?:[ \t]*\|[^\n]*\|[ \t]*(?:\n|$))*"
-    text = re.sub(pattern, replace, edit["text"], flags=re.I | re.S | re.M)
-    if index < len(tables):
-        text += "\n\n" + renderer(tables[index:])
-    return text
+        return text
+    try:
+        sources = [table["source"] for table in parse_tables(text, warnings=[])]
+    except ValueError:
+        # A manual text edit may leave incomplete markup. Keep it intact.
+        sources = []
+    replacements = {}
+    used = set()
+    legacy_order = len(sources) == len(tables) and not any(t.get("source") for t in tables)
+    for index, table in enumerate(tables):
+        source = table.get("source")
+        if legacy_order:
+            matches = [index]
+        elif isinstance(source, dict):
+            matches = [i for i, candidate in enumerate(sources)
+                       if i not in replacements and candidate == source]
+            if not matches:
+                matches = [i for i, candidate in enumerate(sources)
+                           if i not in replacements and candidate["sha256"] == source.get("sha256")]
+        else:
+            matches = []
+        if len(matches) == 1:
+            replacements[matches[0]] = table
+            used.add(index)
+    parts, offset = [], 0
+    for index, source in enumerate(sources):
+        if index not in replacements:
+            continue
+        parts.extend([text[offset:source["start"]], renderer([replacements[index]])])
+        offset = source["end"]
+    parts.append(text[offset:])
+    remaining = [table for i, table in enumerate(tables) if i not in used]
+    if remaining:
+        parts.extend(["\n\n", renderer(remaining)])
+    return "".join(parts)
 
 
 def export_markdown(edit):

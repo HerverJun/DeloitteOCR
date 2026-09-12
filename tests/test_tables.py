@@ -29,6 +29,43 @@ class TableTests(unittest.TestCase):
         self.assertEqual(t['rows'], 2)
         self.assertEqual(t['cells'][-1]['text'], 'A|B')
 
+    def test_plain_pipes_escapes_and_code_are_not_tables(self):
+        examples = [
+            'Absolute value:\n|x|\nEnd', '| one | two |\n| three | four |',
+            '\\| header \\|\n\\| --- \\|\n\\| value \\|',
+            '```markdown\n| header |\n| --- |\n| value |\n```',
+            '~~~html\n<table><tr><td>x</td></tr></table>\n~~~',
+            '    | header |\n    | --- |\n    | value |',
+            '`<table><tr><td>x</td></tr></table>`',
+            '`| header |`\n`| --- |`\n`| value |`',
+        ]
+        for text in examples:
+            with self.subTest(text=text):
+                self.assertEqual(parse_tables(text), [])
+
+    def test_markdown_requires_matching_columns_and_keeps_code_pipes_in_cells(self):
+        text = '| `a|b` | name |\n| :--- | ---: |\n| A\\|B | 0001 |\n| unmatched |'
+        tables = parse_tables(text)
+        self.assertEqual(len(tables), 1)
+        self.assertEqual((tables[0]['rows'], tables[0]['columns']), (2, 2))
+        self.assertEqual([c['text'] for c in tables[0]['cells']], ['`a|b`', 'name', 'A|B', '0001'])
+        self.assertEqual(text[tables[0]['source']['end']:], '\n| unmatched |')
+        self.assertEqual(parse_tables('| a | b |\n| --- |'), [])
+        self.assertEqual(len(parse_tables('a | b\n--- | ---\nx | y')), 1)
+
+    def test_recovery_keeps_completed_tables_and_reports_bad_source(self):
+        text = '<table><tr><td>ok</td></tr></table>\n<table><tr><td>unfinished'
+        warnings = []
+        tables = parse_tables(text, warnings=warnings)
+        self.assertEqual(tables[0]['cells'][0]['text'], 'ok')
+        self.assertEqual(warnings[0]['code'], 'table_parse_failed')
+        self.assertEqual(text[warnings[0]['source']['start']:], '<table><tr><td>unfinished')
+
+    def test_indentation_inside_html_table_does_not_become_markdown_code(self):
+        text = '<table>\n    <tr>\n        <td>0001</td>\n    </tr>\n</table>'
+        tables = parse_tables(text)
+        self.assertEqual(tables[0]['cells'][0]['text'], '0001')
+
     def test_truncated_invalid_or_overlapping_table_fails(self):
         for text in ['<table><tr><td>x', '<table><tr><td rowspan="0">x</td></tr></table>',
                      '<table><tr><td>x</td><td rowspan="2">y</td></tr><tr><td colspan="2">z</td></tr></table>']:

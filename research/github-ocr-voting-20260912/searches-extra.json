@@ -1,0 +1,188 @@
+[
+  {
+    "query": "ocr voting in:name,description,readme stars:>20",
+    "total": 302,
+    "items": [
+      {
+        "repo": "public-apis/public-apis",
+        "description": "A collective list of free APIs",
+        "stars": 479117,
+        "branch": "master",
+        "license": "MIT"
+      },
+      {
+        "repo": "awesome-selfhosted/awesome-selfhosted",
+        "description": "A list of Free Software network services and web applications which can be hosted on your own servers",
+        "stars": 318649,
+        "branch": "master",
+        "license": "NOASSERTION"
+      },
+      {
+        "repo": "practical-tutorials/project-based-learning",
+        "description": "Curated list of project-based tutorials",
+        "stars": 283027,
+        "branch": "master",
+        "license": "MIT"
+      },
+      {
+        "repo": "avelino/awesome-go",
+        "description": "A curated list of awesome Go frameworks, libraries and software",
+        "stars": 183872,
+        "branch": "main",
+        "license": "MIT"
+      },
+      {
+        "repo": "ripienaar/free-for-dev",
+        "description": "A list of SaaS, PaaS and IaaS offerings that have free tiers of interest to devops and infradev",
+        "stars": 137161,
+        "branch": "master",
+        "license": null
+      },
+      {
+        "repo": "punkpeye/awesome-mcp-servers",
+        "description": "A collection of MCP servers.",
+        "stars": 94833,
+        "branch": "main",
+        "license": "MIT"
+      },
+      {
+        "repo": "rust-unofficial/awesome-rust",
+        "description": "A curated list of Rust code and resources.",
+        "stars": 59307,
+        "branch": "main",
+        "license": "CC0-1.0"
+      },
+      {
+        "repo": "rohitg00/ai-engineering-from-scratch",
+        "description": "Learn it. Build it. Ship it for others.",
+        "stars": 54302,
+        "branch": "main",
+        "license": "MIT"
+      },
+      {
+        "repo": "VoltAgent/awesome-openclaw-skills",
+        "description": "The awesome collection of OpenClaw skills. 5,400+ skills filtered and categorized from the official OpenClaw Skills Registry.🦞",
+        "stars": 52507,
+        "branch": "main",
+        "license": "MIT"
+      },
+      {
+        "repo": "Imbad0202/academic-research-skills",
+        "description": "Academic Research Skills for Claude Code: research → write → review → revise → finalize",
+        "stars": 47700,
+        "branch": "main",
+        "license": "NOASSERTION"
+      },
+      {
+        "repo": "keon/awesome-nlp",
+        "description": ":book: A curated list of resources dedicated to Natural Language Processing (NLP)",
+        "stars": 18985,
+        "branch": "main",
+        "license": "CC0-1.0"
+      },
+      {
+        "repo": "mahmoud/awesome-python-applications",
+        "description": "💿 Free software that works great, and also happens to be open-source Python. ",
+        "stars": 18034,
+        "branch": "master",
+        "license": null
+      },
+      {
+        "repo": "public-api-lists/public-api-lists",
+        "description": "A curated list of free public APIs — searchable, community-maintained, with a free JSON API.",
+        "stars": 15793,
+        "branch": "master",
+        "license": "MIT"
+      },
+      {
+        "repo": "lissy93/awesome-privacy",
+        "description": "🦄  A curated list of privacy & security-focused software and services",
+        "stars": 9867,
+        "branch": "main",
+        "license": "CC0-1.0"
+      },
+      {
+        "repo": "ai-boost/awesome-prompts",
+        "description": "Curated list of chatgpt prompts from the top-rated GPTs in the GPTs Store. Prompt Engineering, prompt attack & prompt protect. Advanced Prompt Engineering papers.",
+        "stars": 8864,
+        "branch": "main",
+        "license": "GPL-3.0"
+      }
+    ]
+  },
+  {
+    "query": "ocrd cis in:name",
+    "total": 1,
+    "items": [
+      {
+        "repo": "cisocrgroup/ocrd_cis",
+        "description": "OCR-D python tools",
+        "stars": 33,
+        "branch": "master",
+        "license": "MIT"
+      }
+    ]
+  },
+  {
+    "query": "ocr voting in:name",
+    "total": 8,
+    "items": [
+      {
+        "repo": "zakariaahrbil/Voting-OCR",
+        "description": "Voting-Based OCR System using PaddleOCR & EasyOCR",
+        "stars": 1,
+        "branch": "main",
+        "license": null
+      },
+      {
+        "repo": "till-tietz/voting_data_ocr",
+        "description": "",
+        "stars": 1,
+        "branch": "master",
+        "license": null
+      },
+      {
+        "repo": "Voting-system-04/ocr",
+        "description": "This repo includes files related to the optical-character-recognition (ocr). ",
+        "stars": 0,
+        "branch": "main",
+        "license": null
+      },
+      {
+        "repo": "KwonDoRyoung/audiometry_VotingOCR",
+        "description": "",
+        "stars": 0,
+        "branch": "master",
+        "license": null
+      },
+      {
+        "repo": "redzepagic/rfi-voting-ocr",
+        "description": "",
+        "stars": 0,
+        "branch": "main",
+        "license": null
+      },
+      {
+        "repo": "sunainabkathpalia/ocr_voting_records",
+        "description": "",
+        "stars": 0,
+        "branch": "main",
+        "license": null
+      },
+      {
+        "repo": "Sonugoyal0801/Convert-image-into-text-using-OCR-Voting-data",
+        "description": "In this project i have read a image using same python library Pytesseract , PIL , re and convert into data after that i have analysis the project data and convert it in table format.",
+        "stars": 0,
+        "branch": "main",
+        "license": null
+      },
+      {
+        "repo": "GorgeousPawPrints/Design-and-implementation-of-voting-recognition-system-based-on-PaddleOCR",
+        "description": "基于PaddleOCR的投票识别系统设计与实现",
+        "stars": 0,
+        "branch": "main",
+        "license": null
+      }
+    ]
+  }
+]

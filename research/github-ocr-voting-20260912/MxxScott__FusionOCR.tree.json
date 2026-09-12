@@ -1,0 +1,87 @@
+{
+  "sha": "db2c3b035f2bdae5477e199fc9774f9d3f27773f",
+  "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/trees/db2c3b035f2bdae5477e199fc9774f9d3f27773f",
+  "tree": [
+    {
+      "path": ".gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dfe0770424b2a19faf507a501ebfc23be8f54e7b",
+      "size": 66,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/dfe0770424b2a19faf507a501ebfc23be8f54e7b"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "993e729d0e53aa1b2bbb9f32374f14b29e2cd8b4",
+      "size": 241,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/993e729d0e53aa1b2bbb9f32374f14b29e2cd8b4"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "abd7010df45efae089c3641695802fe4dc2ee222",
+      "size": 1068,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/abd7010df45efae089c3641695802fe4dc2ee222"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f9fc920315ee3ae7288374cd722afe577d208cd",
+      "size": 3195,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/0f9fc920315ee3ae7288374cd722afe577d208cd"
+    },
+    {
+      "path": "main.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1db9a0d8c319502c9cc35c7c07439c48111d04a3",
+      "size": 12658,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/1db9a0d8c319502c9cc35c7c07439c48111d04a3"
+    },
+    {
+      "path": "preprocessor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "446e2b5135b3bfcf8d931a00791c45b7720cb990",
+      "size": 4743,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/446e2b5135b3bfcf8d931a00791c45b7720cb990"
+    },
+    {
+      "path": "requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9aef12100414c70ef562dda8cc3f9c3274d09a69",
+      "size": 1345,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/9aef12100414c70ef562dda8cc3f9c3274d09a69"
+    },
+    {
+      "path": "segmenter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7af17d21cd4c70a36fc7638c9af08e9db6a61e51",
+      "size": 2670,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/7af17d21cd4c70a36fc7638c9af08e9db6a61e51"
+    },
+    {
+      "path": "test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7369cd22e7138f400d4964efc9560187909c5ec",
+      "size": 5570,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/e7369cd22e7138f400d4964efc9560187909c5ec"
+    },
+    {
+      "path": "test_synthetic.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6160c846128d692b1dafd2fc98f3e03501ae984d",
+      "size": 22093,
+      "url": "https://api.github.com/repos/MxxScott/FusionOCR/git/blobs/6160c846128d692b1dafd2fc98f3e03501ae984d"
+    }
+  ],
+  "truncated": false
+}

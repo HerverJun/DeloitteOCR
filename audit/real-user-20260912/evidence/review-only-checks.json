@@ -1,0 +1,35 @@
+{
+  "time": "2026-09-12T08:06:32.295Z",
+  "health": {
+    "status": "ready",
+    "version": "0.7.0rc2",
+    "review_only": true,
+    "queue": {
+      "alive": false,
+      "healthy": false,
+      "state": "stopped",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    }
+  },
+  "uiEvidence": {
+    "label": "仅校对与导出模式",
+    "queueSummary": "队列异常，请查看恢复提示",
+    "startRecognitionEnabled": false,
+    "regionRecognitionEnabled": false,
+    "engineManagementButtons": 0
+  },
+  "inAppTests": {
+    "textEditAutosave": true,
+    "textExportMarker": "QA REVIEW_ONLY 保存导出",
+    "originalTextRestored": true,
+    "contrastProducedVersion3": true,
+    "dewarpDisabled": true,
+    "continueAndRetryDisabled": true
+  },
+  "finding": "A healthy review-only service is incorrectly described as an abnormal queue in the sidebar."
+}

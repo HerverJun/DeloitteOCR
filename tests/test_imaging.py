@@ -1,6 +1,8 @@
 from pathlib import Path
 import tempfile
 import unittest
+from contextlib import contextmanager
+from unittest.mock import patch
 from PIL import Image
 from ocr_workbench.store import Store
 from ocr_workbench.imaging import add_image, transform, digest, save_version
@@ -112,3 +114,55 @@ class ImagingTests(unittest.TestCase):
         self.assertEqual(
             self.store.one("tasks", key)["result_version_id"], warped["id"]
         )
+
+    def test_import_disk_failure_cleans_stage_and_preserves_uploaded_source(self):
+        source = self.root / "source.png"
+        Image.new("RGB", (30, 20)).save(source)
+        with patch.object(Image.Image, "save", side_effect=OSError("disk full")):
+            with self.assertRaises(OSError):
+                add_image(self.store, self.project["id"], source.name, source)
+        self.assertTrue(source.exists())
+        self.assertEqual(self.store.rows("SELECT * FROM images"), [])
+        self.assertEqual(list((self.store.root / "projects").rglob("*.png")), [])
+        self.assertEqual(list((self.store.root / ".image-staging").iterdir()), [])
+        photo = add_image(self.store, self.project["id"], source.name, source)
+        self.assertTrue(self.store.file(photo["original_path"]).exists())
+        self.assertEqual(len(self.store.rows("SELECT * FROM images")), 1)
+
+    def fail_commit(self):
+        transaction = self.store.transaction
+
+        @contextmanager
+        def failure():
+            with transaction() as db:
+                yield db
+                if db.total_changes:
+                    raise OSError("simulated database commit failure")
+
+        return patch.object(self.store, "transaction", failure)
+
+    def test_import_commit_failure_removes_published_files(self):
+        source = self.root / "source.png"
+        Image.new("RGB", (30, 20)).save(source)
+        with self.fail_commit():
+            with self.assertRaises(OSError):
+                add_image(self.store, self.project["id"], source.name, source)
+        self.assertEqual(self.store.rows("SELECT * FROM images"), [])
+        self.assertEqual(list((self.store.root / "projects").rglob("*.png")), [])
+        self.assertTrue(source.exists())
+
+    def test_version_commit_failure_preserves_original_and_no_new_file(self):
+        photo, base = self.add(Image.new("RGB", (30, 20)))
+        files = {str(path) for path in (self.store.root / "projects").rglob("*.png")}
+        with self.fail_commit():
+            with self.assertRaises(OSError):
+                save_version(
+                    self.store, base, Image.new("RGB", (40, 20)), {"kind": "rotate"}
+                )
+        self.assertEqual(
+            {str(path) for path in (self.store.root / "projects").rglob("*.png")}, files
+        )
+        self.assertEqual(
+            self.store.one("images", photo["id"])["active_version"], base["id"]
+        )
+        self.assertEqual(len(self.store.rows("SELECT * FROM versions")), 1)

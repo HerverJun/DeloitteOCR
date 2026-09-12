@@ -1,0 +1,45 @@
+[
+  {
+    "file": "pubmed_table.png",
+    "repository": "PaddlePaddle/PaddleOCR",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/datasets/images/table_PubTabNet_demo/PMC524509_007_00.png",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/docs/datasets/images/table_PubTabNet_demo/PMC524509_007_00.png?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "docs/datasets/images/table_PubTabNet_demo/PMC524509_007_00.png",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+    "width": 503,
+    "height": 98,
+    "format": "PNG",
+    "bytes": 9357
+  },
+  {
+    "file": "english_scene.png",
+    "error": "cannot identify image file 'C:\\\\Users\\\\A\\\\Desktop\\\\OCR\\\\audit\\\\real-user-20260912\\\\samples\\\\english_scene.png'"
+  },
+  {
+    "file": "chinese_store.jpg",
+    "repository": "JaidedAI/EasyOCR",
+    "source_url": "https://raw.githubusercontent.com/JaidedAI/EasyOCR/363afb184047ce452e436f4224f3098422df872e/examples/chinese.jpg",
+    "retrieval_api": "https://api.github.com/repos/JaidedAI/EasyOCR/contents/examples/chinese.jpg?ref=363afb184047ce452e436f4224f3098422df872e",
+    "repository_path": "examples/chinese.jpg",
+    "revision": "363afb184047ce452e436f4224f3098422df872e",
+    "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+    "width": 640,
+    "height": 339,
+    "format": "JPEG",
+    "bytes": 59898
+  },
+  {
+    "file": "chinese_scan.jpg",
+    "repository": "PaddlePaddle/PaddleOCR",
+    "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/images/00006737.jpg",
+    "retrieval_api": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/contents/docs/images/00006737.jpg?ref=2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "repository_path": "docs/images/00006737.jpg",
+    "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+    "sha256": "d7d51c344a54f83aed49fdf93258a66e4bf2fcad24542c6cabda3c196bbf8c02",
+    "width": 1792,
+    "height": 528,
+    "format": "JPEG",
+    "bytes": 217613
+  }
+]

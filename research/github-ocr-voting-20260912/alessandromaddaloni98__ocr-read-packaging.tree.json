@@ -1,0 +1,579 @@
+{
+  "sha": "b8df99bb0353ab3167523cc5d7fc56da1edd7422",
+  "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/b8df99bb0353ab3167523cc5d7fc56da1edd7422",
+  "tree": [
+    {
+      "path": ".env.example",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a20cc99cf807e450e891b35b4372585b6741ed5a",
+      "size": 2915,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/a20cc99cf807e450e891b35b4372585b6741ed5a"
+    },
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4a718cc2c3de01d876d29e3b7987d803116a81d0",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/4a718cc2c3de01d876d29e3b7987d803116a81d0"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b60084fa2fae1a1ab5755505577b18d237b72918",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/b60084fa2fae1a1ab5755505577b18d237b72918"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a8d064e6fec39f86de935c08cf3292013a01ac49",
+      "size": 1774,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/a8d064e6fec39f86de935c08cf3292013a01ac49"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b388e7951173ce9dd7b385bd440bdb1d49da600d",
+      "size": 2138,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/b388e7951173ce9dd7b385bd440bdb1d49da600d"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3febaca0a9afe62a881b5a25034b685c8668bc98",
+      "size": 2763,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/3febaca0a9afe62a881b5a25034b685c8668bc98"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aa484055c154006972d6c0858dc217b661a77a92",
+      "size": 2127,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/aa484055c154006972d6c0858dc217b661a77a92"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2828b5d855d3ac2b1bf0eef4149aa8e097e7491b",
+      "size": 1077,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/2828b5d855d3ac2b1bf0eef4149aa8e097e7491b"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e757b82129409c6be5140f94e0ae2b0f8a02e5ea",
+      "size": 17051,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/e757b82129409c6be5140f94e0ae2b0f8a02e5ea"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8aa3de6fc9163dcbb3d55bf40b8230a2f37b3219",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/8aa3de6fc9163dcbb3d55bf40b8230a2f37b3219"
+    },
+    {
+      "path": "docs/images",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "007b47fcba5f5c43b501e11cbe455dbca867089e",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/007b47fcba5f5c43b501e11cbe455dbca867089e"
+    },
+    {
+      "path": "docs/images/decision-flow.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "473d02c7a8cc4f207650070dbcbe79358299432e",
+      "size": 6525,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/473d02c7a8cc4f207650070dbcbe79358299432e"
+    },
+    {
+      "path": "docs/images/demo-dot-pattern.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "075a84bc3b268bdc3de20fccf9d2f5084e49d4e5",
+      "size": 114843,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/075a84bc3b268bdc3de20fccf9d2f5084e49d4e5"
+    },
+    {
+      "path": "docs/images/demo-match.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b9ac5e68f03f760e0ba8a8ec3e9b492cef20e82",
+      "size": 123418,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/3b9ac5e68f03f760e0ba8a8ec3e9b492cef20e82"
+    },
+    {
+      "path": "docs/images/demo-mismatch.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "864b483d34f91bee7a588104c29c581cf65f4fc5",
+      "size": 123581,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/864b483d34f91bee7a588104c29c581cf65f4fc5"
+    },
+    {
+      "path": "docs/images/pipeline.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a500c5e6069eab61a1818ccb76a97dc5958c6d8d",
+      "size": 9303,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/a500c5e6069eab61a1818ccb76a97dc5958c6d8d"
+    },
+    {
+      "path": "docs/images/problem-flat-vs-curved.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "011a28369af614b630dbb254b91d750367f86b1b",
+      "size": 204927,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/011a28369af614b630dbb254b91d750367f86b1b"
+    },
+    {
+      "path": "examples",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c52933998fb7abf6b985f2c10b33be87b58f6926",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/c52933998fb7abf6b985f2c10b33be87b58f6926"
+    },
+    {
+      "path": "examples/custom_provider.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6baaccf2f856dfb4e2fbe85800b730fc384dfbd",
+      "size": 3350,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/e6baaccf2f856dfb4e2fbe85800b730fc384dfbd"
+    },
+    {
+      "path": "examples/generated",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cde548720548f97ed18572a339dc89e6ac85d577",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/cde548720548f97ed18572a339dc89e6ac85d577"
+    },
+    {
+      "path": "examples/generated/dot-pattern-reference.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "504d2d893f6bdcb2d8c2ea56bbfac7ffe2201e59",
+      "size": 835,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/504d2d893f6bdcb2d8c2ea56bbfac7ffe2201e59"
+    },
+    {
+      "path": "examples/generated/dot-pattern-target.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6aa19fe1459fd92e51944d58aae1be9ba27849ac",
+      "size": 108125,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/6aa19fe1459fd92e51944d58aae1be9ba27849ac"
+    },
+    {
+      "path": "examples/generated/match-reference.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "67564c0cc5991cd5999c83fa05ff7ecd501826c8",
+      "size": 5294,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/67564c0cc5991cd5999c83fa05ff7ecd501826c8"
+    },
+    {
+      "path": "examples/generated/match-target.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d24f1b0e3eabffd826781bd57691acc4dfd29563",
+      "size": 109770,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/d24f1b0e3eabffd826781bd57691acc4dfd29563"
+    },
+    {
+      "path": "examples/generated/mismatch-reference.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5565b75a84113d2bbb9127e2cb63aca73009bd66",
+      "size": 5480,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/5565b75a84113d2bbb9127e2cb63aca73009bd66"
+    },
+    {
+      "path": "examples/generated/mismatch-target.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "02b8dcf2751b03c5a0ee2e0d27bf9b3d6f4e7f35",
+      "size": 110076,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/02b8dcf2751b03c5a0ee2e0d27bf9b3d6f4e7f35"
+    },
+    {
+      "path": "examples/quickstart.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b3237c6d136c8af4fc20d193a8016bf9184df87",
+      "size": 3669,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/1b3237c6d136c8af4fc20d193a8016bf9184df87"
+    },
+    {
+      "path": "pyproject.toml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "139df4be8ff43540285040e406311b636345ea58",
+      "size": 3623,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/139df4be8ff43540285040e406311b636345ea58"
+    },
+    {
+      "path": "scripts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2ba82c0225b552e4967db7b199e94c274c1ffe8e",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/2ba82c0225b552e4967db7b199e94c274c1ffe8e"
+    },
+    {
+      "path": "scripts/check_no_secrets.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "de100e293427f13f8c7e791d4029bea7d4347a1f",
+      "size": 4216,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/de100e293427f13f8c7e791d4029bea7d4347a1f"
+    },
+    {
+      "path": "scripts/denylist.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3caeb51dfaabfdcfe200615c2adfd2d62718bc74",
+      "size": 563,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/3caeb51dfaabfdcfe200615c2adfd2d62718bc74"
+    },
+    {
+      "path": "scripts/generate_demo_images.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ccb3746a208a801c29b247fcc483d975d479073",
+      "size": 17144,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/7ccb3746a208a801c29b247fcc483d975d479073"
+    },
+    {
+      "path": "src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "113434cac6273584629d3a94969867398f93a892",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/113434cac6273584629d3a94969867398f93a892"
+    },
+    {
+      "path": "src/ocr_read_packaging",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "243f66c5feba074878f7778795f8d9343be34df4",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/243f66c5feba074878f7778795f8d9343be34df4"
+    },
+    {
+      "path": "src/ocr_read_packaging/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37eba5d99677177f0b6176867c22d804cc982eb5",
+      "size": 3262,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/37eba5d99677177f0b6176867c22d804cc982eb5"
+    },
+    {
+      "path": "src/ocr_read_packaging/alignment.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9fe8befab1af31b51147d7e3d9c268f8d9db005d",
+      "size": 7654,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/9fe8befab1af31b51147d7e3d9c268f8d9db005d"
+    },
+    {
+      "path": "src/ocr_read_packaging/arbiter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab93f67bdf1ed8ab06cb66dbf79eb2f89b10f384",
+      "size": 8238,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/ab93f67bdf1ed8ab06cb66dbf79eb2f89b10f384"
+    },
+    {
+      "path": "src/ocr_read_packaging/cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1f7a0ea3340bbe11c85f30bf4e143a45ad56b671",
+      "size": 10604,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/1f7a0ea3340bbe11c85f30bf4e143a45ad56b671"
+    },
+    {
+      "path": "src/ocr_read_packaging/compare.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "643ef4f842d9b2b83a95be63392e820be47901c0",
+      "size": 9216,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/643ef4f842d9b2b83a95be63392e820be47901c0"
+    },
+    {
+      "path": "src/ocr_read_packaging/config.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9e9f0ef4bfea97f085c58c170a454d8d27120097",
+      "size": 12362,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/9e9f0ef4bfea97f085c58c170a454d8d27120097"
+    },
+    {
+      "path": "src/ocr_read_packaging/dots.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "69b6e500f5e7cdf2ed3bba8f2106f3839f53242c",
+      "size": 4946,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/69b6e500f5e7cdf2ed3bba8f2106f3839f53242c"
+    },
+    {
+      "path": "src/ocr_read_packaging/errors.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f7034e8cfc0ef41c9e807fa2251caacb885505ff",
+      "size": 1637,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/f7034e8cfc0ef41c9e807fa2251caacb885505ff"
+    },
+    {
+      "path": "src/ocr_read_packaging/imaging.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "07f57ccc094d3182a72b46d34f3fbfb7a1118134",
+      "size": 6563,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/07f57ccc094d3182a72b46d34f3fbfb7a1118134"
+    },
+    {
+      "path": "src/ocr_read_packaging/normalize.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ff9479c9076e5e08a1e8e320c4b48c276fd706ab",
+      "size": 4239,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/ff9479c9076e5e08a1e8e320c4b48c276fd706ab"
+    },
+    {
+      "path": "src/ocr_read_packaging/notes.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "848c35ca1fdf44f0770a7f0d48f767ec52bf5733",
+      "size": 3780,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/848c35ca1fdf44f0770a7f0d48f767ec52bf5733"
+    },
+    {
+      "path": "src/ocr_read_packaging/pipeline.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5220c424b5a91846a69f8df090419acd4e28d34b",
+      "size": 13205,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/5220c424b5a91846a69f8df090419acd4e28d34b"
+    },
+    {
+      "path": "src/ocr_read_packaging/prompts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "43f6dc8c335580f1f9d9acafeddc69ec26a92fbb",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/43f6dc8c335580f1f9d9acafeddc69ec26a92fbb"
+    },
+    {
+      "path": "src/ocr_read_packaging/prompts/arbiter_en.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9c4a9cd67f51b63f8c8b228e2562bd3f5a031abf",
+      "size": 1162,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/9c4a9cd67f51b63f8c8b228e2562bd3f5a031abf"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fb9d84e9a5d9b6281be6549bc387d5dc29bee827",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/fb9d84e9a5d9b6281be6549bc387d5dc29bee827"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1e77088521569ec019f2489dd842213db4b4ccea",
+      "size": 7325,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/1e77088521569ec019f2489dd842213db4b4ccea"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/azure_openai.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b4d05b999d56ab0d4664dd07fbe96da8fdb40013",
+      "size": 6105,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/b4d05b999d56ab0d4664dd07fbe96da8fdb40013"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/azure_vision.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7f11550faacabe469eb815a65daa1bcd47f4662",
+      "size": 6377,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/e7f11550faacabe469eb815a65daa1bcd47f4662"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/base.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2a625a8e1b21cfcded3f6e2c96fb921a6292f73e",
+      "size": 5449,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/2a625a8e1b21cfcded3f6e2c96fb921a6292f73e"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/fake.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bb37941773180fd1b37a049c982c08cdc30ccb32",
+      "size": 4537,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/bb37941773180fd1b37a049c982c08cdc30ccb32"
+    },
+    {
+      "path": "src/ocr_read_packaging/providers/google_vision.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47c6a74c33ae0244b3f8517877e5a47c0080678b",
+      "size": 5183,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/47c6a74c33ae0244b3f8517877e5a47c0080678b"
+    },
+    {
+      "path": "src/ocr_read_packaging/reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ecb4f9e373833de69aa711eece3f4a918bbea26b",
+      "size": 9638,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/ecb4f9e373833de69aa711eece3f4a918bbea26b"
+    },
+    {
+      "path": "tests",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "65d125e9cd11706fac12c80962d9c37996b8fbd8",
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/trees/65d125e9cd11706fac12c80962d9c37996b8fbd8"
+    },
+    {
+      "path": "tests/conftest.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fbf32a91754862cfab08a11fc72921121c3958f2",
+      "size": 1433,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/fbf32a91754862cfab08a11fc72921121c3958f2"
+    },
+    {
+      "path": "tests/test_alignment.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "05d4939121fb80217f28a03125b010f3c261b754",
+      "size": 5381,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/05d4939121fb80217f28a03125b010f3c261b754"
+    },
+    {
+      "path": "tests/test_arbiter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b0eee49dbbe953fc6ee7de634e26a1aa6e761e92",
+      "size": 8628,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/b0eee49dbbe953fc6ee7de634e26a1aa6e761e92"
+    },
+    {
+      "path": "tests/test_azure_openai.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "02f678150322a333f8f1de9f195bd3f0ec1fcd3e",
+      "size": 10490,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/02f678150322a333f8f1de9f195bd3f0ec1fcd3e"
+    },
+    {
+      "path": "tests/test_azure_vision.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6478c83b0a2102333944973f0a6581f4e5b556ea",
+      "size": 9925,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/6478c83b0a2102333944973f0a6581f4e5b556ea"
+    },
+    {
+      "path": "tests/test_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ee4b3cf26d04624958ecd022ad46f9bb15f1971",
+      "size": 10115,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/2ee4b3cf26d04624958ecd022ad46f9bb15f1971"
+    },
+    {
+      "path": "tests/test_compare.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ffe84275de0b6c961eb97ac560480b323b8ff68f",
+      "size": 10927,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/ffe84275de0b6c961eb97ac560480b323b8ff68f"
+    },
+    {
+      "path": "tests/test_config.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7eaec537435ea62b90bcbcc449cb7709e7e1a845",
+      "size": 8211,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/7eaec537435ea62b90bcbcc449cb7709e7e1a845"
+    },
+    {
+      "path": "tests/test_dots.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e2f5d7416b4096c5c93442ab58e46cb20165c622",
+      "size": 4647,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/e2f5d7416b4096c5c93442ab58e46cb20165c622"
+    },
+    {
+      "path": "tests/test_google_vision.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d3e09cab7840e519574c583014ea617e7a540093",
+      "size": 6723,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/d3e09cab7840e519574c583014ea617e7a540093"
+    },
+    {
+      "path": "tests/test_imaging.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "097020f2d188fc7b45d44800ddda4e4e45df2097",
+      "size": 4306,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/097020f2d188fc7b45d44800ddda4e4e45df2097"
+    },
+    {
+      "path": "tests/test_normalize.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6220dc17f93275e9413a540060186a38aca54115",
+      "size": 4781,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/6220dc17f93275e9413a540060186a38aca54115"
+    },
+    {
+      "path": "tests/test_notes.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cb367db10f67e3f87bf2703c88ae54de5582108e",
+      "size": 4411,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/cb367db10f67e3f87bf2703c88ae54de5582108e"
+    },
+    {
+      "path": "tests/test_pipeline.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e4115d1c74942cae851beb5b319a31b6632dc35",
+      "size": 12536,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/4e4115d1c74942cae851beb5b319a31b6632dc35"
+    },
+    {
+      "path": "tests/test_providers.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6772e06aa408bc22653145c31fbc3e6195681659",
+      "size": 8375,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/6772e06aa408bc22653145c31fbc3e6195681659"
+    },
+    {
+      "path": "tests/test_reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5a7eb1e77d2b2fb71584f9dedf6fcfef439af947",
+      "size": 8589,
+      "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/git/blobs/5a7eb1e77d2b2fb71584f9dedf6fcfef439af947"
+    }
+  ],
+  "truncated": false
+}

@@ -48,6 +48,8 @@ import {
 import { api, request, download } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
+import { ResultComparison } from "./ResultComparison";
+import { adoptedResult, exportPhotos, reviewNames } from "./resultWorkflow";
 import { useEditor } from "./useEditor";
 import { ProjectStorage } from "./ProjectStorage";
 import { EnginePackages } from "./EnginePackages";
@@ -67,6 +69,7 @@ export function App() {
   const [projectId, setProjectId] = useState("");
   const [project, setProject] = useState<ProjectState | null>(null);
   const selectedProject = useRef("");
+  const projectGeneration = useRef(0);
   const [engines, setEngines] = useState<Record<string, Engine>>({});
   const [active, setActive] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -88,6 +91,7 @@ export function App() {
     setTab(value);
   };
   const [busy, setBusy] = useState(false);
+  const activeActions = useRef(0);
   const [initial, setInitial] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
@@ -99,7 +103,16 @@ export function App() {
   const [rename, setRename] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("xlsx");
-  const [exportMany, setExportMany] = useState(false);
+  const [exportScope, setExportScope] = useState("current");
+  const exportMany = exportScope !== "current";
+  const [confirmedOnly, setConfirmedOnly] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [confidenceLimit, setConfidenceLimit] = useState(0.8);
+  const projectRevision = useRef<number | undefined>(undefined);
+  const projectLatest = useRef<ProjectState | null>(null);
+  const loadRetries = useRef(0);
   const [exportAggregate, setExportAggregate] = useState(false);
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
@@ -111,25 +124,61 @@ export function App() {
   const folderInput = useRef<HTMLInputElement>(null);
   const textInput = useRef<HTMLTextAreaElement>(null);
   const notify = useCallback((text: string, isError = false) => {
-    setMessage(text.replace(/^Error: /, ""));
+    setMessage(String(text).replace(/^Error: /, ""));
     setError(isError);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     if (!isError) toastTimer.current = setTimeout(() => setMessage(""), 5000);
   }, []);
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
-  const refresh = useCallback(async (id: string) => {
+  const refresh = useCallback(async (id: string, incremental = false) => {
     if (!id) return;
-    const value = await api<ProjectState>("/projects/" + id);
-    if (selectedProject.current === id) setProject(value);
+    const suffix =
+      incremental && projectRevision.current !== undefined
+        ? `?since_revision=${projectRevision.current}`
+        : "";
+    const value = await api<ProjectState & { unchanged?: boolean }>(
+      "/projects/" + id + suffix,
+    );
+    if (selectedProject.current === id) {
+      if (
+        value.revision !== undefined &&
+        projectRevision.current !== undefined &&
+        value.revision < projectRevision.current
+      )
+        return value;
+      projectRevision.current = value.revision;
+      if (value.unchanged) {
+        if (
+          projectLatest.current &&
+          (JSON.stringify(projectLatest.current.queue) !==
+            JSON.stringify(value.queue) ||
+            projectLatest.current.disk?.low_space !== value.disk?.low_space)
+        ) {
+          projectLatest.current = {
+            ...projectLatest.current,
+            queue: value.queue,
+            disk: value.disk,
+          };
+          setProject(projectLatest.current);
+        }
+      } else {
+        projectLatest.current = value;
+        setProject(value);
+      }
+    }
     return value;
   }, []);
   const chooseProject = useCallback(
     async (id: string) => {
       await editor.flush();
+      ++projectGeneration.current;
       selectedProject.current = id;
       setProjectId(id);
       setProject(null);
+      projectLatest.current = null;
+      projectRevision.current = undefined;
+      setPreviews({});
       setActive("");
       setSelected([]);
       await editor.load(null);
@@ -143,6 +192,7 @@ export function App() {
       .then((value) => {
         setProjects(value.projects);
         setEngines(value.engines);
+        setReviewOnly(value.review_only === true);
         const saved = localStorage.getItem("ocr-project");
         const id =
           value.projects.find((p: Project) => p.id === saved)?.id ||
@@ -154,10 +204,25 @@ export function App() {
   }, []);
   useEffect(() => {
     if (!projectId) return;
-    const interval = setInterval(() => {
-      void refresh(projectId).catch(onError);
-    }, 1200);
-    return () => clearInterval(interval);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      try {
+        await refresh(projectId, true);
+      } catch (error) {
+        if (!cancelled) onError(String(error));
+      }
+      if (cancelled) return;
+      const running = projectLatest.current?.tasks.some((t) =>
+        ["running", "queued"].includes(t.status),
+      );
+      timer = setTimeout(poll, document.hidden ? 15000 : running ? 1200 : 4000);
+    };
+    timer = setTimeout(poll, 1200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [projectId, refresh, onError]);
   const photo = project?.images.find((p) => p.id === active) || null;
   const versions = project?.versions.filter((v) => v.image_id === active) || [];
@@ -165,7 +230,8 @@ export function App() {
   const tasks = project?.tasks.filter((t) => t.image_id === active) || [];
   const finished = tasks.filter((t) => t.status === "succeeded" && t.result_id);
   const currentResult =
-    photo?.selected_result || finished[finished.length - 1]?.result_id || null;
+    (active && previews[active]) ||
+    (photo && project ? adoptedResult(photo, project.tasks) : null);
   const loadedResultId = editor.result?.id;
   useEffect(() => {
     if (!editor.result) return;
@@ -181,6 +247,25 @@ export function App() {
     if (!active) return;
     void editor.load(currentResult).catch(onError);
   }, [active, currentResult]);
+  useEffect(() => {
+    loadRetries.current = 0;
+  }, [active, currentResult]);
+  useEffect(() => {
+    if (
+      editor.result ||
+      editor.loadState !== "failed" ||
+      loadRetries.current >= 2
+    )
+      return;
+    const retry = setTimeout(
+      () => {
+        ++loadRetries.current;
+        void editor.reload().catch(onError);
+      },
+      1000 * (loadRetries.current + 1),
+    );
+    return () => clearTimeout(retry);
+  }, [editor.loadState, editor.result, editor.reload, currentResult, onError]);
   useEffect(() => {
     if (project && !active && project.images.length)
       setActive(project.images[0].id);
@@ -205,13 +290,14 @@ export function App() {
     };
   }, [tab, finishedKey, loadedResultId, editor.result?.revision]);
   const action = async (fn: () => Promise<unknown>) => {
+    ++activeActions.current;
     setBusy(true);
     try {
       return await fn();
     } catch (e) {
       onError(String(e));
     } finally {
-      setBusy(false);
+      setBusy(--activeActions.current > 0);
     }
   };
   const selectPhoto = async (item: Photo) => {
@@ -235,6 +321,7 @@ export function App() {
     }
     await action(async () => {
       const id = await ensureProject();
+      const generation = projectGeneration.current;
       const body = new FormData();
       files.forEach((file) => body.append("files", file, file.name));
       const response = await request("/projects/" + id + "/images", {
@@ -243,12 +330,17 @@ export function App() {
       });
       const value = await response.json();
       await refresh(id);
-      if (value.images.length) {
+      if (
+        value.images.length &&
+        selectedProject.current === id &&
+        projectGeneration.current === generation
+      ) {
         setActive(value.images[0].id);
         setSelected(value.images.map((p: Photo) => p.id));
       }
       notify(
         `导入 ${value.images.length} 张图片` +
+          (selectedProject.current !== id ? "（已保存到原项目）" : "") +
           (value.errors.length
             ? `；${value.errors.map((x: any) => x.name + "：" + x.message).join("；")}`
             : ""),
@@ -357,11 +449,31 @@ export function App() {
       notify("区域已保存为新版本并加入识别");
     });
   };
+  const previewResult = async (id: string, imageId = active) => {
+    await editor.flush();
+    setPreviews((old) => ({ ...old, [imageId]: id }));
+    setActive(imageId);
+  };
   const selectResult = async (id: string) => {
     await editor.flush();
     await api("/images/" + active + "/selection", "PUT", { result_id: id });
+    setPreviews((old) => ({ ...old, [active]: id }));
     await refresh(projectId);
-    await editor.load(id);
+  };
+  const setReview = async (status: string) => {
+    await editor.flush();
+    const resultId = editor.result?.id;
+    if (!resultId || !photo) return;
+    const latest = editor.getCurrent();
+    if (!latest || latest.id !== resultId)
+      throw Error("结果已切换，请重新核对后确认。");
+    await api("/images/" + photo.id + "/review", "PUT", {
+      status,
+      result_id: resultId,
+      revision: latest.revision,
+      version_id: photo.active_version,
+    });
+    await refresh(projectId);
   };
   const queueAction = async (name: string, task?: Task) => {
     await api(
@@ -376,28 +488,27 @@ export function App() {
     let ids: string[] = [];
     if (exportMany) {
       const latest = await api<ProjectState>("/projects/" + projectId);
-      const photos =
-        latest.images.filter(
-          (p) => !selected.length || selected.includes(p.id),
-        ) || [];
+      const photos = exportPhotos(
+        latest.images,
+        selected,
+        exportScope,
+        confirmedOnly,
+      );
       ids = photos
-        .map(
-          (p) =>
-            p.selected_result ||
-            latest.tasks
-              .filter((t) => t.image_id === p.id && t.result_id)
-              .at(-1)?.result_id,
-        )
+        .map((p) => adoptedResult(p, latest.tasks))
         .filter(Boolean) as string[];
       if (ids.length !== photos.length)
         throw new Error(
-          `所选 ${photos.length} 张图片中有 ${photos.length - ids.length} 张尚无可导出的结果，请等待识别或调整选择。`,
+          `此范围 ${photos.length} 张图片中有 ${photos.length - ids.length} 张尚无可导出的结果，请等待识别或调整范围。`,
         );
     } else if (editor.result) ids = [editor.result.id];
+    if (!ids.length)
+      throw new Error("此范围没有可导出的结果，请调整范围或复核筛选。");
     await download(
       ids,
       exportFormat,
       exportMany && exportFormat === "xlsx" && exportAggregate,
+      confirmedOnly,
     );
     setExportOpen(false);
     notify("导出文件已生成");
@@ -422,6 +533,56 @@ export function App() {
   const pending =
     project?.tasks.filter((t) => ["queued", "running"].includes(t.status))
       .length || 0;
+  const latestTask = tasks.at(-1);
+  const attention =
+    project?.tasks.filter((t) =>
+      ["failed", "paused", "interrupted"].includes(t.status),
+    ).length || 0;
+  const queueHealthy = project?.queue.healthy !== false;
+  const lastPending = useRef(0);
+  useEffect(() => {
+    if (lastPending.current > 0 && pending === 0 && attention === 0)
+      setShowQueue(false);
+    lastPending.current = pending;
+  }, [pending, attention]);
+  const targets = project
+    ? exportPhotos(project.images, selected, exportScope, confirmedOnly)
+    : [];
+  const exportableCount = exportMany
+    ? targets.filter((p) => adoptedResult(p, project?.tasks || [])).length
+    : editor.result
+      ? 1
+      : 0;
+  const currentAdopted =
+    photo && project ? adoptedResult(photo, project.tasks) : null;
+  const reviewCurrent =
+    editor.saveState === "已保存" &&
+    photo?.review_state?.result_id === editor.result?.id &&
+    photo?.review_state?.revision === editor.result?.revision &&
+    photo?.review_state?.version_id === photo?.active_version
+      ? photo?.review_status || "pending"
+      : "pending";
+  const openExport = (scope: string) => {
+    setExportScope(scope);
+    setConfirmedOnly(false);
+    setExportFormat(
+      scope === "current" && !editor.edit?.tables.length ? "txt" : "xlsx",
+    );
+    setExportOpen(true);
+  };
+  const nextReview = () => {
+    if (!project) return;
+    const index = project.images.findIndex((p) => p.id === active);
+    const ordered = [
+      ...project.images.slice(index + 1),
+      ...project.images.slice(0, index),
+    ];
+    const next = ordered.find(
+      (p) => p.review_status !== "confirmed" && adoptedResult(p, project.tasks),
+    );
+    if (next) return selectPhoto(next);
+    notify("其余已有结果均已确认");
+  };
   return (
     <div
       className="app-shell"
@@ -436,17 +597,19 @@ export function App() {
       onDrop={(e) => void importDrop(e)}
     >
       <BrandHeader>
-        <EnginePackages
-          onError={onError}
-          onChange={async () => {
-            const value = await api("/state");
-            setEngines(value.engines);
-            notify("引擎版本已更新，已有任务仍使用原版本");
-          }}
-        />
+        {!reviewOnly && (
+          <EnginePackages
+            onError={onError}
+            onChange={async () => {
+              const value = await api("/state");
+              setEngines(value.engines);
+              notify("引擎版本已更新，已有任务仍使用原版本");
+            }}
+          />
+        )}
         <span className="offline-status">
           <span />
-          仅在本机处理
+          {reviewOnly ? "仅校对与导出模式" : "仅在本机处理"}
         </span>
         <Button
           appearance="subtle"
@@ -587,6 +750,19 @@ export function App() {
               onSelect={(p) => void action(() => selectPhoto(p))}
               onSelection={setSelected}
             />
+            <Button
+              disabled={
+                busy ||
+                !selected.some((id) => {
+                  const p = project?.images.find((p) => p.id === id);
+                  return p && adoptedResult(p, project?.tasks || []);
+                })
+              }
+              onClick={() => openExport("selected")}
+              icon={<Download size={15} />}
+            >
+              导出所选 {selected.length ? `(${selected.length})` : ""}
+            </Button>
             <button
               className={"queue-summary " + (showQueue ? "open" : "")}
               onClick={() => setShowQueue(!showQueue)}
@@ -595,9 +771,13 @@ export function App() {
               <span>
                 任务队列
                 <small>
-                  {pending
-                    ? `${pending} 项等待或识别中`
-                    : `${completed} 项已完成`}
+                  {!queueHealthy
+                    ? "队列异常，请查看恢复提示"
+                    : attention
+                      ? `${attention} 项失败或待恢复 · ${pending} 项处理中`
+                      : pending
+                        ? `${pending} 项等待或识别中`
+                        : `${completed} 项已完成`}
                 </small>
               </span>
               <ChevronDown
@@ -612,21 +792,60 @@ export function App() {
           </>
         }
         toolbar={
-          <RecognitionBar
-            mode={mode}
-            setMode={setMode}
-            engine={engine}
-            setEngine={setEngine}
-            preprocess={preprocess}
-            setPreprocess={setPreprocess}
-            chooseTab={chooseTab}
-            engines={engines}
-            busy={busy}
-            imageCount={project?.images.length || 0}
-            selectedCount={selected.length}
-            hasActive={!!active}
-            onRun={() => void action(() => run())}
-          />
+          <>
+            {(reviewOnly || !queueHealthy) && (
+              <div className="inline-warning" role="status">
+                {reviewOnly
+                  ? "当前可打开、校对和导出已有结果；识别需要完整模式。"
+                  : `队列正在恢复：${typeof project?.queue.last_error === "string" ? project.queue.last_error : project?.queue.last_error?.message || "工作线程不可用，请检查日志。"}`}
+                {!reviewOnly && (
+                  <Button
+                    size="small"
+                    disabled={busy}
+                    onClick={() =>
+                      void action(async () => {
+                        await api("/queue/recover", "POST", {});
+                        await refresh(projectId);
+                      })
+                    }
+                  >
+                    重试恢复队列
+                  </Button>
+                )}
+              </div>
+            )}
+            {project?.disk?.low_space && (
+              <div className="inline-warning" role="alert">
+                {project.disk.warning}
+              </div>
+            )}
+            <RecognitionBar
+              mode={mode}
+              setMode={setMode}
+              engine={engine}
+              setEngine={setEngine}
+              preprocess={preprocess}
+              setPreprocess={setPreprocess}
+              chooseTab={chooseTab}
+              engines={engines}
+              busy={busy}
+              recognitionDisabled={reviewOnly || !queueHealthy}
+              imageCount={project?.images.length || 0}
+              selectedCount={selected.length}
+              hasActive={!!active}
+              onRun={() => void action(() => run())}
+            />
+            <button
+              className="workspace-queue-toggle"
+              onClick={() => setShowQueue(!showQueue)}
+              aria-expanded={showQueue}
+            >
+              任务队列 · {pending} 项处理中
+              {attention
+                ? ` · ${attention} 项待处理`
+                : ` · ${completed} 项完成`}
+            </button>
+          </>
         }
         image={
           <ImageCanvas
@@ -638,6 +857,7 @@ export function App() {
             onTransform={(op) => void transform(op)}
             onRegion={(box) => void region(box)}
             busy={busy}
+            recognitionDisabled={reviewOnly || !queueHealthy}
           />
         }
         queue={
@@ -645,6 +865,7 @@ export function App() {
           project && (
             <TaskQueue
               project={project!}
+              recognitionDisabled={reviewOnly || !queueHealthy}
               onClose={() => setShowQueue(false)}
               onAction={(name, task) =>
                 void action(() => queueAction(name, task))
@@ -652,14 +873,10 @@ export function App() {
               onView={(t) =>
                 void action(async () => {
                   await editor.flush();
-                  setActive(t.image_id);
                   if (t.result_id) {
-                    await api("/images/" + t.image_id + "/selection", "PUT", {
-                      result_id: t.result_id,
-                    });
-                    await refresh(projectId);
-                    await editor.load(t.result_id);
+                    await previewResult(t.result_id, t.image_id);
                   } else {
+                    setActive(t.image_id);
                     await api("/images/" + t.image_id + "/version", "PUT", {
                       version_id: t.result_version_id,
                     });
@@ -677,7 +894,9 @@ export function App() {
               <div>
                 <h2>校对结果</h2>
                 <span className="result-filename" title={photo?.name}>
-                  {photo ? photo.name : "等待导入资料"}
+                  {photo
+                    ? `${photo.name} · ${(project?.images.findIndex((p) => p.id === active) || 0) + 1}/${project?.images.length}`
+                    : "等待导入资料"}
                 </span>
               </div>
               <span
@@ -702,7 +921,7 @@ export function App() {
                   aria-label="当前识别结果"
                   value={editor.result?.id || ""}
                   onChange={(e) =>
-                    void action(() => selectResult(e.target.value))
+                    void action(() => previewResult(e.target.value))
                   }
                 >
                   {finished.map((t, i) => (
@@ -715,6 +934,19 @@ export function App() {
                   ))}
                 </select>
                 {editor.result && (
+                  <Button
+                    size="small"
+                    disabled={busy || editor.result.id === currentAdopted}
+                    onClick={() =>
+                      void action(() => selectResult(editor.result!.id))
+                    }
+                  >
+                    {editor.result.id === currentAdopted
+                      ? "已采用"
+                      : "采用此预览"}
+                  </Button>
+                )}
+                {editor.result && (
                   <span>
                     {editor.result.original.elapsed_seconds.toFixed(2)} 秒
                   </span>
@@ -723,8 +955,37 @@ export function App() {
             )}
           </div>
           <div className="result-view-bar">
-            <div className="result-tabs">
+            <div
+              className="result-tabs"
+              role="tablist"
+              aria-label="结果视图"
+              onKeyDown={(e) => {
+                const choices = ["table", "text", "compare"];
+                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
+                  return;
+                e.preventDefault();
+                const index =
+                  e.key === "Home"
+                    ? 0
+                    : e.key === "End"
+                      ? 2
+                      : (choices.indexOf(tab) +
+                          (e.key === "ArrowRight" ? 1 : 2)) %
+                        3;
+                chooseTab(choices[index]);
+                (
+                  e.currentTarget.querySelectorAll("button")[
+                    index
+                  ] as HTMLButtonElement
+                ).focus();
+              }}
+            >
               <button
+                role="tab"
+                aria-selected={tab === "table"}
+                tabIndex={tab === "table" ? 0 : -1}
+                aria-controls="result-content"
+                id="tab-table"
                 className={tab === "table" ? "active" : ""}
                 onClick={() => chooseTab("table")}
               >
@@ -735,6 +996,11 @@ export function App() {
                   : ""}
               </button>
               <button
+                role="tab"
+                aria-selected={tab === "text"}
+                tabIndex={tab === "text" ? 0 : -1}
+                aria-controls="result-content"
+                id="tab-text"
                 className={tab === "text" ? "active" : ""}
                 onClick={() => chooseTab("text")}
               >
@@ -742,6 +1008,11 @@ export function App() {
                 文字
               </button>
               <button
+                role="tab"
+                aria-selected={tab === "compare"}
+                tabIndex={tab === "compare" ? 0 : -1}
+                aria-controls="result-content"
+                id="tab-compare"
                 className={tab === "compare" ? "active" : ""}
                 onClick={() => chooseTab("compare")}
               >
@@ -774,9 +1045,21 @@ export function App() {
                   size="small"
                   appearance="subtle"
                   icon={<Copy size={15} />}
+                  disabled={busy}
                   onClick={() =>
                     void action(async () => {
-                      await navigator.clipboard.writeText(editor.edit!.text);
+                      const id = editor.result!.id;
+                      await editor.flush();
+                      const response = await request("/export", {
+                        method: "POST",
+                        body: JSON.stringify({
+                          result_ids: [id],
+                          format: "txt",
+                        }),
+                      });
+                      await navigator.clipboard.writeText(
+                        await response.text(),
+                      );
                       notify("文字已复制");
                     })
                   }
@@ -786,182 +1069,356 @@ export function App() {
               </div>
             )}
           </div>
-          {!editor.result || !editor.edit ? (
-            <div className="empty-panel">
-              <ScanLine size={34} />
-              <h3>
-                {tasks.some((t) => ["running", "queued"].includes(t.status))
-                  ? "正在识别图片"
-                  : "识别结果将在这里显示"}
-              </h3>
-              <p>
-                {tasks.some((t) => ["running", "queued"].includes(t.status))
-                  ? "每个模型独立处理，完成后可校对文字和表格。"
-                  : "选择识别方式后点击「开始识别」，原始输出和校对记录都会保留。"}
-              </p>
-              {tasks.some((t) => t.status === "running") && (
-                <Spinner size="small" label="模型处理中" />
-              )}
-            </div>
-          ) : (
-            <>
-              {editor.saveState === "保存失败" && (
-                <div className="inline-warning" role="alert">
-                  校对尚未保存，请重试后再切换资料。
+          <div
+            id="result-content"
+            className="result-content"
+            role="tabpanel"
+            aria-labelledby={`tab-${tab}`}
+          >
+            {!editor.result || !editor.edit ? (
+              <div className="empty-panel">
+                <ScanLine size={34} />
+                <h3>
+                  {editor.loadState === "failed"
+                    ? "结果加载失败"
+                    : editor.loadState === "loading"
+                      ? "正在加载已保存结果"
+                      : !photo
+                        ? "导入第一份资料"
+                        : latestTask?.status === "failed"
+                          ? "识别未完成"
+                          : latestTask &&
+                              ["paused", "interrupted"].includes(
+                                latestTask.status,
+                              )
+                            ? "任务等待继续"
+                            : pending &&
+                                tasks.some((t) =>
+                                  ["running", "queued"].includes(t.status),
+                                )
+                              ? "正在识别图片"
+                              : latestTask?.status === "cancelled"
+                                ? "任务已取消"
+                                : "图片已准备好"}
+                </h3>
+                <p>
+                  {editor.loadState === "failed"
+                    ? editor.loadError
+                    : !photo
+                      ? "导入图片或整个文件夹，开始整理文档。"
+                      : latestTask?.error ||
+                        (reviewOnly
+                          ? "可打开已有结果进行校对与导出。"
+                          : "识别完成后，可校对文字和表格。")}
+                </p>
+                {editor.loadState === "failed" ? (
                   <Button
-                    size="small"
-                    onClick={() => void action(editor.flush)}
-                  >
-                    重试保存
-                  </Button>
-                  <Button
-                    size="small"
                     onClick={() => void action(editor.reload)}
+                    disabled={busy}
                   >
-                    重新加载
+                    重试加载
                   </Button>
-                </div>
-              )}
-              {!matchesVersion && (
-                <div className="version-warning">
-                  当前结果对应另一图像版本。
-                  <button
+                ) : editor.loadState === "loading" ? (
+                  <Spinner size="small" />
+                ) : !photo ? (
+                  <div className="empty-actions">
+                    <Button
+                      appearance="primary"
+                      icon={<Upload size={16} />}
+                      disabled={busy}
+                      onClick={() => fileInput.current?.click()}
+                    >
+                      导入图片
+                    </Button>
+                    <Button
+                      disabled={busy}
+                      onClick={() => folderInput.current?.click()}
+                    >
+                      导入文件夹
+                    </Button>
+                  </div>
+                ) : latestTask &&
+                  ["failed", "cancelled", "paused", "interrupted"].includes(
+                    latestTask.status,
+                  ) ? (
+                  <Button
+                    disabled={busy || reviewOnly || !queueHealthy}
                     onClick={() =>
-                      void changeVersion(
-                        editor.result!.original.project_image_version!,
+                      void action(() =>
+                        queueAction(
+                          ["failed", "cancelled"].includes(latestTask.status)
+                            ? "retry"
+                            : "resume",
+                          latestTask,
+                        ),
                       )
                     }
                   >
-                    定位结果图片
-                  </button>
-                </div>
-              )}
-              {tab === "text" && (
-                <div className="text-editor">
-                  <div className="text-search">
-                    <Search size={15} />
-                    <input
-                      aria-label="搜索识别文字"
-                      placeholder="查找文字"
-                      value={search}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        setSearchIndex(0);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") findNext();
-                      }}
-                    />
-                    <button aria-label="下一个匹配" onClick={findNext}>
-                      <ArrowRight size={16} />
-                    </button>
+                    {["failed", "cancelled"].includes(latestTask.status)
+                      ? "重试此任务"
+                      : "继续此任务"}
+                  </Button>
+                ) : tasks.some((t) =>
+                    ["running", "queued"].includes(t.status),
+                  ) ? (
+                  <Button onClick={() => setShowQueue(true)}>
+                    查看任务进度
+                  </Button>
+                ) : (
+                  <Button
+                    appearance="primary"
+                    disabled={busy || reviewOnly || !queueHealthy}
+                    onClick={() => void action(() => run([active]))}
+                  >
+                    识别当前图片
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                {editor.saveState === "保存失败" && (
+                  <div className="inline-warning" role="alert">
+                    校对尚未保存，草稿仍保留。请重试保存或下载副本。
+                    <Button size="small" onClick={editor.downloadDraft}>
+                      下载草稿副本
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => void action(editor.flush)}
+                    >
+                      重试保存
+                    </Button>
+                    <Button size="small" onClick={() => setDiscardOpen(true)}>
+                      放弃本次修改并重新加载
+                    </Button>
                   </div>
-                  <textarea
-                    ref={textInput}
-                    aria-label="校对文字"
-                    spellCheck={false}
-                    value={editor.edit.text}
-                    onChange={(e) =>
-                      editor.change({
-                        ...editor.edit!,
-                        text: e.target.value,
-                      })
-                    }
-                  />
-                  <details className="text-blocks">
+                )}
+                {!!editor.result.original.warnings?.length && (
+                  <details className="result-warnings">
                     <summary>
-                      定位文字区域 ({editor.result.original.blocks.length})
+                      识别结果有 {editor.result.original.warnings.length}{" "}
+                      项格式提示，文字与原始输出已保留
                     </summary>
-                    {editor.result.original.blocks.map((block, i) => (
-                      <button
-                        key={i}
-                        disabled={!block.polygon}
-                        className={highlight === i ? "active" : ""}
-                        onClick={() => {
-                          if (!matchesVersion)
-                            void changeVersion(
-                              editor.result!.original.project_image_version!,
-                            );
-                          setHighlight(i);
-                        }}
-                      >
-                        <span>{i + 1}</span>
-                        {block.text.slice(0, 90)}
-                        {block.confidence !== null && (
-                          <small>{Math.round(block.confidence * 100)}%</small>
-                        )}
-                      </button>
+                    {editor.result.original.warnings.map((w, i) => (
+                      <p key={i}>{w.message}</p>
                     ))}
                   </details>
-                  <div className="text-count">
-                    {editor.edit.text.length} 字符
-                    <span>UTF-8 · 保留原始编号</span>
-                  </div>
-                </div>
-              )}
-              {tab === "table" && (
-                <TableEditor
-                  tables={editor.edit.tables}
-                  onError={onError}
-                  onChange={(tables) =>
-                    editor.change({ ...editor.edit!, tables })
-                  }
-                />
-              )}
-              {tab === "compare" && (
-                <div className="comparison-panel">
-                  <p>选择采用的结果。各模型原文、表格和校对历史分别保存。</p>
-                  {compared.length < 2 && (
-                    <div className="inline-warning">
-                      当前仅有一种结果。选择「四引擎顺序对比」后开始识别。
+                )}
+                <div className={`review-bar ${reviewCurrent}`}>
+                  <span className="review-indicator">
+                    {reviewCurrent === "confirmed" ? (
+                      <CheckCircle2 size={14} />
+                    ) : reviewCurrent === "question" ? (
+                      <AlertCircle size={14} />
+                    ) : (
+                      <PenLine size={14} />
+                    )}
+                    复核：{reviewNames[reviewCurrent]}
+                    {editor.result.id !== currentAdopted
+                      ? " · 正在预览未采用结果"
+                      : ""}
+                  </span>
+                  <Button
+                    size="small"
+                    icon={<Check size={14} />}
+                    disabled={
+                      busy ||
+                      !matchesVersion ||
+                      editor.result.id !== currentAdopted
+                    }
+                    onClick={() => void action(() => setReview("confirmed"))}
+                  >
+                    确认此结果
+                  </Button>
+                  <details>
+                    <summary>复核操作</summary>
+                    <div>
+                      <Button
+                        size="small"
+                        disabled={
+                          busy ||
+                          !matchesVersion ||
+                          editor.result.id !== currentAdopted
+                        }
+                        onClick={() => void action(() => setReview("question"))}
+                      >
+                        标记有疑问
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={busy || editor.result.id !== currentAdopted}
+                        onClick={() => void action(() => setReview("pending"))}
+                      >
+                        设为待校对
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={busy}
+                        onClick={() =>
+                          void action(async () => {
+                            await nextReview();
+                          })
+                        }
+                      >
+                        下一张待校对
+                      </Button>
                     </div>
-                  )}
-                  {compared.map((r, i) => (
-                    <article className="comparison-result" key={r.id}>
-                      <header>
-                        <strong>{engineNames[r.original.engine]}</strong>
-                        <span>{r.original.elapsed_seconds.toFixed(2)} 秒</span>
-                        <Button
-                          size="small"
-                          appearance={
-                            r.id === photo?.selected_result
-                              ? "primary"
-                              : "secondary"
-                          }
-                          onClick={() => void action(() => selectResult(r.id))}
-                        >
-                          {r.id === photo?.selected_result
-                            ? "已采用"
-                            : "采用结果"}
-                        </Button>
-                      </header>
-                      <pre>{r.edited.text}</pre>
-                      {i > 0 && (
-                        <div className="difference-note">
-                          与首个结果比较：
-                          {r.edited.text === compared[0].edited.text
-                            ? "文字完全一致"
-                            : `文字不同，字符数相差 ${r.edited.text.length - compared[0].edited.text.length}`}
-                          <details>
-                            <summary>查看差异行</summary>
-                            {lineDifferences(
-                              compared[0].edited.text,
-                              r.edited.text,
-                            ).map((line, j) => (
-                              <div className={line.kind} key={j}>
-                                {line.kind === "removed" ? "− " : "+ "}
-                                {line.text}
-                              </div>
-                            ))}
-                          </details>
-                        </div>
-                      )}
-                    </article>
-                  ))}
+                  </details>
                 </div>
-              )}
-            </>
-          )}
+                {!matchesVersion && (
+                  <div className="version-warning">
+                    当前结果对应另一图像版本。
+                    <button
+                      onClick={() =>
+                        void changeVersion(
+                          editor.result!.original.project_image_version!,
+                        )
+                      }
+                    >
+                      定位结果图片
+                    </button>
+                  </div>
+                )}
+                {tab === "text" && (
+                  <div className="text-editor">
+                    <div className="text-search">
+                      <Search size={15} />
+                      <input
+                        aria-label="搜索识别文字"
+                        placeholder="查找文字"
+                        value={search}
+                        onChange={(e) => {
+                          setSearch(e.target.value);
+                          setSearchIndex(0);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") findNext();
+                        }}
+                      />
+                      <button aria-label="下一个匹配" onClick={findNext}>
+                        <ArrowRight size={16} />
+                      </button>
+                    </div>
+                    <textarea
+                      ref={textInput}
+                      aria-label="校对文字"
+                      readOnly={busy}
+                      spellCheck={false}
+                      value={editor.edit.text}
+                      onChange={(e) =>
+                        editor.change({
+                          ...editor.edit!,
+                          text: e.target.value,
+                        })
+                      }
+                    />
+                    <details className="text-blocks">
+                      <summary>
+                        定位文字区域与置信度 (
+                        {editor.result.original.blocks.length})
+                      </summary>
+                      <p>
+                        分数来自 {engineNames[editor.result.original.engine]}
+                        ，不代表统一准确率；无分数时为未知。
+                      </p>
+                      <label>
+                        待核对阈值{" "}
+                        <input
+                          type="number"
+                          aria-label="文字置信度阈值"
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          value={confidenceLimit}
+                          onChange={(e) =>
+                            setConfidenceLimit(
+                              Math.max(0, Math.min(1, Number(e.target.value))),
+                            )
+                          }
+                        />
+                      </label>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          const candidates = editor
+                            .result!.original.blocks.map((b, i) => ({ b, i }))
+                            .filter(
+                              ({ b }) =>
+                                typeof b.confidence === "number" &&
+                                b.confidence < confidenceLimit &&
+                                b.polygon,
+                            );
+                          const next =
+                            candidates.find((c) => c.i > (highlight ?? -1)) ||
+                            candidates[0];
+                          if (next) {
+                            if (!matchesVersion)
+                              void changeVersion(
+                                editor.result!.original.project_image_version!,
+                              );
+                            setHighlight(next.i);
+                          } else
+                            notify("没有带坐标的低分区域，可逐项查看原文。");
+                        }}
+                      >
+                        下一处待核对
+                      </Button>
+                      {editor.result.original.blocks.map((block, i) => (
+                        <button
+                          key={i}
+                          disabled={!block.polygon}
+                          className={highlight === i ? "active" : ""}
+                          onClick={() => {
+                            if (!matchesVersion)
+                              void changeVersion(
+                                editor.result!.original.project_image_version!,
+                              );
+                            setHighlight(i);
+                          }}
+                        >
+                          <span>{i + 1}</span>
+                          {block.text.slice(0, 90)}
+                          <small>
+                            {typeof block.confidence === "number"
+                              ? `${Math.round(block.confidence * 100)}%${block.confidence < confidenceLimit ? " · 待核对" : ""}`
+                              : "置信度未知"}
+                          </small>
+                        </button>
+                      ))}
+                    </details>
+                    <div className="text-count">
+                      {editor.edit.text.length} 字符
+                      <span>UTF-8 · 保留原始编号</span>
+                    </div>
+                  </div>
+                )}
+                {tab === "table" && (
+                  <TableEditor
+                    key={editor.result.id}
+                    disabled={busy}
+                    tables={editor.edit.tables}
+                    onError={onError}
+                    onChange={(tables) =>
+                      editor.change({ ...editor.edit!, tables })
+                    }
+                  />
+                )}
+                {tab === "compare" && (
+                  <ResultComparison
+                    results={compared}
+                    tasks={tasks}
+                    versions={versions}
+                    selectedResultId={currentAdopted}
+                    reviewStatus={photo?.review_status}
+                    reviewedResultId={photo?.review_state?.result_id}
+                    reviewedRevision={photo?.review_state?.revision}
+                    onAdopt={(id) => void action(() => selectResult(id))}
+                    adoptingDisabled={busy}
+                  />
+                )}
+              </>
+            )}
+          </div>
           <footer className="result-footer">
             <span>
               {editor.edit?.tables.length
@@ -971,11 +1428,20 @@ export function App() {
             <Button
               appearance="primary"
               icon={<Download size={16} />}
-              disabled={!editor.result || busy}
-              onClick={() => {
-                setExportFormat(editor.edit?.tables.length ? "xlsx" : "txt");
-                setExportOpen(true);
-              }}
+              disabled={
+                busy ||
+                (!editor.result &&
+                  !project?.images.some((p) => adoptedResult(p, project.tasks)))
+              }
+              onClick={() =>
+                openExport(
+                  editor.result
+                    ? "current"
+                    : selected.length
+                      ? "selected"
+                      : "project",
+                )
+              }
             >
               导出结果
             </Button>
@@ -1087,15 +1553,37 @@ export function App() {
                   <option value="json">完整结果与原始输出 (.json)</option>
                 </select>
               </label>
+              <label className="dialog-field">
+                导出范围
+                <select
+                  aria-label="导出范围"
+                  value={exportScope}
+                  onChange={(e) => setExportScope(e.target.value)}
+                >
+                  <option value="current" disabled={!editor.result}>
+                    当前预览结果
+                  </option>
+                  <option value="selected" disabled={!selected.length}>
+                    所选图片的采用结果 ({selected.length} 张)
+                  </option>
+                  <option value="project">
+                    整个项目的采用结果 ({project?.images.length || 0} 张)
+                  </option>
+                </select>
+              </label>
               <label className="export-scope">
                 <input
                   type="checkbox"
-                  checked={exportMany}
-                  onChange={(e) => setExportMany(e.target.checked)}
+                  checked={confirmedOnly}
+                  onChange={(e) => setConfirmedOnly(e.target.checked)}
                 />
-                导出选中图片采用的结果
-                {selected.length ? ` (${selected.length} 张)` : " (当前项目)"}
+                仅导出已确认结果
               </label>
+              <p className="dialog-description">
+                {exportMany
+                  ? `范围内 ${targets.length} 张，可导出 ${exportableCount} 张${targets.length > exportableCount ? `；${targets.length - exportableCount} 张尚无结果，请调整范围。` : "。"}`
+                  : `当前预览：${photo?.name || ""} · ${editor.result?.id === currentAdopted ? "已采用" : "未采用"}。批量导出使用每张图片的采用结果。`}
+              </p>
               {exportFormat === "xlsx" && exportMany && (
                 <label className="export-scope">
                   <input
@@ -1115,11 +1603,51 @@ export function App() {
               <Button onClick={() => setExportOpen(false)}>取消</Button>
               <Button
                 appearance="primary"
-                disabled={busy}
+                disabled={
+                  busy ||
+                  !exportableCount ||
+                  (exportMany && exportableCount !== targets.length) ||
+                  (!exportMany &&
+                    confirmedOnly &&
+                    (reviewCurrent !== "confirmed" ||
+                      editor.result?.id !== currentAdopted))
+                }
                 icon={<Download size={16} />}
                 onClick={() => void action(exportResults)}
               >
                 保存文件
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+      <Dialog
+        open={discardOpen}
+        onOpenChange={(_, data) => !busy && setDiscardOpen(data.open)}
+      >
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>放弃本次未保存修改</DialogTitle>
+            <DialogContent>
+              <p>
+                服务器结果读取成功后，本地未保存的文字和表格将被替换。可以先下载草稿副本；读取失败时仍保留草稿。
+              </p>
+            </DialogContent>
+            <DialogActions>
+              <Button disabled={busy} onClick={() => setDiscardOpen(false)}>
+                保留修改
+              </Button>
+              <Button onClick={editor.downloadDraft}>下载草稿副本</Button>
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  void action(async () => {
+                    await editor.reload();
+                    setDiscardOpen(false);
+                  })
+                }
+              >
+                放弃修改并加载
               </Button>
             </DialogActions>
           </DialogBody>
@@ -1165,17 +1693,4 @@ export function App() {
       </Dialog>
     </div>
   );
-}
-
-function lineDifferences(left: string, right: string) {
-  const a = left.split("\n"),
-    b = right.split("\n");
-  const differences: { kind: string; text: string }[] = [];
-  const count = Math.max(a.length, b.length);
-  for (let i = 0; i < count; i++)
-    if (a[i] !== b[i]) {
-      if (a[i] !== undefined) differences.push({ kind: "removed", text: a[i] });
-      if (b[i] !== undefined) differences.push({ kind: "added", text: b[i] });
-    }
-  return differences;
 }

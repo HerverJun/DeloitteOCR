@@ -1,0 +1,23 @@
+{
+  "created": "2026-09-12T08:00:47.574Z",
+  "purpose": "Stable screenshots reproducing states already tested in the in-app browser",
+  "browser": "External Edge/Playwright",
+  "args": [
+    "--disable-gpu",
+    "--disable-gpu-compositing"
+  ],
+  "viewport": {
+    "width": 1366,
+    "height": 768
+  },
+  "engineError": {
+    "text": "操作未完成，请检查以下原因后重试。\n\n详细原因\n\n缺少有效的引擎包清单",
+    "zIndex": "100",
+    "hiddenAncestor": true
+  },
+  "exportError": {
+    "text": "操作未完成，请检查以下原因后重试。\n\n详细原因\n\n选中结果中有 1 张图片没有结构化表格：chinese_scanned_exam.png。请选择其他格式或调整选择。",
+    "zIndex": "100",
+    "hiddenAncestor": true
+  }
+}

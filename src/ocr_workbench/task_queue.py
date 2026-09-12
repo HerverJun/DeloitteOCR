@@ -3,6 +3,8 @@
 from contextlib import contextmanager
 import threading
 import time
+import logging
+import sqlite3
 from ocr_workbench.adapter import EngineAdapter, Cancelled
 from ocr_workbench.store import now
 
@@ -19,17 +21,43 @@ class TaskQueue:
         self.cancel_event = threading.Event()
         self.thread = None
         self.registry = registry
+        self.started = False
+        self.state = "stopped"
+        self.last_error = None
+        self.consecutive_failures = 0
+        self.retry_at = None
+        self.recovery_task = None
+        self.needs_reconcile = False
+        self.recovery_requested = threading.Event()
+        self.retry_delays = (0.3, 0.6, 1.2, 2.4, 5.0)
 
     def start(self):
-        self.store.recover()
-        self.thread = threading.Thread(
-            target=self.run, name="OCR GPU queue", daemon=False
-        )
-        self.thread.start()
+        with self.guard:
+            if self.thread and self.thread.is_alive():
+                return
+            self.unload()
+            self.store.recover()
+            self.stopping.clear()
+            self.recovery_requested.clear()
+            self.consecutive_failures = 0
+            self.retry_at = None
+            self.started = True
+            self.state = "running"
+            self.thread = threading.Thread(
+                target=self.run, name="OCR GPU queue", daemon=False
+            )
+            self.thread.start()
 
     def status(self):
         with self.guard:
+            alive = bool(self.thread and self.thread.is_alive())
             return {
+                "alive": alive,
+                "healthy": alive and self.state == "running",
+                "state": self.state if alive or not self.started else "stopped",
+                "last_error": self.last_error,
+                "consecutive_failures": self.consecutive_failures,
+                "retry_at": self.retry_at,
                 "task_id": self.current,
                 "engine": self.adapter.engine if self.adapter else None,
                 "loaded": bool(
@@ -43,9 +71,11 @@ class TaskQueue:
     def unload(self):
         with self.guard:
             adapter = self.adapter
-            self.adapter = None
         if adapter:
             adapter.unload()
+            with self.guard:
+                if self.adapter is adapter:
+                    self.adapter = None
 
     @contextmanager
     def engine_maintenance(self):
@@ -63,15 +93,87 @@ class TaskQueue:
     def run(self):
         try:
             while not self.stopping.is_set():
-                with self.gpu_guard:
-                    if self.stopping.is_set():
-                        break
-                    worked = self.step()
+                if self.state == "faulted":
+                    if not self.recovery_requested.wait(0.3):
+                        continue
+                    self.recovery_requested.clear()
+                    self.consecutive_failures = 0
+                try:
+                    with self.gpu_guard:
+                        if self.stopping.is_set():
+                            break
+                        if self.consecutive_failures or self.state == "faulted":
+                            self.unload()
+                        if self.needs_reconcile:
+                            # Never rerun a possibly committed result. An unfinished
+                            # claimed task requires explicit resume after recovery.
+                            with self.store.transaction() as db:
+                                db.execute(
+                                    "UPDATE tasks SET status='interrupted',phase='等待继续',error=?,finished=? WHERE status='running'",
+                                    ("队列存储异常中断，请检查后继续", now()),
+                                )
+                            self.recovery_task = None
+                            self.needs_reconcile = False
+                        worked = self.step()
+                    with self.guard:
+                        self.state = "running"
+                        self.consecutive_failures = 0
+                        self.retry_at = None
+                except Exception as error:
+                    logging.getLogger(__name__).exception("OCR queue failed")
+                    recoverable = isinstance(error, OSError) or (
+                        isinstance(error, sqlite3.OperationalError)
+                        and any(
+                            word in str(error).lower()
+                            for word in ("locked", "busy", "disk", "i/o")
+                        )
+                    )
+                    with self.guard:
+                        self.current = None
+                        self.needs_reconcile = True
+                        self.consecutive_failures += 1
+                        self.last_error = {
+                            "message": str(error),
+                            "type": type(error).__name__,
+                            "time": now(),
+                            "recoverable": recoverable,
+                        }
+                        retry = recoverable and self.consecutive_failures <= len(
+                            self.retry_delays
+                        )
+                        self.state = "recovering" if retry else "faulted"
+                        delay = (
+                            self.retry_delays[self.consecutive_failures - 1]
+                            if retry
+                            else 0
+                        )
+                        self.retry_at = time.time() + delay if retry else None
+                    if retry:
+                        self.stopping.wait(delay)
+                    continue
                 if not worked:
                     self.wake.wait(0.3)
                     self.wake.clear()
         finally:
-            self.unload()
+            try:
+                self.unload()
+            except Exception as error:
+                logging.getLogger(__name__).exception("OCR queue unload failed")
+                self.last_error = {
+                    "message": str(error),
+                    "type": type(error).__name__,
+                    "time": now(),
+                    "recoverable": False,
+                }
+            self.state = "stopped"
+
+    def recover_worker(self):
+        """Explicitly retry the suspended worker after its cause is addressed."""
+        with self.guard:
+            if self.state == "faulted":
+                self.recovery_requested.set()
+        self.wake.set()
+        return self.status()
 
     def step(self):
         task = self.store.claim()
@@ -80,11 +182,13 @@ class TaskQueue:
             return False
         with self.guard:
             self.current = task["id"]
+            self.recovery_task = task["id"]
             self.cancel_event = threading.Event()
             if self.stopping.is_set():
                 self.cancel_event.set()
             if self.store.one("tasks", task["id"])["status"] != "running":
                 self.current = None
+                self.recovery_task = None
                 return True
         try:
             from ocr_workbench.imaging import prepare_task
@@ -182,6 +286,7 @@ class TaskQueue:
         finally:
             with self.guard:
                 self.current = None
+        self.recovery_task = None
         return True
 
     def action(self, project_id, action, task_ids=None):
@@ -224,6 +329,8 @@ class TaskQueue:
             if action == "cancel" and self.current in affected:
                 self.cancel_event.set()
         self.wake.set()
+        if action in {"resume", "retry"}:
+            self.recover_worker()
         return affected
 
     def stop(self):

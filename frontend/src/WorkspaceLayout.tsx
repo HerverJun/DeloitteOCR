@@ -13,6 +13,8 @@ import {
   Minimize2,
   Image,
   Table2,
+  Rows2,
+  Rows3,
 } from "lucide-react";
 import { usePreference } from "./workspacePreferences";
 
@@ -44,6 +46,12 @@ export function WorkspaceLayout({
     (v): v is number =>
       typeof v === "number" && Number.isFinite(v) && v >= 30 && v <= 65,
   );
+  const [density, setDensity] = usePreference<"comfortable" | "compact">(
+    "ocr-ui-density",
+    "comfortable",
+    (v): v is "comfortable" | "compact" =>
+      v === "comfortable" || v === "compact",
+  );
   const [expanded, setExpanded] = useState(false);
   const [mobilePane, setMobilePane] = useState("result");
   const grid = useRef<HTMLDivElement>(null);
@@ -64,6 +72,7 @@ export function WorkspaceLayout({
   return (
     <div
       className={`workspace-grid ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
+      data-density={density}
     >
       <aside className="sidebar" aria-label="项目资料" hidden={!sidebarOpen}>
         {sidebar}
@@ -83,7 +92,9 @@ export function WorkspaceLayout({
               aria-label={sidebarOpen ? "收起资料栏" : "展开资料栏"}
               aria-expanded={sidebarOpen}
               onClick={() => setSidebarOpen(!sidebarOpen)}
-            />
+            >
+              资料
+            </Button>
             <div className="workspace-title">
               <span className="workspace-breadcrumb">
                 工作空间 <span>/</span> {projectName || "新建项目"}
@@ -92,6 +103,27 @@ export function WorkspaceLayout({
             </div>
           </div>
           <div className="view-actions">
+            <Button
+              className="density-toggle"
+              appearance="subtle"
+              icon={
+                density === "compact" ? (
+                  <Rows3 size={16} />
+                ) : (
+                  <Rows2 size={16} />
+                )
+              }
+              aria-label="紧凑显示"
+              aria-pressed={density === "compact"}
+              title={
+                density === "compact" ? "切换为舒适显示" : "切换为紧凑显示"
+              }
+              onClick={() =>
+                setDensity(density === "compact" ? "comfortable" : "compact")
+              }
+            >
+              {density === "compact" ? "紧凑" : "舒适"}
+            </Button>
             {narrow ? (
               <>
                 <Button

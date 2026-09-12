@@ -1,0 +1,32 @@
+[
+  {
+    "repo": "Calamari-OCR/calamari",
+    "path": "calamari_ocr/ocr/voting/sequence_voter.py",
+    "chars": 5280,
+    "url": "https://api.github.com/repos/Calamari-OCR/calamari/contents/calamari_ocr/ocr/voting/sequence_voter.py?ref=master"
+  },
+  {
+    "repo": "Calamari-OCR/calamari",
+    "path": "calamari_ocr/ocr/voting/confidence_voter.py",
+    "chars": 5313,
+    "url": "https://api.github.com/repos/Calamari-OCR/calamari/contents/calamari_ocr/ocr/voting/confidence_voter.py?ref=master"
+  },
+  {
+    "repo": "MxxScott/FusionOCR",
+    "path": "main.py",
+    "chars": 11788,
+    "url": "https://api.github.com/repos/MxxScott/FusionOCR/contents/main.py?ref=main"
+  },
+  {
+    "repo": "scribeocr/scribe.js",
+    "path": "docs/scribe_vs_tesseract.md",
+    "chars": 5049,
+    "url": "https://api.github.com/repos/scribeocr/scribe.js/contents/docs/scribe_vs_tesseract.md?ref=master"
+  },
+  {
+    "repo": "alessandromaddaloni98/ocr-read-packaging",
+    "path": "src/ocr_read_packaging/alignment.py",
+    "chars": 7654,
+    "url": "https://api.github.com/repos/alessandromaddaloni98/ocr-read-packaging/contents/src/ocr_read_packaging/alignment.py?ref=main"
+  }
+]

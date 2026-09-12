@@ -1,0 +1,974 @@
+[
+  {
+    "query": "ocr workbench",
+    "total": 100,
+    "items": [
+      {
+        "full_name": "vorojar/Folio-OCR",
+        "description": "Open-source batch OCR workbench — a free, local alternative to ABBYY FineReader. Powered by Ollama + GLM-OCR + PP-DocLayoutV3, ~0.5s/page on RTX 4090. Three-panel editor, layout-aware, PDF/image batch processing, Markdown/Word export. 批量OCR工作台，纯本地运行，免费平替ABBYY，适合书籍文档数字化。",
+        "html_url": "https://github.com/vorojar/Folio-OCR",
+        "stargazers_count": 470,
+        "pushed_at": "2026-06-18T09:42:19Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "CHEN010325/paddleocr-local",
+        "description": "Local-first document parsing workbench for five OCR models: PDF/Office to Markdown with WebUI, model switching, CLI and Apple Silicon support.",
+        "html_url": "https://github.com/CHEN010325/paddleocr-local",
+        "stargazers_count": 128,
+        "pushed_at": "2026-09-10T17:25:39Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "stevibe/SparklingKit",
+        "description": "Local-first AI workbench for OCR, transcription, translation, image generation, mind maps and composable workflows. Built for DGX Spark.",
+        "html_url": "https://github.com/stevibe/SparklingKit",
+        "stargazers_count": 61,
+        "pushed_at": "2026-09-02T17:09:49Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "stevibe/local-ocr-workbench",
+        "description": null,
+        "html_url": "https://github.com/stevibe/local-ocr-workbench",
+        "stargazers_count": 55,
+        "pushed_at": "2026-03-17T10:32:19Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "jasonulbright/Spectra-PDF",
+        "description": "Free, open-source PDF workbench for Windows — 20+ tools, digital signatures, OCR, redaction, CLI support.",
+        "html_url": "https://github.com/jasonulbright/Spectra-PDF",
+        "stargazers_count": 26,
+        "pushed_at": "2026-09-12T02:54:33Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "viking2917/ocr-workbench",
+        "description": null,
+        "html_url": "https://github.com/viking2917/ocr-workbench",
+        "stargazers_count": 10,
+        "pushed_at": "2025-05-22T17:06:56Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "joneswack/ocr-workbench",
+        "description": "Workbench for comparing OCR engines.",
+        "html_url": "https://github.com/joneswack/ocr-workbench",
+        "stargazers_count": 6,
+        "pushed_at": "2026-03-26T21:46:23Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Atri-Apps/cv_workbench",
+        "description": "OCR workbench with driving license demo",
+        "html_url": "https://github.com/Atri-Apps/cv_workbench",
+        "stargazers_count": 3,
+        "pushed_at": "2022-11-30T11:18:39Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "azurebamboo/honkoku-reading-workbench",
+        "description": "Reading desk and batch processing tool for verifying, editing, and annotating OCR text",
+        "html_url": "https://github.com/azurebamboo/honkoku-reading-workbench",
+        "stargazers_count": 3,
+        "pushed_at": "2026-09-06T17:45:45Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "shuiqiangxu/clipboard-workbench",
+        "description": "轻量的 Windows 剪贴板 Markdown、翻译与 OCR 工作台",
+        "html_url": "https://github.com/shuiqiangxu/clipboard-workbench",
+        "stargazers_count": 3,
+        "pushed_at": "2026-08-04T07:20:52Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Suraj-Barthwal/Sovereign-Agentic-AI-Workbench",
+        "description": "A secure, on-premise Agentic AI workbench for enterprise automation, combining local LLMs, RAG, OCR, vision, code execution, verification, and document generation without exposing sensitive data to external AI services.",
+        "html_url": "https://github.com/Suraj-Barthwal/Sovereign-Agentic-AI-Workbench",
+        "stargazers_count": 3,
+        "pushed_at": "2026-09-08T23:04:57Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Msy-ylzcy/Kaor",
+        "description": "Local-first video subtitle OCR, ASR, AI correction, translation, editing, and burn-in workbench",
+        "html_url": "https://github.com/Msy-ylzcy/Kaor",
+        "stargazers_count": 3,
+        "pushed_at": "2026-08-05T16:06:12Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Romonaga/CircuitShelf",
+        "description": "Local AI electronics workbench for datasheets, books, OCR, inventory, Project Finder, and Bench build plans using Postgres/pgvector, Ollama, and optional OpenAI.",
+        "html_url": "https://github.com/Romonaga/CircuitShelf",
+        "stargazers_count": 2,
+        "pushed_at": "2026-06-28T03:45:48Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "spearb0lt/LitigatAI",
+        "description": "Streamlit workbench of ten tools for Indian legal practice: case law research via Indian Kanoon, pleading drafting, judgment summarisation, OCR translation and docket tracking.",
+        "html_url": "https://github.com/spearb0lt/LitigatAI",
+        "stargazers_count": 2,
+        "pushed_at": "2026-09-11T20:20:12Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "techflag/idp",
+        "description": "TechFlag IDP Community is an open-source, local-first IDP workbench bridging unstructured documents with LLM extraction. By integrating MinerU OCR and a \"locate-before-extracting\" strategy, it significantly minimizes hallucinations and token costs, empowering developers to build accurate, reusable document AI applications.",
+        "html_url": "https://github.com/techflag/idp",
+        "stargazers_count": 2,
+        "pushed_at": "2026-06-25T08:29:12Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "OCR 工作台",
+    "total": 62,
+    "items": [
+      {
+        "full_name": "vorojar/Folio-OCR",
+        "description": "Open-source batch OCR workbench — a free, local alternative to ABBYY FineReader. Powered by Ollama + GLM-OCR + PP-DocLayoutV3, ~0.5s/page on RTX 4090. Three-panel editor, layout-aware, PDF/image batch processing, Markdown/Word export. 批量OCR工作台，纯本地运行，免费平替ABBYY，适合书籍文档数字化。",
+        "html_url": "https://github.com/vorojar/Folio-OCR",
+        "stargazers_count": 470,
+        "pushed_at": "2026-06-18T09:42:19Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "jiuwanzi-hui/Screenshot",
+        "description": "SnapCut（简截）——轻巧但不将就的 Windows 截图工作台：框选截图、长截图、区域录屏、钉图取色、标注、OCR 与翻译一体化。支持保留右键菜单和悬浮提示，数据尽量留在本机。",
+        "html_url": "https://github.com/jiuwanzi-hui/Screenshot",
+        "stargazers_count": 157,
+        "pushed_at": "2026-09-11T08:46:31Z",
+        "archived": false,
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "andyhuo520/ppocrv6-studio",
+        "description": "# 简短要点总结 1. 基于PP-OCRv6（Tiny/Small/Medium三版本）搭建本地OCR工作台 2. 苹果硅芯片支持CoreML硬件加速 3. 提供模型一键切换功能 4. 配套OmniDocBench评测能力",
+        "html_url": "https://github.com/andyhuo520/ppocrv6-studio",
+        "stargazers_count": 113,
+        "pushed_at": "2026-06-16T13:59:11Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "kunpengtalk/OmniStudio",
+        "description": "OmniStudio 是一个本地大模型一体化桌面工作台（Electrobun + React），集模型市集下载、llama.cpp/vLLM/SGLang 三引擎推理管理，以及对话、语音、图片、OCR 四大应用于一体，全程本地优先。",
+        "html_url": "https://github.com/kunpengtalk/OmniStudio",
+        "stargazers_count": 45,
+        "pushed_at": "2026-09-12T05:22:43Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "oliveranderson1089-crypto/Civil-Service-Exam-App",
+        "description": "公务员考试备考工作台：网页+安卓App。成语词语积累、古诗文名句速查(唐诗宋词四书五经)、语雀式小记、知识库块编辑器、资料库(Markdown阅读/OCR识图/全文搜索)、PDF导出。多用户+Cloudflare隧道远程访问。",
+        "html_url": "https://github.com/oliveranderson1089-crypto/Civil-Service-Exam-App",
+        "stargazers_count": 24,
+        "pushed_at": "2026-09-05T10:46:14Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "1ampa55ag3/octo-ocr",
+        "description": "完全离线的OCR工作台，处理密件再也不用练习打字",
+        "html_url": "https://github.com/1ampa55ag3/octo-ocr",
+        "stargazers_count": 11,
+        "pushed_at": "2026-08-17T09:02:59Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "eglantine-shell/donkey-scribe",
+        "description": "古籍OCR校录工作台",
+        "html_url": "https://github.com/eglantine-shell/donkey-scribe",
+        "stargazers_count": 9,
+        "pushed_at": "2026-07-25T04:13:59Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "nghqqa/tizhou",
+        "description": "砺知考公工作台二创维护版:扫描件OCR、题库直导、真题原卷模考、跨机迁移向导 — 本地优先的公考学习工作台,基于 MIT 原项目二次开发",
+        "html_url": "https://github.com/nghqqa/tizhou",
+        "stargazers_count": 8,
+        "pushed_at": "2026-09-10T10:26:16Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "master"
+      },
+      {
+        "full_name": "haoyuedashi/Lawlogic",
+        "description": "面向律师的 AI 法律工作台：证据分析、质证意见生成、合同审查、OCR、知识检索与报告导出",
+        "html_url": "https://github.com/haoyuedashi/Lawlogic",
+        "stargazers_count": 6,
+        "pushed_at": "2026-03-21T13:37:10Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "soluna/Solar-Manga-Translator",
+        "description": "面向中文用户的本地漫画图片翻译工作台",
+        "html_url": "https://github.com/soluna/Solar-Manga-Translator",
+        "stargazers_count": 4,
+        "pushed_at": "2026-09-09T03:20:03Z",
+        "archived": false,
+        "license": {
+          "key": "gpl-3.0",
+          "name": "GNU General Public License v3.0",
+          "spdx_id": "GPL-3.0",
+          "url": "https://api.github.com/licenses/gpl-3.0",
+          "node_id": "MDc6TGljZW5zZTk="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "wuke881102-commits/local-agent-hub",
+        "description": "面向企业用户的本地优先 AI 工作台：本地文件内容生成 + 工作自动留痕提炼 + 飞书文档治理，共享本地索引与 AI Agent，数据留本机、写回需确认。Local-first AI workspace for enterprise users.",
+        "html_url": "https://github.com/wuke881102-commits/local-agent-hub",
+        "stargazers_count": 4,
+        "pushed_at": "2026-09-03T09:51:57Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "shuiqiangxu/clipboard-workbench",
+        "description": "轻量的 Windows 剪贴板 Markdown、翻译与 OCR 工作台",
+        "html_url": "https://github.com/shuiqiangxu/clipboard-workbench",
+        "stargazers_count": 3,
+        "pushed_at": "2026-08-04T07:20:52Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "poortester/fundView",
+        "description": "本地优先的基金估值与投研分析工作台，支持持仓估值、基金快讯、研究员分析、可选大模型和 OCR。",
+        "html_url": "https://github.com/poortester/fundView",
+        "stargazers_count": 3,
+        "pushed_at": "2026-07-06T07:02:04Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "3301channel/OCR_Diff",
+        "description": "本项目是一个 Gradio 版本地化文档 OCR 与文本差异对比的工作台",
+        "html_url": "https://github.com/3301channel/OCR_Diff",
+        "stargazers_count": 2,
+        "pushed_at": "2026-07-07T02:31:30Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Luyi210/xueji-ai-assessment",
+        "description": "学迹智评：面向中学物理、数学与英语写作的多模态证据评价工作台",
+        "html_url": "https://github.com/Luyi210/xueji-ai-assessment",
+        "stargazers_count": 2,
+        "pushed_at": "2026-07-19T12:34:47Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "ocr desktop offline",
+    "total": 110,
+    "items": [
+      {
+        "full_name": "ibrahimqureshae/mdflux",
+        "description": "Turn any document into clean, AI-ready Markdown. Local-first desktop app: reads scanned PDFs, batches folders, runs offline, and uses far fewer tokens than vision models.",
+        "html_url": "https://github.com/ibrahimqureshae/mdflux",
+        "stargazers_count": 420,
+        "pushed_at": "2026-09-07T12:57:13Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Ali-Marandi/finsight-pro",
+        "description": "AI-Powered Financial Analysis Desktop App — 7 Engines, 17+ Ratios, Bankruptcy Prediction, TSETMC Live, 100% Offline",
+        "html_url": "https://github.com/Ali-Marandi/finsight-pro",
+        "stargazers_count": 110,
+        "pushed_at": "2026-08-26T00:57:19Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "anonfaded/Fadocx",
+        "description": "All-in-one offline document viewer for Android with OCR and desktop-class rendering — private, open-source, zero tracking",
+        "html_url": "https://github.com/anonfaded/Fadocx",
+        "stargazers_count": 79,
+        "pushed_at": "2026-06-07T05:14:51Z",
+        "archived": false,
+        "license": {
+          "key": "gpl-3.0",
+          "name": "GNU General Public License v3.0",
+          "spdx_id": "GPL-3.0",
+          "url": "https://api.github.com/licenses/gpl-3.0",
+          "node_id": "MDc6TGljZW5zZTk="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Mikedev115/Aetox",
+        "description": "Desktop AI agent for Windows — the execution layer for AI: an architecture that expands what any model can do. Files, shell, browser, documents, and a Code door with language servers, Git and pull-request review. OCR, offline speech, real .xlsx/.pptx/.docx output, MCP, a delegated team of agents. Runs on your machine, with any provider.",
+        "html_url": "https://github.com/Mikedev115/Aetox",
+        "stargazers_count": 35,
+        "pushed_at": "2026-09-11T15:13:24Z",
+        "archived": false,
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "jabrailkhalil/clickntranslate",
+        "description": "Click'n'Translate (ClicknTranslate) — open-source screen translator and OCR app for Windows with online and offline translation.",
+        "html_url": "https://github.com/jabrailkhalil/clickntranslate",
+        "stargazers_count": 32,
+        "pushed_at": "2026-09-09T20:44:53Z",
+        "archived": false,
+        "license": {
+          "key": "gpl-3.0",
+          "name": "GNU General Public License v3.0",
+          "spdx_id": "GPL-3.0",
+          "url": "https://api.github.com/licenses/gpl-3.0",
+          "node_id": "MDc6TGljZW5zZTk="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "maniotrix/offline-ai-assistant",
+        "description": "Vision-first AI agent for desktop automation. Fully offline. Powered by YOLO, OCR & ResNet — building towards local intelligence.",
+        "html_url": "https://github.com/maniotrix/offline-ai-assistant",
+        "stargazers_count": 28,
+        "pushed_at": "2025-04-09T03:33:05Z",
+        "archived": false,
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "RaGR/agentic-ai-desktop-suite",
+        "description": "Offline-first, multimodal AI agent for Windows 11 + WSL2 — integrates voice, vision, OCR, RAG search, and terminal control into one secure local brain. Powered by Ollama (Qwen 7B), Whisper, Piper TTS, and FAISS, it lets your PC listen, see, read, and act — all privately, offline, and auditable.",
+        "html_url": "https://github.com/RaGR/agentic-ai-desktop-suite",
+        "stargazers_count": 11,
+        "pushed_at": "2025-10-20T19:13:33Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "sizwinz/StudySage-Offline-Online-AI-Note-Assistant",
+        "description": "StudySage 🧠 – An offline, AI-powered note assistant that helps students summarize notes, generate quizzes, extract handwritten text from images (OCR), and export content to PDF—all from a sleek terminal or desktop GUI.",
+        "html_url": "https://github.com/sizwinz/StudySage-Offline-Online-AI-Note-Assistant",
+        "stargazers_count": 10,
+        "pushed_at": "2026-07-05T11:52:17Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "yurvon-screamo/origa",
+        "description": "Learn Japanese in your own language - vocabulary, kanji, grammar & 200K+ native phrases. JLPT prep, offline-first, FSRS spaced repetition. Rust + Tauri.",
+        "html_url": "https://github.com/yurvon-screamo/origa",
+        "stargazers_count": 9,
+        "pushed_at": "2026-09-12T00:06:35Z",
+        "archived": false,
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "master"
+      },
+      {
+        "full_name": "Trimpu/PDF2LATEX",
+        "description": "🔄 AI-powered PDF to LaTeX converter with 100% offline capability. Features desktop GUI, web interface, and React PDF viewer. Uses MixTeX ONNX models for mathematical formula recognition. No internet required after setup - perfect for privacy-sensitive documents and air-gapped systems.",
+        "html_url": "https://github.com/Trimpu/PDF2LATEX",
+        "stargazers_count": 6,
+        "pushed_at": "2025-10-03T13:16:07Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "crashdown79/docling-gui",
+        "description": "SemiFull-featured GUI wrapper for Docling document conversion tool. Cross-platform desktop app with OCR, enrichment options, and offline model download support.",
+        "html_url": "https://github.com/crashdown79/docling-gui",
+        "stargazers_count": 5,
+        "pushed_at": "2026-02-18T16:43:46Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Aevorine/Synorive",
+        "description": "Offline semantic search for everything on your disk - documents, code, PDFs, scanned images (OCR), video by the second. 100% local AI: hybrid RAG with keyword + vector + rerank, no API key, no cloud. Desktop app + 24 MCP tools for Claude Code, plus a multi-engine web researcher that quotes sources verbatim. 本地离线多模态语义检索",
+        "html_url": "https://github.com/Aevorine/Synorive",
+        "stargazers_count": 4,
+        "pushed_at": "2026-08-19T11:11:47Z",
+        "archived": false,
+        "license": {
+          "key": "agpl-3.0",
+          "name": "GNU Affero General Public License v3.0",
+          "spdx_id": "AGPL-3.0",
+          "url": "https://api.github.com/licenses/agpl-3.0",
+          "node_id": "MDc6TGljZW5zZTE="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "ADDA-acx/document-ocr-converter",
+        "description": "Offline PDF-to-Word and image-to-Excel OCR desktop tool for Windows.",
+        "html_url": "https://github.com/ADDA-acx/document-ocr-converter",
+        "stargazers_count": 3,
+        "pushed_at": "2026-06-12T09:58:41Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "fivood/autobook",
+        "description": "Windows desktop ebook reader with typewriter/TTS auto-play, spoiler-safe AI Q&A, offline dictionaries, and Obsidian sync. Reads EPUB, MOBI/AZW3, PDF (with OCR), Markdown. Chinese and Japanese first-class.",
+        "html_url": "https://github.com/fivood/autobook",
+        "stargazers_count": 3,
+        "pushed_at": "2026-09-12T03:40:06Z",
+        "archived": false,
+        "license": {
+          "key": "bsd-3-clause",
+          "name": "BSD 3-Clause \"New\" or \"Revised\" License",
+          "spdx_id": "BSD-3-Clause",
+          "url": "https://api.github.com/licenses/bsd-3-clause",
+          "node_id": "MDc6TGljZW5zZTU="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "wpdlf/local-pdf-analyzer",
+        "description": "Local AI PDF summary & Q&A desktop app - fully offline with Ollama, or Claude/OpenAI. RAG semantic search, clickable page citations for hallucination checks, answer verification, Vision image analysis, scanned-PDF OCR, instant session restore. Electron + React.",
+        "html_url": "https://github.com/wpdlf/local-pdf-analyzer",
+        "stargazers_count": 3,
+        "pushed_at": "2026-09-07T08:48:21Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "ocr table editor",
+    "total": 5,
+    "items": [
+      {
+        "full_name": "matthewrussels/pdfeditor",
+        "description": "PDF Editor offers a suite of tools for all your PDF needs. Merge, split, compress, convert, OCR, extract images and tables, sign pdf, scan pdf, edit pdf, and more!",
+        "html_url": "https://github.com/matthewrussels/pdfeditor",
+        "stargazers_count": 1,
+        "pushed_at": "2024-08-02T19:48:52Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "udd43/pdf-editor",
+        "description": "All-in-one browser-based PDF editor & AI image studio — Smart table editing, OCR, background removal, upscaling, signatures, image-to-PDF merge, and more. No installation required.",
+        "html_url": "https://github.com/udd43/pdf-editor",
+        "stargazers_count": 0,
+        "pushed_at": "2026-09-01T05:58:36Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "SUNNY20052006/smallerDOCS",
+        "description": "smallerDOCS is a document reconstruction OCR system that uses AI to transform scanned pages into editable documents while retaining formatting, tables, paragraphs, and overall page layout. The project includes a web interface, document editor, export pipeline, and automated installation scripts.",
+        "html_url": "https://github.com/SUNNY20052006/smallerDOCS",
+        "stargazers_count": 0,
+        "pushed_at": "2026-07-03T09:31:26Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Param077s/superclip",
+        "description": "A macOS clipboard that knows where the paste is going. Copy a table once — paste it as real cells in Numbers, readable lines in Slack, or an array literal in a code editor. Screen OCR, form fill, copy stacks and search across nine global bindings. ⌘V is never touched.",
+        "html_url": "https://github.com/Param077s/superclip",
+        "stargazers_count": 0,
+        "pushed_at": "2026-08-12T15:43:05Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "Dalu-Atu/Copywrite",
+        "description": "CopyWrite is a next-generation SaaS that goes far beyond traditional OCR.   It doesn’t just convert handwriting to text — it recreates the original document with full formatting, colours, tables, and structure intact.The platform features an in-browser document editor with capabilities rivaling Microsoft Word for text documents and Excel",
+        "html_url": "https://github.com/Dalu-Atu/Copywrite",
+        "stargazers_count": 0,
+        "pushed_at": "2026-09-11T15:10:51Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "master"
+      }
+    ]
+  },
+  {
+    "query": "ocr multi engine gui",
+    "total": 1,
+    "items": [
+      {
+        "full_name": "shawkynasr/OCRAIHub",
+        "description": "A powerful multi-engine AI OCR Desktop GUI. Extract text, complex Markdown tables, math formulas, and charts from images and PDFs using Google Gemini and Baidu PaddleOCR-VL.",
+        "html_url": "https://github.com/shawkynasr/OCRAIHub",
+        "stargazers_count": 4,
+        "pushed_at": "2026-09-06T17:09:30Z",
+        "archived": false,
+        "license": {
+          "key": "gpl-3.0",
+          "name": "GNU General Public License v3.0",
+          "spdx_id": "GPL-3.0",
+          "url": "https://api.github.com/licenses/gpl-3.0",
+          "node_id": "MDc6TGljZW5zZTk="
+        },
+        "default_branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "ocr proofreading",
+    "total": 43,
+    "items": [
+      {
+        "full_name": "scribeocr/scribeocr",
+        "description": "Web interface for recognizing text, proofreading OCR, and creating fully-digitized documents. ",
+        "html_url": "https://github.com/scribeocr/scribeocr",
+        "stargazers_count": 810,
+        "pushed_at": "2026-08-28T21:33:28Z",
+        "archived": false,
+        "license": {
+          "key": "agpl-3.0",
+          "name": "GNU Affero General Public License v3.0",
+          "spdx_id": "AGPL-3.0",
+          "url": "https://api.github.com/licenses/agpl-3.0",
+          "node_id": "MDc6TGljZW5zZTE="
+        },
+        "default_branch": "master"
+      },
+      {
+        "full_name": "iflytek/iFly-Skills",
+        "description": "Official collection of iFLYTEK skills for speech, OCR, translation, proofreading, and multimodal AI capabilities.",
+        "html_url": "https://github.com/iflytek/iFly-Skills",
+        "stargazers_count": 218,
+        "pushed_at": "2026-09-10T02:31:46Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "ZHYX91/docwen",
+        "description": "Local-first GUI and CLI for document conversion, OCR, proofreading, and Word/Markdown/Excel workflows.",
+        "html_url": "https://github.com/ZHYX91/docwen",
+        "stargazers_count": 88,
+        "pushed_at": "2026-09-09T06:03:15Z",
+        "archived": false,
+        "license": {
+          "key": "agpl-3.0",
+          "name": "GNU Affero General Public License v3.0",
+          "spdx_id": "AGPL-3.0",
+          "url": "https://api.github.com/licenses/agpl-3.0",
+          "node_id": "MDc6TGljZW5zZTE="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "yanouyuan-bit/scanned-pdf-to-docx",
+        "description": "Workflow + toolkit to turn scanned PDFs (classical Chinese / old typeset books, no text layer) into clean structured Word via MinerU OCR and a three-tier proofread. Packaged as a Claude skill.",
+        "html_url": "https://github.com/yanouyuan-bit/scanned-pdf-to-docx",
+        "stargazers_count": 16,
+        "pushed_at": "2026-07-18T11:58:40Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "JamesDavid/FlipScan",
+        "description": "Turn a phone flip-through video, photos, or a PDF of a book into a clean, proofread EPUB/PDF/Markdown — local vision-LLM digitization with a web GUI you can drive from your phone.",
+        "html_url": "https://github.com/JamesDavid/FlipScan",
+        "stargazers_count": 13,
+        "pushed_at": "2026-08-01T21:30:15Z",
+        "archived": false,
+        "license": {
+          "key": "other",
+          "name": "Other",
+          "spdx_id": "NOASSERTION",
+          "url": null,
+          "node_id": "MDc6TGljZW5zZTA="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "MidnightDarling/collate",
+        "description": "给历史研究者的中文文献 OCR 校对与阅读 pipeline · Agent-native OCR, collation & reading workflow for historical Chinese scholarship — works with Claude Code, Codex, Gemini CLI, Cursor & Hermes agents",
+        "html_url": "https://github.com/MidnightDarling/collate",
+        "stargazers_count": 7,
+        "pushed_at": "2026-05-29T17:34:39Z",
+        "archived": false,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "milahu/hocr-editor-qt",
+        "description": "graphical HOCR editor to produce minimal diffs for proofreading of tesseract OCR output",
+        "html_url": "https://github.com/milahu/hocr-editor-qt",
+        "stargazers_count": 4,
+        "pushed_at": "2026-09-06T18:37:14Z",
+        "archived": false,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "kakahuote1/Scrutario",
+        "description": "Local-first desktop OCR, proofreading and full-text search for classical Chinese documents",
+        "html_url": "https://github.com/kakahuote1/Scrutario",
+        "stargazers_count": 4,
+        "pushed_at": "2026-05-18T11:32:39Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "vishwambharaRH/OCR-LLM-Old-Version",
+        "description": "Pipeline for OCR+LLM proofreading.",
+        "html_url": "https://github.com/vishwambharaRH/OCR-LLM-Old-Version",
+        "stargazers_count": 3,
+        "pushed_at": "2025-12-15T11:47:38Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "master"
+      },
+      {
+        "full_name": "KaniyamFoundation/Proofread-Works",
+        "description": "Project to manage the Scan/OCR/Proofread Works",
+        "html_url": "https://github.com/KaniyamFoundation/Proofread-Works",
+        "stargazers_count": 2,
+        "pushed_at": "2019-05-24T06:15:43Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "master"
+      },
+      {
+        "full_name": "porcpine1967/ocr-proofreader",
+        "description": "Tool for turning scanned books into proofread documents",
+        "html_url": "https://github.com/porcpine1967/ocr-proofreader",
+        "stargazers_count": 1,
+        "pushed_at": "2013-10-12T23:43:24Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "master"
+      },
+      {
+        "full_name": "cvaldman/ProofreadingFrontfile",
+        "description": "Elaboração de todo o processo necessário para o proofreading do frontfile, desde baixar os folhetos, criar lotes, gerar os arquivos ocr, enviar para os clientes, retornar dos mesmos após o trabalho de proofreading, gerar os arquivos xml e html finais.",
+        "html_url": "https://github.com/cvaldman/ProofreadingFrontfile",
+        "stargazers_count": 1,
+        "pushed_at": "2026-09-01T18:08:49Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "deniztasdogen/pdf-to-ebook",
+        "description": "Build an EPUB or Kindle book from a PDF or a markdown file, in Rust. Keeps paragraphs and printed page breaks; optional OCR and local-LLM proofreading.",
+        "html_url": "https://github.com/deniztasdogen/pdf-to-ebook",
+        "stargazers_count": 1,
+        "pushed_at": "2026-09-05T19:50:50Z",
+        "archived": false,
+        "license": {
+          "key": "unlicense",
+          "name": "The Unlicense",
+          "spdx_id": "Unlicense",
+          "url": "https://api.github.com/licenses/unlicense",
+          "node_id": "MDc6TGljZW5zZTE1"
+        },
+        "default_branch": "main"
+      },
+      {
+        "full_name": "TestersNightmare/SubsPlayer",
+        "description": "A video player that automatically generates ASS bilingual subtitles. It supports extracting multilingual subtitles from videos, subtitle alignment, subtitle-video synchronization, AI-driven multilingual translation and OCR, and the ass generation of bilingual versions, and allows for manual proofreading and editing.",
+        "html_url": "https://github.com/TestersNightmare/SubsPlayer",
+        "stargazers_count": 1,
+        "pushed_at": "2026-09-08T07:01:21Z",
+        "archived": false,
+        "license": null,
+        "default_branch": "main"
+      },
+      {
+        "full_name": "vitorio/iaproofread",
+        "description": "Crowd-sourced OCR proofreading",
+        "html_url": "https://github.com/vitorio/iaproofread",
+        "stargazers_count": 0,
+        "pushed_at": "2016-02-07T04:45:29Z",
+        "archived": false,
+        "license": {
+          "key": "cc0-1.0",
+          "name": "Creative Commons Zero v1.0 Universal",
+          "spdx_id": "CC0-1.0",
+          "url": "https://api.github.com/licenses/cc0-1.0",
+          "node_id": "MDc6TGljZW5zZTY="
+        },
+        "default_branch": "master"
+      }
+    ]
+  }
+]

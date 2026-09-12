@@ -1,6 +1,28 @@
-import { Button } from "@fluentui/react-components";
-import { ScanLine, PenLine, Table2, Columns3, Play } from "lucide-react";
+import {
+  Button,
+  Popover,
+  PopoverSurface,
+  PopoverTrigger,
+} from "@fluentui/react-components";
+import {
+  ScanLine,
+  PenLine,
+  Table2,
+  Columns3,
+  Play,
+  SlidersHorizontal,
+  ChevronDown,
+} from "lucide-react";
 import type { Engine } from "./types";
+import "./recognition.css";
+
+const preprocessOptions = [
+  { value: "none", label: "保留当前图像" },
+  { value: "contrast", label: "增强对比度" },
+  { value: "rotate", label: "顺时针旋转 90°" },
+  { value: "rotate-contrast", label: "旋转并增强对比度" },
+];
+
 export const modes = [
   {
     id: "text",
@@ -41,6 +63,7 @@ export function RecognitionBar({
   chooseTab,
   engines,
   busy,
+  recognitionDisabled = false,
   imageCount,
   selectedCount,
   hasActive,
@@ -55,17 +78,27 @@ export function RecognitionBar({
   chooseTab: (v: string) => void;
   engines: Record<string, Engine>;
   busy: boolean;
+  recognitionDisabled?: boolean;
   imageCount: number;
   selectedCount: number;
   hasActive: boolean;
   onRun: () => void;
 }) {
+  const preprocessLabel =
+    preprocessOptions.find((option) => option.value === preprocess)?.label ??
+    "保留当前图像";
+
   return (
-    <section className="recognition-bar">
-      <div className="mode-buttons">
+    <section className="recognition-bar ocr-recognition" aria-label="识别设置">
+      <div
+        className="mode-buttons ocr-recognition__modes"
+        role="group"
+        aria-label="识别模式"
+      >
         {modes.map((m) => (
           <button
             key={m.id}
+            type="button"
             className={mode === m.id ? "active" : ""}
             title={m.description}
             aria-pressed={mode === m.id}
@@ -81,34 +114,21 @@ export function RecognitionBar({
               );
             }}
           >
-            <m.icon size={17} />
+            <m.icon size={16} aria-hidden="true" />
             {m.name}
           </button>
         ))}
       </div>
-      <div className="engine-choice">
-        <span className="recognition-scope">
+      <div className="engine-choice ocr-recognition__actions">
+        <span className="recognition-scope ocr-recognition__scope">
           {selectedCount
             ? `已选 ${selectedCount} 张`
             : hasActive
               ? "当前图片 · 1 张"
               : "等待导入资料"}
         </span>
-        <label>
-          批次预处理
-          <select
-            aria-label="批次预处理"
-            value={preprocess}
-            onChange={(e) => setPreprocess(e.target.value)}
-          >
-            <option value="none">保留当前图像</option>
-            <option value="contrast">增强对比度</option>
-            <option value="rotate">顺时针旋转 90°</option>
-            <option value="rotate-contrast">旋转并增强对比度</option>
-          </select>
-        </label>
-        <label>
-          识别引擎
+        <label className="ocr-recognition__engine">
+          <span>引擎</span>
           <select
             aria-label="识别引擎"
             value={engine}
@@ -122,10 +142,45 @@ export function RecognitionBar({
             <option value="all">四引擎顺序对比</option>
           </select>
         </label>
+        <Popover positioning="below-end">
+          <PopoverTrigger disableButtonEnhancement>
+            <Button
+              type="button"
+              appearance="subtle"
+              className="ocr-recognition__preprocess"
+              icon={<SlidersHorizontal size={15} aria-hidden="true" />}
+              aria-label={`批次预处理设置，当前：${preprocessLabel}`}
+              title={`批次预处理：${preprocessLabel}`}
+            >
+              <span>{preprocessLabel}</span>
+              <ChevronDown size={12} aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverSurface
+            className="ocr-recognition-popover"
+            aria-label="批次预处理设置"
+          >
+            <div className="ocr-recognition-popover__heading">批次预处理</div>
+            <p>选择本次识别使用的图像处理方式。</p>
+            <select
+              aria-label="批次预处理"
+              value={preprocess}
+              onChange={(e) => setPreprocess(e.target.value)}
+            >
+              {preprocessOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </PopoverSurface>
+        </Popover>
         <Button
+          type="button"
           appearance="primary"
+          className="ocr-recognition__run"
           icon={<Play size={15} fill="currentColor" />}
-          disabled={busy || !imageCount}
+          disabled={busy || recognitionDisabled || !imageCount}
           onClick={onRun}
         >
           {busy ? "处理中" : "开始识别"}

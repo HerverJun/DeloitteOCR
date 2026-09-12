@@ -1,0 +1,226 @@
+[
+  {
+    "file": "chinese_scanned_exam.png",
+    "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0082.png",
+    "cache_manifest": "E:\\OCR-final-build\\public-benchmark\\benchmark.json",
+    "cache_record": {
+      "id": "0082",
+      "kind": "print",
+      "page_info": {
+        "page_attribute": {
+          "data_source": "exam_paper",
+          "language": "simplified_chinese",
+          "layout": "single_column",
+          "special_issue": [
+            "watermark"
+          ],
+          "subset": "v1.5"
+        },
+        "page_no": 1168,
+        "height": 2339,
+        "width": 1654,
+        "image_path": "jiaocai_jiaocai_en_6.jpg",
+        "sample_id": 308
+      },
+      "annotation": {
+        "category_type": "text_block",
+        "poly": [
+          250,
+          867.8570217556423,
+          1015.3607686360677,
+          867.8570217556423,
+          1015.3607686360677,
+          896.8848334418403,
+          250,
+          896.8848334418403
+        ],
+        "ignore": false,
+        "order": 9,
+        "anno_id": 1,
+        "text": "2.  这两首诗借对项羽的评价分别表达了什么观点？（2分）",
+        "attribute": {}
+      },
+      "reference": "2.  这两首诗借对项羽的评价分别表达了什么观点？（2分）",
+      "image": "images/0082.png",
+      "image_sha256": "4d6845759d30965d37893f6330a6c73106a09a72a18cdd2df2c3f3f6e310b388",
+      "source_image_sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/jiaocai_jiaocai_en_6.jpg",
+      "crop_box": [
+        247,
+        864,
+        1019,
+        900
+      ]
+    },
+    "original_download_verified_by_cached_sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1"
+  },
+  {
+    "file": "chinese_handwriting.png",
+    "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0008.png",
+    "cache_manifest": "E:\\OCR-final-build\\public-benchmark\\benchmark.json",
+    "cache_record": {
+      "id": "0008",
+      "kind": "handwriting",
+      "page_info": {
+        "page_attribute": {
+          "data_source": "note",
+          "language": "simplified_chinese",
+          "layout": "single_column",
+          "special_issue": [],
+          "subset": "v1.5"
+        },
+        "page_no": 15,
+        "height": 2024,
+        "width": 1434,
+        "image_path": "notes_1ba14cb325bc448f7201b20502ecf2b5_15.jpg",
+        "sample_id": 617
+      },
+      "annotation": {
+        "category_type": "text_block",
+        "poly": [
+          191.96825727289942,
+          514.1443701012156,
+          1208.9618218198107,
+          514.1443701012156,
+          1208.9618218198107,
+          707.1543342250294,
+          191.96825727289942,
+          707.1543342250294
+        ],
+        "ignore": false,
+        "order": 4,
+        "anno_id": 1,
+        "text": "\t(1) 含义：是一个地方短时间里阴晴，风雨，冷热等大气状况.\n\t(2) 特点：短时间(时间). 相差大(空间). 变化大(变化）\n\t（3）影响：天气对交通、生活、农业生产、军事等人类活动有着深刻的影响。",
+        "merge_list": [
+          {
+            "category_type": "text_block",
+            "poly": [
+              200.60907865607496,
+              521.2104678729816,
+              1060.3064391445882,
+              521.2104678729816,
+              1060.3064391445882,
+              574.525032864517,
+              200.60907865607496,
+              574.525032864517
+            ],
+            "ignore": false,
+            "order": 5,
+            "anno_id": 0,
+            "text": "\t(1) 含义：是一个地方短时间里阴晴，风雨，冷热等大气状况.",
+            "line_with_spans": [
+              {
+                "category_type": "text_span",
+                "poly": [
+                  185.18518518518502,
+                  525.925925925926,
+                  1060.1122180967582,
+                  525.925925925926,
+                  1060.1122180967582,
+                  570.3703703703701,
+                  185.18518518518502,
+                  570.3703703703701
+                ],
+                "text": "\t(1) 含义：是一个地方短时间里阴晴，风雨，冷热等大气状况."
+              }
+            ],
+            "attribute": {
+              "text_language": "text_simplified_chinese",
+              "text_background": "multi_colored",
+              "text_rotate": "normal"
+            }
+          },
+          {
+            "category_type": "text_block",
+            "poly": [
+              196.49079912060523,
+              587.5984769958486,
+              988.7119132917062,
+              587.5984769958486,
+              988.7119132917062,
+              635.0817614414351,
+              196.49079912060523,
+              635.0817614414351
+            ],
+            "ignore": false,
+            "order": 6,
+            "anno_id": 6,
+            "text": "\t(2) 特点：短时间(时间). 相差大(空间). 变化大(变化）",
+            "line_with_spans": [
+              {
+                "category_type": "text_span",
+                "poly": [
+                  192.3963582445601,
+                  585.570094688054,
+                  990.922387954747,
+                  585.570094688054,
+                  990.922387954747,
+                  635.1412112422626,
+                  192.3963582445601,
+                  635.1412112422626
+                ],
+                "text": "\t(2) 特点：短时间(时间). 相差大(空间). 变化大(变化）"
+              }
+            ],
+            "attribute": {
+              "text_language": "text_simplified_chinese",
+              "text_background": "multi_colored",
+              "text_rotate": "normal"
+            }
+          },
+          {
+            "category_type": "text_block",
+            "poly": [
+              197.32383919859808,
+              650.0764828453046,
+              1203.636253413835,
+              650.0764828453046,
+              1203.636253413835,
+              703.3910478368399,
+              197.32383919859808,
+              703.3910478368399
+            ],
+            "ignore": false,
+            "order": 7,
+            "anno_id": 5,
+            "text": "\t（3）影响：天气对交通、生活、农业生产、军事等人类活动有着深刻的影响。",
+            "line_with_spans": [
+              {
+                "category_type": "text_span",
+                "poly": [
+                  194.83650157143134,
+                  649.9448143549035,
+                  1204.3943989430952,
+                  649.9448143549035,
+                  1204.3943989430952,
+                  702.4972289697292,
+                  194.83650157143134,
+                  702.4972289697292
+                ],
+                "text": "\t（3）影响：天气对交通、生活、农业生产、军事等人类活动有着深刻的影响。"
+              }
+            ],
+            "attribute": {
+              "text_language": "text_simplified_chinese",
+              "text_background": "multi_colored",
+              "text_rotate": "normal"
+            }
+          }
+        ],
+        "attribute": {}
+      },
+      "reference": "\t(1) 含义：是一个地方短时间里阴晴，风雨，冷热等大气状况.\n\t(2) 特点：短时间(时间). 相差大(空间). 变化大(变化）\n\t（3）影响：天气对交通、生活、农业生产、军事等人类活动有着深刻的影响。",
+      "image": "images/0008.png",
+      "image_sha256": "6a9b3f64ef2d7fc5493d6519713c4b07289476829644d2a5bad93b80e90fe2dd",
+      "source_image_sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/notes_1ba14cb325bc448f7201b20502ecf2b5_15.jpg",
+      "crop_box": [
+        188,
+        511,
+        1212,
+        711
+      ]
+    },
+    "original_download_verified_by_cached_sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4"
+  }
+]

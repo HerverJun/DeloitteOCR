@@ -1,7 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
-import { Plus, Minus, Merge, Split, Table2 } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Merge,
+  Split,
+  Table2,
+  ClipboardPaste,
+  Trash2,
+  AlertCircle,
+  ArrowRight,
+} from "lucide-react";
 import type { Table } from "./types";
+import {
+  createTable,
+  extendSelection,
+  parseTsv,
+  pasteTsv,
+} from "./tableEditing";
 import {
   normalize,
   merge,
@@ -15,25 +31,87 @@ export function TableEditor({
   tables,
   onChange,
   onError,
+  disabled = false,
 }: {
   tables: Table[];
   onChange: (tables: Table[]) => void;
   onError: (message: string) => void;
+  disabled?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [selection, setSelection] = useState([0, 0, 0, 0]);
+  const [creating, setCreating] = useState(false);
+  const [newRows, setNewRows] = useState(2);
+  const [newColumns, setNewColumns] = useState(2);
+  const [pasting, setPasting] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.8);
+  const pointerSelection = useRef(false);
+  const keyboardSelection = useRef(false);
+  const editorElement = useRef<HTMLDivElement>(null);
   useEffect(() => {
     setIndex((i) => Math.min(i, Math.max(0, tables.length - 1)));
   }, [tables.length]);
+  const addTable = () => {
+    try {
+      onChange([...tables, createTable(newRows, newColumns)]);
+      setIndex(tables.length);
+      setSelection([0, 0, 0, 0]);
+      setCreating(false);
+    } catch (error) {
+      onError(String(error));
+    }
+  };
+  const newTableForm = (
+    <form
+      className="table-create-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        addTable();
+      }}
+    >
+      <label>
+        行数{" "}
+        <input
+          aria-label="新表格行数"
+          type="number"
+          min={1}
+          max={50000}
+          required
+          value={Number.isFinite(newRows) ? newRows : ""}
+          onChange={(event) => setNewRows(event.target.valueAsNumber)}
+        />
+      </label>
+      <label>
+        列数{" "}
+        <input
+          aria-label="新表格列数"
+          type="number"
+          min={1}
+          max={50000}
+          required
+          value={Number.isFinite(newColumns) ? newColumns : ""}
+          onChange={(event) => setNewColumns(event.target.valueAsNumber)}
+        />
+      </label>
+      <Button type="submit" size="small" disabled={disabled}>
+        创建表格
+      </Button>
+    </form>
+  );
   if (!tables.length)
     return (
-      <div className="empty-panel">
+      <div className="empty-panel" inert={disabled}>
         <Table2 size={32} />
         <h3>此结果没有结构化表格</h3>
-        <p>使用 PaddleOCR-VL、GLM-OCR 或 HunyuanOCR 识别表格照片。</p>
+        <p>可以手动创建表格，再粘贴 TSV 数据或填写单元格。</p>
+        {newTableForm}
       </div>
     );
   const table = normalize(tables[Math.min(index, tables.length - 1)]);
+  const anchors = new Map(
+    table.cells.map((cell) => [`${cell.row}:${cell.column}`, cell]),
+  );
   const bounded = selection.map((v, i) =>
     Math.min(v, i % 2 ? table.columns - 1 : table.rows - 1),
   );
@@ -61,8 +139,59 @@ export function TableEditor({
   };
   const pick = (r: number, c: number, shift: boolean) =>
     setSelection(shift ? [ar, ac, r, c] : [r, c, r, c]);
+  const focusCell = (r: number, c: number) => {
+    const cell = cellAt(table, r, c);
+    if (!cell) return;
+    keyboardSelection.current = true;
+    editorElement.current
+      ?.querySelector<HTMLTextAreaElement>(
+        `[data-cell="${cell.row}:${cell.column}"]`,
+      )
+      ?.focus();
+    keyboardSelection.current = false;
+  };
+  const pasteRegion = (text: string) => {
+    try {
+      const values = parseTsv(text);
+      update(pasteTsv(table, text, rect[0], rect[1]));
+      setSelection([
+        rect[0],
+        rect[1],
+        rect[0] + values.length - 1,
+        rect[1] + values[0].length - 1,
+      ]);
+      setPasting(false);
+      setPasteText("");
+    } catch (error) {
+      onError(String(error));
+    }
+  };
+  const scoredCells = table.cells.filter(
+    (cell) =>
+      typeof cell.confidence === "number" && Number.isFinite(cell.confidence),
+  );
+  const suspectCells = scoredCells.filter(
+    (cell) => cell.confidence! < confidenceThreshold,
+  );
+  const nextSuspect = () => {
+    const cell =
+      suspectCells.find(
+        (cell) => cell.row > br || (cell.row === br && cell.column > bc),
+      ) ?? suspectCells[0];
+    if (cell) {
+      setSelection([cell.row, cell.column, cell.row, cell.column]);
+      focusCell(cell.row, cell.column);
+    }
+  };
   return (
-    <div className="table-editor">
+    <div
+      ref={editorElement}
+      className="table-editor"
+      inert={disabled}
+      onKeyDownCapture={() => {
+        pointerSelection.current = false;
+      }}
+    >
       <div className="table-command-row">
         <div className="table-selector">
           <label>
@@ -88,6 +217,8 @@ export function TableEditor({
         <span className="cell-address" aria-label="当前单元格">
           {columnName(rect[1])}
           {rect[0] + 1}
+          {(rect[0] !== rect[2] || rect[1] !== rect[3]) &&
+            `:${columnName(rect[3])}${rect[2] + 1}`}
         </span>
         <div className="table-actions">
           <Button
@@ -142,8 +273,62 @@ export function TableEditor({
           </Button>
         </div>
       </div>
+      {creating && newTableForm}
+      {pasting && (
+        <form
+          className="table-paste-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            pasteRegion(pasteText);
+          }}
+        >
+          <label>
+            TSV 数据（从当前选区左上角填入）
+            <textarea
+              aria-label="TSV 区域数据"
+              rows={4}
+              value={pasteText}
+              onChange={(event) => setPasteText(event.target.value)}
+            />
+          </label>
+          <Button type="submit" size="small">
+            应用粘贴
+          </Button>
+          <Button size="small" onClick={() => setPasting(false)}>
+            取消
+          </Button>
+        </form>
+      )}
       <details className="table-settings">
-        <summary>表格标题与操作说明</summary>
+        <summary>表格设置与更多操作</summary>
+        <div className="table-actions" style={{ flexWrap: "wrap" }}>
+          <Button
+            size="small"
+            icon={<Plus size={14} />}
+            onClick={() => setCreating(!creating)}
+            aria-expanded={creating}
+          >
+            新建表格
+          </Button>
+          <Button
+            size="small"
+            icon={<Trash2 size={14} />}
+            onClick={() => {
+              onChange(tables.filter((_, i) => i !== index));
+              setSelection([0, 0, 0, 0]);
+            }}
+          >
+            删除整表
+          </Button>
+          <Button
+            size="small"
+            icon={<ClipboardPaste size={14} />}
+            onClick={() => setPasting(!pasting)}
+            aria-expanded={pasting}
+          >
+            粘贴区域
+          </Button>
+        </div>
         <label className="caption-input">
           表格标题
           <input
@@ -153,9 +338,46 @@ export function TableEditor({
           />
         </label>
         <p className="table-hint">
-          按住 Shift 点击选择矩形区域。合并保留文字；编号始终按文本导出。
+          Shift + 方向键或 Shift 点击扩展矩形选区。Ctrl + V
+          粘贴含制表符的区域；单列数据可用「粘贴区域」。新建、删除和粘贴均可撤销，编号保留为文本。删除整表保留文字视图中的原文。
         </p>
+        <div className="confidence-controls">
+          <label>
+            待核对阈值{" "}
+            <input
+              aria-label="表格置信度阈值"
+              type="number"
+              step="0.05"
+              value={confidenceThreshold}
+              onChange={(event) => {
+                if (Number.isFinite(event.target.valueAsNumber))
+                  setConfidenceThreshold(event.target.valueAsNumber);
+              }}
+            />
+          </label>
+          <span>
+            分数未知 {table.cells.length - scoredCells.length}{" "}
+            处。仅显示当前引擎提供的分数，不代表跨引擎统一准确率。
+          </span>
+        </div>
       </details>
+      {suspectCells.length > 0 && (
+        <div className="table-review-strip">
+          <span>
+            <AlertCircle size={14} />
+            {suspectCells.length} 处低于待核对阈值
+          </span>
+          <Button
+            size="small"
+            appearance="subtle"
+            icon={<ArrowRight size={14} />}
+            aria-label={`下一处低于阈值（${suspectCells.length}）`}
+            onClick={nextSuspect}
+          >
+            下一处
+          </Button>
+        </div>
+      )}
       <div className="table-scroll">
         <table className="editable-grid">
           <thead>
@@ -199,24 +421,72 @@ export function TableEditor({
                   {r + 1}
                 </th>
                 {Array.from({ length: table.columns }, (_, c) => {
-                  const cell = cellAt(table, r, c);
-                  if (!cell || cell.row !== r || cell.column !== c) return null;
+                  const cell = anchors.get(`${r}:${c}`);
+                  if (!cell) return null;
                   const selected =
-                    r >= rect[0] &&
                     r <= rect[2] &&
-                    c >= rect[1] &&
-                    c <= rect[3];
+                    r + cell.row_span > rect[0] &&
+                    c <= rect[3] &&
+                    c + cell.column_span > rect[1];
+                  const confidenceKnown =
+                    typeof cell.confidence === "number" &&
+                    Number.isFinite(cell.confidence);
+                  const suspect =
+                    confidenceKnown && cell.confidence! < confidenceThreshold;
                   return (
                     <td
                       key={c}
                       rowSpan={cell.row_span}
                       colSpan={cell.column_span}
-                      className={selected ? "selected-cell" : ""}
+                      className={`${selected ? "selected-cell" : ""} ${suspect ? "suspect-cell" : ""}`}
+                      title={
+                        confidenceKnown
+                          ? `模型原始分数：${cell.confidence}`
+                          : "模型分数未知"
+                      }
+                      onMouseDown={() => {
+                        pointerSelection.current = true;
+                      }}
+                      onMouseUp={() => {
+                        pointerSelection.current = false;
+                      }}
                       onClick={(e) => pick(r, c, e.shiftKey)}
                     >
                       <textarea
+                        data-cell={`${r}:${c}`}
                         aria-label={`第 ${r + 1} 行第 ${c + 1} 列`}
+                        aria-description={`${selected ? "已选择。" : ""}${suspect ? "低于待核对阈值。" : ""}${confidenceKnown ? `模型原始分数 ${cell.confidence}` : "模型分数未知"}`}
                         spellCheck={false}
+                        onFocus={() => {
+                          // Mouse clicks apply their own Shift anchor after focus.
+                          if (
+                            !pointerSelection.current &&
+                            !keyboardSelection.current
+                          )
+                            pick(r, c, false);
+                          pointerSelection.current = false;
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.shiftKey && event.key.startsWith("Arrow")) {
+                            event.preventDefault();
+                            const next = extendSelection(
+                              bounded,
+                              event.key,
+                              table.rows,
+                              table.columns,
+                            );
+                            setSelection(next);
+                            focusCell(next[2], next[3]);
+                          } else if (event.key === "Escape") pick(r, c, false);
+                        }}
+                        onPaste={(event) => {
+                          const text =
+                            event.clipboardData.getData("text/plain");
+                          if (text.includes("\t")) {
+                            event.preventDefault();
+                            pasteRegion(text);
+                          }
+                        }}
                         wrap="off"
                         rows={Math.min(
                           4,

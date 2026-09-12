@@ -1,0 +1,1118 @@
+{
+  "observed_at": "2026-09-12T08:07:37.491631+00:00",
+  "database_access": "read-only SQLite snapshot; file checks are read-only",
+  "summary": {
+    "images": 8,
+    "originals": 8,
+    "versions": 18,
+    "tasks": 16,
+    "targeted_checks": 9,
+    "targeted_checks_passed": 9
+  },
+  "checks": [
+    {
+      "check": "road_crop_580x260",
+      "passed": true,
+      "version_ids": [
+        "346106875d3140b0a1c3a4a83c6cb220"
+      ]
+    },
+    {
+      "check": "road_region_420x180",
+      "passed": true,
+      "version_ids": [
+        "375c3f6e8f2c43efa7f091d5ce0f41b0"
+      ]
+    },
+    {
+      "check": "book_rotate_708x1100",
+      "passed": true,
+      "version_ids": [
+        "dcdaec6c2b2448e497ce98ddc9e3528d"
+      ]
+    },
+    {
+      "check": "book_contrast_708x1100",
+      "passed": true,
+      "version_ids": [
+        "21481b0e7315410695a5274418409bd9"
+      ]
+    },
+    {
+      "check": "book_uvdoc_1100x708",
+      "passed": true,
+      "version_ids": [
+        "0543293725fe45aa9b54e5e944a745b2"
+      ]
+    },
+    {
+      "check": "book_perspective_1050x620",
+      "passed": true,
+      "version_ids": [
+        "256ab11985a847f992b3d48618787f42"
+      ]
+    },
+    {
+      "check": "two_contrast_tasks_preserve_fixed_input_version",
+      "passed": true,
+      "task_ids": [
+        "5baeffaecb3443628aef04060a514101",
+        "097383298f8a4f4cb6bfc2d7cb54896b"
+      ]
+    },
+    {
+      "check": "all_originals_byte_identical_to_downloaded_samples",
+      "passed": true
+    },
+    {
+      "check": "all_version_files_match_database_hash_dimensions_and_parent",
+      "passed": true
+    }
+  ],
+  "images": [
+    {
+      "id": "7d26487af1ff4f5087f75c2564c9f4ae",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "chinese_scanned_exam.png",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\7d26487af1ff4f5087f75c2564c9f4ae\\original.png",
+      "sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1",
+      "active_version": "800259dd108242b7b50ede4c32d7afcd",
+      "created": "2026-09-12T07:22:57.073484+00:00",
+      "original_file_sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "chinese_scanned_exam.png"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "840f63c077544387b5fe684ea03c35fa",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "chinese_handwriting.png",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\840f63c077544387b5fe684ea03c35fa\\original.png",
+      "sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4",
+      "active_version": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "created": "2026-09-12T07:22:57.198937+00:00",
+      "original_file_sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "chinese_handwriting.png"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "29e1da91d91a4bcca40733b19ed6fac3",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "pubmed_table.png",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\29e1da91d91a4bcca40733b19ed6fac3\\original.png",
+      "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "active_version": "309498089a814c72a40e3c23a516ccbc",
+      "created": "2026-09-12T07:22:57.228212+00:00",
+      "original_file_sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "pubmed_table.png"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "da2a78077fa64855971ce70eb9fceacb",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "chinese_store.jpg",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\da2a78077fa64855971ce70eb9fceacb\\original.jpg",
+      "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "active_version": "375c3f6e8f2c43efa7f091d5ce0f41b0",
+      "created": "2026-09-12T07:22:57.274342+00:00",
+      "original_file_sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "chinese_store.jpg"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "english_book_photo.jpg",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\original.jpg",
+      "sha256": "782cc71a2730020ea8da815de3e40a964b7f150c183d1f8c01dd211de9dcbcc4",
+      "active_version": "256ab11985a847f992b3d48618787f42",
+      "created": "2026-09-12T07:22:57.356765+00:00",
+      "original_file_sha256": "782cc71a2730020ea8da815de3e40a964b7f150c183d1f8c01dd211de9dcbcc4",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "english_book_photo.jpg"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "6d8dd176863049d2b240e362e347078d",
+      "project_id": "d2804da1366f4d138dda3f7e7a6612b6",
+      "name": "document_formula.png",
+      "original_path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\6d8dd176863049d2b240e362e347078d\\original.png",
+      "sha256": "6b07d28527dc9e930804fa73df562f1a81599c6b8a1a8bbc2a80742fa9f26e80",
+      "active_version": "95ea5341493244d0a73c6a299c0bc21c",
+      "created": "2026-09-12T07:22:57.403492+00:00",
+      "original_file_sha256": "6b07d28527dc9e930804fa73df562f1a81599c6b8a1a8bbc2a80742fa9f26e80",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "document_formula.png"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "197f835548b74e6bbc70af4c3b1f2b6c",
+      "project_id": "d9c7e8157e924c3f8a01ccfaddd050ba",
+      "name": "路牌 原图.jpg",
+      "original_path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\197f835548b74e6bbc70af4c3b1f2b6c\\original.jpg",
+      "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "active_version": "db304044ff0742658d0f4714c69a2d17",
+      "created": "2026-09-12T07:45:14.357469+00:00",
+      "original_file_sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "chinese_store.jpg"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    },
+    {
+      "id": "cb7aa12539454bac98ad78bc2f325523",
+      "project_id": "d9c7e8157e924c3f8a01ccfaddd050ba",
+      "name": "科研表格.png",
+      "original_path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\cb7aa12539454bac98ad78bc2f325523\\original.png",
+      "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "active_version": "f1654f64609f497987819b2b3c96e1c7",
+      "created": "2026-09-12T07:45:14.402153+00:00",
+      "original_file_sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "original_sha256_matches_database": true,
+      "matching_downloaded_samples": [
+        "pubmed_table.png"
+      ],
+      "original_matches_downloaded_sample": true,
+      "active_version_exists": true
+    }
+  ],
+  "versions": [
+    {
+      "id": "67e83bff00ae4ac880b743592339a0fc",
+      "image_id": "7d26487af1ff4f5087f75c2564c9f4ae",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\7d26487af1ff4f5087f75c2564c9f4ae\\67e83bff00ae4ac880b743592339a0fc.png",
+      "width": 1654,
+      "height": 2339,
+      "sha256": "65ebaf2868862af2ba95396251b0dd7f9e3cb6ed5dfabbdcd4ff4a9c0bdcbfb9",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.073484+00:00",
+      "image_name": "chinese_scanned_exam.png",
+      "file_sha256": "65ebaf2868862af2ba95396251b0dd7f9e3cb6ed5dfabbdcd4ff4a9c0bdcbfb9",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1654,
+        2339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "image_id": "840f63c077544387b5fe684ea03c35fa",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\840f63c077544387b5fe684ea03c35fa\\bceee34942ad48bbb4a98dbb05d8ad7f.png",
+      "width": 1434,
+      "height": 2024,
+      "sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.198937+00:00",
+      "image_name": "chinese_handwriting.png",
+      "file_sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1434,
+        2024
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "309498089a814c72a40e3c23a516ccbc",
+      "image_id": "29e1da91d91a4bcca40733b19ed6fac3",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\29e1da91d91a4bcca40733b19ed6fac3\\309498089a814c72a40e3c23a516ccbc.png",
+      "width": 503,
+      "height": 98,
+      "sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.228212+00:00",
+      "image_name": "pubmed_table.png",
+      "file_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        503,
+        98
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "e311f58910fc43bba613782296719b02",
+      "image_id": "da2a78077fa64855971ce70eb9fceacb",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\da2a78077fa64855971ce70eb9fceacb\\e311f58910fc43bba613782296719b02.png",
+      "width": 640,
+      "height": 339,
+      "sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.274342+00:00",
+      "image_name": "chinese_store.jpg",
+      "file_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        640,
+        339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "image_id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\d5d1f05cf9d0427eabf6129f3309dfbd.png",
+      "width": 1100,
+      "height": 708,
+      "sha256": "51d21bad2122f7755b8db38a664a97b09c198c60631312ba565cf69ae9f91ad3",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.357766+00:00",
+      "image_name": "english_book_photo.jpg",
+      "file_sha256": "51d21bad2122f7755b8db38a664a97b09c198c60631312ba565cf69ae9f91ad3",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1100,
+        708
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "f75db1a689bf4722a8b1477b8f6577e0",
+      "image_id": "6d8dd176863049d2b240e362e347078d",
+      "parent_id": null,
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\6d8dd176863049d2b240e362e347078d\\f75db1a689bf4722a8b1477b8f6577e0.png",
+      "width": 816,
+      "height": 1056,
+      "sha256": "cf6194e4f59b38365096ed892f3a361c3672f4397d763c885f7f6284302271d5",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:22:57.404493+00:00",
+      "image_name": "document_formula.png",
+      "file_sha256": "cf6194e4f59b38365096ed892f3a361c3672f4397d763c885f7f6284302271d5",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        816,
+        1056
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "346106875d3140b0a1c3a4a83c6cb220",
+      "image_id": "da2a78077fa64855971ce70eb9fceacb",
+      "parent_id": "e311f58910fc43bba613782296719b02",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\da2a78077fa64855971ce70eb9fceacb\\346106875d3140b0a1c3a4a83c6cb220.png",
+      "width": 580,
+      "height": 260,
+      "sha256": "e9ff312a9e531f79293fcb76e36a151ef93d63037bda8f74144b65d9f77202ab",
+      "operations": {
+        "kind": "crop",
+        "box": [
+          20,
+          20,
+          600,
+          280
+        ]
+      },
+      "created": "2026-09-12T07:37:56.188733+00:00",
+      "image_name": "chinese_store.jpg",
+      "file_sha256": "e9ff312a9e531f79293fcb76e36a151ef93d63037bda8f74144b65d9f77202ab",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        580,
+        260
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "dcdaec6c2b2448e497ce98ddc9e3528d",
+      "image_id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "parent_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\dcdaec6c2b2448e497ce98ddc9e3528d.png",
+      "width": 708,
+      "height": 1100,
+      "sha256": "cee81173ca833476f915177b06aa01cc620b7d0f067b409ed3d886e08aeb3d94",
+      "operations": {
+        "kind": "rotate",
+        "degrees": 90
+      },
+      "created": "2026-09-12T07:39:09.308073+00:00",
+      "image_name": "english_book_photo.jpg",
+      "file_sha256": "cee81173ca833476f915177b06aa01cc620b7d0f067b409ed3d886e08aeb3d94",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        708,
+        1100
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "21481b0e7315410695a5274418409bd9",
+      "image_id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "parent_id": "dcdaec6c2b2448e497ce98ddc9e3528d",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\21481b0e7315410695a5274418409bd9.png",
+      "width": 708,
+      "height": 1100,
+      "sha256": "f5616fef278fea3b8ee6a30f02ab3f25507e2163c5104030e358719331da0474",
+      "operations": {
+        "kind": "contrast",
+        "factor": 1.3
+      },
+      "created": "2026-09-12T07:39:09.643988+00:00",
+      "image_name": "english_book_photo.jpg",
+      "file_sha256": "f5616fef278fea3b8ee6a30f02ab3f25507e2163c5104030e358719331da0474",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        708,
+        1100
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "0543293725fe45aa9b54e5e944a745b2",
+      "image_id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "parent_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\0543293725fe45aa9b54e5e944a745b2.png",
+      "width": 1100,
+      "height": 708,
+      "sha256": "8fc6bf4a238d7f6d02124bf1c703cee846506d74bd81a06670fd43517ececba5",
+      "operations": {
+        "kind": "dewarp",
+        "model": "UVDoc",
+        "revision": "16c3f0ea9c2f0c6a57e24160f7eeaa7574613fa3"
+      },
+      "created": "2026-09-12T07:40:01.288132+00:00",
+      "image_name": "english_book_photo.jpg",
+      "file_sha256": "8fc6bf4a238d7f6d02124bf1c703cee846506d74bd81a06670fd43517ececba5",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1100,
+        708
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "375c3f6e8f2c43efa7f091d5ce0f41b0",
+      "image_id": "da2a78077fa64855971ce70eb9fceacb",
+      "parent_id": "e311f58910fc43bba613782296719b02",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\da2a78077fa64855971ce70eb9fceacb\\375c3f6e8f2c43efa7f091d5ce0f41b0.png",
+      "width": 420,
+      "height": 180,
+      "sha256": "2a3f2909664eefded5979ff7435e64535c53be2fedf4b4436d0a3cff8a90c6ab",
+      "operations": {
+        "kind": "crop",
+        "box": [
+          120,
+          80,
+          540,
+          260
+        ]
+      },
+      "created": "2026-09-12T07:41:49.788951+00:00",
+      "image_name": "chinese_store.jpg",
+      "file_sha256": "2a3f2909664eefded5979ff7435e64535c53be2fedf4b4436d0a3cff8a90c6ab",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        420,
+        180
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "256ab11985a847f992b3d48618787f42",
+      "image_id": "a30ce02c5d6548409c9b82a1e0fa6383",
+      "parent_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\a30ce02c5d6548409c9b82a1e0fa6383\\256ab11985a847f992b3d48618787f42.png",
+      "width": 1050,
+      "height": 620,
+      "sha256": "fdb2ce4e349a069ffb4a593772beb7397ba128ec51d7e7524aa1366c8cd1e40d",
+      "operations": {
+        "kind": "perspective",
+        "points": [
+          [
+            40,
+            30
+          ],
+          [
+            1050,
+            50
+          ],
+          [
+            1070,
+            670
+          ],
+          [
+            20,
+            650
+          ]
+        ],
+        "matrix": [
+          [
+            1.0385620819368964,
+            0.0335020026431257,
+            -42.54754335676963
+          ],
+          [
+            -0.02057776128378702,
+            1.0391769448312396,
+            -30.352197893585704
+          ],
+          [
+            -2.484598697975568e-06,
+            6.395431925667988e-05,
+            1.0
+          ]
+        ]
+      },
+      "created": "2026-09-12T07:43:06.081478+00:00",
+      "image_name": "english_book_photo.jpg",
+      "file_sha256": "fdb2ce4e349a069ffb4a593772beb7397ba128ec51d7e7524aa1366c8cd1e40d",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1050,
+        620
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "800259dd108242b7b50ede4c32d7afcd",
+      "image_id": "7d26487af1ff4f5087f75c2564c9f4ae",
+      "parent_id": "67e83bff00ae4ac880b743592339a0fc",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\7d26487af1ff4f5087f75c2564c9f4ae\\800259dd108242b7b50ede4c32d7afcd.png",
+      "width": 1654,
+      "height": 2339,
+      "sha256": "0717cb0a20eb7c51aaa5b7f6988bdeeee5f9e3549749e636021417ddd2ceca49",
+      "operations": {
+        "kind": "batch",
+        "preset": [
+          {
+            "kind": "contrast",
+            "factor": 1.3
+          }
+        ],
+        "batch": "2026-09-12T07:43:46.862778+00:00-283662ccbe604f7ca021dca90c03dc9a"
+      },
+      "created": "2026-09-12T07:43:47.002975+00:00",
+      "image_name": "chinese_scanned_exam.png",
+      "file_sha256": "0717cb0a20eb7c51aaa5b7f6988bdeeee5f9e3549749e636021417ddd2ceca49",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        1654,
+        2339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "95ea5341493244d0a73c6a299c0bc21c",
+      "image_id": "6d8dd176863049d2b240e362e347078d",
+      "parent_id": "f75db1a689bf4722a8b1477b8f6577e0",
+      "path": "projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\6d8dd176863049d2b240e362e347078d\\95ea5341493244d0a73c6a299c0bc21c.png",
+      "width": 816,
+      "height": 1056,
+      "sha256": "c61dffb53f353df4e2e32938e72ce09b43b8c95ffeb557d6878c74d2b4658082",
+      "operations": {
+        "kind": "batch",
+        "preset": [
+          {
+            "kind": "contrast",
+            "factor": 1.3
+          }
+        ],
+        "batch": "2026-09-12T07:43:46.862778+00:00-283662ccbe604f7ca021dca90c03dc9a"
+      },
+      "created": "2026-09-12T07:43:53.645632+00:00",
+      "image_name": "document_formula.png",
+      "file_sha256": "c61dffb53f353df4e2e32938e72ce09b43b8c95ffeb557d6878c74d2b4658082",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        816,
+        1056
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "d2c34b0977b74b98826aceaa962633b2",
+      "image_id": "197f835548b74e6bbc70af4c3b1f2b6c",
+      "parent_id": null,
+      "path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\197f835548b74e6bbc70af4c3b1f2b6c\\d2c34b0977b74b98826aceaa962633b2.png",
+      "width": 640,
+      "height": 339,
+      "sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:45:14.357469+00:00",
+      "image_name": "路牌 原图.jpg",
+      "file_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        640,
+        339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "f1654f64609f497987819b2b3c96e1c7",
+      "image_id": "cb7aa12539454bac98ad78bc2f325523",
+      "parent_id": null,
+      "path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\cb7aa12539454bac98ad78bc2f325523\\f1654f64609f497987819b2b3c96e1c7.png",
+      "width": 503,
+      "height": 98,
+      "sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "operations": {
+        "kind": "import",
+        "exif_normalized": true
+      },
+      "created": "2026-09-12T07:45:14.402153+00:00",
+      "image_name": "科研表格.png",
+      "file_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        503,
+        98
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "f6b623c6d7e042f4aa07b1a3d3dcc18e",
+      "image_id": "197f835548b74e6bbc70af4c3b1f2b6c",
+      "parent_id": "d2c34b0977b74b98826aceaa962633b2",
+      "path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\197f835548b74e6bbc70af4c3b1f2b6c\\f6b623c6d7e042f4aa07b1a3d3dcc18e.png",
+      "width": 640,
+      "height": 339,
+      "sha256": "6605b7547670c846a0dd332f6f2d2ce37175d912d08d10a94c72db9f56a0c93f",
+      "operations": {
+        "kind": "batch",
+        "preset": [
+          {
+            "kind": "contrast",
+            "factor": 1.3
+          }
+        ],
+        "batch": "2026-09-12T07:54:49.125403+00:00-91e87666550441fb94eed943c9b52d75"
+      },
+      "created": "2026-09-12T07:54:49.195401+00:00",
+      "image_name": "路牌 原图.jpg",
+      "file_sha256": "6605b7547670c846a0dd332f6f2d2ce37175d912d08d10a94c72db9f56a0c93f",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        640,
+        339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    },
+    {
+      "id": "db304044ff0742658d0f4714c69a2d17",
+      "image_id": "197f835548b74e6bbc70af4c3b1f2b6c",
+      "parent_id": "f6b623c6d7e042f4aa07b1a3d3dcc18e",
+      "path": "projects\\d9c7e8157e924c3f8a01ccfaddd050ba\\images\\197f835548b74e6bbc70af4c3b1f2b6c\\db304044ff0742658d0f4714c69a2d17.png",
+      "width": 640,
+      "height": 339,
+      "sha256": "08c5f3736338f55fafca8fa9a9511fcbe0406ed1f86720944e39b225184cb614",
+      "operations": {
+        "kind": "contrast",
+        "factor": 1.3
+      },
+      "created": "2026-09-12T08:04:04.095792+00:00",
+      "image_name": "路牌 原图.jpg",
+      "file_sha256": "08c5f3736338f55fafca8fa9a9511fcbe0406ed1f86720944e39b225184cb614",
+      "file_sha256_matches_database": true,
+      "file_dimensions": [
+        640,
+        339
+      ],
+      "file_dimensions_match_database": true,
+      "parent_is_same_image": true
+    }
+  ],
+  "task_fixed_inputs": [
+    {
+      "task_id": "34f581455cfe4ae3bf04b5d3dad85996",
+      "image_name": "chinese_store.jpg",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "e311f58910fc43bba613782296719b02",
+      "version_id": "e311f58910fc43bba613782296719b02",
+      "result_version_id": null,
+      "result_id": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        640,
+        339
+      ],
+      "stored_version_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "result_project_image_version": "e311f58910fc43bba613782296719b02",
+      "result_input_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+      "result_input_dimensions": [
+        640,
+        339
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "50ad95ccc6064ddd876b5676d9fc583c",
+      "image_name": "chinese_scanned_exam.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "67e83bff00ae4ac880b743592339a0fc",
+      "version_id": "67e83bff00ae4ac880b743592339a0fc",
+      "result_version_id": null,
+      "result_id": "f25c3415b616410f874bb1e6f70483c9",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        1654,
+        2339
+      ],
+      "stored_version_sha256": "65ebaf2868862af2ba95396251b0dd7f9e3cb6ed5dfabbdcd4ff4a9c0bdcbfb9",
+      "result_project_image_version": "67e83bff00ae4ac880b743592339a0fc",
+      "result_input_sha256": "65ebaf2868862af2ba95396251b0dd7f9e3cb6ed5dfabbdcd4ff4a9c0bdcbfb9",
+      "result_input_dimensions": [
+        1654,
+        2339
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "7ef236b9e0c44acd88e26eb57c9ae05d",
+      "image_name": "english_book_photo.jpg",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "version_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "result_version_id": null,
+      "result_id": "24c5e24a7fe34dd5bc82f8ae792eef7f",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        1100,
+        708
+      ],
+      "stored_version_sha256": "51d21bad2122f7755b8db38a664a97b09c198c60631312ba565cf69ae9f91ad3",
+      "result_project_image_version": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "result_input_sha256": "51d21bad2122f7755b8db38a664a97b09c198c60631312ba565cf69ae9f91ad3",
+      "result_input_dimensions": [
+        1100,
+        708
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "97577641bbcc49e9af408987f18ce5e6",
+      "image_name": "chinese_handwriting.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "version_id": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "result_version_id": null,
+      "result_id": "5fc589acff2d4700ad542975dfe06d54",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        1434,
+        2024
+      ],
+      "stored_version_sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "result_project_image_version": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "result_input_sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "result_input_dimensions": [
+        1434,
+        2024
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "d8f85e28ad1a47799bcb2a28945ed6ee",
+      "image_name": "document_formula.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "f75db1a689bf4722a8b1477b8f6577e0",
+      "version_id": "f75db1a689bf4722a8b1477b8f6577e0",
+      "result_version_id": null,
+      "result_id": "9c327f07a29c4a39b2b9c164f1894337",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        816,
+        1056
+      ],
+      "stored_version_sha256": "cf6194e4f59b38365096ed892f3a361c3672f4397d763c885f7f6284302271d5",
+      "result_project_image_version": "f75db1a689bf4722a8b1477b8f6577e0",
+      "result_input_sha256": "cf6194e4f59b38365096ed892f3a361c3672f4397d763c885f7f6284302271d5",
+      "result_input_dimensions": [
+        816,
+        1056
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "f57aa73cf3534908963aeaba9fcd19fd",
+      "image_name": "pubmed_table.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "309498089a814c72a40e3c23a516ccbc",
+      "version_id": "309498089a814c72a40e3c23a516ccbc",
+      "result_version_id": null,
+      "result_id": "d94ee08e0f834775ad38c32ff8951b1b",
+      "preprocess": [],
+      "batch": "2026-09-12T07:23:35.742332+00:00-013505b23f1c4f3b971df80a98c2c71b",
+      "stored_version_dimensions": [
+        503,
+        98
+      ],
+      "stored_version_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_project_image_version": "309498089a814c72a40e3c23a516ccbc",
+      "result_input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_input_dimensions": [
+        503,
+        98
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "c7214d12be004090bb5f57b5815765dc",
+      "image_name": "pubmed_table.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "paddlevl",
+      "input_version_id": "309498089a814c72a40e3c23a516ccbc",
+      "version_id": "309498089a814c72a40e3c23a516ccbc",
+      "result_version_id": null,
+      "result_id": "eca498ddd08d45c6bd1edf75d17da6e7",
+      "preprocess": [],
+      "batch": "2026-09-12T07:27:00.252745+00:00-67ed15dbfaa84cd394185592871185c6",
+      "stored_version_dimensions": [
+        503,
+        98
+      ],
+      "stored_version_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_project_image_version": "309498089a814c72a40e3c23a516ccbc",
+      "result_input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_input_dimensions": [
+        503,
+        98
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "ce00a6c28e41409085ae2c4751d3ea71",
+      "image_name": "pubmed_table.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "glm",
+      "input_version_id": "309498089a814c72a40e3c23a516ccbc",
+      "version_id": "309498089a814c72a40e3c23a516ccbc",
+      "result_version_id": null,
+      "result_id": "6993a7e01e8140439975951ec0b480ed",
+      "preprocess": [],
+      "batch": "2026-09-12T07:27:00.252745+00:00-67ed15dbfaa84cd394185592871185c6",
+      "stored_version_dimensions": [
+        503,
+        98
+      ],
+      "stored_version_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_project_image_version": "309498089a814c72a40e3c23a516ccbc",
+      "result_input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_input_dimensions": [
+        503,
+        98
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "d21c573d830b427cb313cab00189fdf6",
+      "image_name": "pubmed_table.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "309498089a814c72a40e3c23a516ccbc",
+      "version_id": "309498089a814c72a40e3c23a516ccbc",
+      "result_version_id": null,
+      "result_id": "722e008a72604f0faa06113e9b0601ce",
+      "preprocess": [],
+      "batch": "2026-09-12T07:27:00.252745+00:00-67ed15dbfaa84cd394185592871185c6",
+      "stored_version_dimensions": [
+        503,
+        98
+      ],
+      "stored_version_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_project_image_version": "309498089a814c72a40e3c23a516ccbc",
+      "result_input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_input_dimensions": [
+        503,
+        98
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "5a6ef6c031104abfaadae97eafa1eed0",
+      "image_name": "pubmed_table.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "hunyuan",
+      "input_version_id": "309498089a814c72a40e3c23a516ccbc",
+      "version_id": "309498089a814c72a40e3c23a516ccbc",
+      "result_version_id": null,
+      "result_id": "5c6792572e874cbc87724e6cd8b708c3",
+      "preprocess": [],
+      "batch": "2026-09-12T07:27:00.252745+00:00-67ed15dbfaa84cd394185592871185c6",
+      "stored_version_dimensions": [
+        503,
+        98
+      ],
+      "stored_version_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_project_image_version": "309498089a814c72a40e3c23a516ccbc",
+      "result_input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+      "result_input_dimensions": [
+        503,
+        98
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "63565df8650445a29aebf2e4e781b2d4",
+      "image_name": "chinese_handwriting.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "hunyuan",
+      "input_version_id": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "version_id": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "result_version_id": null,
+      "result_id": "d95187278526457f828b428d9f4bee31",
+      "preprocess": [],
+      "batch": "2026-09-12T07:33:11.968214+00:00-b13c6b31891f40cf8ff20dea0d8c2d29",
+      "stored_version_dimensions": [
+        1434,
+        2024
+      ],
+      "stored_version_sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "result_project_image_version": "bceee34942ad48bbb4a98dbb05d8ad7f",
+      "result_input_sha256": "a1694578fdfcd23ef59d752ceb6f92a8b8ba54cda9967855348433c15c51d108",
+      "result_input_dimensions": [
+        1434,
+        2024
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "82ae166d3db542a0bd96868109432d7a",
+      "image_name": "english_book_photo.jpg",
+      "status": "succeeded",
+      "kind": "dewarp",
+      "engine": "dewarp",
+      "input_version_id": null,
+      "version_id": "d5d1f05cf9d0427eabf6129f3309dfbd",
+      "result_version_id": "0543293725fe45aa9b54e5e944a745b2",
+      "result_id": null,
+      "preprocess": [],
+      "batch": "2026-09-12T07:39:56.427752+00:00-81ae756fcbba4514b058727baf913aeb",
+      "stored_version_dimensions": [
+        1100,
+        708
+      ],
+      "stored_version_sha256": "51d21bad2122f7755b8db38a664a97b09c198c60631312ba565cf69ae9f91ad3",
+      "result_project_image_version": null,
+      "result_input_sha256": null,
+      "result_input_dimensions": [
+        null,
+        null
+      ]
+    },
+    {
+      "task_id": "47b873b299994371be5a2b924bcac48e",
+      "image_name": "chinese_store.jpg",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "375c3f6e8f2c43efa7f091d5ce0f41b0",
+      "version_id": "375c3f6e8f2c43efa7f091d5ce0f41b0",
+      "result_version_id": null,
+      "result_id": "f9dd1bdae494411b9d37881e486d9105",
+      "preprocess": [],
+      "batch": "2026-09-12T07:41:49.801949+00:00-f9a374ad42724414a67902e4f868ffca",
+      "stored_version_dimensions": [
+        420,
+        180
+      ],
+      "stored_version_sha256": "2a3f2909664eefded5979ff7435e64535c53be2fedf4b4436d0a3cff8a90c6ab",
+      "result_project_image_version": "375c3f6e8f2c43efa7f091d5ce0f41b0",
+      "result_input_sha256": "2a3f2909664eefded5979ff7435e64535c53be2fedf4b4436d0a3cff8a90c6ab",
+      "result_input_dimensions": [
+        420,
+        180
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true
+    },
+    {
+      "task_id": "5baeffaecb3443628aef04060a514101",
+      "image_name": "chinese_scanned_exam.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "67e83bff00ae4ac880b743592339a0fc",
+      "version_id": "800259dd108242b7b50ede4c32d7afcd",
+      "result_version_id": null,
+      "result_id": "33d2e7e440d64be086c7109497caaeff",
+      "preprocess": [
+        {
+          "kind": "contrast",
+          "factor": 1.3
+        }
+      ],
+      "batch": "2026-09-12T07:43:46.862778+00:00-283662ccbe604f7ca021dca90c03dc9a",
+      "stored_version_dimensions": [
+        1654,
+        2339
+      ],
+      "stored_version_sha256": "0717cb0a20eb7c51aaa5b7f6988bdeeee5f9e3549749e636021417ddd2ceca49",
+      "result_project_image_version": "800259dd108242b7b50ede4c32d7afcd",
+      "result_input_sha256": "0717cb0a20eb7c51aaa5b7f6988bdeeee5f9e3549749e636021417ddd2ceca49",
+      "result_input_dimensions": [
+        1654,
+        2339
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true,
+      "processed_version_has_frozen_input_parent": true,
+      "processed_version_retains_batch_preset": true
+    },
+    {
+      "task_id": "097383298f8a4f4cb6bfc2d7cb54896b",
+      "image_name": "document_formula.png",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "f75db1a689bf4722a8b1477b8f6577e0",
+      "version_id": "95ea5341493244d0a73c6a299c0bc21c",
+      "result_version_id": null,
+      "result_id": "7732f7e34f834d039a74d588f3911366",
+      "preprocess": [
+        {
+          "kind": "contrast",
+          "factor": 1.3
+        }
+      ],
+      "batch": "2026-09-12T07:43:46.862778+00:00-283662ccbe604f7ca021dca90c03dc9a",
+      "stored_version_dimensions": [
+        816,
+        1056
+      ],
+      "stored_version_sha256": "c61dffb53f353df4e2e32938e72ce09b43b8c95ffeb557d6878c74d2b4658082",
+      "result_project_image_version": "95ea5341493244d0a73c6a299c0bc21c",
+      "result_input_sha256": "c61dffb53f353df4e2e32938e72ce09b43b8c95ffeb557d6878c74d2b4658082",
+      "result_input_dimensions": [
+        816,
+        1056
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true,
+      "processed_version_has_frozen_input_parent": true,
+      "processed_version_retains_batch_preset": true
+    },
+    {
+      "task_id": "ff95de9a66aa4efe9224966411301196",
+      "image_name": "路牌 原图.jpg",
+      "status": "succeeded",
+      "kind": "ocr",
+      "engine": "ppocr",
+      "input_version_id": "d2c34b0977b74b98826aceaa962633b2",
+      "version_id": "f6b623c6d7e042f4aa07b1a3d3dcc18e",
+      "result_version_id": null,
+      "result_id": "66d7c221ad944168b20fdeec0c6e01ae",
+      "preprocess": [
+        {
+          "kind": "contrast",
+          "factor": 1.3
+        }
+      ],
+      "batch": "2026-09-12T07:54:49.125403+00:00-91e87666550441fb94eed943c9b52d75",
+      "stored_version_dimensions": [
+        640,
+        339
+      ],
+      "stored_version_sha256": "6605b7547670c846a0dd332f6f2d2ce37175d912d08d10a94c72db9f56a0c93f",
+      "result_project_image_version": "f6b623c6d7e042f4aa07b1a3d3dcc18e",
+      "result_input_sha256": "6605b7547670c846a0dd332f6f2d2ce37175d912d08d10a94c72db9f56a0c93f",
+      "result_input_dimensions": [
+        640,
+        339
+      ],
+      "result_uses_fixed_task_version": true,
+      "result_input_hash_matches_fixed_version": true,
+      "processed_version_has_frozen_input_parent": true,
+      "processed_version_retains_batch_preset": true
+    }
+  ]
+}

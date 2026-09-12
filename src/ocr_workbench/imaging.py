@@ -3,6 +3,9 @@
 import hashlib
 import json
 import threading
+import shutil
+import logging
+from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
 from PIL import Image, ImageOps, ImageEnhance
@@ -24,6 +27,52 @@ SUPPORTED = {
     ".heif",
 }
 CPU_GATE = threading.BoundedSemaphore(2)
+
+
+class ImagePublication:
+    def __init__(self, store, destination, directory):
+        self.destination = destination
+        self.folder = store.root / ".image-staging" / uid()
+        self.folder.mkdir(parents=True)
+        self.temporary = self.folder / destination.name
+        if directory:
+            self.temporary.mkdir()
+        self.published = False
+
+    def publish(self):
+        self.destination.parent.mkdir(parents=True, exist_ok=True)
+        if self.destination.exists():
+            raise FileExistsError("图像提交目标已存在")
+        self.temporary.replace(self.destination)
+        self.published = True
+
+
+@contextmanager
+def image_publication(store, destination, *, directory=False):
+    """Stage complete files, then publish inside the owning DB transaction."""
+    with store.file_lock:
+        publication = ImagePublication(store, destination, directory)
+        try:
+            yield publication
+        except BaseException:
+            if publication.published:
+                try:
+                    if directory:
+                        shutil.rmtree(destination)
+                    else:
+                        destination.unlink(missing_ok=True)
+                except OSError:
+                    logging.getLogger(__name__).exception(
+                        "Image compensation pending; inspect orphan files"
+                    )
+            raise
+        finally:
+            try:
+                shutil.rmtree(publication.folder)
+            except OSError:
+                logging.getLogger(__name__).exception(
+                    "Image staging cleanup pending; inspect orphan files"
+                )
 
 
 def bounded_image_work(function):
@@ -73,10 +122,7 @@ def prepare_task(store, task):
         "SELECT * FROM versions WHERE parent_id=? AND operations=?",
         (source["id"], encoded(provenance)),
     )
-    path = None
-    if existing:
-        version = existing[0]
-    else:
+    if not existing:
         with Image.open(store.file(source["path"])) as image:
             image = image.convert("RGB")
             for op in operations:
@@ -85,39 +131,18 @@ def prepare_task(store, task):
                     if op["kind"] == "rotate"
                     else ImageEnhance.Contrast(image).enhance(op["factor"])
                 )
-            key = uid()
-            path = store.file(source["path"]).with_name(key + ".png")
-            image.save(path)
-            version = {
-                "id": key,
-                "width": image.width,
-                "height": image.height,
-                "path": str(path.relative_to(store.root)),
-                "sha256": digest(path),
-            }
+            version = save_version(
+                store, source, image, provenance, prepare_task_id=task["id"]
+            )
+        return store.one("tasks", task["id"]) if version else None
+    if existing:
+        version = existing[0]
     with store.transaction() as db:
         current = db.execute(
             "SELECT status FROM tasks WHERE id=?", (task["id"],)
         ).fetchone()
         if not current or current["status"] != "running":
-            if path:
-                path.unlink(missing_ok=True)
             return None
-        if path:
-            db.execute(
-                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
-                (
-                    version["id"],
-                    source["image_id"],
-                    source["id"],
-                    version["path"],
-                    version["width"],
-                    version["height"],
-                    version["sha256"],
-                    encoded(provenance),
-                    now(),
-                ),
-            )
         db.execute(
             "UPDATE tasks SET version_id=? WHERE id=?", (version["id"], task["id"])
         )
@@ -139,8 +164,11 @@ def thumbnail(store, version_id):
             image = image.convert("RGB")
             image.thumbnail((160, 160))
             temporary = folder / (version_id + "-" + uid() + ".tmp")
-            image.save(temporary, format="JPEG", quality=80)
-            temporary.replace(target)
+            try:
+                image.save(temporary, format="JPEG", quality=80)
+                temporary.replace(target)
+            finally:
+                temporary.unlink(missing_ok=True)
     return target
 
 
@@ -163,37 +191,50 @@ def add_image(store, project_id, name, temporary):
         image = normalized_rgb(source)
     key, version = uid(), uid()
     folder = store.root / "projects" / project_id / "images" / key
-    folder.mkdir(parents=True)
     original = folder / ("original" + suffix)
-    temporary.replace(original)
     prepared = folder / (version + ".png")
-    image.save(prepared)
-    with store.transaction() as db:
-        db.execute(
-            "INSERT INTO images VALUES(?,?,?,?,?,?,?)",
-            (
-                key,
-                project_id,
-                name,
-                str(original.relative_to(store.root)),
-                digest(original),
-                version,
-                now(),
-            ),
-        )
-        db.execute(
-            "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
-            (
-                version,
-                key,
-                None,
-                str(prepared.relative_to(store.root)),
-                image.width,
-                image.height,
-                digest(prepared),
-                encoded({"kind": "import", "exif_normalized": True}),
-                now(),
-            ),
+    with image_publication(store, folder, directory=True) as publication:
+        staged_original = publication.temporary / original.name
+        staged_prepared = publication.temporary / prepared.name
+        # Keep the uploaded source until publication and DB commit both succeed.
+        shutil.copyfile(temporary, staged_original)
+        image.save(staged_prepared)
+        original_hash, prepared_hash = digest(staged_original), digest(staged_prepared)
+        with Image.open(staged_prepared) as check:
+            check.verify()
+        with store.transaction() as db:
+            db.execute(
+                "INSERT INTO images VALUES(?,?,?,?,?,?,?)",
+                (
+                    key,
+                    project_id,
+                    name,
+                    str(original.relative_to(store.root)),
+                    original_hash,
+                    version,
+                    now(),
+                ),
+            )
+            db.execute(
+                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
+                (
+                    version,
+                    key,
+                    None,
+                    str(prepared.relative_to(store.root)),
+                    image.width,
+                    image.height,
+                    prepared_hash,
+                    encoded({"kind": "import", "exif_normalized": True}),
+                    now(),
+                ),
+            )
+            publication.publish()
+    try:
+        temporary.unlink(missing_ok=True)
+    except OSError:
+        logging.getLogger(__name__).exception(
+            "Uploaded source cleanup pending after successful import"
         )
     return store.one("images", key)
 
@@ -276,44 +317,55 @@ def transform(store, version_id, operation):
     return save_version(store, source, image, operation)
 
 
-def save_version(store, parent, image, operation, task_id=None):
+def save_version(store, parent, image, operation, task_id=None, prepare_task_id=None):
     version = uid()
     path = store.file(parent["path"]).with_name(version + ".png")
-    image.save(path)
-    with store.transaction() as db:
-        if task_id:
-            task = db.execute(
-                "SELECT status FROM tasks WHERE id=?", (task_id,)
-            ).fetchone()
-            if not task or task["status"] != "running":
-                path.unlink()
-                return None
-        db.execute(
-            "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
-            (
-                version,
-                parent["image_id"],
-                parent["id"],
-                str(path.relative_to(store.root)),
-                image.width,
-                image.height,
-                digest(path),
-                encoded(operation),
-                now(),
-            ),
-        )
-        if task_id:
+    owner_task = task_id or prepare_task_id
+    with image_publication(store, path) as publication:
+        image.save(publication.temporary)
+        sha256 = digest(publication.temporary)
+        with Image.open(publication.temporary) as check:
+            check.verify()
+        with store.transaction() as db:
+            if owner_task:
+                task = db.execute(
+                    "SELECT status FROM tasks WHERE id=?", (owner_task,)
+                ).fetchone()
+                if not task or task["status"] != "running":
+                    return None
             db.execute(
-                "UPDATE images SET active_version=? WHERE id=? AND active_version=?",
-                (version, parent["image_id"], parent["id"]),
+                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
+                (
+                    version,
+                    parent["image_id"],
+                    parent["id"],
+                    str(path.relative_to(store.root)),
+                    image.width,
+                    image.height,
+                    sha256,
+                    encoded(operation),
+                    now(),
+                ),
             )
-            db.execute(
-                "UPDATE tasks SET status='succeeded',phase='去弯曲完成',finished=?,result_version_id=? WHERE id=?",
-                (now(), version, task_id),
-            )
-        else:
-            db.execute(
-                "UPDATE images SET active_version=? WHERE id=?",
-                (version, parent["image_id"]),
-            )
+            if owner_task:
+                db.execute(
+                    "UPDATE images SET active_version=? WHERE id=? AND active_version=?",
+                    (version, parent["image_id"], parent["id"]),
+                )
+                if task_id:
+                    db.execute(
+                        "UPDATE tasks SET status='succeeded',phase='去弯曲完成',finished=?,result_version_id=? WHERE id=?",
+                        (now(), version, task_id),
+                    )
+                else:
+                    db.execute(
+                        "UPDATE tasks SET version_id=? WHERE id=?",
+                        (version, prepare_task_id),
+                    )
+            else:
+                db.execute(
+                    "UPDATE images SET active_version=? WHERE id=?",
+                    (version, parent["image_id"]),
+                )
+            publication.publish()
     return store.one("versions", version)

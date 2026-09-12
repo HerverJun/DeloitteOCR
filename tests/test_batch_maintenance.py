@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 import tempfile
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -133,6 +135,84 @@ class BatchMaintenanceTests(unittest.TestCase):
         self.assertIn(
             "未降低识别质量", friendly_engine_error(RuntimeError("CUDA out of memory"))
         )
+
+    def test_orphan_inventory_is_read_only_and_quarantine_rechecks_references(self):
+        orphan = self.store.file(self.photo["original_path"]).with_name(
+            "f" * 32 + ".png"
+        )
+        orphan.write_bytes(b"interrupted publication")
+        staged = self.store.root / ".image-staging" / ("a" * 32)
+        staged.mkdir()
+        (staged / "partial.png").write_bytes(b"partial")
+        restarted = ProjectMaintenance(self.store, self.queue)
+        report = restarted.orphan_report
+        self.assertEqual(report["count"], 2)
+        self.assertTrue(orphan.exists())
+        self.assertTrue(staged.exists())
+        with self.assertRaises(ValueError):
+            restarted.quarantine_orphans([self.photo["original_path"]])
+        chosen = orphan.relative_to(self.store.root).as_posix()
+        moved = restarted.quarantine_orphans([chosen])
+        self.assertFalse(orphan.exists())
+        self.assertTrue(self.store.file(self.photo["original_path"]).exists())
+        self.assertEqual(
+            json.loads(Path(moved["ledger"]).read_text("utf-8"))["paths"], [chosen]
+        )
+        self.assertEqual(
+            (Path(moved["directory"]) / "0").read_bytes(), b"interrupted publication"
+        )
+        self.assertEqual(restarted.orphans()["count"], 1)
+
+    def test_storage_explains_history_and_reports_runtime_low_space(self):
+        key = self.store.enqueue(
+            self.project["id"], [self.photo["active_version"]], ["ppocr"]
+        )[0]
+        self.store.claim()
+        self.store.complete(key, {"text": "long text " * 10000, "tables": []})
+        result = self.store.one("tasks", key)["result_id"]
+        self.store.save(
+            result, {"text": "long text " * 10000 + "校对", "tables": []}, 0
+        )
+        with patch(
+            "ocr_workbench.maintenance.shutil.disk_usage",
+            return_value=SimpleNamespace(free=1024),
+        ):
+            usage = self.maintenance.usage(self.project["id"])
+        self.assertTrue(usage["low_space"])
+        self.assertIn("清理磁盘", usage["warning"])
+        self.assertEqual(usage["history_entries"], 2)
+        self.assertGreater(usage["workspace_database_bytes"], usage["history_bytes"])
+        self.assertEqual(
+            usage["bytes"], usage["file_bytes"] + usage["database_payload_bytes"]
+        )
+
+    def test_orphan_scan_waits_for_in_progress_queue_image_publication(self):
+        self.store.enqueue(
+            self.project["id"],
+            [self.photo["active_version"]],
+            ["ppocr"],
+            [{"kind": "rotate", "degrees": 90}],
+        )
+        task = self.store.claim()
+        writing, release = threading.Event(), threading.Event()
+        save = Image.Image.save
+
+        def held(image, path, *args, **kwargs):
+            writing.set()
+            if not release.wait(3):
+                raise TimeoutError("test image publication was not released")
+            return save(image, path, *args, **kwargs)
+
+        with patch.object(Image.Image, "save", held), ThreadPoolExecutor(
+            max_workers=2
+        ) as pool:
+            work = pool.submit(prepare_task, self.store, task)
+            self.assertTrue(writing.wait(2))
+            scan = pool.submit(self.maintenance.orphans)
+            self.assertFalse(scan.done())
+            release.set()
+            self.assertIsNotNone(work.result(timeout=3))
+            self.assertEqual(scan.result(timeout=3)["count"], 0)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,21 @@ export function ProjectStorage({
     bytes: number;
     files: number;
     scope: string;
+    file_bytes?: number;
+    history_bytes?: number;
+    history_entries?: number;
+    database_payload_bytes?: number;
+    workspace_database_bytes?: number;
+    free_bytes?: number;
+    warning?: string | null;
   } | null>(null);
+  const [orphans, setOrphans] = useState<{
+    files: { path: string; bytes: number; reason: string }[];
+    count: number;
+    policy: string;
+  } | null>(null);
+  const [chosen, setChosen] = useState<string[]>([]);
+  const [quarantineReceipt, setQuarantineReceipt] = useState("");
   useEffect(() => {
     if (!open || !id) return;
     let active = true;
@@ -73,6 +87,99 @@ export function ProjectStorage({
                     个文件
                   </p>
                   <p>{usage.scope}</p>
+                  {usage.history_bytes !== undefined && (
+                    <p>
+                      文件 {((usage.file_bytes || 0) / 1048576).toFixed(1)}{" "}
+                      MB；项目数据库内容{" "}
+                      {((usage.database_payload_bytes || 0) / 1048576).toFixed(
+                        1,
+                      )}{" "}
+                      MB（含 {usage.history_entries} 条完整撤销历史，压缩后{" "}
+                      {(usage.history_bytes / 1048576).toFixed(2)}{" "}
+                      MB）。共享数据库{" "}
+                      {(
+                        (usage.workspace_database_bytes || 0) / 1048576
+                      ).toFixed(1)}{" "}
+                      MB；磁盘可用{" "}
+                      {((usage.free_bytes || 0) / 1073741824).toFixed(1)} GB。
+                    </p>
+                  )}
+                  {usage.warning && <p role="alert">{usage.warning}</p>}
+                  <details>
+                    <summary>审查工作区未登记文件</summary>
+                    <p>
+                      扫描整个工作区，只列出未被数据库引用的图片文件。选择后移入隔离目录，并保留原路径清单以便恢复。
+                    </p>
+                    <Button
+                      disabled={busy}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          setOrphans(await api("/maintenance/orphans"));
+                          setChosen([]);
+                        } catch (error) {
+                          onError(String(error));
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      扫描未登记文件
+                    </Button>
+                    {orphans && (
+                      <>
+                        <p>
+                          {orphans.count} 个路径 · {orphans.policy}
+                        </p>
+                        <div className="orphan-list">
+                          {orphans.files.map((file) => (
+                            <label key={file.path}>
+                              <input
+                                type="checkbox"
+                                checked={chosen.includes(file.path)}
+                                onChange={(e) =>
+                                  setChosen((old) =>
+                                    e.target.checked
+                                      ? [...old, file.path]
+                                      : old.filter((p) => p !== file.path),
+                                  )
+                                }
+                              />
+                              {file.path} · {file.reason} ·{" "}
+                              {(file.bytes / 1048576).toFixed(2)} MB
+                            </label>
+                          ))}
+                        </div>
+                        <Button
+                          disabled={busy || !chosen.length}
+                          onClick={async () => {
+                            setBusy(true);
+                            try {
+                              const result = await api(
+                                "/maintenance/orphans/quarantine",
+                                "POST",
+                                { paths: chosen },
+                              );
+                              setQuarantineReceipt(
+                                `已隔离 ${result.quarantined} 个路径。恢复清单：${result.ledger}`,
+                              );
+                              setOrphans(await api("/maintenance/orphans"));
+                              setChosen([]);
+                            } catch (error) {
+                              onError(String(error));
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                        >
+                          隔离所选文件（保留恢复清单）
+                        </Button>
+                      </>
+                    )}
+                    {quarantineReceipt && (
+                      <p role="status">{quarantineReceipt}</p>
+                    )}
+                  </details>
                 </>
               ) : (
                 <Spinner label="计算项目占用" />

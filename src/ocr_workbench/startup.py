@@ -14,19 +14,36 @@ from ocr_workbench.engine_packages import member_path
 from ocr_workbench.atomic_files import write_json
 
 
-def verify_integrity(root, progress=lambda done, total: None):
+def verify_integrity(root, progress=lambda done, total: None, *, core_only=False):
     root = Path(root).resolve()
     manifest = root / "manifest.json"
     if not manifest.is_file():
         return ["缺少文件校验清单 manifest.json，请重新解压完整包"]
     records = json.loads(manifest.read_text("utf-8"))["files"]
+
+    def included(relative):
+        parts = member_path(relative).parts
+        return not core_only or not (
+            parts[0].casefold() == "models"
+            or (
+                len(parts) > 1
+                and parts[0].casefold() == "runtimes"
+                and parts[1].casefold()
+                in {"ppocr", "paddlevl", "glm", "hunyuan", "llama", "dewarp"}
+            )
+        )
+
     expected = {}
+    seen = set()
     errors = []
     for item in records:
         relative = member_path(item["path"]).as_posix()
-        if relative.casefold() in expected:
+        if relative.casefold() in seen:
             raise ValueError("完整性清单有重复路径")
-        expected[relative.casefold()] = item
+        seen.add(relative.casefold())
+        if included(relative):
+            expected[relative.casefold()] = item
+    records = list(expected.values())
     actual = set()
     directories = [root]
     while directories:
@@ -34,6 +51,8 @@ def verify_integrity(root, progress=lambda done, total: None):
         for entry in os.scandir(directory):
             path = Path(entry.path)
             relative = path.relative_to(root)
+            if not included(relative.as_posix()):
+                continue
             if "__pycache__" in relative.parts or relative.parts[0] in {
                 "cache",
                 "runs",
@@ -83,7 +102,7 @@ def verify_integrity(root, progress=lambda done, total: None):
     return errors
 
 
-def run_checks(bundle, data, registry=None, integrity=True):
+def run_checks(bundle, data, registry=None, integrity=True, review_only=False):
     bundle = Path(bundle).resolve()
     data = Path(data).resolve()
     data.mkdir(parents=True, exist_ok=True)
@@ -97,6 +116,7 @@ def run_checks(bundle, data, registry=None, integrity=True):
         "warnings": [],
         "checks": [],
         "bundle": str(bundle),
+        "mode": "review_only" if review_only else "full",
     }
 
     def publish(message):
@@ -104,59 +124,34 @@ def run_checks(bundle, data, registry=None, integrity=True):
         write_json(target, report)
 
     try:
-        publish("检查磁盘、驱动与 GPU…")
+        publish("检查校对运行环境…" if review_only else "检查磁盘、驱动与 GPU…")
         report["disk_free_bytes"] = shutil.disk_usage(data).free
         if report["disk_free_bytes"] < 2 * 1024**3:
             report["errors"].append(
                 "项目磁盘剩余空间不足 2 GB，请清理磁盘或更换项目目录"
             )
-        try:
-            result = subprocess.run(
-                [
-                    "nvidia-smi",
-                    "--query-gpu=uuid,name,memory.total,memory.free,driver_version",
-                    "--format=csv,noheader,nounits",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=15,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-        except FileNotFoundError:
-            raise ValueError(
-                "未找到 NVIDIA 驱动检查工具 nvidia-smi，请安装兼容 NVIDIA 驱动后重试"
-            )
-        if result.returncode:
-            report["errors"].append("未发现可用 NVIDIA 驱动，请安装兼容驱动后重试")
+        if not review_only:
+            check_gpu(report)
         else:
-            columns = [v.strip() for v in result.stdout.splitlines()[0].split(",")]
-            report["gpu"] = {
-                "uuid": columns[0],
-                "name": columns[1],
-                "total_mib": int(columns[2]),
-                "free_mib": int(columns[3]),
-                "driver": columns[4],
-            }
-            if int(columns[2]) < 14 * 1024:
-                report["errors"].append(
-                    "GPU 总显存不足以运行本包全部固定精度引擎；本包目标为 16 GB 显存"
-                )
-            if int(columns[3]) < 2 * 1024:
-                report["errors"].append("当前可用显存不足 2 GB，请关闭占用 GPU 的程序")
-            elif int(columns[3]) < 12 * 1024:
-                report["warnings"].append(
-                    "当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
-                )
-            report["checks"].append("driver-and-gpu")
-        if integrity:
-            publish("正在逐文件校验应用、模型和依赖…")
+            report["warnings"].append(
+                "仅校对与导出模式：识别与引擎操作已禁用；应用和基础运行时仍完整校验"
+            )
+        if integrity or review_only:
+            publish(
+                "正在逐文件校验应用和基础依赖…"
+                if review_only
+                else "正在逐文件校验应用、模型和依赖…"
+            )
             report["errors"].extend(
                 verify_integrity(
                     bundle,
                     lambda done, total: publish(f"正在校验离线文件 {done}/{total}…"),
+                    core_only=review_only,
                 )
             )
-            report["checks"].append("full-file-sha256")
+            report["checks"].append(
+                "core-file-sha256" if review_only else "full-file-sha256"
+            )
         if not report["errors"]:
             imports = {
                 "service": [
@@ -175,6 +170,8 @@ def run_checks(bundle, data, registry=None, integrity=True):
                 "glm": ["torch", "transformers", "glmocr", "torchvision"],
                 "hunyuan": ["PIL.Image", "openpyxl"],
             }
+            if review_only:
+                imports = {"service": imports["service"]}
             dependency = []
             for engine, modules in imports.items():
                 publish("检查运行时依赖：" + engine + "…")
@@ -237,29 +234,8 @@ def run_checks(bundle, data, registry=None, integrity=True):
                     )
             report["dependencies"] = dependency
             report["checks"].append("native-runtime-imports")
-            native = subprocess.run(
-                [str(bundle / "runtimes/llama/llama-server.exe"), "--version"],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-            report["llama"] = {
-                "exit_code": native.returncode,
-                "output": native.stdout + native.stderr,
-            }
-            if native.returncode:
-                report["errors"].append("llama.cpp 原生运行库无法加载")
-            if registry:
-                for engine, package_id in registry.active().items():
-                    if package_id == "builtin":
-                        continue
-                    publish("校验已启用的引擎包：" + engine)
-                    root = registry.resolve(engine, package_id)
-                    from ocr_workbench.engine_packages import read_manifest
-
-                    registry.verify_files(root, read_manifest(root))
-                    registry.probe(root, engine)
+            if not review_only:
+                check_native_engines(bundle, registry, report, publish)
         report["status"] = "failed" if report["errors"] else "passed"
     except Exception as error:
         report["errors"].append("启动检查未完成：" + str(error))
@@ -273,13 +249,81 @@ def run_checks(bundle, data, registry=None, integrity=True):
     return report
 
 
+def check_gpu(report):
+    try:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=uuid,name,memory.total,memory.free,driver_version",
+                "--format=csv,noheader,nounits",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    except FileNotFoundError:
+        raise ValueError(
+            "未找到 NVIDIA 驱动检查工具 nvidia-smi，请安装兼容 NVIDIA 驱动后重试"
+        )
+    if result.returncode:
+        report["errors"].append("未发现可用 NVIDIA 驱动，请安装兼容驱动后重试")
+    else:
+        columns = [v.strip() for v in result.stdout.splitlines()[0].split(",")]
+        report["gpu"] = {
+            "uuid": columns[0],
+            "name": columns[1],
+            "total_mib": int(columns[2]),
+            "free_mib": int(columns[3]),
+            "driver": columns[4],
+        }
+        if int(columns[2]) < 14 * 1024:
+            report["errors"].append(
+                "GPU 总显存不足以运行本包全部固定精度引擎；本包目标为 16 GB 显存"
+            )
+        if int(columns[3]) < 2 * 1024:
+            report["errors"].append("当前可用显存不足 2 GB，请关闭占用 GPU 的程序")
+        elif int(columns[3]) < 12 * 1024:
+            report["warnings"].append(
+                "当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+            )
+        report["checks"].append("driver-and-gpu")
+
+
+def check_native_engines(bundle, registry, report, publish):
+    native = subprocess.run(
+        [str(bundle / "runtimes/llama/llama-server.exe"), "--version"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
+    report["llama"] = {
+        "exit_code": native.returncode,
+        "output": native.stdout + native.stderr,
+    }
+    if native.returncode:
+        report["errors"].append("llama.cpp 原生运行库无法加载")
+    if registry:
+        for engine, package_id in registry.active().items():
+            if package_id == "builtin":
+                continue
+            publish("校验已启用的引擎包：" + engine)
+            root = registry.resolve(engine, package_id)
+            from ocr_workbench.engine_packages import read_manifest
+
+            registry.verify_files(root, read_manifest(root))
+            registry.probe(root, engine)
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundle", type=Path, required=True)
     parser.add_argument("--data", type=Path, required=True)
+    parser.add_argument("--review-only", action="store_true")
     args = parser.parse_args()
-    result = run_checks(args.bundle, args.data)
+    result = run_checks(args.bundle, args.data, review_only=args.review_only)
     print(json.dumps(result, ensure_ascii=False))
     raise SystemExit(result["status"] != "passed")

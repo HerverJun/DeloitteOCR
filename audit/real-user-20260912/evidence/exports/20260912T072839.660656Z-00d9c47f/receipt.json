@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-12T07:28:39.660656+00:00",
+  "endpoint": "/api/export",
+  "parameters": {
+    "result_ids": [
+      "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+    ],
+    "format": "txt",
+    "aggregate": false,
+    "confirmed_only": false
+  },
+  "original_response_file": "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\data\\exports\\export-g_6g5s33\\OCR-result.txt",
+  "preserved_file": "C:\\Users\\A\\Desktop\\OCR\\audit\\real-user-20260912\\evidence\\exports\\20260912T072839.660656Z-00d9c47f\\OCR-result.txt",
+  "bytes": 70,
+  "source_sha256": "4d42972723a843c61f745ca38938b101c927a975aad061ee1b89b1c014efbbc4",
+  "preserved_sha256": "4d42972723a843c61f745ca38938b101c927a975aad061ee1b89b1c014efbbc4",
+  "byte_identical": true,
+  "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+  "business_result_modified": false,
+  "release_integrity_acceptance": false
+}

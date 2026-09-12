@@ -1,0 +1,4984 @@
+{
+  "verified_at": "2026-09-12T08:05:58.281222+00:00",
+  "python": "E:\\OCR-deloitte-build\\bundle\\runtimes\\service\\python.exe",
+  "method": "Read-only SHA-256, receipt, openpyxl data_type/merge inspection, independent HTML table parse, and pre-edit original snapshot comparison.",
+  "release_integrity_acceptance": false,
+  "checks": [
+    {
+      "id": "retained_bytes_match_all_receipts",
+      "passed": true,
+      "detail": {
+        "files": 14
+      }
+    },
+    {
+      "id": "earliest_road_txt_contains_edit_marker",
+      "passed": true,
+      "detail": "exports\\20260912T072822.545788Z-bb99b9f2\\OCR-result.txt"
+    },
+    {
+      "id": "preview_and_selected_export_use_distinct_results",
+      "passed": true,
+      "detail": {
+        "preview": {
+          "工作簿": "OCR-result.xlsx",
+          "工作表": "Table 1",
+          "原图": "pubmed_table.png",
+          "图片 ID": "29e1da91d91a4bcca40733b19ed6fac3",
+          "图像版本": "309498089a814c72a40e3c23a516ccbc",
+          "输入 SHA-256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+          "引擎": "glm",
+          "引擎名称": "GLM-OCR",
+          "引擎包": "builtin",
+          "模型版本": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+          "结果 ID": "6993a7e01e8140439975951ec0b480ed",
+          "校对 revision": "0",
+          "表格序号": "1"
+        },
+        "selected_result": "d94ee08e0f834775ad38c32ff8951b1b"
+      }
+    },
+    {
+      "id": "selected_ppocr_txt_matches_its_original",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T073120.639470Z-3d96497e\\OCR-result.txt",
+        "characters": 286,
+        "normalization": "Windows CRLF export compared to LF model text; no other normalization"
+      }
+    },
+    {
+      "id": "actual_identifier_values_remain_strings",
+      "passed": true,
+      "detail": {
+        "B3": {
+          "value": "00123",
+          "data_type": "s"
+        },
+        "D3": {
+          "value": "90071992547409931234",
+          "data_type": "s"
+        },
+        "E3": {
+          "value": "=1+1",
+          "data_type": "s"
+        }
+      }
+    },
+    {
+      "id": "no_formulas_in_edited_workbook",
+      "passed": true,
+      "detail": "exports\\20260912T073251.072311Z-4bc4dc70\\OCR-result.xlsx"
+    },
+    {
+      "id": "edited_table_has_six_rows_eight_columns",
+      "passed": true,
+      "detail": {
+        "rows": 6,
+        "columns": 8
+      }
+    },
+    {
+      "id": "markdown_tables_match_json_edited_tables",
+      "passed": true,
+      "detail": {
+        "md": "exports\\20260912T073309.502659Z-63a38750\\OCR-result.md",
+        "json": "exports\\20260912T073310.471393Z-9dbdc0a3\\OCR-result.json",
+        "revision": 7
+      }
+    },
+    {
+      "id": "xlsx_matches_json_edited_cells_and_merges",
+      "passed": true,
+      "detail": {
+        "cell_mismatches": [],
+        "merges": [
+          "A1:A2",
+          "B1:G1"
+        ],
+        "revision": 7
+      }
+    },
+    {
+      "id": "json_original_matches_pre_edit_snapshot",
+      "passed": true,
+      "detail": {
+        "result_id": "6993a7e01e8140439975951ec0b480ed",
+        "snapshot": "spotcheck-original-results.json"
+      }
+    },
+    {
+      "id": "json_original_retains_unedited_values",
+      "passed": true,
+      "detail": {
+        "edited_text_equals_original_text": true,
+        "note": "Structured table edits are independent of the original text field."
+      }
+    },
+    {
+      "id": "all_workbook_source_indexes_reference_correct_inputs",
+      "passed": true,
+      "detail": {
+        "workbooks_including_zip_members": 8,
+        "errors": []
+      }
+    },
+    {
+      "id": "all_workbooks_have_no_formula_cells",
+      "passed": true,
+      "detail": {
+        "workbooks_including_zip_members": 8
+      }
+    },
+    {
+      "id": "road_single_image_exports_two_tables",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T074050.234526Z-42a60311\\OCR-result.xlsx",
+        "sheets": [
+          "Table 1",
+          "Table 2"
+        ]
+      }
+    },
+    {
+      "id": "latest_road_tsv_identifiers_and_multiline",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T074050.234526Z-42a60311\\OCR-result.xlsx",
+        "caption_rows": 1,
+        "expected": {
+          "A2": "00123",
+          "B2": "90071992547409931234",
+          "C2": "=1+1"
+        },
+        "actual_cells": {
+          "A1": {
+            "value": "路牌人工校对",
+            "data_type": "s"
+          },
+          "B1": {
+            "value": null,
+            "data_type": "n"
+          },
+          "C1": {
+            "value": null,
+            "data_type": "n"
+          },
+          "A2": {
+            "value": "00123",
+            "data_type": "s"
+          },
+          "B2": {
+            "value": "90071992547409931234",
+            "data_type": "s"
+          },
+          "C2": {
+            "value": "=1+1",
+            "data_type": "s"
+          },
+          "A3": {
+            "value": "多行\n文本",
+            "data_type": "s"
+          },
+          "B3": {
+            "value": "Yuyuan Rd.",
+            "data_type": "s"
+          },
+          "C3": {
+            "value": null,
+            "data_type": "inlineStr"
+          }
+        },
+        "classification_if_failed": "requires_browser_or_saved_revision_check_before_attributing_to_product"
+      }
+    },
+    {
+      "id": "zip_sources_match_workbook_indexes:20260912T073610.420575Z-01343611",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T073610.420575Z-01343611\\OCR-results.zip",
+        "members": [
+          "0001.xlsx",
+          "0002.xlsx",
+          "sources.json"
+        ],
+        "source_table_count": 3
+      }
+    },
+    {
+      "id": "aggregate_contains_all_three_tables:20260912T073627.374423Z-798f9083",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T073627.374423Z-798f9083\\OCR-tables.xlsx",
+        "sources": [
+          {
+            "工作簿": "OCR-tables.xlsx",
+            "工作表": "Table 1",
+            "原图": "pubmed_table.png",
+            "图片 ID": "29e1da91d91a4bcca40733b19ed6fac3",
+            "图像版本": "309498089a814c72a40e3c23a516ccbc",
+            "输入 SHA-256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+            "引擎": "glm",
+            "引擎名称": "GLM-OCR",
+            "引擎包": "builtin",
+            "模型版本": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+            "结果 ID": "6993a7e01e8140439975951ec0b480ed",
+            "校对 revision": "7",
+            "表格序号": "1"
+          },
+          {
+            "工作簿": "OCR-tables.xlsx",
+            "工作表": "Table 2",
+            "原图": "chinese_store.jpg",
+            "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+            "图像版本": "e311f58910fc43bba613782296719b02",
+            "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "引擎": "ppocr",
+            "引擎名称": "PP-OCRv6 medium",
+            "引擎包": "builtin",
+            "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "校对 revision": "10",
+            "表格序号": "1"
+          },
+          {
+            "工作簿": "OCR-tables.xlsx",
+            "工作表": "Table 3",
+            "原图": "chinese_store.jpg",
+            "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+            "图像版本": "e311f58910fc43bba613782296719b02",
+            "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "引擎": "ppocr",
+            "引擎名称": "PP-OCRv6 medium",
+            "引擎包": "builtin",
+            "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "校对 revision": "10",
+            "表格序号": "2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "confirmed_only_contains_road_two_tables:20260912T073628.800581Z-edbcfb49",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T073628.800581Z-edbcfb49\\OCR-tables.xlsx",
+        "parameters": {
+          "result_ids": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+          ],
+          "format": "xlsx",
+          "aggregate": true,
+          "confirmed_only": true
+        },
+        "sources": [
+          {
+            "工作簿": "OCR-tables.xlsx",
+            "工作表": "Table 1",
+            "原图": "chinese_store.jpg",
+            "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+            "图像版本": "e311f58910fc43bba613782296719b02",
+            "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "引擎": "ppocr",
+            "引擎名称": "PP-OCRv6 medium",
+            "引擎包": "builtin",
+            "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "校对 revision": "10",
+            "表格序号": "1"
+          },
+          {
+            "工作簿": "OCR-tables.xlsx",
+            "工作表": "Table 2",
+            "原图": "chinese_store.jpg",
+            "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+            "图像版本": "e311f58910fc43bba613782296719b02",
+            "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "引擎": "ppocr",
+            "引擎名称": "PP-OCRv6 medium",
+            "引擎包": "builtin",
+            "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "校对 revision": "10",
+            "表格序号": "2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch_and_confirmed_tables_match_same_revision_standalone",
+      "passed": true,
+      "detail": [
+        {
+          "file": "exports\\20260912T073610.420575Z-01343611\\OCR-results.zip",
+          "workbook": "0001.xlsx",
+          "sheet": "Table 1",
+          "key": [
+            "6993a7e01e8140439975951ec0b480ed",
+            "7",
+            "1"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073251.072311Z-4bc4dc70\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073610.420575Z-01343611\\OCR-results.zip",
+          "workbook": "0002.xlsx",
+          "sheet": "Table 1",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "1"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073610.420575Z-01343611\\OCR-results.zip",
+          "workbook": "0002.xlsx",
+          "sheet": "Table 2",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "2"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073627.374423Z-798f9083\\OCR-tables.xlsx",
+          "workbook": "OCR-tables.xlsx",
+          "sheet": "Table 1",
+          "key": [
+            "6993a7e01e8140439975951ec0b480ed",
+            "7",
+            "1"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073251.072311Z-4bc4dc70\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073627.374423Z-798f9083\\OCR-tables.xlsx",
+          "workbook": "OCR-tables.xlsx",
+          "sheet": "Table 2",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "1"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073627.374423Z-798f9083\\OCR-tables.xlsx",
+          "workbook": "OCR-tables.xlsx",
+          "sheet": "Table 3",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "2"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073628.800581Z-edbcfb49\\OCR-tables.xlsx",
+          "workbook": "OCR-tables.xlsx",
+          "sheet": "Table 1",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "1"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        },
+        {
+          "file": "exports\\20260912T073628.800581Z-edbcfb49\\OCR-tables.xlsx",
+          "workbook": "OCR-tables.xlsx",
+          "sheet": "Table 2",
+          "key": [
+            "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "10",
+            "2"
+          ],
+          "matches_standalone": true,
+          "standalone": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx"
+        }
+      ]
+    },
+    {
+      "id": "selected_txt_works_while_current_image_unrecognized",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T075604.389359Z-4376c124\\OCR-result.txt",
+        "result_id": "66d7c221ad944168b20fdeec0c6e01ae",
+        "source_snapshot": "selected-export-source-snapshot.json",
+        "browser_observation": "Current image 科研表格.png had no result; selected 路牌 原图.jpg result exported through enabled 导出所选."
+      }
+    },
+    {
+      "id": "review_only_txt_contains_saved_edit",
+      "passed": true,
+      "detail": {
+        "file": "exports\\20260912T080402.091634Z-755dba7f\\OCR-result.txt",
+        "result_id": "66d7c221ad944168b20fdeec0c6e01ae",
+        "source_snapshot": "selected-export-source-snapshot.json",
+        "marker": "QA REVIEW_ONLY 保存导出",
+        "browser_observation": "Review-only mode: appended marker, waited for saved status, exported TXT, then restored original text and saved."
+      }
+    }
+  ],
+  "observations": [
+    {
+      "id": "glm_intermediate_editing_state",
+      "classification": "test_operation_observation_not_product_bug",
+      "expected_before_operator_clarification": {
+        "B3": "00123",
+        "C3": "90071992547409931234",
+        "D3": "=1+1"
+      },
+      "actual_B3_through_E3": {
+        "B3": {
+          "value": "00123",
+          "data_type": "s"
+        },
+        "C3": {
+          "value": null,
+          "data_type": "inlineStr"
+        },
+        "D3": {
+          "value": "90071992547409931234",
+          "data_type": "s"
+        },
+        "E3": {
+          "value": "=1+1",
+          "data_type": "s"
+        }
+      },
+      "file": "exports\\20260912T073251.072311Z-4bc4dc70\\OCR-result.xlsx",
+      "operator_clarification": "The test inserted at B3 and later deleted the last row/column rather than the inserted row/column. This artifact is an intentional retained intermediate state, not evidence of an export defect.",
+      "header_merges": {
+        "before": [
+          "A1:A2",
+          "B1:F1",
+          "G1:H1"
+        ],
+        "edited": [
+          "A1:A2",
+          "B1:G1"
+        ]
+      }
+    },
+    {
+      "id": "road_export_with_empty_first_table",
+      "file": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx",
+      "source": [
+        {
+          "工作簿": "OCR-result.xlsx",
+          "工作表": "Table 1",
+          "原图": "chinese_store.jpg",
+          "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+          "图像版本": "e311f58910fc43bba613782296719b02",
+          "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+          "引擎": "ppocr",
+          "引擎名称": "PP-OCRv6 medium",
+          "引擎包": "builtin",
+          "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+          "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+          "校对 revision": "10",
+          "表格序号": "1"
+        },
+        {
+          "工作簿": "OCR-result.xlsx",
+          "工作表": "Table 2",
+          "原图": "chinese_store.jpg",
+          "图片 ID": "da2a78077fa64855971ce70eb9fceacb",
+          "图像版本": "e311f58910fc43bba613782296719b02",
+          "输入 SHA-256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+          "引擎": "ppocr",
+          "引擎名称": "PP-OCRv6 medium",
+          "引擎包": "builtin",
+          "模型版本": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+          "结果 ID": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+          "校对 revision": "10",
+          "表格序号": "2"
+        }
+      ],
+      "values": [
+        [
+          "路牌人工校对",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "classification": "test_operation_observation_not_product_bug",
+      "operator_clarification": "Fast successive edits were grouped into the same autosave history entry; the test undo also reverted TSV insertion. The operator re-pasted, waited for saved state, switched between both tables to verify the values, and exported revision 11."
+    }
+  ],
+  "summary": {
+    "passed": 21,
+    "failed": 0,
+    "artifact_count": 14
+  },
+  "inventory": [
+    {
+      "file": "exports\\20260912T072822.545788Z-bb99b9f2\\OCR-result.txt",
+      "receipt": "exports\\20260912T072822.545788Z-bb99b9f2\\receipt.json",
+      "captured_at": "2026-09-12T07:28:22.545788+00:00",
+      "parameters": {
+        "result_ids": [
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "txt",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 70,
+      "sha256": "4d42972723a843c61f745ca38938b101c927a975aad061ee1b89b1c014efbbc4",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "西\r\n愚园路\r\n东\r\n315\r\n309\r\nW\r\nYuyuan Rd.\r\nE\r\nQA 校对标记 00123"
+    },
+    {
+      "file": "exports\\20260912T072839.660656Z-00d9c47f\\OCR-result.txt",
+      "receipt": "exports\\20260912T072839.660656Z-00d9c47f\\receipt.json",
+      "captured_at": "2026-09-12T07:28:39.660656+00:00",
+      "parameters": {
+        "result_ids": [
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "txt",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 70,
+      "sha256": "4d42972723a843c61f745ca38938b101c927a975aad061ee1b89b1c014efbbc4",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "西\r\n愚园路\r\n东\r\n315\r\n309\r\nW\r\nYuyuan Rd.\r\nE\r\nQA 校对标记 00123"
+    },
+    {
+      "file": "exports\\20260912T073100.990167Z-c6934b79\\OCR-result.xlsx",
+      "receipt": "exports\\20260912T073100.990167Z-c6934b79\\receipt.json",
+      "captured_at": "2026-09-12T07:31:00.990167+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed"
+        ],
+        "format": "xlsx",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 6544,
+      "sha256": "2eb61177cc26b5ca8d3179cec392e7276f4f47b49fae02d515ee4de214c174a1",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 6,
+          "columns": 8,
+          "merged": [
+            "A1:A2",
+            "B1:F1",
+            "G1:H1"
+          ],
+          "values": [
+            [
+              "Group",
+              "[H]DA uptake",
+              null,
+              null,
+              null,
+              null,
+              "DAT density",
+              null
+            ],
+            [
+              null,
+              "N",
+              "Vmax",
+              "SD",
+              "Km",
+              "SD",
+              "DAT",
+              "SD"
+            ],
+            [
+              "WT w Vbh",
+              "4",
+              "516.1",
+              "± 56.5",
+              "56.7",
+              "± 18.6",
+              "10.6",
+              "± 2.5"
+            ],
+            [
+              "IKO w Vbh",
+              "4",
+              "212.4",
+              "± 18.2",
+              "18.8",
+              "± 1.7",
+              "10.8",
+              "± 1.5"
+            ],
+            [
+              "WT w PPX",
+              "6",
+              "183.4",
+              "± 34.3",
+              "28.4",
+              "± 18.5",
+              "9.9",
+              "± 3.0"
+            ],
+            [
+              "D3 KO w PPX",
+              "6",
+              "223.6",
+              "± 36.4",
+              "10.4",
+              "± 10.9",
+              "9.4",
+              "± 2.6"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "Group",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "[H]DA uptake",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "DAT density",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "N",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "Vmax",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "Km",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "DAT",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "WT w Vbh",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "4",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": "516.1",
+              "data_type": "s"
+            },
+            "D3": {
+              "value": "± 56.5",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "56.7",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "± 18.6",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "10.6",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "± 2.5",
+              "data_type": "s"
+            },
+            "A4": {
+              "value": "IKO w Vbh",
+              "data_type": "s"
+            },
+            "B4": {
+              "value": "4",
+              "data_type": "s"
+            },
+            "C4": {
+              "value": "212.4",
+              "data_type": "s"
+            },
+            "D4": {
+              "value": "± 18.2",
+              "data_type": "s"
+            },
+            "E4": {
+              "value": "18.8",
+              "data_type": "s"
+            },
+            "F4": {
+              "value": "± 1.7",
+              "data_type": "s"
+            },
+            "G4": {
+              "value": "10.8",
+              "data_type": "s"
+            },
+            "H4": {
+              "value": "± 1.5",
+              "data_type": "s"
+            },
+            "A5": {
+              "value": "WT w PPX",
+              "data_type": "s"
+            },
+            "B5": {
+              "value": "6",
+              "data_type": "s"
+            },
+            "C5": {
+              "value": "183.4",
+              "data_type": "s"
+            },
+            "D5": {
+              "value": "± 34.3",
+              "data_type": "s"
+            },
+            "E5": {
+              "value": "28.4",
+              "data_type": "s"
+            },
+            "F5": {
+              "value": "± 18.5",
+              "data_type": "s"
+            },
+            "G5": {
+              "value": "9.9",
+              "data_type": "s"
+            },
+            "H5": {
+              "value": "± 3.0",
+              "data_type": "s"
+            },
+            "A6": {
+              "value": "D3 KO w PPX",
+              "data_type": "s"
+            },
+            "B6": {
+              "value": "6",
+              "data_type": "s"
+            },
+            "C6": {
+              "value": "223.6",
+              "data_type": "s"
+            },
+            "D6": {
+              "value": "± 36.4",
+              "data_type": "s"
+            },
+            "E6": {
+              "value": "10.4",
+              "data_type": "s"
+            },
+            "F6": {
+              "value": "± 10.9",
+              "data_type": "s"
+            },
+            "G6": {
+              "value": "9.4",
+              "data_type": "s"
+            },
+            "H6": {
+              "value": "± 2.6",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 2,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 1",
+              "pubmed_table.png",
+              "29e1da91d91a4bcca40733b19ed6fac3",
+              "309498089a814c72a40e3c23a516ccbc",
+              "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "glm",
+              "GLM-OCR",
+              "builtin",
+              "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "6993a7e01e8140439975951ec0b480ed",
+              "0",
+              "1"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "pubmed_table.png",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "29e1da91d91a4bcca40733b19ed6fac3",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "309498089a814c72a40e3c23a516ccbc",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "glm",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "GLM-OCR",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "6993a7e01e8140439975951ec0b480ed",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "0",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T073120.639470Z-3d96497e\\OCR-result.txt",
+      "receipt": "exports\\20260912T073120.639470Z-3d96497e\\receipt.json",
+      "captured_at": "2026-09-12T07:31:20.639470+00:00",
+      "parameters": {
+        "result_ids": [
+          "d94ee08e0f834775ad38c32ff8951b1b"
+        ],
+        "format": "txt",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 298,
+      "sha256": "c0a88096a4678c4be9c6fbf8ddff2836dd950d719793132a7c32a8659be6dd88",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "[3H]DA uptake\r\nDAT density\r\nGroup\r\nN\r\nVmax\r\nSD\r\nKm\r\nSD\r\nDAT\r\nSD\r\nWT w Veh\r\n4\r\n516.1\r\n± 56.5\r\n56.7\r\n± 18.6\r\n10.6\r\n10.8\r\n± 2.5\r\nD3 KO w Veh\r\n4\r\n212.4\r\n± 18.2\r\n10.8\r\n± 5.7\r\n9.9\r\n± 1.5\r\nWT w PPX\r\n6\r\n183.4\r\n± 34.3\r\n28.4\r\n± 18.5\r\n± 3.0\r\nD3 KO w PPX\r\n6\r\n223.6\r\n± 36.4\r\n10.4\r\n± 10.9\r\n9.4\r\n± 2.6"
+    },
+    {
+      "file": "exports\\20260912T073251.072311Z-4bc4dc70\\OCR-result.xlsx",
+      "receipt": "exports\\20260912T073251.072311Z-4bc4dc70\\receipt.json",
+      "captured_at": "2026-09-12T07:32:51.072311+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed"
+        ],
+        "format": "xlsx",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 6528,
+      "sha256": "6614632a96f4bfa07f9e06b8fcce45c2fcdb9c72632aed491c16daee91fa57c7",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 6,
+          "columns": 8,
+          "merged": [
+            "A1:A2",
+            "B1:G1"
+          ],
+          "values": [
+            [
+              "Group",
+              "[H]DA uptake",
+              null,
+              null,
+              null,
+              null,
+              null,
+              "DAT density"
+            ],
+            [
+              null,
+              "N",
+              null,
+              "Vmax",
+              "SD",
+              "Km",
+              "SD",
+              "DAT"
+            ],
+            [
+              "WT w Vbh",
+              "00123",
+              null,
+              "90071992547409931234",
+              "=1+1",
+              "56.7",
+              "± 18.6",
+              "10.6"
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              "IKO w Vbh",
+              "4",
+              null,
+              "212.4",
+              "± 18.2",
+              "18.8",
+              "± 1.7",
+              "10.8"
+            ],
+            [
+              "WT w PPX",
+              "6",
+              null,
+              "183.4",
+              "± 34.3",
+              "28.4",
+              "± 18.5",
+              "9.9"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "Group",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "[H]DA uptake",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "DAT density",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "N",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D2": {
+              "value": "Vmax",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "Km",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "DAT",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "WT w Vbh",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "00123",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D3": {
+              "value": "90071992547409931234",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "=1+1",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "56.7",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "± 18.6",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "10.6",
+              "data_type": "s"
+            },
+            "A4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "E4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "F4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "G4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "H4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "A5": {
+              "value": "IKO w Vbh",
+              "data_type": "s"
+            },
+            "B5": {
+              "value": "4",
+              "data_type": "s"
+            },
+            "C5": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D5": {
+              "value": "212.4",
+              "data_type": "s"
+            },
+            "E5": {
+              "value": "± 18.2",
+              "data_type": "s"
+            },
+            "F5": {
+              "value": "18.8",
+              "data_type": "s"
+            },
+            "G5": {
+              "value": "± 1.7",
+              "data_type": "s"
+            },
+            "H5": {
+              "value": "10.8",
+              "data_type": "s"
+            },
+            "A6": {
+              "value": "WT w PPX",
+              "data_type": "s"
+            },
+            "B6": {
+              "value": "6",
+              "data_type": "s"
+            },
+            "C6": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D6": {
+              "value": "183.4",
+              "data_type": "s"
+            },
+            "E6": {
+              "value": "± 34.3",
+              "data_type": "s"
+            },
+            "F6": {
+              "value": "28.4",
+              "data_type": "s"
+            },
+            "G6": {
+              "value": "± 18.5",
+              "data_type": "s"
+            },
+            "H6": {
+              "value": "9.9",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 2,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 1",
+              "pubmed_table.png",
+              "29e1da91d91a4bcca40733b19ed6fac3",
+              "309498089a814c72a40e3c23a516ccbc",
+              "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "glm",
+              "GLM-OCR",
+              "builtin",
+              "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "6993a7e01e8140439975951ec0b480ed",
+              "7",
+              "1"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "pubmed_table.png",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "29e1da91d91a4bcca40733b19ed6fac3",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "309498089a814c72a40e3c23a516ccbc",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "glm",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "GLM-OCR",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "6993a7e01e8140439975951ec0b480ed",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "7",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T073309.502659Z-63a38750\\OCR-result.md",
+      "receipt": "exports\\20260912T073309.502659Z-63a38750\\receipt.json",
+      "captured_at": "2026-09-12T07:33:09.502659+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed"
+        ],
+        "format": "md",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 1730,
+      "sha256": "8b80e3a6dd958970f50c287c6c31a01457133b745da179cb3a220347293f2e52",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "<table>\r\n<tr>\r\n<td rowspan=\"2\" colspan=\"1\">Group</td>\r\n<td rowspan=\"1\" colspan=\"6\">[H]DA uptake</td>\r\n<td rowspan=\"1\" colspan=\"1\">DAT density</td>\r\n</tr>\r\n<tr>\r\n<td rowspan=\"1\" colspan=\"1\">N</td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\">Vmax</td>\r\n<td rowspan=\"1\" colspan=\"1\">SD</td>\r\n<td rowspan=\"1\" colspan=\"1\">Km</td>\r\n<td rowspan=\"1\" colspan=\"1\">SD</td>\r\n<td rowspan=\"1\" colspan=\"1\">DAT</td>\r\n</tr>\r\n<tr>\r\n<td rowspan=\"1\" colspan=\"1\">WT w Vbh</td>\r\n<td rowspan=\"1\" colspan=\"1\">00123</td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\">90071992547409931234</td>\r\n<td rowspan=\"1\" colspan=\"1\">=1+1</td>\r\n<td rowspan=\"1\" colspan=\"1\">56.7</td>\r\n<td rowspan=\"1\" colspan=\"1\">± 18.6</td>\r\n<td rowspan=\"1\" colspan=\"1\">10.6</td>\r\n</tr>\r\n<tr>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n</tr>\r\n<tr>\r\n<td rowspan=\"1\" colspan=\"1\">IKO w Vbh</td>\r\n<td rowspan=\"1\" colspan=\"1\">4</td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\">212.4</td>\r\n<td rowspan=\"1\" colspan=\"1\">± 18.2</td>\r\n<td rowspan=\"1\" colspan=\"1\">18.8</td>\r\n<td rowspan=\"1\" colspan=\"1\">± 1.7</td>\r\n<td rowspan=\"1\" colspan=\"1\">10.8</td>\r\n</tr>\r\n<tr>\r\n<td rowspan=\"1\" colspan=\"1\">WT w PPX</td>\r\n<td rowspan=\"1\" colspan=\"1\">6</td>\r\n<td rowspan=\"1\" colspan=\"1\"></td>\r\n<td rowspan=\"1\" colspan=\"1\">183.4</td>\r\n<td rowspan=\"1\" colspan=\"1\">± 34.3</td>\r\n<td rowspan=\"1\" colspan=\"1\">28.4</td>\r\n<td rowspan=\"1\" colspan=\"1\">± 18.5</td>\r\n<td rowspan=\"1\" colspan=\"1\">9.9</td>\r\n</tr>\r\n</table>"
+    },
+    {
+      "file": "exports\\20260912T073310.471393Z-9dbdc0a3\\OCR-result.json",
+      "receipt": "exports\\20260912T073310.471393Z-9dbdc0a3\\receipt.json",
+      "captured_at": "2026-09-12T07:33:10.471393+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed"
+        ],
+        "format": "json",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 44337,
+      "sha256": "ac855e7206f4aae1db8b6eb1f2435d28a26e9276292f72a422001c30cf60fc0a",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "json": {
+        "id": "6993a7e01e8140439975951ec0b480ed",
+        "task_id": "ce00a6c28e41409085ae2c4751d3ea71",
+        "original": {
+          "schema_version": 1,
+          "status": "success",
+          "engine": "glm",
+          "engine_info": {
+            "name": "GLM-OCR",
+            "route": "Transformers BF16 CUDA plus official GLM SDK layout/crop/format components",
+            "models": [
+              "GLM-OCR",
+              "PP-DocLayoutV3_safetensors"
+            ],
+            "capabilities": {
+              "text": true,
+              "text_coordinates": false,
+              "region_coordinates": true,
+              "confidence": false,
+              "tables": true
+            }
+          },
+          "model_revisions": {
+            "GLM-OCR": "ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+            "PP-DocLayoutV3_safetensors": "97d101e6db2642e162a1d05392d1b0231c91033e"
+          },
+          "image": {
+            "source": "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\data\\projects\\d2804da1366f4d138dda3f7e7a6612b6\\images\\29e1da91d91a4bcca40733b19ed6fac3\\309498089a814c72a40e3c23a516ccbc.png",
+            "sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+            "version": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+            "width": 503,
+            "height": 98,
+            "coordinates": "prepared_image_pixels"
+          },
+          "elapsed_seconds": 12.494774799999504,
+          "load_seconds": 3.87736810000024,
+          "text": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>",
+          "blocks": [
+            {
+              "kind": "table",
+              "text": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>",
+              "confidence": null,
+              "polygon": [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  503.0,
+                  0.0
+                ],
+                [
+                  503.0,
+                  96.922
+                ],
+                [
+                  0.0,
+                  96.922
+                ]
+              ]
+            }
+          ],
+          "tables": [
+            {
+              "cells": [
+                {
+                  "row": 0,
+                  "column": 0,
+                  "row_span": 2,
+                  "column_span": 1,
+                  "text": "Group",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 0,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 5,
+                  "text": "[H]DA uptake",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 0,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 2,
+                  "text": "DAT density",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "N",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "Vmax",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "SD",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "Km",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "SD",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "DAT",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "SD",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "WT w Vbh",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "516.1",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 56.5",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "56.7",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "10.6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 2.5",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "IKO w Vbh",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "212.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.2",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "18.8",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 1.7",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "10.8",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 1.5",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "WT w PPX",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "183.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 34.3",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "28.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.5",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "9.9",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 3.0",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "D3 KO w PPX",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "223.6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 36.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "10.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 10.9",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "9.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 2.6",
+                  "confidence": null,
+                  "polygon": null
+                }
+              ],
+              "rows": 6,
+              "columns": 8,
+              "caption": "",
+              "source": {
+                "start": 0,
+                "end": 714,
+                "format": "html",
+                "sha256": "f6c9079ebf11a5e566987e2591ff908f8350b78f6cc5eac28d28030e9c7f7300"
+              }
+            }
+          ],
+          "raw": {
+            "regions": [
+              {
+                "index": 0,
+                "label": "table",
+                "score": 0.9403784275054932,
+                "bbox_2d": [
+                  0,
+                  0,
+                  1000,
+                  989
+                ],
+                "polygon": [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    979
+                  ],
+                  [
+                    998,
+                    969
+                  ],
+                  [
+                    998,
+                    0
+                  ]
+                ],
+                "task_type": "table",
+                "content": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>"
+              }
+            ],
+            "generated": [
+              {
+                "bbox_2d": [
+                  0,
+                  0,
+                  1000,
+                  989
+                ],
+                "task": "table",
+                "content": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>"
+              }
+            ],
+            "official_formatted_json": [
+              [
+                {
+                  "index": 0,
+                  "label": "table",
+                  "bbox_2d": [
+                    0,
+                    0,
+                    1000,
+                    989
+                  ],
+                  "polygon": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      979
+                    ],
+                    [
+                      998,
+                      969
+                    ],
+                    [
+                      998,
+                      0
+                    ]
+                  ],
+                  "content": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>",
+                  "native_label": "table"
+                }
+              ]
+            ],
+            "official_markdown": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>"
+          },
+          "warnings": [],
+          "artifacts": {
+            "xlsx": {
+              "status": "ready"
+            }
+          },
+          "runtime_audit": {
+            "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+            "executable": "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\python.exe",
+            "loaded_modules": [
+              "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26080.3-0\\MpOAV.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_asyncio.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_bz2.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_ctypes.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_decimal.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_elementtree.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_hashlib.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_lzma.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_multiprocessing.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_overlapped.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_queue.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_socket.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_sqlite3.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_ssl.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_uuid.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_wmi.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\_zoneinfo.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\libcrypto-3.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\libffi-8.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\libssl-3.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\msvcp140.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\pyexpat.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\python.exe",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\python3.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\python312.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\select.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\sqlite3.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\unicodedata.pyd",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\vcruntime140.dll",
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912\\runtimes\\glm\\vcruntime140_1.dll",
+              "C:\\Windows\\System32\\DXCore.dll",
+              "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_e980fd2c7c4fce8e\\nvcuda64.dll",
+              "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_e980fd2c7c4fce8e\\nvdxgdmal64.dll",
+              "C:\\Windows\\System32\\IPHLPAPI.DLL",
+              "C:\\Windows\\System32\\KernelBase.dll",
+              "C:\\Windows\\System32\\WinTypes.dll",
+              "C:\\Windows\\System32\\advapi32.dll",
+              "C:\\Windows\\System32\\amsi.dll",
+              "C:\\Windows\\System32\\bcrypt.dll",
+              "C:\\Windows\\System32\\bcryptprimitives.dll",
+              "C:\\Windows\\System32\\cfgmgr32.dll",
+              "C:\\Windows\\System32\\clbcatq.dll",
+              "C:\\Windows\\System32\\combase.dll",
+              "C:\\Windows\\System32\\crypt32.dll",
+              "C:\\Windows\\System32\\cryptbase.dll",
+              "C:\\Windows\\System32\\cryptnet.dll",
+              "C:\\Windows\\System32\\dbghelp.dll",
+              "C:\\Windows\\System32\\devobj.dll",
+              "C:\\Windows\\System32\\drvstore.dll",
+              "C:\\Windows\\System32\\gdi32.dll",
+              "C:\\Windows\\System32\\gdi32full.dll",
+              "C:\\Windows\\System32\\imagehlp.dll",
+              "C:\\Windows\\System32\\imm32.dll",
+              "C:\\Windows\\System32\\kernel.appcore.dll",
+              "C:\\Windows\\System32\\kernel32.dll",
+              "C:\\Windows\\System32\\msasn1.dll",
+              "C:\\Windows\\System32\\msvcp_win.dll",
+              "C:\\Windows\\System32\\msvcrt.dll",
+              "C:\\Windows\\System32\\mswsock.dll",
+              "C:\\Windows\\System32\\ntdll.dll",
+              "C:\\Windows\\System32\\nvapi64.dll",
+              "C:\\Windows\\System32\\nvcuda.dll",
+              "C:\\Windows\\System32\\ole32.dll",
+              "C:\\Windows\\System32\\oleaut32.dll",
+              "C:\\Windows\\System32\\pdh.dll",
+              "C:\\Windows\\System32\\powrprof.dll",
+              "C:\\Windows\\System32\\profapi.dll",
+              "C:\\Windows\\System32\\propsys.dll",
+              "C:\\Windows\\System32\\psapi.dll",
+              "C:\\Windows\\System32\\rpcrt4.dll",
+              "C:\\Windows\\System32\\sechost.dll",
+              "C:\\Windows\\System32\\setupapi.dll",
+              "C:\\Windows\\System32\\shell32.dll",
+              "C:\\Windows\\System32\\shlwapi.dll",
+              "C:\\Windows\\System32\\ucrtbase.dll",
+              "C:\\Windows\\System32\\umpdc.dll",
+              "C:\\Windows\\System32\\user32.dll",
+              "C:\\Windows\\System32\\userenv.dll",
+              "C:\\Windows\\System32\\uxtheme.dll",
+              "C:\\Windows\\System32\\version.dll",
+              "C:\\Windows\\System32\\win32u.dll",
+              "C:\\Windows\\System32\\wintrust.dll",
+              "C:\\Windows\\System32\\wldp.dll",
+              "C:\\Windows\\System32\\ws2_32.dll",
+              "C:\\Windows\\System32\\wtsapi32.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\PIL\\_imaging.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\PIL\\_imagingft.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\PIL\\_imagingmath.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\_pillow_heif.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\cv2\\cv2.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libde265-0-917e506a532d55cfb99a65f420b94dad.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libgcc_s_seh-1-35347f88da2137d3acaf083f81128552.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libheif-b635e78a7344f62641d67e07394f8251.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libstdc++-6-9fabacf176759adf41c62dee1152fe69.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libwinpthread-1-199474f4885374778124211409eb94f5.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\libx265-215-6f48200d6b1de3157e62a6336079e247.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\markupsafe\\_speedups.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy.libs\\libscipy_openblas64_-ed4f167a5330424524f45258e7ca2c8d.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\_core\\_multiarray_umath.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\fft\\_pocketfft_umath.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\linalg\\_umath_linalg.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_bounded_integers.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_common.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_generator.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_mt19937.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_pcg64.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_philox.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\_sfc64.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\bit_generator.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\numpy\\random\\mtrand.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\psutil\\_psutil_windows.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\pydantic_core\\_pydantic_core.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\pymupdf\\_extra.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\pymupdf\\_mupdf.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\pymupdf\\mupdfcpp64.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\regex\\_regex.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\safetensors\\_safetensors_rust.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\sentencepiece\\_sentencepiece.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\tokenizers\\tokenizers.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\_C.cp312-win_amd64.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\c10.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\c10_cuda.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\caffe2_nvrtc.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cublas64_12.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cublasLt64_12.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudart64_12.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_adv64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_cnn64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_engines_precompiled64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_engines_runtime_compiled64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_graph64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_heuristic64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cudnn_ops64_9.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cufft64_11.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cufftw64_11.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cupti64_2024.3.2.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\curand64_10.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cusolver64_11.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cusolverMg64_11.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\cusparse64_12.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvJitLink_120_0.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvToolsExt64_1.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvperf_host.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvrtc-builtins64_126.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvrtc64_120_0.alt.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\nvrtc64_120_0.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\shm.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\torch.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\torch_cpu.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\torch_cuda.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\torch_global_deps.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\torch_python.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\uv.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torch\\lib\\zlibwapi.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\_C.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\image.pyd",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\jpeg8.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\libpng16.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\libsharpyuv.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\libwebp.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\nvjpeg64_12.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\torchvision\\zlib.dll",
+              "E:\\OCR-week23-build\\bundle\\runtimes\\glm\\Lib\\site-packages\\yaml\\_yaml.cp312-win_amd64.pyd"
+            ],
+            "os_security_modules": [
+              "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26080.3-0\\MpOAV.dll"
+            ],
+            "non_system_modules_inside_bundle": false,
+            "test_harness_shared_dependency_audit": true,
+            "allowed_test_roots": [
+              "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912",
+              "E:\\OCR-week23-build\\bundle"
+            ],
+            "non_system_modules_inside_allowed_test_roots": true,
+            "release_integrity_acceptance": false
+          },
+          "engine_session": {
+            "id": "bd0d95e6ef094bbeac3d2fea5bc22ca1",
+            "load_seconds": 3.87736810000024,
+            "pid": 9736
+          },
+          "project_image_version": "309498089a814c72a40e3c23a516ccbc",
+          "version_operations": "{\"kind\":\"import\",\"exif_normalized\":true}",
+          "engine_package": {
+            "id": "builtin",
+            "bundle": "C:\\Users\\A\\Desktop\\OCR\\build\\real-user-20260912"
+          }
+        },
+        "edited": {
+          "text": "<table><thead><tr><th rowspan=\"2\">Group</th><th colspan=\"5\">[H]DA uptake</th><th colspan=\"2\">DAT density</th></tr><tr><th>N</th><th>Vmax</th><th>SD</th><th>Km</th><th>SD</th><th>DAT</th><th>SD</th></tr></thead><tbody><tr><td>WT w Vbh</td><td>4</td><td>516.1</td><td>± 56.5</td><td>56.7</td><td>± 18.6</td><td>10.6</td><td>± 2.5</td></tr><tr><td>IKO w Vbh</td><td>4</td><td>212.4</td><td>± 18.2</td><td>18.8</td><td>± 1.7</td><td>10.8</td><td>± 1.5</td></tr><tr><td>WT w PPX</td><td>6</td><td>183.4</td><td>± 34.3</td><td>28.4</td><td>± 18.5</td><td>9.9</td><td>± 3.0</td></tr><tr><td>D3 KO w PPX</td><td>6</td><td>223.6</td><td>± 36.4</td><td>10.4</td><td>± 10.9</td><td>9.4</td><td>± 2.6</td></tr></tbody></table>",
+          "tables": [
+            {
+              "cells": [
+                {
+                  "row": 0,
+                  "column": 0,
+                  "row_span": 2,
+                  "column_span": 1,
+                  "text": "Group",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 0,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 6,
+                  "text": "[H]DA uptake",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 0,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "DAT density",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "N",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "Vmax",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "SD",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "Km",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "SD",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 1,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "DAT",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "WT w Vbh",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "00123",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "90071992547409931234",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "=1+1",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "56.7",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 2,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "10.6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 3,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "IKO w Vbh",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "212.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.2",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "18.8",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 1.7",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 4,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "10.8",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 0,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "WT w PPX",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 1,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "6",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 2,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 3,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "183.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 4,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 34.3",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 5,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "28.4",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 6,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "± 18.5",
+                  "confidence": null,
+                  "polygon": null
+                },
+                {
+                  "row": 5,
+                  "column": 7,
+                  "row_span": 1,
+                  "column_span": 1,
+                  "text": "9.9",
+                  "confidence": null,
+                  "polygon": null
+                }
+              ],
+              "rows": 6,
+              "columns": 8,
+              "caption": "",
+              "source": {
+                "start": 0,
+                "end": 714,
+                "format": "html",
+                "sha256": "f6c9079ebf11a5e566987e2591ff908f8350b78f6cc5eac28d28030e9c7f7300"
+              }
+            }
+          ]
+        },
+        "cursor": 3,
+        "revision": 7,
+        "updated": "2026-09-12T07:32:50.998993+00:00",
+        "can_undo": true,
+        "can_redo": false
+      }
+    },
+    {
+      "file": "exports\\20260912T073608.767665Z-ac0f90ca\\OCR-result.xlsx",
+      "receipt": "exports\\20260912T073608.767665Z-ac0f90ca\\receipt.json",
+      "captured_at": "2026-09-12T07:36:08.767665+00:00",
+      "parameters": {
+        "result_ids": [
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "xlsx",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 6892,
+      "sha256": "60c1acac40c2902db22900ecda134eb1832663d44298ea1620b0188f694bb1aa",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 3,
+          "columns": 3,
+          "merged": [],
+          "values": [
+            [
+              "路牌人工校对",
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "路牌人工校对",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "C1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "A2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "A3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "Table 2",
+          "rows": 1,
+          "columns": 2,
+          "merged": [],
+          "values": [
+            [
+              "第二张表",
+              "保留多表"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "第二张表",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "保留多表",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 3,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 1",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "1"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 2",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "2"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "Table 2",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D3": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I3": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J3": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K3": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L3": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M3": {
+              "value": "2",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T073610.420575Z-01343611\\OCR-results.zip",
+      "receipt": "exports\\20260912T073610.420575Z-01343611\\receipt.json",
+      "captured_at": "2026-09-12T07:36:10.420575+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed",
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "xlsx",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 13049,
+      "sha256": "10f0081886af9968879d49512a268549cb66f05543095b5c0cbd8f5178aaaa53",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "zip_members": [
+        "0001.xlsx",
+        "0002.xlsx",
+        "sources.json"
+      ],
+      "zip_bad_member": null,
+      "zip_workbooks": {
+        "0001.xlsx": [
+          {
+            "name": "Table 1",
+            "rows": 6,
+            "columns": 8,
+            "merged": [
+              "A1:A2",
+              "B1:G1"
+            ],
+            "values": [
+              [
+                "Group",
+                "[H]DA uptake",
+                null,
+                null,
+                null,
+                null,
+                null,
+                "DAT density"
+              ],
+              [
+                null,
+                "N",
+                null,
+                "Vmax",
+                "SD",
+                "Km",
+                "SD",
+                "DAT"
+              ],
+              [
+                "WT w Vbh",
+                "00123",
+                null,
+                "90071992547409931234",
+                "=1+1",
+                "56.7",
+                "± 18.6",
+                "10.6"
+              ],
+              [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              [
+                "IKO w Vbh",
+                "4",
+                null,
+                "212.4",
+                "± 18.2",
+                "18.8",
+                "± 1.7",
+                "10.8"
+              ],
+              [
+                "WT w PPX",
+                "6",
+                null,
+                "183.4",
+                "± 34.3",
+                "28.4",
+                "± 18.5",
+                "9.9"
+              ]
+            ],
+            "cells": {
+              "A1": {
+                "value": "Group",
+                "data_type": "s"
+              },
+              "B1": {
+                "value": "[H]DA uptake",
+                "data_type": "s"
+              },
+              "H1": {
+                "value": "DAT density",
+                "data_type": "s"
+              },
+              "B2": {
+                "value": "N",
+                "data_type": "s"
+              },
+              "C2": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "D2": {
+                "value": "Vmax",
+                "data_type": "s"
+              },
+              "E2": {
+                "value": "SD",
+                "data_type": "s"
+              },
+              "F2": {
+                "value": "Km",
+                "data_type": "s"
+              },
+              "G2": {
+                "value": "SD",
+                "data_type": "s"
+              },
+              "H2": {
+                "value": "DAT",
+                "data_type": "s"
+              },
+              "A3": {
+                "value": "WT w Vbh",
+                "data_type": "s"
+              },
+              "B3": {
+                "value": "00123",
+                "data_type": "s"
+              },
+              "C3": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "D3": {
+                "value": "90071992547409931234",
+                "data_type": "s"
+              },
+              "E3": {
+                "value": "=1+1",
+                "data_type": "s"
+              },
+              "F3": {
+                "value": "56.7",
+                "data_type": "s"
+              },
+              "G3": {
+                "value": "± 18.6",
+                "data_type": "s"
+              },
+              "H3": {
+                "value": "10.6",
+                "data_type": "s"
+              },
+              "A4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "B4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "C4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "D4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "E4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "F4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "G4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "H4": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "A5": {
+                "value": "IKO w Vbh",
+                "data_type": "s"
+              },
+              "B5": {
+                "value": "4",
+                "data_type": "s"
+              },
+              "C5": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "D5": {
+                "value": "212.4",
+                "data_type": "s"
+              },
+              "E5": {
+                "value": "± 18.2",
+                "data_type": "s"
+              },
+              "F5": {
+                "value": "18.8",
+                "data_type": "s"
+              },
+              "G5": {
+                "value": "± 1.7",
+                "data_type": "s"
+              },
+              "H5": {
+                "value": "10.8",
+                "data_type": "s"
+              },
+              "A6": {
+                "value": "WT w PPX",
+                "data_type": "s"
+              },
+              "B6": {
+                "value": "6",
+                "data_type": "s"
+              },
+              "C6": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "D6": {
+                "value": "183.4",
+                "data_type": "s"
+              },
+              "E6": {
+                "value": "± 34.3",
+                "data_type": "s"
+              },
+              "F6": {
+                "value": "28.4",
+                "data_type": "s"
+              },
+              "G6": {
+                "value": "± 18.5",
+                "data_type": "s"
+              },
+              "H6": {
+                "value": "9.9",
+                "data_type": "s"
+              }
+            },
+            "formula_cells": []
+          },
+          {
+            "name": "来源索引",
+            "rows": 2,
+            "columns": 13,
+            "merged": [],
+            "values": [
+              [
+                "工作簿",
+                "工作表",
+                "原图",
+                "图片 ID",
+                "图像版本",
+                "输入 SHA-256",
+                "引擎",
+                "引擎名称",
+                "引擎包",
+                "模型版本",
+                "结果 ID",
+                "校对 revision",
+                "表格序号"
+              ],
+              [
+                "0001.xlsx",
+                "Table 1",
+                "pubmed_table.png",
+                "29e1da91d91a4bcca40733b19ed6fac3",
+                "309498089a814c72a40e3c23a516ccbc",
+                "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+                "glm",
+                "GLM-OCR",
+                "builtin",
+                "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+                "6993a7e01e8140439975951ec0b480ed",
+                "7",
+                "1"
+              ]
+            ],
+            "cells": {
+              "A1": {
+                "value": "工作簿",
+                "data_type": "s"
+              },
+              "B1": {
+                "value": "工作表",
+                "data_type": "s"
+              },
+              "C1": {
+                "value": "原图",
+                "data_type": "s"
+              },
+              "D1": {
+                "value": "图片 ID",
+                "data_type": "s"
+              },
+              "E1": {
+                "value": "图像版本",
+                "data_type": "s"
+              },
+              "F1": {
+                "value": "输入 SHA-256",
+                "data_type": "s"
+              },
+              "G1": {
+                "value": "引擎",
+                "data_type": "s"
+              },
+              "H1": {
+                "value": "引擎名称",
+                "data_type": "s"
+              },
+              "I1": {
+                "value": "引擎包",
+                "data_type": "s"
+              },
+              "J1": {
+                "value": "模型版本",
+                "data_type": "s"
+              },
+              "K1": {
+                "value": "结果 ID",
+                "data_type": "s"
+              },
+              "L1": {
+                "value": "校对 revision",
+                "data_type": "s"
+              },
+              "M1": {
+                "value": "表格序号",
+                "data_type": "s"
+              },
+              "A2": {
+                "value": "0001.xlsx",
+                "data_type": "s"
+              },
+              "B2": {
+                "value": "Table 1",
+                "data_type": "s"
+              },
+              "C2": {
+                "value": "pubmed_table.png",
+                "data_type": "s"
+              },
+              "D2": {
+                "value": "29e1da91d91a4bcca40733b19ed6fac3",
+                "data_type": "s"
+              },
+              "E2": {
+                "value": "309498089a814c72a40e3c23a516ccbc",
+                "data_type": "s"
+              },
+              "F2": {
+                "value": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+                "data_type": "s"
+              },
+              "G2": {
+                "value": "glm",
+                "data_type": "s"
+              },
+              "H2": {
+                "value": "GLM-OCR",
+                "data_type": "s"
+              },
+              "I2": {
+                "value": "builtin",
+                "data_type": "s"
+              },
+              "J2": {
+                "value": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+                "data_type": "s"
+              },
+              "K2": {
+                "value": "6993a7e01e8140439975951ec0b480ed",
+                "data_type": "s"
+              },
+              "L2": {
+                "value": "7",
+                "data_type": "s"
+              },
+              "M2": {
+                "value": "1",
+                "data_type": "s"
+              }
+            },
+            "formula_cells": []
+          }
+        ],
+        "0002.xlsx": [
+          {
+            "name": "Table 1",
+            "rows": 3,
+            "columns": 3,
+            "merged": [],
+            "values": [
+              [
+                "路牌人工校对",
+                null,
+                null
+              ],
+              [
+                null,
+                null,
+                null
+              ],
+              [
+                null,
+                null,
+                null
+              ]
+            ],
+            "cells": {
+              "A1": {
+                "value": "路牌人工校对",
+                "data_type": "s"
+              },
+              "B1": {
+                "value": null,
+                "data_type": "n"
+              },
+              "C1": {
+                "value": null,
+                "data_type": "n"
+              },
+              "A2": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "B2": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "C2": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "A3": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "B3": {
+                "value": null,
+                "data_type": "inlineStr"
+              },
+              "C3": {
+                "value": null,
+                "data_type": "inlineStr"
+              }
+            },
+            "formula_cells": []
+          },
+          {
+            "name": "Table 2",
+            "rows": 1,
+            "columns": 2,
+            "merged": [],
+            "values": [
+              [
+                "第二张表",
+                "保留多表"
+              ]
+            ],
+            "cells": {
+              "A1": {
+                "value": "第二张表",
+                "data_type": "s"
+              },
+              "B1": {
+                "value": "保留多表",
+                "data_type": "s"
+              }
+            },
+            "formula_cells": []
+          },
+          {
+            "name": "来源索引",
+            "rows": 3,
+            "columns": 13,
+            "merged": [],
+            "values": [
+              [
+                "工作簿",
+                "工作表",
+                "原图",
+                "图片 ID",
+                "图像版本",
+                "输入 SHA-256",
+                "引擎",
+                "引擎名称",
+                "引擎包",
+                "模型版本",
+                "结果 ID",
+                "校对 revision",
+                "表格序号"
+              ],
+              [
+                "0002.xlsx",
+                "Table 1",
+                "chinese_store.jpg",
+                "da2a78077fa64855971ce70eb9fceacb",
+                "e311f58910fc43bba613782296719b02",
+                "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+                "ppocr",
+                "PP-OCRv6 medium",
+                "builtin",
+                "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+                "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+                "10",
+                "1"
+              ],
+              [
+                "0002.xlsx",
+                "Table 2",
+                "chinese_store.jpg",
+                "da2a78077fa64855971ce70eb9fceacb",
+                "e311f58910fc43bba613782296719b02",
+                "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+                "ppocr",
+                "PP-OCRv6 medium",
+                "builtin",
+                "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+                "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+                "10",
+                "2"
+              ]
+            ],
+            "cells": {
+              "A1": {
+                "value": "工作簿",
+                "data_type": "s"
+              },
+              "B1": {
+                "value": "工作表",
+                "data_type": "s"
+              },
+              "C1": {
+                "value": "原图",
+                "data_type": "s"
+              },
+              "D1": {
+                "value": "图片 ID",
+                "data_type": "s"
+              },
+              "E1": {
+                "value": "图像版本",
+                "data_type": "s"
+              },
+              "F1": {
+                "value": "输入 SHA-256",
+                "data_type": "s"
+              },
+              "G1": {
+                "value": "引擎",
+                "data_type": "s"
+              },
+              "H1": {
+                "value": "引擎名称",
+                "data_type": "s"
+              },
+              "I1": {
+                "value": "引擎包",
+                "data_type": "s"
+              },
+              "J1": {
+                "value": "模型版本",
+                "data_type": "s"
+              },
+              "K1": {
+                "value": "结果 ID",
+                "data_type": "s"
+              },
+              "L1": {
+                "value": "校对 revision",
+                "data_type": "s"
+              },
+              "M1": {
+                "value": "表格序号",
+                "data_type": "s"
+              },
+              "A2": {
+                "value": "0002.xlsx",
+                "data_type": "s"
+              },
+              "B2": {
+                "value": "Table 1",
+                "data_type": "s"
+              },
+              "C2": {
+                "value": "chinese_store.jpg",
+                "data_type": "s"
+              },
+              "D2": {
+                "value": "da2a78077fa64855971ce70eb9fceacb",
+                "data_type": "s"
+              },
+              "E2": {
+                "value": "e311f58910fc43bba613782296719b02",
+                "data_type": "s"
+              },
+              "F2": {
+                "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+                "data_type": "s"
+              },
+              "G2": {
+                "value": "ppocr",
+                "data_type": "s"
+              },
+              "H2": {
+                "value": "PP-OCRv6 medium",
+                "data_type": "s"
+              },
+              "I2": {
+                "value": "builtin",
+                "data_type": "s"
+              },
+              "J2": {
+                "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+                "data_type": "s"
+              },
+              "K2": {
+                "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+                "data_type": "s"
+              },
+              "L2": {
+                "value": "10",
+                "data_type": "s"
+              },
+              "M2": {
+                "value": "1",
+                "data_type": "s"
+              },
+              "A3": {
+                "value": "0002.xlsx",
+                "data_type": "s"
+              },
+              "B3": {
+                "value": "Table 2",
+                "data_type": "s"
+              },
+              "C3": {
+                "value": "chinese_store.jpg",
+                "data_type": "s"
+              },
+              "D3": {
+                "value": "da2a78077fa64855971ce70eb9fceacb",
+                "data_type": "s"
+              },
+              "E3": {
+                "value": "e311f58910fc43bba613782296719b02",
+                "data_type": "s"
+              },
+              "F3": {
+                "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+                "data_type": "s"
+              },
+              "G3": {
+                "value": "ppocr",
+                "data_type": "s"
+              },
+              "H3": {
+                "value": "PP-OCRv6 medium",
+                "data_type": "s"
+              },
+              "I3": {
+                "value": "builtin",
+                "data_type": "s"
+              },
+              "J3": {
+                "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+                "data_type": "s"
+              },
+              "K3": {
+                "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+                "data_type": "s"
+              },
+              "L3": {
+                "value": "10",
+                "data_type": "s"
+              },
+              "M3": {
+                "value": "2",
+                "data_type": "s"
+              }
+            },
+            "formula_cells": []
+          }
+        ]
+      },
+      "sources": {
+        "schema_version": 1,
+        "tables": [
+          {
+            "workbook": "0001.xlsx",
+            "image_name": "pubmed_table.png",
+            "image_id": "29e1da91d91a4bcca40733b19ed6fac3",
+            "image_version": "309498089a814c72a40e3c23a516ccbc",
+            "input_sha256": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+            "engine": "glm",
+            "engine_name": "GLM-OCR",
+            "engine_package": "builtin",
+            "model_revisions": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+            "result_id": "6993a7e01e8140439975951ec0b480ed",
+            "revision": 7,
+            "sheet": "Table 1",
+            "table_index": 1
+          },
+          {
+            "workbook": "0002.xlsx",
+            "image_name": "chinese_store.jpg",
+            "image_id": "da2a78077fa64855971ce70eb9fceacb",
+            "image_version": "e311f58910fc43bba613782296719b02",
+            "input_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "engine": "ppocr",
+            "engine_name": "PP-OCRv6 medium",
+            "engine_package": "builtin",
+            "model_revisions": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "result_id": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "revision": 10,
+            "sheet": "Table 1",
+            "table_index": 1
+          },
+          {
+            "workbook": "0002.xlsx",
+            "image_name": "chinese_store.jpg",
+            "image_id": "da2a78077fa64855971ce70eb9fceacb",
+            "image_version": "e311f58910fc43bba613782296719b02",
+            "input_sha256": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+            "engine": "ppocr",
+            "engine_name": "PP-OCRv6 medium",
+            "engine_package": "builtin",
+            "model_revisions": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+            "result_id": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+            "revision": 10,
+            "sheet": "Table 2",
+            "table_index": 2
+          }
+        ]
+      }
+    },
+    {
+      "file": "exports\\20260912T073627.374423Z-798f9083\\OCR-tables.xlsx",
+      "receipt": "exports\\20260912T073627.374423Z-798f9083\\receipt.json",
+      "captured_at": "2026-09-12T07:36:27.374423+00:00",
+      "parameters": {
+        "result_ids": [
+          "6993a7e01e8140439975951ec0b480ed",
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "xlsx",
+        "aggregate": true,
+        "confirmed_only": false
+      },
+      "bytes": 8045,
+      "sha256": "f314951df049b9c62c262418f961ba36047b498f02dd19659ba8c8486b6e4ee8",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 6,
+          "columns": 8,
+          "merged": [
+            "A1:A2",
+            "B1:G1"
+          ],
+          "values": [
+            [
+              "Group",
+              "[H]DA uptake",
+              null,
+              null,
+              null,
+              null,
+              null,
+              "DAT density"
+            ],
+            [
+              null,
+              "N",
+              null,
+              "Vmax",
+              "SD",
+              "Km",
+              "SD",
+              "DAT"
+            ],
+            [
+              "WT w Vbh",
+              "00123",
+              null,
+              "90071992547409931234",
+              "=1+1",
+              "56.7",
+              "± 18.6",
+              "10.6"
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              "IKO w Vbh",
+              "4",
+              null,
+              "212.4",
+              "± 18.2",
+              "18.8",
+              "± 1.7",
+              "10.8"
+            ],
+            [
+              "WT w PPX",
+              "6",
+              null,
+              "183.4",
+              "± 34.3",
+              "28.4",
+              "± 18.5",
+              "9.9"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "Group",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "[H]DA uptake",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "DAT density",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "N",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D2": {
+              "value": "Vmax",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "Km",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "SD",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "DAT",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "WT w Vbh",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "00123",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D3": {
+              "value": "90071992547409931234",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "=1+1",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "56.7",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "± 18.6",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "10.6",
+              "data_type": "s"
+            },
+            "A4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "E4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "F4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "G4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "H4": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "A5": {
+              "value": "IKO w Vbh",
+              "data_type": "s"
+            },
+            "B5": {
+              "value": "4",
+              "data_type": "s"
+            },
+            "C5": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D5": {
+              "value": "212.4",
+              "data_type": "s"
+            },
+            "E5": {
+              "value": "± 18.2",
+              "data_type": "s"
+            },
+            "F5": {
+              "value": "18.8",
+              "data_type": "s"
+            },
+            "G5": {
+              "value": "± 1.7",
+              "data_type": "s"
+            },
+            "H5": {
+              "value": "10.8",
+              "data_type": "s"
+            },
+            "A6": {
+              "value": "WT w PPX",
+              "data_type": "s"
+            },
+            "B6": {
+              "value": "6",
+              "data_type": "s"
+            },
+            "C6": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "D6": {
+              "value": "183.4",
+              "data_type": "s"
+            },
+            "E6": {
+              "value": "± 34.3",
+              "data_type": "s"
+            },
+            "F6": {
+              "value": "28.4",
+              "data_type": "s"
+            },
+            "G6": {
+              "value": "± 18.5",
+              "data_type": "s"
+            },
+            "H6": {
+              "value": "9.9",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "Table 2",
+          "rows": 3,
+          "columns": 3,
+          "merged": [],
+          "values": [
+            [
+              "路牌人工校对",
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "路牌人工校对",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "C1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "A2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "A3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "Table 3",
+          "rows": 1,
+          "columns": 2,
+          "merged": [],
+          "values": [
+            [
+              "第二张表",
+              "保留多表"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "第二张表",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "保留多表",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 4,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-tables.xlsx",
+              "Table 1",
+              "pubmed_table.png",
+              "29e1da91d91a4bcca40733b19ed6fac3",
+              "309498089a814c72a40e3c23a516ccbc",
+              "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "glm",
+              "GLM-OCR",
+              "builtin",
+              "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "6993a7e01e8140439975951ec0b480ed",
+              "7",
+              "1"
+            ],
+            [
+              "OCR-tables.xlsx",
+              "Table 2",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "1"
+            ],
+            [
+              "OCR-tables.xlsx",
+              "Table 3",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "2"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-tables.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "pubmed_table.png",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "29e1da91d91a4bcca40733b19ed6fac3",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "309498089a814c72a40e3c23a516ccbc",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "3a59f325358c9830610174ca4e6061fd184bbde730869be167840c10b22e76d3",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "glm",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "GLM-OCR",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"GLM-OCR\": \"ca5d8b3e287e52589e37c28385d9655ee4372f9d\", \"PP-DocLayoutV3_safetensors\": \"97d101e6db2642e162a1d05392d1b0231c91033e\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "6993a7e01e8140439975951ec0b480ed",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "7",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "OCR-tables.xlsx",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "Table 2",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D3": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I3": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J3": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K3": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L3": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M3": {
+              "value": "1",
+              "data_type": "s"
+            },
+            "A4": {
+              "value": "OCR-tables.xlsx",
+              "data_type": "s"
+            },
+            "B4": {
+              "value": "Table 3",
+              "data_type": "s"
+            },
+            "C4": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D4": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E4": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F4": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G4": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H4": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I4": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J4": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K4": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L4": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M4": {
+              "value": "2",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T073628.800581Z-edbcfb49\\OCR-tables.xlsx",
+      "receipt": "exports\\20260912T073628.800581Z-edbcfb49\\receipt.json",
+      "captured_at": "2026-09-12T07:36:28.800581+00:00",
+      "parameters": {
+        "result_ids": [
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "xlsx",
+        "aggregate": true,
+        "confirmed_only": true
+      },
+      "bytes": 6891,
+      "sha256": "3ab5caeef01b3347de684ebae6c7775b5904e9ce0d0024eca67ba53749bb296c",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 3,
+          "columns": 3,
+          "merged": [],
+          "values": [
+            [
+              "路牌人工校对",
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "路牌人工校对",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "C1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "A2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C2": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "A3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "B3": {
+              "value": null,
+              "data_type": "inlineStr"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "Table 2",
+          "rows": 1,
+          "columns": 2,
+          "merged": [],
+          "values": [
+            [
+              "第二张表",
+              "保留多表"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "第二张表",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "保留多表",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 3,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-tables.xlsx",
+              "Table 1",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "1"
+            ],
+            [
+              "OCR-tables.xlsx",
+              "Table 2",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "10",
+              "2"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-tables.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "OCR-tables.xlsx",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "Table 2",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D3": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I3": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J3": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K3": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L3": {
+              "value": "10",
+              "data_type": "s"
+            },
+            "M3": {
+              "value": "2",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T074050.234526Z-42a60311\\OCR-result.xlsx",
+      "receipt": "exports\\20260912T074050.234526Z-42a60311\\receipt.json",
+      "captured_at": "2026-09-12T07:40:50.234526+00:00",
+      "parameters": {
+        "result_ids": [
+          "dd6dbfe75d6b4f2fb048c03c5e8d8229"
+        ],
+        "format": "xlsx",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 6960,
+      "sha256": "2170efe902ad43092dec050911e6fd4278c3bab3f5e91d9726f2ade06c99524d",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "workbook": [
+        {
+          "name": "Table 1",
+          "rows": 3,
+          "columns": 3,
+          "merged": [],
+          "values": [
+            [
+              "路牌人工校对",
+              null,
+              null
+            ],
+            [
+              "00123",
+              "90071992547409931234",
+              "=1+1"
+            ],
+            [
+              "多行\n文本",
+              "Yuyuan Rd.",
+              null
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "路牌人工校对",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "C1": {
+              "value": null,
+              "data_type": "n"
+            },
+            "A2": {
+              "value": "00123",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "90071992547409931234",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "=1+1",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "多行\n文本",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "Yuyuan Rd.",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": null,
+              "data_type": "inlineStr"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "Table 2",
+          "rows": 1,
+          "columns": 2,
+          "merged": [],
+          "values": [
+            [
+              "第二张表",
+              "保留多表"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "第二张表",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "保留多表",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        },
+        {
+          "name": "来源索引",
+          "rows": 3,
+          "columns": 13,
+          "merged": [],
+          "values": [
+            [
+              "工作簿",
+              "工作表",
+              "原图",
+              "图片 ID",
+              "图像版本",
+              "输入 SHA-256",
+              "引擎",
+              "引擎名称",
+              "引擎包",
+              "模型版本",
+              "结果 ID",
+              "校对 revision",
+              "表格序号"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 1",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "11",
+              "1"
+            ],
+            [
+              "OCR-result.xlsx",
+              "Table 2",
+              "chinese_store.jpg",
+              "da2a78077fa64855971ce70eb9fceacb",
+              "e311f58910fc43bba613782296719b02",
+              "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "ppocr",
+              "PP-OCRv6 medium",
+              "builtin",
+              "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "11",
+              "2"
+            ]
+          ],
+          "cells": {
+            "A1": {
+              "value": "工作簿",
+              "data_type": "s"
+            },
+            "B1": {
+              "value": "工作表",
+              "data_type": "s"
+            },
+            "C1": {
+              "value": "原图",
+              "data_type": "s"
+            },
+            "D1": {
+              "value": "图片 ID",
+              "data_type": "s"
+            },
+            "E1": {
+              "value": "图像版本",
+              "data_type": "s"
+            },
+            "F1": {
+              "value": "输入 SHA-256",
+              "data_type": "s"
+            },
+            "G1": {
+              "value": "引擎",
+              "data_type": "s"
+            },
+            "H1": {
+              "value": "引擎名称",
+              "data_type": "s"
+            },
+            "I1": {
+              "value": "引擎包",
+              "data_type": "s"
+            },
+            "J1": {
+              "value": "模型版本",
+              "data_type": "s"
+            },
+            "K1": {
+              "value": "结果 ID",
+              "data_type": "s"
+            },
+            "L1": {
+              "value": "校对 revision",
+              "data_type": "s"
+            },
+            "M1": {
+              "value": "表格序号",
+              "data_type": "s"
+            },
+            "A2": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B2": {
+              "value": "Table 1",
+              "data_type": "s"
+            },
+            "C2": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D2": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E2": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F2": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G2": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H2": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I2": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J2": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K2": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L2": {
+              "value": "11",
+              "data_type": "s"
+            },
+            "M2": {
+              "value": "1",
+              "data_type": "s"
+            },
+            "A3": {
+              "value": "OCR-result.xlsx",
+              "data_type": "s"
+            },
+            "B3": {
+              "value": "Table 2",
+              "data_type": "s"
+            },
+            "C3": {
+              "value": "chinese_store.jpg",
+              "data_type": "s"
+            },
+            "D3": {
+              "value": "da2a78077fa64855971ce70eb9fceacb",
+              "data_type": "s"
+            },
+            "E3": {
+              "value": "e311f58910fc43bba613782296719b02",
+              "data_type": "s"
+            },
+            "F3": {
+              "value": "84f14089d4a03aba75bdee5621b4894e31c7dbf0f3d887d10d063b322460cf90",
+              "data_type": "s"
+            },
+            "G3": {
+              "value": "ppocr",
+              "data_type": "s"
+            },
+            "H3": {
+              "value": "PP-OCRv6 medium",
+              "data_type": "s"
+            },
+            "I3": {
+              "value": "builtin",
+              "data_type": "s"
+            },
+            "J3": {
+              "value": "{\"PP-LCNet_x1_0_textline_ori\": \"cd237a44b0e359d4fe38310a416203cf7403faa5\", \"PP-OCRv6_medium_det\": \"8e0f56fb2ef86b461d99cfc7ac5c137738985f61\", \"PP-OCRv6_medium_rec\": \"e5a92bcbc5cc1b494628e458d267778f0704fd7c\"}",
+              "data_type": "s"
+            },
+            "K3": {
+              "value": "dd6dbfe75d6b4f2fb048c03c5e8d8229",
+              "data_type": "s"
+            },
+            "L3": {
+              "value": "11",
+              "data_type": "s"
+            },
+            "M3": {
+              "value": "2",
+              "data_type": "s"
+            }
+          },
+          "formula_cells": []
+        }
+      ]
+    },
+    {
+      "file": "exports\\20260912T075604.389359Z-4376c124\\OCR-result.txt",
+      "receipt": "exports\\20260912T075604.389359Z-4376c124\\receipt.json",
+      "captured_at": "2026-09-12T07:56:04.389359+00:00",
+      "parameters": {
+        "result_ids": [
+          "66d7c221ad944168b20fdeec0c6e01ae"
+        ],
+        "format": "txt",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 47,
+      "sha256": "02496e35c43162b12f100f8d073710bf09a1d849e9cd8cee493d505323e6c907",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "西\r\n愚园路\r\n东\r\n315\r\n309\r\nW\r\nYuyuan Rd.\r\nE"
+    },
+    {
+      "file": "exports\\20260912T080402.091634Z-755dba7f\\OCR-result.txt",
+      "receipt": "exports\\20260912T080402.091634Z-755dba7f\\receipt.json",
+      "captured_at": "2026-09-12T08:04:02.091634+00:00",
+      "parameters": {
+        "result_ids": [
+          "66d7c221ad944168b20fdeec0c6e01ae"
+        ],
+        "format": "txt",
+        "aggregate": false,
+        "confirmed_only": false
+      },
+      "bytes": 76,
+      "sha256": "431ee6e2b4be61e26b07288b8e0d04c2f179bd54b3b28391388aeb1289ef30d0",
+      "receipt_hashes_match": true,
+      "receipt_length_matches": true,
+      "receipt_byte_identical": true,
+      "capture_method": "copy2 after original build_export returned; before FileResponse background cleanup",
+      "text": "西\r\n愚园路\r\n东\r\n315\r\n309\r\nW\r\nYuyuan Rd.\r\nE\r\nQA REVIEW_ONLY 保存导出"
+    }
+  ],
+  "interpretation": "The first edited XLSX/MD/JSON agree with saved GLM revision 7; changed placement/merges came from test insertion/deletion at different positions. Road revision 10's empty first table came from test undo of a grouped autosave history entry. Both are retained intermediate observations, not product bugs. Latest road revision 11 passes identifiers, literal formula text and newline checks. Original OCR JSON remains identical to the pre-edit snapshot. Earlier batch files correctly contain their captured revisions, not the subsequently edited road revision 11."
+}

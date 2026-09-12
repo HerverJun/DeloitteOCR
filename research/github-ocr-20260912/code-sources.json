@@ -1,0 +1,79 @@
+[
+  {
+    "repo": "vorojar/Folio-OCR",
+    "path": "folio_ocr/script.js",
+    "ref": "dcf2a16d04e95c3095ae7930a50a010017d64668",
+    "chars": 51624,
+    "source": "https://api.github.com/repos/vorojar/Folio-OCR/contents/folio_ocr/script.js?ref=dcf2a16d04e95c3095ae7930a50a010017d64668"
+  },
+  {
+    "repo": "vorojar/Folio-OCR",
+    "path": "pyproject.toml",
+    "ref": "dcf2a16d04e95c3095ae7930a50a010017d64668",
+    "chars": 1501,
+    "source": "https://api.github.com/repos/vorojar/Folio-OCR/contents/pyproject.toml?ref=dcf2a16d04e95c3095ae7930a50a010017d64668"
+  },
+  {
+    "repo": "CHEN010325/paddleocr-local",
+    "path": "static/app.js",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 211379,
+    "source": "https://api.github.com/repos/CHEN010325/paddleocr-local/contents/static/app.js?ref=8268eabf60f52ffe63bc7d36eb19c226f17e96d1"
+  },
+  {
+    "repo": "CHEN010325/paddleocr-local",
+    "path": "exporters.py",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 83998,
+    "source": "https://api.github.com/repos/CHEN010325/paddleocr-local/contents/exporters.py?ref=8268eabf60f52ffe63bc7d36eb19c226f17e96d1"
+  },
+  {
+    "repo": "CHEN010325/paddleocr-local",
+    "path": "ROADMAP.md",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 978,
+    "source": "https://raw.githubusercontent.com/CHEN010325/paddleocr-local/8268eabf60f52ffe63bc7d36eb19c226f17e96d1/ROADMAP.md"
+  },
+  {
+    "repo": "1ampa55ag3/octo-ocr",
+    "path": "scripts/build_offline_package.py",
+    "ref": "f83eb2bc7207acad3de2d0b7852e964c863b5250",
+    "chars": 4427,
+    "source": "https://raw.githubusercontent.com/1ampa55ag3/octo-ocr/f83eb2bc7207acad3de2d0b7852e964c863b5250/scripts/build_offline_package.py"
+  },
+  {
+    "repo": "1ampa55ag3/octo-ocr",
+    "path": "src/mdun/web/static/app.js",
+    "ref": "f83eb2bc7207acad3de2d0b7852e964c863b5250",
+    "chars": 75251,
+    "source": "https://raw.githubusercontent.com/1ampa55ag3/octo-ocr/f83eb2bc7207acad3de2d0b7852e964c863b5250/src/mdun/web/static/app.js"
+  },
+  {
+    "repo": "1ampa55ag3/octo-ocr",
+    "path": "pyproject.toml",
+    "ref": "f83eb2bc7207acad3de2d0b7852e964c863b5250",
+    "chars": 849,
+    "source": "https://raw.githubusercontent.com/1ampa55ag3/octo-ocr/f83eb2bc7207acad3de2d0b7852e964c863b5250/pyproject.toml"
+  },
+  {
+    "repo": "scribeocr/scribeocr",
+    "path": "index.html",
+    "ref": "80ef03b13e7e9b204dd930a8b7593630b3a6ca3d",
+    "chars": 139651,
+    "source": "https://raw.githubusercontent.com/scribeocr/scribeocr/80ef03b13e7e9b204dd930a8b7593630b3a6ca3d/index.html"
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "LICENSE.md",
+    "ref": "master",
+    "chars": 2461,
+    "source": "https://raw.githubusercontent.com/opendatalab/MinerU/master/LICENSE.md"
+  },
+  {
+    "repo": "scribeocr/scribeocr",
+    "path": "main.js",
+    "ref": "80ef03b13e7e9b204dd930a8b7593630b3a6ca3d",
+    "chars": 100600,
+    "source": "https://api.github.com/repos/scribeocr/scribeocr/contents/main.js?ref=80ef03b13e7e9b204dd930a8b7593630b3a6ca3d"
+  }
+]

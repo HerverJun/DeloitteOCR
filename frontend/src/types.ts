@@ -11,6 +11,7 @@ export type Table = {
   rows: number;
   columns: number;
   caption?: string;
+  source?: { start: number; end: number; format: string; sha256: string };
   cells: Cell[];
 };
 export type Edit = { text: string; tables: Table[] };
@@ -29,6 +30,7 @@ export type Result = {
   can_redo: boolean;
   edited: Edit;
   original: {
+    warnings?: { code: string; stage: string; message: string }[];
     engine: string;
     text: string;
     tables: Table[];
@@ -51,6 +53,14 @@ export type Photo = {
   name: string;
   active_version: string;
   selected_result: string | null;
+  review_status?: "pending" | "confirmed" | "question";
+  review_state?: {
+    result_id: string | null;
+    revision: number | null;
+    version_id: string | null;
+    status: string;
+    stale: boolean;
+  };
   project_id: string;
 };
 export type Version = {
@@ -72,15 +82,31 @@ export type Task = {
   error: string | null;
   result_id: string | null;
   created: string;
+  batch?: string;
+  batch_id?: string;
+  preprocess?: string;
+  input_version_id?: string;
+  engine_package?: string;
   kind?: string;
   result_version_id?: string | null;
 };
 export type ProjectState = {
+  revision?: number;
+  disk?: { low_space: boolean; warning: string | null; free_bytes: number };
   project: Project;
   images: Photo[];
   versions: Version[];
   tasks: Task[];
-  queue: { task_id: string | null; engine: string | null; loaded: boolean };
+  queue: {
+    task_id: string | null;
+    engine: string | null;
+    loaded: boolean;
+    alive?: boolean;
+    healthy?: boolean;
+    state?: string;
+    last_error?: string | { message: string } | null;
+    consecutive_failures?: number;
+  };
 };
 export type Engine = {
   name: string;

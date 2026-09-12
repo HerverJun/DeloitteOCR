@@ -1,0 +1,38 @@
+{
+  "completed_at": "2026-09-12T08:11:05.8022703Z",
+  "service": {
+    "application_shutdown_complete": true,
+    "session_exit_code": 0,
+    "url": "http://127.0.0.1:8878/",
+    "shutdown_response": "stopping",
+    "process_still_running": false,
+    "pid": 41412
+  },
+  "observer": {
+    "pid": 212,
+    "final_snapshot": "tasks-latest.json",
+    "process_still_running": false,
+    "stopped_after_identity_check": true
+  },
+  "browsers": {
+    "codex_restarted": false,
+    "in_app_test_tabs_closed": true,
+    "external_screenshot_browsers_closed": true
+  },
+  "results": {
+    "export_artifacts": 14,
+    "imported_originals_including_folder_copies": 8,
+    "export_checks_passed": 21,
+    "unique_public_samples": 6,
+    "version_checks_passed": 9,
+    "image_versions": 18,
+    "successful_real_tasks": 16
+  },
+  "product_source_modified_by_this_audit": false,
+  "notes": [
+    "Only the isolated test service and observer were stopped; other user services were not stopped.",
+    "GPU process listing exposes incomplete names under current permissions; no absolute machine-wide GPU-idle claim is made.",
+    "Original project source already contained uncommitted changes at audit start.",
+    "In-app browser download completion was not verified; original service export bytes and receipts were verified instead."
+  ]
+}

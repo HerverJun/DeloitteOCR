@@ -1,0 +1,1939 @@
+{
+  "sha": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+  "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+  "tree": [
+    {
+      "path": ".dockerignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b05a2b1dc4de097ff51a0e1d32f80bc12e8f59dd",
+      "size": 903,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b05a2b1dc4de097ff51a0e1d32f80bc12e8f59dd"
+    },
+    {
+      "path": ".gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0354a526d031bdd108a367d5cfd10b0a7830a810",
+      "size": 62,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0354a526d031bdd108a367d5cfd10b0a7830a810"
+    },
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cb2ef3712b4b6d7e256909b4026e7707e2a4c0ab",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/cb2ef3712b4b6d7e256909b4026e7707e2a4c0ab"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fc0ad0fe8f39ff612c2231b3f1e39b4ea4a60904",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/fc0ad0fe8f39ff612c2231b3f1e39b4ea4a60904"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b3784c02a7edbb6dbec243fc8c92d782d14ba328",
+      "size": 1615,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b3784c02a7edbb6dbec243fc8c92d782d14ba328"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6034db07912a8a0587ce32a85bb8bbc94dca9de9",
+      "size": 224,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/6034db07912a8a0587ce32a85bb8bbc94dca9de9"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b301df878fde5248727472fbd5d78220ac5ba04",
+      "size": 736,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7b301df878fde5248727472fbd5d78220ac5ba04"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/hardware.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d691ddb78cff615ee549d67de3b33f0b1afbd3ea",
+      "size": 1448,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d691ddb78cff615ee549d67de3b33f0b1afbd3ea"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/showcase.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "460a55940e6dbed2dd13c20302a8792b95d11e36",
+      "size": 1287,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/460a55940e6dbed2dd13c20302a8792b95d11e36"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "56096db1a5b0637dd6656198c90f01c0873af6a4",
+      "size": 424,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/56096db1a5b0637dd6656198c90f01c0873af6a4"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "58f0940828e558cadc479a91b4cee75a6efd0805",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/58f0940828e558cadc479a91b4cee75a6efd0805"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8f7ae413e366f220b7410bfe2ca51db09f27e9ac",
+      "size": 2585,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/8f7ae413e366f220b7410bfe2ca51db09f27e9ac"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1c995ca1a21f0fc9d1522a07fcd519bf0a031c1",
+      "size": 2195,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e1c995ca1a21f0fc9d1522a07fcd519bf0a031c1"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "989e7b68d4324e4f90ffc33f2107eccd5f66ac35",
+      "size": 1278,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/989e7b68d4324e4f90ffc33f2107eccd5f66ac35"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3c137437fe37c3e27179e4d27fcb064cce2cb8f6",
+      "size": 5879,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3c137437fe37c3e27179e4d27fcb064cce2cb8f6"
+    },
+    {
+      "path": "CLI.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "44806734d1e5d37344f880f79e831bbedd842d7a",
+      "size": 1423,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/44806734d1e5d37344f880f79e831bbedd842d7a"
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "97f2ecd819737cbb62c1fe882e93cda63630861d",
+      "size": 687,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/97f2ecd819737cbb62c1fe882e93cda63630861d"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "10962f09970336ff4c923e0a2cb8f1540d6217b4",
+      "size": 2250,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/10962f09970336ff4c923e0a2cb8f1540d6217b4"
+    },
+    {
+      "path": "DOCKER_DEPLOY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "52dfd61ac4c7a55b4e1ea34782430fb01a7b7af0",
+      "size": 15384,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/52dfd61ac4c7a55b4e1ea34782430fb01a7b7af0"
+    },
+    {
+      "path": "Dockerfile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1c09d46e3c716eb4b0aa1a97cde1ee31ffecb561",
+      "size": 1381,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1c09d46e3c716eb4b0aa1a97cde1ee31ffecb561"
+    },
+    {
+      "path": "Dockerfile.cpu",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "18b985a6e1724e7a41eae59e2a2accc5758bd849",
+      "size": 680,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/18b985a6e1724e7a41eae59e2a2accc5758bd849"
+    },
+    {
+      "path": "Dockerfile.hpd-parsing-adapter",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b1630a547eff50ba27398a089477180809b76adf",
+      "size": 414,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b1630a547eff50ba27398a089477180809b76adf"
+    },
+    {
+      "path": "Dockerfile.navidc-ocr",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e3e1905da0bf09fcb9ed15b63e9ab9f0ffe18f7",
+      "size": 1987,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7e3e1905da0bf09fcb9ed15b63e9ab9f0ffe18f7"
+    },
+    {
+      "path": "Dockerfile.ocr",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "82540f2dc79cfd7fd50c719da1a810239b7019c2",
+      "size": 284,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/82540f2dc79cfd7fd50c719da1a810239b7019c2"
+    },
+    {
+      "path": "Dockerfile.office-converter",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dacf3d7969bafda52ad603ff9acfc4439144cebb",
+      "size": 719,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dacf3d7969bafda52ad603ff9acfc4439144cebb"
+    },
+    {
+      "path": "Dockerfile.ovisocr2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f14359841e994fa9bd30e908c91da2cc62f91ece",
+      "size": 1172,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f14359841e994fa9bd30e908c91da2cc62f91ece"
+    },
+    {
+      "path": "Dockerfile.unlimited-ocr",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ededa032511cc9985c73890cf108e85dc818fa60",
+      "size": 1286,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/ededa032511cc9985c73890cf108e85dc818fa60"
+    },
+    {
+      "path": "Dockerfile.unlimited-ocr-sglang",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3d40c9c6a5cb235b8d69c6174400ecef7cff5c64",
+      "size": 1546,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3d40c9c6a5cb235b8d69c6174400ecef7cff5c64"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+      "size": 10174,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f433b1a53f5b830a205fd2df78e2b34974656c7b"
+    },
+    {
+      "path": "Makefile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f30cb6a0a4b05ce212016b14839cb72a6ef9eca",
+      "size": 5620,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9f30cb6a0a4b05ce212016b14839cb72a6ef9eca"
+    },
+    {
+      "path": "OVISOCR2_DEPLOY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd2034b6799e21ba086b9ac51a296485ea5396b3",
+      "size": 6573,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/bd2034b6799e21ba086b9ac51a296485ea5396b3"
+    },
+    {
+      "path": "PROJECT_SUMMARY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5f6c9dfc86779631a8a1b5f9317613af0fe65774",
+      "size": 4399,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/5f6c9dfc86779631a8a1b5f9317613af0fe65774"
+    },
+    {
+      "path": "QUICKSTART.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "39d3b77db68fc4b95b58b8dc62fee92506012dfe",
+      "size": 14269,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/39d3b77db68fc4b95b58b8dc62fee92506012dfe"
+    },
+    {
+      "path": "README.en.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c561b9c52e5da4f37dc6f7fe67269f087b3d6c98",
+      "size": 6318,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c561b9c52e5da4f37dc6f7fe67269f087b3d6c98"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e06eac3fd14236a8926279312c9ccfa28ee0f0d5",
+      "size": 7110,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e06eac3fd14236a8926279312c9ccfa28ee0f0d5"
+    },
+    {
+      "path": "README.zh-CN.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e4e610804dd1a002fdb230d60abeb3755d467bfc",
+      "size": 369,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e4e610804dd1a002fdb230d60abeb3755d467bfc"
+    },
+    {
+      "path": "RELEASING.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2d00242ace16089b07a3f15c25eb2f668f8558a9",
+      "size": 2993,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2d00242ace16089b07a3f15c25eb2f668f8558a9"
+    },
+    {
+      "path": "ROADMAP.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f6c0d6989b81443ec5c3d5d69ae600cffbfa6847",
+      "size": 1922,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f6c0d6989b81443ec5c3d5d69ae600cffbfa6847"
+    },
+    {
+      "path": "SECURITY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47fad9f6d98c14d557601f9d0f90682ed304b97a",
+      "size": 951,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/47fad9f6d98c14d557601f9d0f90682ed304b97a"
+    },
+    {
+      "path": "SUPPORT.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19742152ee3dd15c187d7f855f4ed71fab947c5b",
+      "size": 1673,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/19742152ee3dd15c187d7f855f4ed71fab947c5b"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c2a2aff873c18480356b15250205e0428fb653d4",
+      "size": 588,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c2a2aff873c18480356b15250205e0428fb653d4"
+    },
+    {
+      "path": "api.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8dd1bc2d4b02ef69d7748290a0b1d944fc457e22",
+      "size": 44955,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/8dd1bc2d4b02ef69d7748290a0b1d944fc457e22"
+    },
+    {
+      "path": "build.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5c1a82bc5e934677429bfe473d36d14fba6909ae",
+      "size": 3058,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/5c1a82bc5e934677429bfe473d36d14fba6909ae"
+    },
+    {
+      "path": "build.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "726cfdfed2bec34f3834cf9f0fc89798faafbe9b",
+      "size": 2719,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/726cfdfed2bec34f3834cf9f0fc89798faafbe9b"
+    },
+    {
+      "path": "controller.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c94542099971eea2e83311008e5e43f2d09d5250",
+      "size": 3703,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c94542099971eea2e83311008e5e43f2d09d5250"
+    },
+    {
+      "path": "deploy.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1d9256737a64181b480c85461f15e3ce875ac8dc",
+      "size": 2589,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1d9256737a64181b480c85461f15e3ce875ac8dc"
+    },
+    {
+      "path": "deploy.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "95352898b81dd8713208c8200c3cff34ca5a9dda",
+      "size": 2665,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/95352898b81dd8713208c8200c3cff34ca5a9dda"
+    },
+    {
+      "path": "docker-compose.cpu.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8399fd1c8b6ae12632bc6dbfd518410ab485643",
+      "size": 1087,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e8399fd1c8b6ae12632bc6dbfd518410ab485643"
+    },
+    {
+      "path": "docker-compose.release.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "521b529821a1ec8b99c66d62e22b7cb8228198d8",
+      "size": 928,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/521b529821a1ec8b99c66d62e22b7cb8228198d8"
+    },
+    {
+      "path": "docker-compose.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a22b419ffdf4101d28da45008907f8df89b66e02",
+      "size": 28604,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a22b419ffdf4101d28da45008907f8df89b66e02"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1803669f6ad7028895bcbd73996c414cc1e42f56",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/1803669f6ad7028895bcbd73996c414cc1e42f56"
+    },
+    {
+      "path": "docs/QUICK_DEMO.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "284da2165eb20543e627128b4d320b03217cfa85",
+      "size": 2640,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/284da2165eb20543e627128b4d320b03217cfa85"
+    },
+    {
+      "path": "docs/assets",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "130866f1f81afcc3550d290a24ee879b73d4a10a",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/130866f1f81afcc3550d290a24ee879b73d4a10a"
+    },
+    {
+      "path": "docs/assets/navidc-ocr-wechat-cover.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "09f3ece780dc994436633c47bdf6680014d89e7c",
+      "size": 1797260,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/09f3ece780dc994436633c47bdf6680014d89e7c"
+    },
+    {
+      "path": "docs/assets/social-preview.jpg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e4c88fd1d29934c8c4dcdafff827b159d9adc69f",
+      "size": 99710,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e4c88fd1d29934c8c4dcdafff827b159d9adc69f"
+    },
+    {
+      "path": "docs/benchmark.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "006e1ee8ec26c9f06c5fc86c1faa0803cd0ce62a",
+      "size": 1459,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/006e1ee8ec26c9f06c5fc86c1faa0803cd0ce62a"
+    },
+    {
+      "path": "docs/compatibility.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "83709aee7fe3c25b46f6989991ee707d439bac3d",
+      "size": 2309,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/83709aee7fe3c25b46f6989991ee707d439bac3d"
+    },
+    {
+      "path": "docs/cpu.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "068113d4e83123b0555f2d8631f49428e4e4beb2",
+      "size": 2333,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/068113d4e83123b0555f2d8631f49428e4e4beb2"
+    },
+    {
+      "path": "docs/external-engines.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d3445f83822bbdc25fab908489b3094c0d0ec39e",
+      "size": 5987,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d3445f83822bbdc25fab908489b3094c0d0ec39e"
+    },
+    {
+      "path": "docs/issue-validation.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2196c3657cf0e330b716380eb5fca9632630ff18",
+      "size": 8068,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2196c3657cf0e330b716380eb5fca9632630ff18"
+    },
+    {
+      "path": "docs/promotion",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5cb00b66ed1b172db935181c12e39633bacd6cbc",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/5cb00b66ed1b172db935181c12e39633bacd6cbc"
+    },
+    {
+      "path": "docs/promotion/launch-kit.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3e3da6a6fcd2fd2b29052b20826583011a9658fa",
+      "size": 4081,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3e3da6a6fcd2fd2b29052b20826583011a9658fa"
+    },
+    {
+      "path": "docs/promotion/navidc-ocr-csdn-article.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1298cdfb44ed0ae74aa118a487ab5996364f29ea",
+      "size": 10932,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1298cdfb44ed0ae74aa118a487ab5996364f29ea"
+    },
+    {
+      "path": "docs/promotion/video-script.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "143f4594fe4c484e83eccaa175ff15a4152a875a",
+      "size": 2982,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/143f4594fe4c484e83eccaa175ff15a4152a875a"
+    },
+    {
+      "path": "docs/promotion/wechat-article.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "30a6c7b01287bf7bfe35b60494c8a232875b5657",
+      "size": 5294,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/30a6c7b01287bf7bfe35b60494c8a232875b5657"
+    },
+    {
+      "path": "docs/unlimited-ocr.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "507e1090436b0e96a438d39f285d79d0f66f7b5e",
+      "size": 1336,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/507e1090436b0e96a438d39f285d79d0f66f7b5e"
+    },
+    {
+      "path": "engines.example.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e65636f88ed4260ad3d5947944f9c7bb0075bc5",
+      "size": 508,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4e65636f88ed4260ad3d5947944f9c7bb0075bc5"
+    },
+    {
+      "path": "env.docker",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a98e56b3aa1dab04b62a3d19968ca797de178b",
+      "size": 2658,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/06a98e56b3aa1dab04b62a3d19968ca797de178b"
+    },
+    {
+      "path": "env.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7743614071225840ca005c2d687fca6774bdf4fe",
+      "size": 2735,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7743614071225840ca005c2d687fca6774bdf4fe"
+    },
+    {
+      "path": "exporters.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "849191fbd33ca5cd6b57f3d58742788385bf91e3",
+      "size": 84061,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/849191fbd33ca5cd6b57f3d58742788385bf91e3"
+    },
+    {
+      "path": "hpd_parsing_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9b411f228dcbda32dbd2e838a4d90ee7d5fe2783",
+      "size": 33860,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9b411f228dcbda32dbd2e838a4d90ee7d5fe2783"
+    },
+    {
+      "path": "hpd_parsing_macos_server.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f145126ce323a0c613f1fb7a884c0579aacf00ed",
+      "size": 4621,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f145126ce323a0c613f1fb7a884c0579aacf00ed"
+    },
+    {
+      "path": "macos-one-click.command",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "a599d09bd0d41426a81260a882ece12952d2ecbd",
+      "size": 155,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a599d09bd0d41426a81260a882ece12952d2ecbd"
+    },
+    {
+      "path": "macos-ovisocr2-one-click.command",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "f42b71f70fc36d29a8955990c9d1889b616c145f",
+      "size": 307,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f42b71f70fc36d29a8955990c9d1889b616c145f"
+    },
+    {
+      "path": "macos_controller.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ff96e09cf541d217661800a78cb569b525b3db0e",
+      "size": 5413,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/ff96e09cf541d217661800a78cb569b525b3db0e"
+    },
+    {
+      "path": "navidc_ocr_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "20752dc1b5375f77b9515957dda42dbc5d19b0a9",
+      "size": 17920,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/20752dc1b5375f77b9515957dda42dbc5d19b0a9"
+    },
+    {
+      "path": "ocr_engines.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a1030212d92cf964532a923d32d5947cf11998bf",
+      "size": 10687,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a1030212d92cf964532a923d32d5947cf11998bf"
+    },
+    {
+      "path": "office_converter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "869139c6d9d29777e8431d3b2ea69fb36a9b1377",
+      "size": 2392,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/869139c6d9d29777e8431d3b2ea69fb36a9b1377"
+    },
+    {
+      "path": "ovisocr2_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b6fc9d8bd6a74989acddf8b5907b1887b1b9152b",
+      "size": 21679,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b6fc9d8bd6a74989acddf8b5907b1887b1b9152b"
+    },
+    {
+      "path": "package-lock.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c38d8984b7046934d5639a1aaf0b13a8bfe794b4",
+      "size": 73289,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c38d8984b7046934d5639a1aaf0b13a8bfe794b4"
+    },
+    {
+      "path": "package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "60a80b8293087a51b4bb5e4410d2d917eebeb324",
+      "size": 863,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/60a80b8293087a51b4bb5e4410d2d917eebeb324"
+    },
+    {
+      "path": "paddle-layout-openapi.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "322f6370ffcc45280ffa043582995a067022f420",
+      "size": 17936,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/322f6370ffcc45280ffa043582995a067022f420"
+    },
+    {
+      "path": "pandocr_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "205e937f861a7bcdc37d76aa5221e07fb79e7338",
+      "size": 18403,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/205e937f861a7bcdc37d76aa5221e07fb79e7338"
+    },
+    {
+      "path": "pipeline_config_macos_mlx.template.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "841894d3432ae09c0b50cd88b71b4c9c872e51a4",
+      "size": 1782,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/841894d3432ae09c0b50cd88b71b4c9c872e51a4"
+    },
+    {
+      "path": "pipeline_config_ocr_cpu.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4a97df221ddd66b6cd12260987a14f40648fb464",
+      "size": 1159,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4a97df221ddd66b6cd12260987a14f40648fb464"
+    },
+    {
+      "path": "pipeline_config_ocr_v6.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b26b488a4a19b9b0816a6cba920d89dd7eb66a9",
+      "size": 1031,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/6b26b488a4a19b9b0816a6cba920d89dd7eb66a9"
+    },
+    {
+      "path": "pipeline_config_vllm.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f1a5b6c611703c84a051e668b3d4fdf0866fcb1e",
+      "size": 2030,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f1a5b6c611703c84a051e668b3d4fdf0866fcb1e"
+    },
+    {
+      "path": "pytest.ini",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "96a59604b15648fe6aa31467f7c30373ab8d5946",
+      "size": 100,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/96a59604b15648fe6aa31467f7c30373ab8d5946"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "26433008408f2cede5c2122a38178b016360eff6",
+      "size": 89,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/26433008408f2cede5c2122a38178b016360eff6"
+    },
+    {
+      "path": "requirements-macos-hpd-parsing.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0bc178f673056af82a9b8257234a3efc3a2e9ee8",
+      "size": 224,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0bc178f673056af82a9b8257234a3efc3a2e9ee8"
+    },
+    {
+      "path": "requirements-macos-mlx.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e966ca7ae38701d04dcd7932fa44c765a5affb77",
+      "size": 290,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e966ca7ae38701d04dcd7932fa44c765a5affb77"
+    },
+    {
+      "path": "requirements-macos-ovisocr2.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "60294942d7fb74a6ade6f99b355382f9ef81331d",
+      "size": 247,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/60294942d7fb74a6ade6f99b355382f9ef81331d"
+    },
+    {
+      "path": "requirements-macos-unlimited-ocr.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e3c3bd0515862540de28ce3d7b1bf50756fd647",
+      "size": 268,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4e3c3bd0515862540de28ce3d7b1bf50756fd647"
+    },
+    {
+      "path": "requirements-macos.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0abf8c6ea2b44d13b1712c977d98007dfbc55296",
+      "size": 64,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0abf8c6ea2b44d13b1712c977d98007dfbc55296"
+    },
+    {
+      "path": "requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e32cbbdbfb8b4d7fdc180c24f9374eb1dfb7bb06",
+      "size": 247,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e32cbbdbfb8b4d7fdc180c24f9374eb1dfb7bb06"
+    },
+    {
+      "path": "scripts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b32df0a284046bb6d63558db112003ba82f77719",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/b32df0a284046bb6d63558db112003ba82f77719"
+    },
+    {
+      "path": "scripts/check-coverage.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7577ee4027f7a6b0312bf3500837c7875937c9a0",
+      "size": 1471,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7577ee4027f7a6b0312bf3500837c7875937c9a0"
+    },
+    {
+      "path": "scripts/check-local.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "1f3e7314c00e8cb66e2048c5936c99b3dfb63b56",
+      "size": 1734,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1f3e7314c00e8cb66e2048c5936c99b3dfb63b56"
+    },
+    {
+      "path": "scripts/check-mlx-runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1c9c83e3f871c0ada2b17abc91df16d9742ea97f",
+      "size": 1940,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1c9c83e3f871c0ada2b17abc91df16d9742ea97f"
+    },
+    {
+      "path": "scripts/doctor.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "dce309b61615f2ae6caf3ce961023a2c7d4ed0dd",
+      "size": 5539,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dce309b61615f2ae6caf3ce961023a2c7d4ed0dd"
+    },
+    {
+      "path": "scripts/macos-one-click.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "63d80ebd48bd993ba42ce9641f8dbcb01d7a2027",
+      "size": 23452,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/63d80ebd48bd993ba42ce9641f8dbcb01d7a2027"
+    },
+    {
+      "path": "scripts/macos-python.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "938fae2464323250dd944684650a36cbed747fda",
+      "size": 2954,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/938fae2464323250dd944684650a36cbed747fda"
+    },
+    {
+      "path": "scripts/prepare-runtime-env.ps1",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "550049fb6c9bc8f56206bed054d80546ebafc40d",
+      "size": 4255,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/550049fb6c9bc8f56206bed054d80546ebafc40d"
+    },
+    {
+      "path": "scripts/prepare-runtime-env.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "3d851de3971ccb3f0e985b25cdd3ca2d88298aef",
+      "size": 4425,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3d851de3971ccb3f0e985b25cdd3ca2d88298aef"
+    },
+    {
+      "path": "scripts/setup-macos-hpd-parsing.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d364be8160ca31fcfa72f626c44dc3ce148d1916",
+      "size": 862,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d364be8160ca31fcfa72f626c44dc3ce148d1916"
+    },
+    {
+      "path": "scripts/setup-macos-ovisocr2.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "cffd11175eaef62e899efdb137707c96cc3e6cc5",
+      "size": 1149,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/cffd11175eaef62e899efdb137707c96cc3e6cc5"
+    },
+    {
+      "path": "scripts/setup-macos-unlimited-ocr.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "897d50d69e03f396aa8b9a1c50e80add8400a6f5",
+      "size": 2193,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/897d50d69e03f396aa8b9a1c50e80add8400a6f5"
+    },
+    {
+      "path": "scripts/setup-macos.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "42f98b860597318ab7d5ba424ba133bfc81181f4",
+      "size": 2314,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/42f98b860597318ab7d5ba424ba133bfc81181f4"
+    },
+    {
+      "path": "scripts/smoke-cpu.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7795b1ebff03f0a283b44d54906ed292b8952367",
+      "size": 1967,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7795b1ebff03f0a283b44d54906ed292b8952367"
+    },
+    {
+      "path": "scripts/start-macos-ovisocr2.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "134bc2d57ebb3c298d9fe079e07a9ec06a1cbbe3",
+      "size": 603,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/134bc2d57ebb3c298d9fe079e07a9ec06a1cbbe3"
+    },
+    {
+      "path": "scripts/start-macos.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "e1e4845126e2e4155d418251a559e44806aea924",
+      "size": 30549,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e1e4845126e2e4155d418251a559e44806aea924"
+    },
+    {
+      "path": "scripts/stop-macos-models.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "dd89de3ef445d7ae68173fd83d6604086ecdee6b",
+      "size": 1262,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dd89de3ef445d7ae68173fd83d6604086ecdee6b"
+    },
+    {
+      "path": "scripts/stop-macos.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "72312757376736749d4bb0574852dcdeebedf994",
+      "size": 2069,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/72312757376736749d4bb0574852dcdeebedf994"
+    },
+    {
+      "path": "scripts/sync-vendor.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8efaa4e6344519b7cd1649af8a86ef49546aed6e",
+      "size": 3934,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/8efaa4e6344519b7cd1649af8a86ef49546aed6e"
+    },
+    {
+      "path": "scripts/test-macos.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "0e8f8d15444719635e994c9c29ca22c2c9e3cec8",
+      "size": 3909,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0e8f8d15444719635e994c9c29ca22c2c9e3cec8"
+    },
+    {
+      "path": "scripts/windows-one-click.ps1",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f600bb98fa0852d638c9d25f6ccdc7a02439ee36",
+      "size": 47015,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f600bb98fa0852d638c9d25f6ccdc7a02439ee36"
+    },
+    {
+      "path": "server.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fea4c1363de6e6696c78942e0c94bd6e6ed2c7b9",
+      "size": 182401,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/fea4c1363de6e6696c78942e0c94bd6e6ed2c7b9"
+    },
+    {
+      "path": "start-hpd-parsing.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "065ad6a65b70d406eece1c0217e81f9acd9c5313",
+      "size": 1382,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/065ad6a65b70d406eece1c0217e81f9acd9c5313"
+    },
+    {
+      "path": "start-vlm.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9572306b1f562151741a28566405e62bf169e85c",
+      "size": 2083,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9572306b1f562151741a28566405e62bf169e85c"
+    },
+    {
+      "path": "static",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "679329c829f0faffbe4eaf2e1eb3a9621cf6a28e",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/679329c829f0faffbe4eaf2e1eb3a9621cf6a28e"
+    },
+    {
+      "path": "static/app.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1d4f8e54955c03cd485e62a6795206f89f29749b",
+      "size": 214902,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/1d4f8e54955c03cd485e62a6795206f89f29749b"
+    },
+    {
+      "path": "static/bootstrap.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f838546f1e73680635d0fb52e3c76eef67cc8fc",
+      "size": 206,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0f838546f1e73680635d0fb52e3c76eef67cc8fc"
+    },
+    {
+      "path": "static/i18n.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b7ac24f05d2095bf208ed56a23ce297d6015cb4d",
+      "size": 15534,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b7ac24f05d2095bf208ed56a23ce297d6015cb4d"
+    },
+    {
+      "path": "static/index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b26ba6eb92f93362ea8adc78a792fa99e515710a",
+      "size": 13928,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b26ba6eb92f93362ea8adc78a792fa99e515710a"
+    },
+    {
+      "path": "static/ocr_images",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d564d0bc3dd917926892c55e3706cc116d5b165e",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/d564d0bc3dd917926892c55e3706cc116d5b165e"
+    },
+    {
+      "path": "static/ocr_images/.gitkeep",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "static/style.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "53508b2075b9de1c27a25c62f81a2ada19173ee2",
+      "size": 30894,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/53508b2075b9de1c27a25c62f81a2ada19173ee2"
+    },
+    {
+      "path": "static/vendor",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2772927d14cdd8efddaa1b498d3d1e2c3ca42929",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/2772927d14cdd8efddaa1b498d3d1e2c3ca42929"
+    },
+    {
+      "path": "static/vendor/dompurify",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "573fc0d8d7f8d3818e11c14666e76876fc565c64",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/573fc0d8d7f8d3818e11c14666e76876fc565c64"
+    },
+    {
+      "path": "static/vendor/dompurify/LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "size": 11358,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "path": "static/vendor/dompurify/purify.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "86efd858212be5de9654aabcf2e3739f9a08a006",
+      "size": 29474,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/86efd858212be5de9654aabcf2e3739f9a08a006"
+    },
+    {
+      "path": "static/vendor/highlight",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5fb33e11f50ab35b596f6dc351b7cd85c7a8731d",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/5fb33e11f50ab35b596f6dc351b7cd85c7a8731d"
+    },
+    {
+      "path": "static/vendor/highlight/LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2250cc7eca9bfe58df2f7e0b5db32e00baadfad3",
+      "size": 1514,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2250cc7eca9bfe58df2f7e0b5db32e00baadfad3"
+    },
+    {
+      "path": "static/vendor/highlight/github.min.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "275239a7aa96a8cfea155167b8ce57db3ab5f469",
+      "size": 1309,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/275239a7aa96a8cfea155167b8ce57db3ab5f469"
+    },
+    {
+      "path": "static/vendor/highlight/highlight.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "70a7ef60e03ee059bfdcd8080a3cf2ff98b7bb4a",
+      "size": 129254,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/70a7ef60e03ee059bfdcd8080a3cf2ff98b7bb4a"
+    },
+    {
+      "path": "static/vendor/jszip",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a223a36e53fdfccfffc6a22b963e20fdbd9e1462",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/a223a36e53fdfccfffc6a22b963e20fdbd9e1462"
+    },
+    {
+      "path": "static/vendor/jszip/LICENSE.markdown",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f8250b37a61862ea61ea9a93d5d423cad395a364",
+      "size": 33753,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f8250b37a61862ea61ea9a93d5d423cad395a364"
+    },
+    {
+      "path": "static/vendor/jszip/jszip.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ff4cfd5e8fdc49176c2d1d409afa897f40be01f4",
+      "size": 97630,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/ff4cfd5e8fdc49176c2d1d409afa897f40be01f4"
+    },
+    {
+      "path": "static/vendor/katex",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "40772b65a665eeb0e05e7efa3d296a73910e1912",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/40772b65a665eeb0e05e7efa3d296a73910e1912"
+    },
+    {
+      "path": "static/vendor/katex/LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37c6433e3bedca7a97e08fe35d98582a5f7bac0c",
+      "size": 1107,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/37c6433e3bedca7a97e08fe35d98582a5f7bac0c"
+    },
+    {
+      "path": "static/vendor/katex/contrib",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e7cbbf80f90424048104e3a94e260ece213dd6e7",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/e7cbbf80f90424048104e3a94e260ece213dd6e7"
+    },
+    {
+      "path": "static/vendor/katex/contrib/auto-render.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0a1f35df54ecfa15d068341f6c6571e27f70567f",
+      "size": 3486,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0a1f35df54ecfa15d068341f6c6571e27f70567f"
+    },
+    {
+      "path": "static/vendor/katex/fonts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cc39092b341e0e21f067e15e9b2b68716b5e595f",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/cc39092b341e0e21f067e15e9b2b68716b5e595f"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_AMS-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c6f9a5e7c03f9e64e9c7b4773a8e37ade8eaf406",
+      "size": 63632,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c6f9a5e7c03f9e64e9c7b4773a8e37ade8eaf406"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_AMS-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b804d7b33a3fa5b2587d2d1d55006aed678e3eb2",
+      "size": 33516,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b804d7b33a3fa5b2587d2d1d55006aed678e3eb2"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_AMS-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0acaaff03d4bb7606de02a827aeee338e5a86910",
+      "size": 28076,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0acaaff03d4bb7606de02a827aeee338e5a86910"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Bold.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ff4a5e04421e5107f74c28e27354e0b2a4e7ef8",
+      "size": 12368,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9ff4a5e04421e5107f74c28e27354e0b2a4e7ef8"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9759710d1d3e16eb10012d56babb73f2479ba9f0",
+      "size": 7716,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9759710d1d3e16eb10012d56babb73f2479ba9f0"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f390922eceffe1f6dfb81a3dc086a92d98171b02",
+      "size": 6912,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f390922eceffe1f6dfb81a3dc086a92d98171b02"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f522294ff0f3f8c52dfdaef7ebfaa06ebfcfaabf",
+      "size": 12344,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f522294ff0f3f8c52dfdaef7ebfaa06ebfcfaabf"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9bdd534fd2beb9b878f0219da9d63ffba56677e2",
+      "size": 7656,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9bdd534fd2beb9b878f0219da9d63ffba56677e2"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75344a1f98e37e2c631e178065854c3a81fb842f",
+      "size": 6908,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/75344a1f98e37e2c631e178065854c3a81fb842f"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Bold.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e98259c3b54076d684bf3459baeaeae8dbce97a",
+      "size": 19584,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4e98259c3b54076d684bf3459baeaeae8dbce97a"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7730f66275c87c28f26530d89264cffecf90be0",
+      "size": 13296,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e7730f66275c87c28f26530d89264cffecf90be0"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "395f28beac23c7b0f7f3a1e714bd8dac253dd3bc",
+      "size": 11348,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/395f28beac23c7b0f7f3a1e714bd8dac253dd3bc"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b8461b275fae76efd0d21fd0f1aaa696a5b10f9a",
+      "size": 19572,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b8461b275fae76efd0d21fd0f1aaa696a5b10f9a"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "acab069f90b6fe6301a004e6f8beaf6a0db48bce",
+      "size": 13208,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/acab069f90b6fe6301a004e6f8beaf6a0db48bce"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "735f6948d63c8cc7f8233735bb9c8d843c83d804",
+      "size": 11316,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/735f6948d63c8cc7f8233735bb9c8d843c83d804"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Bold.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4060e627dc341c1854260cbc3f7386e222a4d297",
+      "size": 51336,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4060e627dc341c1854260cbc3f7386e222a4d297"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Bold.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f38136ac1cc2dcdc9d9b10b8521487468b1f768c",
+      "size": 29912,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f38136ac1cc2dcdc9d9b10b8521487468b1f768c"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Bold.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab2ad21da6fbe6c171bb869240954d0ead8f68fd",
+      "size": 25324,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/ab2ad21da6fbe6c171bb869240954d0ead8f68fd"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-BoldItalic.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dc007977ee709a236d9e82719cf7d4e5577a81b9",
+      "size": 32968,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dc007977ee709a236d9e82719cf7d4e5577a81b9"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "67807b0bd4f867853271f5917fb3adf377f93f53",
+      "size": 19412,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/67807b0bd4f867853271f5917fb3adf377f93f53"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5931794de4a2a485fa70099bf2659b145976d043",
+      "size": 16780,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/5931794de4a2a485fa70099bf2659b145976d043"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Italic.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e9b0f354ad460202bba554359f5adcc8da666b7",
+      "size": 33580,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0e9b0f354ad460202bba554359f5adcc8da666b7"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Italic.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f43b594b6c1d863a0e3f93b001f8dd503316464",
+      "size": 19676,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/6f43b594b6c1d863a0e3f93b001f8dd503316464"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Italic.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b50920e138807f385d0b0359f4f0f09891f18406",
+      "size": 16988,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b50920e138807f385d0b0359f4f0f09891f18406"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd45e1ed2e18b32c516d9b481ebed3cb8bffa711",
+      "size": 53580,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dd45e1ed2e18b32c516d9b481ebed3cb8bffa711"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "21f5812968c42392a3eaea9b0c6320870b6b8b38",
+      "size": 30772,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/21f5812968c42392a3eaea9b0c6320870b6b8b38"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Main-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb24a7ba282b03d830fa6c63ee897d92a5188736",
+      "size": 26272,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/eb24a7ba282b03d830fa6c63ee897d92a5188736"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-BoldItalic.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "728ce7a1e2cb689df32c3a6c26e1bd072dcf2acb",
+      "size": 31196,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/728ce7a1e2cb689df32c3a6c26e1bd072dcf2acb"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0ae390d74c9f665cf8b1e5ea5483395da7513444",
+      "size": 18668,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0ae390d74c9f665cf8b1e5ea5483395da7513444"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "29657023adc09956249f6295746c8ce4469b50d3",
+      "size": 16400,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/29657023adc09956249f6295746c8ce4469b50d3"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-Italic.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "70d559b4e937ca1b805eb39f544cbebe3c58ca6f",
+      "size": 31308,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/70d559b4e937ca1b805eb39f544cbebe3c58ca6f"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-Italic.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb5159d4c1ca83fb92b3190223698427df0e010c",
+      "size": 18748,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/eb5159d4c1ca83fb92b3190223698427df0e010c"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Math-Italic.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "215c143fd7805a5c2b222bd7892a1a2b09610020",
+      "size": 16440,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/215c143fd7805a5c2b222bd7892a1a2b09610020"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Bold.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2f65a8a3a6d3628d11ea9c26c9077cef672fe427",
+      "size": 24504,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2f65a8a3a6d3628d11ea9c26c9077cef672fe427"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8d47c02d9408d34b2a9d566c0fe0d42bf82fb735",
+      "size": 14408,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/8d47c02d9408d34b2a9d566c0fe0d42bf82fb735"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cfaa3bda59246b49e94298478d6de3b3208066c8",
+      "size": 12216,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/cfaa3bda59246b49e94298478d6de3b3208066c8"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Italic.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d5850df98ec19de2eee9ff922ef59586efe471d0",
+      "size": 22364,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d5850df98ec19de2eee9ff922ef59586efe471d0"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e02df963621a5e26d53d510f0b4992eebde1c60",
+      "size": 14112,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7e02df963621a5e26d53d510f0b4992eebde1c60"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "349c06dc609f896392fd5bc8b364d3bc3efc9330",
+      "size": 12028,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/349c06dc609f896392fd5bc8b364d3bc3efc9330"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "537279f6bd2184ed32f1a5168850609147d58ee6",
+      "size": 19436,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/537279f6bd2184ed32f1a5168850609147d58ee6"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "31b84829b42edae20d0148eeec0d922dad2108c4",
+      "size": 12316,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/31b84829b42edae20d0148eeec0d922dad2108c4"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a90eea85f6f7bded69ff5d40114447a6d8b48cfe",
+      "size": 10344,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a90eea85f6f7bded69ff5d40114447a6d8b48cfe"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Script-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd679bf374af72f2a183b97b40c9c7e9e51fbe5e",
+      "size": 16648,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/fd679bf374af72f2a183b97b40c9c7e9e51fbe5e"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Script-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e7da821eee0dd05a0a6f0b16c2c1345dc573a84",
+      "size": 10588,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0e7da821eee0dd05a0a6f0b16c2c1345dc573a84"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Script-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b3048fc115681ee6c1bc86b0aa158cfbbf59daa3",
+      "size": 9644,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b3048fc115681ee6c1bc86b0aa158cfbbf59daa3"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size1-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "871fd7d19d8658f64d8696ed9cdfc82c821ed76d",
+      "size": 12228,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/871fd7d19d8658f64d8696ed9cdfc82c821ed76d"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size1-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f292d91184f257054ef77cc1cd3443db757c9cc",
+      "size": 6496,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7f292d91184f257054ef77cc1cd3443db757c9cc"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size1-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c5a8462fbfe2c39a7c1857b9e296e62500a8a8a5",
+      "size": 5468,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c5a8462fbfe2c39a7c1857b9e296e62500a8a8a5"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size2-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a212caf91c0007e826fee2d622bf48acbd30dde",
+      "size": 11508,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7a212caf91c0007e826fee2d622bf48acbd30dde"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size2-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d241d9be2d317f7b39b401d96c8b18836acea0fa",
+      "size": 6188,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d241d9be2d317f7b39b401d96c8b18836acea0fa"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size2-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1bccfe2403a4ed770c1697ae7c15b9e1cd9bc4e",
+      "size": 5208,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e1bccfe2403a4ed770c1697ae7c15b9e1cd9bc4e"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size3-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "00bff3495fa9d2f98c1c9ce436add6a1bcfe87fb",
+      "size": 7588,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/00bff3495fa9d2f98c1c9ce436add6a1bcfe87fb"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size3-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6e9b658dcf1cd031ac82b6b8f312444c55d4fc0",
+      "size": 4420,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e6e9b658dcf1cd031ac82b6b8f312444c55d4fc0"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size3-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "249a28662218a7a17ad8bd1fe072169ecb666a49",
+      "size": 3624,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/249a28662218a7a17ad8bd1fe072169ecb666a49"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size4-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74f08921f00f71f413ca42c9d1c90202e672ef38",
+      "size": 10364,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/74f08921f00f71f413ca42c9d1c90202e672ef38"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size4-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1ec5457664f438ce5a1cc6dd8409bf60ca7804b",
+      "size": 5980,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e1ec5457664f438ce5a1cc6dd8409bf60ca7804b"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Size4-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "680c13085076a2f6c5a7e695935ec3f21cddb65f",
+      "size": 4928,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/680c13085076a2f6c5a7e695935ec3f21cddb65f"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Typewriter-Regular.ttf",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c83252c5714c71a3e0ec62195884167339a0129b",
+      "size": 27556,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c83252c5714c71a3e0ec62195884167339a0129b"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2432419f28936aff53ddfa2a732d027e6a6648fd",
+      "size": 16028,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2432419f28936aff53ddfa2a732d027e6a6648fd"
+    },
+    {
+      "path": "static/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "771f1af705f5cef5f578b3a1e7d8eff66f9b76b0",
+      "size": 13568,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/771f1af705f5cef5f578b3a1e7d8eff66f9b76b0"
+    },
+    {
+      "path": "static/vendor/katex/katex.min.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ccf00cb67c27b7d2f38006c156eab6dbd5387b80",
+      "size": 24727,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/ccf00cb67c27b7d2f38006c156eab6dbd5387b80"
+    },
+    {
+      "path": "static/vendor/katex/katex.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "21712ace4b93c0472431e771367e7cc89df2601a",
+      "size": 272179,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/21712ace4b93c0472431e771367e7cc89df2601a"
+    },
+    {
+      "path": "static/vendor/marked",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5160349598f6db200403aff79018cfc902557422",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/5160349598f6db200403aff79018cfc902557422"
+    },
+    {
+      "path": "static/vendor/marked/LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4bd2d4a084987ab634893a29f72ff6d1a67bf658",
+      "size": 2942,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/4bd2d4a084987ab634893a29f72ff6d1a67bf658"
+    },
+    {
+      "path": "static/vendor/marked/marked.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "97dfe6056924a79a67e9be994f8473ece398fc61",
+      "size": 43821,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/97dfe6056924a79a67e9be994f8473ece398fc61"
+    },
+    {
+      "path": "static/vendor/pdf-lib",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "19a4883e053aed84e5e8e49829998a679c58ab22",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/19a4883e053aed84e5e8e49829998a679c58ab22"
+    },
+    {
+      "path": "static/vendor/pdf-lib/LICENSE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a237e68e37abe7ac934c4e89f49e1a94f161f33",
+      "size": 1070,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7a237e68e37abe7ac934c4e89f49e1a94f161f33"
+    },
+    {
+      "path": "static/vendor/pdf-lib/pdf-lib.min.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "edb12c72cdaa11b608eb5967cf1531892b7f3b31",
+      "size": 525099,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/edb12c72cdaa11b608eb5967cf1531892b7f3b31"
+    },
+    {
+      "path": "static/vendor/pdfjs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "638f34e3e4bd7887d56d45c657b0ad5d75522d4a",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/638f34e3e4bd7887d56d45c657b0ad5d75522d4a"
+    },
+    {
+      "path": "static/vendor/pdfjs/LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+      "size": 10174,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f433b1a53f5b830a205fd2df78e2b34974656c7b"
+    },
+    {
+      "path": "static/vendor/pdfjs/pdf.min.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6b6bf3679b9c08c2c55f87c6b1be98a4aece71a",
+      "size": 454669,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/e6b6bf3679b9c08c2c55f87c6b1be98a4aece71a"
+    },
+    {
+      "path": "static/vendor/pdfjs/pdf.worker.min.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "66a5d815c7b7801a767d8b467e5ae40274852012",
+      "size": 1262398,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/66a5d815c7b7801a767d8b467e5ae40274852012"
+    },
+    {
+      "path": "test-connection.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a4d3c2b06ce2320d7faf5725023338625c37a40b",
+      "size": 2991,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a4d3c2b06ce2320d7faf5725023338625c37a40b"
+    },
+    {
+      "path": "test-connection.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3f12cdac9702d9a157e0b5e3d865c2d9522a4628",
+      "size": 2591,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3f12cdac9702d9a157e0b5e3d865c2d9522a4628"
+    },
+    {
+      "path": "tests",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "444c88c5555b193fe0c1366b9f8dccb310d2cfae",
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/trees/444c88c5555b193fe0c1366b9f8dccb310d2cfae"
+    },
+    {
+      "path": "tests/test_adapters.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bdbab9cde16665ac625622340ab8051df5852702",
+      "size": 13753,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/bdbab9cde16665ac625622340ab8051df5852702"
+    },
+    {
+      "path": "tests/test_check_mlx_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b71967d5a916dcec5c098fbd6ff9610d2bf66002",
+      "size": 4609,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b71967d5a916dcec5c098fbd6ff9610d2bf66002"
+    },
+    {
+      "path": "tests/test_controller_lease_persistence.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b470081f2fec87620a525bdaa33112f50a48dfe2",
+      "size": 15305,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b470081f2fec87620a525bdaa33112f50a48dfe2"
+    },
+    {
+      "path": "tests/test_deployment_invariants.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0cb01a4e57c41cf177334a8e4cb1ed288cb773bc",
+      "size": 1642,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0cb01a4e57c41cf177334a8e4cb1ed288cb773bc"
+    },
+    {
+      "path": "tests/test_export_release.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b73ee3d3abc97347113bb2bc82da2847a501f33e",
+      "size": 11150,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/b73ee3d3abc97347113bb2bc82da2847a501f33e"
+    },
+    {
+      "path": "tests/test_exporters.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f82a60c68e2c756a8844075466108280815bebf",
+      "size": 26374,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9f82a60c68e2c756a8844075466108280815bebf"
+    },
+    {
+      "path": "tests/test_external_engines.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c8001d2cc25c3168072419f4be41e6bf9911b7ba",
+      "size": 12493,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/c8001d2cc25c3168072419f4be41e6bf9911b7ba"
+    },
+    {
+      "path": "tests/test_frontend.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9bf85a90221a4f97729b500253d2ee9284ead016",
+      "size": 20259,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/9bf85a90221a4f97729b500253d2ee9284ead016"
+    },
+    {
+      "path": "tests/test_frontend_dom.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a57ce40032708c4e358558f50208a86e244dac80",
+      "size": 156956,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/a57ce40032708c4e358558f50208a86e244dac80"
+    },
+    {
+      "path": "tests/test_hardening.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5cb14e522da9fd0b1741edfc950b6de3281e97d3",
+      "size": 14939,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/5cb14e522da9fd0b1741edfc950b6de3281e97d3"
+    },
+    {
+      "path": "tests/test_hpd_parsing_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dcdd5c5fb26efbcc4dfa2f5951c19dbf64f66115",
+      "size": 14788,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/dcdd5c5fb26efbcc4dfa2f5951c19dbf64f66115"
+    },
+    {
+      "path": "tests/test_issue_regressions.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3688a8294b87025882e0ef82c7b746a5766d6706",
+      "size": 7527,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/3688a8294b87025882e0ef82c7b746a5766d6706"
+    },
+    {
+      "path": "tests/test_macos_model_selection.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "8fb26a4768683eb355366489b9724ed3af410c7d",
+      "size": 3829,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/8fb26a4768683eb355366489b9724ed3af410c7d"
+    },
+    {
+      "path": "tests/test_macos_python_selection.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d1ad6bc702113dcb207a5a1f95850bb751efc984",
+      "size": 5097,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/d1ad6bc702113dcb207a5a1f95850bb751efc984"
+    },
+    {
+      "path": "tests/test_ovis_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "14cab8e724fe5db8f5395720a531735768fea55c",
+      "size": 11924,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/14cab8e724fe5db8f5395720a531735768fea55c"
+    },
+    {
+      "path": "tests/test_pandocr_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9f673b320a58bc6f9d6d1035010b247d632960f",
+      "size": 5671,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/f9f673b320a58bc6f9d6d1035010b247d632960f"
+    },
+    {
+      "path": "tests/test_runtime_env_scripts.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7705ba03a6e1275ad0246ff02d6f501e9b6bc8bc",
+      "size": 9270,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7705ba03a6e1275ad0246ff02d6f501e9b6bc8bc"
+    },
+    {
+      "path": "tests/test_server.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7677c2a26a298147aada27f2a05bf2042efc75f7",
+      "size": 41497,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/7677c2a26a298147aada27f2a05bf2042efc75f7"
+    },
+    {
+      "path": "tests/test_server_additional.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75a283d788b1f60d4709ef3d774df726078c6727",
+      "size": 13306,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/75a283d788b1f60d4709ef3d774df726078c6727"
+    },
+    {
+      "path": "tests/test_server_remaining.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d3128fc76126a1a67871c364ab645ae7abcf0fe",
+      "size": 57852,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/5d3128fc76126a1a67871c364ab645ae7abcf0fe"
+    },
+    {
+      "path": "tests/test_server_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cedf792ccffb8ba263fe6a3157319dfe56e0d598",
+      "size": 108409,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/cedf792ccffb8ba263fe6a3157319dfe56e0d598"
+    },
+    {
+      "path": "tests/test_startup_invariants.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2245c47b901c44d6e04b59939e5e16a0c61873cc",
+      "size": 15117,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/2245c47b901c44d6e04b59939e5e16a0c61873cc"
+    },
+    {
+      "path": "tests/test_unlimited_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "be411d298fee97f3ab6f5923b364abe70ff78cde",
+      "size": 63505,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/be411d298fee97f3ab6f5923b364abe70ff78cde"
+    },
+    {
+      "path": "unlimited_ocr_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "744c785b3a0fb8105ba67c3eddd56879961a8656",
+      "size": 75271,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/744c785b3a0fb8105ba67c3eddd56879961a8656"
+    },
+    {
+      "path": "webui-openapi.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "051bc4d974ee180a8fb1b8edab8205e1cc684a65",
+      "size": 36771,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/051bc4d974ee180a8fb1b8edab8205e1cc684a65"
+    },
+    {
+      "path": "windows-one-click.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0660d4dc19d841f82848d08e4458b0d6bb9351f6",
+      "size": 219,
+      "url": "https://api.github.com/repos/CHEN010325/paddleocr-local/git/blobs/0660d4dc19d841f82848d08e4458b0d6bb9351f6"
+    }
+  ],
+  "truncated": false
+}

@@ -7,7 +7,7 @@ export function BrandHeader({ children }: { children: ReactNode }) {
       </a>
       <div className="brand">
         <img
-          src="./brand/deloitte.svg"
+          src="./brand/deloitte-light.svg"
           alt="Deloitte"
           width="92"
           height="18"

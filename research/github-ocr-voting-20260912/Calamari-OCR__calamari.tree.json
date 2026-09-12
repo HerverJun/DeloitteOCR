@@ -1,0 +1,3624 @@
+{
+  "sha": "4071d137a5c96fe2a2f91052ae2a2f540593edad",
+  "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/4071d137a5c96fe2a2f91052ae2a2f540593edad",
+  "tree": [
+    {
+      "path": ".flake8",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15a087bfd70ddb5349daa6b65ed24e7f0de9f169",
+      "size": 77,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/15a087bfd70ddb5349daa6b65ed24e7f0de9f169"
+    },
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "22947c923dc6d92011ba0109d6865475eeaf6552",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/22947c923dc6d92011ba0109d6865475eeaf6552"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b5fd10c40f42044a8d0bce61144ef4a65e8f1283",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/b5fd10c40f42044a8d0bce61144ef4a65e8f1283"
+    },
+    {
+      "path": ".github/workflows/black.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f58e4c6346de601b9e7b2028c491e74bcd9a6348",
+      "size": 193,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f58e4c6346de601b9e7b2028c491e74bcd9a6348"
+    },
+    {
+      "path": ".github/workflows/python-publish.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "67e03f5f87052a34ed8987a461a4f033a1b2455b",
+      "size": 915,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/67e03f5f87052a34ed8987a461a4f033a1b2455b"
+    },
+    {
+      "path": ".github/workflows/python-test.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55c1ede45ed35a0600de373be50bf5e8783706cb",
+      "size": 2123,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/55c1ede45ed35a0600de373be50bf5e8783706cb"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "441920fc25873a96f63894f7610fc964f884dc53",
+      "size": 1487,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/441920fc25873a96f63894f7610fc964f884dc53"
+    },
+    {
+      "path": ".gitlab-ci.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81c783a345854f776d5476ce045d4cdab577d518",
+      "size": 3306,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/81c783a345854f776d5476ce045d4cdab577d518"
+    },
+    {
+      "path": ".lgtm.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b06edf3510649b573a447232bf45f9bdf724f58d",
+      "size": 57,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b06edf3510649b573a447232bf45f9bdf724f58d"
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4c5b20033c01ed5a70a0c212bef74bb5fb61f6b4",
+      "size": 393,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4c5b20033c01ed5a70a0c212bef74bb5fb61f6b4"
+    },
+    {
+      "path": ".readthedocs.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c986401ee912406bbf05992e2a0f211c72a2ce9b",
+      "size": 538,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c986401ee912406bbf05992e2a0f211c72a2ce9b"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "99fbb4927679e5250388ada587ec11df7bcdd378",
+      "size": 35203,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/99fbb4927679e5250388ada587ec11df7bcdd378"
+    },
+    {
+      "path": "MANIFEST.in",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f863e4be3829a13945e5c6270edac11c4cfe7a6",
+      "size": 73,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6f863e4be3829a13945e5c6270edac11c4cfe7a6"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d22f4e4dafaba488a83574ef395dd8e994e9bfee",
+      "size": 2684,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d22f4e4dafaba488a83574ef395dd8e994e9bfee"
+    },
+    {
+      "path": "calamari_ocr",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4ab92aedbbea9bace4f6fba5ab001ab9db3e7758",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/4ab92aedbbea9bace4f6fba5ab001ab9db3e7758"
+    },
+    {
+      "path": "calamari_ocr/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7886dd2fe8f465a51e90c3bc29daf940ea32ac7a",
+      "size": 45,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7886dd2fe8f465a51e90c3bc29daf940ea32ac7a"
+    },
+    {
+      "path": "calamari_ocr/ocr",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "105d54ccb8b68ab65db03255fb41467f884d4d53",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/105d54ccb8b68ab65db03255fb41467f884d4d53"
+    },
+    {
+      "path": "calamari_ocr/ocr/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9c76eaadba2f1c80d3d269f2aaa0154aadaef36b",
+      "size": 218,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9c76eaadba2f1c80d3d269f2aaa0154aadaef36b"
+    },
+    {
+      "path": "calamari_ocr/ocr/augmentation",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2453a3e02a0e54970a5a186fc8d0c680d500dec6",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/2453a3e02a0e54970a5a186fc8d0c680d500dec6"
+    },
+    {
+      "path": "calamari_ocr/ocr/augmentation/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5cc8ae31735c76d52debb5e370468757b65a1194",
+      "size": 112,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5cc8ae31735c76d52debb5e370468757b65a1194"
+    },
+    {
+      "path": "calamari_ocr/ocr/augmentation/data_augmenter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "758503a31fd2fe9197818f8537e40ef41d7e19c4",
+      "size": 3389,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/758503a31fd2fe9197818f8537e40ef41d7e19c4"
+    },
+    {
+      "path": "calamari_ocr/ocr/augmentation/dataaugmentationparams.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5efbf25451c697925b131de1a84991156eda8fb7",
+      "size": 2276,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5efbf25451c697925b131de1a84991156eda8fb7"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cf326a8dc43ebd1bca911f6740d62e26aa7535c0",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/cf326a8dc43ebd1bca911f6740d62e26aa7535c0"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cb732a0b5403e0dd0b61f7c5d59d769bd129d668",
+      "size": 31,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cb732a0b5403e0dd0b61f7c5d59d769bd129d668"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/codec.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ce6f59600937b62c55876736e53aa46327d876cb",
+      "size": 9045,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ce6f59600937b62c55876736e53aa46327d876cb"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/data.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6e16e2f327d38de133599a07a168bdd25ef6c329",
+      "size": 5409,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6e16e2f327d38de133599a07a168bdd25ef6c329"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "7a51ff2d9cf9f695f77d487faa60a1d8a044d60d",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/7a51ff2d9cf9f695f77d487faa60a1d8a044d60d"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d876773b60fa7c3cc7631fcbad253dee16cb1232",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/d876773b60fa7c3cc7631fcbad253dee16cb1232"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "484424e1e64174e77ea2384dd29cfae6ec8d7047",
+      "size": 6010,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/484424e1e64174e77ea2384dd29cfae6ec8d7047"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "dae979d4854801e53afdcbeacef9b21a7fc3edd6",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/dae979d4854801e53afdcbeacef9b21a7fc3edd6"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "859180af2ff74775b3172de7edc99e3684a791ae",
+      "size": 60,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/859180af2ff74775b3172de7edc99e3684a791ae"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml/data.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "34c13babf85feefcf19757856f657009915b81ca",
+      "size": 8076,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/34c13babf85feefcf19757856f657009915b81ca"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml/exceptions.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5b6fac3a6fc26c2810072f300ef6be85a884e8fa",
+      "size": 276,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5b6fac3a6fc26c2810072f300ef6be85a884e8fa"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml/reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "114d2e966ec92ac20b8c23f5176a28bc5de5211f",
+      "size": 6824,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/114d2e966ec92ac20b8c23f5176a28bc5de5211f"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/abbyy/xml/writer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f132a3d6fb62918d2e365d955faa87610cb2e48b",
+      "size": 3294,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f132a3d6fb62918d2e365d955faa87610cb2e48b"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/base.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4c2aace27ae1d438444217cbee72c61d2df8afa7",
+      "size": 5721,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4c2aace27ae1d438444217cbee72c61d2df8afa7"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/extended_prediction.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3af4082e577a2e5cf5a5e9f9178ba3b14743e0f3",
+      "size": 2302,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3af4082e577a2e5cf5a5e9f9178ba3b14743e0f3"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/file.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9655093c8cd633f8de92936eb7f998da03c1a8a9",
+      "size": 7751,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9655093c8cd633f8de92936eb7f998da03c1a8a9"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b47d79ea1de501e5277218bac81181d343e561c6",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/b47d79ea1de501e5277218bac81181d343e561c6"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "738d82db9d93ede603f083ea3611e75dacabf1ff",
+      "size": 61,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/738d82db9d93ede603f083ea3611e75dacabf1ff"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/dataset.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d6194fcc9de5ed6e04b2beeac830e0ebc4bea08f",
+      "size": 4594,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d6194fcc9de5ed6e04b2beeac830e0ebc4bea08f"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/line_generator.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1bf850da152b6b7cae3868dc6374f3e2e65984c4",
+      "size": 8757,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1bf850da152b6b7cae3868dc6374f3e2e65984c4"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4bc174f2c2c4f07e80450e66cfbb1d62d2022d5c",
+      "size": 1949,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4bc174f2c2c4f07e80450e66cfbb1d62d2022d5c"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/text_generation",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d0f25d973e3bb9d3ea1c72d3e6101030cd6b42eb",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/d0f25d973e3bb9d3ea1c72d3e6101030cd6b42eb"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/text_generation/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/generated_line_dataset/text_generation/text_generator.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aec8323c2fac23f897afa54447c4e5e635b63488",
+      "size": 3983,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/aec8323c2fac23f897afa54447c4e5e635b63488"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/hdf5",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6b8c395b4afddbcb5aefa5264ba941637f4709be",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/6b8c395b4afddbcb5aefa5264ba941637f4709be"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/hdf5/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "867096031eed6f9306b37ef72b887078d70e0d4a",
+      "size": 51,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/867096031eed6f9306b37ef72b887078d70e0d4a"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/hdf5/hdf5_dataset_writer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2aa6773851d63248ef8b29bbc4e272a16d883ea1",
+      "size": 2749,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2aa6773851d63248ef8b29bbc4e272a16d883ea1"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/hdf5/reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a33e2cd018abbea4a67823b196ec2fc5dce19f5b",
+      "size": 5094,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a33e2cd018abbea4a67823b196ec2fc5dce19f5b"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/pagexml",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "78f9e810a9a8585cb0522ec7f3b6241f14bd8454",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/78f9e810a9a8585cb0522ec7f3b6241f14bd8454"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/pagexml/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7cba78be6baf01aca3f2b44c65a5a9a2474a9992",
+      "size": 34,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7cba78be6baf01aca3f2b44c65a5a9a2474a9992"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/pagexml/reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4408769da5aa58748e87cbe9e58af79c5c2a41cc",
+      "size": 26707,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4408769da5aa58748e87cbe9e58af79c5c2a41cc"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/datareader/raw.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "633f27bf152a0f4b522afe8b0dd23425ddc16816",
+      "size": 2332,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/633f27bf152a0f4b522afe8b0dd23425ddc16816"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f00963f69fd9dacfe55710ace22dda0fc0ed4df2",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/f00963f69fd9dacfe55710ace22dda0fc0ed4df2"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c82289e0920b7383c954bdebc71cd62f1d5efd9b",
+      "size": 110,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c82289e0920b7383c954bdebc71cd62f1d5efd9b"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/augmentation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9741b82646e3cbbea274d24db4a3c71a74b6472c",
+      "size": 3519,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9741b82646e3cbbea274d24db4a3c71a74b6472c"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/center_normalizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1f5b62e0b6cfc4b626ede163ab1b7833a8e0d7ae",
+      "size": 4811,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1f5b62e0b6cfc4b626ede163ab1b7833a8e0d7ae"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/data_preprocessor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d66dd02ee77806015b3c4399456010eb83c8af23",
+      "size": 1178,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d66dd02ee77806015b3c4399456010eb83c8af23"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/data_range_normalizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "885abdf2bd7be5aa9e80de8725e4cb6613ad2a35",
+      "size": 933,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/885abdf2bd7be5aa9e80de8725e4cb6613ad2a35"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/default_image_processors.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "364d3b1a1eee2ba05d6fd5aa5e4b064ee298c75a",
+      "size": 705,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/364d3b1a1eee2ba05d6fd5aa5e4b064ee298c75a"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/final_preparation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f2681b3cea3e8ca10bf08f703308ce814934cb30",
+      "size": 2647,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f2681b3cea3e8ca10bf08f703308ce814934cb30"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/preparesample.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6506edd4341168f91bfd6a04b469cd947409a7b",
+      "size": 3608,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e6506edd4341168f91bfd6a04b469cd947409a7b"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/imageprocessors/scale_to_height_processor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a9f581d900ad60b21b8c6d0b9a589d2d3605eff5",
+      "size": 1673,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a9f581d900ad60b21b8c6d0b9a589d2d3605eff5"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "43dd69656796c77f8974667e510c0336b8b009e7",
+      "size": 1730,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/43dd69656796c77f8974667e510c0336b8b009e7"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/pipeline.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a82899e43350c32826b59a84c8a3a1a7d194b71",
+      "size": 2073,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7a82899e43350c32826b59a84c8a3a1a7d194b71"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/postprocessors",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c9da96cf5f11edbab2be66de1d1af1f26a18f4d2",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/c9da96cf5f11edbab2be66de1d1af1f26a18f4d2"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/postprocessors/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/postprocessors/ctcdecoder.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "679a36c3189106c646d2c7a0fbf17acaf46a9ae1",
+      "size": 1949,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/679a36c3189106c646d2c7a0fbf17acaf46a9ae1"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/postprocessors/reshape.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e1ea08be6e1eda3dca470375ed258cb7198844f",
+      "size": 1497,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8e1ea08be6e1eda3dca470375ed258cb7198844f"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ec20268edbdc6ce96c1b7bc0e870b46f64be8346",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/ec20268edbdc6ce96c1b7bc0e870b46f64be8346"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "766b00629abf12d4f5a00db1a17361480c02c995",
+      "size": 682,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/766b00629abf12d4f5a00db1a17361480c02c995"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/basic_text_processors.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e69dd90acd207ac1c665ba091220d13221265ed",
+      "size": 1862,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0e69dd90acd207ac1c665ba091220d13221265ed"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/default_text_processor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "391d636f881f6da95aeaecc58ff4772fe5940f33",
+      "size": 845,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/391d636f881f6da95aeaecc58ff4772fe5940f33"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/str_to_char_list.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "64f15e0e40515afe50a7c05e5f9281301947fd4e",
+      "size": 1192,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/64f15e0e40515afe50a7c05e5f9281301947fd4e"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/text_normalizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c87b123b2472ebda122536d19e0b9441242f9e62",
+      "size": 832,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c87b123b2472ebda122536d19e0b9441242f9e62"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/text_processor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1668487d872e43a9aba2bc5d9e8b7a76f65f01d6",
+      "size": 1339,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1668487d872e43a9aba2bc5d9e8b7a76f65f01d6"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/text_regularizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d38eab189aeb29387e5ff8b1c86d1574554b8f0d",
+      "size": 4399,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d38eab189aeb29387e5ff8b1c86d1574554b8f0d"
+    },
+    {
+      "path": "calamari_ocr/ocr/dataset/textprocessors/text_synchronizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e5d2d31dafc75c3b96ca6815dcfb4dbf32480f8d",
+      "size": 4171,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e5d2d31dafc75c3b96ca6815dcfb4dbf32480f8d"
+    },
+    {
+      "path": "calamari_ocr/ocr/evaluator.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "57bf26bcd7936052fa4b40a9be63e206f7ffdcc0",
+      "size": 9328,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/57bf26bcd7936052fa4b40a9be63e206f7ffdcc0"
+    },
+    {
+      "path": "calamari_ocr/ocr/model",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "edd4f286af97b3fc90bb1bf0547667f8d9ff73b9",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/edd4f286af97b3fc90bb1bf0547667f8d9ff73b9"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f245c2741c7c4bad01fde457f315cb0acf120e8c",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/f245c2741c7c4bad01fde457f315cb0acf120e8c"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder/ctc_decoder.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ec02b23484ed99292c35bda48c852d948c54be67",
+      "size": 4596,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ec02b23484ed99292c35bda48c852d948c54be67"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder/ctcwordbeamsearchdecoder.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19095bb59ede37ab114548d137c16eaddcfb68d3",
+      "size": 1019,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/19095bb59ede37ab114548d137c16eaddcfb68d3"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder/default_ctc_decoder.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4fab54c63be914776ae0e40d2f841035566bc3ef",
+      "size": 1448,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4fab54c63be914776ae0e40d2f841035566bc3ef"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ctcdecoder/token_passing_ctc_decoder.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c17df8d1fea5193f08fb3e293fe4fe423be9335c",
+      "size": 5916,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c17df8d1fea5193f08fb3e293fe4fe423be9335c"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ensemblegraph.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f40c9a3801aecb87532f41ed93dc75a643d4c035",
+      "size": 7656,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f40c9a3801aecb87532f41ed93dc75a643d4c035"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/ensemblemodel.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9958a99b85487675798ad05ea386cf708ba5ac4e",
+      "size": 3674,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9958a99b85487675798ad05ea386cf708ba5ac4e"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/graph.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6feb723fca51ece776f4c85a4a6b3f0a68c25bb8",
+      "size": 4779,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6feb723fca51ece776f4c85a4a6b3f0a68c25bb8"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "84b8f457e82f174ddf99e00f8da3472d0fba1335",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/84b8f457e82f174ddf99e00f8da3472d0fba1335"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/activation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "00a659bd4ced6125f23a666b71c8c2733ce8912b",
+      "size": 313,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/00a659bd4ced6125f23a666b71c8c2733ce8912b"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/bilstm.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc6566e1c369c63cc64c3d15fcb9b758d1a7efa5",
+      "size": 1242,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/fc6566e1c369c63cc64c3d15fcb9b758d1a7efa5"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/concat.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c338e494619bcc1193c612ca1b4767530292f18b",
+      "size": 924,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c338e494619bcc1193c612ca1b4767530292f18b"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/conv2d.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d564eb0babaff28d6f691e50b69fea752750e254",
+      "size": 1778,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d564eb0babaff28d6f691e50b69fea752750e254"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/dilatedblock.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c821600725f686f136eecf0b95230da3897cba88",
+      "size": 2417,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c821600725f686f136eecf0b95230da3897cba88"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/dropout.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2da50760ee47b164df655acecdeb707001757c51",
+      "size": 813,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2da50760ee47b164df655acecdeb707001757c51"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/layer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd70a6beb6ab19484cadd826ff4da474d731fdd8",
+      "size": 2256,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/fd70a6beb6ab19484cadd826ff4da474d731fdd8"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/pool2d.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc7a2addfe73b78890d3f05621b72c508e97fe32",
+      "size": 1873,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cc7a2addfe73b78890d3f05621b72c508e97fe32"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/toinputdims.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6a19eed6eaadad63e278d2a533f8eda9939f62e2",
+      "size": 672,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6a19eed6eaadad63e278d2a533f8eda9939f62e2"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/layers/transposedconv2d.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "27a9ceb331d12ebd3375605ffd882dc679980ac8",
+      "size": 1743,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/27a9ceb331d12ebd3375605ffd882dc679980ac8"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/model.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1185c15f6da482a7f22bee13d7f6986744d6a626",
+      "size": 2791,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1185c15f6da482a7f22bee13d7f6986744d6a626"
+    },
+    {
+      "path": "calamari_ocr/ocr/model/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dbab446b150d08ba0f9d2c797acb24d307b56dfa",
+      "size": 3830,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/dbab446b150d08ba0f9d2c797acb24d307b56dfa"
+    },
+    {
+      "path": "calamari_ocr/ocr/predict",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3786a107d73e4f9c4054cdcc8eda394a8de3f587",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/3786a107d73e4f9c4054cdcc8eda394a8de3f587"
+    },
+    {
+      "path": "calamari_ocr/ocr/predict/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/predict/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "991fbcdfae2ea19f6b9ebf816971c2ae015208a7",
+      "size": 3842,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/991fbcdfae2ea19f6b9ebf816971c2ae015208a7"
+    },
+    {
+      "path": "calamari_ocr/ocr/predict/predictor.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f5c35fd71d8aeaa119d8275e5fd148680ba6c45",
+      "size": 3358,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6f5c35fd71d8aeaa119d8275e5fd148680ba6c45"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1504b2adc78d8bb911295f9e155948528fff2615",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/1504b2adc78d8bb911295f9e155948528fff2615"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ab0ba9e8770dad05df873c00254f6abed088a980",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/ab0ba9e8770dad05df873c00254f6abed088a980"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/loadweights.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "87fcf504650453e7553603e58657e46955da88ed",
+      "size": 1426,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/87fcf504650453e7553603e58657e46955da88ed"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/renametensors.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1d7b7a160f65a5875292a94be9a052ce4dc4dcda",
+      "size": 1625,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1d7b7a160f65a5875292a94be9a052ce4dc4dcda"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/version0to1.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7b17a9d9eda71d6caa71bffd1358248aa230081",
+      "size": 1502,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e7b17a9d9eda71d6caa71bffd1358248aa230081"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/version2to5.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28ee9b825fa6244aa6806308558c652a0f4e460f",
+      "size": 14290,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/28ee9b825fa6244aa6806308558c652a0f4e460f"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/version3_4to5.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3ea996691c8bcd4ff60f81eaab528c1a30ca2f04",
+      "size": 5875,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3ea996691c8bcd4ff60f81eaab528c1a30ca2f04"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/migrations/version5to6.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "78db1d99050b67ee2f9f363ece78a8d041ecbb23",
+      "size": 1157,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/78db1d99050b67ee2f9f363ece78a8d041ecbb23"
+    },
+    {
+      "path": "calamari_ocr/ocr/savedmodel/saved_model.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "60fcfccf677d4572368639a151468a609affb9cc",
+      "size": 4707,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/60fcfccf677d4572368639a151468a609affb9cc"
+    },
+    {
+      "path": "calamari_ocr/ocr/scenario.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a8c566e699cae16f881147f6f72eb6272a24877",
+      "size": 2800,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7a8c566e699cae16f881147f6f72eb6272a24877"
+    },
+    {
+      "path": "calamari_ocr/ocr/scenario_params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e0520d225f8c436f32bb508bd0628934bff125b",
+      "size": 908,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0e0520d225f8c436f32bb508bd0628934bff125b"
+    },
+    {
+      "path": "calamari_ocr/ocr/training",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "71ba489e2bd9ade503bcf9d375f0772bfc090b73",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/71ba489e2bd9ade503bcf9d375f0772bfc090b73"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/cross_fold.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "73401756f5ffbf8c44851ad559a152628c87aaba",
+      "size": 4742,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/73401756f5ffbf8c44851ad559a152628c87aaba"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/cross_fold_trainer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e6cea1cce284651f5a6123bbeb4067948882675",
+      "size": 13617,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4e6cea1cce284651f5a6123bbeb4067948882675"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "428c2de93143e3d429891c35debf229962b572cc",
+      "size": 10188,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/428c2de93143e3d429891c35debf229962b572cc"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/pipeline_params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a24ef542c7c2178392519b877b80868b55e2301a",
+      "size": 3380,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a24ef542c7c2178392519b877b80868b55e2301a"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/standalone_cross_fold_split_script.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37fdb4744c47bbc6d82d8b659f1aa0866803d162",
+      "size": 734,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/37fdb4744c47bbc6d82d8b659f1aa0866803d162"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/trainer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b4f34d6e6cc53fc5f5d1467083ce1e981ae6113d",
+      "size": 12082,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b4f34d6e6cc53fc5f5d1467083ce1e981ae6113d"
+    },
+    {
+      "path": "calamari_ocr/ocr/training/warmstart.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b39f048d5b26a25b0820c51d693ffeec573c660",
+      "size": 3148,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6b39f048d5b26a25b0820c51d693ffeec573c660"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "792853c7f5550091b3ec0847e09fc35ca8b18230",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/792853c7f5550091b3ec0847e09fc35ca8b18230"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "744ae0161ccd1fef0a1a73227890ce007e88b6f7",
+      "size": 575,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/744ae0161ccd1fef0a1a73227890ce007e88b6f7"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ecd8ee9cfbcaf2b0914fab56e37c420c8b6eac9",
+      "size": 2634,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7ecd8ee9cfbcaf2b0914fab56e37c420c8b6eac9"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/confidence_voter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dcc1b8416294ca5a7af6a4bda4112e9066a4b159",
+      "size": 5313,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/dcc1b8416294ca5a7af6a4bda4112e9066a4b159"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06847f4e2818822d4fa25eeb13acc2663951ccd0",
+      "size": 374,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/06847f4e2818822d4fa25eeb13acc2663951ccd0"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/sequence_voter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4daadc4dc97b28ae0e6782f679137b9ee1c12682",
+      "size": 5280,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4daadc4dc97b28ae0e6782f679137b9ee1c12682"
+    },
+    {
+      "path": "calamari_ocr/ocr/voting/voter.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d2e53c114d126e9f16107169decd4ed1f68b7785",
+      "size": 2494,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d2e53c114d126e9f16107169decd4ed1f68b7785"
+    },
+    {
+      "path": "calamari_ocr/resources",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "0cb28bbc75daddb83fbb3ac7b0beacd8f63d07d4",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/0cb28bbc75daddb83fbb3ac7b0beacd8f63d07d4"
+    },
+    {
+      "path": "calamari_ocr/resources/networks",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "00b02fcff358a7b21ec46aaa63bf52cb5aa94293",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/00b02fcff358a7b21ec46aaa63bf52cb5aa94293"
+    },
+    {
+      "path": "calamari_ocr/resources/networks/deep3.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cd60c9f2b9df493da071b2dce764425fa5ee5512",
+      "size": 2509,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cd60c9f2b9df493da071b2dce764425fa5ee5512"
+    },
+    {
+      "path": "calamari_ocr/resources/networks/def.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "61c4d1f33df4e7eb4a63a3209e3b6e4ff48386f7",
+      "size": 1801,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/61c4d1f33df4e7eb4a63a3209e3b6e4ff48386f7"
+    },
+    {
+      "path": "calamari_ocr/resources/networks/htr+.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "80c481702361ee699e4ae0a0737f2c53705bd1c0",
+      "size": 2748,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/80c481702361ee699e4ae0a0737f2c53705bd1c0"
+    },
+    {
+      "path": "calamari_ocr/resources/rulegroups.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "800a965e0725acf5402d100792df7b5029f33e05",
+      "size": 236,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/800a965e0725acf5402d100792df7b5029f33e05"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ec5204425f8046c2700f642768b6019fbb84fdd3",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/ec5204425f8046c2700f642768b6019fbb84fdd3"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/ligatures_consonantal.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f4ebd6bb324d412416b2f3c08b93fbeca920db44",
+      "size": 763,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f4ebd6bb324d412416b2f3c08b93fbeca920db44"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/ligatures_vocal.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b90ac830ac8bbb445bcae65ee403b40bb820ea9",
+      "size": 571,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3b90ac830ac8bbb445bcae65ee403b40bb820ea9"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/punctuation.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c23e8d0f9d5422590ed193206fa3f7e2cd5510a5",
+      "size": 84,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c23e8d0f9d5422590ed193206fa3f7e2cd5510a5"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/quotes.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "49bc41785a007ec3e06be8c6720340bb56a5f8b8",
+      "size": 668,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/49bc41785a007ec3e06be8c6720340bb56a5f8b8"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/roman_digits.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc58dfcb9c82d51e461719a531dd65fc6e86236a",
+      "size": 1343,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/fc58dfcb9c82d51e461719a531dd65fc6e86236a"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/spaces.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3e3526a678ca7b42039cf8297ae23f517b4480c8",
+      "size": 201,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3e3526a678ca7b42039cf8297ae23f517b4480c8"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/uvius.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "008d47f19a349305e8d336a4ac4212516ac86675",
+      "size": 5660,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/008d47f19a349305e8d336a4ac4212516ac86675"
+    },
+    {
+      "path": "calamari_ocr/resources/rulesets/various.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "45dbbc2087847eaf61d94eb1bca23fc6cac1ea0b",
+      "size": 167,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/45dbbc2087847eaf61d94eb1bca23fc6cac1ea0b"
+    },
+    {
+      "path": "calamari_ocr/scripts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "608cd640f5a963752b40f72c9c570d6b0ee50b5b",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/608cd640f5a963752b40f72c9c570d6b0ee50b5b"
+    },
+    {
+      "path": "calamari_ocr/scripts/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/scripts/benchmark.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "85e640d3371b53bf39832cf5aeed45a1c7f5fed4",
+      "size": 1340,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/85e640d3371b53bf39832cf5aeed45a1c7f5fed4"
+    },
+    {
+      "path": "calamari_ocr/scripts/compute_average_prediction_confidence.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ee4dfe561cc04c2ec13764c46e3959a8be948599",
+      "size": 882,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ee4dfe561cc04c2ec13764c46e3959a8be948599"
+    },
+    {
+      "path": "calamari_ocr/scripts/cross_fold_train.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4a346492d682431c15c88fde94f0c5403a1a5da0",
+      "size": 1036,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4a346492d682431c15c88fde94f0c5403a1a5da0"
+    },
+    {
+      "path": "calamari_ocr/scripts/dataset_statistics.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a784bd9d55079421ec41c2f5d2e225727c56b31",
+      "size": 2987,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7a784bd9d55079421ec41c2f5d2e225727c56b31"
+    },
+    {
+      "path": "calamari_ocr/scripts/dataset_to_single_dir.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0c9f64fc2a35879b557ab797b33dc761ad75f2ad",
+      "size": 2484,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0c9f64fc2a35879b557ab797b33dc761ad75f2ad"
+    },
+    {
+      "path": "calamari_ocr/scripts/dataset_viewer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "814b6f0637e8fb6c4a33ae541238a8038a943ca2",
+      "size": 4714,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/814b6f0637e8fb6c4a33ae541238a8038a943ca2"
+    },
+    {
+      "path": "calamari_ocr/scripts/ensemble.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6316287fa87fadcaf3b36ecb4202282efb580ac9",
+      "size": 2420,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6316287fa87fadcaf3b36ecb4202282efb580ac9"
+    },
+    {
+      "path": "calamari_ocr/scripts/eval.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8695ee87c0e75e460ea07605e8481a64d5af64f3",
+      "size": 8304,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8695ee87c0e75e460ea07605e8481a64d5af64f3"
+    },
+    {
+      "path": "calamari_ocr/scripts/experiment.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d81875333ba23c28417b8fa2eb60a9dd6270538",
+      "size": 8174,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9d81875333ba23c28417b8fa2eb60a9dd6270538"
+    },
+    {
+      "path": "calamari_ocr/scripts/experiment_cross_fold.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06e68926636d6299b1abe4401368027f3f041079",
+      "size": 11126,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/06e68926636d6299b1abe4401368027f3f041079"
+    },
+    {
+      "path": "calamari_ocr/scripts/img_gt_pred_to_html.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "99e0819a8d40d568e0a479e494b6d48efc922a89",
+      "size": 1515,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/99e0819a8d40d568e0a479e494b6d48efc922a89"
+    },
+    {
+      "path": "calamari_ocr/scripts/predict.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1cb8cca209c28fb746cbd2749dc481c1979c35e0",
+      "size": 7221,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1cb8cca209c28fb746cbd2749dc481c1979c35e0"
+    },
+    {
+      "path": "calamari_ocr/scripts/predict_and_eval.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e3bf065694d6e9d5ef76fd4757da970d89b2ba89",
+      "size": 5008,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e3bf065694d6e9d5ef76fd4757da970d89b2ba89"
+    },
+    {
+      "path": "calamari_ocr/scripts/resume_training.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f6e2bd9f3c7c6f0441562017b370223e87a8c42b",
+      "size": 158,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f6e2bd9f3c7c6f0441562017b370223e87a8c42b"
+    },
+    {
+      "path": "calamari_ocr/scripts/split_dirs_to_train_eval.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "da367dccf1ff1db367b3302343bae587433f9935",
+      "size": 2014,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/da367dccf1ff1db367b3302343bae587433f9935"
+    },
+    {
+      "path": "calamari_ocr/scripts/split_eval_train.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d4f29041b61a17782814c2d3a68f224ba7bd881",
+      "size": 3212,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5d4f29041b61a17782814c2d3a68f224ba7bd881"
+    },
+    {
+      "path": "calamari_ocr/scripts/split_to_folds.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eaef172eb9b3f50fc20dc9cb20acc35daf8fef61",
+      "size": 2765,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/eaef172eb9b3f50fc20dc9cb20acc35daf8fef61"
+    },
+    {
+      "path": "calamari_ocr/scripts/train.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6067f31c93602a7bf12308729fc606cb0fe6af0b",
+      "size": 1336,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6067f31c93602a7bf12308729fc606cb0fe6af0b"
+    },
+    {
+      "path": "calamari_ocr/scripts/train_from_params.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4fa741cb4d83e5b22fb7076b8fa74be69d809aea",
+      "size": 164,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4fa741cb4d83e5b22fb7076b8fa74be69d809aea"
+    },
+    {
+      "path": "calamari_ocr/scripts/update_checkpoint.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ae9d88a0018cadd778e55b191f2bafe8187ad7e",
+      "size": 601,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7ae9d88a0018cadd778e55b191f2bafe8187ad7e"
+    },
+    {
+      "path": "calamari_ocr/test",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e80b9bd060fc58710e830e8571ffcf38fcdefd80",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/e80b9bd060fc58710e830e8571ffcf38fcdefd80"
+    },
+    {
+      "path": "calamari_ocr/test/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c11c17ad8b26e16c21d6a7fa0fa4b48f2bea1672",
+      "size": 72,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c11c17ad8b26e16c21d6a7fa0fa4b48f2bea1672"
+    },
+    {
+      "path": "calamari_ocr/test/calamari_test_scenario.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "860ee18f23db216327d9aa28f111dd3a3678e91a",
+      "size": 1865,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/860ee18f23db216327d9aa28f111dd3a3678e91a"
+    },
+    {
+      "path": "calamari_ocr/test/data",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fc2facbf4a6be9a2db57e3b09f5df8040b6381ca",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/fc2facbf4a6be9a2db57e3b09f5df8040b6381ca"
+    },
+    {
+      "path": "calamari_ocr/test/data/.gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d07a424ae1134c939441039c99704038ec44ad3d",
+      "size": 22,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d07a424ae1134c939441039c99704038ec44ad3d"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3bf68d772dad274cc0ab4082b21f944582bdf06c",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/3bf68d772dad274cc0ab4082b21f944582bdf06c"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/006.color.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2abfc7cb5bcf27a3b2496729fb8897b6e6eade77",
+      "size": 3663723,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2abfc7cb5bcf27a3b2496729fb8897b6e6eade77"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/006.mono.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "82a6635eecd91b9fb5d44f32e1c26c29e9d7821a",
+      "size": 150228,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/82a6635eecd91b9fb5d44f32e1c26c29e9d7821a"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/006.nrm.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc0852a4af07396d24a55624a43268789f471fe1",
+      "size": 2084809,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/fc0852a4af07396d24a55624a43268789f471fe1"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/006.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ba4d56c0493324fca26fd8a0e24ebe78d9d8ae91",
+      "size": 74673,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ba4d56c0493324fca26fd8a0e24ebe78d9d8ae91"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/007.color.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19540a61461c7531a661e6855114c1af1804b286",
+      "size": 3936266,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/19540a61461c7531a661e6855114c1af1804b286"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/007.mono.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3828f4019eb3786198f716ca367769f19441c8b2",
+      "size": 168193,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3828f4019eb3786198f716ca367769f19441c8b2"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/007.nrm.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f15d4aa681930c4b3e614051855e46f73f63be5",
+      "size": 2277580,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7f15d4aa681930c4b3e614051855e46f73f63be5"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/007.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7fddcbe41933f2f2c9ddf2f341ee32fb6429a0a",
+      "size": 29618,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e7fddcbe41933f2f2c9ddf2f341ee32fb6429a0a"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/008.color.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "21497abb1faffa1069b5ab195aa3220c40fdc51f",
+      "size": 3895555,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/21497abb1faffa1069b5ab195aa3220c40fdc51f"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/008.mono.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "08263e9c5461d91cbf96eb4cdcad8344d9b9c112",
+      "size": 163020,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/08263e9c5461d91cbf96eb4cdcad8344d9b9c112"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/008.nrm.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2dce71c842351794e791181eb5aec61d7db3639c",
+      "size": 2211957,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2dce71c842351794e791181eb5aec61d7db3639c"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/008.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "62bb2c7fc78a160c4877c916558e4370242e8b1a",
+      "size": 73542,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/62bb2c7fc78a160c4877c916558e4370242e8b1a"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/009.color.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "72369e834c09af29447d05249afecf61dbcb0a31",
+      "size": 4007504,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/72369e834c09af29447d05249afecf61dbcb0a31"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/009.mono.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e8fdadbbfbf65b8ed6c4a3433d995b19842dcc7",
+      "size": 180833,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4e8fdadbbfbf65b8ed6c4a3433d995b19842dcc7"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/009.nrm.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c170f606d55eb571e6f97951f34caec13ada3879",
+      "size": 2318385,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c170f606d55eb571e6f97951f34caec13ada3879"
+    },
+    {
+      "path": "calamari_ocr/test/data/avicanon_pagexml/009.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aae2b8bb0a837993d62c42e876da94da2019f372",
+      "size": 53397,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/aae2b8bb0a837993d62c42e876da94da2019f372"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3ba3fe9d43ff24a854dc46781e8520273d8e4168",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/3ba3fe9d43ff24a854dc46781e8520273d8e4168"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00020.abbyy.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a4b71abe1ffad771f8a6958737eb9a4889d8e945",
+      "size": 244496,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a4b71abe1ffad771f8a6958737eb9a4889d8e945"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00020.jpg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4b99721f603b192f3ec99f5927c38464a55c5467",
+      "size": 631182,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4b99721f603b192f3ec99f5927c38464a55c5467"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00042.abbyy.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "52b2439490ced165a81d94bd9be11819349e5996",
+      "size": 276417,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/52b2439490ced165a81d94bd9be11819349e5996"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00042.jpg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28003ff40017bcd2fbd76be00d2da4fe5b05160a",
+      "size": 693280,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/28003ff40017bcd2fbd76be00d2da4fe5b05160a"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00064.abbyy.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0649f9891ffdd29eb0a78f7fb74338071220c0ae",
+      "size": 245436,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0649f9891ffdd29eb0a78f7fb74338071220c0ae"
+    },
+    {
+      "path": "calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/bsb11015645_00064.jpg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c9232c088ed97752c8e01847e2c9409fdae9f57c",
+      "size": 611551,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c9232c088ed97752c8e01847e2c9409fdae9f57c"
+    },
+    {
+      "path": "calamari_ocr/test/data/line_generation_config",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "adc9fc6e397714907c2e6df539709b4b1966bcb1",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/adc9fc6e397714907c2e6df539709b4b1966bcb1"
+    },
+    {
+      "path": "calamari_ocr/test/data/line_generation_config/line_gen_params.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d2a233a328c3210792a65294119cf69b1a643a51",
+      "size": 123,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d2a233a328c3210792a65294119cf69b1a643a51"
+    },
+    {
+      "path": "calamari_ocr/test/data/line_generation_config/text_gen_params.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "344808cd31956ff132a633632b5beb684c88f5e8",
+      "size": 893,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/344808cd31956ff132a633632b5beb684c88f5e8"
+    },
+    {
+      "path": "calamari_ocr/test/data/line_generation_config/whitelist.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a1a5cf3407fd7f162831576259172b120c41a3e8",
+      "size": 243,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a1a5cf3407fd7f162831576259172b120c41a3e8"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "754fe43adf310fcda2ac4a93f60d522a7db7cdc2",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/754fe43adf310fcda2ac4a93f60d522a7db7cdc2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/full_codec.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d6b3292d2dc23c6fc343d66a171a6eddcbd8c9b2",
+      "size": 90,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d6b3292d2dc23c6fc343d66a171a6eddcbd8c9b2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test.files",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "976d3d3b1ccd6db38da115ea02568105775363ad",
+      "size": 400,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/976d3d3b1ccd6db38da115ea02568105775363ad"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test.gt.files",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ce4240a4df90155da7e6c1995a01023385bc184e",
+      "size": 380,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ce4240a4df90155da7e6c1995a01023385bc184e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c3b4f57d54125e714012c2a4010c8bff18a89604",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/c3b4f57d54125e714012c2a4010c8bff18a89604"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010001.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5fabfa2b27928e551e9deb44a65d6ad1052050ed",
+      "size": 3037,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5fabfa2b27928e551e9deb44a65d6ad1052050ed"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010001.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9e2dfcfc1c0af5813d41c7a9c24ba9ba4b689362",
+      "size": 55,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9e2dfcfc1c0af5813d41c7a9c24ba9ba4b689362"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010002.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "686d1477dffd189b3e4f95c775cb05e5730737e1",
+      "size": 3638,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/686d1477dffd189b3e4f95c775cb05e5730737e1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010002.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7cad49af074a83640996f3502f6702570bb6c54e",
+      "size": 67,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7cad49af074a83640996f3502f6702570bb6c54e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010003.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cb9fc08e0771021dd9d9179a3f0a5d8b368edd61",
+      "size": 1454,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cb9fc08e0771021dd9d9179a3f0a5d8b368edd61"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010003.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d6b14fb5f235bb7d4cdc1c6248c0a3afa7b83768",
+      "size": 24,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d6b14fb5f235bb7d4cdc1c6248c0a3afa7b83768"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010004.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f526d842fa43558b41ac08927b367ab317803456",
+      "size": 4757,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f526d842fa43558b41ac08927b367ab317803456"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010004.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f8f07d6f64c5ac63528abc5c249a8fd6c5da676",
+      "size": 80,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0f8f07d6f64c5ac63528abc5c249a8fd6c5da676"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010005.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f74f5ef6a00448a0502d94f9e92fbb20d31fb807",
+      "size": 3655,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f74f5ef6a00448a0502d94f9e92fbb20d31fb807"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010005.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0ed1528f4f8805557f3d49893b50414e50e56ed2",
+      "size": 63,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0ed1528f4f8805557f3d49893b50414e50e56ed2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010006.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9cfa5efe6cbfdfb5d89abef726ce6fd68b9553c4",
+      "size": 3647,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9cfa5efe6cbfdfb5d89abef726ce6fd68b9553c4"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010006.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "907607e460dc17ea184c9ef61ad3d6ab219037e5",
+      "size": 67,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/907607e460dc17ea184c9ef61ad3d6ab219037e5"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010007.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "93432651c6762a57efc59341fa0ebf33cc8c5545",
+      "size": 3864,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/93432651c6762a57efc59341fa0ebf33cc8c5545"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010007.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3900079e4fdd2cf1e2a8b9ffbf6174f12fb6500e",
+      "size": 67,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3900079e4fdd2cf1e2a8b9ffbf6174f12fb6500e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010008.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c783f328558f1c40ac258dfed4e9760b7c1f1041",
+      "size": 545,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c783f328558f1c40ac258dfed4e9760b7c1f1041"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010008.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "877d4a8dbb7b4300a6dd061549b2d101b7ff9012",
+      "size": 7,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/877d4a8dbb7b4300a6dd061549b2d101b7ff9012"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010009.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f0c031bc21e803e7833b32cf63b505730b11ba43",
+      "size": 3188,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f0c031bc21e803e7833b32cf63b505730b11ba43"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010009.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5b93141e1ad596d874c250c2ee5b8eb43e60870a",
+      "size": 58,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5b93141e1ad596d874c250c2ee5b8eb43e60870a"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010010.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "943ebac703274922a03520620769c0d34392864f",
+      "size": 4779,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/943ebac703274922a03520620769c0d34392864f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010010.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ff66ef255d9a7aa53f98bf46b668fcc1b6eb6a2",
+      "size": 86,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2ff66ef255d9a7aa53f98bf46b668fcc1b6eb6a2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010011.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "af38402b250bc671ec4b0448bdf8510299aaf26d",
+      "size": 855,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/af38402b250bc671ec4b0448bdf8510299aaf26d"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010011.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5f96c291f8fb3804747a306fb73d4bc063cecf8e",
+      "size": 11,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5f96c291f8fb3804747a306fb73d4bc063cecf8e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010012.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e2254786ccc0ff9cd928a83c39d9a8b382e4e3b2",
+      "size": 4801,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e2254786ccc0ff9cd928a83c39d9a8b382e4e3b2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010012.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1fc573c7037232b887fdd5ffb03264553bd9cc36",
+      "size": 82,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1fc573c7037232b887fdd5ffb03264553bd9cc36"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010013.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a0237a20eef075137d94799024f51e8d9dd1530c",
+      "size": 4631,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a0237a20eef075137d94799024f51e8d9dd1530c"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010013.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3bdb0ea82626a9a6ef84bdbf4d641fcaa8a46d72",
+      "size": 82,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3bdb0ea82626a9a6ef84bdbf4d641fcaa8a46d72"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010014.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "252cded253db68e54ce91e904598e51dd72b2f40",
+      "size": 4485,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/252cded253db68e54ce91e904598e51dd72b2f40"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010014.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b6f860cb99e091724b4feebef5ec8c0322d303d8",
+      "size": 73,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b6f860cb99e091724b4feebef5ec8c0322d303d8"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010015.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc09fa85d372f035e88721b5d544bd3fadabacea",
+      "size": 4606,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/fc09fa85d372f035e88721b5d544bd3fadabacea"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010015.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d4b9bffee908eda0346f3fba9d573b4697944c94",
+      "size": 83,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d4b9bffee908eda0346f3fba9d573b4697944c94"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010016.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c5d3b5d3fa87417c545bc9b97771804771fc692a",
+      "size": 4060,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c5d3b5d3fa87417c545bc9b97771804771fc692a"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010016.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "58c4f5d2647b357a3f241be0036a5fb89e6950ec",
+      "size": 61,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/58c4f5d2647b357a3f241be0036a5fb89e6950ec"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010017.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "314cf4c84f7204a89bb76c629c60cd733a2f59c1",
+      "size": 274,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/314cf4c84f7204a89bb76c629c60cd733a2f59c1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010017.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "00750edc07d6415dcc07ae0351e9397b0222b7ba",
+      "size": 2,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/00750edc07d6415dcc07ae0351e9397b0222b7ba"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010018.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c41c0883622f93bbbd8d61f8b1cbf11cf25b85c3",
+      "size": 4771,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c41c0883622f93bbbd8d61f8b1cbf11cf25b85c3"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010018.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1ba6f5701cf8718b83dccbb5befcd44cf11fa92",
+      "size": 89,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e1ba6f5701cf8718b83dccbb5befcd44cf11fa92"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010019.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f6de1a8bda78e356a900a4b1c05e0e340fb55572",
+      "size": 3907,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f6de1a8bda78e356a900a4b1c05e0e340fb55572"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010019.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "35f45d98486eb31581ebd965b78be006736866b6",
+      "size": 73,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/35f45d98486eb31581ebd965b78be006736866b6"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010020.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3aa2b211c333845814343d3b163fa362d8a6f36d",
+      "size": 2110,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3aa2b211c333845814343d3b163fa362d8a6f36d"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/test/010020.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "464cd4e2c353cc234fce85a8326457ab82ddc3ab",
+      "size": 28,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/464cd4e2c353cc234fce85a8326457ab82ddc3ab"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train.files",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b537f84b4e27de3b51dbd0620c2cde809f606b35",
+      "size": 1050,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b537f84b4e27de3b51dbd0620c2cde809f606b35"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "82db12d45587f55040741cb0b0ffd0e17d8c69aa",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/82db12d45587f55040741cb0b0ffd0e17d8c69aa"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010001.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b579bf186e8ec72be78f74dfcbc815b0a3ac68d7",
+      "size": 4678,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b579bf186e8ec72be78f74dfcbc815b0a3ac68d7"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010001.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1acb369dba1bcfb1af62ee8651c2696ca647e887",
+      "size": 60,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1acb369dba1bcfb1af62ee8651c2696ca647e887"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010002.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "188628596981a44a12d84d34a2b8220bdf4f8e45",
+      "size": 824,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/188628596981a44a12d84d34a2b8220bdf4f8e45"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010002.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3475c4d0b82b339a7e5e312a544c57bf99f8a893",
+      "size": 10,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3475c4d0b82b339a7e5e312a544c57bf99f8a893"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010003.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "66013aea50354e72b0eda0327ef960826f1974a1",
+      "size": 4696,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/66013aea50354e72b0eda0327ef960826f1974a1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010003.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "61667ab16a5cb25da310c9224f089ed059abb9fd",
+      "size": 100,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/61667ab16a5cb25da310c9224f089ed059abb9fd"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010005.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab5631bc79e8298ab0916a7fdc3cef1c1487b4cd",
+      "size": 4006,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ab5631bc79e8298ab0916a7fdc3cef1c1487b4cd"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010005.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b4879817770620d3266ab0bdadb67c322c7f590",
+      "size": 87,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3b4879817770620d3266ab0bdadb67c322c7f590"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010006.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "402deda1aa01b939edc237a20fba59b74637a979",
+      "size": 3891,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/402deda1aa01b939edc237a20fba59b74637a979"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010006.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "57b25b885445429c419f32d2dd887fdf12860231",
+      "size": 88,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/57b25b885445429c419f32d2dd887fdf12860231"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010007.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f77203ba87ea7fe73b0efd1910990c1d20df8ab0",
+      "size": 3946,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f77203ba87ea7fe73b0efd1910990c1d20df8ab0"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010007.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d00757d3519edc6d681a9dc41c6342746ff3f247",
+      "size": 86,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d00757d3519edc6d681a9dc41c6342746ff3f247"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010008.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1ba89956416a03a19a5e936192149be58c2097f6",
+      "size": 2997,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1ba89956416a03a19a5e936192149be58c2097f6"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010008.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0439b1761959a58134b69ea5ee918ddd3d2a3b3b",
+      "size": 66,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0439b1761959a58134b69ea5ee918ddd3d2a3b3b"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010009.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a11e015964d470aef09ac6625e5e9267527cdf",
+      "size": 1883,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/06a11e015964d470aef09ac6625e5e9267527cdf"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010009.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "105bf9bb4ccf1aa1095db0f304a58086d0d947dd",
+      "size": 36,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/105bf9bb4ccf1aa1095db0f304a58086d0d947dd"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010010.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e51d3e7acb72365658abfdfb22729ed59313625",
+      "size": 2336,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8e51d3e7acb72365658abfdfb22729ed59313625"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010010.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75576154d9a1abc393861bea4b8b8b7124c2f764",
+      "size": 42,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/75576154d9a1abc393861bea4b8b8b7124c2f764"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010011.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "40fff2df9a1742d6786cc06b1826ce90a273ecd3",
+      "size": 861,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/40fff2df9a1742d6786cc06b1826ce90a273ecd3"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010011.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c89f449c1dea42622d33a168981435499f370180",
+      "size": 15,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c89f449c1dea42622d33a168981435499f370180"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010012.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "da8c489f17e4dc6219b4f92b6c4758017e338c4c",
+      "size": 1701,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/da8c489f17e4dc6219b4f92b6c4758017e338c4c"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010012.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a35c32635706d96ee8d3a20eca9cfe4190130b87",
+      "size": 33,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a35c32635706d96ee8d3a20eca9cfe4190130b87"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010013.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e08fa5f910c847d747ccdfdd0d6da377d7fdf423",
+      "size": 1879,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e08fa5f910c847d747ccdfdd0d6da377d7fdf423"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010013.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b6ddee98720ed4fd9d25a9166b9934f5d9ead0f1",
+      "size": 34,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b6ddee98720ed4fd9d25a9166b9934f5d9ead0f1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010014.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d6a5bf196233c899aa86fb5d45ae46e6bfcd4954",
+      "size": 2322,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d6a5bf196233c899aa86fb5d45ae46e6bfcd4954"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010014.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7f6f3100e2e3dbc692d281c4905c71b164de3df",
+      "size": 48,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e7f6f3100e2e3dbc692d281c4905c71b164de3df"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010015.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bf072934b0ee619bf64833bce6ba88940ce78c89",
+      "size": 3989,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/bf072934b0ee619bf64833bce6ba88940ce78c89"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010015.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e44b5f0529d99b1d31523992e0fd4682c621a9ab",
+      "size": 86,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e44b5f0529d99b1d31523992e0fd4682c621a9ab"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010016.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8a730d5e723af0afc12ed48ef03f54cf30917fdb",
+      "size": 4061,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8a730d5e723af0afc12ed48ef03f54cf30917fdb"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010016.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "91ffbdce008985050f91dd5c2f7eb39a0fd687a1",
+      "size": 84,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/91ffbdce008985050f91dd5c2f7eb39a0fd687a1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010017.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5485723e31240cc2a68015fa5d3cbe97346f88b3",
+      "size": 2578,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5485723e31240cc2a68015fa5d3cbe97346f88b3"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010017.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "46f494ac1855cc3328dad1e8aaa0111a27c218be",
+      "size": 51,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/46f494ac1855cc3328dad1e8aaa0111a27c218be"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010018.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d4a5c7921521b415e605e9551c44b878a3757435",
+      "size": 1002,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d4a5c7921521b415e605e9551c44b878a3757435"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010018.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1797975d8fb5f21615ce1a8ea6e5be1815cc9e48",
+      "size": 13,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1797975d8fb5f21615ce1a8ea6e5be1815cc9e48"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010020.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6968a4fd83cd1669f49909858f620201f4fd42c2",
+      "size": 2807,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6968a4fd83cd1669f49909858f620201f4fd42c2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010020.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8068fe0d2759933bc6c38379ce0985ae660055f5",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8068fe0d2759933bc6c38379ce0985ae660055f5"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010021.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1270cbf2166a2b2cc1235f5a470e357f0db3e7f0",
+      "size": 2891,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1270cbf2166a2b2cc1235f5a470e357f0db3e7f0"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010021.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9fb2f23145eee8a4c4c42f7d7797b331948ea1e5",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9fb2f23145eee8a4c4c42f7d7797b331948ea1e5"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010022.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8f43e6df017f46456411bb08a1d9c87fb291c350",
+      "size": 2657,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8f43e6df017f46456411bb08a1d9c87fb291c350"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010022.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2e099e027d132ac384b319905c733bccc2e4e846",
+      "size": 40,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2e099e027d132ac384b319905c733bccc2e4e846"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010023.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "05e518e100a7d789f43ceb8e3f44c1facb1d84c5",
+      "size": 2754,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/05e518e100a7d789f43ceb8e3f44c1facb1d84c5"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010023.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0fa8e853ee78958f42e993fbc7b4d989a0877bbd",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0fa8e853ee78958f42e993fbc7b4d989a0877bbd"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010024.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d86a8ed09e0bbdbb458b5873cbf65f7e587def6a",
+      "size": 2778,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d86a8ed09e0bbdbb458b5873cbf65f7e587def6a"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010024.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a129a65b7f457cee0f9681589b9dc25c8b66a8b0",
+      "size": 43,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a129a65b7f457cee0f9681589b9dc25c8b66a8b0"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010025.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5a93d27115eddb564aed377a28556511952239e4",
+      "size": 2780,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5a93d27115eddb564aed377a28556511952239e4"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010025.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "af5c260578dd455f0223ebeb3739b3dda3c3d570",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/af5c260578dd455f0223ebeb3739b3dda3c3d570"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010026.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "83dbfa29c14507310c9806916ca2f9a5087756d1",
+      "size": 2642,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/83dbfa29c14507310c9806916ca2f9a5087756d1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010026.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d3da288d185a3a77d934048e93a2c346f03f9332",
+      "size": 42,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d3da288d185a3a77d934048e93a2c346f03f9332"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010027.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ed797c3f898b19149584113023cb7746dfc27bf2",
+      "size": 689,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ed797c3f898b19149584113023cb7746dfc27bf2"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010027.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c3aae40db3dab9271da72cbf7ac7469882ade6c4",
+      "size": 8,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c3aae40db3dab9271da72cbf7ac7469882ade6c4"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010028.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "931b56a54124848063332263f1c99f2787aef941",
+      "size": 2416,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/931b56a54124848063332263f1c99f2787aef941"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010028.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "762e490de26451ab96acfa73cc1800a9ded7236f",
+      "size": 36,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/762e490de26451ab96acfa73cc1800a9ded7236f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010029.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c335a40b5105e87b2cd92114713ee46907ba5904",
+      "size": 2915,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c335a40b5105e87b2cd92114713ee46907ba5904"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010029.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c70f407feef7a624dfd824ee1ba23a69dfaf22d7",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c70f407feef7a624dfd824ee1ba23a69dfaf22d7"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010030.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c9274d56d797a7ab5610b80ded4904414667a9da",
+      "size": 2830,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c9274d56d797a7ab5610b80ded4904414667a9da"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010030.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0d0d33c7be597aa649bdb3b5d18a9766c6d9b24e",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0d0d33c7be597aa649bdb3b5d18a9766c6d9b24e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010031.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "683be2307b095b9f7de3fc22e35359cde81e3f17",
+      "size": 664,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/683be2307b095b9f7de3fc22e35359cde81e3f17"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010031.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e41c0306d3f5411667f7bf2b8d731aa8a844e4e",
+      "size": 8,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8e41c0306d3f5411667f7bf2b8d731aa8a844e4e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010032.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "917df402854e568027415958ee71f4c6328ae7c8",
+      "size": 2863,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/917df402854e568027415958ee71f4c6328ae7c8"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010032.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d8f3562139fe66521dcbcb4adb04401de716c169",
+      "size": 42,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d8f3562139fe66521dcbcb4adb04401de716c169"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010033.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4cf72374fe5dc3d71dc1f01541bb74f9796e6588",
+      "size": 2933,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4cf72374fe5dc3d71dc1f01541bb74f9796e6588"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010033.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "62b3f84eb55658202063e51be4d715816916f2ab",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/62b3f84eb55658202063e51be4d715816916f2ab"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010034.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "62e5765ed231c411c3f5363af8b5929936b74461",
+      "size": 2777,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/62e5765ed231c411c3f5363af8b5929936b74461"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010034.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e91e547ea7034c744c9150246ebd665e1e923b72",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e91e547ea7034c744c9150246ebd665e1e923b72"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010035.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "90dceedd3a347708eb7d96c4938dd18785c3ee23",
+      "size": 3004,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/90dceedd3a347708eb7d96c4938dd18785c3ee23"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010035.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b0a7a6ae4eed63ac22f11c5b31a54c38653fb9b",
+      "size": 46,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1b0a7a6ae4eed63ac22f11c5b31a54c38653fb9b"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010036.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8bebc656855a0f50344e8a847c06551e69506388",
+      "size": 2692,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8bebc656855a0f50344e8a847c06551e69506388"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010036.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7bb04187a4bcebcc3089e4dd9daf803b4813c697",
+      "size": 39,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7bb04187a4bcebcc3089e4dd9daf803b4813c697"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010037.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9019f9704708c97a23c53b27e6f5c84e799e1ab",
+      "size": 2556,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f9019f9704708c97a23c53b27e6f5c84e799e1ab"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010037.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15f6ec9ed160d408bd3e57cd5d4725dec99b6c59",
+      "size": 39,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/15f6ec9ed160d408bd3e57cd5d4725dec99b6c59"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010038.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "881729f0d2326da68bd51830d13871d2d60425a8",
+      "size": 2866,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/881729f0d2326da68bd51830d13871d2d60425a8"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010038.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ee3909eba816ec1e67533a3dc62689bf1dc0f741",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ee3909eba816ec1e67533a3dc62689bf1dc0f741"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010039.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3383623dbb896afd6dfa3771f15b7722ea2c40f1",
+      "size": 2864,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3383623dbb896afd6dfa3771f15b7722ea2c40f1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010039.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "79ba590027dcb50fa92a2e6f6751ad57c619c250",
+      "size": 45,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/79ba590027dcb50fa92a2e6f6751ad57c619c250"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010040.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4de12c7a5937241828ef5f095f1df9fc77fe789e",
+      "size": 2800,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4de12c7a5937241828ef5f095f1df9fc77fe789e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010040.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "23f5b555c42a04efcd65ca010c54559b33d1f184",
+      "size": 40,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/23f5b555c42a04efcd65ca010c54559b33d1f184"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010041.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "95872e91b4f4e0c8b335c06d4625f0054320f98e",
+      "size": 2855,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/95872e91b4f4e0c8b335c06d4625f0054320f98e"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010041.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7a4434030578a725b5956c0ec65d177c6bbf6b43",
+      "size": 43,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7a4434030578a725b5956c0ec65d177c6bbf6b43"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010042.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74b5222121105382e801ea78665f24c4beb9c3fb",
+      "size": 2720,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/74b5222121105382e801ea78665f24c4beb9c3fb"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010042.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "987dfa7bc44a71940328d1de3acf78b20c89d274",
+      "size": 42,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/987dfa7bc44a71940328d1de3acf78b20c89d274"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010044.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "18acde13d93669f7b8bbf429ee6ea5a21416ee51",
+      "size": 1147,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/18acde13d93669f7b8bbf429ee6ea5a21416ee51"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010044.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55b8590611d89141bcc6674b0e21d3c10bd3a9d6",
+      "size": 17,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/55b8590611d89141bcc6674b0e21d3c10bd3a9d6"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010045.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9fe69d4d23bcfee940353db071dd8f1c45d62ea",
+      "size": 2736,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f9fe69d4d23bcfee940353db071dd8f1c45d62ea"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010045.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ac86adbb9c75761a846ecd60ef1c51627cb9f840",
+      "size": 38,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ac86adbb9c75761a846ecd60ef1c51627cb9f840"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010046.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d48455b6c755220364a72f2875385dbb6853c52",
+      "size": 2915,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6d48455b6c755220364a72f2875385dbb6853c52"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010046.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f14179d69c89ed47ce2df66771036e8af073561f",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f14179d69c89ed47ce2df66771036e8af073561f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010047.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4977edb9a8889b133ecb469661d4654c594e4f6d",
+      "size": 2860,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4977edb9a8889b133ecb469661d4654c594e4f6d"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010047.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8c413aba7a99f2abdfc5be2f9fb1ffa7ffca4d56",
+      "size": 43,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8c413aba7a99f2abdfc5be2f9fb1ffa7ffca4d56"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010048.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "34ebae033f10b963276f892e248b86dc060e75a8",
+      "size": 2874,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/34ebae033f10b963276f892e248b86dc060e75a8"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010048.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "77b6d81e9686f96a7234c1e7ccd773a49fa8e68f",
+      "size": 41,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/77b6d81e9686f96a7234c1e7ccd773a49fa8e68f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010049.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "595eecb1bfffac14b33d1517e19fb0340ab44517",
+      "size": 2839,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/595eecb1bfffac14b33d1517e19fb0340ab44517"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010049.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e839f053538c80914e3ade1f80182ef07ceb335f",
+      "size": 45,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e839f053538c80914e3ade1f80182ef07ceb335f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010050.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cfca2882d5cf4fd24f023cbd6e307cd822f55d33",
+      "size": 2900,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cfca2882d5cf4fd24f023cbd6e307cd822f55d33"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010050.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c03e3efafbf77c6353c04d00f96ce58de6d1cac4",
+      "size": 44,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c03e3efafbf77c6353c04d00f96ce58de6d1cac4"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010051.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd2b5b66f1637ab695726c5c3d9f6a7002a90a48",
+      "size": 2796,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/dd2b5b66f1637ab695726c5c3d9f6a7002a90a48"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010051.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5e7b427951024e8a6b991d15ffc9f5d70c858fcc",
+      "size": 38,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5e7b427951024e8a6b991d15ffc9f5d70c858fcc"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010052.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "822a7874cd77e317643f21c1d09a1f25d93609b1",
+      "size": 2931,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/822a7874cd77e317643f21c1d09a1f25d93609b1"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010052.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2efb742012ee7c6c020026d9370f5138d2da606f",
+      "size": 45,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2efb742012ee7c6c020026d9370f5138d2da606f"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010053.bin.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b3cab9c6d1a692581b25a9d13bc82087a113385",
+      "size": 2809,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3b3cab9c6d1a692581b25a9d13bc82087a113385"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/train/010053.gt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7084d49faad0099aea7e2693a0fef5a16f9dad80",
+      "size": 45,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7084d49faad0099aea7e2693a0fef5a16f9dad80"
+    },
+    {
+      "path": "calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ca289057d5b110cd7e6fef8fade9b4ed88ae11aa",
+      "size": 1792088,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ca289057d5b110cd7e6fef8fade9b4ed88ae11aa"
+    },
+    {
+      "path": "calamari_ocr/test/models",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "0b5d95f487244623271b58f041a6234731b57295",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/0b5d95f487244623271b58f041a6234731b57295"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dbd5748d012b498b4cf14a6647e5b20bda4f50e3",
+      "size": 33599,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/dbd5748d012b498b4cf14a6647e5b20bda4f50e3"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "0bc43c1c00595c419dea8754b69e96ca151e105c",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/0bc43c1c00595c419dea8754b69e96ca151e105c"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/fingerprint.pb",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0720fd890f2daa260078e1f3af91c124554d9c71",
+      "size": 55,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0720fd890f2daa260078e1f3af91c124554d9c71"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/keras_metadata.pb",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ff988943399226f8ce43fc7c8d67cc631bcf287",
+      "size": 26361,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9ff988943399226f8ce43fc7c8d67cc631bcf287"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/saved_model.pb",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5c81f466e5ab41ee4fd5422d4ef2fc14c2472160",
+      "size": 2124688,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5c81f466e5ab41ee4fd5422d4ef2fc14c2472160"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/variables",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4668bb757a8023a8e162dcd31d1cc263a316e82a",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/4668bb757a8023a8e162dcd31d1cc263a316e82a"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/variables/variables.data-00000-of-00001",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d8a1553111906971c6b3e9568ab709d204fc4e6f",
+      "size": 15916,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d8a1553111906971c6b3e9568ab709d204fc4e6f"
+    },
+    {
+      "path": "calamari_ocr/test/models/best.ckpt/variables/variables.index",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1ce210d84ad03aa9bbef8efdc9578c32bdbd47c6",
+      "size": 680,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1ce210d84ad03aa9bbef8efdc9578c32bdbd47c6"
+    },
+    {
+      "path": "calamari_ocr/test/models/version2",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1dc512aa6907cab30e9a97c180b31d40a8a2b406",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/1dc512aa6907cab30e9a97c180b31d40a8a2b406"
+    },
+    {
+      "path": "calamari_ocr/test/models/version2/0.ckpt.h5",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ea42077c4a60455ea040551ea4857394dc409d4e",
+      "size": 18439832,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ea42077c4a60455ea040551ea4857394dc409d4e"
+    },
+    {
+      "path": "calamari_ocr/test/models/version2/0.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a2d1a43ac53c043e0dca7593df773f0372217210",
+      "size": 19275,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/a2d1a43ac53c043e0dca7593df773f0372217210"
+    },
+    {
+      "path": "calamari_ocr/test/models/version3",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6a1e31bc7486264b32170f8243f418370fb1c273",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/6a1e31bc7486264b32170f8243f418370fb1c273"
+    },
+    {
+      "path": "calamari_ocr/test/models/version3/0.ckpt.h5",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1bca5a823b39a26c1ca2c936192c147ae453bce2",
+      "size": 6149768,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1bca5a823b39a26c1ca2c936192c147ae453bce2"
+    },
+    {
+      "path": "calamari_ocr/test/models/version3/0.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5238730b7e39d6e58d8ee59763a440517e8ae93c",
+      "size": 18699,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5238730b7e39d6e58d8ee59763a440517e8ae93c"
+    },
+    {
+      "path": "calamari_ocr/test/models/version4",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "70da1ea933250feb33452e6ae5c63143c4915f99",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/70da1ea933250feb33452e6ae5c63143c4915f99"
+    },
+    {
+      "path": "calamari_ocr/test/models/version4/0.ckpt.h5",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f71aeedd168c7c6cca45ba974e2057c65cf8f02e",
+      "size": 6152160,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f71aeedd168c7c6cca45ba974e2057c65cf8f02e"
+    },
+    {
+      "path": "calamari_ocr/test/models/version4/0.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "df8b8f6e1da5205364cfebc03eb684c24fab01c8",
+      "size": 24060,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/df8b8f6e1da5205364cfebc03eb684c24fab01c8"
+    },
+    {
+      "path": "calamari_ocr/test/models/version5",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9cdf01782ae69df03bdbd1a6ef4a301e35a8eda1",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/9cdf01782ae69df03bdbd1a6ef4a301e35a8eda1"
+    },
+    {
+      "path": "calamari_ocr/test/models/version5/0.ckpt.h5",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0ad5cbd5334c25bb8645db16867b81dbf76cfc74",
+      "size": 6153336,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0ad5cbd5334c25bb8645db16867b81dbf76cfc74"
+    },
+    {
+      "path": "calamari_ocr/test/models/version5/0.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "099a6125ea37788330a41c5730e132f98fa1a26f",
+      "size": 24060,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/099a6125ea37788330a41c5730e132f98fa1a26f"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b3723d88e950c945729de6e3f86bcec87dd2bcc5",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/b3723d88e950c945729de6e3f86bcec87dd2bcc5"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aa4d8be2aad073fe0fc981e1cb0703f9295e61e9",
+      "size": 24060,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/aa4d8be2aad073fe0fc981e1cb0703f9295e61e9"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "23e4a6f44a8695c57e125a3f25822206c6070e46",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/23e4a6f44a8695c57e125a3f25822206c6070e46"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt/keras_metadata.pb",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "20e3ede43f7a5e58773d7c0b844e04b43e8a095b",
+      "size": 28544,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/20e3ede43f7a5e58773d7c0b844e04b43e8a095b"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt/saved_model.pb",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c6e9c589b25c520f104280dc5e2eaf84c7701f8e",
+      "size": 2779831,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c6e9c589b25c520f104280dc5e2eaf84c7701f8e"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt/variables",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "7518c301d1be23a9b23e2752d40e47bbf79a0bac",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/7518c301d1be23a9b23e2752d40e47bbf79a0bac"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt/variables/variables.data-00000-of-00001",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f461b3f12b616a3da995008945636397ddbb43a0",
+      "size": 6133666,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f461b3f12b616a3da995008945636397ddbb43a0"
+    },
+    {
+      "path": "calamari_ocr/test/models/version6/0.ckpt/variables/variables.index",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3f3ce5c1c1ea99fd0eec9d06a7a03300b6668089",
+      "size": 847,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/3f3ce5c1c1ea99fd0eec9d06a7a03300b6668089"
+    },
+    {
+      "path": "calamari_ocr/test/processors",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "39d4abe6ea382853d4959613d084a1496b58b5b2",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/39d4abe6ea382853d4959613d084a1496b58b5b2"
+    },
+    {
+      "path": "calamari_ocr/test/processors/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/test/processors/test_text_regularizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "17fe6ea3b7ba49626857fcca0f8e1ba58f648988",
+      "size": 2333,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/17fe6ea3b7ba49626857fcca0f8e1ba58f648988"
+    },
+    {
+      "path": "calamari_ocr/test/test_augmentation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d783851496eecf82bfd29e11f7068966133bee8b",
+      "size": 2341,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d783851496eecf82bfd29e11f7068966133bee8b"
+    },
+    {
+      "path": "calamari_ocr/test/test_command_line.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d5b7f7ed0cbed03c9fba8fb5b7e211f8a8cbe8dc",
+      "size": 3424,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d5b7f7ed0cbed03c9fba8fb5b7e211f8a8cbe8dc"
+    },
+    {
+      "path": "calamari_ocr/test/test_cross_fold_train.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8a439f4a37417ff441eca05bc1b9e68fdf90095f",
+      "size": 3350,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8a439f4a37417ff441eca05bc1b9e68fdf90095f"
+    },
+    {
+      "path": "calamari_ocr/test/test_data_pagexml.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7996cc20bf78c96b1f8fe9b7d0d947a419d26d26",
+      "size": 585,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7996cc20bf78c96b1f8fe9b7d0d947a419d26d26"
+    },
+    {
+      "path": "calamari_ocr/test/test_eval.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f24f77d3bef6baa124448d4db30804d6cab7032",
+      "size": 6498,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7f24f77d3bef6baa124448d4db30804d6cab7032"
+    },
+    {
+      "path": "calamari_ocr/test/test_model_migration.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "71c74143d1166794ccc0c4b7eee27f5680ae552b",
+      "size": 2693,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/71c74143d1166794ccc0c4b7eee27f5680ae552b"
+    },
+    {
+      "path": "calamari_ocr/test/test_model_zoo.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d9548e4b825352bf115b68b28fae29d98cf798e",
+      "size": 2244,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6d9548e4b825352bf115b68b28fae29d98cf798e"
+    },
+    {
+      "path": "calamari_ocr/test/test_network_architectures.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4f6e274f76eed2f763a6e00a80fb9501bc694368",
+      "size": 8036,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4f6e274f76eed2f763a6e00a80fb9501bc694368"
+    },
+    {
+      "path": "calamari_ocr/test/test_predict_and_eval.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b4aa2056ccbcda014acacaddb4dd5116536ab88e",
+      "size": 2801,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/b4aa2056ccbcda014acacaddb4dd5116536ab88e"
+    },
+    {
+      "path": "calamari_ocr/test/test_prediction.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9aed874b07e7079d20d279ce8ddf9aa55b617539",
+      "size": 7923,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9aed874b07e7079d20d279ce8ddf9aa55b617539"
+    },
+    {
+      "path": "calamari_ocr/test/test_pretrained.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "be280747a77f559b4741e8c9f8136ec0e0b21f33",
+      "size": 2755,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/be280747a77f559b4741e8c9f8136ec0e0b21f33"
+    },
+    {
+      "path": "calamari_ocr/test/test_resume_training.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "53aae7ec7ced24a772d652df9c79776d7dac10e6",
+      "size": 749,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/53aae7ec7ced24a772d652df9c79776d7dac10e6"
+    },
+    {
+      "path": "calamari_ocr/test/test_scripts.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ee8c657b96401066deaf6d7d8519e6b2189bdcff",
+      "size": 2368,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ee8c657b96401066deaf6d7d8519e6b2189bdcff"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_abbyyxml.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "655aee656abf368dc8367fbba7a20ad0dc62557d",
+      "size": 3235,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/655aee656abf368dc8367fbba7a20ad0dc62557d"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_consistency.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8b914733346dc562c6aa72e6cc5318101b4be726",
+      "size": 1515,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8b914733346dc562c6aa72e6cc5318101b4be726"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_ensemble.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "41b5cea0cf4e4fa669a2bbe5e6fe4682364148ae",
+      "size": 1192,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/41b5cea0cf4e4fa669a2bbe5e6fe4682364148ae"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_file.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4abcaef5425f9c3980f7534271d9343db8a5d5ae",
+      "size": 4828,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4abcaef5425f9c3980f7534271d9343db8a5d5ae"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_generated.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "23225ae044f97f431b9f691fbaa446e97eb28265",
+      "size": 2102,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/23225ae044f97f431b9f691fbaa446e97eb28265"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_hdf5.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb04bd53e01aaa1e9da959b2bd14f38277c1084d",
+      "size": 2645,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/eb04bd53e01aaa1e9da959b2bd14f38277c1084d"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_mixed_data.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "002582aa6761b16038c4295f31fd6745dbea40b3",
+      "size": 1437,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/002582aa6761b16038c4295f31fd6745dbea40b3"
+    },
+    {
+      "path": "calamari_ocr/test/test_train_pagexml.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d987eda7b6890e172ff42f1f54d97e810357c081",
+      "size": 3413,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d987eda7b6890e172ff42f1f54d97e810357c081"
+    },
+    {
+      "path": "calamari_ocr/thirdparty",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3b099e67d32436ba548bb8dcdde4f7ce5ed3cb6b",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/3b099e67d32436ba548bb8dcdde4f7ce5ed3cb6b"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d01d59705b578ad3fee7245528684650119f25ca",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/d01d59705b578ad3fee7245528684650119f25ca"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/Beam.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "072141209324cb7164efba7ea8d5d32002a27333",
+      "size": 6658,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/072141209324cb7164efba7ea8d5d32002a27333"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/DataLoader.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4d09ced97e3b6dfd09b39649db070191547aee39",
+      "size": 2489,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/4d09ced97e3b6dfd09b39649db070191547aee39"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/LanguageModel.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e93aa14c74c21fc129d3573114ffa665d23ea86d",
+      "size": 3839,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e93aa14c74c21fc129d3573114ffa665d23ea86d"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/Metrics.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2562f5dde0dffc8c4ff9ce0a8b1a241f2cc70b03",
+      "size": 1642,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2562f5dde0dffc8c4ff9ce0a8b1a241f2cc70b03"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/PrefixTree.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "345e7638420599c33512b7d5742f0ad5f207e4c4",
+      "size": 2994,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/345e7638420599c33512b7d5742f0ad5f207e4c4"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f1d8edcd07dae73c3b5aba21033775be99793187",
+      "size": 78,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f1d8edcd07dae73c3b5aba21033775be99793187"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/Utils.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "957504b80ae07bebb8fb4918e356d439da4806aa",
+      "size": 572,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/957504b80ae07bebb8fb4918e356d439da4806aa"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/WordBeamSearch.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "495f930fab3afd3ce2ddd3ac184cf707da41aa0e",
+      "size": 2766,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/495f930fab3afd3ce2ddd3ac184cf707da41aa0e"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ctcwordbeamsearch/main.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dda88bcd0dad5b7d4059e1fed74cee6329d6c125",
+      "size": 1296,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/dda88bcd0dad5b7d4059e1fed74cee6329d6c125"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ocrodeg",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "adeca3301501d58968b6d1bfa46dad99649a812c",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/adeca3301501d58968b6d1bfa46dad99649a812c"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ocrodeg/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7146df50226c18c5b2d7342d48e7d3d6c568b246",
+      "size": 23,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/7146df50226c18c5b2d7342d48e7d3d6c568b246"
+    },
+    {
+      "path": "calamari_ocr/thirdparty/ocrodeg/degrade.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bcb55303085a32ff6744607e781910278d92d982",
+      "size": 8509,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/bcb55303085a32ff6744607e781910278d92d982"
+    },
+    {
+      "path": "calamari_ocr/utils",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b8e3be35aab1e5dda3266f631f1ea547e455a976",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/b8e3be35aab1e5dda3266f631f1ea547e455a976"
+    },
+    {
+      "path": "calamari_ocr/utils/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "03102a98d769f983927a6c7b80f5df079aba3bcf",
+      "size": 198,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/03102a98d769f983927a6c7b80f5df079aba3bcf"
+    },
+    {
+      "path": "calamari_ocr/utils/glob.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "589aada2409d5bbed6e591a0ba6ce519ecd85784",
+      "size": 1309,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/589aada2409d5bbed6e591a0ba6ce519ecd85784"
+    },
+    {
+      "path": "calamari_ocr/utils/image.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81018c993659e91a22cfdb2208e4d4c2fe4d9cc1",
+      "size": 4232,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/81018c993659e91a22cfdb2208e4d4c2fe4d9cc1"
+    },
+    {
+      "path": "calamari_ocr/utils/multiprocessing.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cf0d809af2ff0fa7449cd262903ea25442fc92aa",
+      "size": 2510,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cf0d809af2ff0fa7449cd262903ea25442fc92aa"
+    },
+    {
+      "path": "calamari_ocr/utils/output_to_input_transformer.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f30b3fac1a9d3fec37a9bd4a16d9d5d1f64d2a7f",
+      "size": 1121,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/f30b3fac1a9d3fec37a9bd4a16d9d5d1f64d2a7f"
+    },
+    {
+      "path": "calamari_ocr/utils/path.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c02b15bb24e6323b17a54a7c880b1ca1c278630a",
+      "size": 1426,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/c02b15bb24e6323b17a54a7c880b1ca1c278630a"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d95963809bc9580b4f0e3594116d1d12f27d952a",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/d95963809bc9580b4f0e3594116d1d12f27d952a"
+    },
+    {
+      "path": "docs/Makefile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d0c3cbf1020d5c292abdedf27627c6abe25e2293",
+      "size": 638,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/d0c3cbf1020d5c292abdedf27627c6abe25e2293"
+    },
+    {
+      "path": "docs/make.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6247f7e231716482115f34084ac61030743e0715",
+      "size": 799,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/6247f7e231716482115f34084ac61030743e0715"
+    },
+    {
+      "path": "docs/requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cd5f2e33b8094240964079d1a25a84258fbffd54",
+      "size": 81,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cd5f2e33b8094240964079d1a25a84258fbffd54"
+    },
+    {
+      "path": "docs/source",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4496be9c1680a0569a9ad7ca7c686e9a1d499284",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/4496be9c1680a0569a9ad7ca7c686e9a1d499284"
+    },
+    {
+      "path": "docs/source/calamari_ocr.ocr.dataset.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55fc97c7673539d08d7926b566ab8bd6ab46ebe4",
+      "size": 485,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/55fc97c7673539d08d7926b566ab8bd6ab46ebe4"
+    },
+    {
+      "path": "docs/source/calamari_ocr.ocr.predict.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "927b777f7af2f3702661027080db86e8d1b41649",
+      "size": 150,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/927b777f7af2f3702661027080db86e8d1b41649"
+    },
+    {
+      "path": "docs/source/conf.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb498b290ffa017e1e875448be881ec8f70191e3",
+      "size": 3231,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/eb498b290ffa017e1e875448be881ec8f70191e3"
+    },
+    {
+      "path": "docs/source/doc.api-usage.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1c6fd4e9ce695a72ea65881cf9f60d1af5a7eb2f",
+      "size": 214,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/1c6fd4e9ce695a72ea65881cf9f60d1af5a7eb2f"
+    },
+    {
+      "path": "docs/source/doc.command-line-usage.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "14d75fa989484d6aee995b79fef21a022a787cba",
+      "size": 55578,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/14d75fa989484d6aee995b79fef21a022a787cba"
+    },
+    {
+      "path": "docs/source/doc.dataset-formats.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8a63c0dafefa35fa84a2cc586a04ef31fa6c2f9c",
+      "size": 2580,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8a63c0dafefa35fa84a2cc586a04ef31fa6c2f9c"
+    },
+    {
+      "path": "docs/source/doc.install.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "85f49d5cf1d5b0c12ee27c3c29f0a2823f7682c3",
+      "size": 1908,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/85f49d5cf1d5b0c12ee27c3c29f0a2823f7682c3"
+    },
+    {
+      "path": "docs/source/doc.predicting.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c1080a07c11132865ecbbe8cbc881c9dbca65ef",
+      "size": 3653,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2c1080a07c11132865ecbbe8cbc881c9dbca65ef"
+    },
+    {
+      "path": "docs/source/index.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "609aca02f11c1ba2786e26870224da914b105083",
+      "size": 519,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/609aca02f11c1ba2786e26870224da914b105083"
+    },
+    {
+      "path": "environment_master.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9e217d739ecf268dcbbb27543aaca25b2905bad4",
+      "size": 168,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/9e217d739ecf268dcbbb27543aaca25b2905bad4"
+    },
+    {
+      "path": "environment_master_gpu.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cec719b93be2a78346bca1c5616dfa7bcb40b202",
+      "size": 203,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/cec719b93be2a78346bca1c5616dfa7bcb40b202"
+    },
+    {
+      "path": "pyproject.toml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8d593011e9703a6af872873a299f9c668c9f5cc9",
+      "size": 2930,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/8d593011e9703a6af872873a299f9c668c9f5cc9"
+    },
+    {
+      "path": "requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5e83d72d64b1671763da083e4a57911051225c8a",
+      "size": 141,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/5e83d72d64b1671763da083e4a57911051225c8a"
+    },
+    {
+      "path": "resources",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5bb323488e827250d634b7021c1b39af01ef4b39",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/5bb323488e827250d634b7021c1b39af01ef4b39"
+    },
+    {
+      "path": "resources/logo",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e1632775efdba6e8276d68c6bbb715693fea3a48",
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/trees/e1632775efdba6e8276d68c6bbb715693fea3a48"
+    },
+    {
+      "path": "resources/logo/calamari.psd",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "2bb7b2f8d703d1a5bf388f84303a9ccb438c4e33",
+      "size": 5519130,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/2bb7b2f8d703d1a5bf388f84303a9ccb438c4e33"
+    },
+    {
+      "path": "resources/logo/calamari_1024.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eac492c59bbe3f5dc92a14eee57b10a0fb7e7792",
+      "size": 96677,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/eac492c59bbe3f5dc92a14eee57b10a0fb7e7792"
+    },
+    {
+      "path": "resources/logo/calamari_200.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0decee84825bc7f1adb661cbf21da9129d5debc8",
+      "size": 31611,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/0decee84825bc7f1adb661cbf21da9129d5debc8"
+    },
+    {
+      "path": "resources/preview.odg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "811c426ea0defd37861f1f297accbbf607a189b9",
+      "size": 28743,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/811c426ea0defd37861f1f297accbbf607a189b9"
+    },
+    {
+      "path": "resources/preview.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ac62514fa57915e16c307292dd707ebdb526144f",
+      "size": 41537,
+      "url": "https://api.github.com/repos/Calamari-OCR/calamari/git/blobs/ac62514fa57915e16c307292dd707ebdb526144f"
+    }
+  ],
+  "truncated": false
+}

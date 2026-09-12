@@ -1,0 +1,762 @@
+{
+  "sha": "f83eb2bc7207acad3de2d0b7852e964c863b5250",
+  "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/f83eb2bc7207acad3de2d0b7852e964c863b5250",
+  "tree": [
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "177b10a080023ac9f6367506938b34b5a1fa0e2e",
+      "size": 883,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/177b10a080023ac9f6367506938b34b5a1fa0e2e"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f49a4e16e68b128803cc2dcea614603632b04eac",
+      "size": 11356,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/f49a4e16e68b128803cc2dcea614603632b04eac"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f38ae2543d61fdfa1a19dc2f20a51f741e43ec3",
+      "size": 7445,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6f38ae2543d61fdfa1a19dc2f20a51f741e43ec3"
+    },
+    {
+      "path": "SECURITY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3a1fd2f1a1168a1d7a4eb6d2c6f00b279e3a2d51",
+      "size": 784,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/3a1fd2f1a1168a1d7a4eb6d2c6f00b279e3a2d51"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "04407c29e206b8701a62fa6099383dc01efeff58",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/04407c29e206b8701a62fa6099383dc01efeff58"
+    },
+    {
+      "path": "docs/CHANGELOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "07f63c862740f4a8624f4c70de0ece2d74b2d868",
+      "size": 1866,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/07f63c862740f4a8624f4c70de0ece2d74b2d868"
+    },
+    {
+      "path": "docs/harmony-pc-deploy.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7dd6ec468b6a420b928cd08d75e19695f5e60df0",
+      "size": 8473,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/7dd6ec468b6a420b928cd08d75e19695f5e60df0"
+    },
+    {
+      "path": "pyproject.toml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d4ce0c274eb6036a7a9f0dc5a8b16877de5b7a4a",
+      "size": 883,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/d4ce0c274eb6036a7a9f0dc5a8b16877de5b7a4a"
+    },
+    {
+      "path": "scripts",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c00a2c33107df70e02ed3b47b5f0639f12699646",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/c00a2c33107df70e02ed3b47b5f0639f12699646"
+    },
+    {
+      "path": "scripts/build_linux.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b5209ab59dac775832a1db5e7163fe62b929721",
+      "size": 939,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/1b5209ab59dac775832a1db5e7163fe62b929721"
+    },
+    {
+      "path": "scripts/build_offline_package.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "50259f57b6527b13ac69318014c73cb16482cbfc",
+      "size": 4849,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/50259f57b6527b13ac69318014c73cb16482cbfc"
+    },
+    {
+      "path": "scripts/deploy_harmony.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1edf59b028e49d19037ba65cced6370020c196eb",
+      "size": 5312,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/1edf59b028e49d19037ba65cced6370020c196eb"
+    },
+    {
+      "path": "scripts/download_models.ps1",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cfd46689574a7cefa729de60a3a1c36f8e49dd91",
+      "size": 1633,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/cfd46689574a7cefa729de60a3a1c36f8e49dd91"
+    },
+    {
+      "path": "scripts/download_models.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6ed87935b8c5ea00df32a6983b948e98ba61b6d7",
+      "size": 2895,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6ed87935b8c5ea00df32a6983b948e98ba61b6d7"
+    },
+    {
+      "path": "scripts/install_offline.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "13061f9bb0ae5a07c85492f3a5608ffe52fb559b",
+      "size": 3423,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/13061f9bb0ae5a07c85492f3a5608ffe52fb559b"
+    },
+    {
+      "path": "scripts/requirements-harmony.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b0064d7b6636293ce2b397f0378b69106517afb",
+      "size": 380,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/7b0064d7b6636293ce2b397f0378b69106517afb"
+    },
+    {
+      "path": "src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "aa36da5926cd6f8299a820c807d2d8cdd0fe1309",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/aa36da5926cd6f8299a820c807d2d8cdd0fe1309"
+    },
+    {
+      "path": "src/mdun",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f6ae948caf1cb91b01106dd9605864b4c9446118",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/f6ae948caf1cb91b01106dd9605864b4c9446118"
+    },
+    {
+      "path": "src/mdun/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "42e2819713910a808f9435b8d0b31faa1f117fe8",
+      "size": 226,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/42e2819713910a808f9435b8d0b31faa1f117fe8"
+    },
+    {
+      "path": "src/mdun/cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3648d360336e340af64fa1753e3a71c44a792b54",
+      "size": 7999,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/3648d360336e340af64fa1753e3a71c44a792b54"
+    },
+    {
+      "path": "src/mdun/config.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "475410d134e45912b3eb954d20ac932dc1b70e99",
+      "size": 2326,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/475410d134e45912b3eb954d20ac932dc1b70e99"
+    },
+    {
+      "path": "src/mdun/data",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "32aaf23d8aaf4d50183051cd4adada3a7d1c12f3",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/32aaf23d8aaf4d50183051cd4adada3a7d1c12f3"
+    },
+    {
+      "path": "src/mdun/data/en_freq_50k.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7702a03431f45a86ac8600858e8e384075808260",
+      "size": 617165,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/7702a03431f45a86ac8600858e8e384075808260"
+    },
+    {
+      "path": "src/mdun/export",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2ff424b71dac562b75e0edb528a74c0b06682aa0",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/2ff424b71dac562b75e0edb528a74c0b06682aa0"
+    },
+    {
+      "path": "src/mdun/export/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "24a8211e9254d65a94e75fd47a3cb79989fb043d",
+      "size": 380,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/24a8211e9254d65a94e75fd47a3cb79989fb043d"
+    },
+    {
+      "path": "src/mdun/export/docx.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f55aa73fdbc53e0a70116c1c7aee77c45ce48bd7",
+      "size": 3155,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/f55aa73fdbc53e0a70116c1c7aee77c45ce48bd7"
+    },
+    {
+      "path": "src/mdun/export/json.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2f93b5735fad5ed545ed5e51126bb2be552357b3",
+      "size": 1440,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/2f93b5735fad5ed545ed5e51126bb2be552357b3"
+    },
+    {
+      "path": "src/mdun/export/markdown.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8368237ce00b9da097e022c5c54d459693f052af",
+      "size": 2116,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/8368237ce00b9da097e022c5c54d459693f052af"
+    },
+    {
+      "path": "src/mdun/export/ops_docx.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "afca6bd9a7218a53f057b1df37554ebfe452d11c",
+      "size": 5169,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/afca6bd9a7218a53f057b1df37554ebfe452d11c"
+    },
+    {
+      "path": "src/mdun/export/pdf.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "591ff5132aa4e6ef7efc8f533bba722d3aa00459",
+      "size": 3506,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/591ff5132aa4e6ef7efc8f533bba722d3aa00459"
+    },
+    {
+      "path": "src/mdun/ocr",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fc1ec6eb4177931959fa20765980395214a7556e",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/fc1ec6eb4177931959fa20765980395214a7556e"
+    },
+    {
+      "path": "src/mdun/ocr/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "51f1230d50748a507f3238f99eba7c6749403e92",
+      "size": 409,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/51f1230d50748a507f3238f99eba7c6749403e92"
+    },
+    {
+      "path": "src/mdun/ocr/document.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6e6a7d1993d2fbe254e764597e5b2c9cadc33fe7",
+      "size": 5177,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6e6a7d1993d2fbe254e764597e5b2c9cadc33fe7"
+    },
+    {
+      "path": "src/mdun/ocr/engine.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd9bc81b3dc7a6c82002ec03edb2e9b94b4153ea",
+      "size": 9630,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/fd9bc81b3dc7a6c82002ec03edb2e9b94b4153ea"
+    },
+    {
+      "path": "src/mdun/ocr/layout.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "663df603726b5ef47182cd8d53d0cd140edbe0c9",
+      "size": 3885,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/663df603726b5ef47182cd8d53d0cd140edbe0c9"
+    },
+    {
+      "path": "src/mdun/ocr/region.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "958764bb8afbd54e5b956917ab1199577c76d922",
+      "size": 12082,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/958764bb8afbd54e5b956917ab1199577c76d922"
+    },
+    {
+      "path": "src/mdun/pipeline.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0670fce5d135b93b6f4db227cc7e5679179cf177",
+      "size": 20108,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/0670fce5d135b93b6f4db227cc7e5679179cf177"
+    },
+    {
+      "path": "src/mdun/postprocess",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "adcfbac3114030af4f4f138aac584863b4dc454a",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/adcfbac3114030af4f4f138aac584863b4dc454a"
+    },
+    {
+      "path": "src/mdun/postprocess/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d68dfcb967be3d12c037adeda8c53ae91525a158",
+      "size": 352,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/d68dfcb967be3d12c037adeda8c53ae91525a158"
+    },
+    {
+      "path": "src/mdun/postprocess/paragraph.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b098a17cfd3701caa53b349d612eef37ea5f73d9",
+      "size": 10139,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/b098a17cfd3701caa53b349d612eef37ea5f73d9"
+    },
+    {
+      "path": "src/mdun/postprocess/punc_model.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6fa768680be9fcb60a8ce31cd18d80e412032377",
+      "size": 1503,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6fa768680be9fcb60a8ce31cd18d80e412032377"
+    },
+    {
+      "path": "src/mdun/postprocess/punctuation.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6dd6e224ad2a6bac1e921a7b11a62b47710b8001",
+      "size": 12340,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6dd6e224ad2a6bac1e921a7b11a62b47710b8001"
+    },
+    {
+      "path": "src/mdun/postprocess/spell.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9c832edebf6875817507a431846b11c5731d68f7",
+      "size": 5621,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/9c832edebf6875817507a431846b11c5731d68f7"
+    },
+    {
+      "path": "src/mdun/security",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b249ebaf6bebb8f131ce24c4b81a316726564be4",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/b249ebaf6bebb8f131ce24c4b81a316726564be4"
+    },
+    {
+      "path": "src/mdun/security/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3bd86a786122a28808fb57c63c76dd158d21a75f",
+      "size": 420,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/3bd86a786122a28808fb57c63c76dd158d21a75f"
+    },
+    {
+      "path": "src/mdun/security/audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4c6c2cace2a34cddb36c022035d165084b893bc3",
+      "size": 4043,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/4c6c2cace2a34cddb36c022035d165084b893bc3"
+    },
+    {
+      "path": "src/mdun/security/auditlog.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c12a6cf47ea951c0c4342ee9cccd1aa12e8fa856",
+      "size": 2243,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/c12a6cf47ea951c0c4342ee9cccd1aa12e8fa856"
+    },
+    {
+      "path": "src/mdun/security/crypto.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "38bd85d3c25040ded73a459ef9269edc963b0699",
+      "size": 2563,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/38bd85d3c25040ded73a459ef9269edc963b0699"
+    },
+    {
+      "path": "src/mdun/security/license.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "79278fc3182e7418a3ee5b1a66a5f8a1829dd1fc",
+      "size": 4095,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/79278fc3182e7418a3ee5b1a66a5f8a1829dd1fc"
+    },
+    {
+      "path": "src/mdun/web",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1b3561bd6d1a8ef3cd7fd15a0145aaf3bc19aff6",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/1b3561bd6d1a8ef3cd7fd15a0145aaf3bc19aff6"
+    },
+    {
+      "path": "src/mdun/web/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "692f23b5110bd72e9e12af5afbb29640d4ff312c",
+      "size": 43,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/692f23b5110bd72e9e12af5afbb29640d4ff312c"
+    },
+    {
+      "path": "src/mdun/web/server.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "48a1d50123a2e3750bd13f9e5762820891619982",
+      "size": 46312,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/48a1d50123a2e3750bd13f9e5762820891619982"
+    },
+    {
+      "path": "src/mdun/web/static",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5aefaf3ae0755e36c3315c1d68946435fdbfa8a0",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/5aefaf3ae0755e36c3315c1d68946435fdbfa8a0"
+    },
+    {
+      "path": "src/mdun/web/static/app.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aaea6d282451621b325f3122944971a79f916954",
+      "size": 80523,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/aaea6d282451621b325f3122944971a79f916954"
+    },
+    {
+      "path": "src/mdun/web/static/favicon-128.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3ba568c22becbbace55e4830ab3841f6d1133c34",
+      "size": 25568,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/3ba568c22becbbace55e4830ab3841f6d1133c34"
+    },
+    {
+      "path": "src/mdun/web/static/favicon-16.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "23b5c0c8614e5e6307b1bf2dd74ea645cc4c38b6",
+      "size": 880,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/23b5c0c8614e5e6307b1bf2dd74ea645cc4c38b6"
+    },
+    {
+      "path": "src/mdun/web/static/favicon-32.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "79d0877dd85427861727c9b6933acdcd75d669aa",
+      "size": 2649,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/79d0877dd85427861727c9b6933acdcd75d669aa"
+    },
+    {
+      "path": "src/mdun/web/static/favicon-48.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "de2669c9b4707f578ee65c1144956b7f57d7cb83",
+      "size": 5078,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/de2669c9b4707f578ee65c1144956b7f57d7cb83"
+    },
+    {
+      "path": "src/mdun/web/static/favicon-64.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "184e4ecde2a12450055ce8f332a4a637dd8c9b5e",
+      "size": 8132,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/184e4ecde2a12450055ce8f332a4a637dd8c9b5e"
+    },
+    {
+      "path": "src/mdun/web/static/icons.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "adf2082cdea079774f00d321e28b9064bdde3c7c",
+      "size": 11009,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/adf2082cdea079774f00d321e28b9064bdde3c7c"
+    },
+    {
+      "path": "src/mdun/web/static/index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "39cbddf9e8188e1d671b2e7f8eb7c6e5be04b209",
+      "size": 16740,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/39cbddf9e8188e1d671b2e7f8eb7c6e5be04b209"
+    },
+    {
+      "path": "src/mdun/web/static/logo.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7bcd3a45bb898451acc91b51a23445f86cfc8e3e",
+      "size": 80985,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/7bcd3a45bb898451acc91b51a23445f86cfc8e3e"
+    },
+    {
+      "path": "src/mdun/web/static/style.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3afdf8eed902015de762a7a34a3cdf34d08c9720",
+      "size": 32359,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/3afdf8eed902015de762a7a34a3cdf34d08c9720"
+    },
+    {
+      "path": "src/mdun/web/static/vendor",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f8a0b657ef51e1b1040ad276eb944da404eef00d",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/f8a0b657ef51e1b1040ad276eb944da404eef00d"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fb7b13e78be0e98305ef458836dbfadc4e4f91c3",
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/trees/fb7b13e78be0e98305ef458836dbfadc4e4f91c3"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/arrow-right-left.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c6e5167a89aaa03af69a6fc8a5fa51f0b59d1aad",
+      "size": 400,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/c6e5167a89aaa03af69a6fc8a5fa51f0b59d1aad"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/check.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b106d43eea5fb29ad3c52f42537710b6bb9033d8",
+      "size": 315,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/b106d43eea5fb29ad3c52f42537710b6bb9033d8"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevron-down.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e0be9791db2ca4cb3cd71c261b7f99062af1734f",
+      "size": 319,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/e0be9791db2ca4cb3cd71c261b7f99062af1734f"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevron-left.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d0c29b73649d38da8e2bee60e0ae0b05cf4ec324",
+      "size": 321,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/d0c29b73649d38da8e2bee60e0ae0b05cf4ec324"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevron-right.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b0c3ac1c5b4a0c18ddf385f213870ce30635237c",
+      "size": 321,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/b0c3ac1c5b4a0c18ddf385f213870ce30635237c"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevron-up.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f20dedd72f4d4e065690d126fdb6432107a5dfeb",
+      "size": 319,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/f20dedd72f4d4e065690d126fdb6432107a5dfeb"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevrons-left.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "636300ade0c36540186352ec337025894f988712",
+      "size": 352,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/636300ade0c36540186352ec337025894f988712"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/chevrons-right.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d39cca109ae53b58bc857c098d70f8013d48b0d8",
+      "size": 352,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/d39cca109ae53b58bc857c098d70f8013d48b0d8"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/download.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "89383ff269643cee241d6205953556bed3ac92ce",
+      "size": 397,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/89383ff269643cee241d6205953556bed3ac92ce"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/eraser.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "361ddb4397b670683c931c532ed0163d58fda147",
+      "size": 460,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/361ddb4397b670683c931c532ed0163d58fda147"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/highlighter.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9219407951deab0f8b00b63c7a55f7cebc3e988d",
+      "size": 399,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/9219407951deab0f8b00b63c7a55f7cebc3e988d"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/history.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "38caea0698554dedf79624e0535376a1557f0c7b",
+      "size": 268,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/38caea0698554dedf79624e0535376a1557f0c7b"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/languages.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4d2c5339d0d175db460d1ed482b1b8fc24368db9",
+      "size": 295,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/4d2c5339d0d175db460d1ed482b1b8fc24368db9"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/moon.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "92044bf5f8d12c0649e0eeb8b12cd729cb5d7812",
+      "size": 409,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/92044bf5f8d12c0649e0eeb8b12cd729cb5d7812"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/pilcrow.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "150e907c7f00cab92db1dfd622528f455d9d5129",
+      "size": 380,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/150e907c7f00cab92db1dfd622528f455d9d5129"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/rows-3.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f91b08b1e3b8ad58481d12d27c0e366936d31ad4",
+      "size": 385,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/f91b08b1e3b8ad58481d12d27c0e366936d31ad4"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/scan-text.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74bcb05b0424c29fec09ea6ca5027c0fe1f11d16",
+      "size": 515,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/74bcb05b0424c29fec09ea6ca5027c0fe1f11d16"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/search.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "57df23434bad73a78bb67851525b35164d3a017c",
+      "size": 352,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/57df23434bad73a78bb67851525b35164d3a017c"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/spell-check.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fee1daff3ec608a57235731c3341473948e0bbe2",
+      "size": 374,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/fee1daff3ec608a57235731c3341473948e0bbe2"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/square-dashed.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2eb53af76e0bb0aaf2d3187b775bd1c84d31d132",
+      "size": 616,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/2eb53af76e0bb0aaf2d3187b775bd1c84d31d132"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/stamp.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "36210c5504699fcaf9aaf000722cab9dd6463a7f",
+      "size": 387,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/36210c5504699fcaf9aaf000722cab9dd6463a7f"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/sun.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8fd603a24ba8a67381e77e8fdf46f07b866981e2",
+      "size": 559,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/8fd603a24ba8a67381e77e8fdf46f07b866981e2"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/text-quote.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6ae9070f7e1d957c8853741342f23fde16158121",
+      "size": 383,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6ae9070f7e1d957c8853741342f23fde16158121"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/undo-2.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e56e55cadd8c95e1721131f5cdc9551f2303b2a4",
+      "size": 386,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/e56e55cadd8c95e1721131f5cdc9551f2303b2a4"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/upload.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1c5ee695ae887f01edfaf6957c3f034225f78ae7",
+      "size": 395,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/1c5ee695ae887f01edfaf6957c3f034225f78ae7"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/icons/x.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5e42f1ba16ad8ff23ce3ae4430126755ba3d8c0c",
+      "size": 332,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/5e42f1ba16ad8ff23ce3ae4430126755ba3d8c0c"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/quill.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aeddaa1772927d6757ba9a6606ade2f52ce4a22b",
+      "size": 209274,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/aeddaa1772927d6757ba9a6606ade2f52ce4a22b"
+    },
+    {
+      "path": "src/mdun/web/static/vendor/quill.snow.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c95a80e23311f5400d28410cd154f53f4a85cebe",
+      "size": 24606,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/c95a80e23311f5400d28410cd154f53f4a85cebe"
+    },
+    {
+      "path": "start.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "44e4522e3cf38753f2a82df10c770ef9c5a930fa",
+      "size": 1740,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/44e4522e3cf38753f2a82df10c770ef9c5a930fa"
+    },
+    {
+      "path": "start.command",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "6cec78857657724284555480e5430dcf3f34d194",
+      "size": 1742,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6cec78857657724284555480e5430dcf3f34d194"
+    },
+    {
+      "path": "start.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "6ef14e94b1efc2c26ce6372f4cc49918dd9729cc",
+      "size": 1696,
+      "url": "https://api.github.com/repos/1ampa55ag3/octo-ocr/git/blobs/6ef14e94b1efc2c26ce6372f4cc49918dd9729cc"
+    }
+  ],
+  "truncated": false
+}

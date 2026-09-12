@@ -1,0 +1,9 @@
+{
+  "completed_at_utc": "2026-09-12T06:49:47.304383+00:00",
+  "report": "GitHub相似OCR工作台调研-2026-09-12.md",
+  "method": "GitHub repository search, metadata, README, latest releases, and selected source inspection. No upstream application execution or model benchmarking.",
+  "source_json_valid": true,
+  "failed_source_fetches": [],
+  "missing_local_links": [],
+  "snapshot_file_count": 49
+}

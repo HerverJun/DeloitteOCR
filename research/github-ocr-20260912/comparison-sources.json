@@ -1,0 +1,42 @@
+[
+  {
+    "path": "pandocr_cli.py",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 18403,
+    "matches": [
+      "301: def compare_file(client: PandOCRClient, path: Path, model_ids: list[str], output_dir: Path, deploy: bool) -> list[dict[str, Any]]:",
+      "323:         \"# PaddleOCR Local comparison\",",
+      "341:     (output_dir / f\"{path.stem}.comparison.md\").write_text(\"\\n\".join(report), encoding=\"utf-8\")",
+      "342:     (output_dir / f\"{path.stem}.comparison.json\").write_text(",
+      "404:     compare_parser = subparsers.add_parser(\"compare\", help=\"Run one file through multiple models\")",
+      "405:     compare_parser.add_argument(\"path\", type=Path)",
+      "406:     compare_parser.add_argument(\"--models\", required=True, help=\"Comma-separated model ids\")",
+      "407:     compare_parser.add_argument(\"--output\", type=Path, default=Path(\"output/compare\"))",
+      "408:     compare_parser.add_argument(\"--deploy\", action=\"store_true\")",
+      "438:         elif args.command == \"compare\":",
+      "442:                 raise ValueError(\"compare requires at least two model ids\")",
+      "444:                 raise ValueError(\"compare model ids must be unique\")",
+      "445:             summaries = compare_file(client, args.path, model_ids, args.output, args.deploy)"
+    ],
+    "source": "https://api.github.com/repos/CHEN010325/paddleocr-local/contents/pandocr_cli.py?ref=8268eabf60f52ffe63bc7d36eb19c226f17e96d1"
+  },
+  {
+    "path": "CLI.md",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 1069,
+    "matches": [
+      "37: ## 多模型对比",
+      "40: python pandocr_cli.py compare paper.pdf \\",
+      "42:   --output output/compare",
+      "45: CLI 会顺序切换模型，适合单 GPU，并生成 `paper.comparison.md` 与 `paper.comparison.json`。"
+    ],
+    "source": "https://api.github.com/repos/CHEN010325/paddleocr-local/contents/CLI.md?ref=8268eabf60f52ffe63bc7d36eb19c226f17e96d1"
+  },
+  {
+    "path": "static/index.html",
+    "ref": "8268eabf60f52ffe63bc7d36eb19c226f17e96d1",
+    "chars": 13438,
+    "matches": [],
+    "source": "https://api.github.com/repos/CHEN010325/paddleocr-local/contents/static/index.html?ref=8268eabf60f52ffe63bc7d36eb19c226f17e96d1"
+  }
+]

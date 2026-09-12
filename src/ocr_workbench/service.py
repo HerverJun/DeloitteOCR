@@ -1,6 +1,7 @@
 """Authenticated loopback application service and local static UI."""
 
 import argparse
+import logging
 from contextlib import asynccontextmanager
 import json
 import os
@@ -23,7 +24,7 @@ from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
 
 
-def create_app(bundle, data, token, *, start_queue=True):
+def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     bundle = Path(bundle).resolve()
     store = Store(data)
     from ocr_workbench.engine_packages import EnginePackages
@@ -45,16 +46,16 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @asynccontextmanager
     async def lifespan(app):
-        if start_queue:
+        if start_queue and not review_only:
             queue.start()
         try:
             yield
         finally:
-            if start_queue:
+            if start_queue and not review_only:
                 queue.stop()
 
     app = FastAPI(
-        title="纸页 · 离线 OCR",
+        title="DeloitteOCR · 离线 OCR 工作台",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
@@ -63,6 +64,13 @@ def create_app(bundle, data, token, *, start_queue=True):
     app.state.store = store
     app.state.queue = queue
     app.state.shutdown = lambda: None
+    app.state.review_only = review_only
+
+    def require_recognition():
+        if review_only:
+            raise ValueError("当前为仅校对与导出模式，请在完整模式下使用识别与引擎启用功能")
+        if start_queue and not queue.status().get("healthy", False):
+            raise ValueError("队列正在恢复，请查看队列状态，恢复后再提交任务")
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):
@@ -110,7 +118,19 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.get("/api/health")
     def health():
-        return {"status": "ready", "version": __version__}
+        status = queue.status()
+        ready = review_only or status.get("healthy", False)
+        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status}
+
+    @app.post("/api/queue/recover")
+    def recover_queue():
+        if review_only:
+            raise ValueError("仅校对模式不启动识别队列")
+        if not start_queue:
+            raise ValueError("此服务未启用识别队列")
+        if not queue.status().get("alive"):
+            queue.start()
+        return queue.recover_worker()
 
     @app.get("/api/state")
     def state():
@@ -119,6 +139,8 @@ def create_app(bundle, data, token, *, start_queue=True):
             "engines": registry.engines(),
             "queue": queue.status(),
             "data_directory": str(store.root),
+            "review_only": review_only,
+            "disk": maintenance.disk_status(),
         }
 
     @app.post("/api/projects")
@@ -138,22 +160,19 @@ def create_app(bundle, data, token, *, start_queue=True):
         return store.one("projects", key)
 
     @app.get("/api/projects/{key}")
-    def project(key: str):
-        return {
-            "project": store.one("projects", key),
-            "images": store.rows(
-                "SELECT i.*,s.result_id selected_result FROM images i LEFT JOIN selections s ON s.image_id=i.id WHERE i.project_id=? ORDER BY i.created",
-                (key,),
-            ),
-            "versions": store.rows(
-                "SELECT v.* FROM versions v JOIN images i ON i.id=v.image_id WHERE i.project_id=? ORDER BY v.created",
-                (key,),
-            ),
-            "tasks": store.rows(
-                "SELECT * FROM tasks WHERE project_id=? ORDER BY created", (key,)
-            ),
-            "queue": queue.status(),
-        }
+    def project(key: str, since_revision: int | None = None):
+        snapshot = store.project_snapshot(key, since_revision)
+        snapshot["queue"] = queue.status()
+        snapshot["disk"] = maintenance.disk_status()
+        return snapshot
+
+    @app.get("/api/maintenance/orphans")
+    def orphan_files():
+        return maintenance.orphans()
+
+    @app.post("/api/maintenance/orphans/quarantine")
+    def quarantine_orphan_files(body: dict):
+        return maintenance.quarantine_orphans(body.get("paths", []))
 
     @app.get("/api/projects/{key}/storage")
     def project_storage(key: str):
@@ -189,7 +208,10 @@ def create_app(bundle, data, token, *, start_queue=True):
             except Exception as error:
                 errors.append({"name": upload.filename, "message": str(error)})
             finally:
-                temporary.unlink(missing_ok=True)
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    logging.getLogger(__name__).exception("Import inbox cleanup failed: %s", temporary.name)
                 await upload.close()
         return {"images": imported, "errors": errors}
 
@@ -201,6 +223,7 @@ def create_app(bundle, data, token, *, start_queue=True):
     @app.post("/api/versions/{key}/transform")
     def transform_image(key: str, body: dict):
         if body.get("kind") == "dewarp":
+            require_recognition()
             task_id = store.enqueue_dewarp(key)
             queue.wake.set()
             return {"task_id": task_id, "queued": True}
@@ -226,6 +249,7 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.post("/api/projects/{key}/tasks")
     def create_tasks(key: str, body: dict):
+        require_recognition()
         ids = store.enqueue(
             key,
             body.get("version_ids", []),
@@ -238,6 +262,8 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.post("/api/projects/{key}/queue/{action}")
     def queue_action(key: str, action: str, body: dict):
+        if action in {"retry", "resume"}:
+            require_recognition()
         return {"task_ids": queue.action(key, action, body.get("task_ids"))}
 
     @app.get("/api/results/{key}")
@@ -265,6 +291,10 @@ def create_app(bundle, data, token, *, start_queue=True):
             )
         return {"saved": True}
 
+    @app.put("/api/images/{key}/review")
+    def review_image(key: str, body: dict):
+        return store.set_review(key, body.get("status"), body.get("result_id"), body.get("revision"), body.get("version_id"))
+
     @app.post("/api/export")
     def export(body: dict):
         with maintenance.guard:
@@ -273,6 +303,7 @@ def create_app(bundle, data, token, *, start_queue=True):
                 body.get("result_ids", []),
                 body.get("format"),
                 body.get("aggregate", False),
+                confirmed_only=body.get("confirmed_only", False),
             )
         return FileResponse(
             target,
@@ -319,11 +350,13 @@ def create_app(bundle, data, token, *, start_queue=True):
 
     @app.post("/api/engine-packages/activate")
     def activate_engine(body: dict):
+        require_recognition()
         with queue.engine_maintenance():
             return registry.activate(body.get("staging_id"), body.get("sha256"))
 
     @app.post("/api/engine-packages/switch")
     def switch_engine(body: dict):
+        require_recognition()
         with queue.engine_maintenance():
             return registry.switch(body.get("engine"), body.get("package_id"))
 
@@ -360,6 +393,7 @@ def main():
         action="store_true",
         help="Run complete offline startup gates before serving requests",
     )
+    p.add_argument("--review-only", action="store_true", help="Open existing projects for review and export without GPU inference")
     args = p.parse_args()
     token = args.token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
@@ -379,11 +413,11 @@ def main():
             from ocr_workbench.engine_packages import EnginePackages
 
             report = run_checks(
-                args.bundle, args.data, EnginePackages(args.bundle, args.data)
+                args.bundle, args.data, EnginePackages(args.bundle, args.data), review_only=args.review_only
             )
             if report["status"] != "passed":
                 raise SystemExit(2)
-        app = create_app(args.bundle, args.data, token)
+        app = create_app(args.bundle, args.data, token, review_only=args.review_only)
         # A reset loopback socket must not hold shutdown forever (observed under WFP).
         server = uvicorn.Server(
             uvicorn.Config(

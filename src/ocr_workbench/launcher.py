@@ -49,10 +49,11 @@ def icon():
 
 
 class Launcher(QWidget):
-    def __init__(self, bundle, data, no_browser=False):
+    def __init__(self, bundle, data, no_browser=False, review_only=False):
         super().__init__()
         self.bundle, self.data = bundle, data
         self.no_browser = no_browser
+        self.review_only = review_only
         self.ready = False
         self.quitting = False
         self.process = None
@@ -65,7 +66,7 @@ class Launcher(QWidget):
         self.startup_file.unlink(missing_ok=True)
         self.token_file = self.session / "session-token.txt"
         self.token_file.write_text(self.token, encoding="utf-8")
-        self.setWindowTitle("Deloitte ｜ OCR 工作台")
+        self.setWindowTitle("DeloitteOCR · 离线 OCR 工作台")
         self.setWindowIcon(icon())
         self.resize(440, 290)
         self.setStyleSheet(
@@ -75,11 +76,15 @@ class Launcher(QWidget):
         brand = QLabel()
         logo = QPixmap(str(bundle / "web/brand/deloitte.svg"))
         if not logo.isNull():
-            brand.setPixmap(logo.scaledToWidth(152, Qt.TransformationMode.SmoothTransformation))
+            brand.setPixmap(
+                logo.scaledToWidth(152, Qt.TransformationMode.SmoothTransformation)
+            )
         else:
             brand.setText("Deloitte")
         layout.addWidget(brand)
-        title = QLabel("OCR 工作台 · 本机运行")
+        title = QLabel(
+            "OCR 工作台 · 仅校对与导出" if review_only else "OCR 工作台 · 本机运行"
+        )
         title.setStyleSheet("font-size:16px;font-weight:600;")
         layout.addWidget(title)
         self.status = QLabel("正在启动本机服务…")
@@ -93,7 +98,7 @@ class Launcher(QWidget):
         self.exit_button.clicked.connect(self.quit)
         layout.addWidget(self.exit_button)
         self.tray = QSystemTrayIcon(icon(), self)
-        self.tray.setToolTip("Deloitte ｜ OCR 工作台")
+        self.tray.setToolTip("DeloitteOCR · 离线 OCR 工作台")
         menu = QMenu()
         menu.addAction("打开工作台", self.open_browser)
         menu.addAction("查看运行状态", self.show)
@@ -145,6 +150,7 @@ class Launcher(QWidget):
                 "-m",
                 "ocr_workbench.service",
                 "--verify-startup",
+                *(["--review-only"] if review_only else []),
                 "--bundle",
                 str(bundle),
                 "--data",
@@ -172,6 +178,7 @@ class Launcher(QWidget):
                     "port": self.port,
                     "bundle": str(bundle),
                     "data": str(data),
+                    "review_only": review_only,
                 }
             ),
             encoding="utf-8",
@@ -190,6 +197,11 @@ class Launcher(QWidget):
                 except (OSError, ValueError):
                     pass
             self.status.setText(detail)
+            if not self.review_only:
+                self.status.setText(
+                    detail
+                    + "\n如仅需校对与导出，可使用启动器参数 --review-only；基础应用完整性仍须通过。"
+                )
             self.exit_button.setEnabled(True)
             self.show()
             return
@@ -294,6 +306,11 @@ def main():
         default=Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/Workspace",
     )
     p.add_argument("--no-browser", action="store_true")
+    p.add_argument(
+        "--review-only",
+        action="store_true",
+        help="只启用既有项目校对和导出，仍校验基础应用完整性",
+    )
     args = p.parse_args()
     bundle = args.bundle or (
         Path(sys.executable).resolve().parent.parent
@@ -302,7 +319,7 @@ def main():
     )
     app = QApplication(sys.argv[:1])
     app.setQuitOnLastWindowClosed(False)
-    app.setApplicationName("Deloitte ｜ OCR 工作台")
+    app.setApplicationName("DeloitteOCR · 离线 OCR 工作台")
     args.data.mkdir(parents=True, exist_ok=True)
     lock = QLockFile(str(args.data / "launcher.lock"))
     lock.setStaleLockTime(0)
@@ -311,7 +328,7 @@ def main():
         return 0
     window = None
     try:
-        window = Launcher(bundle, args.data, args.no_browser)
+        window = Launcher(bundle, args.data, args.no_browser, args.review_only)
         window.show()
         return app.exec()
     except Exception as error:

@@ -53,7 +53,10 @@ export function filterPhotos(
   return photos.filter(
     (p) =>
       p.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
-      (status === "all" || imageStatus(p.id, tasks) === status),
+      (status === "all" ||
+        (status.startsWith("review:")
+          ? (p.review_status || "pending") === status.slice(7)
+          : imageStatus(p.id, tasks) === status)),
   );
 }
 export function toggleVisible(

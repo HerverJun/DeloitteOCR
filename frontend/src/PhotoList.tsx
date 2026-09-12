@@ -10,6 +10,7 @@ import {
 import { request } from "./api";
 import type { Photo, Task } from "./types";
 import { statuses } from "./types";
+import { reviewNames, adoptedResult } from "./resultWorkflow";
 import {
   filterPhotos,
   imageStatus,
@@ -33,6 +34,8 @@ export function PhotoList({
 }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [visibleLimit, setVisibleLimit] = useState(80);
+  useEffect(() => setVisibleLimit(80), [search, status]);
   const visible = filterPhotos(photos, tasks, search, status);
   const ids = visible.map((p) => p.id);
   const checked = ids.length > 0 && ids.every((id) => selected.includes(id));
@@ -59,6 +62,9 @@ export function PhotoList({
           <option value="processing">处理中</option>
           <option value="succeeded">已完成</option>
           <option value="failed">失败</option>
+          <option value="review:pending">待校对</option>
+          <option value="review:confirmed">已确认</option>
+          <option value="review:question">有疑问</option>
         </select>
       </div>
       <div className="photo-list-head">
@@ -90,7 +96,7 @@ export function PhotoList({
         </div>
       )}
       <div className="photo-list">
-        {visible.map((p) => {
+        {visible.slice(0, visibleLimit).map((p) => {
           const state = imageStatus(p.id, tasks);
           return (
             <div
@@ -132,11 +138,26 @@ export function PhotoList({
                         ? "尚未识别"
                         : statuses[state] || state}
                   </small>
+                  {adoptedResult(p, tasks) && (
+                    <small
+                      className={`review-status ${p.review_status || "pending"}`}
+                    >
+                      可用结果 · {reviewNames[p.review_status || "pending"]}
+                    </small>
+                  )}
                 </span>
               </button>
             </div>
           );
         })}
+        {visible.length > visibleLimit && (
+          <button
+            className="load-more"
+            onClick={() => setVisibleLimit((n) => n + 80)}
+          >
+            继续显示图片 ({visibleLimit}/{visible.length})
+          </button>
+        )}
         {!visible.length && (
           <div className="sidebar-empty">
             <Files size={28} />

@@ -66,7 +66,7 @@ try {
   await expect(page.locator(".table-editor")).toBeVisible();
   await expect(button("开始识别")).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
-  expect(await page.title()).toBe("Deloitte ｜ OCR 工作台");
+  expect(await page.title()).toBe("DeloitteOCR · 离线 OCR 工作台");
   expect(
     await page.locator(".brand img").evaluate((el) => el.naturalWidth > 0),
   ).toBe(true);

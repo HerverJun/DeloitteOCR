@@ -25,6 +25,7 @@ export function ImageCanvas({
   onTransform,
   onRegion,
   busy,
+  recognitionDisabled = false,
 }: {
   version: Version | null;
   versions: Version[];
@@ -34,9 +35,11 @@ export function ImageCanvas({
   onTransform: (op: unknown) => void;
   onRegion: (box: number[]) => void;
   busy: boolean;
+  recognitionDisabled?: boolean;
 }) {
   const [url, setUrl] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(true);
   const [mode, setMode] = useState<"pan" | "crop" | "perspective" | "region">(
@@ -86,13 +89,16 @@ export function ImageCanvas({
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [version?.id]);
+  }, [version?.id, loadAttempt]);
   const scale = version
     ? fit
-      ? Math.min(
-          (size[0] - 64) / version.width,
-          (size[1] - 64) / version.height,
-          1,
+      ? Math.max(
+          0.01,
+          Math.min(
+            (size[0] - 64) / version.width,
+            (size[1] - 64) / version.height,
+            1,
+          ),
         )
       : zoom
     : 1;
@@ -157,11 +163,52 @@ export function ImageCanvas({
   };
   const choose = (next: typeof mode) => {
     setMode(next);
-    setBox(null);
+    setBox(
+      version && (next === "crop" || next === "region")
+        ? [0, 0, version.width, version.height]
+        : null,
+    );
     setPoints([]);
   };
+  const coordinate = (value: number, axis: number) =>
+    Math.round(
+      Math.max(
+        0,
+        Math.min(axis === 0 ? version!.width : version!.height, value),
+      ),
+    );
+  const updateBox = (index: number, value: number) => {
+    if (!version || !Number.isFinite(value)) return;
+    setBox((old) =>
+      (old ?? [0, 0, version.width, version.height]).map((v, i) =>
+        i === index ? coordinate(value, index % 2) : v,
+      ),
+    );
+  };
+  const updatePoint = (index: number, axis: number, value: number) => {
+    if (!version || !Number.isFinite(value)) return;
+    setPoints((old) =>
+      old.map((p, i) =>
+        i === index
+          ? (p.map((v, a) =>
+              a === axis ? coordinate(value, axis) : v,
+            ) as Point)
+          : p,
+      ),
+    );
+  };
+  const pointNames = ["左上", "右上", "右下", "左下"];
   return (
-    <section className="image-workspace" aria-label="图片工作区">
+    <section
+      className="image-workspace"
+      aria-label="图片工作区"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && mode !== "pan") {
+          event.preventDefault();
+          choose("pan");
+        }
+      }}
+    >
       <header className="canvas-panel-heading">
         <h2>原始文档</h2>{" "}
         {version && (
@@ -200,6 +247,7 @@ export function ImageCanvas({
           <Button
             title="拖动图片"
             aria-label="拖动图片"
+            aria-pressed={mode === "pan"}
             appearance="subtle"
             className={mode === "pan" ? "tool-active" : undefined}
             icon={<Hand size={17} />}
@@ -210,6 +258,8 @@ export function ImageCanvas({
           <Button
             title="裁剪"
             aria-label="裁剪"
+            aria-pressed={mode === "crop"}
+            disabled={!version || busy}
             appearance={mode === "crop" ? "primary" : "subtle"}
             icon={<Crop size={17} />}
             onClick={() => choose("crop")}
@@ -217,6 +267,8 @@ export function ImageCanvas({
           <Button
             title="四角透视"
             aria-label="四角透视"
+            aria-pressed={mode === "perspective"}
+            disabled={!version || busy}
             appearance={mode === "perspective" ? "primary" : "subtle"}
             icon={<Scan size={17} />}
             onClick={() => choose("perspective")}
@@ -224,6 +276,8 @@ export function ImageCanvas({
           <Button
             title="区域重识别"
             aria-label="区域重识别"
+            aria-pressed={mode === "region"}
+            disabled={!version || busy || recognitionDisabled}
             appearance={mode === "region" ? "primary" : "subtle"}
             icon={<Focus size={17} />}
             onClick={() => choose("region")}
@@ -255,7 +309,7 @@ export function ImageCanvas({
             <Button
               size="small"
               appearance="subtle"
-              disabled={!version || busy}
+              disabled={!version || busy || recognitionDisabled}
               onClick={() => onTransform({ kind: "dewarp" })}
             >
               去弯曲
@@ -299,6 +353,7 @@ export function ImageCanvas({
             size="small"
             disabled={
               busy ||
+              (recognitionDisabled && mode === "region") ||
               (mode === "perspective"
                 ? points.length !== 4
                 : !box || box[2] - box[0] < 8 || box[3] - box[1] < 8)
@@ -321,6 +376,103 @@ export function ImageCanvas({
             取消
           </Button>
         </div>
+      )}
+      {version && mode !== "pan" && (
+        <details className="image-coordinate-editor" open>
+          <summary>坐标输入与微调 · 像素</summary>
+          <fieldset disabled={busy}>
+            <legend>{mode === "perspective" ? "透视四角" : "选区边界"}</legend>
+            {mode === "perspective" ? (
+              <>
+                <Button
+                  size="small"
+                  onClick={() =>
+                    setPoints([
+                      [0, 0],
+                      [version.width, 0],
+                      [version.width, version.height],
+                      [0, version.height],
+                    ])
+                  }
+                >
+                  从图像四角开始
+                </Button>
+                {points.map((p, i) => (
+                  <div className="coordinate-pair" key={i}>
+                    <span>{pointNames[i]}</span>
+                    {p.map((value, axis) => (
+                      <label key={axis}>
+                        {axis === 0 ? "X" : "Y"}
+                        <input
+                          type="number"
+                          min={0}
+                          max={axis === 0 ? version.width : version.height}
+                          step={1}
+                          aria-label={`${pointNames[i]}${axis === 0 ? "X" : "Y"}坐标`}
+                          value={Math.round(value)}
+                          onChange={(event) =>
+                            updatePoint(i, axis, event.target.valueAsNumber)
+                          }
+                          onKeyDown={(event) => {
+                            if (
+                              event.shiftKey &&
+                              (event.key === "ArrowUp" ||
+                                event.key === "ArrowDown")
+                            ) {
+                              event.preventDefault();
+                              updatePoint(
+                                i,
+                                axis,
+                                value + (event.key === "ArrowUp" ? 10 : -10),
+                              );
+                            }
+                          }}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </>
+            ) : (
+              (box ?? [0, 0, version.width, version.height]).map((value, i) => (
+                <label className="coordinate-pair" key={i}>
+                  {["左 X", "上 Y", "右 X", "下 Y"][i]}
+                  <input
+                    type="number"
+                    min={0}
+                    max={i % 2 ? version.height : version.width}
+                    step={1}
+                    aria-label={
+                      ["选区左边界", "选区上边界", "选区右边界", "选区下边界"][
+                        i
+                      ]
+                    }
+                    value={Math.round(value)}
+                    onChange={(event) =>
+                      updateBox(i, event.target.valueAsNumber)
+                    }
+                    onKeyDown={(event) => {
+                      if (
+                        event.shiftKey &&
+                        (event.key === "ArrowUp" || event.key === "ArrowDown")
+                      ) {
+                        event.preventDefault();
+                        updateBox(
+                          i,
+                          value + (event.key === "ArrowUp" ? 10 : -10),
+                        );
+                      }
+                    }}
+                  />
+                </label>
+              ))
+            )}
+          </fieldset>
+          <p>
+            方向键微调 1 像素，Shift + 方向键微调 10 像素；Escape
+            取消。裁剪与识别区域至少 8 × 8 像素。
+          </p>
+        </details>
       )}
       <div
         ref={stage}
@@ -346,6 +498,9 @@ export function ImageCanvas({
         ) : loadError ? (
           <div className="canvas-empty">
             <p>{loadError}</p>
+            <Button onClick={() => setLoadAttempt((value) => value + 1)}>
+              重试读取图片
+            </Button>
           </div>
         ) : !url ? (
           <div className="canvas-empty">正在读取图片…</div>
@@ -394,8 +549,8 @@ export function ImageCanvas({
                   <rect
                     x={box[0]}
                     y={box[1]}
-                    width={box[2] - box[0]}
-                    height={box[3] - box[1]}
+                    width={Math.max(0, box[2] - box[0])}
+                    height={Math.max(0, box[3] - box[1])}
                     fill="#86bc2520"
                     stroke="#386a12"
                     strokeWidth={2 / scale}
@@ -418,7 +573,28 @@ export function ImageCanvas({
                 {points.map((p, i) => (
                   <g
                     key={i}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${pointNames[i]}角，X ${Math.round(p[0])}，Y ${Math.round(p[1])}，方向键微调`}
+                    onKeyDown={(event) => {
+                      if (busy || !event.key.startsWith("Arrow")) return;
+                      event.preventDefault();
+                      const axis =
+                        event.key === "ArrowLeft" || event.key === "ArrowRight"
+                          ? 0
+                          : 1;
+                      const direction =
+                        event.key === "ArrowLeft" || event.key === "ArrowUp"
+                          ? -1
+                          : 1;
+                      updatePoint(
+                        i,
+                        axis,
+                        p[axis] + direction * (event.shiftKey ? 10 : 1),
+                      );
+                    }}
                     onPointerDown={(event) => {
+                      if (busy) return;
                       event.stopPropagation();
                       event.currentTarget.setPointerCapture(event.pointerId);
                       drag.current = {
@@ -463,7 +639,12 @@ export function ImageCanvas({
   );
 }
 export function operationName(value: string) {
-  const kind = JSON.parse(value).kind;
+  let kind: string;
+  try {
+    kind = JSON.parse(value).kind;
+  } catch {
+    return "未知处理";
+  }
   return (
     (
       {
