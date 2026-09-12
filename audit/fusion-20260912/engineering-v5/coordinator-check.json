@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "authentication",
+    "operator required",
+    "start resumes active round",
+    "finish requires explicit current confirmation",
+    "pause validation",
+    "saved snapshot and metrics in scratch only",
+    "new trial round reloads the named workbench window into its own project",
+    "real browser initial coordinator and script MIME, no page errors"
+  ],
+  "human_rounds_completed": 0,
+  "browser_closed": true,
+  "scope": "Automated coordinator verification. Simulated rounds only in isolated scratch; real trial remains untouched."
+}

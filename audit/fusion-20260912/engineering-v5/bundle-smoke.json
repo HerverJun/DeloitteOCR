@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "mode": "review-only",
+      "passed": true,
+      "health": {
+        "status": "ready",
+        "version": "0.8.0rc2",
+        "review_only": true,
+        "queue": {
+          "alive": false,
+          "healthy": false,
+          "state": "stopped",
+          "last_error": null,
+          "consecutive_failures": 0,
+          "retry_at": null,
+          "task_id": null,
+          "engine": null,
+          "loaded": false
+        },
+        "fusion_queue": {
+          "alive": true,
+          "healthy": true,
+          "state": "running",
+          "last_error": null,
+          "consecutive_failures": 0,
+          "retry_at": null,
+          "task_id": null,
+          "engine": null,
+          "loaded": false
+        }
+      },
+      "fusion_task": "a0d0693b3116475680e8b6770da84b67",
+      "issues": {
+        "pending": 1,
+        "resolved": 0,
+        "question": 0,
+        "stale": 0
+      },
+      "startup_status": "checking"
+    },
+    {
+      "mode": "full",
+      "passed": true,
+      "health": {
+        "status": "ready",
+        "version": "0.8.0rc2",
+        "review_only": false,
+        "queue": {
+          "alive": true,
+          "healthy": true,
+          "state": "running",
+          "last_error": null,
+          "consecutive_failures": 0,
+          "retry_at": null,
+          "task_id": null,
+          "engine": null,
+          "loaded": false
+        },
+        "fusion_queue": {
+          "alive": true,
+          "healthy": true,
+          "state": "running",
+          "last_error": null,
+          "consecutive_failures": 0,
+          "retry_at": null,
+          "task_id": null,
+          "engine": null,
+          "loaded": false
+        }
+      },
+      "fusion_task": "3c5ca56e91fb4c378cb2ab7adc86e6da",
+      "issues": {
+        "pending": 1,
+        "resolved": 0,
+        "question": 0,
+        "stale": 0
+      },
+      "startup_status": "checking"
+    }
+  ],
+  "scope": "Actual packaged launcher and service on this development PC; synthetic OCR sources, CPU fusion. No new OCR accuracy, human timing or clean-machine claim.",
+  "manifest_sha256": "d7b59277bdee2f94f1757bc2795214f38d8dc4608ece5e8e538dc6e6a927b773"
+}

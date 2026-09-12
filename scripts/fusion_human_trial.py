@@ -175,7 +175,9 @@ def main():
     url=f'http://127.0.0.1:{args.port}/trial#token={token}'
     (args.output/'trial-url.txt').write_text(url,'utf-8')
     print(url,flush=True)
-    uvicorn.run(app,host='127.0.0.1',port=args.port,access_log=False)
+    server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=args.port,access_log=False,timeout_graceful_shutdown=8))
+    app.state.shutdown=lambda: setattr(server,'should_exit',True)
+    server.run()
 
 
 if __name__=='__main__': main()

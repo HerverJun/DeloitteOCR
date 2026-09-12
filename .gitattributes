@@ -3,6 +3,7 @@ audit/fusion-20260912/evaluation/frozen-code/** -text
 audit/fusion-20260912/evaluation-v2/frozen-code/** -text
 audit/fusion-20260912/evaluation-v3/frozen-code/** -text
 audit/fusion-20260912/evaluation-v4/frozen-code/** -text
+audit/fusion-20260912/evaluation-v5/frozen-code/** -text
 # Receipts hash exact JSON bytes; use frozen-code for historical replay.
 audit/fusion-20260912/**/*.json -text
 config/fusion-policy.json -text

@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "files": 64545,
+  "changes": [],
+  "scope": "Exact raw SHA-256 and size comparison against prior tested bundle for all models/runtime/license files; no new inference claim"
+}

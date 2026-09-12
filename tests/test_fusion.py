@@ -2,7 +2,7 @@ from copy import deepcopy
 import unittest
 
 from ocr_workbench.fusion import default_policy, fuse, validate_sources, choose, location
-from ocr_workbench.fusion_alignment import canonical_edit, source_tables, table_content, text_alignment
+from ocr_workbench.fusion_alignment import canonical_edit, source_tables, table_content, text_alignment, text_source_alignment
 from ocr_workbench.tables import parse_tables
 
 
@@ -190,6 +190,69 @@ class FusionTests(unittest.TestCase):
         self.assertEqual(len(result['tables']),1)
         self.assertTrue(any(u['target']['kind']=='table' for u in result['fusion']['units']))
         self.assertFalse(any(u['target']['kind']=='cell' for u in result['fusion']['units']))
+
+    def test_real_text_regions_preserve_offsets_and_whole_numeric_candidates(self):
+        boxes = [[[10,10],[200,10],[200,50],[10,50]], [[10,70],[200,70],[200,110],[10,110]]]
+        left = source('glm', '前文\nThe cot sleeps soundly.\n00123\n后文', blocks=[
+            {'text':'The cot sleeps soundly.','polygon':boxes[0]}, {'text':'00123','polygon':boxes[1]}])
+        right = source('ppocr', '前文\nThe cat sleeps soundly.\n00124\n后文', blocks=[
+            {'text':'The cat sleeps soundly.','polygon':boxes[0]}, {'text':'00124','polygon':boxes[1]}])
+        spans = text_source_alignment(left, right, enabled('print')['limits'])
+        changed = [s for s in spans if s['operation'] != 'equal']
+        self.assertEqual([s['value'] for s in changed], ['a', '00124'])
+        self.assertTrue(all(s['region_alignment']['kind']=='real_region' for s in changed))
+        for span in spans:
+            self.assertEqual(right['original']['text'][span['other_start']:span['other_end']], span['value'])
+        self.assertEqual(left['original']['text'][changed[-1]['start']:changed[-1]['end']], '00123')
+        third=deepcopy(right);third['engine']='hunyuan';third['original']['engine']='hunyuan'
+        output=fuse([left,right,third],enabled('print'),'region-fragment-location')
+        self.assertTrue(all(u['location']['level']=='region' for u in output['fusion']['units']))
+        self.assertEqual(output['fusion']['units'][0]['location']['polygon'],boxes[0])
+
+    def test_reordered_or_unmatched_regions_never_write_across_regions(self):
+        boxes = [[[10,10],[200,10],[200,50],[10,50]], [[10,70],[200,70],[200,110],[10,110]]]
+        base = source('glm','Northern block\nSouthern block',blocks=[
+            {'text':'Northern block','polygon':boxes[0]}, {'text':'Southern block','polygon':boxes[1]}])
+        reordered = source('ppocr','Southern block\nNorthern block',blocks=[
+            {'text':'Southern block','polygon':boxes[1]}, {'text':'Northern block','polygon':boxes[0]}])
+        spans = text_source_alignment(base,reordered,enabled('print')['limits'])
+        self.assertEqual(spans[0]['operation'],'region_order_changed')
+        self.assertFalse(spans[0]['reliable'])
+        extra = deepcopy(reordered); extra['engine']='hunyuan';extra['original']['engine']='hunyuan'
+        output=fuse([base,reordered,extra],enabled('print'),'region-reorder')
+        self.assertEqual(output['text'],base['original']['text'])
+        self.assertTrue(output['fusion']['units'][0]['needs_review'])
+        reordered['original']['blocks'].pop()
+        self.assertEqual(text_source_alignment(base,reordered,enabled('print')['limits'])[0]['operation'],'region_unmatched')
+
+    def test_repeated_region_text_and_duplicate_boxes_are_explicitly_ambiguous(self):
+        box=[[10,10],[200,10],[200,50],[10,50]]
+        a=source('glm','Repeat\nRepeat',blocks=[{'text':'Repeat','polygon':box}])
+        b=source('ppocr','Repeat\nChanged',blocks=[{'text':'Repeat','polygon':box}])
+        self.assertEqual(text_source_alignment(a,b,enabled('print')['limits'])[0]['operation'],'region_ambiguous')
+        a=source('glm','North\nSouth',blocks=[{'text':'North','polygon':box},{'text':'South','polygon':box}])
+        b=source('ppocr','North\nSouth',blocks=deepcopy(a['original']['blocks']))
+        self.assertEqual(text_source_alignment(a,b,enabled('print')['limits'])[0]['operation'],'region_unmatched')
+
+    def test_whole_table_preserves_actual_location_source_without_inheriting_scores(self):
+        from ocr_workbench.review_issues import apply_choice
+        raw=table(); incomplete=parse_tables(raw);incomplete[0]['rows']+=1
+        cells=parse_tables(raw)
+        polygon=[[10,10],[200,10],[200,110],[10,110]]
+        for cell in cells[0]['cells']:
+            cell.update(confidence=.91,polygon=polygon)
+        candidate=source('hunyuan',raw,tables=cells,blocks=[{'kind':'table','text':raw,'polygon':polygon}])
+        output=fuse([source('glm',raw,tables=incomplete),candidate],enabled(),'source-location')
+        issue=output['fusion']['units'][0]
+        self.assertEqual(issue['location']['source_result_id'],'hunyuan-result')
+        self.assertEqual(issue['location']['level'],'region')
+        self.assertTrue(all(c['confidence'] is None and c['polygon'] is None for c in output['tables'][0]['cells']))
+        self.assertEqual(candidate['original']['tables'][0]['cells'][0]['confidence'],.91)
+        saved=apply_choice({'text':output['text'],'tables':output['tables']},issue['target'],cells[0])
+        self.assertTrue(all(c['confidence'] is None and c['polygon'] is None for c in saved['tables'][0]['cells']))
+        mapped=fuse([source('glm',raw),candidate],enabled(),'mapped-source-location')
+        self.assertTrue(all(u['location']['level']=='cell' and u['location']['source_result_id']=='hunyuan-result'
+                            for u in mapped['fusion']['units']))
 
 
 if __name__ == "__main__":

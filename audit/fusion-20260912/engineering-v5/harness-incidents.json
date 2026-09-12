@@ -1,0 +1,15 @@
+{
+  "scope": "Failed preliminary verification attempts retained locally, excluded from passing counts",
+  "incidents": [
+    {
+      "path": "build/fusion-ui-20260912-v5",
+      "failure": "WinError 5 during synthetic image staging rename, before browser startup",
+      "followup": "New isolated directory passed all 16 scenarios"
+    },
+    {
+      "path": "build/fusion-trial-qa-20260912-v5",
+      "failure": "Connection reset followed by coordinator shutdown wait; verified hung QA process terminated",
+      "followup": "8-second graceful-shutdown bound added; isolated release coordinator QA passed and stopped normally"
+    }
+  ]
+}

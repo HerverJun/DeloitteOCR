@@ -19,7 +19,7 @@ import uvicorn
 
 @contextmanager
 def serve(app, port=8883):
-    server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=port, access_log=False))
+    server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=port, access_log=False, timeout_graceful_shutdown=8))
     worker = threading.Thread(target=server.run, daemon=True)
     worker.start()
     try:
