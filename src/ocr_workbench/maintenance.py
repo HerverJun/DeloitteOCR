@@ -10,7 +10,8 @@ from ocr_workbench.atomic_files import write_json
 
 
 class ProjectMaintenance:
-    def __init__(self, store, queue):
+    def __init__(self, store, queue, fusion_queue=None):
+        self.fusion_queue = fusion_queue
         self.store, self.queue = store, queue
         self.guard = store.file_lock
         self.trash = store.root / "cleanup"
@@ -74,15 +75,29 @@ class ProjectMaintenance:
                 "SELECT COALESCE(SUM(length(CAST(e.value AS BLOB))),0) bytes,COUNT(*) count FROM edits e JOIN results r ON r.id=e.result_id JOIN tasks t ON t.id=r.task_id WHERE t.project_id=?",
                 (key,),
             )[0]
+            fusion_bytes = 0
+            for table, columns, owner in (
+                ('fusion_inputs', ('snapshot', 'fingerprint'), 'task_id'),
+                ('fusion_dependencies', ('parent_task_id',), 'task_id'),
+                ('fusion_evidence', ('definition',), 'result_id'),
+                ('fusion_issues', ('definition', 'target', 'current_value', 'basis'), 'result_id'),
+                ('fusion_decisions', ('response', 'previous', 'payload_hash'), 'result_id'),
+                ('fusion_progress', ('issue_id', 'updated'), 'result_id'),
+            ):
+                expression = '+'.join(f'COALESCE(length(CAST(f.{column} AS BLOB)),0)' for column in columns)
+                joins = 'JOIN tasks t ON t.id=f.task_id' if owner == 'task_id' else 'JOIN results r ON r.id=f.result_id JOIN tasks t ON t.id=r.task_id'
+                fusion_bytes += self.store.rows(f'SELECT COALESCE(SUM({expression}),0) bytes FROM {table} f {joins} WHERE t.project_id=?', (key,))[0]['bytes']
+            fusion_bytes += self.store.rows('SELECT COALESCE(SUM(length(request_id)+length(payload_hash)+length(task_ids)+length(created)),0) bytes FROM fusion_submissions WHERE project_id=?', (key,))[0]['bytes']
             return {
-                "bytes": total + result_bytes + history_bytes["bytes"],
+                "bytes": total + result_bytes + history_bytes["bytes"] + fusion_bytes,
                 "file_bytes": total,
-                "database_payload_bytes": result_bytes + history_bytes["bytes"],
+                "database_payload_bytes": result_bytes + history_bytes["bytes"] + fusion_bytes,
+                "fusion_bytes": fusion_bytes,
                 "result_bytes": result_bytes,
                 "history_bytes": history_bytes["bytes"],
                 "history_entries": history_bytes["count"],
                 "files": files,
-                "scope": "项目文件 + 结果及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
+                "scope": "项目文件、结果、融合快照/证据/决策及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
                 **self.disk_status(),
             }
 
@@ -270,7 +285,7 @@ class ProjectMaintenance:
                     "SELECT id FROM tasks WHERE project_id=?", (key,)
                 )
             }
-            if self.queue.status()["task_id"] in task_ids:
+            if self.queue.status()["task_id"] in task_ids or (self.fusion_queue and self.fusion_queue.status()["task_id"] in task_ids):
                 raise ValueError("项目任务仍在运行，请先取消并等待引擎退出")
             paths = self.paths(key)
             usage = self.usage(key)

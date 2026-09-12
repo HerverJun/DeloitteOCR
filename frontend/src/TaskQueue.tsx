@@ -109,7 +109,7 @@ export function TaskQueue({
                   <Button
                     size="small"
                     disabled={
-                      recognitionDisabled &&
+                      recognitionDisabled && t.kind !== "fusion" &&
                       ["failed", "cancelled", "paused", "interrupted"].includes(
                         t.status,
                       )

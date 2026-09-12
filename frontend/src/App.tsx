@@ -49,6 +49,8 @@ import { api, request, download } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { QuickReview } from "./QuickReview";
+import { FusionLauncher, type FusionRequest } from "./FusionLauncher";
 import { adoptedResult, exportPhotos, reviewNames } from "./resultWorkflow";
 import { useEditor } from "./useEditor";
 import { ProjectStorage } from "./ProjectStorage";
@@ -62,6 +64,7 @@ import type {
   Engine,
   Task,
   Edit,
+  ReviewIssue,
 } from "./types";
 
 export function App() {
@@ -86,6 +89,10 @@ export function App() {
   const resultTabs = useRef(new Map<string, string>());
   const explicitImageTabs = useRef(new Map<string, string>());
   const chooseTab = (value: string) => {
+    if (editor.getReviewDraft() && value !== "review") {
+      onError("请先保存快速校对中的手工修改，或清除该修改。");
+      return;
+    }
     if (active) explicitImageTabs.current.set(active, value);
     if (editor.result) resultTabs.current.set(editor.result.id, value);
     setTab(value);
@@ -95,9 +102,12 @@ export function App() {
   const [initial, setInitial] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
+  const [modalError, setModalError] = useState("");
   const [showQueue, setShowQueue] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [highlight, setHighlight] = useState<number | null>(null);
+  const [reviewLocation, setReviewLocation] = useState<{ resultId: string; issue: ReviewIssue } | null>(null);
+  const [reviewFocus, setReviewFocus] = useState<{ tableId: string; row: number; column: number; nonce: number } | null>(null);
   const [newProject, setNewProject] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [rename, setRename] = useState(false);
@@ -153,11 +163,13 @@ export function App() {
           projectLatest.current &&
           (JSON.stringify(projectLatest.current.queue) !==
             JSON.stringify(value.queue) ||
+            JSON.stringify(projectLatest.current.fusion_queue) !== JSON.stringify(value.fusion_queue) ||
             projectLatest.current.disk?.low_space !== value.disk?.low_space)
         ) {
           projectLatest.current = {
             ...projectLatest.current,
             queue: value.queue,
+            fusion_queue: value.fusion_queue,
             disk: value.disk,
           };
           setProject(projectLatest.current);
@@ -240,8 +252,9 @@ export function App() {
       resultTabs.current.get(id) ||
       explicitImageTabs.current.get(active) ||
       (editor.result.edited.tables.length ? "table" : "text");
-    resultTabs.current.set(id, initialTab);
-    setTab(initialTab);
+    const restoredTab = editor.getReviewDraft() && editor.result.original.fusion ? "review" : initialTab;
+    resultTabs.current.set(id, restoredTab);
+    setTab(restoredTab);
   }, [loadedResultId]);
   useEffect(() => {
     if (!active) return;
@@ -272,7 +285,8 @@ export function App() {
   }, [project, active]);
   useEffect(() => {
     setHighlight(null);
-  }, [active, loadedResultId]);
+    setReviewFocus(null);
+  }, [active, editor.result?.id]);
   const finishedKey = finished.map((t) => t.result_id).join(":");
   useEffect(() => {
     if (tab !== "compare") {
@@ -292,9 +306,11 @@ export function App() {
   const action = async (fn: () => Promise<unknown>) => {
     ++activeActions.current;
     setBusy(true);
+    setModalError("");
     try {
       return await fn();
     } catch (e) {
+      setModalError(String(e));
       onError(String(e));
     } finally {
       setBusy(--activeActions.current > 0);
@@ -456,9 +472,41 @@ export function App() {
   };
   const selectResult = async (id: string) => {
     await editor.flush();
-    await api("/images/" + active + "/selection", "PUT", { result_id: id });
+    const target = editor.getCurrent()?.id === id ? editor.getCurrent()! : await api<Result>("/results/" + id);
+    await api("/images/" + active + "/selection", "PUT", { result_id: id, revision: target.revision });
     setPreviews((old) => ({ ...old, [active]: id }));
     await refresh(projectId);
+  };
+  const runFusion = async (configuration: FusionRequest) => {
+    await editor.flush();
+    if (!project || !photo) throw Error("请先选择图片。");
+    const fusion = { content_type: configuration.content_type, mode: configuration.mode };
+    if (configuration.reuse) {
+      await api(`/projects/${projectId}/fusion`, "POST", { ...fusion, result_ids: configuration.result_ids,
+        expected_engines: configuration.engines, request_id: configuration.request_id });
+    } else {
+      const photos = selected.length ? project.images.filter(p => selected.includes(p.id)) : [photo];
+      await api(`/projects/${projectId}/tasks`, "POST", { version_ids: photos.map(p => p.active_version),
+        engines: configuration.engines, fusion, request_id: configuration.request_id,
+        preprocess: preprocess === "contrast" ? [{ kind: "contrast", factor: 1.3 }] : preprocess === "rotate" ? [{ kind: "rotate", degrees: 90 }] : preprocess === "rotate-contrast" ? [{ kind: "rotate", degrees: 90 }, { kind: "contrast", factor: 1.3 }] : [] });
+    }
+    setShowQueue(true);
+    await refresh(projectId);
+    notify("已创建融合任务，完成后可在结果列表中预览和采用。");
+  };
+  const locateIssue = (issue: ReviewIssue, editPosition: boolean) => {
+    if (editor.result) setReviewLocation({ resultId: editor.result.id, issue });
+    if (!editPosition) return;
+    if (issue.target.table_id) {
+      setReviewFocus({ tableId: issue.target.table_id, row: issue.target.row || 0, column: issue.target.column || 0, nonce: Date.now() });
+      chooseTab("table");
+    } else {
+      chooseTab("text");
+      requestAnimationFrame(() => {
+        textInput.current?.focus();
+        textInput.current?.setSelectionRange(issue.target.start || 0, issue.target.end ?? editor.edit?.text.length ?? 0);
+      });
+    }
   };
   const setReview = async (status: string) => {
     await editor.flush();
@@ -563,6 +611,7 @@ export function App() {
       ? photo?.review_status || "pending"
       : "pending";
   const openExport = (scope: string) => {
+    setModalError("");
     setExportScope(scope);
     setConfirmedOnly(false);
     setExportFormat(
@@ -637,6 +686,7 @@ export function App() {
                 icon={<FolderPlus size={17} />}
                 onClick={() => {
                   setRename(false);
+                  setModalError("");
                   setProjectName("");
                   setNewProject(true);
                 }}
@@ -669,6 +719,7 @@ export function App() {
                   disabled={!projectId}
                   onClick={() => {
                     setRename(true);
+                    setModalError("");
                     setProjectName(project?.project.name || "");
                     setNewProject(true);
                   }}
@@ -771,7 +822,7 @@ export function App() {
               <span>
                 任务队列
                 <small>
-                  {!queueHealthy
+                  {reviewOnly ? "仅校对与导出 · CPU 融合可用" : !queueHealthy
                     ? "队列异常，请查看恢复提示"
                     : attention
                       ? `${attention} 项失败或待恢复 · ${pending} 项处理中`
@@ -793,6 +844,7 @@ export function App() {
         }
         toolbar={
           <>
+            {project?.fusion_queue?.healthy === false && <div className="inline-warning" role="alert">CPU 融合队列正在恢复。<Button size="small" disabled={busy} onClick={() => void action(async () => { await api("/fusion/queue/recover", "POST", {}); await refresh(projectId); })}>恢复 CPU 融合队列</Button></div>}
             {(reviewOnly || !queueHealthy) && (
               <div className="inline-warning" role="status">
                 {reviewOnly
@@ -835,6 +887,9 @@ export function App() {
               hasActive={!!active}
               onRun={() => void action(() => run())}
             />
+            <FusionLauncher engines={engines} tasks={tasks} versionId={version?.id}
+              selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
+              onStart={runFusion} />
             <button
               className="workspace-queue-toggle"
               onClick={() => setShowQueue(!showQueue)}
@@ -853,6 +908,7 @@ export function App() {
             versions={versions}
             blocks={blocks}
             highlight={highlight}
+            reviewLocation={reviewLocation?.resultId === editor.result?.id ? reviewLocation?.issue.location : undefined}
             onVersion={(id) => void changeVersion(id)}
             onTransform={(op) => void transform(op)}
             onRegion={(box) => void region(box)}
@@ -960,7 +1016,7 @@ export function App() {
               role="tablist"
               aria-label="结果视图"
               onKeyDown={(e) => {
-                const choices = ["table", "text", "compare"];
+                const choices = editor.result?.original.fusion ? ["table", "text", "compare", "review"] : ["table", "text", "compare"];
                 if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
                   return;
                 e.preventDefault();
@@ -968,10 +1024,9 @@ export function App() {
                   e.key === "Home"
                     ? 0
                     : e.key === "End"
-                      ? 2
+                      ? choices.length-1
                       : (choices.indexOf(tab) +
-                          (e.key === "ArrowRight" ? 1 : 2)) %
-                        3;
+                          (e.key === "ArrowRight" ? 1 : choices.length-1)) % choices.length;
                 chooseTab(choices[index]);
                 (
                   e.currentTarget.querySelectorAll("button")[
@@ -1019,6 +1074,9 @@ export function App() {
                 <Columns3 size={15} />
                 模型对比
               </button>
+              {editor.result?.original.fusion && <button role="tab" aria-selected={tab === "review"}
+                tabIndex={tab === "review" ? 0 : -1} aria-controls="result-content" id="tab-review"
+                className={tab === "review" ? "active" : ""} onClick={() => chooseTab("review")}>快速校对</button>}
             </div>
             {editor.result && editor.edit && (
               <div className="edit-toolbar">
@@ -1188,7 +1246,7 @@ export function App() {
                     >
                       重试保存
                     </Button>
-                    <Button size="small" onClick={() => setDiscardOpen(true)}>
+                    <Button size="small" onClick={() => { setModalError(""); setDiscardOpen(true); }}>
                       放弃本次修改并重新加载
                     </Button>
                   </div>
@@ -1396,6 +1454,7 @@ export function App() {
                   <TableEditor
                     key={editor.result.id}
                     disabled={busy}
+                    focusTarget={reviewFocus}
                     tables={editor.edit.tables}
                     onError={onError}
                     onChange={(tables) =>
@@ -1403,6 +1462,19 @@ export function App() {
                     }
                   />
                 )}
+                {tab === "review" && editor.result.original.fusion && photo && <QuickReview
+                  key={editor.result.id} result={editor.result} versionId={photo.active_version}
+                  adopted={currentAdopted === editor.result.id} busy={busy}
+                  onDraft={editor.setReviewDraft}
+                  getDraft={editor.getReviewDraft}
+                  getPendingDecision={editor.getPendingDecision}
+                  onLocate={locateIssue}
+                  onDecision={async (issueId, body) => {
+                    ++activeActions.current; setBusy(true);
+                    try { await editor.decide(issueId, body); await refresh(projectId); }
+                    finally { setBusy(--activeActions.current > 0); }
+                  }}
+                  onConfirm={() => void action(() => setReview("confirmed"))} />}
                 {tab === "compare" && (
                   <ResultComparison
                     results={compared}
@@ -1489,6 +1561,7 @@ export function App() {
           <DialogBody>
             <DialogTitle>{rename ? "重命名项目" : "新建项目"}</DialogTitle>
             <DialogContent>
+              {modalError && <div className="inline-warning" role="alert">{modalError}</div>}
               <label className="dialog-field">
                 项目名称
                 <input
@@ -1540,6 +1613,7 @@ export function App() {
           <DialogBody>
             <DialogTitle>导出校对结果</DialogTitle>
             <DialogContent>
+              {modalError && <div className="inline-warning" role="alert">{modalError}</div>}
               <label className="dialog-field">
                 文件格式
                 <select
@@ -1598,6 +1672,7 @@ export function App() {
                 默认每张图片独立文件，多张打包为 ZIP。Excel
                 中每个表格单独一页，保留合并关系、前导零与长编号。导出前会先保存当前校对。
               </p>
+              {editor.result?.original.fusion && <p className="dialog-description">融合结果会与来源证据、决策历史一起打包为 ZIP，所有文件使用同一已保存修订。未处理、有疑问、过期和人工确认状态列入来源清单。</p>}
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setExportOpen(false)}>取消</Button>
@@ -1629,6 +1704,7 @@ export function App() {
           <DialogBody>
             <DialogTitle>放弃本次未保存修改</DialogTitle>
             <DialogContent>
+              {modalError && <div className="inline-warning" role="alert">{modalError}</div>}
               <p>
                 服务器结果读取成功后，本地未保存的文字和表格将被替换。可以先下载草稿副本；读取失败时仍保留草稿。
               </p>
@@ -1661,6 +1737,7 @@ export function App() {
           <DialogBody>
             <DialogTitle>运行环境</DialogTitle>
             <DialogContent>
+              {modalError && <div className="inline-warning" role="alert">{modalError}</div>}
               {diagnostics ? (
                 <>
                   <p>{diagnostics.passed ? "环境检查通过" : "发现环境问题"}</p>

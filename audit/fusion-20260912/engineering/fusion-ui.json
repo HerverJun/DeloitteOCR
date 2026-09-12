@@ -1,0 +1,71 @@
+{
+  "scope": "Synthetic original OCR, actual CPU fusion and durable API; no OCR accuracy or human-time claim",
+  "results": [
+    {
+      "name": "review-only permits existing CPU fusion without an OCR fault warning",
+      "passed": true
+    },
+    {
+      "name": "fusion result is preview-only until explicit adoption",
+      "passed": true
+    },
+    {
+      "name": "real issue region can be enlarged with surrounding image context",
+      "passed": true
+    },
+    {
+      "name": "skip changes position without marking an issue complete",
+      "passed": true
+    },
+    {
+      "name": "navigation cannot discard a pending review draft",
+      "passed": true
+    },
+    {
+      "name": "reload restores unsaved review draft and saved issue position",
+      "passed": true
+    },
+    {
+      "name": "IME composition does not submit a partial draft",
+      "passed": true
+    },
+    {
+      "name": "lost decision response locks its intent and retries idempotently after reload",
+      "passed": true
+    },
+    {
+      "name": "uncertain is persisted separately from resolved",
+      "passed": true
+    },
+    {
+      "name": "undo expires the corresponding review decision",
+      "passed": true
+    },
+    {
+      "name": "UI exports saved fusion content with provenance ZIP",
+      "passed": true
+    },
+    {
+      "name": "laptop layout has no page-level horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "diagnostic failures are readable inside the open dialog",
+      "passed": true
+    },
+    {
+      "name": "storage failures are readable inside the open dialog",
+      "passed": true
+    },
+    {
+      "name": "corrupt-image import reports a readable Chinese error",
+      "passed": true
+    },
+    {
+      "name": "engine-package failures are readable inside the open dialog",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser_closed": true
+}

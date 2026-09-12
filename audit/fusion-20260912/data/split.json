@@ -1,0 +1,1622 @@
+{
+  "seed": 20260912,
+  "counts": {
+    "development": {
+      "handwriting": 41,
+      "print": 49,
+      "table": 24
+    },
+    "validation": {
+      "handwriting": 35,
+      "table": 8,
+      "print": 17
+    },
+    "holdout": {
+      "handwriting": 2,
+      "print": 16,
+      "table": 8
+    }
+  },
+  "samples": [
+    {
+      "id": "0001",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0002",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0003",
+      "kind": "handwriting",
+      "group_id": "84e23ad8e905d350b366",
+      "split": "holdout",
+      "document": "notes_9e951846094758afac08c620144e3a76",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0004",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0005",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0006",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0007",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0008",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0009",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0010",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0011",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0012",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0013",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0014",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0015",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0016",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0017",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0018",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0019",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0020",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0021",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0022",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0023",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0024",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0025",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0026",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0027",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0028",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0029",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0030",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0031",
+      "kind": "print",
+      "group_id": "78884e22e232af3581b0",
+      "split": "development",
+      "document": "untraced-source:note",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0032",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0033",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0034",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0035",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0036",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0037",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0038",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0039",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0040",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0041",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0042",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0043",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0044",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0045",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0046",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0047",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0048",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0049",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0050",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0051",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0052",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0053",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0054",
+      "kind": "handwriting",
+      "group_id": "84e23ad8e905d350b366",
+      "split": "holdout",
+      "document": "notes_9e951846094758afac08c620144e3a76",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0055",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0056",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0057",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0058",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0059",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0060",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0061",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0062",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0063",
+      "kind": "print",
+      "group_id": "78884e22e232af3581b0",
+      "split": "development",
+      "document": "untraced-source:note",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0064",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0065",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0066",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0067",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0068",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0069",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0070",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0071",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0072",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0073",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0074",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0075",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0076",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0077",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0078",
+      "kind": "handwriting",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0079",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0080",
+      "kind": "handwriting",
+      "group_id": "412317e3160ea01b44ff",
+      "split": "development",
+      "document": "notes_f7f010b78016aeebd76e56d9283eb67f",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0081",
+      "kind": "print",
+      "group_id": "c7c478df6edadc504229",
+      "split": "validation",
+      "document": "newspaper_87769622e073730af94822416c60c710",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0082",
+      "kind": "print",
+      "group_id": "28b6bf70b028cfd4ea8c",
+      "split": "validation",
+      "document": "jiaocai_jiaocai_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0083",
+      "kind": "print",
+      "group_id": "e924ed5347733d31da2b",
+      "split": "development",
+      "document": "untraced-source:research_report",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0084",
+      "kind": "print",
+      "group_id": "36c75cddc5a6fa13d903",
+      "split": "validation",
+      "document": "exam_paper_2018年广西北海、钦州、南宁、来宾、崇左、防城港、北部湾经济区中考英语试题（空白卷）",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0085",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0086",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0087",
+      "kind": "print",
+      "group_id": "e3e54cd90759e644036c",
+      "split": "development",
+      "document": "newspaper_the times uk_0801@magazinesclubnew",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0088",
+      "kind": "print",
+      "group_id": "c64306c91d63dfeed553",
+      "split": "holdout",
+      "document": "yanbaor2_f197117877bfd892faf3c89f14c35ae92c3150ec7affb49dd51d8f8ce202604a.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0089",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0090",
+      "kind": "print",
+      "group_id": "d4b605bd53618e5fdf18",
+      "split": "validation",
+      "document": "jiaocaineedrop_33137159.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0091",
+      "kind": "print",
+      "group_id": "ec93c401eb906c3af6ec",
+      "split": "development",
+      "document": "book_en_6.complex.analysis.-.elias.m..stein",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0092",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0093",
+      "kind": "print",
+      "group_id": "52f456f3c549b12d4325",
+      "split": "development",
+      "document": "untraced-source:historical_document",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0094",
+      "kind": "print",
+      "group_id": "9b289a732696df98d68f",
+      "split": "validation",
+      "document": "newspaper_fe5ed29024932fad071afc53807b16ba",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0095",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0096",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0097",
+      "kind": "print",
+      "group_id": "4af6fb3226d74121627f",
+      "split": "development",
+      "document": "color_textbook_zhonggaokao_小学_13.人教新起点英语（4-5年级）_人教新起点四年级英语下册_课本_人教新起点英语4b电子课本",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0098",
+      "kind": "print",
+      "group_id": "e525bad0944520046d0b",
+      "split": "holdout",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-61520788.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0099",
+      "kind": "print",
+      "group_id": "5492dcdcf24546ce707e",
+      "split": "development",
+      "document": "yanbaor2_0ef01b835238626f3589faa671abdfb832f2b98987eadad53cb2e35699dcc039.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0100",
+      "kind": "print",
+      "group_id": "5e7b571a60a7c187d6a4",
+      "split": "holdout",
+      "document": "ppt_stewartcalcet7e_03_02",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0101",
+      "kind": "print",
+      "group_id": "07334386287751ba02a4",
+      "split": "validation",
+      "document": "newspaper_95f2062735b213b3d7d471a48d5ec71b",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0102",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0103",
+      "kind": "print",
+      "group_id": "ed542117b758b60abe14",
+      "split": "development",
+      "document": "untraced-source:academic_literature",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0104",
+      "kind": "print",
+      "group_id": "aeb32cfe00d196040e97",
+      "split": "holdout",
+      "document": "yanbaor2_f832cad1f46c067198e9df95ae7b150213f16805037c1a5725e72245010d3e97.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0105",
+      "kind": "print",
+      "group_id": "81dc948cd3fa9ec20645",
+      "split": "holdout",
+      "document": "untraced-source:colorful_textbook",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0106",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0107",
+      "kind": "print",
+      "group_id": "0c3d5517d7fe7feafefb",
+      "split": "validation",
+      "document": "exam_paper_en-file-putnam-archive_2011_problems_2011",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0108",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0109",
+      "kind": "print",
+      "group_id": "21e4bb031502fc787f31",
+      "split": "development",
+      "document": "newspaper_a9c9e3816aa5cb6866d02c10273dc665",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0110",
+      "kind": "print",
+      "group_id": "a5c3dd48facf21ed5f91",
+      "split": "holdout",
+      "document": "docstructbench_llm-raw-scihub-o.o-j.msec.2003.09.055.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0111",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0112",
+      "kind": "print",
+      "group_id": "eb01dd90291c243ab2bf",
+      "split": "holdout",
+      "document": "docstructbench_llm-raw-scihub-o.o-s00374-006-0103-8.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0113",
+      "kind": "print",
+      "group_id": "9e337f285d52d6145ee7",
+      "split": "validation",
+      "document": "docstructbench_llm-raw-scihub-o.o-s00128-008-9367-z.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0114",
+      "kind": "print",
+      "group_id": "8cee7c089ae28cd5b439",
+      "split": "validation",
+      "document": "newspaper_the guardian uk_0801@magazinesclubnew",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0115",
+      "kind": "print",
+      "group_id": "7435242c50614bf90b6c",
+      "split": "validation",
+      "document": "docstructbench_llm-raw-scihub-o.o-s00348-003-0689-7.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0116",
+      "kind": "print",
+      "group_id": "02ad1032015a37ff2325",
+      "split": "development",
+      "document": "book_zh_dlt10902008_extracted",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0117",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0118",
+      "kind": "print",
+      "group_id": "824d377a3a802d861031",
+      "split": "validation",
+      "document": "yanbaor2_c1ba77569ecdcc4e0ce5903a503f817fe347683a893426dc4acefd8b8770f047.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0119",
+      "kind": "print",
+      "group_id": "ed542117b758b60abe14",
+      "split": "development",
+      "document": "untraced-source:academic_literature",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0120",
+      "kind": "print",
+      "group_id": "d0d7f67ca7157d04e6b0",
+      "split": "validation",
+      "document": "ppt_presentationspecification",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0121",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0122",
+      "kind": "print",
+      "group_id": "dbc135be34e6da3d3860",
+      "split": "development",
+      "document": "newspaper_6d2b5f833fe20785bc395f757524cb05",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0123",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0124",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0125",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0126",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0127",
+      "kind": "print",
+      "group_id": "60c8cc9f9029f353e539",
+      "split": "development",
+      "document": "ppt_ch7",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0128",
+      "kind": "print",
+      "group_id": "eeb9ff3ea6582ce2bf03",
+      "split": "holdout",
+      "document": "untraced-source:PPT2PDF",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0129",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0130",
+      "kind": "print",
+      "group_id": "dc2222c7635846aa1696",
+      "split": "development",
+      "document": "newspaper_thebostonglobe-2025-1-8@magazinesclubnew",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0131",
+      "kind": "print",
+      "group_id": "b5ac8ff9fde613ff3122",
+      "split": "development",
+      "document": "yanbaor2_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0132",
+      "kind": "print",
+      "group_id": "a748028b0518da98d8d2",
+      "split": "holdout",
+      "document": "eastmoney_c683eb2923c442ad9fd8c1f25abb7b1b35b359611d5b8a07d1eede7a81983769.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0133",
+      "kind": "print",
+      "group_id": "339e8e63e3b56cc6cd51",
+      "split": "validation",
+      "document": "exam_paper_en-file-putnam-archive_2003_solutions_2003s",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0134",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0135",
+      "kind": "print",
+      "group_id": "f961362589ef5ef28bc8",
+      "split": "holdout",
+      "document": "eastmoney_1885ca41425d245551f3482457304f78b48186bff625fa91e675eaf6bba5229f.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0136",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0137",
+      "kind": "print",
+      "group_id": "758eab24e3672ffb45d6",
+      "split": "holdout",
+      "document": "newspaper_74fc3b01b2cc4a7e6ca0f1af2b998187",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0138",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0139",
+      "kind": "print",
+      "group_id": "9bac143585bbbe1a61c6",
+      "split": "holdout",
+      "document": "newspaper_2a6b4fa088699701a6fa9ccecfb5c25d",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0140",
+      "kind": "print",
+      "group_id": "230c25c9558d98b2fe45",
+      "split": "holdout",
+      "document": "newspaper_0ce88e1e131aef7a59d0533be36870de",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0141",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0142",
+      "kind": "print",
+      "group_id": "e733bae1bd35f2a54a0e",
+      "split": "development",
+      "document": "jiaocaineedrop_amc8_v5.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0143",
+      "kind": "print",
+      "group_id": "2b0b09284ea4f4db71e7",
+      "split": "holdout",
+      "document": "untraced-source:magazine",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0144",
+      "kind": "print",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0145",
+      "kind": "print",
+      "group_id": "318fb6b0fd6eb7ef8661",
+      "split": "validation",
+      "document": "jiaocaineedrop_proofs_from_the_book(aigner).pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0146",
+      "kind": "print",
+      "group_id": "ed542117b758b60abe14",
+      "split": "development",
+      "document": "untraced-source:academic_literature",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0147",
+      "kind": "print",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0148",
+      "kind": "print",
+      "group_id": "60c8cc9f9029f353e539",
+      "split": "development",
+      "document": "ppt_ch7",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0149",
+      "kind": "print",
+      "group_id": "5e90dc8447457d5e575a",
+      "split": "development",
+      "document": "yanbaopptmerge_yanbaoppt",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0150",
+      "kind": "print",
+      "group_id": "84a517d25feb3396a304",
+      "split": "holdout",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-61521384.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0151",
+      "kind": "print",
+      "group_id": "68ab1c8f7fc7aa22f7c7",
+      "split": "validation",
+      "document": "ppt_lay_linalg5_01_05",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0152",
+      "kind": "print",
+      "group_id": "36cb04664da48b6438cc",
+      "split": "development",
+      "document": "ppt_1637904769",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0153",
+      "kind": "print",
+      "group_id": "62c2b1c3145f7edc4100",
+      "split": "development",
+      "document": "scihub_jps.21547.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0154",
+      "kind": "print",
+      "group_id": "2d4db7f758ea1c1284a1",
+      "split": "development",
+      "document": "yanbaor2_782b0e71579c32d2a6c6c04494d8193c775e8c865b80b7252008ef661dae96b9.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0155",
+      "kind": "print",
+      "group_id": "58df228579cf74c88c07",
+      "split": "validation",
+      "document": "newspaper_the globe and mail - 2025-1-8@magazinesclubnew",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0156",
+      "kind": "print",
+      "group_id": "373973ffb80e461c0f3f",
+      "split": "development",
+      "document": "docstructbench_llm-raw-scihub-o.o-ceat.200600266.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0157",
+      "kind": "print",
+      "group_id": "a31b35c68d1c384ec1a0",
+      "split": "validation",
+      "document": "untraced-source:exam_paper",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0158",
+      "kind": "print",
+      "group_id": "4fee213a73637fcfa3ea",
+      "split": "development",
+      "document": "color_textbook_zhonggaokao_小学_13.人教新起点英语（4-5年级）_人教新起点五年级英语下册_课本_人教新起点英语5b电子课本",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0159",
+      "kind": "print",
+      "group_id": "74ef1082eee6eef79850",
+      "split": "holdout",
+      "document": "yanbaor2_d599e33e54376640020110ac1733ccdde8c6323d5d5f0c3ca8cb395dc6e46cf5.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0160",
+      "kind": "print",
+      "group_id": "ed542117b758b60abe14",
+      "split": "development",
+      "document": "untraced-source:academic_literature",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0161",
+      "kind": "table",
+      "group_id": "0f443f75ecf0cde52513",
+      "split": "development",
+      "document": "yanbaor2_1492d25d79af850815ea449254ea62418c3c7fd582792b5191e1879671ba1219.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0162",
+      "kind": "table",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0163",
+      "kind": "table",
+      "group_id": "e924ed5347733d31da2b",
+      "split": "development",
+      "document": "untraced-source:research_report",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0164",
+      "kind": "table",
+      "group_id": "fc8fad7aa6049575f78a",
+      "split": "holdout",
+      "document": "eastmoney_c1c12db90c6ecfae16a8eafa49caecfbc0e5f5654140320fe127f7c09bde96c9.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0165",
+      "kind": "table",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0166",
+      "kind": "table",
+      "group_id": "d09ad67ddb765e1c4ae8",
+      "split": "development",
+      "document": "yanbaopptmerge_c75b0a56d8f1b31d04fbe97f776244f25f5238f6cada15fb4007f8bfb17bdf9f.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0167",
+      "kind": "table",
+      "group_id": "ed542117b758b60abe14",
+      "split": "development",
+      "document": "untraced-source:academic_literature",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0168",
+      "kind": "table",
+      "group_id": "976b92541aa0abdd7646",
+      "split": "development",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-61523162.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0169",
+      "kind": "table",
+      "group_id": "389c8e08359f04c3e38a",
+      "split": "validation",
+      "document": "scihub_s00381-021-05138-3.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0170",
+      "kind": "table",
+      "group_id": "ba65f81d173a7f07dc9b",
+      "split": "development",
+      "document": "yanbaopptmerge_2f4902871606698497c53ccb18d3fec2f83d05047d883cd65bbce26bfb27bcd2.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0171",
+      "kind": "table",
+      "group_id": "26c5b7ffa6d42a43f69c",
+      "split": "development",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-60403612.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0172",
+      "kind": "table",
+      "group_id": "76a4f221b0b8638f3e1a",
+      "split": "development",
+      "document": "yanbaopptmerge_70a45bf10fb90ae0c91d44a11e0a97a8f9515d85626b54eb50a80b6146e5c2bf.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0173",
+      "kind": "table",
+      "group_id": "81dfe7fc180b821db609",
+      "split": "development",
+      "document": "yanbaopptmerge_11eeaa31ab6171a9d1ea55aeb0b167e51bffeaa8a83a97cb5e2c3fb7963bf1bf.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0174",
+      "kind": "table",
+      "group_id": "77f33cb3e69fcae2880e",
+      "split": "holdout",
+      "document": "yanbaopptmerge_903cf6cd7820b5463e95c5aaab9f16134f9853cd7963567497337527e73b9bcc.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0175",
+      "kind": "table",
+      "group_id": "e662316614f2be35c76b",
+      "split": "development",
+      "document": "book_en_国外数学教材-数论-melvyn b. nathanson—elementary methods in number theory",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0176",
+      "kind": "table",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0177",
+      "kind": "table",
+      "group_id": "e45221fa88c60d0fd121",
+      "split": "validation",
+      "document": "eastmoney_5f75d8df19ab34c706ae823d8ed54f845b6a693e31c0fae19b16cdd94c32a636.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0178",
+      "kind": "table",
+      "group_id": "467d64b1a0bc5243fb54",
+      "split": "holdout",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-63677793.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0179",
+      "kind": "table",
+      "group_id": "7c25c9a8d671e42a1bda",
+      "split": "validation",
+      "document": "yanbaopptmerge_0dd24976bcc395ad595cf73b411d627e14c19ba0299bb3fa0d8108993d079545.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0180",
+      "kind": "table",
+      "group_id": "207c5a6165832f17b94c",
+      "split": "validation",
+      "document": "docstructbench_llm-raw-the-eye-o.o-traneguide.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0181",
+      "kind": "table",
+      "group_id": "e72b7f4636780fc97d21",
+      "split": "development",
+      "document": "jiaocaineedrop_chem-354334.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0182",
+      "kind": "table",
+      "group_id": "96d3862c2bd793647be1",
+      "split": "development",
+      "document": "yanbaor2_ey-global-fintech-adoption-index.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0183",
+      "kind": "table",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0184",
+      "kind": "table",
+      "group_id": "87f3f297ee97eb4cedc7",
+      "split": "development",
+      "document": "eastmoney_dd8f39ced2188b907304224a635ad605689270486020c34636003e57018c01d8.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0185",
+      "kind": "table",
+      "group_id": "ccb2b7425a89fa5c8e2e",
+      "split": "development",
+      "document": "untraced-source:book",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0186",
+      "kind": "table",
+      "group_id": "6b0e19e2927744cdcfeb",
+      "split": "development",
+      "document": "color_textbook_教材全解1+1二年级上册英语上海牛津版",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0187",
+      "kind": "table",
+      "group_id": "076b1e405e4a16882de3",
+      "split": "validation",
+      "document": "yanbaopptmerge_d346b889f1d85c61950a71d4b0ac2752.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0188",
+      "kind": "table",
+      "group_id": "72eb451a0a6c0b36c490",
+      "split": "validation",
+      "document": "notes_1ba14cb325bc448f7201b20502ecf2b5",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0189",
+      "kind": "table",
+      "group_id": "8a825c2f842c05c4708f",
+      "split": "holdout",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-63711094.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0190",
+      "kind": "table",
+      "group_id": "49d761f2dc45380d0a3b",
+      "split": "development",
+      "document": "docstructbench_llm-raw-scihub-o.o-s00396-003-0935-9.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0191",
+      "kind": "table",
+      "group_id": "bec9840d05478fabb60a",
+      "split": "development",
+      "document": "yanbaopptmerge_56df5dde920f95a11bf5b9d69353fbd82045f3fec4f553bc928a0b50c136f99a.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0192",
+      "kind": "table",
+      "group_id": "b5fa9353540f83239ce8",
+      "split": "holdout",
+      "document": "eastmoney_0022ae8eddb0de117978289e16ba7fe995dddd3f64aca9e147bb07c848c84aa6.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0193",
+      "kind": "table",
+      "group_id": "ccd76dc3daefa0404f3e",
+      "split": "holdout",
+      "document": "eastmoney_7e9f2d3e6d80483c7556fe65fe39f432d669cee3dc80840f126db9c7d7140d52.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0194",
+      "kind": "table",
+      "group_id": "97e7aca6995a7bf9c507",
+      "split": "holdout",
+      "document": "jiaocaineedrop_biz-96816.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0195",
+      "kind": "table",
+      "group_id": "c81fd069c2b678ff5b31",
+      "split": "development",
+      "document": "eastmoney_6be3f3cd9e5361946ee49252f12dd57fe7c73df330116d6998e2198ec79a05c9.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0196",
+      "kind": "table",
+      "group_id": "e924ed5347733d31da2b",
+      "split": "development",
+      "document": "untraced-source:research_report",
+      "grouping_reason": "unknown document identity; conservative source-class group"
+    },
+    {
+      "id": "0197",
+      "kind": "table",
+      "group_id": "d704c6a5d26ae7a7af63",
+      "split": "development",
+      "document": "jiaocaineedrop_jiaocai_needrop_en",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0198",
+      "kind": "table",
+      "group_id": "052f56269cc330ddca29",
+      "split": "holdout",
+      "document": "yanbaopptmerge_2b8553b00244437fa3e502aa2d3d319ed74459a1e264a4fdd9ecc14ce46609d5.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0199",
+      "kind": "table",
+      "group_id": "27c75197134a88ef96da",
+      "split": "development",
+      "document": "docstructbench_dianzishu_zhongwenzaixian-o.o-61323717.pdf",
+      "grouping_reason": "document prefix in upstream page filename"
+    },
+    {
+      "id": "0200",
+      "kind": "table",
+      "group_id": "4fee213a73637fcfa3ea",
+      "split": "development",
+      "document": "color_textbook_zhonggaokao_小学_13.人教新起点英语（4-5年级）_人教新起点五年级英语下册_课本_人教新起点英语5b电子课本",
+      "grouping_reason": "document prefix in upstream page filename"
+    }
+  ]
+}

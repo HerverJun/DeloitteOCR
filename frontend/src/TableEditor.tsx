@@ -32,11 +32,13 @@ export function TableEditor({
   onChange,
   onError,
   disabled = false,
+  focusTarget,
 }: {
   tables: Table[];
   onChange: (tables: Table[]) => void;
   onError: (message: string) => void;
   disabled?: boolean;
+  focusTarget?: { tableId: string; row: number; column: number; nonce: number } | null;
 }) {
   const [index, setIndex] = useState(0);
   const [selection, setSelection] = useState([0, 0, 0, 0]);
@@ -52,6 +54,17 @@ export function TableEditor({
   useEffect(() => {
     setIndex((i) => Math.min(i, Math.max(0, tables.length - 1)));
   }, [tables.length]);
+  useEffect(() => {
+    if (!focusTarget) return;
+    const next = tables.findIndex(t => t.fusion_id === focusTarget.tableId);
+    if (next < 0) return;
+    setIndex(next);
+    setSelection([focusTarget.row, focusTarget.column, focusTarget.row, focusTarget.column]);
+    const frame = requestAnimationFrame(() => {
+      editorElement.current?.querySelector<HTMLTextAreaElement>(`[data-cell="${focusTarget.row}:${focusTarget.column}"]`)?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusTarget?.nonce]);
   const addTable = () => {
     try {
       onChange([...tables, createTable(newRows, newColumns)]);

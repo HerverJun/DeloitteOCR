@@ -8,6 +8,7 @@ export type Cell = {
   polygon?: number[][] | null;
 };
 export type Table = {
+  fusion_id?: string;
   rows: number;
   columns: number;
   caption?: string;
@@ -30,6 +31,19 @@ export type Result = {
   can_redo: boolean;
   edited: Edit;
   original: {
+    origin?: "single-engine" | "fusion";
+    fusion?: {
+      session_id: string;
+      policy: { version: string; content_type: string; mode: string; automatic_replacement: boolean };
+      policy_sha256: string;
+      expected_sources: string[];
+      valid_sources: string[];
+      coverage: number;
+      unresolved: number;
+      baseline: string;
+      structure_fallbacks?: { table: number; engine: string }[];
+      evidence_units: number;
+    };
     warnings?: { code: string; stage: string; message: string }[];
     engine: string;
     text: string;
@@ -97,6 +111,7 @@ export type ProjectState = {
   images: Photo[];
   versions: Version[];
   tasks: Task[];
+  fusion_queue?: { healthy?: boolean; alive?: boolean; last_error?: string | { message: string } | null };
   queue: {
     task_id: string | null;
     engine: string | null;
@@ -123,6 +138,37 @@ export const engineNames: Record<string, string> = {
   glm: "GLM-OCR",
   hunyuan: "HunyuanOCR",
   dewarp: "UVDoc 去弯曲",
+  fusion: "融合草稿",
+};
+
+export type ReviewIssue = {
+  id: string;
+  basis: string;
+  category: string;
+  state: "pending" | "resolved" | "question" | "stale";
+  current_value: string | Table | null;
+  current_fingerprint: string;
+  baseline: string | Table | null;
+  candidates: { id: string; value: string | Table | null; sources: string[]; weight: number }[];
+  target: { kind: string; table_id?: string; row?: number; column?: number; start?: number; end?: number; unlocatable?: boolean };
+  source_states: Record<string, string>;
+  reason: string;
+  expected_sources: string[];
+  valid_sources: string[];
+  coverage: number;
+  context_current: boolean;
+  location: { level: "image" | "region" | "cell"; polygon: number[][] | null; version_id: string; reason: string };
+};
+export type ReviewPage = {
+  result_id: string;
+  revision: number;
+  counts: Record<string, number>;
+  total: number;
+  offset: number;
+  limit: number;
+  issues: ReviewIssue[];
+  context_current: boolean;
+  position: string | null;
 };
 export const statuses: Record<string, string> = {
   queued: "等待识别",

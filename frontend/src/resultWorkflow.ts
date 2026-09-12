@@ -10,7 +10,7 @@ export function adoptedResult(photo: Photo, tasks: Task[]): string | null {
     tasks
       .filter(
         (t) =>
-          t.image_id === photo.id && t.status === "succeeded" && t.result_id,
+          t.image_id === photo.id && t.status === "succeeded" && t.kind !== "fusion" && t.result_id,
       )
       .at(-1)?.result_id ||
     null

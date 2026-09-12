@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from ocr_workbench import __version__
 from ocr_workbench.store import Store, Conflict, uid, now
-from ocr_workbench.task_queue import TaskQueue
+from ocr_workbench.task_queue import TaskQueue, FusionQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
 
@@ -36,9 +36,10 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
                 shutil.rmtree(folder)
     registry = EnginePackages(bundle, store.root)
     queue = TaskQueue(store, bundle, registry=registry)
+    fusion_queue = FusionQueue(store, bundle)
     from ocr_workbench.maintenance import ProjectMaintenance
 
-    maintenance = ProjectMaintenance(store, queue)
+    maintenance = ProjectMaintenance(store, queue, fusion_queue)
 
     def import_one(key, name, temporary):
         with maintenance.guard:
@@ -48,11 +49,15 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     async def lifespan(app):
         if start_queue and not review_only:
             queue.start()
+        if start_queue:
+            fusion_queue.start()
         try:
             yield
         finally:
             if start_queue and not review_only:
                 queue.stop()
+            if start_queue:
+                fusion_queue.stop()
 
     app = FastAPI(
         title="DeloitteOCR · 离线 OCR 工作台",
@@ -63,6 +68,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     )
     app.state.store = store
     app.state.queue = queue
+    app.state.fusion_queue = fusion_queue
     app.state.shutdown = lambda: None
     app.state.review_only = review_only
 
@@ -119,8 +125,17 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.get("/api/health")
     def health():
         status = queue.status()
-        ready = review_only or status.get("healthy", False)
-        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status}
+        cpu_status = fusion_queue.status()
+        ready = (review_only or status.get("healthy", False)) and (not start_queue or cpu_status.get("healthy", False))
+        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status}
+
+    @app.post("/api/fusion/queue/recover")
+    def recover_fusion_queue():
+        if not start_queue:
+            raise ValueError("此服务未启用 CPU 融合队列")
+        if not fusion_queue.status().get("alive"):
+            fusion_queue.start()
+        return fusion_queue.recover_worker()
 
     @app.post("/api/queue/recover")
     def recover_queue():
@@ -138,6 +153,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             "projects": store.rows("SELECT * FROM projects ORDER BY updated DESC"),
             "engines": registry.engines(),
             "queue": queue.status(),
+            "fusion_queue": fusion_queue.status(),
             "data_directory": str(store.root),
             "review_only": review_only,
             "disk": maintenance.disk_status(),
@@ -163,6 +179,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     def project(key: str, since_revision: int | None = None):
         snapshot = store.project_snapshot(key, since_revision)
         snapshot["queue"] = queue.status()
+        snapshot["fusion_queue"] = fusion_queue.status()
         snapshot["disk"] = maintenance.disk_status()
         return snapshot
 
@@ -250,21 +267,68 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.post("/api/projects/{key}/tasks")
     def create_tasks(key: str, body: dict):
         require_recognition()
+        from ocr_workbench.fusion import load_policy
+        fusion = body.get("fusion")
+        policy = load_policy(bundle, fusion.get("content_type", "table"), fusion.get("mode", "conservative")) if isinstance(fusion, dict) else None
         ids = store.enqueue(
             key,
             body.get("version_ids", []),
             body.get("engines", []),
             body.get("preprocess", []),
             {name: spec["package_id"] for name, spec in registry.engines().items()},
+            fusion_policy=policy,
+            request_id=body.get("request_id"),
         )
         queue.wake.set()
+        fusion_queue.wake.set()
         return {"task_ids": ids}
+
+    @app.get("/api/fusion/policies")
+    def fusion_policies():
+        from ocr_workbench.fusion import load_policy
+        return {kind: {mode: load_policy(bundle, kind, mode) for mode in ("conservative", "aggressive")}
+                for kind in ("table", "print", "handwriting")}
+
+    @app.post("/api/projects/{key}/fusion")
+    def create_fusion(key: str, body: dict):
+        from ocr_workbench.fusion import load_policy
+        policy = load_policy(bundle, body.get("content_type", "table"), body.get("mode", "conservative"))
+        ids = store.enqueue_fusion(key, body.get("result_ids", []), policy, body.get("request_id"), body.get("expected_engines"))
+        fusion_queue.wake.set()
+        return {"task_ids": ids}
+
+    @app.get("/api/results/{key}/issues")
+    def issues(key: str, state: str | None = None, category: str | None = None, offset: int = 0, limit: int = 50, resume: bool = False):
+        return store.review_issues(key, state, category, offset, limit, resume)
+
+    @app.put("/api/results/{key}/issues/position")
+    def issue_position(key: str, body: dict):
+        return store.set_fusion_position(key, body.get("issue_id"))
+
+    @app.post("/api/results/{key}/issues/{issue_id}/decision")
+    def decide(key: str, issue_id: str, body: dict):
+        return store.decide_issue(key, issue_id, body)
+
+    @app.get("/api/results/{key}/evidence")
+    def evidence(key: str, offset: int = 0, limit: int = 50):
+        store.one("results", key)
+        if offset < 0 or not 1 <= limit <= 100:
+            raise ValueError("无效证据分页")
+        rows = store.rows("SELECT definition FROM fusion_evidence WHERE result_id=? ORDER BY ordinal LIMIT ? OFFSET ?", (key, limit, offset))
+        return {"units": [json.loads(r["definition"]) for r in rows], "offset": offset, "limit": limit}
 
     @app.post("/api/projects/{key}/queue/{action}")
     def queue_action(key: str, action: str, body: dict):
-        if action in {"retry", "resume"}:
+        tasks = store.rows("SELECT id,kind FROM tasks WHERE project_id=?", (key,))
+        selected = body.get("task_ids")
+        if selected is not None and not set(selected) <= {t["id"] for t in tasks}:
+            raise ValueError("任务不属于该项目")
+        tasks = [t for t in tasks if selected is None or t["id"] in selected]
+        if action in {"retry", "resume"} and (not tasks or any(t["kind"] != "fusion" for t in tasks)):
             require_recognition()
-        return {"task_ids": queue.action(key, action, body.get("task_ids"))}
+        ids = queue.action(key, action, [t["id"] for t in tasks if t["kind"] != "fusion"])
+        ids.extend(fusion_queue.action(key, action, [t["id"] for t in tasks if t["kind"] == "fusion"]))
+        return {"task_ids": ids}
 
     @app.get("/api/results/{key}")
     def result(key: str):
@@ -286,8 +350,12 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
         if task["image_id"] != key:
             raise ValueError("结果不属于当前图片")
         with store.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            current = db.execute("SELECT revision FROM results WHERE id=?", (result["id"],)).fetchone()
+            if (task["kind"] == "fusion" or "revision" in body) and current["revision"] != body.get("revision"):
+                raise Conflict("预览结果已变化，请重新读取后采用")
             db.execute(
-                "INSERT OR REPLACE INTO selections VALUES(?,?)", (key, result["id"])
+                "INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id", (key, result["id"])
             )
         return {"saved": True}
 

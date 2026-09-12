@@ -8,9 +8,10 @@ import sqlite3
 import threading
 import uuid
 import zlib
+from ocr_workbench.fusion_store import FusionStoreMixin
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -40,7 +41,7 @@ class Conflict(ValueError):
     pass
 
 
-class Store:
+class Store(FusionStoreMixin):
     def __init__(self, root):
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
@@ -160,6 +161,30 @@ class Store:
                 "CREATE TABLE reviews(image_id TEXT PRIMARY KEY REFERENCES images(id) ON DELETE CASCADE,result_id TEXT REFERENCES results(id) ON DELETE CASCADE,version_id TEXT,revision INTEGER,status TEXT NOT NULL CHECK(status IN ('pending','confirmed','question')),updated TEXT)"
             )
             Store._revision_triggers(db, "reviews")
+        elif version == 8:
+            db.execute("ALTER TABLE tasks ADD COLUMN fusion_config TEXT")
+            for statement in (
+                "CREATE TABLE fusion_inputs(task_id TEXT PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,snapshot BLOB NOT NULL,fingerprint TEXT NOT NULL)",
+                "CREATE TABLE fusion_dependencies(task_id TEXT REFERENCES tasks(id) ON DELETE CASCADE,parent_task_id TEXT REFERENCES tasks(id) ON DELETE CASCADE,PRIMARY KEY(task_id,parent_task_id))",
+                "CREATE TABLE fusion_submissions(project_id TEXT REFERENCES projects(id) ON DELETE CASCADE,request_id TEXT,payload_hash TEXT,task_ids TEXT,created TEXT,PRIMARY KEY(project_id,request_id))",
+                "CREATE TABLE fusion_evidence(result_id TEXT REFERENCES results(id) ON DELETE CASCADE,ordinal INTEGER,definition TEXT NOT NULL,PRIMARY KEY(result_id,ordinal))",
+                "CREATE TABLE fusion_issues(id TEXT PRIMARY KEY,result_id TEXT REFERENCES results(id) ON DELETE CASCADE,ordinal INTEGER,category TEXT,state TEXT,definition TEXT,target TEXT,basis TEXT,current_value TEXT,decision_id TEXT,updated TEXT)",
+                "CREATE INDEX fusion_issues_query ON fusion_issues(result_id,state,category,ordinal)",
+                "CREATE TABLE fusion_decisions(result_id TEXT REFERENCES results(id) ON DELETE CASCADE,request_id TEXT,issue_id TEXT REFERENCES fusion_issues(id) ON DELETE CASCADE,payload_hash TEXT,action TEXT,response BLOB,previous TEXT,created TEXT,PRIMARY KEY(result_id,request_id))",
+                "CREATE TABLE fusion_progress(result_id TEXT PRIMARY KEY REFERENCES results(id) ON DELETE CASCADE,issue_id TEXT,updated TEXT)",
+            ):
+                db.execute(statement)
+            db.execute("""CREATE TRIGGER fusion_version_changed AFTER UPDATE OF active_version ON images
+                WHEN OLD.active_version IS NOT NEW.active_version BEGIN
+                UPDATE reviews SET status='pending' WHERE image_id=NEW.id;
+                UPDATE fusion_issues SET state='stale' WHERE result_id IN
+                  (SELECT r.id FROM results r JOIN tasks t ON t.id=r.task_id WHERE t.image_id=NEW.id);
+                END""")
+            db.execute("""CREATE TRIGGER fusion_selection_changed AFTER UPDATE OF result_id ON selections
+                WHEN OLD.result_id IS NOT NEW.result_id BEGIN
+                UPDATE reviews SET status='pending' WHERE image_id=NEW.image_id;
+                UPDATE fusion_issues SET state='stale' WHERE result_id=OLD.result_id;
+                END""")
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -280,18 +305,19 @@ class Store:
             )
         return self.one("projects", key)
 
-    def recover(self):
+    def recover(self, fusion=None):
         # Both queued and formerly running work require deliberate resume on launch.
         with self.transaction() as db:
+            scope = "" if fusion is None else (" AND kind='fusion'" if fusion else " AND kind!='fusion'")
             db.execute(
-                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成' WHERE status='running'"
+                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成' WHERE status='running'" + scope
             )
             db.execute(
-                "UPDATE tasks SET status='paused',phase='等待继续' WHERE status='queued'"
+                "UPDATE tasks SET status='paused',phase='等待继续' WHERE status='queued'" + scope
             )
 
     def enqueue(
-        self, project_id, versions, engines, preprocess=None, engine_packages=None
+        self, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None
     ):
         from ocr_workbench.imaging import validate_preset
 
@@ -305,6 +331,16 @@ class Store:
         batch = now() + "-" + uid()
         tasks = []
         with self.transaction() as db:
+            if fusion_policy is not None:
+                from ocr_workbench.fusion_alignment import fingerprint
+                if not isinstance(request_id, str) or not 8 <= len(request_id) <= 120:
+                    raise ValueError("融合批次缺少有效请求标识")
+                db.execute("BEGIN IMMEDIATE")
+                signature = fingerprint(
+                    {"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages, "policy": fusion_policy})
+                prior = self._fusion_submission(db, project_id, request_id, signature)
+                if prior is not None:
+                    return prior
             for engine in dict.fromkeys(engines):
                 if engine not in packages:
                     raise ValueError("未知识别引擎")
@@ -334,18 +370,24 @@ class Store:
                         ),
                     )
                     tasks.append(key)
+            if fusion_policy is not None:
+                tasks.extend(self.attach_batch_fusion(db, project_id, tasks, fusion_policy))
+                db.execute("INSERT INTO fusion_submissions VALUES(?,?,?,?,?)", (project_id, request_id, signature, encoded(tasks), now()))
         return tasks
 
-    def claim(self):
+    def claim(self, fusion=False):
         with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            scope = ("kind='fusion' AND NOT EXISTS (SELECT 1 FROM fusion_dependencies d JOIN tasks p ON p.id=d.parent_task_id WHERE d.task_id=tasks.id AND p.status NOT IN ('succeeded','failed','cancelled'))"
+                     if fusion else "kind!='fusion'")
             task = db.execute(
-                "SELECT * FROM tasks WHERE status='queued' ORDER BY batch,engine,created LIMIT 1"
+                "SELECT * FROM tasks WHERE status='queued' AND " + scope + " ORDER BY batch,engine,created,id LIMIT 1"
             ).fetchone()
             if not task:
                 return None
             db.execute(
-                "UPDATE tasks SET status='running',phase='加载引擎',started=?,error=NULL WHERE id=? AND status='queued'",
-                (now(), task["id"]),
+                "UPDATE tasks SET status='running',phase=?,started=?,error=NULL WHERE id=? AND status='queued'",
+                ("融合计算中" if fusion else "加载引擎", now(), task["id"]),
             )
             return dict(task)
 
@@ -373,10 +415,17 @@ class Store:
 
     def complete(self, task_id, data):
         with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
             task = db.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
             if task["status"] != "running":
                 return False
             key = uid()
+            units = []
+            if task["kind"] == "fusion":
+                from copy import deepcopy
+                data = deepcopy(data)
+                units = data["fusion"].pop("units")
+                data["fusion"]["evidence_units"] = len(units)
             edit = {"text": data["text"], "tables": data["tables"]}
             db.execute(
                 "INSERT INTO results VALUES(?,?,?,?,?,?,?)",
@@ -390,9 +439,13 @@ class Store:
                 "UPDATE tasks SET status='succeeded',phase='已完成',finished=?,result_id=? WHERE id=?",
                 (now(), key, task_id),
             )
-            db.execute(
-                "INSERT OR IGNORE INTO selections VALUES(?,?)", (task["image_id"], key)
-            )
+            if task["kind"] != "fusion":
+                db.execute(
+                    "INSERT OR IGNORE INTO selections VALUES(?,?)", (task["image_id"], key)
+                )
+            if task["kind"] == "fusion":
+                db.executemany("INSERT INTO fusion_evidence VALUES(?,?,?)", [(key, i, encoded(unit)) for i, unit in enumerate(units)])
+                self.persist_fusion_issues(db, key, units)
             db.execute(
                 "UPDATE projects SET updated=? WHERE id=?", (now(), task["project_id"])
             )
@@ -416,11 +469,16 @@ class Store:
 
         validate_edit(edit)
         with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
             if not row:
                 raise KeyError("识别结果不存在")
             if row["revision"] != expected_revision:
                 raise Conflict("该结果已在其他窗口更新，请重新加载后编辑")
+            fusion = json.loads(row["original"]).get("origin") == "fusion"
+            if fusion:
+                from ocr_workbench.fusion_alignment import canonical_edit
+                edit = canonical_edit(edit)
             if json.loads(row["edited"]) == edit:
                 return self.result(key)
             cursor = row["cursor"] + 1
@@ -436,12 +494,16 @@ class Store:
                 "UPDATE results SET edited=?,cursor=?,revision=revision+1,updated=? WHERE id=?",
                 (encoded(edit), cursor, now(), key),
             )
+            if fusion:
+                from ocr_workbench.review_issues import reconcile
+                reconcile(db, key, json.loads(row["edited"]), edit)
         return self.result(key)
 
     def history(self, key, direction, expected_revision):
         if direction not in {-1, 1}:
             raise ValueError("无效历史方向")
         with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
             if not row:
                 raise KeyError("识别结果不存在")
@@ -458,6 +520,16 @@ class Store:
                 "UPDATE results SET edited=?,cursor=?,revision=revision+1,updated=? WHERE id=?",
                 (history_decoded(edit["value"]), cursor, now(), key),
             )
+            if json.loads(row["original"]).get("origin") == "fusion":
+                from ocr_workbench.review_issues import reconcile
+                reconcile(db, key, json.loads(row["edited"]), json.loads(history_decoded(edit["value"])))
+                # An undo/redo of a keep/question event has unchanged content.
+                # Its own decision still must expire, without expiring others.
+                position = row["cursor"] if direction == -1 else cursor
+                for decision in db.execute("SELECT request_id,response FROM fusion_decisions WHERE result_id=?", (key,)).fetchall():
+                    response = json.loads(history_decoded(decision["response"]))
+                    if response["cursor"] == position:
+                        db.execute("UPDATE fusion_issues SET state='stale',updated=? WHERE result_id=? AND decision_id=?", (now(), key, decision["request_id"]))
         return self.result(key)
 
     @staticmethod
@@ -467,7 +539,7 @@ class Store:
                       COALESCE(json_extract(r.original,'$.project_image_version'),t.version_id) version_id
                FROM images i LEFT JOIN selections s ON s.image_id=i.id
                LEFT JOIN results r ON r.id=COALESCE(s.result_id,
-                 (SELECT result_id FROM tasks WHERE image_id=i.id AND status='succeeded'
+                 (SELECT result_id FROM tasks WHERE image_id=i.id AND status='succeeded' AND kind!='fusion'
                   AND result_id IS NOT NULL ORDER BY created DESC,id DESC LIMIT 1))
                LEFT JOIN tasks t ON t.id=r.task_id WHERE i.id=?""",
             (image_id,),
@@ -516,7 +588,7 @@ class Store:
                    FROM images i LEFT JOIN reviews rv ON rv.image_id=i.id
                    LEFT JOIN selections s ON s.image_id=i.id
                    LEFT JOIN results r ON r.id=COALESCE(s.result_id,
-                     (SELECT result_id FROM tasks WHERE image_id=i.id AND status='succeeded'
+                     (SELECT result_id FROM tasks WHERE image_id=i.id AND status='succeeded' AND kind!='fusion'
                       AND result_id IS NOT NULL ORDER BY created DESC,id DESC LIMIT 1))
                    LEFT JOIN tasks t ON t.id=r.task_id WHERE i.project_id=?""",
             (project_id,),

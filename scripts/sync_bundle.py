@@ -17,7 +17,7 @@ for origin, dest in [
         source / origin,
         a.bundle / dest,
         dirs_exist_ok=True,
-        ignore=shutil.ignore_patterns("__pycache__"),
+        ignore=shutil.ignore_patterns("__pycache__", "annotations.json", "prototypes", "holdout-results", "frozen-data"),
     )
 shutil.copy2(source / "README.md", a.bundle / "README.md")
 (a.bundle / "ocr.cmd").write_text(
@@ -46,5 +46,10 @@ for name in [
     "official_reference.py",
     "audit_table_scenarios.py",
     "audit_dependencies.py",
+    "audit_fusion_capacity.py",
+    "prepare_fusion_data.py",
+    "evaluate_fusion.py",
+    "fusion_metrics.py",
+    "apply_fusion_annotation_review.py",
 ]:
     shutil.copy2(source / "scripts" / name, a.bundle / "tools" / name)

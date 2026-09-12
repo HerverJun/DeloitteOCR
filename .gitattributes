@@ -1,2 +1,10 @@
-# Preserve byte-exact acceptance exports, including TSV trailing empty cells.
-audit/week23/** -text -whitespace
+# Frozen experiments retain the exact bytes verified by their receipts.
+audit/fusion-20260912/evaluation/frozen-code/** -text
+audit/fusion-20260912/evaluation-v2/frozen-code/** -text
+audit/fusion-20260912/evaluation-v3/frozen-code/** -text
+audit/fusion-20260912/evaluation-v4/frozen-code/** -text
+# Receipts hash exact JSON bytes; use frozen-code for historical replay.
+audit/fusion-20260912/**/*.json -text
+config/fusion-policy.json -text
+audit/fusion-20260912/** whitespace=trailing-space,space-before-tab,cr-at-eol
+config/fusion-policy.json whitespace=trailing-space,space-before-tab,cr-at-eol

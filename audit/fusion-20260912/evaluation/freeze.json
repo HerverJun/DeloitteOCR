@@ -1,0 +1,16 @@
+{
+  "created": "2026-09-12T08:57:02.392605+00:00",
+  "policy_path": "C:\\Users\\A\\Desktop\\OCR\\config\\fusion-policy.json",
+  "policy_sha256": "78ae1dfdd844b0055dd5ad9ee576c9ec727d5cf7ffc93f1e895abade2ba9a43e",
+  "manifest_sha256": "6271557a28f8add27c23a9b1edc00b74ac77dbb295d4f286a2647ea06ad91925",
+  "annotations_sha256": "13154b7dfeebe35c2c6d33f6626fcd7ad7b3b8de6d19796674fbd30c5cd7a1ff",
+  "code": {
+    "src\\ocr_workbench\\fusion.py": "74327f57865fa876bbe633dc9c1b22b99a48ce5d26e37db33f714365ca3f9e51",
+    "src\\ocr_workbench\\fusion_alignment.py": "193b91af6a92d579e4c3144f41bcd6ef0f971f6b838337c76b4ae5bc95d5dba0",
+    "src\\ocr_workbench\\editing.py": "88cd53324556ead23d207e39e6dc3906ff0c2e517390dfafdcd434364e51d600",
+    "src\\ocr_workbench\\tables.py": "1808e820d8e775c62f5474c7ec8babd042025f8f79ec4eb7bf262d3d1e9d7fcd",
+    "scripts\\benchmark_metrics.py": "dc3e90e7a1e4f1433284df9760a98501301ec6dbbf857370d3dd13739add7cbd",
+    "scripts\\evaluate_fusion.py": "49890c5bbea7e2177453e8715bbc75e294a7d5771923794d1432b4d276d0f28b"
+  },
+  "automatic_replacement_open": false
+}

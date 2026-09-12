@@ -1,0 +1,222 @@
+{
+  "reviewer": "Codex visual inspection",
+  "date": "2026-09-12",
+  "records": [
+    {
+      "id": "0164",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "4ef32f2a105870bc908bb9143fee15269d53e613ea09a0cc7e4508d4a830ea12",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "25×7，无线表格；六个分组标题横跨7列，年份行首为空，所有负号、小数与百分数逐项对照。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "4ef32f2a105870bc908bb9143fee15269d53e613ea09a0cc7e4508d4a830ea12"
+    },
+    {
+      "id": "0165",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "ad3d09c0cd98ee9059531705d48b162db8f37256975f6394c00faca8171490af",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": false,
+      "visual_review_notes": "手写9×3，人口密度跨2行；两条说明各跨2列。字形中的部门等原文用字不作知识纠错；标点形态存在解释余地。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "ad3d09c0cd98ee9059531705d48b162db8f37256975f6394c00faca8171490af"
+    },
+    {
+      "id": "0169",
+      "kind": "table",
+      "changes": [
+        {
+          "before": "VCR-CBCDA; VBL-BEV 1.8",
+          "after": "VCR-CBCDA; VBL-BEV",
+          "reason": "Case 10 的 1.8 位于下一列 Age on treatment onset，原标注在 Prior therapy 末尾重复。",
+          "reviewer": "Codex visual inspection",
+          "date": "2026-09-12"
+        }
+      ],
+      "reference_sha256": "03e6fd05aab847b0cecbe2fc73b66d3383ff7055a915747c49225d8726086f50",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "旋转表12×10，数值、空值和跨列边界对照；Case 10发现邻列数值重复。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "dd0771eb7a69cd320229498902f72ab4194fb174974c204f6ce29cc79cd5639e"
+    },
+    {
+      "id": "0174",
+      "kind": "table",
+      "changes": [
+        {
+          "before": "招商中证全球中四互联网ETF",
+          "after": "招商中证全球中国互联网ETF",
+          "reason": "原图第 14 行为中国，不是中四。",
+          "reviewer": "Codex visual inspection",
+          "date": "2026-09-12"
+        }
+      ],
+      "reference_sha256": "346bbd4487bfd1eb315f3f9a6766185bf41cfd0158051ad1176f4c5c62e4c1bd",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": false,
+      "visual_review_notes": "41×5，日期与前导零逐行检查；0/O字形不够明确，保留上游0F/F0F记法作为未决标注。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "0fb576ead8746cba8b5450899c40efd5479c91953b5c1d23932722e6b95c7ce8"
+    },
+    {
+      "id": "0176",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "d1edc9a1f0f3b1be5a20ab99c2005480a88ee3402bf32af57814f7f5894fdca6",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "3×4手写表；内部横线来自底纸，不按底纸线拆分逻辑记录；首格空，南北内容各一行。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "d1edc9a1f0f3b1be5a20ab99c2005480a88ee3402bf32af57814f7f5894fdca6"
+    },
+    {
+      "id": "0177",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "ac52e9c3da26ae1d86d8c92dff33b8acd082fd5b707b0855f64c9c85eeb25cff",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "4×3，首格空；正负百分数与区间符号已对照，排版空隙沿用上游转写。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "ac52e9c3da26ae1d86d8c92dff33b8acd082fd5b707b0855f64c9c85eeb25cff"
+    },
+    {
+      "id": "0178",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "6d34fb5fb8db0e024beeeb64aa179969ace21b6c42537347032482058b7123be",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": false,
+      "visual_review_notes": "9×4，祝盟跨9行；9至17连续。古籍异体/稀见字仍需第二读者复核，未凭语义改写。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "6d34fb5fb8db0e024beeeb64aa179969ace21b6c42537347032482058b7123be"
+    },
+    {
+      "id": "0179",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "63f054fc99d3c8b6613bb55804f9858f62da0a877262096dff1cad4bb7512921",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "28×6，首列分别跨5/15/8行；裁剪残留首标题行保持原样，金额、负号与0.00已核对。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "63f054fc99d3c8b6613bb55804f9858f62da0a877262096dff1cad4bb7512921"
+    },
+    {
+      "id": "0180",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "d78b2d89582d518b731f43d3a6cde495a1cddeceda1a0139af710b01c66f4a7c",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "12×7，无合并，重复-45、101、0.0与末列递进负数逐行核对。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "d78b2d89582d518b731f43d3a6cde495a1cddeceda1a0139af710b01c66f4a7c"
+    },
+    {
+      "id": "0187",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "b06ac216119b8b3ce24048dc7516268e57cd585f568322449319008960eb688b",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "2×2，无空格或合并结构，英文内容与标点核对。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "b06ac216119b8b3ce24048dc7516268e57cd585f568322449319008960eb688b"
+    },
+    {
+      "id": "0188",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "5a1090fb8e795274297303929970f2541b47d2752e50a6f60320e00a08303f77",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": false,
+      "visual_review_notes": "4×2，划分标准跨2行；手写点号保持上游转写。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "5a1090fb8e795274297303929970f2541b47d2752e50a6f60320e00a08303f77"
+    },
+    {
+      "id": "0189",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "73779e376f43338b01f686969100bbc55fd6c24c15f42b419700c8e2b2441c6e",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "6×4，名次16到20、数量12/2/2/4/1已核对，姓名排版间距沿用逻辑转写。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "73779e376f43338b01f686969100bbc55fd6c24c15f42b419700c8e2b2441c6e"
+    },
+    {
+      "id": "0192",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "83a3eeda6b397727769d6e6e1d8c4cfed46675b9d9e0ef368e1aded612ce7357",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "9×10，末行的两个/是真实字符串，不是空格；股票代码、负百分数逐项核对。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "83a3eeda6b397727769d6e6e1d8c4cfed46675b9d9e0ef368e1aded612ce7357"
+    },
+    {
+      "id": "0193",
+      "kind": "table",
+      "changes": [],
+      "reference_sha256": "95002ac3f126c275ef5744c5a007682fc6f6bf56c38265f2ea8bd55b77a6be56",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "7×5，重复增长率标签保留，1,059及各百分数/小数已核对。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "95002ac3f126c275ef5744c5a007682fc6f6bf56c38265f2ea8bd55b77a6be56"
+    },
+    {
+      "id": "0194",
+      "kind": "table",
+      "changes": [
+        {
+          "before": "“manpower\"",
+          "after": "“manpower”",
+          "reason": "原图闭引号为弯引号。",
+          "reviewer": "Codex visual inspection",
+          "date": "2026-09-12"
+        },
+        {
+          "before": "Can't fly",
+          "after": "Can’t fly",
+          "reason": "原图 apostrophe 为弯单引号。",
+          "reviewer": "Codex visual inspection",
+          "date": "2026-09-12"
+        }
+      ],
+      "reference_sha256": "02a9746228e31b37d7cac1be199391c3ba163ec06ef52bbf639126a3a3d2b824",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "4×4，右下4个空格保持；底色行带支持逻辑行分隔，未把无横线的末列当跨行；弯引号有修订。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "44ecac029505fadb0b53b046be55c45bad0ff22ac63b4af920a1d6846c9a2f90"
+    },
+    {
+      "id": "0198",
+      "kind": "table",
+      "changes": [
+        {
+          "before": "充电5分钟续航218km、充电15分钟补能30%到80%",
+          "after": "充电5min续航218km、充电15min补能30%到80%",
+          "reason": "星纪元行原图单位为 min；保留实际文字，不能改译为分钟。",
+          "reviewer": "Codex visual inspection",
+          "date": "2026-09-12"
+        }
+      ],
+      "reference_sha256": "358bc199f3742651cda75ae615e0df6da9690c32275f44f108317cce72221b57",
+      "visual_review": "reviewed_by_codex_2026-09-12",
+      "transcription_verified": true,
+      "visual_review_notes": "7×4，车型前导零007、日期与价格区间逐项核对；min单位不改译，排版间距沿用上游。",
+      "review_scope": "Original crop versus row/column/span/cell reference; priority numeric/empty/merge verification. One machine visual reader, no independent second annotator.",
+      "revised_reference_sha256": "e5e4b0166d1936488608239deb40780b674a5421254c2a7ea6bda6c65a3cf9da"
+    }
+  ],
+  "not_claimed": "Independent second-reader transcription of all 200 samples"
+}

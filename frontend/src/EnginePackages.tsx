@@ -40,6 +40,7 @@ export function EnginePackages({
     [inventory, setInventory] = useState<Inventory | null>(null),
     [staged, setStaged] = useState<Staged | null>(null);
   const file = useRef<HTMLInputElement>(null);
+  const [localError, setLocalError] = useState("");
   const surface = useRef<HTMLDivElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -51,9 +52,11 @@ export function EnginePackages({
     // modal so Tabster does not hide the still-open dialog from screen readers.
     surface.current?.focus();
     setBusy(true);
+    setLocalError("");
     try {
       await action();
     } catch (error) {
+      setLocalError(String(error));
       onError(String(error));
     } finally {
       setBusy(false);
@@ -111,6 +114,7 @@ export function EnginePackages({
           <DialogBody>
             <DialogTitle>离线引擎管理</DialogTitle>
             <DialogContent>
+              {localError && <div className="inline-warning" role="alert">{localError}</div>}
               <p>
                 导入完整 ZIP
                 中的模型、运行时和适配器。校验只证明文件完整；启用将执行包内代码，请仅使用可信来源的引擎包。

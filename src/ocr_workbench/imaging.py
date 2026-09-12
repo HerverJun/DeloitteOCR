@@ -183,12 +183,16 @@ def add_image(store, project_id, name, temporary):
     suffix = Path(name).suffix.lower()
     if suffix not in SUPPORTED:
         raise ValueError("不支持的图片格式")
-    with Image.open(temporary) as source:
-        if getattr(source, "n_frames", 1) != 1:
-            raise ValueError("多页图片请先拆分为单页")
-        if source.width * source.height > 80_000_000:
-            raise ValueError("图片超过 8000 万像素，请先缩小")
-        image = normalized_rgb(source)
+    try:
+        with Image.open(temporary) as source:
+            if getattr(source, "n_frames", 1) != 1:
+                raise ValueError("多页图片请先拆分为单页")
+            if source.width * source.height > 80_000_000:
+                raise ValueError("图片超过 8000 万像素，请先缩小")
+            image = normalized_rgb(source)
+    except OSError as error:
+        logging.getLogger(__name__).exception("Cannot decode imported image %s", name)
+        raise ValueError(f"无法读取 {Path(name).name}，文件可能损坏或格式不受支持，请重新导出图片后重试") from error
     key, version = uid(), uid()
     folder = store.root / "projects" / project_id / "images" / key
     original = folder / ("original" + suffix)

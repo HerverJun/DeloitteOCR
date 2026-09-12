@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "scope": "Exact SHA-256/size comparison of frozen manifests for copied models, runtime and license files. Existing inference results are historical, not rerun.",
+  "files": 64545,
+  "changes": []
+}

@@ -1,0 +1,215 @@
+{
+  "checks": [
+    "Failed save + failed reload retains draft, unload guard, retry PUT and navigation persistence",
+    "Preview and queue View never adopt; explicit adoption changes persisted selection",
+    "Selected successful images export while current image has no result",
+    "Paused and cancelled states have direct actions; continue reuses the same task",
+    "Review rejects unseen revisions, survives reload, and expires when edited",
+    "Keyboard Shift+arrows creates B2:C3 rectangle and merge is undoable",
+    "Create/delete whole table and TSV paste preserve text identifiers and undo",
+    "Image crop coordinates are keyboard editable and Escape cancels selection",
+    "Initial GET failure retries finitely and manual retry loads the same result without OCR",
+    "Unchanged project polling transfers only revision, queue and disk metadata",
+    "1200 narrow controls fit, 1366 queue leaves useful table height, filename persists, 1024 first-use imports"
+  ],
+  "errors": [],
+  "layouts": [
+    {
+      "name": "narrow-result-1200",
+      "parts": {
+        ".app-header": 44,
+        ".workspace-heading": 48,
+        ".recognition-bar": 54,
+        ".workspace-queue-toggle": 26,
+        ".document-grid": 586,
+        ".result-heading": 77,
+        ".result-view-bar": 72,
+        ".review-bar": 41,
+        ".table-command-row": 113,
+        ".table-settings": 32,
+        ".result-footer": 45
+      },
+      "viewport": [
+        1200,
+        800
+      ],
+      "panelWidth": 325.5,
+      "tableWidth": 323.5,
+      "tableHeight": 204,
+      "controls": [
+        {
+          "text": "表格 1",
+          "x": 871.5,
+          "y": 280,
+          "width": 52.15625,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "文字",
+          "x": 939.65625,
+          "y": 280,
+          "width": 44,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "模型对比",
+          "x": 999.65625,
+          "y": 280,
+          "width": 68,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "加行",
+          "x": 871.5,
+          "y": 436,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "加列",
+          "x": 935.5,
+          "y": 436,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "删行",
+          "x": 999.5,
+          "y": 436,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "删列",
+          "x": 1063.5,
+          "y": 436,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "合并",
+          "x": 871.5,
+          "y": 468,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "拆分",
+          "x": 935.5,
+          "y": 468,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "name": "queue-open-1366",
+      "parts": {
+        ".app-header": 44,
+        ".workspace-heading": 48,
+        ".recognition-bar": 54,
+        ".workspace-queue-toggle": 26,
+        ".document-grid": 440,
+        ".result-heading": 77,
+        ".result-view-bar": 39,
+        ".review-bar": 41,
+        ".table-command-row": 45,
+        ".table-settings": 32,
+        ".result-footer": 45,
+        ".task-drawer": 104
+      },
+      "viewport": [
+        1366,
+        768
+      ],
+      "panelWidth": 569.921875,
+      "tableWidth": 567.921875,
+      "tableHeight": 159,
+      "controls": [
+        {
+          "text": "表格 1",
+          "x": 793.078125,
+          "y": 280,
+          "width": 52.15625,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "文字",
+          "x": 861.234375,
+          "y": 280,
+          "width": 44,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "模型对比",
+          "x": 921.234375,
+          "y": 280,
+          "width": 68,
+          "height": 38,
+          "inside": true
+        },
+        {
+          "text": "加行",
+          "x": 955,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "加列",
+          "x": 1019,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "删行",
+          "x": 1083,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "删列",
+          "x": 1147,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "合并",
+          "x": 1211,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        },
+        {
+          "text": "拆分",
+          "x": 1275,
+          "y": 367,
+          "width": 62,
+          "height": 30,
+          "inside": true
+        }
+      ],
+      "overflow": false
+    }
+  ]
+}

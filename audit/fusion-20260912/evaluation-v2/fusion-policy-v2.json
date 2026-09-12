@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-09-12T09:23:34.306286+00:00",
+  "scope": "All 200 samples previously evaluated on all engines and used for runtime/quality analysis. Retrospective validation only; no independent holdout claim.",
+  "policies": {
+    "table": {
+      "conservative": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "table",
+        "mode": "conservative",
+        "baseline": "hunyuan",
+        "algorithm": "equal",
+        "weights": {
+          "paddlevl": 0.827434,
+          "glm": 0.875369,
+          "hunyuan": 0.945428
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 0.5,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "c63616223e263f69149c3867141095874a5403a76d573f951a502be2e242f25b",
+          "samples": 8,
+          "selected_candidate": 0,
+          "fixed_baseline": "hunyuan"
+        }
+      },
+      "aggressive": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "table",
+        "mode": "aggressive",
+        "baseline": "hunyuan",
+        "algorithm": "equal",
+        "weights": {
+          "paddlevl": 0.827434,
+          "glm": 0.875369,
+          "hunyuan": 0.945428
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 0.5,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "c63616223e263f69149c3867141095874a5403a76d573f951a502be2e242f25b",
+          "samples": 8,
+          "selected_candidate": 0,
+          "fixed_baseline": "hunyuan"
+        }
+      }
+    },
+    "print": {
+      "conservative": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "print",
+        "mode": "conservative",
+        "baseline": "hunyuan",
+        "algorithm": "equal",
+        "weights": {
+          "ppocr": 0.953966,
+          "paddlevl": 0.941482,
+          "glm": 0.941482,
+          "hunyuan": 0.983355
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 0.5,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "0406649e6b0334a9b036438e10c46b24920717853770e795fa8bd6401f3201ad",
+          "samples": 17,
+          "selected_candidate": 0,
+          "fixed_baseline": "hunyuan"
+        }
+      },
+      "aggressive": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "print",
+        "mode": "aggressive",
+        "baseline": "hunyuan",
+        "algorithm": "equal",
+        "weights": {
+          "ppocr": 0.953966,
+          "paddlevl": 0.941482,
+          "glm": 0.941482,
+          "hunyuan": 0.983355
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 0.5,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "0406649e6b0334a9b036438e10c46b24920717853770e795fa8bd6401f3201ad",
+          "samples": 17,
+          "selected_candidate": 0,
+          "fixed_baseline": "hunyuan"
+        }
+      }
+    },
+    "handwriting": {
+      "conservative": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "handwriting",
+        "mode": "conservative",
+        "baseline": "glm",
+        "algorithm": "equal",
+        "weights": {
+          "ppocr": 0.941905,
+          "paddlevl": 0.959009,
+          "glm": 0.970805,
+          "hunyuan": 0.969036
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 1.0,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "293b605a800e286d84c6795c31d1af6412dc2da4a2d4c76e94a5abfc6985d8fe",
+          "samples": 35,
+          "selected_candidate": 8,
+          "fixed_baseline": "glm"
+        }
+      },
+      "aggressive": {
+        "version": "public-retrospective-20260912-v2",
+        "content_type": "handwriting",
+        "mode": "aggressive",
+        "baseline": "glm",
+        "algorithm": "equal",
+        "weights": {
+          "ppocr": 0.941905,
+          "paddlevl": 0.959009,
+          "glm": 0.970805,
+          "hunyuan": 0.969036
+        },
+        "automatic_replacement": false,
+        "denominator": "valid_capable_sources",
+        "minimum_valid_sources": 2,
+        "minimum_coverage": 0.75,
+        "minimum_support": 0.6666666666666666,
+        "allow_numeric_replacement": false,
+        "limits": {
+          "max_text_characters": 24000,
+          "max_alignment_product": 4000000,
+          "max_span_characters": 2000,
+          "max_lines": 1000,
+          "max_tables": 100,
+          "max_cells": 100000,
+          "max_total_cells": 200000,
+          "region_iou": 0.65,
+          "header_similarity": 0.75,
+          "row_anchor_similarity": 0.6,
+          "axis_anchor_similarity": 0.45,
+          "match_margin": 0.15,
+          "text_similarity": 0.65
+        },
+        "validation": {
+          "status": "suggestions_only",
+          "independent": false,
+          "reason": "Automatic replacement remains closed pending independent accuracy and human workflow acceptance; this second retrospective replay includes annotation corrections and defensive alignment changes.",
+          "development_manifest_sha256": "1f11398f52c383211c4db19b08a48bf88ca845396f57dbd0d60b939fc58f9ca8",
+          "reference_sha256": "751336a55e2181cfade4f5c4dfbaaa35fdaee4f60fced6f99c576875b006feb1",
+          "validation_report_sha256": "293b605a800e286d84c6795c31d1af6412dc2da4a2d4c76e94a5abfc6985d8fe",
+          "samples": 35,
+          "selected_candidate": 5,
+          "fixed_baseline": "glm"
+        }
+      }
+    }
+  }
+}

@@ -57,3 +57,9 @@ wheelhouse/
 # Local audit runs / raw projects; retain committed acceptance evidence
 audit/runs/
 audit/week23/raw-projects/
+
+# Public research transcriptions and result payloads stay in local evidence.
+audit/fusion-*/data/annotations.json
+audit/fusion-*/evaluation*/prototypes/
+audit/fusion-*/evaluation*/holdout-results/
+audit/fusion-*/evaluation*/frozen-data/

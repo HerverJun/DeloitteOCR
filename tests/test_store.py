@@ -149,6 +149,10 @@ class StoreTests(unittest.TestCase):
                 db.execute('DROP TRIGGER "' + row["name"] + '"')
             db.execute("DROP TABLE reviews")
             db.execute("DROP TABLE project_revisions")
+            for table in ("fusion_decisions", "fusion_issues", "fusion_progress", "fusion_evidence",
+                          "fusion_inputs", "fusion_dependencies", "fusion_submissions"):
+                db.execute("DROP TABLE " + table)
+            db.execute("ALTER TABLE tasks DROP COLUMN fusion_config")
             for row in db.execute(
                 "SELECT result_id,position,value FROM edits"
             ).fetchall():

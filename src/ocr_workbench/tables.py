@@ -210,6 +210,8 @@ SOURCE_COLUMNS = (
     ('engine_name', '引擎名称'), ('engine_package', '引擎包'),
     ('model_revisions', '模型版本'), ('result_id', '结果 ID'),
     ('revision', '校对 revision'), ('table_index', '表格序号'),
+    ('origin', '结果来源类型'), ('policy_version', '融合策略版本'),
+    ('policy_sha256', '融合策略指纹'), ('review_summary', '融合校对状态'),
 )
 
 

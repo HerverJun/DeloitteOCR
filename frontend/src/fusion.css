@@ -1,0 +1,27 @@
+.fusion-launch { margin: 8px 0; }
+.fusion-launch summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.fusion-launch:not([open]) { margin: 0; }
+.fusion-launch:not([open]) > summary { padding: 0; font-size: 12px; line-height: 18px; }
+.fusion-settings, .fusion-filters, .fusion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.fusion-settings label, .fusion-filters label { display: flex; align-items: center; gap: 6px; }
+.fusion-settings select, .fusion-filters select { min-height: 30px; max-width: 230px; }
+.fusion-engines { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 0; }
+.fusion-muted, .fusion-location { color: var(--colorNeutralForeground2, #626a60); font-size: 12px; line-height: 1.55; }
+.quick-review { padding: 16px; overflow: auto; min-height: 200px; }
+.fusion-summary, .fusion-issue-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.fusion-summary span { font-size: 12px; }
+.fusion-issue-heading { border-top: 1px solid var(--colorNeutralStroke2, #d8ddd5); margin-top: 16px; padding-top: 14px; }
+.fusion-current { padding: 12px 0; }
+.quick-review pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; font: inherit; line-height: 1.6; max-height: 220px; overflow: auto; }
+.fusion-candidates > label { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--colorNeutralStroke2, #d8ddd5); padding: 12px 8px; cursor: pointer; }
+.fusion-candidates > label.selected { background: var(--colorBrandBackground2, #eff7e4); }
+.fusion-candidates > label > div { min-width: 0; flex: 1; }
+.fusion-candidates small, .fusion-current small { color: var(--colorNeutralForeground2, #626a60); }
+.fusion-manual { display: block; margin: 12px 0; font-size: 12px; }
+.fusion-manual textarea { display: block; resize: vertical; width: 100%; min-height: 72px; margin-top: 6px; padding: 8px; font: inherit; }
+.fusion-table-candidate > div { max-height: 300px; overflow: auto; }
+.fusion-table-candidate table { border-collapse: collapse; min-width: 100%; }
+.fusion-table-candidate td { border: 1px solid var(--colorNeutralStroke2, #d8ddd5); padding: 6px; white-space: pre-wrap; min-width: 64px; }
+.quick-review details { margin: 10px 0; overflow-wrap: anywhere; }
+.fusion-actions { margin: 16px 0; }
+.fusion-empty { padding: 20px 0; }

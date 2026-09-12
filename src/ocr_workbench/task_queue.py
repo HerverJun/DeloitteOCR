@@ -30,13 +30,14 @@ class TaskQueue:
         self.needs_reconcile = False
         self.recovery_requested = threading.Event()
         self.retry_delays = (0.3, 0.6, 1.2, 2.4, 5.0)
+        self.fusion_only = False
 
     def start(self):
         with self.guard:
             if self.thread and self.thread.is_alive():
                 return
             self.unload()
-            self.store.recover()
+            self.store.recover(fusion=self.fusion_only)
             self.stopping.clear()
             self.recovery_requested.clear()
             self.consecutive_failures = 0
@@ -44,7 +45,7 @@ class TaskQueue:
             self.started = True
             self.state = "running"
             self.thread = threading.Thread(
-                target=self.run, name="OCR GPU queue", daemon=False
+                target=self.run, name="Fusion CPU queue" if self.fusion_only else "OCR GPU queue", daemon=False
             )
             self.thread.start()
 
@@ -109,8 +110,8 @@ class TaskQueue:
                             # claimed task requires explicit resume after recovery.
                             with self.store.transaction() as db:
                                 db.execute(
-                                    "UPDATE tasks SET status='interrupted',phase='等待继续',error=?,finished=? WHERE status='running'",
-                                    ("队列存储异常中断，请检查后继续", now()),
+                                    "UPDATE tasks SET status='interrupted',phase='等待继续',error=?,finished=? WHERE status='running' AND (kind='fusion')=?",
+                                    ("队列存储异常中断，请检查后继续", now(), self.fusion_only),
                                 )
                             self.recovery_task = None
                             self.needs_reconcile = False
@@ -342,3 +343,55 @@ class TaskQueue:
             self.thread.join(timeout=35)
         if self.thread and self.thread.is_alive():
             raise RuntimeError("GPU 工作线程未能退出")
+
+
+class FusionQueue(TaskQueue):
+    """A separate CPU worker; no preprocessing, adapter factory or GPU lock."""
+
+    def __init__(self, store, bundle):
+        super().__init__(store, bundle)
+        self.fusion_only = True
+
+    def unload(self):
+        return None
+
+    def step(self):
+        task = self.store.claim(fusion=True)
+        if task is None:
+            return False
+        with self.guard:
+            self.current = self.recovery_task = task["id"]
+            self.cancel_event = threading.Event()
+        last_check = 0.0
+        cancelled_state = False
+
+        def cancelled():
+            nonlocal last_check, cancelled_state
+            if self.cancel_event.is_set() or self.stopping.is_set():
+                return True
+            if time.monotonic()-last_check >= .1:
+                last_check = time.monotonic()
+                cancelled_state = self.store.one("tasks", task["id"])["status"] != "running"
+            return cancelled_state
+
+        try:
+            if cancelled():
+                raise Cancelled()
+            self.store.run_fusion(task, cancelled)
+        except Cancelled:
+            with self.store.transaction() as db:
+                db.execute("UPDATE tasks SET status=?,phase=?,finished=? WHERE id=? AND status='running'",
+                           ("interrupted" if self.stopping.is_set() else "cancelled",
+                            "等待继续" if self.stopping.is_set() else "已取消", now(), task["id"]))
+        except (OSError, sqlite3.OperationalError):
+            raise
+        except Exception as error:
+            logging.getLogger(__name__).exception("CPU fusion failed")
+            with self.store.transaction() as db:
+                db.execute("UPDATE tasks SET status='failed',phase='融合失败',error=?,finished=? WHERE id=? AND status='running'",
+                           (str(error), now(), task["id"]))
+        finally:
+            with self.guard:
+                self.current = None
+        self.recovery_task = None
+        return True

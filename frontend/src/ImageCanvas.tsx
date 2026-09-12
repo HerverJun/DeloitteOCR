@@ -26,6 +26,7 @@ export function ImageCanvas({
   onRegion,
   busy,
   recognitionDisabled = false,
+  reviewLocation,
 }: {
   version: Version | null;
   versions: Version[];
@@ -36,12 +37,14 @@ export function ImageCanvas({
   onRegion: (box: number[]) => void;
   busy: boolean;
   recognitionDisabled?: boolean;
+  reviewLocation?: { level: string; polygon: number[][] | null; version_id: string; reason: string };
 }) {
   const [url, setUrl] = useState("");
   const [loadError, setLoadError] = useState("");
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(true);
+  const [reviewZoom, setReviewZoom] = useState(false);
   const [mode, setMode] = useState<"pan" | "crop" | "perspective" | "region">(
     "pan",
   );
@@ -73,6 +76,7 @@ export function ImageCanvas({
     setBox(null);
     setPoints([]);
     setFit(true);
+    setReviewZoom(false);
     setMode("pan");
     if (version)
       request("/versions/" + version.id + "/image")
@@ -102,6 +106,29 @@ export function ImageCanvas({
         )
       : zoom
     : 1;
+  const polygon = reviewLocation?.version_id === version?.id && reviewLocation?.polygon?.length
+    && reviewLocation.polygon.every(p => p.length === 2 && p.every(Number.isFinite) && p[0] >= 0 && p[1] >= 0 && p[0] <= version!.width && p[1] <= version!.height)
+    ? reviewLocation.polygon : null;
+  const focusReview = () => {
+    if (!polygon || !version) return;
+    const width = Math.max(...polygon.map(p => p[0]))-Math.min(...polygon.map(p => p[0]));
+    const height = Math.max(...polygon.map(p => p[1]))-Math.min(...polygon.map(p => p[1]));
+    if (width <= 0 || height <= 0) return;
+    setZoom(Math.max(.1, Math.min(4, (size[0]-80)/(width*1.35), (size[1]-80)/(height*1.35))));
+    setFit(false); setMode("pan"); setReviewZoom(true);
+  };
+  useEffect(() => {
+    if (!reviewZoom || !polygon || !stage.current || !image.current) return;
+    const viewport = stage.current;
+    const frame = requestAnimationFrame(() => {
+      const rect = image.current!.getBoundingClientRect(), outer = viewport.getBoundingClientRect();
+      const x = (Math.min(...polygon.map(p => p[0]))+Math.max(...polygon.map(p => p[0])))/2;
+      const y = (Math.min(...polygon.map(p => p[1]))+Math.max(...polygon.map(p => p[1])))/2;
+      viewport.scrollLeft += rect.left-outer.left+x*scale-viewport.clientWidth/2;
+      viewport.scrollTop += rect.top-outer.top+y*scale-viewport.clientHeight/2;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [reviewZoom, scale, reviewLocation]);
   const point = (event: React.PointerEvent): Point => {
     const bounds = image.current!.getBoundingClientRect();
     return [
@@ -158,6 +185,7 @@ export function ImageCanvas({
     ]);
   };
   const magnify = (delta: number) => {
+    setReviewZoom(false);
     setZoom(Math.max(0.1, Math.min(4, scale + delta)));
     setFit(false);
   };
@@ -317,6 +345,7 @@ export function ImageCanvas({
           </div>
         </details>
         <div className="zoom-tools">
+          {polygon && <Button size="small" onClick={focusReview}>放大疑点区域</Button>}
           <Button
             title="缩小"
             aria-label="缩小"
@@ -326,7 +355,7 @@ export function ImageCanvas({
           />
           <button
             className="zoom-label"
-            onClick={() => setFit(true)}
+            onClick={() => { setFit(true); setReviewZoom(false); }}
             title="适合窗口"
           >
             {Math.round(scale * 100)}%
@@ -544,6 +573,12 @@ export function ImageCanvas({
                         strokeWidth={highlight === i ? 3 / scale : 1 / scale}
                       />
                     ),
+                )}
+                {polygon && (
+                  <polygon points={polygon.map(p => p.join(",")).join(" ")}
+                    fill="#86bc2533" stroke="#386a12" strokeWidth={3 / scale}>
+                    <title>{reviewLocation?.reason}</title>
+                  </polygon>
                 )}
                 {box && (
                   <rect

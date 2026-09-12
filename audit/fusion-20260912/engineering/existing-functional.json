@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Delayed undo + image switch: subsequent edit is saved only to B",
+    "Delayed undo + project switch: subsequent edit is saved only to C",
+    "Delayed confirmed reload protects navigation; subsequent B edit never crosses result IDs",
+    "Late result load cannot replace the newer image",
+    "Copy flushes pending cell edits and equals TXT export",
+    "Tab focus drives the address, row deletion and column deletion",
+    "Shift-click retains the anchor for rectangular merge and split",
+    "Late import keeps C active and recognition queues C in the current project",
+    "Returning to the import project still preserves the newer selection generation",
+    "Real HTTP export preserves mixed tables and rejects incomplete Excel batches"
+  ],
+  "page_errors": [],
+  "passed": true
+}

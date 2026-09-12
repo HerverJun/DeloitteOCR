@@ -44,16 +44,19 @@ export function ProjectStorage({
   } | null>(null);
   const [chosen, setChosen] = useState<string[]>([]);
   const [quarantineReceipt, setQuarantineReceipt] = useState("");
+  const [localError, setLocalError] = useState("");
+  const reportError = (message: string) => { setLocalError(message); onError(message); };
   useEffect(() => {
     if (!open || !id) return;
     let active = true;
     setUsage(null);
+    setLocalError("");
     setConfirmation("");
     api("/projects/" + id + "/storage")
       .then((value) => {
         if (active) setUsage(value);
       })
-      .catch((error) => onError(String(error)));
+      .catch((error) => reportError(String(error)));
     return () => {
       active = false;
     };
@@ -79,6 +82,7 @@ export function ProjectStorage({
           <DialogBody>
             <DialogTitle>项目占用与清理</DialogTitle>
             <DialogContent>
+              {localError && <div className="inline-warning" role="alert">{localError}</div>}
               {usage ? (
                 <>
                   <p>
@@ -118,7 +122,7 @@ export function ProjectStorage({
                           setOrphans(await api("/maintenance/orphans"));
                           setChosen([]);
                         } catch (error) {
-                          onError(String(error));
+                          reportError(String(error));
                         } finally {
                           setBusy(false);
                         }
@@ -166,7 +170,7 @@ export function ProjectStorage({
                               setOrphans(await api("/maintenance/orphans"));
                               setChosen([]);
                             } catch (error) {
-                              onError(String(error));
+                              reportError(String(error));
                             } finally {
                               setBusy(false);
                             }
@@ -210,7 +214,7 @@ export function ProjectStorage({
                     await onDelete(confirmation);
                     setOpen(false);
                   } catch (error) {
-                    onError(String(error));
+                    reportError(String(error));
                   } finally {
                     setBusy(false);
                   }

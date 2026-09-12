@@ -34,6 +34,7 @@ def main():
     app = create_app(ROOT, out / "data", token, start_queue=False)
     # Synthetic idle state keeps recognition UI testable without starting models.
     app.state.queue.status = lambda: {"healthy": True, "alive": True, "state": "running", "task_id": None, "engine": None, "loaded": False}
+    app.state.fusion_queue.status = app.state.queue.status
     store = app.state.store
     first, second = store.project("回归项目一"), store.project("回归项目二")
     seeds = {}
