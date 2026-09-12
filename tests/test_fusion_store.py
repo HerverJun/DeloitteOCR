@@ -158,6 +158,31 @@ class FusionStoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.review_issues(result_id, limit=1000)
 
+    def test_mixed_handwriting_review_uses_saved_document_and_supports_legacy_targets(self):
+        self.policy = default_policy("handwriting")
+        self.policy["baseline"] = "glm"
+        result_id, _ = self.create()
+        self.adopt(result_id)
+        issue = self.store.review_issues(result_id)["issues"][0]
+        self.assertEqual(issue["target"]["kind"], "document")
+        self.assertEqual(issue["current_value"], self.store.result(result_id)["edited"]["text"])
+        # Existing v5 workspaces used pre-render HTML offsets and cached values.
+        with self.store.transaction() as db:
+            db.execute("UPDATE fusion_issues SET target=?,current_value=? WHERE id=?",
+                       (json.dumps({"kind": "text", "start": 0, "end": len(issue["baseline"])}),
+                        json.dumps(issue["baseline"]), issue["id"]))
+        issue = self.store.review_issues(result_id)["issues"][0]
+        self.assertEqual(issue["target"]["kind"], "document")
+        with self.assertRaisesRegex(ValueError, "含表格"):
+            self.store.decide_issue(result_id, issue["id"], self.decision(
+                result_id, issue, "candidate", candidate_id=issue["candidates"][0]["id"]))
+        saved = self.store.decide_issue(result_id, issue["id"], self.decision(result_id, issue, "question"))
+        self.assertEqual(saved["review_decision"]["state"], "question")
+        issue = self.store.review_issues(result_id)["issues"][0]
+        saved = self.store.decide_issue(result_id, issue["id"], self.decision(result_id, issue, request_id="keep-mixed-document"))
+        self.assertEqual(saved["review_decision"]["state"], "resolved")
+        self.assertEqual(saved["edited"]["tables"][0]["cells"][-1]["text"], "00123")
+
     def test_all_exports_include_same_saved_fusion_evidence_and_literal_numbers(self):
         import zipfile
         from ocr_workbench.exporting import build_export

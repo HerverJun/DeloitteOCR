@@ -5,7 +5,7 @@ import json
 
 from ocr_workbench.fusion import ENGINES, TERMINAL, validate_sources, fuse
 from ocr_workbench.fusion_alignment import canonical_edit, fingerprint
-from ocr_workbench.review_issues import apply_choice, comparable, reconcile, target_value
+from ocr_workbench.review_issues import apply_choice, comparable, current_target, reconcile, target_value
 
 
 class FusionStoreMixin:
@@ -153,13 +153,13 @@ class FusionStoreMixin:
         return self.complete(task["id"], data)
 
     @staticmethod
-    def persist_fusion_issues(db, result_id, units):
+    def persist_fusion_issues(db, result_id, units, edit):
         from ocr_workbench.store import encoded, now
         for ordinal, unit in enumerate(units):
             if not unit["needs_review"]:
                 continue
             db.execute("INSERT INTO fusion_issues(id,result_id,ordinal,category,state,definition,target,basis,current_value,updated) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                       (unit["id"], result_id, ordinal, unit["category"], "pending", encoded(unit), encoded(unit["target"]), unit["basis"], encoded(unit["selected"]), now()))
+                       (unit["id"], result_id, ordinal, unit["category"], "pending", encoded(unit), encoded(unit["target"]), unit["basis"], encoded(target_value(edit, unit["target"])[0]), now()))
 
     def review_issues(self, result_id, state=None, category=None, offset=0, limit=50, resume=False):
         if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100:
@@ -189,11 +189,14 @@ class FusionStoreMixin:
                     offset = db.execute("SELECT COUNT(*) FROM fusion_issues WHERE " + where + " AND ordinal<?", [*params, position[0]]).fetchone()[0]
             rows = db.execute("SELECT * FROM fusion_issues WHERE " + where + " ORDER BY ordinal,id LIMIT ? OFFSET ?", [*params, limit, offset]).fetchall()
             issues = []
+            edited, original = json.loads(row["edited"]), json.loads(row["original"])
             for issue in rows:
                 item = json.loads(issue["definition"])
-                item.update(target=json.loads(issue["target"]), current_value=json.loads(issue["current_value"]),
+                resolved_target = current_target(json.loads(issue["target"]), item, original)
+                value, _ = target_value(edited, resolved_target)
+                item.update(target=resolved_target, current_value=value,
                             state=issue["state"], decision_id=issue["decision_id"], context_current=context_current,
-                            current_fingerprint=fingerprint(comparable(json.loads(issue["current_value"]))))
+                            current_fingerprint=fingerprint(comparable(value)))
                 if not context_current:
                     item["location"] = {**item["location"], "level": "image", "polygon": None, "reason": "当前采用结果或图像版本不匹配"}
                 issues.append(item)
@@ -236,6 +239,7 @@ class FusionStoreMixin:
             if issue["basis"] != body.get("basis"):
                 raise Conflict("候选依据已经变化，请重新读取疑点")
             before, target = json.loads(row["edited"]), json.loads(issue["target"])
+            target = current_target(target, json.loads(issue["definition"]), json.loads(row["original"]))
             current_value, valid = target_value(before, target)
             if fingerprint(comparable(current_value)) != body.get("current_fingerprint"):
                 raise Conflict("疑点当前内容已变化，请重新读取后确认")
@@ -253,6 +257,7 @@ class FusionStoreMixin:
                     value = body.get("value")
                 after = apply_choice(before, target, value, body.get("placement"))
             cursor = row["cursor"] + 1
+            db.execute("UPDATE fusion_issues SET target=? WHERE id=?", (encoded(target), issue_id))
             # Even a keep/question decision is a revision-bound history event;
             # undo/redo invalidates decisions rather than restoring old review.
             db.execute("DELETE FROM edits WHERE result_id=? AND position>?", (result_id, row["cursor"]))

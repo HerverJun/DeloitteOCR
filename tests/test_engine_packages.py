@@ -97,6 +97,14 @@ class EnginePackageTests(unittest.TestCase):
         self.assertEqual(self.registry.active(), {})
         self.assertTrue((self.registry.staging / receipt["staging_id"]).exists())
 
+    def test_broken_zip_reports_recovery_and_cleans_staging(self):
+        path = self.root / "broken.zip"
+        path.write_bytes(b"not a zip archive")
+        with self.assertRaisesRegex(ValueError, "有效的 ZIP.*重新获取"):
+            self.registry.stage(path)
+        self.assertEqual(list(self.registry.staging.iterdir()), [])
+        self.assertEqual(self.registry.active(), {})
+
     def test_failed_real_inference_keeps_current(self):
         receipt = self.registry.stage(self.package())
         with patch.object(self.registry, "probe"), patch.object(

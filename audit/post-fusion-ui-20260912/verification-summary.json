@@ -1,0 +1,497 @@
+{
+  "captured_at": "2026-09-12T14:06:51.481095+00:00",
+  "base_commit": "997d139",
+  "service_mode_at_end": "full",
+  "browser": "Codex built-in browser, controlled via cua_repl; direct connection used after inventory auth failure",
+  "test_data_root": "build/ui-audit-post-fusion-20260912",
+  "project_count": 2,
+  "image_count": 10,
+  "unique_public_samples": 8,
+  "version_count": 19,
+  "tasks_by_kind": {
+    "ocr": 26,
+    "fusion": 6,
+    "dewarp": 1
+  },
+  "tasks_by_engine": {
+    "ppocr": 13,
+    "hunyuan": 4,
+    "glm": 5,
+    "fusion": 6,
+    "paddlevl": 4,
+    "dewarp": 1
+  },
+  "tasks_by_status": {
+    "succeeded": 33
+  },
+  "all_original_files_and_versions_match_registered_sha256": true,
+  "immutable_results_compared": 27,
+  "immutable_originals_unchanged": true,
+  "orphan_recovery_ledgers": [
+    {
+      "created": "2026-09-12T13:52:05.717727+00:00",
+      "paths": [
+        ".image-staging/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      ],
+      "files": [
+        {
+          "path": ".image-staging/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "bytes": 59898,
+          "reason": "未完成的图像暂存"
+        }
+      ]
+    }
+  ],
+  "review_only_verified": {
+    "gpu_actions_disabled": true,
+    "cpu_fusion_and_review": true,
+    "edit_export_rotate": true
+  },
+  "automated_checks": {
+    "backend_unittest": 151,
+    "frontend_vitest": 24,
+    "frontend_build": "passed; existing 500 kB chunk advisory"
+  },
+  "export_evidence": "8 exports initiated through UI; exact original server output copied before cleanup, hashes equal. Built-in browser download event timed out, so OS download completion is not established.",
+  "screenshots": [
+    "quick-review.png",
+    "workbench.png"
+  ],
+  "images": [
+    {
+      "id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "name": "chinese_store.jpg",
+      "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "review_status": "pending",
+      "version_count": 1
+    },
+    {
+      "id": "936471e5d54b4d0584c8356f218e87bb",
+      "name": "english_book_photo.jpg",
+      "sha256": "782cc71a2730020ea8da815de3e40a964b7f150c183d1f8c01dd211de9dcbcc4",
+      "review_status": "pending",
+      "version_count": 7
+    },
+    {
+      "id": "38391ee79a2a4411947b1ac1cc99a374",
+      "name": "pubmed_table.png",
+      "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "review_status": "confirmed",
+      "version_count": 1
+    },
+    {
+      "id": "43b48457d5ef481fb4b99fd63ac3c1aa",
+      "name": "document_formula.png",
+      "sha256": "6b07d28527dc9e930804fa73df562f1a81599c6b8a1a8bbc2a80742fa9f26e80",
+      "review_status": "pending",
+      "version_count": 2
+    },
+    {
+      "id": "d66b2ed009f04380be48dc93da077afa",
+      "name": "chinese_scanned_exam.png",
+      "sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1",
+      "review_status": "pending",
+      "version_count": 2
+    },
+    {
+      "id": "802abce457534948a5f237617d252690",
+      "name": "chinese_handwriting.png",
+      "sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4",
+      "review_status": "pending",
+      "version_count": 2
+    },
+    {
+      "id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "name": "chinese_multiple_tables.jpg",
+      "sha256": "dad3d4f1c78603cd3e0fa9720f8d5c1a7b0b8d58f33a81be6954bd4defd187d2",
+      "review_status": "pending",
+      "version_count": 1
+    },
+    {
+      "id": "ce0a2359950748619481cd70776e1f39",
+      "name": "rotated_scientific_table.jpg",
+      "sha256": "519288cd624a4d0071586a6fa8ca8fed88aa31c9e7ec08d3f687d2129696880f",
+      "review_status": "pending",
+      "version_count": 1
+    },
+    {
+      "id": "2544ac4c23e54565bfc8209ec4d5f1cd",
+      "name": "路牌 原图.jpg",
+      "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "review_status": "pending",
+      "version_count": 1
+    },
+    {
+      "id": "ee948cf3667b4864bc463f705e795197",
+      "name": "科研 表格.png",
+      "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "review_status": "pending",
+      "version_count": 1
+    }
+  ],
+  "tasks": [
+    {
+      "id": "5491e1078a4d449eb32f94035de3d4d2",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "895fd769d1334ea690d22c8f1add1c6a",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "e7e5bcff392045e5b06ea1db52da1c1e",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "936471e5d54b4d0584c8356f218e87bb",
+      "version_id": "4ecd4e010e7744b5b065001ff2ba37a7",
+      "result_id": "70b52990b04346c38478fed843a72ac5",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "529ed7e7df4344ef974c12ddfdf181b4",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "43b48457d5ef481fb4b99fd63ac3c1aa",
+      "version_id": "6b45fee262f6441287d032d50b3a7e65",
+      "result_id": "fb895c15de0442798c6814f7e2dc3ac8",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "5f647f86e95c4996bb1ff8e02649b28a",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "9485f5494eb94d89a7a44d269565c282",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "785b3556797c4a258bb9e0c9c03cbb9b",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "a48e032451ca4b188e38ef9fa378365b",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "7dd297807292424e8f4aa2c0194e9078",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "version_id": "c7edb2fa12a14fdea92096b7e2f31b0a",
+      "result_id": "33f8b8eb72a94a2b8f64b1d2e771924c",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "834cabbfcb904c449417c061d406fbaf",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "d66b2ed009f04380be48dc93da077afa",
+      "version_id": "983dc90563d148dd834803ec1186f968",
+      "result_id": "34840ca176eb4caaab81f325350f1122",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "dd5fc60f10f14b68986704d2ef734f55",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "ce0a2359950748619481cd70776e1f39",
+      "version_id": "ab82af93084c4686bd713a7d0cbaabe2",
+      "result_id": "44a09862b6c6421b855f4f306f4d86f5",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "20008486294c4bab9f494a40ffc7930c",
+      "engine": "hunyuan",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "50466115d542417d937adf5ff0d2178a",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "26401b0229764cdcbaa6bda8c6dbc0f7",
+      "engine": "glm",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "c43d6ca85fc846aca00e774e85b40012",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "2c74d6320c36425ab33b125ea96f6423",
+      "engine": "glm",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "version_id": "c7edb2fa12a14fdea92096b7e2f31b0a",
+      "result_id": "95e12e8d8d3c4d20b6bf8fad7bd6f4f8",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "4d813cc4a3914bd99fff2f7b9fce8560",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "162eef93f24a443296a924dda8acd46c",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "b1fcd028770c495ebdcf0ae74f2886d1",
+      "engine": "paddlevl",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "85d534b186ed41c8a3b005585266d47e",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "de58651240704fc2ba52050b4d407d01",
+      "engine": "paddlevl",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "version_id": "c7edb2fa12a14fdea92096b7e2f31b0a",
+      "result_id": "2539564945474ad292935137d5b3c689",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "e8a40bcb228f4396bf1eebed9ba62743",
+      "engine": "hunyuan",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "version_id": "c7edb2fa12a14fdea92096b7e2f31b0a",
+      "result_id": "0b147c0dfe2d4ed692089299fa4fbadc",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "c26e773805884490bcb5356663698710",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "4274c5cb9a174b5c92c0832deb0a43ff",
+      "version_id": "c7edb2fa12a14fdea92096b7e2f31b0a",
+      "result_id": "abeb525aeab64c9d9a5dca3b65fb8a32",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "79f4ae993d2e4b42a0676010aa2c456e",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "38391ee79a2a4411947b1ac1cc99a374",
+      "version_id": "637b4d870df04df5a6cdf8893d835d04",
+      "result_id": "02267c49f5c44505b7e22c88a25bc2fb",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "2eab47d8d17441eea7c9c79ce94de1d3",
+      "engine": "paddlevl",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "cbdeea291d7a4294a7efa28ba5d7693c",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "3aa264588d1f4e03bfe43f086b1ae482",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "c521e9749a1f470a8c0ab8d1373ac862",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "5f0bc81f2e9f4b81aaa4b31caa3cacae",
+      "engine": "hunyuan",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "5ee2c89339274b7e8522ccbbd065b667",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "957d0c86999b4d65acb53b421cc012fd",
+      "engine": "glm",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "b2acf8b8aae74267b13a15c374de1cd5",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "e1a8b77de9f447d28d09740d18d5cb70",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "5a4f4d9db4174bd49cc4cc39cce73aaa",
+      "version_id": "f6ab126fabd44c93ae04a6fa16ad695a",
+      "result_id": "57900b81322d40e7a012474743afa4ee",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "269411df90b94912bd4907887b75afee",
+      "engine": "hunyuan",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "7baeffb5dbcd495b9669937360e9d833",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "5faa6536acd14418ae4de5f15bd35797",
+      "engine": "glm",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "ded74efc48634cb1a010d3e13bddc639",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "830f2cce29dd41b586717ad98c9146ff",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "1cc9cb72a2784d72a272af0b90e2a097",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "a1c0e0209cd04258bb9db332820404cb",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "2dc2d043d0a24464bed4462cce0d1cc2",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "c6483a2ecab94f4295ed8906d8b81f0a",
+      "engine": "paddlevl",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "e02e431f06284e82b8276fdf9bd0658c",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "a2784d7a1f2c479eadc5e3e818107093",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "936471e5d54b4d0584c8356f218e87bb",
+      "version_id": "c265120d65d54968a19438f601329a8a",
+      "result_id": "7a6d603147664fbcb2317fce3745b600",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "0f544627905b4ee38dfdc54496d0a85b",
+      "engine": "dewarp",
+      "kind": "dewarp",
+      "status": "succeeded",
+      "image_id": "936471e5d54b4d0584c8356f218e87bb",
+      "version_id": "4ecd4e010e7744b5b065001ff2ba37a7",
+      "result_id": null,
+      "result_version_id": "37c066ae5fcd4644920c68ddbbb0bf46",
+      "preprocess": "[]"
+    },
+    {
+      "id": "123b102458074271950a55e82758bb47",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "d66b2ed009f04380be48dc93da077afa",
+      "version_id": "ab0b7e2571be43deafd02cb91e1d1838",
+      "result_id": "24885ba4abf84249872b1280d084d937",
+      "result_version_id": null,
+      "preprocess": "[{\"kind\":\"rotate\",\"degrees\":90},{\"kind\":\"contrast\",\"factor\":1.3}]"
+    },
+    {
+      "id": "e9eb545350584adf8b87c189e2750946",
+      "engine": "ppocr",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "43b48457d5ef481fb4b99fd63ac3c1aa",
+      "version_id": "9094da53c6964239a65b56fd71814dbf",
+      "result_id": "c81d04c9a9314f12a1eb5a80cd47e824",
+      "result_version_id": null,
+      "preprocess": "[{\"kind\":\"rotate\",\"degrees\":90},{\"kind\":\"contrast\",\"factor\":1.3}]"
+    },
+    {
+      "id": "8b650caeed274708873ac5b244f3f71b",
+      "engine": "glm",
+      "kind": "ocr",
+      "status": "succeeded",
+      "image_id": "ce0a2359950748619481cd70776e1f39",
+      "version_id": "ab82af93084c4686bd713a7d0cbaabe2",
+      "result_id": "329924017cbc45539829d7868f8fa607",
+      "result_version_id": null,
+      "preprocess": "[]"
+    },
+    {
+      "id": "bfb8a73b18cc401aa42b1841ae9e5c2a",
+      "engine": "fusion",
+      "kind": "fusion",
+      "status": "succeeded",
+      "image_id": "802abce457534948a5f237617d252690",
+      "version_id": "2a71774b544c4810910590ccea4546d3",
+      "result_id": "de1cdae23e314d5fae30fdcbeb11a9c6",
+      "result_version_id": null,
+      "preprocess": "[]"
+    }
+  ]
+}

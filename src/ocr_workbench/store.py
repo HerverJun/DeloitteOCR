@@ -445,7 +445,7 @@ class Store(FusionStoreMixin):
                 )
             if task["kind"] == "fusion":
                 db.executemany("INSERT INTO fusion_evidence VALUES(?,?,?)", [(key, i, encoded(unit)) for i, unit in enumerate(units)])
-                self.persist_fusion_issues(db, key, units)
+                self.persist_fusion_issues(db, key, units, edit)
             db.execute(
                 "UPDATE projects SET updated=? WHERE id=?", (now(), task["project_id"])
             )

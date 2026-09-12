@@ -100,6 +100,8 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const activeActions = useRef(0);
   const [initial, setInitial] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [modalError, setModalError] = useState("");
@@ -200,8 +202,22 @@ export function App() {
     [editor.flush, editor.load, refresh],
   );
   useEffect(() => {
+    const expired = () => setSessionExpired(true);
+    const changed = () => setConnectionAttempt(n => n + 1);
+    window.addEventListener("ocr-session-expired", expired);
+    window.addEventListener("ocr-session-changed", changed);
+    return () => {
+      window.removeEventListener("ocr-session-expired", expired);
+      window.removeEventListener("ocr-session-changed", changed);
+    };
+  }, []);
+  useEffect(() => {
+    let cancelled = false;
     api("/state")
       .then((value) => {
+        if (cancelled) return;
+        setSessionExpired(false);
+        setMessage("");
         setProjects(value.projects);
         setEngines(value.engines);
         setReviewOnly(value.review_only === true);
@@ -209,13 +225,14 @@ export function App() {
         const id =
           value.projects.find((p: Project) => p.id === saved)?.id ||
           value.projects[0]?.id;
-        if (id) void chooseProject(id).catch(onError);
+        if (id) void (selectedProject.current === id ? refresh(id) : chooseProject(id)).catch(onError);
       })
       .catch(onError)
-      .finally(() => setInitial(false));
-  }, []);
+      .finally(() => { if (!cancelled) setInitial(false); });
+    return () => { cancelled = true; };
+  }, [connectionAttempt]);
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || sessionExpired) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
@@ -235,7 +252,7 @@ export function App() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [projectId, refresh, onError]);
+  }, [projectId, refresh, onError, sessionExpired]);
   const photo = project?.images.find((p) => p.id === active) || null;
   const versions = project?.versions.filter((v) => v.image_id === active) || [];
   const version = versions.find((v) => v.id === photo?.active_version) || null;
@@ -645,6 +662,11 @@ export function App() {
       }}
       onDrop={(e) => void importDrop(e)}
     >
+      {sessionExpired && <div className="inline-warning" role="alert">
+        <strong>工作台连接已失效</strong>
+        <p>请从系统托盘重新打开工作台，或重新运行「启动工作台.cmd」。新启动链接会恢复连接，当前页面中的校对草稿会保留。</p>
+        <Button onClick={() => setConnectionAttempt(n => n + 1)}>重新连接</Button>
+      </div>}
       <BrandHeader>
         {!reviewOnly && (
           <EnginePackages

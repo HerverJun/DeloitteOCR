@@ -7,6 +7,15 @@ import json
 from ocr_workbench.fusion_alignment import canonical_edit, complete_structure, fingerprint, topology
 
 
+def current_target(target, definition, original):
+    """Read older mixed text/table issues against the complete saved document."""
+    if (target.get("kind") == "text" and target.get("start") == 0
+            and target.get("end") == len(definition.get("baseline", ""))
+            and definition.get("category") == "structure" and original.get("tables")):
+        return {"kind": "document"}
+    return target
+
+
 def target_value(edit, target):
     kind = target["kind"]
     if target.get("unlocatable"):

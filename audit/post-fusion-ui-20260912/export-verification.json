@@ -1,0 +1,372 @@
+[
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c"
+      ],
+      "format": "xlsx",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 20763,
+    "sha256": "b8045ef2e122410a45a45446d4188449942d0e7445fd1aa1bbb7a84b028fe143",
+    "members": [
+      "OCR-result.xlsx",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json"
+    ],
+    "workbooks": [
+      {
+        "name": "OCR-result.xlsx",
+        "sheets": [
+          "Table 1",
+          "Table 2",
+          "来源索引"
+        ],
+        "literal_text_cells": true,
+        "merge_ranges": {
+          "Table 1": [
+            "F2:G2",
+            "D2:E2"
+          ],
+          "Table 2": [],
+          "来源索引": []
+        }
+      }
+    ],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c"
+      ],
+      "format": "txt",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 14318,
+    "sha256": "052e3ead765aa08e059e8732ac305e10043f782584caf289bd03976b9bc69eb5",
+    "members": [
+      "OCR-result.txt",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json"
+    ],
+    "workbooks": [],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c"
+      ],
+      "format": "md",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 14423,
+    "sha256": "f81d377b9473c8ce868aea5517ffb6e59dee519668aa9231e3188c8a3cf2a4d8",
+    "members": [
+      "OCR-result.md",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json"
+    ],
+    "workbooks": [],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c"
+      ],
+      "format": "json",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 17577,
+    "sha256": "b04efde9957e71da80b9910ea8abdd22a16b6128b15797a2ba82bf768be4007c",
+    "members": [
+      "OCR-result.json",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json"
+    ],
+    "workbooks": [],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c",
+        "2dc2d043d0a24464bed4462cce0d1cc2"
+      ],
+      "format": "xlsx",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 53367,
+    "sha256": "293560ddb5b2afb9de1c16437a32a38e10f314d1874efd8fa42cd85acdbeb8b9",
+    "members": [
+      "0001.xlsx",
+      "0002.xlsx",
+      "sources.json",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json",
+      "sources/2dc2d043d0a24464bed4462cce0d1cc2.json"
+    ],
+    "workbooks": [
+      {
+        "name": "0001.xlsx",
+        "sheets": [
+          "Table 1",
+          "Table 2",
+          "来源索引"
+        ],
+        "literal_text_cells": true,
+        "merge_ranges": {
+          "Table 1": [
+            "F2:G2",
+            "D2:E2"
+          ],
+          "Table 2": [],
+          "来源索引": []
+        }
+      },
+      {
+        "name": "0002.xlsx",
+        "sheets": [
+          "Table 1",
+          "来源索引"
+        ],
+        "literal_text_cells": true,
+        "merge_ranges": {
+          "Table 1": [],
+          "来源索引": []
+        }
+      }
+    ],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      },
+      {
+        "revision": 2,
+        "source_count": 4,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 0,
+          "resolved": 1,
+          "human_confirmed": false
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c",
+        "2dc2d043d0a24464bed4462cce0d1cc2"
+      ],
+      "format": "xlsx",
+      "aggregate": true,
+      "confirmed_only": false
+    },
+    "bytes": 47541,
+    "sha256": "ea12ce738266bf7d11a292fcaad71fc82fbe0d5eacc8d8f9a06b10d57f6bb3fa",
+    "members": [
+      "OCR-tables.xlsx",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json",
+      "sources/2dc2d043d0a24464bed4462cce0d1cc2.json"
+    ],
+    "workbooks": [
+      {
+        "name": "OCR-tables.xlsx",
+        "sheets": [
+          "Table 1",
+          "Table 2",
+          "Table 3",
+          "来源索引"
+        ],
+        "literal_text_cells": true,
+        "merge_ranges": {
+          "Table 1": [
+            "F2:G2",
+            "D2:E2"
+          ],
+          "Table 2": [],
+          "Table 3": [],
+          "来源索引": []
+        }
+      }
+    ],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      },
+      {
+        "revision": 2,
+        "source_count": 4,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 0,
+          "resolved": 1,
+          "human_confirmed": false
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "162eef93f24a443296a924dda8acd46c"
+      ],
+      "format": "xlsx",
+      "aggregate": true,
+      "confirmed_only": true
+    },
+    "bytes": 20758,
+    "sha256": "99e95e88e67e19e6c1204d7eb489cdaf4d43e08c541f37c9262d139a92eb85dd",
+    "members": [
+      "OCR-tables.xlsx",
+      "fusion-sources.json",
+      "sources/162eef93f24a443296a924dda8acd46c.json"
+    ],
+    "workbooks": [
+      {
+        "name": "OCR-tables.xlsx",
+        "sheets": [
+          "Table 1",
+          "Table 2",
+          "来源索引"
+        ],
+        "literal_text_cells": true,
+        "merge_ranges": {
+          "Table 1": [
+            "F2:G2",
+            "D2:E2"
+          ],
+          "Table 2": [],
+          "来源索引": []
+        }
+      }
+    ],
+    "fusion_evidence": [
+      {
+        "revision": 12,
+        "source_count": 3,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 1,
+          "resolved": 2,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  },
+  {
+    "parameters": {
+      "result_ids": [
+        "de1cdae23e314d5fae30fdcbeb11a9c6"
+      ],
+      "format": "json",
+      "aggregate": false,
+      "confirmed_only": false
+    },
+    "bytes": 30544,
+    "sha256": "331d6a5e226e2baa1217e9a0a2dc150711f9217c65c1cf0ad8fcd412257c4640",
+    "members": [
+      "OCR-result.json",
+      "fusion-sources.json",
+      "sources/de1cdae23e314d5fae30fdcbeb11a9c6.json"
+    ],
+    "workbooks": [],
+    "fusion_evidence": [
+      {
+        "revision": 3,
+        "source_count": 4,
+        "review_summary": {
+          "pending": 0,
+          "question": 0,
+          "stale": 0,
+          "resolved": 1,
+          "human_confirmed": true
+        }
+      }
+    ],
+    "passed": true
+  }
+]

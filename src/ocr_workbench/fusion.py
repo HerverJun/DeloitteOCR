@@ -272,7 +272,7 @@ def fuse(sources, policy, session_id, cancelled=lambda: False):
         # Review complete original strings when tables would otherwise be mixed
         # with independently aligned text and invalidate their reading order.
         if any(tables_by_engine.values()):
-            unit({"kind": "text", "start": 0, "end": len(base)},
+            unit({"kind": "document"},
                  choose(base, {e: s["original"]["text"] for e, s in usable.items()}, expected,
                         {**policy, "automatic_replacement": False}, reliable=False), location(baseline), "structure")
             edit = canonical_edit({"text": base, "tables": tables})

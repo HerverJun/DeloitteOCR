@@ -1,14 +1,23 @@
-const fromHash = new URLSearchParams(location.hash.slice(1)).get("token");
-if (fromHash) {
+function consumeLaunchToken() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const fromHash = hash.get("token");
+  if (!fromHash) return false;
   sessionStorage.setItem("ocr-token", fromHash);
-  history.replaceState(null, "", location.pathname);
+  hash.delete("token");
+  history.replaceState(null, "", location.pathname + location.search + (hash.size ? "#" + hash : ""));
+  return true;
 }
+consumeLaunchToken();
+window.addEventListener("hashchange", () => {
+  if (consumeLaunchToken()) window.dispatchEvent(new Event("ocr-session-changed"));
+});
 const token = () => sessionStorage.getItem("ocr-token") || "";
 export async function request(path: string, options: RequestInit = {}) {
+  const usedToken = token();
   const response = await fetch("/api" + path, {
     ...options,
     headers: {
-      Authorization: "Bearer " + token(),
+      Authorization: "Bearer " + usedToken,
       ...(!(options.body instanceof FormData) && options.body
         ? { "Content-Type": "application/json" }
         : {}),
@@ -16,6 +25,9 @@ export async function request(path: string, options: RequestInit = {}) {
     },
   });
   if (!response.ok) {
+    if (response.status === 401 && usedToken === token()) {
+      window.dispatchEvent(new Event("ocr-session-expired"));
+    }
     const error = await response
       .json()
       .catch(() => ({ message: response.statusText }));

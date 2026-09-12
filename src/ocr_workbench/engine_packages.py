@@ -249,8 +249,10 @@ class EnginePackages:
                 }
                 write_json(folder / "stage-receipt.json", receipt, durable=True)
                 return receipt
-            except BaseException:
+            except BaseException as error:
                 shutil.rmtree(folder)
+                if isinstance(error, zipfile.BadZipFile):
+                    raise ValueError("引擎包不是有效的 ZIP 文件或已损坏，请重新获取完整离线引擎包") from error
                 raise
 
     def validate_layout(self, root, manifest):

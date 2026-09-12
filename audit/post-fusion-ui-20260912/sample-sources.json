@@ -1,0 +1,290 @@
+{
+  "prepared_at": "2026-09-12T12:55:06.334082+00:00",
+  "scope": "Public real samples used in this completed built-in-browser workflow audit; not an OCR accuracy benchmark or independent release gate.",
+  "samples": [
+    {
+      "file": "samples/chinese_store.jpg",
+      "kind": "real_bilingual_street_photo",
+      "source_repository": "JaidedAI/EasyOCR",
+      "revision": "363afb184047ce452e436f4224f3098422df872e",
+      "source_url": "https://raw.githubusercontent.com/JaidedAI/EasyOCR/363afb184047ce452e436f4224f3098422df872e/examples/chinese.jpg",
+      "source_page": "https://github.com/JaidedAI/EasyOCR/blob/363afb184047ce452e436f4224f3098422df872e/examples/chinese.jpg",
+      "retrieval": "Downloaded from the official GitHub repository during this audit; raw content or GitHub Contents API base64.",
+      "pixel_transformations": "none",
+      "license_or_restrictions": "Repository LICENSE is Apache-2.0; image-specific third-party rights were not independently established. Keep this audit copy for local evaluation; this manifest does not grant redistribution/commercial rights to the underlying document.",
+      "expected_content": {
+        "description": "上海愚园路蓝色路牌实拍，中英文字，背景建筑与透视。",
+        "anchors": [
+          "愚园路",
+          "Yuyuan Rd.",
+          "西",
+          "东",
+          "315",
+          "309",
+          "W",
+          "E"
+        ]
+      },
+      "visual_review": "Real source image/document, visually checked; no OCR prediction boxes or transcription overlays.",
+      "sha256": "7d8f231016c6a35da879b7d79b39c45b694aef962ae30f64063d981e618fbf7f",
+      "bytes": 59898,
+      "width": 640,
+      "height": 339,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "downloaded_fixed_revision_and_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/english_book_photo.jpg",
+      "kind": "real_english_book_photo",
+      "source_repository": "PaddlePaddle/PaddleOCR",
+      "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+      "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/book.jpg",
+      "source_page": "https://github.com/PaddlePaddle/PaddleOCR/blob/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/book.jpg",
+      "retrieval": "Downloaded from the official GitHub repository during this audit; raw content or GitHub Contents API base64.",
+      "pixel_transformations": "none",
+      "license_or_restrictions": "Repository LICENSE is Apache-2.0; image-specific third-party rights were not independently established. Keep this audit copy for local evaluation; this manifest does not grant redistribution/commercial rights to the underlying document.",
+      "expected_content": {
+        "description": "真实打开书籍的两页照片，弯曲书脊、阴影、漫画和数学式，适合去弯曲/裁剪/布局测试。",
+        "anchors": [
+          "The disappearing sum",
+          "WHICH FOUR DO I FANCY MOST?",
+          "Veronica’s choices",
+          "94",
+          "95"
+        ]
+      },
+      "visual_review": "Real source image/document, visually checked; no OCR prediction boxes or transcription overlays.",
+      "sha256": "782cc71a2730020ea8da815de3e40a964b7f150c183d1f8c01dd211de9dcbcc4",
+      "bytes": 256618,
+      "width": 1100,
+      "height": 708,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "downloaded_fixed_revision_and_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/pubmed_table.png",
+      "kind": "real_scientific_table",
+      "source_repository": "PaddlePaddle/PaddleOCR",
+      "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+      "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/datasets/images/table_PubTabNet_demo/PMC524509_007_00.png",
+      "source_page": "https://github.com/PaddlePaddle/PaddleOCR/blob/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/docs/datasets/images/table_PubTabNet_demo/PMC524509_007_00.png",
+      "retrieval": "Downloaded from the official GitHub repository during this audit; raw content or GitHub Contents API base64.",
+      "pixel_transformations": "none",
+      "license_or_restrictions": "PubTabNet requires CDLA-Permissive-1.0 per the linked PaddleOCR table dataset documentation; underlying publication attribution should be retained. Source: https://github.com/ibm-aur-nlp/PubTabNet ; license: https://cdla.io/permissive-1-0/ .",
+      "expected_content": {
+        "description": "PubTabNet/PMC524509 真实科学论文表格，503×98 原始低分辨率，包含分组表头、四条数据行和 ± 数值。",
+        "group_headers": [
+          "[³H]DA uptake",
+          "DAT density"
+        ],
+        "columns": [
+          "Group",
+          "N",
+          "Vmax",
+          "SD",
+          "Km",
+          "SD",
+          "DAT",
+          "SD"
+        ],
+        "rows": [
+          [
+            "WT w Veh",
+            "4",
+            "516.1",
+            "± 56.5",
+            "56.7",
+            "± 18.6",
+            "10.6",
+            "± 2.5"
+          ],
+          [
+            "D3 KO w Veh",
+            "4",
+            "212.4",
+            "± 18.2",
+            "10.8",
+            "± 5.7",
+            "10.8",
+            "± 1.5"
+          ],
+          [
+            "WT w PPX",
+            "6",
+            "183.4",
+            "± 34.3",
+            "28.4",
+            "± 18.5",
+            "9.9",
+            "± 3.0"
+          ],
+          [
+            "D3 KO w PPX",
+            "6",
+            "223.6",
+            "± 36.4",
+            "10.4",
+            "± 10.9",
+            "9.4",
+            "± 2.6"
+          ]
+        ],
+        "reference_status": "Manually read from the source image for spot checks; not an independently adjudicated benchmark ground truth."
+      },
+      "visual_review": "Real source image/document, visually checked; no OCR prediction boxes or transcription overlays.",
+      "sha256": "8ac6eb772c45be3f17f28ce565489b5895ab47002fdf5b34590d57f047041130",
+      "bytes": 9357,
+      "width": 503,
+      "height": 98,
+      "actual_format": "PNG",
+      "retrieval_this_run": "downloaded_fixed_revision_and_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/document_formula.png",
+      "kind": "real_english_scientific_document",
+      "source_repository": "PaddlePaddle/PaddleOCR",
+      "revision": "2661c7c0ef5c613e8f93c6e93b2e052399f0f854",
+      "source_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/doc_with_formula.png",
+      "source_page": "https://github.com/PaddlePaddle/PaddleOCR/blob/2661c7c0ef5c613e8f93c6e93b2e052399f0f854/tests/test_files/doc_with_formula.png",
+      "retrieval": "Downloaded from the official GitHub repository during this audit; raw content or GitHub Contents API base64.",
+      "pixel_transformations": "none",
+      "license_or_restrictions": "Repository LICENSE is Apache-2.0; image-specific third-party rights were not independently established. Keep this audit copy for local evaluation; this manifest does not grant redistribution/commercial rights to the underlying document.",
+      "expected_content": {
+        "description": "英文学术论文第 3 页，双栏、公式 (4)–(14)、上下标及 PDF 原生彩色引用框；彩色引用框属于文档本身，不是 OCR 结果。",
+        "anchors": [
+          "The quantity δ is the BH duty cycle",
+          "All results shown in this work correspond",
+          "SMBH",
+          "QLF"
+        ]
+      },
+      "visual_review": "Real source image/document, visually checked; no OCR prediction boxes or transcription overlays.",
+      "sha256": "6b07d28527dc9e930804fa73df562f1a81599c6b8a1a8bbc2a80742fa9f26e80",
+      "bytes": 493450,
+      "width": 816,
+      "height": 1056,
+      "actual_format": "PNG",
+      "retrieval_this_run": "downloaded_fixed_revision_and_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/chinese_scanned_exam.png",
+      "kind": "real_chinese_scanned_document",
+      "source_dataset": "opendatalab/OmniDocBench",
+      "revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/jiaocai_jiaocai_en_6.jpg",
+      "canonical_source_url": "https://huggingface.co/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/jiaocai_jiaocai_en_6.jpg",
+      "retrieval": "Reused an existing publicly downloaded full-page cache; source bytes SHA256 matches the cached benchmark source_image_sha256. No new dataset image download during this audit.",
+      "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0082.png",
+      "cache_manifest": "E:\\OCR-final-build\\public-benchmark\\benchmark.json",
+      "cache_sample_id": "0082",
+      "source_image_path": "jiaocai_jiaocai_en_6.jpg",
+      "pixel_transformations": "none; copied original full-page bytes, not the benchmark crop",
+      "filename_note": "The existing benchmark stores downloaded JPEG bytes under .png names. This audit preserves those bytes/names for traceability; actual_format below is JPEG.",
+      "license_or_restrictions": "OmniDocBench copyright statement: research purposes only, not for commercial use. Do not include these images in the product release. Copyright belongs to source owners.",
+      "license_source": "https://github.com/opendatalab/OmniDocBench#copyright-statement",
+      "expected_content": {
+        "description": "中文诗词练习整页扫描，有浅绿原生水印、填空横线和选择题。",
+        "anchors": [
+          "23 题乌江亭",
+          "[唐]杜牧",
+          "胜败兵家事不期",
+          "[宋]李清照",
+          "生当作人杰，死亦为鬼雄",
+          "24 临江仙·夜归临皋"
+        ]
+      },
+      "visual_review": "Full page visually checked; genuine scan/handwriting with original source marks; no OCR prediction overlays.",
+      "sha256": "85da27e8868dbe1bff597eafc7e11effaaca6e432206a6fa09d78da35f1fbeb1",
+      "bytes": 222623,
+      "width": 1654,
+      "height": 2339,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "reused_public_cache_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/chinese_handwriting.png",
+      "kind": "real_chinese_handwriting",
+      "source_dataset": "opendatalab/OmniDocBench",
+      "revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/notes_1ba14cb325bc448f7201b20502ecf2b5_15.jpg",
+      "canonical_source_url": "https://huggingface.co/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/notes_1ba14cb325bc448f7201b20502ecf2b5_15.jpg",
+      "retrieval": "Reused an existing publicly downloaded full-page cache; source bytes SHA256 matches the cached benchmark source_image_sha256. No new dataset image download during this audit.",
+      "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0008.png",
+      "cache_manifest": "E:\\OCR-final-build\\public-benchmark\\benchmark.json",
+      "cache_sample_id": "0008",
+      "source_image_path": "notes_1ba14cb325bc448f7201b20502ecf2b5_15.jpg",
+      "pixel_transformations": "none; copied original full-page bytes, not the benchmark crop",
+      "filename_note": "The existing benchmark stores downloaded JPEG bytes under .png names. This audit preserves those bytes/names for traceability; actual_format below is JPEG.",
+      "license_or_restrictions": "OmniDocBench copyright statement: research purposes only, not for commercial use. Do not include these images in the product release. Copyright belongs to source owners.",
+      "license_source": "https://github.com/opendatalab/OmniDocBench#copyright-statement",
+      "expected_content": {
+        "description": "真实中文地理手写笔记整页，荧光笔强调、流程箭头及底部手绘空气质量表格。",
+        "anchors": [
+          "笔记三 天气与气候",
+          "多变的天气",
+          "1. 天气及其影响",
+          "2. 明天的天气怎么样？",
+          "3. 我们需要洁净的空气"
+        ],
+        "table_columns": [
+          "空气质量级别",
+          "空气污染指数",
+          "空气质量状况"
+        ],
+        "table_quality_labels": [
+          "优",
+          "良",
+          "轻度污染",
+          "中度污染",
+          "重度污染"
+        ]
+      },
+      "visual_review": "Full page visually checked; genuine scan/handwriting with original source marks; no OCR prediction overlays.",
+      "sha256": "22e5a99ac6a87a417a059922f4141dac2acebaa115f7b28e826c49a9950796f4",
+      "bytes": 287841,
+      "width": 1434,
+      "height": 2024,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "reused_public_cache_verified_sha256",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays"
+    },
+    {
+      "file": "samples/chinese_multiple_tables.jpg",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/jiaocaineedrop_jiaocai_needrop_en_574.jpg",
+      "revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+      "sha256": "dad3d4f1c78603cd3e0fa9720f8d5c1a7b0b8d58f33a81be6954bd4defd187d2",
+      "bytes": 198193,
+      "width": 1334,
+      "height": 1723,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "reused_public_full_page_cache_verified_sha256",
+      "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0092.png",
+      "pixel_transformations": "none",
+      "description": "真实中文数学练习整页，多个表格与曲线图",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays",
+      "license_or_restrictions": "OmniDocBench: research only; retain locally, exclude from application distribution."
+    },
+    {
+      "file": "samples/rotated_scientific_table.jpg",
+      "source_url": "https://hf-mirror.com/datasets/opendatalab/OmniDocBench/resolve/aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec/images/scihub_s00381-021-05138-3.pdf_3.jpg",
+      "revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+      "sha256": "519288cd624a4d0071586a6fa8ca8fed88aa31c9e7ec08d3f687d2129696880f",
+      "bytes": 283540,
+      "width": 1654,
+      "height": 2197,
+      "actual_format": "JPEG",
+      "retrieval_this_run": "reused_public_full_page_cache_verified_sha256",
+      "cache_source": "E:\\OCR-final-build\\public-benchmark\\pages\\0169.png",
+      "pixel_transformations": "none",
+      "description": "真实论文整页，横向长表与密集多行文字",
+      "visual_review_this_run": "checked: contact sheet and source image; genuine photographed/scanned content, no model output overlays",
+      "license_or_restrictions": "OmniDocBench: research only; retain locally, exclude from application distribution."
+    }
+  ],
+  "edge_cases": "Deliberately invalid inputs and folder copies are separate from the 8 real images."
+}

@@ -72,8 +72,16 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
     return () => { ++generation.current; };
   }, [load]);
   useEffect(() => {
-    if (page && !locking.current && !manualDirty) void load(offset.current).catch(e => setError(String(e)));
-  }, [result.revision, versionId, adopted]);
+    if (!page || locking.current) return;
+    intent.current = getPendingDecision();
+    const draft = getDraft();
+    setManualDirty(!!draft);
+    if (!intent.current && !draft) {
+      setError("");
+      setChosen("");
+      void load(offset.current).catch(e => setError(String(e)));
+    }
+  }, [result, versionId, adopted]);
   useEffect(() => {
     if (!activeIssue) return;
     const draft = getDraft();
@@ -81,7 +89,7 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
     setManualDirty(draft?.issueId === activeIssue.id);
     setChosen("");
     onLocate(activeIssue, false);
-  }, [activeIssue?.id]);
+  }, [activeIssue?.id, activeIssue?.current_fingerprint]);
   const move = async (direction: number) => {
     if (locking.current || manualDirty || intent.current) return;
     locking.current = true; setWorking(true); setError("");
@@ -108,6 +116,7 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
   };
   const submitting = !!intent.current;
   const disabled = busy || working || submitting || !adopted || !page?.context_current;
+  const needsTableEditor = !!activeIssue && ["text", "document"].includes(activeIssue.target.kind) && result.edited.tables.length > 0;
   return <section className="quick-review" aria-label="快速校对">
     <div className="fusion-summary"><strong>逐项核对来源分歧</strong>
       <span>{Object.entries(page?.counts || {}).map(([s, n]) => `${states[s]} ${n}`).join(" · ")}</span>
@@ -127,18 +136,19 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
       <p>{activeIssue.reason === "baseline_structure_invalid" ? "基准表格结构不完整。请核对原始来源、完整候选表与阅读位置；没有可靠骨架时仅保留原始文字。" : reasons[activeIssue.reason] || activeIssue.reason}</p>
       <p className="fusion-location">定位：{activeIssue.location.level === "cell" ? "单元格" : activeIssue.location.level === "region" ? "整表 / 文字区域" : "全图"} · {activeIssue.location.reason} <Button size="small" onClick={() => onLocate(activeIssue, false)}>定位原图</Button></p>
       <div className="fusion-current"><small>当前已保存值</small><Value value={activeIssue.current_value} /></div>
+      {needsTableEditor && <p className="inline-warning">此整段包含结构化表格，候选仅供对照。请点击「在编辑器定位」核对文字和表格，再返回「保留当前并继续」；也可先标记「暂不确定」。</p>}
       <div className="fusion-candidates" role="radiogroup" aria-label="原始来源候选">
         {activeIssue.candidates.map(candidate => <label key={candidate.id} className={chosen === candidate.id ? "selected" : ""}>
-          <input type="radio" name="fusion-candidate" value={candidate.id} checked={chosen === candidate.id} disabled={disabled || activeIssue.state === "stale"} onChange={() => setChosen(candidate.id)} />
+          <input type="radio" name="fusion-candidate" value={candidate.id} checked={chosen === candidate.id} disabled={disabled || needsTableEditor || activeIssue.state === "stale"} onChange={() => setChosen(candidate.id)} />
           <div><small>{candidate.sources.map(e => engineNames[e] || e).join("、")} · {candidate.sources.length}/{activeIssue.expected_sources.length} 个预期来源支持</small><Value value={candidate.value} /></div>
         </label>)}
       </div>
       {activeIssue.target.kind === "unmatched_table" && <label>完整候选表的插入位置 <select aria-label="缺表插入位置" value={placement} disabled={disabled} onChange={e => setPlacement(e.target.value)}><option value="end">文档末尾</option><option value="start">文档开头</option></select><p>请先核对原图的阅读顺序；插入后可在普通编辑器继续调整。</p></label>}
       <details><summary>来源覆盖与原始依据</summary><p>{Object.entries(activeIssue.source_states).map(([engine, state]) => `${engineNames[engine] || engine}：${({succeeded:"有效",failed:"失败",cancelled:"取消",unsupported:"不支持结构",unmatched:"未匹配"} as Record<string,string>)[state] || state}`).join("；")}</p><small>疑点 {activeIssue.id} · 策略 {result.original.fusion?.policy.version}</small></details>
-      {typeof activeIssue.current_value === "string" && <label className="fusion-manual">手工修改<textarea aria-label="疑点手工修改" value={manual} disabled={disabled || activeIssue.state === "stale"} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onChange={e => { setManual(e.target.value); setManualDirty(true); onDraft({ issueId: activeIssue.id, value: e.target.value }); }} /></label>}
+      {typeof activeIssue.current_value === "string" && !needsTableEditor && <label className="fusion-manual">手工修改<textarea aria-label="疑点手工修改" value={manual} disabled={disabled || activeIssue.state === "stale"} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onChange={e => { setManual(e.target.value); setManualDirty(true); onDraft({ issueId: activeIssue.id, value: e.target.value }); }} /></label>}
       {manualDirty && <p className="fusion-muted">手工修改尚未保存；保存成功后再切换疑点。<Button size="small" disabled={working || submitting} onClick={() => { setManual(typeof activeIssue.current_value === "string" ? activeIssue.current_value : ""); setManualDirty(false); onDraft(null); }}>清除手工修改</Button></p>}
       <div className="fusion-actions">
-        <Button appearance="primary" disabled={disabled || (!chosen && !manualDirty) || activeIssue.state === "stale"} onClick={() => void save(manualDirty ? "manual" : "candidate")}>保存并继续</Button>
+        <Button appearance="primary" disabled={disabled || needsTableEditor || (!chosen && !manualDirty) || activeIssue.state === "stale"} onClick={() => void save(manualDirty ? "manual" : "candidate")}>保存并继续</Button>
         <Button disabled={disabled || manualDirty} onClick={() => void save("keep")}>保留当前并继续</Button>
         <Button disabled={disabled || manualDirty} onClick={() => void save("question")}>暂不确定</Button>
         <Button disabled={working || manualDirty || submitting || !page?.offset} onClick={() => void move(-1)}>上一项</Button>
