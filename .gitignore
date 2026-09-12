@@ -1,12 +1,59 @@
+# Python and frontend dependencies / generated files
 __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+venv/
 build/
 dist/
-*.part
-audit/runs/
 node_modules/
 frontend/dist/
 *.tsbuildinfo
+
+# Local model downloads and inference weights (keep config/model-lock.json tracked)
+models/
+weights/
+checkpoints/
+*.safetensors
+*.gguf
+*.ggml
+*.bin
+*.onnx
+*.onnx_data
+*.pt
+*.pth
+*.ckpt
+*.ckpt.*
+*.pdparams
+*.pdiparams
+*.pdiparams.info
+*.pdmodel
+*.h5
+*.hdf5
+*.tflite
+*.weights
+
+# Model caches and incomplete downloads
+.cache/
+.huggingface/
+.paddleocr/
+.paddlex/
+cache/
+*.part
+*.incomplete
+
+# Bundled runtimes, dependency wheels and offline distribution archives
+runtimes/
+wheelhouse/
+*.whl
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tar.xz
+*.tgz
+
+# Local audit runs / raw projects; retain committed acceptance evidence
+audit/runs/
 audit/week23/raw-projects/
