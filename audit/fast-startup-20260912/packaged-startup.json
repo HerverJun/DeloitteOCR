@@ -1,0 +1,1053 @@
+{
+  "passed": true,
+  "starts": [
+    {
+      "name": "first",
+      "ready_seconds": 190.89,
+      "service_ready_seconds": 190.578,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [
+          "当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+        ],
+        "checks": [
+          "driver-and-gpu",
+          "full-file-sha256",
+          "native-runtime-imports"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "full",
+        "verification": "full",
+        "reason": "first_start",
+        "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+        "last_verified_at": "2026-09-12T16:05:36.505157+00:00",
+        "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量",
+        "seconds": 189.3289999999979,
+        "disk_free_bytes": 20665798656,
+        "gpu": {
+          "uuid": "GPU-1e429c16-10d7-a645-9276-4971b7a3e6b9",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "total_mib": 16376,
+          "free_mib": 3850,
+          "driver": "595.97"
+        },
+        "dependencies": [
+          {
+            "runtime": "service",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          },
+          {
+            "runtime": "ppocr",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\ppocr\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+          },
+          {
+            "runtime": "paddlevl",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\paddlevl\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+          },
+          {
+            "runtime": "glm",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          },
+          {
+            "runtime": "hunyuan",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          }
+        ],
+        "llama": {
+          "exit_code": 0,
+          "output": "version: 0.4.0-dev (build 10894, commit d344123fe)\nbuilt with Clang 20.1.8 for Windows x86_64\n"
+        },
+        "engine_packages": []
+      },
+      "events": [
+        {
+          "seconds": 1.172,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在逐文件校验应用、模型和依赖…"
+        },
+        {
+          "seconds": 8.156,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：750 / 65,236"
+        },
+        {
+          "seconds": 11.625,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：1,250 / 65,236"
+        },
+        {
+          "seconds": 12.797,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：2,250 / 65,236"
+        },
+        {
+          "seconds": 13.953,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：3,000 / 65,236"
+        },
+        {
+          "seconds": 15.109,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：4,000 / 65,236"
+        },
+        {
+          "seconds": 16.281,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：4,500 / 65,236"
+        },
+        {
+          "seconds": 17.437,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：5,500 / 65,236"
+        },
+        {
+          "seconds": 18.609,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：6,500 / 65,236"
+        },
+        {
+          "seconds": 19.765,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：7,500 / 65,236"
+        },
+        {
+          "seconds": 20.937,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：8,500 / 65,236"
+        },
+        {
+          "seconds": 22.094,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：9,250 / 65,236"
+        },
+        {
+          "seconds": 23.25,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：10,250 / 65,236"
+        },
+        {
+          "seconds": 24.422,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：11,000 / 65,236"
+        },
+        {
+          "seconds": 25.594,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：12,000 / 65,236"
+        },
+        {
+          "seconds": 26.75,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：12,750 / 65,236"
+        },
+        {
+          "seconds": 27.922,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：13,750 / 65,236"
+        },
+        {
+          "seconds": 29.094,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：14,500 / 65,236"
+        },
+        {
+          "seconds": 30.25,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：15,500 / 65,236"
+        },
+        {
+          "seconds": 31.406,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：16,250 / 65,236"
+        },
+        {
+          "seconds": 32.578,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：17,000 / 65,236"
+        },
+        {
+          "seconds": 33.734,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：17,750 / 65,236"
+        },
+        {
+          "seconds": 34.89,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：18,250 / 65,236"
+        },
+        {
+          "seconds": 36.062,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：19,250 / 65,236"
+        },
+        {
+          "seconds": 37.219,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：21,000 / 65,236"
+        },
+        {
+          "seconds": 38.39,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：22,000 / 65,236"
+        },
+        {
+          "seconds": 39.547,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：22,500 / 65,236"
+        },
+        {
+          "seconds": 40.703,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：23,250 / 65,236"
+        },
+        {
+          "seconds": 41.859,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：24,000 / 65,236"
+        },
+        {
+          "seconds": 43.031,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：24,500 / 65,236"
+        },
+        {
+          "seconds": 44.187,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：25,500 / 65,236"
+        },
+        {
+          "seconds": 45.359,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：26,250 / 65,236"
+        },
+        {
+          "seconds": 46.515,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：26,750 / 65,236"
+        },
+        {
+          "seconds": 47.672,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：27,500 / 65,236"
+        },
+        {
+          "seconds": 48.844,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：28,500 / 65,236"
+        },
+        {
+          "seconds": 50.015,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：29,250 / 65,236"
+        },
+        {
+          "seconds": 51.156,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：29,500 / 65,236"
+        },
+        {
+          "seconds": 52.328,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：30,250 / 65,236"
+        },
+        {
+          "seconds": 53.484,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：31,000 / 65,236"
+        },
+        {
+          "seconds": 54.656,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：31,750 / 65,236"
+        },
+        {
+          "seconds": 55.812,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：32,250 / 65,236"
+        },
+        {
+          "seconds": 56.984,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：33,250 / 65,236"
+        },
+        {
+          "seconds": 58.156,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：34,000 / 65,236"
+        },
+        {
+          "seconds": 59.312,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：34,750 / 65,236"
+        },
+        {
+          "seconds": 60.469,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：35,000 / 65,236"
+        },
+        {
+          "seconds": 61.64,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：35,750 / 65,236"
+        },
+        {
+          "seconds": 62.797,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：36,500 / 65,236"
+        },
+        {
+          "seconds": 63.953,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：37,250 / 65,236"
+        },
+        {
+          "seconds": 65.125,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：38,000 / 65,236"
+        },
+        {
+          "seconds": 66.297,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：38,750 / 65,236"
+        },
+        {
+          "seconds": 67.437,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：39,250 / 65,236"
+        },
+        {
+          "seconds": 68.594,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：39,750 / 65,236"
+        },
+        {
+          "seconds": 69.765,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：40,500 / 65,236"
+        },
+        {
+          "seconds": 70.922,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：41,250 / 65,236"
+        },
+        {
+          "seconds": 72.078,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：41,750 / 65,236"
+        },
+        {
+          "seconds": 73.25,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：42,750 / 65,236"
+        },
+        {
+          "seconds": 74.406,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：43,250 / 65,236"
+        },
+        {
+          "seconds": 75.562,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：44,000 / 65,236"
+        },
+        {
+          "seconds": 76.734,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：44,750 / 65,236"
+        },
+        {
+          "seconds": 77.89,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：45,250 / 65,236"
+        },
+        {
+          "seconds": 79.047,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：46,000 / 65,236"
+        },
+        {
+          "seconds": 80.219,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：46,750 / 65,236"
+        },
+        {
+          "seconds": 81.375,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：47,500 / 65,236"
+        },
+        {
+          "seconds": 82.531,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：48,250 / 65,236"
+        },
+        {
+          "seconds": 83.703,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：49,000 / 65,236"
+        },
+        {
+          "seconds": 84.859,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：49,750 / 65,236"
+        },
+        {
+          "seconds": 86.031,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：50,000 / 65,236"
+        },
+        {
+          "seconds": 87.172,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：50,500 / 65,236"
+        },
+        {
+          "seconds": 88.344,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：51,250 / 65,236"
+        },
+        {
+          "seconds": 89.5,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：52,000 / 65,236"
+        },
+        {
+          "seconds": 90.672,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：52,750 / 65,236"
+        },
+        {
+          "seconds": 91.828,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：53,500 / 65,236"
+        },
+        {
+          "seconds": 93.0,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：54,500 / 65,236"
+        },
+        {
+          "seconds": 94.156,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：55,250 / 65,236"
+        },
+        {
+          "seconds": 95.328,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：55,500 / 65,236"
+        },
+        {
+          "seconds": 96.5,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：56,250 / 65,236"
+        },
+        {
+          "seconds": 97.656,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：57,000 / 65,236"
+        },
+        {
+          "seconds": 98.812,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：57,750 / 65,236"
+        },
+        {
+          "seconds": 99.984,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：58,500 / 65,236"
+        },
+        {
+          "seconds": 101.14,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：59,250 / 65,236"
+        },
+        {
+          "seconds": 102.312,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：60,000 / 65,236"
+        },
+        {
+          "seconds": 103.469,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：60,500 / 65,236"
+        },
+        {
+          "seconds": 104.625,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：61,000 / 65,236"
+        },
+        {
+          "seconds": 105.781,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：61,750 / 65,236"
+        },
+        {
+          "seconds": 106.953,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：62,500 / 65,236"
+        },
+        {
+          "seconds": 108.109,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：63,500 / 65,236"
+        },
+        {
+          "seconds": 109.265,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：64,250 / 65,236"
+        },
+        {
+          "seconds": 110.437,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "正在校验离线文件：65,000 / 65,236"
+        },
+        {
+          "seconds": 111.594,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "检查运行时依赖：service…"
+        },
+        {
+          "seconds": 112.75,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "检查运行时依赖：ppocr…"
+        },
+        {
+          "seconds": 124.328,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "检查运行时依赖：paddlevl…"
+        },
+        {
+          "seconds": 139.422,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "检查运行时依赖：glm…"
+        },
+        {
+          "seconds": 188.219,
+          "status": "checking",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "检查运行时依赖：hunyuan…"
+        },
+        {
+          "seconds": 190.531,
+          "status": "passed",
+          "verification": "full",
+          "reason": "first_start",
+          "notice": "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。校验完成后将自动继续启动工作台，之后日常启动会更快。",
+          "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+        }
+      ]
+    },
+    {
+      "name": "cached-1",
+      "ready_seconds": 1.203,
+      "service_ready_seconds": 1.203,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [],
+        "checks": [
+          "manifest-identity",
+          "required-entries",
+          "disk-space"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "full",
+        "verification": "cached",
+        "reason": "cached",
+        "notice": "",
+        "last_verified_at": "2026-09-12T16:05:36.505157+00:00",
+        "message": "正在快速启动工作台…（复用已通过的校验记录）",
+        "seconds": 0.014999999999417923,
+        "disk_free_bytes": 18496397312,
+        "engine_packages": []
+      },
+      "events": [
+        {
+          "seconds": 1.203,
+          "status": "passed",
+          "verification": "cached",
+          "reason": "cached",
+          "notice": "",
+          "message": "正在快速启动工作台…（复用已通过的校验记录）"
+        }
+      ]
+    },
+    {
+      "name": "cached-2",
+      "ready_seconds": 1.437,
+      "service_ready_seconds": 1.281,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [],
+        "checks": [
+          "manifest-identity",
+          "required-entries",
+          "disk-space"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "full",
+        "verification": "cached",
+        "reason": "cached",
+        "notice": "",
+        "last_verified_at": "2026-09-12T16:05:36.505157+00:00",
+        "message": "正在快速启动工作台…（复用已通过的校验记录）",
+        "seconds": 0.01599999999598367,
+        "disk_free_bytes": 18496397312,
+        "engine_packages": []
+      },
+      "events": [
+        {
+          "seconds": 0.765,
+          "status": "passed",
+          "verification": "cached",
+          "reason": "cached",
+          "notice": "",
+          "message": "正在快速启动工作台…（复用已通过的校验记录）"
+        }
+      ]
+    },
+    {
+      "name": "cached-3",
+      "ready_seconds": 1.422,
+      "service_ready_seconds": 1.282,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [],
+        "checks": [
+          "manifest-identity",
+          "required-entries",
+          "disk-space"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "full",
+        "verification": "cached",
+        "reason": "cached",
+        "notice": "",
+        "last_verified_at": "2026-09-12T16:05:36.505157+00:00",
+        "message": "正在快速启动工作台…（复用已通过的校验记录）",
+        "seconds": 0.0,
+        "disk_free_bytes": 18496413696,
+        "engine_packages": []
+      },
+      "events": [
+        {
+          "seconds": 0.766,
+          "status": "passed",
+          "verification": "cached",
+          "reason": "cached",
+          "notice": "",
+          "message": "正在快速启动工作台…（复用已通过的校验记录）"
+        }
+      ]
+    },
+    {
+      "name": "forced",
+      "ready_seconds": 223.53,
+      "service_ready_seconds": null,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [
+          "当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+        ],
+        "checks": [
+          "driver-and-gpu",
+          "full-file-sha256",
+          "native-runtime-imports"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "full",
+        "verification": "full",
+        "reason": "forced",
+        "notice": "已选择完整校验并启动，需要完整校验，所需时间较长，请耐心等待。校验完成后将自动继续启动。",
+        "last_verified_at": "2026-09-12T16:22:39.840834+00:00",
+        "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量",
+        "seconds": 222.29699999999866,
+        "disk_free_bytes": 20929011712,
+        "gpu": {
+          "uuid": "GPU-1e429c16-10d7-a645-9276-4971b7a3e6b9",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "total_mib": 16376,
+          "free_mib": 6050,
+          "driver": "595.97"
+        },
+        "dependencies": [
+          {
+            "runtime": "service",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          },
+          {
+            "runtime": "ppocr",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\ppocr\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+          },
+          {
+            "runtime": "paddlevl",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\paddlevl\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+          },
+          {
+            "runtime": "glm",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          },
+          {
+            "runtime": "hunyuan",
+            "exit_code": 0,
+            "stdout": "imports-ok\n",
+            "stderr": ""
+          }
+        ],
+        "llama": {
+          "exit_code": 0,
+          "output": "version: 0.4.0-dev (build 10894, commit d344123fe)\nbuilt with Clang 20.1.8 for Windows x86_64\n"
+        },
+        "engine_packages": []
+      },
+      "events": [
+        {
+          "seconds_since_observation": 0.0,
+          "status": "passed",
+          "verification": "full",
+          "reason": "forced",
+          "notice": "已选择完整校验并启动，需要完整校验，所需时间较长，请耐心等待。校验完成后将自动继续启动。",
+          "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+        }
+      ],
+      "clock": "ready-state-file minus process creation"
+    },
+    {
+      "name": "review-only",
+      "ready_seconds": 1.734,
+      "service_ready_seconds": 1.578,
+      "startup": {
+        "status": "passed",
+        "errors": [],
+        "warnings": [],
+        "checks": [
+          "manifest-identity",
+          "required-entries",
+          "disk-space"
+        ],
+        "bundle": "E:\\OCR-fusion-20260912\\bundle",
+        "mode": "review_only",
+        "verification": "cached",
+        "reason": "cached",
+        "notice": "",
+        "last_verified_at": "2026-09-12T16:22:39.840834+00:00",
+        "message": "正在快速启动工作台…（复用已通过的校验记录）",
+        "seconds": 0.01600000000325963,
+        "disk_free_bytes": 20970164224
+      },
+      "events": [
+        {
+          "seconds_since_observation": 1.062,
+          "status": "passed",
+          "verification": "cached",
+          "reason": "cached",
+          "notice": "",
+          "message": "正在快速启动工作台…（复用已通过的校验记录）"
+        }
+      ],
+      "clock": "launch to observed GUI and service readiness"
+    }
+  ],
+  "scope": "Actual compiled launcher and embedded service startup only; isolated profile. No OCR, fusion, correction or export tasks submitted by this verifier.",
+  "manifest_sha256": "6085be06595cd9188b433818f7ef06eddb324427dc678458f27411f67af256f5",
+  "launcher_sha256": "aa0811a54bf7b45019026bd3c90619c437419444dac8f59bbce011aea6f22168"
+}

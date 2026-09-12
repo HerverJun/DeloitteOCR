@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "default-auto-policy",
+    "persistent-first-start-notice",
+    "persistent-upgrade-notice",
+    "independent-progress",
+    "cached-start-message",
+    "automatic-open-when-ready",
+    "failure-detail"
+  ],
+  "scope": "Real Qt widget rendered offscreen; service boundary controlled. Packaged service tested separately."
+}

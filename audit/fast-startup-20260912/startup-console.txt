@@ -1,0 +1,5 @@
+{"phase": "startup", "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"}
+{"phase": "ready", "verification": "full", "ready_seconds": 223.53}
+{"phase": "startup", "message": "正在快速启动工作台…（复用已通过的校验记录）"}
+{"phase": "ready", "verification": "cached", "ready_seconds": 1.734}
+{"passed": true, "starts": [{"name": "first", "ready_seconds": 190.89}, {"name": "cached-1", "ready_seconds": 1.203}, {"name": "cached-2", "ready_seconds": 1.437}, {"name": "cached-3", "ready_seconds": 1.422}, {"name": "forced", "ready_seconds": 223.53}, {"name": "review-only", "ready_seconds": 1.734}]}

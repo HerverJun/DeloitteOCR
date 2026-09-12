@@ -10,8 +10,134 @@ import shutil
 import stat
 import subprocess
 import time
+from contextlib import ExitStack
 from ocr_workbench.engine_packages import member_path
 from ocr_workbench.atomic_files import write_json
+from ocr_workbench.verification_cache import VerificationCache
+
+
+FIRST_START_NOTICE = (
+    "首次启动需要校验离线模型和运行文件，所需时间较长，请耐心等待。"
+    "校验完成后将自动继续启动工作台，之后日常启动会更快。"
+)
+UPGRADE_NOTICE = (
+    "检测到应用版本更新，需要重新完整校验，所需时间较长，请耐心等待。"
+    "校验完成后将自动继续启动。"
+)
+REQUIRED_ENTRIES = (
+    "runtimes/service/python.exe", "app/ocr_workbench/service.py",
+    "web/index.html", "config/engines.json", "config/fusion-policy.json",
+)
+
+
+def startup_notice(reason):
+    if reason in {"first_start", "installation_changed"}:
+        return FIRST_START_NOTICE
+    if reason == "version_changed":
+        return UPGRADE_NOTICE
+    if reason == "cached":
+        return ""
+    detail = {
+        "forced": "已选择完整校验并启动",
+        "invalid_receipt": "校验记录不可用",
+        "unfinished_check": "上次完整校验未完成",
+        "policy_changed": "校验规则已更新",
+        "recognition_enabled": "首次启用识别模式",
+        "cache_unavailable": "无法访问校验记录目录",
+    }.get(reason, "需要重新检查离线文件")
+    return detail + "，需要完整校验，所需时间较长，请耐心等待。校验完成后将自动继续启动。"
+
+
+def run_startup_checks(bundle, data, registry=None, *, policy="auto", review_only=False,
+                       cache_directory=None):
+    """Select a full check or a constant-size preflight; payload checks stay explicit."""
+    if policy not in {"auto", "full"}:
+        raise ValueError("未知启动校验策略")
+    bundle, data = Path(bundle).resolve(), Path(data).resolve()
+    target = data / "launcher/startup-state.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    report = {
+        "status": "checking", "errors": [], "warnings": [], "checks": [],
+        "bundle": str(bundle), "mode": "review_only" if review_only else "full",
+        "verification": "pending", "reason": "detecting", "notice": "",
+        "last_verified_at": None,
+    }
+
+    def publish(message):
+        report["message"] = message
+        report["seconds"] = time.monotonic() - started
+        write_json(target, report)
+
+    try:
+        publish("正在确认应用版本与校验记录…")
+        cache = VerificationCache(bundle, directory=cache_directory)
+        level = "core" if review_only else "full"
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(cache.locked(lambda: publish("另一个工作台正在校验此安装包，请耐心等待…")))
+            except OSError:
+                cache = None
+                report["warnings"].append("无法访问校验记录目录；本次执行完整校验，下次启动可能需要重新校验")
+            identity = cache.identity() if cache else None
+            record, reason = cache.lookup(identity, level) if cache else (None, "cache_unavailable")
+            if policy == "full":
+                reason = "forced"
+            full = policy == "full" or record is None
+            report.update(
+                verification=("core" if review_only else "full") if full else "cached",
+                reason=reason, notice=startup_notice(reason),
+                last_verified_at=record["verified_at"] if record else None,
+            )
+            # Publish the persistent explanation before any GPU/import/hash work.
+            publish("准备完整校验…" if full else "正在快速启动工作台…")
+            if full:
+                if cache:
+                    cache.invalidate(identity)
+                previous_warnings = report["warnings"]
+                context = {key: report[key] for key in (
+                    "verification", "reason", "notice", "last_verified_at",
+                )}
+                report.update(run_checks(bundle, data, review_only=review_only, context=context))
+                report["warnings"] = previous_warnings + report["warnings"]
+                if report["status"] == "passed" and cache:
+                    # Identity changes are a failed check; only persistence errors are warnings.
+                    if cache.identity() != identity:
+                        raise ValueError("校验期间文件清单发生变化，请等待更新完成后重试")
+                    try:
+                        saved = cache.save(identity, level)
+                        report["last_verified_at"] = saved["verified_at"]
+                    except OSError:
+                        report["warnings"].append("校验已通过，但记录保存失败；下次启动会重新完整校验")
+            else:
+                missing = [name for name in REQUIRED_ENTRIES if not (bundle / name).is_file()]
+                if missing:
+                    cache.invalidate(identity)
+                    raise ValueError("应用入口缺失，请重新解压完整包：" + "、".join(missing))
+                report["disk_free_bytes"] = shutil.disk_usage(data).free
+                if report["disk_free_bytes"] < 2 * 1024**3:
+                    raise ValueError("项目磁盘剩余空间不足 2 GB，请清理磁盘或更换项目目录")
+                report["checks"].extend(["manifest-identity", "required-entries", "disk-space"])
+                report["status"] = "passed"
+            if report["status"] == "passed" and registry and not review_only:
+                report["status"] = "checking"
+                report["engine_packages"] = registry.check_active(
+                    force=full, publish=publish, cache_directory=cache_directory,
+                )
+                for item in report["engine_packages"]:
+                    report["warnings"].extend(item.get("warnings", []))
+                report["status"] = "passed"
+    except Exception as error:
+        report["errors"].append("启动检查未完成：" + str(error))
+        report["status"] = "failed"
+    if report["status"] == "passed":
+        message = "正在快速启动工作台…（复用已通过的校验记录）" if report["verification"] == "cached" else "本次完整校验通过，正在启动工作台…"
+        if report["warnings"]:
+            message += "\n" + "；".join(report["warnings"])
+    else:
+        message = "；".join(report["errors"][:3])
+    publish(message)
+    return report
 
 
 def verify_integrity(root, progress=lambda done, total: None, *, core_only=False):
@@ -102,7 +228,7 @@ def verify_integrity(root, progress=lambda done, total: None, *, core_only=False
     return errors
 
 
-def run_checks(bundle, data, registry=None, integrity=True, review_only=False):
+def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *, context=None):
     bundle = Path(bundle).resolve()
     data = Path(data).resolve()
     data.mkdir(parents=True, exist_ok=True)
@@ -117,6 +243,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False):
         "checks": [],
         "bundle": str(bundle),
         "mode": "review_only" if review_only else "full",
+        **(context or {}),
     }
 
     def publish(message):
@@ -145,7 +272,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False):
             report["errors"].extend(
                 verify_integrity(
                     bundle,
-                    lambda done, total: publish(f"正在校验离线文件 {done}/{total}…"),
+                    lambda done, total: publish(f"正在校验离线文件：{done:,} / {total:,}"),
                     core_only=review_only,
                 )
             )

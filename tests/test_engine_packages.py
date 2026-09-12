@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 import subprocess
@@ -13,6 +14,9 @@ class EnginePackageTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
+        self.cache_env = patch.dict(os.environ, {"LOCALAPPDATA": str(self.root / "local")})
+        self.cache_env.start()
+        self.addCleanup(self.cache_env.stop)
         bundle = self.root / "bundle"
         (bundle / "config").mkdir(parents=True)
         self.spec = {
@@ -86,6 +90,48 @@ class EnginePackageTests(unittest.TestCase):
         self.registry.switch("ppocr", "builtin")
         self.assertEqual(self.registry.engines()["ppocr"]["package_id"], "builtin")
         self.assertTrue((self.registry.packages / "ppocr-test-v1").exists())
+
+    def test_activation_receipt_skips_repeated_hash_and_probe(self):
+        receipt = self.registry.stage(self.package())
+        with patch.object(self.registry, "probe"), patch.object(self.registry, "smoke"):
+            self.registry.activate(receipt["staging_id"], receipt["sha256"])
+        with patch.object(self.registry, "verify_files", side_effect=AssertionError("rehashed")), patch.object(
+            self.registry, "probe", side_effect=AssertionError("reprobed")
+        ), patch.object(Path, "rglob", side_effect=AssertionError("scanned")):
+            checks = self.registry.check_active()
+        self.assertEqual(checks[0]["verification"], "cached")
+
+    def test_manifest_change_rechecks_only_active_package(self):
+        receipt = self.registry.stage(self.package())
+        with patch.object(self.registry, "probe"), patch.object(self.registry, "smoke"):
+            self.registry.activate(receipt["staging_id"], receipt["sha256"])
+        root = self.registry.packages / "ppocr-test-v1"
+        manifest = root / "engine-package.json"
+        manifest.write_text(manifest.read_text() + " ")
+        with patch.object(self.registry, "probe") as probe:
+            checks = self.registry.check_active()
+        probe.assert_called_once_with(root, "ppocr")
+        self.assertEqual(checks[0]["verification"], "full")
+
+    def test_force_and_switch_recheck_previously_verified_package(self):
+        receipt = self.registry.stage(self.package())
+        with patch.object(self.registry, "probe"), patch.object(self.registry, "smoke"):
+            self.registry.activate(receipt["staging_id"], receipt["sha256"])
+        with patch.object(self.registry, "probe") as probe, patch.object(self.registry, "smoke") as smoke:
+            self.assertEqual(self.registry.check_active(force=True)[0]["verification"], "full")
+            self.registry.switch("ppocr", "ppocr-test-v1")
+            self.assertEqual(probe.call_count, 2)
+            smoke.assert_called_once()
+
+    def test_failed_recheck_does_not_reuse_activation_receipt(self):
+        receipt = self.registry.stage(self.package())
+        with patch.object(self.registry, "probe"), patch.object(self.registry, "smoke"):
+            self.registry.activate(receipt["staging_id"], receipt["sha256"])
+        (self.registry.packages / "ppocr-test-v1/models/model/weights.bin").write_bytes(b"corrupt")
+        with self.assertRaises(ValueError):
+            self.registry.check_active(force=True)
+        with self.assertRaises(ValueError):
+            self.registry.check_active()
 
     def test_failed_probe_keeps_current_and_staged_package(self):
         receipt = self.registry.stage(self.package())

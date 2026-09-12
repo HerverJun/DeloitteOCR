@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from ocr_workbench.processes import ProcessJob
-from ocr_workbench.atomic_files import read_json
+from ocr_workbench.atomic_files import read_json, write_json
 
 
 def icon():
@@ -49,7 +49,7 @@ def icon():
 
 
 class Launcher(QWidget):
-    def __init__(self, bundle, data, no_browser=False, review_only=False):
+    def __init__(self, bundle, data, no_browser=False, review_only=False, verify_startup=False):
         super().__init__()
         self.bundle, self.data = bundle, data
         self.no_browser = no_browser
@@ -68,7 +68,7 @@ class Launcher(QWidget):
         self.token_file.write_text(self.token, encoding="utf-8")
         self.setWindowTitle("DeloitteOCR · 离线 OCR 工作台")
         self.setWindowIcon(icon())
-        self.resize(440, 290)
+        self.resize(480, 360)
         self.setStyleSheet(
             'QWidget {background:#151515;color:#f2f4ee;font-family:"Microsoft YaHei";font-size:13px;} QLabel {padding:8px;} QPushButton {padding:9px;background:#86bc25;color:#152008;border-radius:4px;font-weight:600;} QPushButton:hover {background:#95c840;} QPushButton:disabled {background:#353b2d;color:#b6bbb1;} QPushButton:focus {border:2px solid white;}'
         )
@@ -87,6 +87,11 @@ class Launcher(QWidget):
         )
         title.setStyleSheet("font-size:16px;font-weight:600;")
         layout.addWidget(title)
+        self.notice = QLabel("")
+        self.notice.setWordWrap(True)
+        self.notice.setStyleSheet("color:#d0dfb6;")
+        self.notice.hide()
+        layout.addWidget(self.notice)
         self.status = QLabel("正在启动本机服务…")
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
@@ -149,7 +154,8 @@ class Launcher(QWidget):
                 "-I",
                 "-m",
                 "ocr_workbench.service",
-                "--verify-startup",
+                "--startup-check",
+                "full" if verify_startup else "auto",
                 *(["--review-only"] if review_only else []),
                 "--bundle",
                 str(bundle),
@@ -170,19 +176,12 @@ class Launcher(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.poll)
         self.timer.start(300)
-        (self.session / "launcher-state.json").write_text(
-            json.dumps(
-                {
-                    "pid": os.getpid(),
-                    "service_pid": self.process.pid,
-                    "port": self.port,
-                    "bundle": str(bundle),
-                    "data": str(data),
-                    "review_only": review_only,
-                }
-            ),
-            encoding="utf-8",
-        )
+        self.launcher_state = {
+            "pid": os.getpid(), "service_pid": self.process.pid,
+            "port": self.port, "bundle": str(bundle), "data": str(data),
+            "review_only": review_only, "ready": False,
+        }
+        write_json(self.session / "launcher-state.json", self.launcher_state)
 
     def poll(self):
         if self.process.poll() is not None:
@@ -193,7 +192,9 @@ class Launcher(QWidget):
             detail = "服务启动失败。请查看项目目录中的 launcher/service.log。"
             if self.startup_file.exists():
                 try:
-                    detail = read_json(self.startup_file).get("message", detail)
+                    state = read_json(self.startup_file)
+                    self.update_notice(state)
+                    detail = state.get("message", detail)
                 except (OSError, ValueError):
                     pass
             self.status.setText(detail)
@@ -211,9 +212,11 @@ class Launcher(QWidget):
             return
         if not self.ready:
             checking = False
+            state = {}
             if self.startup_file.exists():
                 try:
                     state = read_json(self.startup_file)
+                    self.update_notice(state)
                     checking = state.get("status") == "checking"
                     self.status.setText(state.get("message", "正在启动检查…"))
                 except (OSError, ValueError):
@@ -226,14 +229,26 @@ class Launcher(QWidget):
             except Exception:
                 pass
             if self.ready:
+                warnings = state.get("warnings", []) if self.startup_file.exists() else []
+                self.notice.setText("；".join(warnings))
+                self.notice.setVisible(bool(warnings))
                 self.status.setText("服务正在运行。关闭浏览器后可从托盘重新打开。")
+                if warnings:
+                    self.tray.showMessage("启动提示", "；".join(warnings))
                 self.open_button.setEnabled(True)
+                self.launcher_state["ready"] = True
+                write_json(self.session / "launcher-state.json", self.launcher_state)
                 if not self.no_browser:
                     self.open_browser()
                     self.hide()
             elif not checking and time.monotonic() - self.started > 45:
                 self.status.setText("启动时间较长，请查看服务日志。")
                 self.show()
+
+    def update_notice(self, state):
+        notice = state.get("notice", "")
+        self.notice.setText(notice)
+        self.notice.setVisible(bool(notice))
 
     def open_browser(self):
         if not self.ready:
@@ -306,6 +321,7 @@ def main():
         default=Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/Workspace",
     )
     p.add_argument("--no-browser", action="store_true")
+    p.add_argument("--verify-startup", action="store_true", help="强制完整校验离线文件和运行环境后启动")
     p.add_argument(
         "--review-only",
         action="store_true",
@@ -328,7 +344,7 @@ def main():
         return 0
     window = None
     try:
-        window = Launcher(bundle, args.data, args.no_browser, args.review_only)
+        window = Launcher(bundle, args.data, args.no_browser, args.review_only, args.verify_startup)
         window.show()
         return app.exec()
     except Exception as error:

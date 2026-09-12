@@ -96,7 +96,11 @@ info = subprocess.check_output(
 )
 (a.bundle / "config/launcher-build.json").write_text(info, encoding="utf-8")
 (a.bundle / "启动工作台.cmd").write_text(
-    '@echo off\r\nstart "" "%~dp0launcher\\OfflineOCRLauncher.exe"\r\n',
+    '@echo off\r\nstart "" "%~dp0launcher\\OfflineOCRLauncher.exe" %*\r\n',
+    encoding="ascii",
+)
+(a.bundle / "完整校验并启动.cmd").write_text(
+    '@echo off\r\nstart "" "%~dp0launcher\\OfflineOCRLauncher.exe" --verify-startup %*\r\n',
     encoding="ascii",
 )
 print(

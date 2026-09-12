@@ -1,0 +1,101 @@
+{
+  "passed": true,
+  "scope": "Readiness snapshots after restored startup; no feature tasks submitted.",
+  "default_workspace": {
+    "startup": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [
+        "当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量"
+      ],
+      "checks": [
+        "driver-and-gpu",
+        "full-file-sha256",
+        "native-runtime-imports"
+      ],
+      "bundle": "E:\\OCR-fusion-20260912\\bundle",
+      "mode": "full",
+      "verification": "full",
+      "reason": "version_changed",
+      "notice": "检测到应用版本更新，需要重新完整校验，所需时间较长，请耐心等待。校验完成后将自动继续启动。",
+      "last_verified_at": "2026-09-12T16:35:10.553895+00:00",
+      "message": "本次完整校验通过，正在启动工作台…\n当前空闲显存低于 12 GB，结构化模型可能因显存不足失败；不会自动降低质量",
+      "seconds": 184.2960000000021,
+      "disk_free_bytes": 20908253184,
+      "gpu": {
+        "uuid": "GPU-1e429c16-10d7-a645-9276-4971b7a3e6b9",
+        "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+        "total_mib": 16376,
+        "free_mib": 5446,
+        "driver": "595.97"
+      },
+      "dependencies": [
+        {
+          "runtime": "service",
+          "exit_code": 0,
+          "stdout": "imports-ok\n",
+          "stderr": ""
+        },
+        {
+          "runtime": "ppocr",
+          "exit_code": 0,
+          "stdout": "imports-ok\n",
+          "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\ppocr\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+        },
+        {
+          "runtime": "paddlevl",
+          "exit_code": 0,
+          "stdout": "imports-ok\n",
+          "stderr": "\\xd0\\xc5Ϣ: \\xd3\\xc3\\xccṩ\\xb5\\xc4ģʽ\\xce޷\\xa8\\xd5ҵ\\xbd\\xceļ\\xfe\\xa1\\xa3\nE:\\OCR-fusion-20260912\\bundle\\runtimes\\paddlevl\\Lib\\site-packages\\paddle\\utils\\cpp_extension\\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\n  warnings.warn(warning_message)\n"
+        },
+        {
+          "runtime": "glm",
+          "exit_code": 0,
+          "stdout": "imports-ok\n",
+          "stderr": ""
+        },
+        {
+          "runtime": "hunyuan",
+          "exit_code": 0,
+          "stdout": "imports-ok\n",
+          "stderr": ""
+        }
+      ],
+      "llama": {
+        "exit_code": 0,
+        "output": "version: 0.4.0-dev (build 10894, commit d344123fe)\nbuilt with Clang 20.1.8 for Windows x86_64\n"
+      },
+      "engine_packages": []
+    },
+    "port": 58601,
+    "health_status": "ready"
+  },
+  "preview": {
+    "startup": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "checks": [
+        "manifest-identity",
+        "required-entries",
+        "disk-space"
+      ],
+      "bundle": "E:\\OCR-fusion-20260912\\bundle",
+      "mode": "full",
+      "verification": "cached",
+      "reason": "cached",
+      "notice": "",
+      "last_verified_at": "2026-09-12T16:35:10.553895+00:00",
+      "message": "正在快速启动工作台…（复用已通过的校验记录）",
+      "seconds": 0.014999999999417923,
+      "disk_free_bytes": 20886921216,
+      "engine_packages": []
+    },
+    "port": 8881,
+    "health_status": "ready"
+  },
+  "manifest_sha256": "40a5a802b08c8df616ee248db1ba3aada83febb6dae1e4d982cf27e5cd681b30",
+  "launcher_sha256": "aa0811a54bf7b45019026bd3c90619c437419444dac8f59bbce011aea6f22168",
+  "source_files_identical": 32,
+  "frontend_files_identical": 9
+}

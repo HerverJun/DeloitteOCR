@@ -49,7 +49,7 @@ def main():
                      'project_image_version':photo['active_version'],'image':{'width':600,'height':400}})
                 ids.append(store.one('tasks',task['id'])['result_id'])
             startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
-            process = subprocess.Popen([str(bundle/'launcher/OfflineOCRLauncher.exe'), '--data', str(data), '--no-browser',
+            process = subprocess.Popen([str(bundle/'launcher/OfflineOCRLauncher.exe'), '--data', str(data), '--no-browser', '--verify-startup',
                  *(['--review-only'] if review_only else [])], startupinfo=startup, creationflags=subprocess.CREATE_NO_WINDOW)
             base = token = None
             def api(path, body=None):
@@ -76,6 +76,8 @@ def main():
                         print(json.dumps({'mode':mode,'phase':'startup checks'}),flush=True);last_log=time.monotonic()
                     time.sleep(.2)
                 assert health['version']==__version__ and health['review_only']==review_only
+                assert startup_state['verification'] == ('core' if review_only else 'full')
+                assert ('core-file-sha256' if review_only else 'full-file-sha256') in startup_state['checks']
                 assert health['fusion_queue']['healthy']
                 policies=api('/fusion/policies')
                 submitted=api('/projects/'+project['id']+'/fusion', {'result_ids':ids,'content_type':'table','mode':'conservative',

@@ -1,6 +1,6 @@
 """Versioned complete engine bundles; staging never executes uploaded code."""
 
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 import hashlib
 import json
 import os
@@ -13,6 +13,7 @@ import threading
 import zipfile
 from ocr_workbench.store import uid
 from ocr_workbench.atomic_files import read_json, write_json
+from ocr_workbench.verification_cache import VerificationCache
 
 ID = re.compile(r"[a-z][a-z0-9_-]{1,63}")
 RESERVED = {
@@ -340,6 +341,7 @@ class EnginePackages:
             self.probe(staged, manifest["engine"])
             self.smoke(staged, manifest["engine"])
             staged.replace(target)
+            warnings = self.remember_verified(target, receipt["manifest_sha256"])
             active = self.active()
             previous = active.get(manifest["engine"], "builtin")
             active[manifest["engine"]] = manifest["id"]
@@ -349,7 +351,60 @@ class EnginePackages:
                 "engine": manifest["engine"],
                 "package_id": manifest["id"],
                 "previous": previous,
+                "warnings": warnings,
             }
+
+    def remember_verified(self, root, digest):
+        """Activation already checked these bytes before moving them into place."""
+        cache = VerificationCache(root, kind="engine")
+        try:
+            with cache.locked():
+                cache.invalidate(digest)
+                cache.save(digest, "full")
+        except OSError:
+            return ["引擎已校验，但记录保存失败；下次启动会重新校验该引擎包"]
+        return []
+
+    def check_package(self, root, engine, *, force=False, smoke=False,
+                      publish=lambda message: None, cache_directory=None):
+        cache = VerificationCache(root, kind="engine", directory=cache_directory)
+        result = {"engine": engine, "package_id": root.name, "warnings": []}
+        with ExitStack() as stack:
+            try:
+                stack.enter_context(cache.locked(lambda: publish("正在等待引擎包校验：" + engine)))
+            except OSError:
+                cache = None
+                result["warnings"].append("无法访问引擎校验记录；下次启动可能需要重新校验该引擎包")
+            digest = cache.identity() if cache else None
+            record = cache.lookup(digest, "full")[0] if cache else None
+            if record and not force and not smoke:
+                if all((root / path).is_file() for path in (
+                    f"runtimes/{engine}/python.exe", "config/engines.json",
+                )):
+                    return {**result, "verification": "cached", "last_verified_at": record["verified_at"]}
+            publish("正在完整校验已启用的引擎包：" + engine + "，请耐心等待…")
+            if cache:
+                cache.invalidate(digest)
+            self.verify_files(root, read_manifest(root))
+            self.probe(root, engine)
+            if smoke:
+                self.smoke(root, engine)
+            result["verification"] = "full"
+            if cache:
+                if cache.identity() != digest:
+                    raise ValueError("校验期间引擎包清单发生变化，请重试")
+                try:
+                    result["last_verified_at"] = cache.save(digest, "full")["verified_at"]
+                except OSError:
+                    result["warnings"].append("引擎校验记录保存失败；下次启动会重新校验该引擎包")
+            return result
+
+    def check_active(self, *, force=False, publish=lambda message: None, cache_directory=None):
+        return [
+            self.check_package(self.resolve(engine, package_id), engine, force=force,
+                               publish=publish, cache_directory=cache_directory)
+            for engine, package_id in self.active().items() if package_id != "builtin"
+        ]
 
     def verify_files(self, root, manifest):
         if root.is_symlink() or root.is_junction():
@@ -447,11 +502,9 @@ class EnginePackages:
     def switch(self, engine, package_id):
         with self.mutation():
             root = self.resolve(engine, package_id)
+            warnings = []
             if package_id != "builtin":
-                manifest = read_manifest(root)
-                self.verify_files(root, manifest)
-                self.probe(root, engine)
-                self.smoke(root, engine)
+                warnings = self.check_package(root, engine, force=True, smoke=True)["warnings"]
             active = self.active()
             previous = active.get(engine, "builtin")
             active[engine] = package_id
@@ -461,6 +514,7 @@ class EnginePackages:
                 "engine": engine,
                 "package_id": package_id,
                 "previous": previous,
+                "warnings": warnings,
             }
 
     def discard(self, key):

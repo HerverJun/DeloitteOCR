@@ -1,0 +1,22 @@
+{
+  "previous_manifest_sha256": "6085be06595cd9188b433818f7ef06eddb324427dc678458f27411f67af256f5",
+  "manifest_sha256": "40a5a802b08c8df616ee248db1ba3aada83febb6dae1e4d982cf27e5cd681b30",
+  "changed_files": [
+    {
+      "path": "docs/工作台使用说明.md",
+      "previous": {
+        "path": "docs/工作台使用说明.md",
+        "bytes": 9510,
+        "sha256": "a5c80a29f17cfed7a40f49ae2d87fd49b3f68f019ee3bf27a9076049da3d5ea2"
+      },
+      "current": {
+        "path": "docs/工作台使用说明.md",
+        "bytes": 10957,
+        "sha256": "14ca8973058ef7f59ce4d77b2a7a2c14de89c856b0b871335f47b3ee625f3887"
+      }
+    }
+  ],
+  "file_count": 65236,
+  "total_bytes": 24371817471,
+  "scope": "Only user-guide text changed after the six packaged-startup measurements; executable, application, frontend, models and runtimes unchanged."
+}

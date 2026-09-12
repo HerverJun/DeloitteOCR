@@ -462,6 +462,7 @@ def main():
         action="store_true",
         help="Run complete offline startup gates before serving requests",
     )
+    p.add_argument("--startup-check", choices=("auto", "full"), help="Reuse verified installation receipts, or force complete verification")
     p.add_argument("--review-only", action="store_true", help="Open existing projects for review and export without GPU inference")
     args = p.parse_args()
     token = args.token_file.read_text(encoding="utf-8").strip()
@@ -477,12 +478,13 @@ def main():
             msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
         except OSError:
             raise RuntimeError("该项目目录已由另一个工作台使用")
-        if args.verify_startup:
-            from ocr_workbench.startup import run_checks
+        if args.verify_startup or args.startup_check:
+            from ocr_workbench.startup import run_startup_checks
             from ocr_workbench.engine_packages import EnginePackages
 
-            report = run_checks(
-                args.bundle, args.data, EnginePackages(args.bundle, args.data), review_only=args.review_only
+            report = run_startup_checks(
+                args.bundle, args.data, EnginePackages(args.bundle, args.data), review_only=args.review_only,
+                policy="full" if args.verify_startup else args.startup_check,
             )
             if report["status"] != "passed":
                 raise SystemExit(2)
