@@ -178,7 +178,7 @@ def digest(path):
 
 
 @bounded_image_work
-def add_image(store, project_id, name, temporary):
+def add_image(store, project_id, name, temporary, *, page_id=None, pdf_to_pixel=None, page_payload=None):
     store.one("projects", project_id)
     suffix = Path(name).suffix.lower()
     if suffix not in SUPPORTED:
@@ -233,6 +233,19 @@ def add_image(store, project_id, name, temporary):
                     now(),
                 ),
             )
+            store.link_image_document(db, key, page_id=page_id, pdf_to_pixel=pdf_to_pixel)
+            if page_payload is not None:
+                from ocr_workbench.atomic_files import write_json
+                write_json(publication.temporary / 'native.json', page_payload)
+                db.execute('UPDATE pages SET native_result=?,render_parameters=? WHERE id=?',
+                           (str((folder / 'native.json').relative_to(store.root)), encoded(page_payload['metadata']), page_id))
+                native = page_payload['native']
+                for order, region in enumerate(native.get('coverage_regions', [])):
+                    store.add_region(page_id, version, region['kind'], region['polygon'], region['source'],
+                                     reading_order=order, metadata={'overlaps_native': region.get('overlaps_native', False)}, db=db)
+                for order, unit in enumerate(native['units']):
+                    store.add_region(page_id, version, 'native-word', unit['polygon'], 'pdf-native',
+                                     reading_order=order, metadata=unit, db=db)
             publication.publish()
     try:
         temporary.unlink(missing_ok=True)
@@ -351,6 +364,7 @@ def save_version(store, parent, image, operation, task_id=None, prepare_task_id=
                     now(),
                 ),
             )
+            store.link_derived_version(db, parent, version, operation)
             if owner_task:
                 db.execute(
                     "UPDATE images SET active_version=? WHERE id=? AND active_version=?",

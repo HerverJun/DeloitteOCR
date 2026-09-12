@@ -4,6 +4,7 @@ import shutil
 
 p = argparse.ArgumentParser()
 p.add_argument("--bundle", type=Path, required=True)
+p.add_argument("--skip-audit", action="store_true")
 a = p.parse_args()
 source = Path(__file__).resolve().parents[1]
 for origin, dest in [
@@ -52,4 +53,6 @@ for name in [
     "fusion_metrics.py",
     "apply_fusion_annotation_review.py",
 ]:
+    if origin == "audit" and a.skip_audit:
+        continue
     shutil.copy2(source / "scripts" / name, a.bundle / "tools" / name)

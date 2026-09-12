@@ -1,0 +1,29 @@
+{
+  "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim",
+  "checks": [
+    {
+      "name": "page navigation saves current revision before changing image",
+      "passed": true
+    },
+    {
+      "name": "PDF preflight names missing text and an explicit page range exports successfully",
+      "passed": true
+    },
+    {
+      "name": "document search uses adopted saved content",
+      "passed": true
+    },
+    {
+      "name": "TIFF page opens lazily through CPU queue",
+      "passed": true
+    },
+    {
+      "name": "encrypted PDF unlock removes password field after success",
+      "passed": true
+    }
+  ],
+  "errors": [
+    "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('region', { name: '快速校对', exact: true }).getByLabel('原图预览范围', { exact: true })\nExpected: visible\nError: strict mode violation: getByRole('region', { name: '快速校对', exact: true }).getByLabel('原图预览范围', { exact: true }) resolved to 2 elements:\n    1) <select aria-label=\"原图预览范围\">…</select> aka getByLabel('原图预览范围').first()\n    2) <select aria-label=\"原图预览范围\">…</select> aka getByLabel('原图预览范围').nth(1)\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByRole('region', { name: '快速校对', exact: true }).getByLabel('原图预览范围', { exact: true })\n"
+  ],
+  "browser_closed": true
+}

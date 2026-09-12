@@ -1,0 +1,6 @@
+test_chinese_two_column_text_and_damaged_unicode_are_distinguished (test_document_processing.PdfWorkflowTests.test_chinese_two_column_text_and_damaged_unicode_are_distinguished) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.309s
+
+OK

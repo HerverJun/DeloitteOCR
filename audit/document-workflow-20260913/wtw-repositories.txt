@@ -1,0 +1,20 @@
+{
+  "WTW-Dataset": {
+    "message": null,
+    "repos": [
+      "wangwen-whu/WTW-Dataset",
+      "wtwtv2-dataset/wtwtv2-dataset.github.io",
+      "Gangkai-Li/WTW-100"
+    ]
+  },
+  "WTW table": {
+    "message": null,
+    "repos": [
+      "wangwen-whu/WTW-Dataset"
+    ]
+  },
+  "table recognition dataset chinese": {
+    "message": null,
+    "repos": []
+  }
+}

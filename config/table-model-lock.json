@@ -1,0 +1,157 @@
+{
+  "PP-LCNet_x1_0_table_cls": {
+    "repo": "PaddlePaddle/PP-LCNet_x1_0_table_cls",
+    "revision": "2fa6323e7dab88fa883081db1460995f46af2922",
+    "files": [
+      {
+        "name": "README.md",
+        "sha256": "ab8d4e04a6d2d5adeae5efeed08fe3b33d1bda8f363116ce1bea8d1c22fbca38",
+        "bytes": 11629
+      },
+      {
+        "name": "config.json",
+        "sha256": "3ba2c2754d073d0e91b54fa11bcfff987dead2f94d7a8d3d57c1804071b176ab",
+        "bytes": 2539
+      },
+      {
+        "name": "inference.json",
+        "sha256": "43401e76ed7b0e34787533016ea4ec9193d5b5964c3f948991fc5b531651ef33",
+        "bytes": 104441
+      },
+      {
+        "name": "inference.pdiparams",
+        "sha256": "d0224afd9cfddf22da17407c6c78491baaa1f25922fbb312c9b0d2037c802db0",
+        "bytes": 6743918
+      },
+      {
+        "name": "inference.yml",
+        "sha256": "891b1f4b0ccddaf6aca0fce8c8a38e5ab5da9f62fb9adaa7c75e161ee03bb787",
+        "bytes": 762
+      }
+    ]
+  },
+  "SLANeXt_wired": {
+    "repo": "PaddlePaddle/SLANeXt_wired",
+    "revision": "763069fcda6a065f2171753205a32bf899a88d15",
+    "files": [
+      {
+        "name": "README.md",
+        "sha256": "6e5529b446ac4ece9afdbabc006407b849171921a0687665199ca6be06fdc504",
+        "bytes": 12912
+      },
+      {
+        "name": "config.json",
+        "sha256": "1379eb21de34e69e3c5e68492304751db7f139037487c2c62133cdb22233993d",
+        "bytes": 4948
+      },
+      {
+        "name": "inference.json",
+        "sha256": "5b872f08e74f628ca1db8405db147e82e6e0c7cb358e101fd01cdafc946632d8",
+        "bytes": 959302
+      },
+      {
+        "name": "inference.pdiparams",
+        "sha256": "ff0362a30f707fa7d27d8453c4396b992fca287377a42d01515bca6eeb3908f5",
+        "bytes": 364771513
+      },
+      {
+        "name": "inference.yml",
+        "sha256": "abbbd1b4dc6b1a2e9cd34c035514da53a1a6b1ec267292b0b8802025650a33bf",
+        "bytes": 2066
+      }
+    ]
+  },
+  "SLANeXt_wireless": {
+    "repo": "PaddlePaddle/SLANeXt_wireless",
+    "revision": "1b73e05c752d2e0763b5d205846dec23122e5808",
+    "files": [
+      {
+        "name": "README.md",
+        "sha256": "e931fc5d2be31ea6f8518d0b2285e1213b8d68d140380f3a8183763c37ead666",
+        "bytes": 13142
+      },
+      {
+        "name": "config.json",
+        "sha256": "af459c24c87f3af37d6515f4a875b120d5da53ae61152514e1831d80f21c3387",
+        "bytes": 4951
+      },
+      {
+        "name": "inference.json",
+        "sha256": "5b872f08e74f628ca1db8405db147e82e6e0c7cb358e101fd01cdafc946632d8",
+        "bytes": 959302
+      },
+      {
+        "name": "inference.pdiparams",
+        "sha256": "6bf0568e24638491c75920954a92583d8c0d46aa76a2a635fb2fa666ffb618ff",
+        "bytes": 364771513
+      },
+      {
+        "name": "inference.yml",
+        "sha256": "58d1d7fdffd3e58cfec98571b817ea012f2107d644bd4f8e4607fae84f1923a6",
+        "bytes": 2069
+      }
+    ]
+  },
+  "RT-DETR-L_wired_table_cell_det": {
+    "repo": "PaddlePaddle/RT-DETR-L_wired_table_cell_det",
+    "revision": "e2bd53c06b3a815d86acbf5c6779dada58819cfe",
+    "files": [
+      {
+        "name": "README.md",
+        "sha256": "400b7336ab11edafd5c00fb2ceff791f2e50bc99ccc7fbe3e3e48832ae97a463",
+        "bytes": 14392
+      },
+      {
+        "name": "config.json",
+        "sha256": "411eaf19f4cbdfcc5bf4da8aaf15eeb57e7e98213cb721cdb890ec0fa2c1930e",
+        "bytes": 5695
+      },
+      {
+        "name": "inference.json",
+        "sha256": "abea237f1e53d3dc3bf7ea1321dfebe78552a6070e567dfc94028b622fd575e8",
+        "bytes": 1081363
+      },
+      {
+        "name": "inference.pdiparams",
+        "sha256": "357321c2845f0a035e8d118622649685a3cdb89d28b09a64e45a5a3df7a9fedc",
+        "bytes": 128841073
+      },
+      {
+        "name": "inference.yml",
+        "sha256": "edf6d6180f2b9e3e666c744ee5ded38a72c6ef9056cd193250e3e55ba268acef",
+        "bytes": 1630
+      }
+    ]
+  },
+  "RT-DETR-L_wireless_table_cell_det": {
+    "repo": "PaddlePaddle/RT-DETR-L_wireless_table_cell_det",
+    "revision": "25ca86356a601c877476bb0dcc5fd09153d9d64d",
+    "files": [
+      {
+        "name": "README.md",
+        "sha256": "ddba71f68d0baeb0154ecfd7da506cf7a994403cd3628a56a6df80d1f60067a9",
+        "bytes": 15124
+      },
+      {
+        "name": "config.json",
+        "sha256": "cf38c6c63c0c5c5b1598c19019cd4d4e6af35a14667c6ec2656aeb215b7e97e1",
+        "bytes": 5698
+      },
+      {
+        "name": "inference.json",
+        "sha256": "abea237f1e53d3dc3bf7ea1321dfebe78552a6070e567dfc94028b622fd575e8",
+        "bytes": 1081363
+      },
+      {
+        "name": "inference.pdiparams",
+        "sha256": "c0f8c9ea07be8916ece73a8acf807bd21aed3ef11969b319c2dccb2406774c34",
+        "bytes": 128841073
+      },
+      {
+        "name": "inference.yml",
+        "sha256": "f2d0f00ea42aacc162f72a35cf54330e392a7d669e9a1b43896d3bd77a512621",
+        "bytes": 1633
+      }
+    ]
+  }
+}

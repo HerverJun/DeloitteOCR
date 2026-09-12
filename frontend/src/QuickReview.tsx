@@ -3,6 +3,9 @@ import { Button } from "@fluentui/react-components";
 import { api } from "./api";
 import { engineNames, type Result, type ReviewIssue, type ReviewPage, type Table } from "./types";
 import "./fusion.css";
+import { RegionPreview } from "./RegionPreview";
+import { ReviewClock } from "./reviewClock";
+import type { Version } from "./types";
 
 const categories: Record<string, string> = { structure: "结构与缺表", amount: "金额", date: "日期", identifier: "编号", number: "其他数字", empty: "空值", text: "文字" };
 const states: Record<string, string> = { pending: "未处理", question: "有疑问", stale: "已过期", resolved: "已处理" };
@@ -25,8 +28,9 @@ function Value({ value }: { value: string | Table | null }) {
   </div></details>;
 }
 
-export function QuickReview({ result, versionId, adopted, busy, onDecision, onLocate, onConfirm, onDraft, getDraft, getPendingDecision }: {
+export function QuickReview({ result, versionId, version, geometryRefresh = 0, adopted, busy, onDecision, onLocate, onConfirm, onDraft, getDraft, getPendingDecision }: {
   result: Result; versionId: string; adopted: boolean; busy: boolean;
+  version?: Version | null; geometryRefresh?: number;
   onDecision: (issueId: string, body: Record<string, unknown>) => Promise<void>;
   onLocate: (issue: ReviewIssue, edit: boolean) => void;
   onConfirm: () => void;
@@ -49,6 +53,19 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
   const locking = useRef(false);
   const intent = useRef<{ issueId: string; body: Record<string, unknown> } | null>(getPendingDecision());
   const activeIssue = page?.issues[0];
+  const clock = useRef(new ReviewClock());
+  const ready = useCallback((value: boolean) => clock.current.setReady(value), []);
+  useEffect(() => {
+    const timer = setInterval(() => clock.current.tick(), 1000);
+    const c = clock.current;
+    document.addEventListener("visibilitychange", c.visibility);
+    window.addEventListener("pointerdown", c.interact);
+    window.addEventListener("keydown", c.interact);
+    window.addEventListener("pointermove", c.interact);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", c.visibility); window.removeEventListener("pointerdown", c.interact); window.removeEventListener("keydown", c.interact); window.removeEventListener("pointermove", c.interact); };
+  }, []);
+  useEffect(() => { clock.current.setWaiting(busy || working); }, [busy, working]);
+  useEffect(() => { clock.current.reset(); }, [activeIssue?.id]);
   const load = useCallback(async (at: number, resume = false) => {
     const request = ++generation.current;
     const query = new URLSearchParams({ offset: String(Math.max(0, at)), limit: "1", resume: String(resume) });
@@ -71,6 +88,7 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
     void load(0, true).catch(e => setError(String(e)));
     return () => { ++generation.current; };
   }, [load]);
+  useEffect(() => { if (page && !locking.current) void load(offset.current).catch(e => setError(String(e))); }, [geometryRefresh]);
   useEffect(() => {
     if (!page || locking.current) return;
     intent.current = getPendingDecision();
@@ -107,6 +125,13 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
         ...(action === "candidate" ? { candidate_id: chosen, ...(activeIssue.target.kind === "unmatched_table" ? { placement } : {}) } : {}), ...(action === "manual" ? { value: manual } : {}),
       } };
       await onDecision(intent.current.issueId, intent.current.body);
+      const timingAction = String(intent.current.body.action);
+      // Timing failure must never turn a successful edit into a failed save.
+      try {
+        const saved = await api<Result>(`/results/${result.id}`);
+        await api(`/results/${result.id}/review-timing`, "POST", { id: String(intent.current.body.request_id), revision: saved.revision,
+          target: activeIssue.target, active_ms: Math.round(clock.current.activeMs), action: timingAction });
+      } catch { /* The edit is durable; optional local timing is omitted. */ }
       intent.current = null;
       setManualDirty(false);
       onDraft(null);
@@ -135,6 +160,8 @@ export function QuickReview({ result, versionId, adopted, busy, onDecision, onLo
       <div className="fusion-issue-heading"><strong>{categories[activeIssue.category]} · {states[activeIssue.state]}</strong><Button size="small" disabled={working || manualDirty || submitting} onClick={() => onLocate(activeIssue, true)}>在编辑器定位</Button></div>
       <p>{activeIssue.reason === "baseline_structure_invalid" ? "基准表格结构不完整。请核对原始来源、完整候选表与阅读位置；没有可靠骨架时仅保留原始文字。" : reasons[activeIssue.reason] || activeIssue.reason}</p>
       <p className="fusion-location">定位：{activeIssue.location.level === "cell" ? "单元格" : activeIssue.location.level === "region" ? "整表 / 文字区域" : "全图"} · {activeIssue.location.reason} <Button size="small" onClick={() => onLocate(activeIssue, false)}>定位原图</Button></p>
+      {version && <RegionPreview version={version} location={activeIssue.location} tablePolygon={activeIssue.location.table_polygon} onReady={ready} />}
+      {activeIssue.context && <div className="review-context"><p>行标题：{activeIssue.context.row_header || "未确定"}</p><p>列标题：{activeIssue.context.column_header || "未确定"}</p><p className="neighbors">相邻内容：{activeIssue.context.neighbors.map(n => `第 ${n.row+1} 行 ${n.column+1} 列：${n.text || "空值"}`).join("；") || "无"}</p></div>}
       <div className="fusion-current"><small>当前已保存值</small><Value value={activeIssue.current_value} /></div>
       {needsTableEditor && <p className="inline-warning">此整段包含结构化表格，候选仅供对照。请点击「在编辑器定位」核对文字和表格，再返回「保留当前并继续」；也可先标记「暂不确定」。</p>}
       <div className="fusion-candidates" role="radiogroup" aria-label="原始来源候选">

@@ -1,0 +1,11 @@
+{
+  "table in the wild": [],
+  "chinese table": [],
+  "wired table": [],
+  "WTW": [
+    "johannssky/wtw_dataset",
+    "anonymous-iccv1968/DocLayout_YOLO_WTW_iccv1968",
+    "shadwl/2026_hm_wtw",
+    "shadwl/2025_hm_wtw"
+  ]
+}

@@ -22,8 +22,8 @@ class EngineAdapter:
         self.bundle = Path(bundle).resolve()
         self.engine = engine
         self.capabilities = (
-            {"dewarp": True}
-            if engine == "dewarp"
+            {engine: True}
+            if engine in {"dewarp", "geometry"}
             else json.loads(
                 (self.bundle / "config/engines.json").read_text(encoding="utf-8")
             )[engine]["capabilities"]
@@ -57,7 +57,7 @@ class EngineAdapter:
         runtime = (
             self.bundle
             / "runtimes"
-            / ("ppocr" if self.engine == "dewarp" else self.engine)
+            / ("ppocr" if self.engine in {"dewarp", "geometry"} else self.engine)
             / "python.exe"
         )
         environment = os.environ.copy()
@@ -120,17 +120,22 @@ class EngineAdapter:
             self.cancelled.wait(0.05)
         raise TimeoutError("识别超时，请缩小图片或换用其他引擎")
 
-    def recognize(self, image, output):
+    def recognize(self, image, output, geometry_request=None):
         key = uuid.uuid4().hex
         response = self.ipc / "response.json"
         response.unlink(missing_ok=True)
         publish(
             self.ipc / "request.json",
-            {"id": key, "image": str(image), "output": str(output)},
+            {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
         )
         reply = self.wait_for(response, 900)
         if reply.get("id") != key or reply["status"] != "success":
             raise RuntimeError(reply.get("message", "识别失败"))
+        if self.engine == "geometry":
+            result = read_json(Path(output) / 'geometry.json')
+            if result.get('status') != 'success':
+                raise RuntimeError('表格几何组件未返回有效结果')
+            return result
         if self.engine == "dewarp":
             result = json.loads(
                 (Path(output) / "dewarp.json").read_text(encoding="utf-8")

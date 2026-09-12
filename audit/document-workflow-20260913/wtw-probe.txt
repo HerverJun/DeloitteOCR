@@ -1,0 +1,32 @@
+200 None [
+    {
+        "instruction": "What is WTW code of conduct?",
+        "input": "Code of Conduct",
+        "output": "The WTW Code of Conduct (the “Code”) is the foundation on which our company’s reputation for ethical business practices has been built. It is rooted in our values and details the types of ethical behaviors each of us is expected to model in everything we do – behaviors that underpin the company’s rich history and remain critical as we move confidently toward our bold future."
+    },
+    {
+        "instruction": "What are WTW I&D priorities?",
+        "input": "Inclusion & Diversity Priorities",
+        "output": "At WTW, we know that when our individual talents are combined, we unlock our collective potential and create an environment where everyone can be authentic, curious and bold.  We’re better together because each of us is different. ​​​​​​​Our colleague experience has been designed to foster a strong sense of purpose and belonging, where everyone is heard and valued, and can be their authentic self. We encourage curiosity and innovation, and we are bold in our thinking and care about our impact. We are dedicated to ensuring our values and I&D commitments are reflected in every interaction and throughout our colleague experience. To achieve this, we’re focusing on three key areas in our global I&D priorities: Belong, Join and Grow."
+    },
+    {
+        "instruction": "What is WTW brand central?",
+        "input": "Brand central",
+        "output": "Brand Central is an online portal where you can find what you need to bring our brand to life. Brand Central houses all of our brand-related content, including \nGuidelines for all aspects of the brand: visual identity, voice, editorial style guide, web design, software design, video, social media and more \nDetails on our brand strategy \nOur approved image library (Please note: All colleagues may view the image library; Only those with designer access can download images) \nLogos for download \nTemplates to create straightforward designed collateral for internal work and client-facing materials \nEnterprise marketing materials like proof points, company fact sheets, corporate videos and maps \nBrand training and FAQs"
+    },
+    {
+        "instruction": "Is the portal user friendly?",
+        "input": "",
+        "output": "The portal is user-friendly and searchable, so it's easier to get what you need, when you need it. Brand Central also includes a Help Desk where you can contact the Brand team for questions about the brand."
+    },
+    {
+        "instruction": "Is WTW has office in Philippines?",
+        "input": "",
+        "output": "Yes"
+    },
+    {
+        "instruction": "What is WTW?",
+        "input": "WTW",
+        "output": "Willis Towers Watson"
+    }
+]

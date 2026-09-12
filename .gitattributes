@@ -9,3 +9,10 @@ audit/fusion-20260912/**/*.json -text
 config/fusion-policy.json -text
 audit/fusion-20260912/** whitespace=trailing-space,space-before-tab,cr-at-eol
 config/fusion-policy.json whitespace=trailing-space,space-before-tab,cr-at-eol
+# Document evidence, upstream licenses and asset locks retain receipt bytes.
+audit/document-workflow-20260913/** -text
+licenses/document-workflow/** -text
+config/pdf-font-lock.json -text
+config/pdf-wheelhouse.json -text
+config/table-model-lock.json -text
+config/geometry-evaluation.json -text

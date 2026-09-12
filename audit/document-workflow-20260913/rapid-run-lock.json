@@ -1,0 +1,13 @@
+{
+  "model_sha256": "d57a942af6a2f57d6a4a0372573c696a2379bf5857c45e2ac69993f3b334514b",
+  "main_py_sha256": "6b6101280f60b27af399a6bee512d79946d68f80304712475c2fee134f287c38",
+  "manifest_sha256": "bcdb67c8be7d4db380cd88c221e0f4c28f7b33c1b9438b8f89b3d154537edb6f",
+  "evaluator_sha256": "bdd02842e2aa9666c8066ee5f474c467f733ac28200236b5613815c5cee4ec9c",
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "cold_load_seconds": 0.37701400000514695,
+  "own_ocr": false,
+  "network": "denied",
+  "gt_boxes_given_to_model": false
+}

@@ -18,7 +18,7 @@ from starlette.background import BackgroundTask
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from ocr_workbench import __version__
-from ocr_workbench.store import Store, Conflict, uid, now
+from ocr_workbench.store import Store, Conflict, uid, now, encoded
 from ocr_workbench.task_queue import TaskQueue, FusionQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
@@ -41,6 +41,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     from ocr_workbench.maintenance import ProjectMaintenance
 
     maintenance = ProjectMaintenance(store, queue, fusion_queue)
+    from ocr_workbench.documents import Documents
+    documents = Documents(store, bundle, queue, review_only=review_only)
 
     def import_one(key, name, temporary):
         with maintenance.guard:
@@ -52,9 +54,12 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             queue.start()
         if start_queue:
             fusion_queue.start()
+            documents.start()
         try:
             yield
         finally:
+            if start_queue:
+                documents.stop()
             if start_queue and not review_only:
                 queue.stop()
             if start_queue:
@@ -70,6 +75,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     app.state.store = store
     app.state.queue = queue
     app.state.fusion_queue = fusion_queue
+    app.state.documents = documents
     app.state.shutdown = lambda: None
     app.state.review_only = review_only
 
@@ -78,6 +84,9 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             raise ValueError("当前为仅校对与导出模式，请在完整模式下使用识别与引擎启用功能")
         if start_queue and not queue.status().get("healthy", False):
             raise ValueError("队列正在恢复，请查看队列状态，恢复后再提交任务")
+
+    from ocr_workbench.document_routes import register_document_routes
+    register_document_routes(app, documents, maintenance)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):
@@ -155,6 +164,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             "engines": registry.engines(),
             "queue": queue.status(),
             "fusion_queue": fusion_queue.status(),
+            "document_queue": documents.status(),
             "data_directory": str(store.root),
             "review_only": review_only,
             "disk": maintenance.disk_status(),
@@ -335,6 +345,51 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     def result(key: str):
         return present_result(store.result(key))
 
+    @app.post('/api/results/{key}/geometry')
+    def add_geometry(key: str, body: dict):
+        from ocr_workbench.geometry import enqueue_geometry, bind_manual
+        if body.get('source') == 'manual':
+            return bind_manual(store, key, body)
+        require_recognition()
+        response = enqueue_geometry(store, key, body.get('revision'), region_ids=body.get('region_ids'), force=body.get('force', False))
+        queue.wake.set()
+        return response
+
+    @app.get('/api/results/{key}/geometry')
+    def get_geometry(key: str):
+        from ocr_workbench.geometry import geometry_view
+        return geometry_view(store, key)
+
+    @app.get('/api/results/{key}/document-conflicts')
+    def document_conflicts(key: str):
+        from ocr_workbench.document_conflicts import conflict_view
+        return conflict_view(store, key)
+
+    @app.post('/api/results/{key}/document-conflicts/{conflict_id}')
+    def review_document_conflict(key: str, conflict_id: str, body: dict):
+        from ocr_workbench.document_conflicts import acknowledge_conflict
+        return acknowledge_conflict(store, key, conflict_id, body.get('revision'))
+
+    @app.post('/api/results/{key}/geometry/location')
+    def get_geometry_location(key: str, body: dict):
+        from ocr_workbench.geometry import geometry_view
+        return geometry_view(store, key, body.get('target'))
+
+    @app.post('/api/results/{key}/review-timing')
+    def review_timing(key: str, body: dict):
+        result = store.result(key)
+        milliseconds = body.get('active_ms')
+        if type(milliseconds) is not int or not 0 <= milliseconds <= 86400000 or body.get('action') not in ('candidate','manual','keep','question'):
+            raise ValueError('校对计时无效')
+        if result['revision'] != body.get('revision'):
+            raise Conflict('计时提交对应的修订已变化')
+        event_id = body.get('id')
+        if not isinstance(event_id, str) or not 8 <= len(event_id) <= 120:
+            raise ValueError('计时事件标识无效')
+        with store.transaction() as db:
+            db.execute('INSERT OR IGNORE INTO review_timings VALUES(?,?,?,?,?,?,?)', (event_id,key,result['revision'],encoded(body.get('target', {})),milliseconds,body['action'],now()))
+        return {'saved': True, 'local_only': True}
+
     @app.put("/api/results/{key}")
     def save_result(key: str, body: dict):
         return present_result(store.save(key, body["edited"], body["revision"]))
@@ -367,7 +422,11 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.post("/api/export")
     def export(body: dict):
         with maintenance.guard:
-            target = build_export(
+            if body.get('format') == 'pdf':
+                from ocr_workbench.pdf_export import build_pdf_export
+                target = build_pdf_export(store, documents, body)
+            else:
+                target = build_export(
                 store,
                 body.get("result_ids", []),
                 body.get("format"),
@@ -379,6 +438,12 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             filename=target.name,
             background=BackgroundTask(shutil.rmtree, target.parent),
         )
+
+    @app.post('/api/export/preflight')
+    def pdf_export_preflight(body: dict):
+        from ocr_workbench.pdf_export import build_pdf_export
+        with maintenance.guard:
+            return build_pdf_export(store, documents, body, preflight=True)
 
     @app.get("/api/diagnostics")
     def diagnostics():

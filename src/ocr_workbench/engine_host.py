@@ -21,14 +21,18 @@ class Resident:
         self.stack = ExitStack()
         self.first = True
         try:
-            if engine in {"ppocr", "paddlevl", "dewarp"}:
+            if engine in {"ppocr", "paddlevl", "dewarp", "geometry"}:
                 from ocr_workbench.windows_paths import ascii_model_directory
                 from ocr_workbench.worker import load_paddle
 
                 self.models = self.stack.enter_context(
                     ascii_model_directory(bundle / "models")
                 )
-                if engine == "dewarp":
+                if engine == "geometry":
+                    from ocr_workbench.table_geometry_worker import GeometrySession
+                    self.session = GeometrySession(self.models)
+                    self.loaded = self.session.loaded
+                elif engine == "dewarp":
                     from paddlex import create_model
                     import paddle
 
@@ -126,7 +130,7 @@ def main():
     p.add_argument(
         "--engine",
         required=True,
-        choices=["ppocr", "paddlevl", "glm", "hunyuan", "dewarp"],
+        choices=["ppocr", "paddlevl", "glm", "hunyuan", "dewarp", "geometry"],
     )
     p.add_argument("--ipc", type=Path, required=True)
     args = p.parse_args()
@@ -151,7 +155,9 @@ def main():
             try:
                 from ocr_workbench.worker import run_image
 
-                if args.engine == "dewarp":
+                if args.engine == "geometry":
+                    session.session.write(Path(data['image']), Path(data['output']), data['geometry_request'])
+                elif args.engine == "dewarp":
                     session.dewarp(Path(data["image"]), Path(data["output"]))
                 else:
                     run_image(

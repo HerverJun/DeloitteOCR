@@ -149,6 +149,9 @@ class StoreTests(unittest.TestCase):
                 db.execute('DROP TRIGGER "' + row["name"] + '"')
             db.execute("DROP TABLE reviews")
             db.execute("DROP TABLE project_revisions")
+            for table in ("document_conflict_decisions", "review_timings", "page_ocr_inputs", "geometry_requests", "geometry_evidence", "document_stages",
+                          "regions", "page_versions", "pages", "documents"):
+                db.execute("DROP TABLE " + table)
             for table in ("fusion_decisions", "fusion_issues", "fusion_progress", "fusion_evidence",
                           "fusion_inputs", "fusion_dependencies", "fusion_submissions"):
                 db.execute("DROP TABLE " + table)

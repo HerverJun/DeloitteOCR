@@ -63,3 +63,7 @@ audit/fusion-*/data/annotations.json
 audit/fusion-*/evaluation*/prototypes/
 audit/fusion-*/evaluation*/holdout-results/
 audit/fusion-*/evaluation*/frozen-data/
+
+# Document audit interaction databases and temporary project payloads remain local.
+audit/document-workflow-*/ui-*/workspace/
+audit/document-workflow-*/pdf-visuals/workspace/

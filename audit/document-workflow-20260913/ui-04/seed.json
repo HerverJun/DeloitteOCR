@@ -1,0 +1,19 @@
+{
+  "base": "http://127.0.0.1:62262",
+  "token": "local-document-ui-fixture",
+  "project": "c70ea9e0ba994e64879fa0df987b5380",
+  "document": "fa227dc525e343829b24c3f43eb79d4c",
+  "encrypted": "816cc288b1614132ba0e2efe60f302a6",
+  "tiff": "eb3d15127eb1463596b76ca25a9ce072",
+  "photo": {
+    "id": "6f7cef7bad6045bfbfd03a9bb46a0503",
+    "project_id": "c70ea9e0ba994e64879fa0df987b5380",
+    "name": "review-table.png",
+    "original_path": "projects\\c70ea9e0ba994e64879fa0df987b5380\\images\\6f7cef7bad6045bfbfd03a9bb46a0503\\original.png",
+    "sha256": "44d9d6a12c5fc8e23383f9e71ed8f3bc913bd1405d0d94d56942dd4c2f5e3ed7",
+    "active_version": "538262507a63470b8b591fce0f1dee00",
+    "created": "2026-09-12T21:23:12.870945+00:00"
+  },
+  "result": "d2c928562a8e47d99905e118c5e41868",
+  "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim"
+}

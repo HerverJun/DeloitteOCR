@@ -199,6 +199,33 @@ class FusionStoreMixin:
                             current_fingerprint=fingerprint(comparable(value)))
                 if not context_current:
                     item["location"] = {**item["location"], "level": "image", "polygon": None, "reason": "当前采用结果或图像版本不匹配"}
+                elif resolved_target.get('kind') in ('cell', 'table'):
+                    from ocr_workbench.geometry import geometry_view
+                    indices = [n for n, table in enumerate(edited['tables']) if table.get('fusion_id') == resolved_target.get('table_id')]
+                    if len(indices) == 1:
+                        target = {'kind': resolved_target['kind'], 'table': indices[0]}
+                        if target['kind'] == 'cell':
+                            target.update(row=resolved_target['row'], column=resolved_target['column'])
+                        view = geometry_view(self, result_id, target, db=db)
+                        if view['evidence']:
+                            evidence = view['evidence'][0]
+                            item['location'] = {'level': evidence['details']['level'], 'polygon': evidence['polygon'],
+                                'table_polygon': evidence['details'].get('table_polygon'),
+                                'version_id': view['version_id'], 'reason': '人工定位' if evidence['source'] == 'manual' else
+                                '模型定位（实验性）' if evidence['details']['level'] == 'cell' else '对应不可靠，降级至表格区域',
+                                'evidence_id': evidence['id'], 'source': evidence['source']}
+                        if not item['location'].get('table_polygon'):
+                            table_view = geometry_view(self, result_id, {'kind': 'table', 'table': indices[0]}, db=db)
+                            if table_view['evidence']:
+                                item['location']['table_polygon'] = table_view['evidence'][0]['polygon']
+                        if target['kind'] == 'cell':
+                            cells = edited['tables'][indices[0]]['cells']
+                            cell_row, column = target['row'], target['column']
+                            item['context'] = {
+                                'row_header': next((c['text'] for c in cells if c['row'] == cell_row and c['column'] < column), ''),
+                                'column_header': next((c['text'] for c in cells if c['row'] < cell_row and c['column'] <= column < c['column']+c['column_span']), ''),
+                                'neighbors': [{'row': c['row'], 'column': c['column'], 'text': c['text']} for c in cells
+                                              if abs(c['row']-cell_row)+abs(c['column']-column) == 1]}
                 issues.append(item)
             return {"result_id": result_id, "revision": row["revision"], "counts": counts, "total": total,
                     "offset": offset, "limit": limit, "issues": issues, "context_current": context_current,
@@ -264,6 +291,8 @@ class FusionStoreMixin:
             db.execute("INSERT INTO edits VALUES(?,?,?,?)", (result_id, cursor, history_encoded(after), now()))
             db.execute("UPDATE results SET edited=?,cursor=?,revision=revision+1,updated=? WHERE id=?", (encoded(after), cursor, now(), result_id))
             reconcile(db, result_id, before, after, deciding=issue_id)
+            from ocr_workbench.geometry import reconcile_geometry
+            reconcile_geometry(db, result_id, before, after)
             state = "question" if action == "question" else "resolved"
             changed = db.execute("SELECT target FROM fusion_issues WHERE id=?", (issue_id,)).fetchone()
             actual, _ = target_value(after, json.loads(changed[0]))

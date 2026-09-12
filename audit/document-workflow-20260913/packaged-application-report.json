@@ -1,0 +1,165 @@
+{
+  "passed": true,
+  "quick": false,
+  "checks": [
+    "packaged launcher starts embedded service in Chinese data path",
+    "health reports packaged application version",
+    "unauthenticated and cross-origin requests rejected",
+    "all real engine tasks succeeded",
+    "ppocr retains exact long identifier",
+    "ppocr resident session reused",
+    "ppocr truthful table capability",
+    "paddlevl retains exact long identifier",
+    "paddlevl resident session reused",
+    "paddlevl truthful table capability",
+    "glm retains exact long identifier",
+    "glm resident session reused",
+    "glm truthful table capability",
+    "hunyuan retains exact long identifier",
+    "hunyuan resident session reused",
+    "hunyuan truthful table capability",
+    "GPU tasks serialized",
+    "engine processes released after queue idle",
+    "decode jpg",
+    "decode bmp",
+    "decode tiff",
+    "decode webp",
+    "decode heic",
+    "corrupt import reported without adding image",
+    "immutable rotate",
+    "immutable crop",
+    "immutable perspective",
+    "immutable contrast",
+    "actual UVDoc creates a version, not an OCR result",
+    "UVDoc RGB colors preserved",
+    "blank OCR fails without fabricated success",
+    "failed item can retry and remains truthful",
+    "pause queued tasks",
+    "cancel running model load",
+    "retry cancelled and resume paused succeed",
+    "undo restores original edit",
+    "redo and immutable original",
+    "Markdown exports edited cells without stale duplicate",
+    "Excel preserves edited cell and long string",
+    "Excel preserves merged heading",
+    "aggregate exports tables to separate sheets with a complete source index",
+    "crash recovery requires deliberate resume",
+    "edits survive application crash",
+    "completed results not duplicated",
+    "resume after crash succeeds",
+    "original file hash unchanged printed.png",
+    "original file hash unchanged table.png",
+    "graceful launcher/service exit and token cleanup"
+  ],
+  "engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "6bbaee8e1905445c84408a759ee49fac",
+      "elapsed_seconds": 0.4557414000009885,
+      "session": {
+        "id": "6890e4ce72994367a96b11687e7a47dc",
+        "load_seconds": 6.4391322000010405,
+        "pid": 31956
+      }
+    },
+    {
+      "engine": "ppocr",
+      "result_id": "017ad97d5efd41eb8b67679733b12478",
+      "elapsed_seconds": 0.13163590000476688,
+      "session": {
+        "id": "6890e4ce72994367a96b11687e7a47dc",
+        "load_seconds": 6.4391322000010405,
+        "pid": 31956
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "d37d43c6534441cf831be740a658d644",
+      "elapsed_seconds": 1.9266141999978572,
+      "session": {
+        "id": "8c0bcb0401394436926c7e5eb7c786c8",
+        "load_seconds": 8.584098800012725,
+        "pid": 33488
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "723808ad2b9d45d489b2d15e06aba8c0",
+      "elapsed_seconds": 2.0863633999979356,
+      "session": {
+        "id": "8c0bcb0401394436926c7e5eb7c786c8",
+        "load_seconds": 8.584098800012725,
+        "pid": 33488
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "6ac5228227e04dfc8be08b4b69d53763",
+      "elapsed_seconds": 4.072428899991792,
+      "session": {
+        "id": "fa6fafadf64f4b1da91ae855304d48db",
+        "load_seconds": 2.5082523000019137,
+        "pid": 2604
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "f0bfbf0514d640e1a9efba64f4d16164",
+      "elapsed_seconds": 1.9607880000112345,
+      "session": {
+        "id": "fa6fafadf64f4b1da91ae855304d48db",
+        "load_seconds": 2.5082523000019137,
+        "pid": 2604
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "4d89ecd35d9f452ba2c361361948358f",
+      "elapsed_seconds": 1.1664919999893755,
+      "session": {
+        "id": "81fed8c2543740688de48a1c32b2f62a",
+        "load_seconds": 1.522164399997564,
+        "pid": 28564
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "a19875797eb84d2aa0542d0a0f51b78c",
+      "elapsed_seconds": 0.7038671000045724,
+      "session": {
+        "id": "81fed8c2543740688de48a1c32b2f62a",
+        "load_seconds": 1.522164399997564,
+        "pid": 28564
+      }
+    }
+  ],
+  "errors": [],
+  "health": {
+    "status": "ready",
+    "version": "0.9.0rc1",
+    "review_only": false,
+    "queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    },
+    "fusion_queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    }
+  },
+  "bundle_manifest_sha256": "62b59ff28b3e0db523e9de22f8fd1cc2636c499634273b51f6e17f05d4fb28ad"
+}

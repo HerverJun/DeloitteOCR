@@ -1,0 +1,14 @@
+test_duplicate_agreement_and_ambiguous_overlap_are_distinguished (test_document_processing.PageMergeTests.test_duplicate_agreement_and_ambiguous_overlap_are_distinguished) ... ok
+test_region_coordinates_map_without_modifying_input_or_fabricating_missing_boxes (test_document_processing.PageMergeTests.test_region_coordinates_map_without_modifying_input_or_fabricating_missing_boxes) ... ok
+test_encrypted_unlock_is_ephemeral_and_resume_keeps_completed_pages (test_document_processing.PdfWorkflowTests.test_encrypted_unlock_is_ephemeral_and_resume_keeps_completed_pages) ... ok
+test_lazy_thousand_page_import_materializes_no_images_and_pages_are_ordered (test_document_processing.PdfWorkflowTests.test_lazy_thousand_page_import_materializes_no_images_and_pages_are_ordered) ... ok
+test_mixed_page_keeps_native_page_number_and_region_ocr_maps_to_full_page (test_document_processing.PdfWorkflowTests.test_mixed_page_keeps_native_page_number_and_region_ocr_maps_to_full_page) ... ok
+test_native_page_auto_processing_retains_ids_and_does_not_enqueue_gpu (test_document_processing.PdfWorkflowTests.test_native_page_auto_processing_retains_ids_and_does_not_enqueue_gpu) ... ok
+test_old_invisible_ocr_is_flagged_and_blank_page_keeps_number (test_document_processing.PdfWorkflowTests.test_old_invisible_ocr_is_flagged_and_blank_page_keeps_number) ... ok
+test_rotated_cropboxes_native_geometry_matches_rendered_glyphs (test_document_processing.PdfWorkflowTests.test_rotated_cropboxes_native_geometry_matches_rendered_glyphs) ... ok
+test_tiff_is_lazy_and_corrupt_pdf_has_no_partial_document (test_document_processing.PdfWorkflowTests.test_tiff_is_lazy_and_corrupt_pdf_has_no_partial_document) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 12.735s
+
+OK

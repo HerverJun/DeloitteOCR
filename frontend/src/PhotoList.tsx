@@ -171,7 +171,7 @@ export function PhotoList({
     </>
   );
 }
-function Thumbnail({ id }: { id: string }) {
+export function Thumbnail({ id }: { id: string }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
     let alive = true;

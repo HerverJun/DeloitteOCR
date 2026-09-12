@@ -1,0 +1,90 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "document": "chinese-two-column.pdf",
+      "readback": {
+        "pages": 1,
+        "text": "中文合同 001234\r\n左栏金额 ￥123.45\r\n左栏编号 00001234567890123456\r\n右栏日期 2026-09-13\r\n右栏金额 $987.65\r\n右栏备注 完整保留"
+      },
+      "pdf_sha256": "572331b859e1abf2f756f92901baa255733d269e144e88c1af1c554f34f7c6b5",
+      "preflight": {
+        "ready": true,
+        "failures": [],
+        "document_count": 1,
+        "page_count": 1
+      }
+    },
+    {
+      "document": "mixed.pdf",
+      "readback": {
+        "pages": 1,
+        "text": "Page 001\r\nScanned invoice 001234 \r\nAmount $ 123.45 \r\nAccount 00123456789012345678 "
+      },
+      "pdf_sha256": "b26c1326fdf184f4517d3600fb8995b7d890655bed7f8ac71dc5e666227ec61b",
+      "preflight": {
+        "ready": true,
+        "failures": [],
+        "document_count": 1,
+        "page_count": 1
+      }
+    }
+  ],
+  "health": {
+    "status": "ready",
+    "version": "0.9.0rc1",
+    "review_only": false,
+    "queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    },
+    "fusion_queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    }
+  },
+  "tasks": [
+    {
+      "id": "286c320196b143609e3f6756279ba619",
+      "kind": "document",
+      "engine": "pdf-native",
+      "status": "succeeded",
+      "phase": "页面处理完成"
+    },
+    {
+      "id": "5f4094a8006c44c681ff14d290c58ef6",
+      "kind": "geometry",
+      "engine": "geometry",
+      "status": "succeeded",
+      "phase": "定位完成；未发现可可靠填充的原生表格"
+    },
+    {
+      "id": "3bcad927fc3b4b288d2f1b70f35285bc",
+      "kind": "region_ocr",
+      "engine": "ppocr",
+      "status": "succeeded",
+      "phase": "区域识别完成"
+    },
+    {
+      "id": "45772930a9da4db49030b12ff6227b9e",
+      "kind": "document",
+      "engine": "document",
+      "status": "succeeded",
+      "phase": "页面处理完成"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+packaged launcher starts embedded service in Chinese data path
+health reports packaged application version
+unauthenticated and cross-origin requests rejected
+all real engine tasks succeeded
+ppocr retains exact long identifier
+ppocr resident session reused
+ppocr truthful table capability
+paddlevl retains exact long identifier
+paddlevl resident session reused
+paddlevl truthful table capability
+glm retains exact long identifier
+glm resident session reused
+glm truthful table capability
+hunyuan retains exact long identifier
+hunyuan resident session reused
+hunyuan truthful table capability
+GPU tasks serialized
+engine processes released after queue idle
+decode jpg
+decode bmp
+decode tiff
+decode webp
+decode heic
+corrupt import reported without adding image
+immutable rotate
+immutable crop
+immutable perspective
+immutable contrast
+actual UVDoc creates a version, not an OCR result
+E:\OCR-document-workflow-20260913\bundle\tools\audit_application.py:333: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  pixels = list(im.resize((150, 150)).getdata())
+UVDoc RGB colors preserved
+blank OCR fails without fabricated success
+failed item can retry and remains truthful
+pause queued tasks
+cancel running model load
+retry cancelled and resume paused succeed
+undo restores original edit
+redo and immutable original
+Markdown exports edited cells without stale duplicate
+Excel preserves edited cell and long string
+Excel preserves merged heading
+Traceback (most recent call last):
+  File "E:\OCR-document-workflow-20260913\bundle\tools\audit_application.py", line 542, in <module>
+    main()
+  File "E:\OCR-document-workflow-20260913\bundle\tools\audit_application.py", line 467, in main
+    check(
+  File "E:\OCR-document-workflow-20260913\bundle\tools\audit_application.py", line 184, in check
+    raise AssertionError(name)
+AssertionError: aggregate exports tables to separate sheets

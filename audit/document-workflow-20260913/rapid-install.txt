@@ -1,0 +1,91 @@
+Collecting rapid-table==3.0.2
+  Downloading rapid_table-3.0.2-py3-none-any.whl.metadata (1.5 kB)
+Collecting onnxruntime>1.17.0 (from rapid-table==3.0.2)
+  Downloading onnxruntime-1.30.0-cp312-cp312-win_amd64.whl.metadata (5.9 kB)
+Collecting opencv_python>=4.5.1.48 (from rapid-table==3.0.2)
+  Downloading opencv_python-5.0.0.93-cp37-abi3-win_amd64.whl.metadata (20 kB)
+Collecting numpy>=1.21.6 (from rapid-table==3.0.2)
+  Downloading numpy-2.5.3-cp312-cp312-win_amd64.whl.metadata (6.6 kB)
+Collecting Pillow (from rapid-table==3.0.2)
+  Downloading pillow-12.3.0-cp312-cp312-win_amd64.whl.metadata (9.3 kB)
+Collecting requests (from rapid-table==3.0.2)
+  Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting colorlog (from rapid-table==3.0.2)
+  Downloading colorlog-6.12.0-py3-none-any.whl.metadata (11 kB)
+Collecting omegaconf (from rapid-table==3.0.2)
+  Downloading omegaconf-2.3.1-py3-none-any.whl.metadata (4.5 kB)
+Collecting flatbuffers (from onnxruntime>1.17.0->rapid-table==3.0.2)
+  Downloading flatbuffers-25.12.19-py2.py3-none-any.whl.metadata (1.0 kB)
+Collecting packaging (from onnxruntime>1.17.0->rapid-table==3.0.2)
+  Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting protobuf>=4.25.8 (from onnxruntime>1.17.0->rapid-table==3.0.2)
+  Downloading protobuf-7.36.1-cp310-abi3-win_amd64.whl.metadata (595 bytes)
+Collecting colorama (from colorlog->rapid-table==3.0.2)
+  Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting antlr4-python3-runtime==4.9.* (from omegaconf->rapid-table==3.0.2)
+  Downloading antlr4-python3-runtime-4.9.3.tar.gz (117 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting PyYAML>=5.1.0 (from omegaconf->rapid-table==3.0.2)
+  Downloading pyyaml-6.0.3-cp312-cp312-win_amd64.whl.metadata (2.4 kB)
+Collecting charset_normalizer<4,>=2 (from requests->rapid-table==3.0.2)
+  Downloading charset_normalizer-3.5.1-cp312-cp312-win_amd64.whl.metadata (46 kB)
+Collecting idna<4,>=2.5 (from requests->rapid-table==3.0.2)
+  Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+Collecting urllib3<3,>=1.26 (from requests->rapid-table==3.0.2)
+  Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+Collecting certifi>=2023.5.7 (from requests->rapid-table==3.0.2)
+  Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+Downloading rapid_table-3.0.2-py3-none-any.whl (43 kB)
+Downloading numpy-2.5.3-cp312-cp312-win_amd64.whl (12.6 MB)
+   ---------------------------------------- 12.6/12.6 MB 12.7 MB/s  0:00:01
+Downloading onnxruntime-1.30.0-cp312-cp312-win_amd64.whl (14.3 MB)
+   ---------------------------------------- 14.3/14.3 MB 15.0 MB/s  0:00:00
+Downloading opencv_python-5.0.0.93-cp37-abi3-win_amd64.whl (44.0 MB)
+   ---------------------------------------- 44.0/44.0 MB 13.7 MB/s  0:00:03
+Downloading protobuf-7.36.1-cp310-abi3-win_amd64.whl (456 kB)
+Downloading colorlog-6.12.0-py3-none-any.whl (12 kB)
+Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Downloading flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+Downloading omegaconf-2.3.1-py3-none-any.whl (79 kB)
+Downloading pyyaml-6.0.3-cp312-cp312-win_amd64.whl (154 kB)
+Downloading packaging-26.3-py3-none-any.whl (129 kB)
+Downloading pillow-12.3.0-cp312-cp312-win_amd64.whl (7.2 MB)
+   ---------------------------------------- 7.2/7.2 MB 13.5 MB/s  0:00:00
+Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+Downloading charset_normalizer-3.5.1-cp312-cp312-win_amd64.whl (200 kB)
+Downloading idna-3.19-py3-none-any.whl (68 kB)
+Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+Building wheels for collected packages: antlr4-python3-runtime
+  Building wheel for antlr4-python3-runtime (pyproject.toml): started
+  Building wheel for antlr4-python3-runtime (pyproject.toml): finished with status 'done'
+  Created wheel for antlr4-python3-runtime: filename=antlr4_python3_runtime-4.9.3-py3-none-any.whl size=144613 sha256=42fc98cd5271dd26dbbe61e9c87aba66943c5a1c17dda2981a3ec48d6d8cda60
+  Stored in directory: C:\Users\A\AppData\Local\Temp\pip-ephem-wheel-cache-nmbef35p\wheels\1f\be\48\13754633f1d08d1fbfc60d5e80ae1e5d7329500477685286cd
+Successfully built antlr4-python3-runtime
+WARNING: Ignoring invalid distribution ~ip (D:\anaconda3\Lib\site-packages)
+Installing collected packages: flatbuffers, antlr4-python3-runtime, urllib3, PyYAML, protobuf, Pillow, packaging, numpy, idna, colorama, charset_normalizer, certifi, requests, opencv_python, onnxruntime, omegaconf, colorlog, rapid-table
+
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+contourpy 1.2.0 requires numpy<2.0,>=1.20, but you have numpy 2.5.3 which is incompatible.
+dctorch 0.1.2 requires numpy<2.0.0,>=1.22.3, but you have numpy 2.5.3 which is incompatible.
+easy-dwpose 1.0.3 requires huggingface_hub<1.0,>=0.26, but you have huggingface-hub 1.10.1 which is incompatible.
+easy-dwpose 1.0.3 requires numpy<2.0.0,>=1.26.4, but you have numpy 2.5.3 which is incompatible.
+easy-dwpose 1.0.3 requires omegaconf==2.3.0, but you have omegaconf 2.3.1 which is incompatible.
+easy-dwpose 1.0.3 requires opencv-python<5.0.0.0,>=4.10.0.84, but you have opencv-python 5.0.0.93 which is incompatible.
+gensim 4.3.3 requires numpy<2.0,>=1.18.5, but you have numpy 2.5.3 which is incompatible.
+grpcio-status 1.80.0 requires protobuf<7.0.0,>=6.31.1, but you have protobuf 7.36.1 which is incompatible.
+grpcio-tools 1.80.0 requires protobuf<7.0.0,>=6.31.1, but you have protobuf 7.36.1 which is incompatible.
+numba 0.60.0 requires numpy<2.1,>=1.22, but you have numpy 2.5.3 which is incompatible.
+scipy 1.13.1 requires numpy<2.3,>=1.22.4, but you have numpy 2.5.3 which is incompatible.
+streamlit 1.37.1 requires packaging<25,>=20, but you have packaging 26.3 which is incompatible.
+streamlit 1.37.1 requires pillow<11,>=7.1.0, but you have pillow 12.3.0 which is incompatible.
+streamlit 1.37.1 requires protobuf<6,>=3.20, but you have protobuf 7.36.1 which is incompatible.
+streamlit 1.37.1 requires rich<14,>=10.14.0, but you have rich 14.3.4 which is incompatible.
+streamlit 1.37.1 requires tenacity<9,>=8.1.0, but you have tenacity 9.1.4 which is incompatible.
+wandb 0.23.1 requires protobuf!=4.21.0,!=5.28.0,<7,>=3.19.0; sys_platform != "linux", but you have protobuf 7.36.1 which is incompatible.
+Successfully installed Pillow-12.3.0 PyYAML-6.0.3 antlr4-python3-runtime-4.9.3 certifi-2026.7.22 charset_normalizer-3.5.1 colorama-0.4.6 colorlog-6.12.0 flatbuffers-25.12.19 idna-3.19 numpy-2.5.3 omegaconf-2.3.1 onnxruntime-1.30.0 opencv_python-5.0.0.93 packaging-26.3 protobuf-7.36.1 rapid-table-3.0.2 requests-2.34.2 urllib3-2.7.0

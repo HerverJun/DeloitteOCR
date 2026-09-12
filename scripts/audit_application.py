@@ -464,11 +464,14 @@ def main():
                 },
                 raw=True,
             )
+            aggregate_book = load_workbook(io.BytesIO(data))
+            expected_tables = sum(len(r["edited"]["tables"]) for r in results)
             check(
-                "aggregate exports tables to separate sheets",
-                len(load_workbook(io.BytesIO(data)).sheetnames)
-                == sum(len(r["edited"]["tables"]) for r in results),
+                "aggregate exports tables to separate sheets with a complete source index",
+                aggregate_book.sheetnames == [f"Table {i+1}" for i in range(expected_tables)] + ["来源索引"]
+                and aggregate_book["来源索引"].max_row == expected_tables + 1,
             )
+            (args.output / "aggregate.xlsx").write_bytes(data)
             crash_ids = app.enqueue(project, versions, ["paddlevl"])
             crashed = until(
                 lambda: next(

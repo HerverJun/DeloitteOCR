@@ -1,0 +1,14 @@
+test_cropbox_rotation_round_trip_and_viewport_corners (test_document_foundation.CoordinateTests.test_cropbox_rotation_round_trip_and_viewport_corners) ... ok
+test_geometry_identity_ignores_text_but_detects_topology (test_document_foundation.CoordinateTests.test_geometry_identity_ignores_text_but_detects_topology) ... ok
+test_invalid_nonfinite_and_nonlinear_transforms (test_document_foundation.CoordinateTests.test_invalid_nonfinite_and_nonlinear_transforms) ... ok
+test_nonlinear_version_does_not_reuse_pdf_mapping (test_document_foundation.DocumentFoundationTests.test_nonlinear_version_does_not_reuse_pdf_mapping) ... ok
+test_regions_bind_version_and_reject_cross_page_and_outside (test_document_foundation.DocumentFoundationTests.test_regions_bind_version_and_reject_cross_page_and_outside) ... ok
+test_schema8_migration_preserves_ids_paths_and_backs_up_before_write (test_document_foundation.DocumentFoundationTests.test_schema8_migration_preserves_ids_paths_and_backs_up_before_write) ... ok
+test_single_image_links_and_derived_versions_keep_identity (test_document_foundation.DocumentFoundationTests.test_single_image_links_and_derived_versions_keep_identity) ... ok
+test_stages_resume_without_repeating_success_and_late_commit_is_rejected (test_document_foundation.DocumentFoundationTests.test_stages_resume_without_repeating_success_and_late_commit_is_rejected) ... ok
+test_v9_failure_rolls_back_new_tables_and_rejects_future_schema (test_document_foundation.DocumentFoundationTests.test_v9_failure_rolls_back_new_tables_and_rejects_future_schema) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.496s
+
+OK

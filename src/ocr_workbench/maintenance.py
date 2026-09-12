@@ -88,16 +88,32 @@ class ProjectMaintenance:
                 joins = 'JOIN tasks t ON t.id=f.task_id' if owner == 'task_id' else 'JOIN results r ON r.id=f.result_id JOIN tasks t ON t.id=r.task_id'
                 fusion_bytes += self.store.rows(f'SELECT COALESCE(SUM({expression}),0) bytes FROM {table} f {joins} WHERE t.project_id=?', (key,))[0]['bytes']
             fusion_bytes += self.store.rows('SELECT COALESCE(SUM(length(request_id)+length(payload_hash)+length(task_ids)+length(created)),0) bytes FROM fusion_submissions WHERE project_id=?', (key,))[0]['bytes']
+            document_bytes = 0
+            for table, columns, joins, owner in (
+                ('documents', ('name','original_path','metadata'), '', 'f.project_id'),
+                ('pages', ('crop_box','render_parameters','native_result'), 'JOIN documents d ON d.id=f.document_id', 'd.project_id'),
+                ('page_versions', ('pdf_to_pixel','parent_to_pixel'), 'JOIN pages p ON p.id=f.page_id JOIN documents d ON d.id=p.document_id', 'd.project_id'),
+                ('regions', ('polygon','pdf_polygon','metadata'), 'JOIN pages p ON p.id=f.page_id JOIN documents d ON d.id=p.document_id', 'd.project_id'),
+                ('document_stages', ('request_key','parameters','error','output'), 'JOIN pages p ON p.id=f.page_id JOIN documents d ON d.id=p.document_id', 'd.project_id'),
+                ('geometry_evidence', ('target','polygon','details','model_version'), 'JOIN results r ON r.id=f.result_id JOIN tasks t ON t.id=r.task_id', 't.project_id'),
+                ('geometry_requests', ('snapshot','regions'), 'JOIN tasks t ON t.id=f.task_id', 't.project_id'),
+                ('page_ocr_inputs', ('crop_box','output'), 'JOIN tasks t ON t.id=f.task_id', 't.project_id'),
+                ('document_conflict_decisions', ('conflict_id','edited_sha256'), 'JOIN results r ON r.id=f.result_id JOIN tasks t ON t.id=r.task_id', 't.project_id'),
+                ('review_timings', ('target','active_ms','action'), 'JOIN results r ON r.id=f.result_id JOIN tasks t ON t.id=r.task_id', 't.project_id'),
+            ):
+                expression = '+'.join(f'COALESCE(length(CAST(f.{column} AS BLOB)),0)' for column in columns)
+                document_bytes += self.store.rows(f'SELECT COALESCE(SUM({expression}),0) bytes FROM {table} f {joins} WHERE {owner}=?', (key,))[0]['bytes']
             return {
-                "bytes": total + result_bytes + history_bytes["bytes"] + fusion_bytes,
+                "bytes": total + result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes,
                 "file_bytes": total,
-                "database_payload_bytes": result_bytes + history_bytes["bytes"] + fusion_bytes,
+                "database_payload_bytes": result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes,
+                "document_bytes": document_bytes,
                 "fusion_bytes": fusion_bytes,
                 "result_bytes": result_bytes,
                 "history_bytes": history_bytes["bytes"],
                 "history_entries": history_bytes["count"],
                 "files": files,
-                "scope": "项目文件、结果、融合快照/证据/决策及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
+                "scope": "项目文件、结果、融合与文档快照/证据/决策/计时及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
                 **self.disk_status(),
             }
 
@@ -158,7 +174,7 @@ class ProjectMaintenance:
             referenced = {
                 self.store.file(row["path"])
                 for row in self.store.rows(
-                    "SELECT original_path path FROM images UNION SELECT path FROM versions"
+                    "SELECT original_path path FROM images UNION SELECT path FROM versions UNION SELECT original_path path FROM documents UNION SELECT native_result path FROM pages WHERE native_result IS NOT NULL"
                 )
             }
             entries = []
@@ -188,12 +204,13 @@ class ProjectMaintenance:
                 parts = path.relative_to(self.store.root).parts
                 if (
                     len(parts) == 5
-                    and parts[2] == "images"
+                    and parts[2] in ("images", "documents")
                     and re.fullmatch("[a-f0-9]{32}", parts[1])
                     and re.fullmatch("[a-f0-9]{32}", parts[3])
                     and (
                         re.fullmatch(r"[a-f0-9]{32}\.png", parts[4])
                         or parts[4].startswith("original.")
+                        or parts[4] == "native.json"
                     )
                     and path.resolve() not in referenced
                 ):
@@ -297,6 +314,8 @@ class ProjectMaintenance:
             )
             try:
                 with self.store.transaction() as db:
+                    if db.execute("SELECT 1 FROM document_stages s JOIN pages p ON p.id=s.page_id JOIN documents d ON d.id=p.document_id WHERE d.project_id=? AND s.status IN ('queued','running','waiting_gpu')", (key,)).fetchone():
+                        raise ValueError("请先暂停或取消该项目的文档处理任务")
                     if db.execute(
                         "SELECT 1 FROM tasks WHERE project_id=? AND status IN ('queued','running')",
                         (key,),

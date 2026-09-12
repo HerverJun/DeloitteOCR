@@ -1,0 +1,17 @@
+{
+  "ready": false,
+  "failures": [
+    {
+      "page_id": "009dedfe3f2a4b0c899b38aa8cbd1427",
+      "page_number": 1,
+      "reason": "定位或内容预检未通过",
+      "items": [
+        {
+          "reason": "仅原生提取尚有未识别区域"
+        }
+      ]
+    }
+  ],
+  "document_count": 0,
+  "page_count": 0
+}

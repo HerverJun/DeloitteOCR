@@ -13,7 +13,7 @@ def main():
     p.add_argument("--final-manifest", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     a = p.parse_args()
-    protected = {"app", "config", "fixtures", "launcher", "locks", "models", "runtimes", "web"}
+    protected = {"app", "config", "fixtures", "launcher", "locks", "models", "runtimes", "web", "fonts", "licenses", "wheelhouse"}
     manifests = [json.loads(path.read_text("utf-8")) for path in [a.tested_manifest, a.final_manifest]]
     files = []
     for manifest in manifests:
@@ -31,7 +31,7 @@ def main():
             changes.append({"path": path, "protected": is_protected, "before": files[0].get(path), "after": files[1].get(path)})
     report = {
         "passed": bool(relevant) and not any(c["protected"] for c in changes),
-        "scope": "Compares manifests only. Full archive SHA/CRC verification is separately required. Application/config/fixtures/launcher/locks/models/runtimes/web/command entry points must be byte-identical; changed documents, audit receipts and tools are enumerated, not silently treated as tested.",
+        "scope": "Compares manifests only. Full archive SHA/CRC verification is separately required. Application/config/fixtures/launcher/locks/models/runtimes/web/fonts/licenses/wheelhouse/command entry points must be byte-identical; changed documents, audit receipts and tools are enumerated, not silently treated as tested.",
         "tested_manifest_sha256": hashlib.sha256(a.tested_manifest.read_bytes()).hexdigest(),
         "final_manifest_sha256": hashlib.sha256(a.final_manifest.read_bytes()).hexdigest(),
         "protected_files": len(relevant),

@@ -1,0 +1,143 @@
+[
+  {
+    "project": "paddlex",
+    "repository": "PaddlePaddle/PaddleX",
+    "revision": "v3.7.0",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleX/v3.7.0/LICENSE",
+    "path": "licenses/document-workflow/upstream/paddlex/LICENSE",
+    "sha256": "accc36c817ac5ede473d05732e14afc11cb6e55ef5919bc826b653f631165043",
+    "bytes": 11325,
+    "status": "saved"
+  },
+  {
+    "project": "paddlex",
+    "repository": "PaddlePaddle/PaddleX",
+    "revision": "v3.7.0",
+    "upstream_path": "paddlex/inference/pipelines/table_recognition/pipeline_v2.py",
+    "url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleX/v3.7.0/paddlex/inference/pipelines/table_recognition/pipeline_v2.py",
+    "path": "licenses/document-workflow/upstream/paddlex/paddlex/inference/pipelines/table_recognition/pipeline_v2.py",
+    "sha256": "9285995eb1cb7f79547a7abca8abe74ae8b29471925fab2b0ef383c9082779c3",
+    "bytes": 62425,
+    "status": "saved"
+  },
+  {
+    "project": "rapidtable",
+    "repository": "RapidAI/RapidTable",
+    "revision": "22592283c1f9d7c5a014c96c4ecc57de0b3ebfce",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/RapidAI/RapidTable/22592283c1f9d7c5a014c96c4ecc57de0b3ebfce/LICENSE",
+    "path": "licenses/document-workflow/upstream/rapidtable/LICENSE",
+    "sha256": "11412f3b1c5a6b1fb9878351f7ae7fffaf41cafdf53e7720e816ba675db65ba5",
+    "bytes": 11337,
+    "status": "saved"
+  },
+  {
+    "project": "rapidtable",
+    "repository": "RapidAI/RapidTable",
+    "revision": "22592283c1f9d7c5a014c96c4ecc57de0b3ebfce",
+    "upstream_path": "rapid_table/main.py",
+    "url": "https://raw.githubusercontent.com/RapidAI/RapidTable/22592283c1f9d7c5a014c96c4ecc57de0b3ebfce/rapid_table/main.py",
+    "path": "licenses/document-workflow/upstream/rapidtable/rapid_table/main.py",
+    "sha256": "6b6101280f60b27af399a6bee512d79946d68f80304712475c2fee134f287c38",
+    "bytes": 6958,
+    "status": "saved"
+  },
+  {
+    "project": "docling",
+    "repository": "docling-project/docling",
+    "revision": "5ea6490ffdc57b2fd7de5cc436f2d0a22f2214d4",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/docling-project/docling/5ea6490ffdc57b2fd7de5cc436f2d0a22f2214d4/LICENSE",
+    "path": "licenses/document-workflow/upstream/docling/LICENSE",
+    "sha256": "edb765d1e3e60d0c7a7d5fba5f2bb2c3c29f7465cecb5c22cf1185c884954e4c",
+    "bytes": 1072,
+    "status": "saved"
+  },
+  {
+    "project": "docling",
+    "repository": "docling-project/docling",
+    "revision": "5ea6490ffdc57b2fd7de5cc436f2d0a22f2214d4",
+    "upstream_path": "docling/models/base_ocr_model.py",
+    "url": "https://raw.githubusercontent.com/docling-project/docling/5ea6490ffdc57b2fd7de5cc436f2d0a22f2214d4/docling/models/base_ocr_model.py",
+    "path": "licenses/document-workflow/upstream/docling/docling/models/base_ocr_model.py",
+    "sha256": "1563b9b30e2e4ee670ac58e865bd32a53462efce0a1b610602bb1b4dbc8c1a32",
+    "bytes": 22743,
+    "status": "saved"
+  },
+  {
+    "project": "docling-parse",
+    "repository": "docling-project/docling-parse",
+    "revision": "1fab490e4e59a39d70f375cd5092f4784036fa93",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/docling-project/docling-parse/1fab490e4e59a39d70f375cd5092f4784036fa93/LICENSE",
+    "path": "licenses/document-workflow/upstream/docling-parse/LICENSE",
+    "sha256": "002c2696d92b5c8cf956c11072baa58eaf9f6ade995c031ea635c6a1ee342ad1",
+    "bytes": 1069,
+    "status": "saved"
+  },
+  {
+    "project": "docling-parse",
+    "repository": "docling-project/docling-parse",
+    "revision": "1fab490e4e59a39d70f375cd5092f4784036fa93",
+    "upstream_path": "docling_parse/pdf_parser.py",
+    "url": "https://raw.githubusercontent.com/docling-project/docling-parse/1fab490e4e59a39d70f375cd5092f4784036fa93/docling_parse/pdf_parser.py",
+    "path": "licenses/document-workflow/upstream/docling-parse/docling_parse/pdf_parser.py",
+    "sha256": "6d1a5ac60f666fa49f291978fdca065121d16c023c75969ab45605f312dc3f9b",
+    "bytes": 61815,
+    "status": "saved"
+  },
+  {
+    "project": "ocrmypdf",
+    "repository": "ocrmypdf/OCRmyPDF",
+    "revision": "ffee83231532f4f67b8c0e756cddec67446570c9",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/ocrmypdf/OCRmyPDF/ffee83231532f4f67b8c0e756cddec67446570c9/LICENSE",
+    "path": "licenses/document-workflow/upstream/ocrmypdf/LICENSE",
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "bytes": 16725,
+    "status": "saved"
+  },
+  {
+    "project": "ocrmypdf",
+    "repository": "ocrmypdf/OCRmyPDF",
+    "revision": "ffee83231532f4f67b8c0e756cddec67446570c9",
+    "upstream_path": "src/ocrmypdf/_graft.py",
+    "url": "https://raw.githubusercontent.com/ocrmypdf/OCRmyPDF/ffee83231532f4f67b8c0e756cddec67446570c9/src/ocrmypdf/_graft.py",
+    "path": "licenses/document-workflow/upstream/ocrmypdf/src/ocrmypdf/_graft.py",
+    "sha256": "bf16e6458d58bd1836b3b105fd44017759c4544ebe4459321c6bc33d53f67c6d",
+    "bytes": 32022,
+    "status": "saved"
+  },
+  {
+    "project": "wtw",
+    "repository": "wangwen-whu/WTW-Dataset",
+    "revision": "master",
+    "upstream_path": "README.md",
+    "url": "https://raw.githubusercontent.com/wangwen-whu/WTW-Dataset/master/README.md",
+    "path": "licenses/document-workflow/upstream/wtw/README.md",
+    "sha256": "51a2d7ac34a1265d47d8c9d56cd1f0c85deee198d6d390bfbbd3404b55836555",
+    "bytes": 2518,
+    "status": "saved"
+  },
+  {
+    "project": "wtw",
+    "repository": "wangwen-whu/WTW-Dataset",
+    "revision": "master",
+    "upstream_path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/wangwen-whu/WTW-Dataset/master/LICENSE",
+    "status": "unavailable",
+    "error": "404 Client Error: Not Found for url: https://api.github.com/repos/wangwen-whu/WTW-Dataset/contents/LICENSE?ref=master"
+  },
+  {
+    "project": "wtw",
+    "repository": "wangwen-whu/WTW-Dataset",
+    "revision": "master",
+    "upstream_path": "License",
+    "url": "https://raw.githubusercontent.com/wangwen-whu/WTW-Dataset/master/License",
+    "path": "licenses/document-workflow/upstream/wtw/License",
+    "sha256": "b6a259ea982731113e9b6fb695667778ad6c987788f892fb0e892c2cce1bc71d",
+    "bytes": 146,
+    "status": "saved"
+  }
+]

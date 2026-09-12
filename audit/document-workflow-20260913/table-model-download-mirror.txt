@@ -1,0 +1,26 @@
+Downloaded PaddlePaddle/PP-LCNet_x1_0_table_cls/inference.json: 104441
+Downloaded PaddlePaddle/PP-LCNet_x1_0_table_cls/config.json: 2539
+Downloaded PaddlePaddle/PP-LCNet_x1_0_table_cls/README.md: 11629
+Downloaded PaddlePaddle/PP-LCNet_x1_0_table_cls/inference.yml: 762
+Downloaded PaddlePaddle/PP-LCNet_x1_0_table_cls/inference.pdiparams: 6743918
+Downloaded PaddlePaddle/SLANeXt_wired/README.md: 12912
+Downloaded PaddlePaddle/SLANeXt_wired/config.json: 4948
+Downloaded PaddlePaddle/SLANeXt_wired/inference.json: 959302
+Downloaded PaddlePaddle/SLANeXt_wired/inference.yml: 2066
+Downloaded PaddlePaddle/SLANeXt_wired/inference.pdiparams: 364771513
+Downloaded PaddlePaddle/SLANeXt_wireless/README.md: 13142
+Downloaded PaddlePaddle/SLANeXt_wireless/inference.json: 959302
+Downloaded PaddlePaddle/SLANeXt_wireless/config.json: 4951
+Downloaded PaddlePaddle/SLANeXt_wireless/inference.yml: 2069
+Downloaded PaddlePaddle/SLANeXt_wireless/inference.pdiparams: 364771513
+Downloaded PaddlePaddle/RT-DETR-L_wired_table_cell_det/config.json: 5695
+Downloaded PaddlePaddle/RT-DETR-L_wired_table_cell_det/README.md: 14392
+Downloaded PaddlePaddle/RT-DETR-L_wired_table_cell_det/inference.json: 1081363
+Downloaded PaddlePaddle/RT-DETR-L_wired_table_cell_det/inference.yml: 1630
+Downloaded PaddlePaddle/RT-DETR-L_wired_table_cell_det/inference.pdiparams: 128841073
+Downloaded PaddlePaddle/RT-DETR-L_wireless_table_cell_det/README.md: 15124
+Downloaded PaddlePaddle/RT-DETR-L_wireless_table_cell_det/inference.json: 1081363
+Downloaded PaddlePaddle/RT-DETR-L_wireless_table_cell_det/config.json: 5698
+Downloaded PaddlePaddle/RT-DETR-L_wireless_table_cell_det/inference.yml: 1633
+Downloaded PaddlePaddle/RT-DETR-L_wireless_table_cell_det/inference.pdiparams: 128841073
+Locked 51 CPU wheels and 5 table models

@@ -1,0 +1,2076 @@
+{
+  "purpose": "real GPU queue integration, not geometry benchmark",
+  "stages": [
+    {
+      "case": "native-table-geometry",
+      "cold_queue_seconds": 57.14321099999506,
+      "geometry_tasks": [
+        {
+          "id": "fdb34aba146c4f20a760d1120fe6969b",
+          "status": "succeeded",
+          "phase": "定位完成；原生表格预览待采用",
+          "error": null
+        }
+      ],
+      "preview_count": 1,
+      "source_unchanged": true,
+      "source_revision": 0,
+      "preview_tables": [
+        {
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Item",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Code",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 0,
+              "column": 2,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Quantity",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 0,
+              "column": 3,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Amount",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 1,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Alpha",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 1,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "001234",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 1,
+              "column": 2,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "10",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 1,
+              "column": 3,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "123.45",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 2,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Bravo",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 2,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "000987",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 2,
+              "column": 2,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "20",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 2,
+              "column": 3,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "234.56",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 3,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Charlie",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 3,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "007654",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 3,
+              "column": 2,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "30",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 3,
+              "column": 3,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "345.67",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 4,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "Delta",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 4,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "003210",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 4,
+              "column": 2,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "40",
+              "confidence": null,
+              "polygon": null
+            },
+            {
+              "row": 4,
+              "column": 3,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "456.78",
+              "confidence": null,
+              "polygon": null
+            }
+          ],
+          "rows": 5,
+          "columns": 4,
+          "caption": "",
+          "source": {
+            "start": 0,
+            "end": 851,
+            "format": "html",
+            "sha256": "c7ac2e040b9a6859f554ad34ef14fb984ff83e8422fbc131c4a3aa95420a75dc"
+          }
+        }
+      ],
+      "geometry": {
+        "result_id": "47a529b34c7e42f89f51d3b410764b14",
+        "revision": 0,
+        "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+        "experimental": true,
+        "evidence": [
+          {
+            "id": "a118c383af9a404193d6a5cebc8a71ac",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 3,
+              "column": 1
+            },
+            "polygon": [
+              [
+                227.84841918945312,
+                363.1943359375
+              ],
+              [
+                415.7033996582031,
+                363.1943359375
+              ],
+              [
+                415.7033996582031,
+                456.6798400878906
+              ],
+              [
+                227.84841918945312,
+                456.6798400878906
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 3,
+                "column": 1
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  227.84841918945312,
+                  363.1943359375
+                ],
+                [
+                  415.7033996582031,
+                  363.1943359375
+                ],
+                [
+                  415.7033996582031,
+                  456.6798400878906
+                ],
+                [
+                  227.84841918945312,
+                  456.6798400878906
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 12,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "200f7db357db48a183fa2c542f93d567",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 3,
+              "column": 2
+            },
+            "polygon": [
+              [
+                415.6929931640625,
+                363.2041931152344
+              ],
+              [
+                603.5250854492188,
+                363.2041931152344
+              ],
+              [
+                603.5250854492188,
+                456.7105712890625
+              ],
+              [
+                415.6929931640625,
+                456.7105712890625
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 3,
+                "column": 2
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  415.6929931640625,
+                  363.2041931152344
+                ],
+                [
+                  603.5250854492188,
+                  363.2041931152344
+                ],
+                [
+                  603.5250854492188,
+                  456.7105712890625
+                ],
+                [
+                  415.6929931640625,
+                  456.7105712890625
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 11,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "8a53efc0d07d45e08f01ac6fc0477341",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 3,
+              "column": 3
+            },
+            "polygon": [
+              [
+                603.305419921875,
+                363.1734619140625
+              ],
+              [
+                789.9727783203125,
+                363.1734619140625
+              ],
+              [
+                789.9727783203125,
+                456.7601318359375
+              ],
+              [
+                603.305419921875,
+                456.7601318359375
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 3,
+                "column": 3
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  603.305419921875,
+                  363.1734619140625
+                ],
+                [
+                  789.9727783203125,
+                  363.1734619140625
+                ],
+                [
+                  789.9727783203125,
+                  456.7601318359375
+                ],
+                [
+                  603.305419921875,
+                  456.7601318359375
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 15,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "cc261f62c3f8466e9f6b35d671f0a417",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 4,
+              "column": 0
+            },
+            "polygon": [
+              [
+                40.95682942867279,
+                456.6396484375
+              ],
+              [
+                228.00779724121094,
+                456.6396484375
+              ],
+              [
+                228.00779724121094,
+                548.1405334472656
+              ],
+              [
+                40.95682942867279,
+                548.1405334472656
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 4,
+                "column": 0
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  40.95682942867279,
+                  456.6396484375
+                ],
+                [
+                  228.00779724121094,
+                  456.6396484375
+                ],
+                [
+                  228.00779724121094,
+                  548.1405334472656
+                ],
+                [
+                  40.95682942867279,
+                  548.1405334472656
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 18,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "6fdb81e48db149bd94d83d29e9f2d3b7",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 4,
+              "column": 1
+            },
+            "polygon": [
+              [
+                227.9680938720703,
+                456.63995361328125
+              ],
+              [
+                415.6939392089844,
+                456.63995361328125
+              ],
+              [
+                415.6939392089844,
+                548.386962890625
+              ],
+              [
+                227.9680938720703,
+                548.386962890625
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 4,
+                "column": 1
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  227.9680938720703,
+                  456.63995361328125
+                ],
+                [
+                  415.6939392089844,
+                  456.63995361328125
+                ],
+                [
+                  415.6939392089844,
+                  548.386962890625
+                ],
+                [
+                  227.9680938720703,
+                  548.386962890625
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 17,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "dbdee1f8c31c4e069d9821f6b81437fb",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 4,
+              "column": 2
+            },
+            "polygon": [
+              [
+                415.8022155761719,
+                456.6162109375
+              ],
+              [
+                603.53076171875,
+                456.6162109375
+              ],
+              [
+                603.53076171875,
+                548.48828125
+              ],
+              [
+                415.8022155761719,
+                548.48828125
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 4,
+                "column": 2
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  415.8022155761719,
+                  456.6162109375
+                ],
+                [
+                  603.53076171875,
+                  456.6162109375
+                ],
+                [
+                  603.53076171875,
+                  548.48828125
+                ],
+                [
+                  415.8022155761719,
+                  548.48828125
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 16,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "499bfad2b9784e82b4cba63cdcc67d40",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 4,
+              "column": 3
+            },
+            "polygon": [
+              [
+                603.4110107421875,
+                456.63226318359375
+              ],
+              [
+                790.1002197265625,
+                456.63226318359375
+              ],
+              [
+                790.1002197265625,
+                548.4906921386719
+              ],
+              [
+                603.4110107421875,
+                548.4906921386719
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 4,
+                "column": 3
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  603.4110107421875,
+                  456.63226318359375
+                ],
+                [
+                  790.1002197265625,
+                  456.63226318359375
+                ],
+                [
+                  790.1002197265625,
+                  548.4906921386719
+                ],
+                [
+                  603.4110107421875,
+                  548.4906921386719
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 19,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.087686+00:00"
+          },
+          {
+            "id": "877cbff72d38446daeb241c183f2789c",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            },
+            "polygon": [
+              [
+                227.8820343017578,
+                82.15562736988068
+              ],
+              [
+                415.71734619140625,
+                82.15562736988068
+              ],
+              [
+                415.71734619140625,
+                175.53162384033203
+              ],
+              [
+                227.8820343017578,
+                175.53162384033203
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 0,
+                "column": 1
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  227.8820343017578,
+                  82.15562736988068
+                ],
+                [
+                  415.71734619140625,
+                  82.15562736988068
+                ],
+                [
+                  415.71734619140625,
+                  175.53162384033203
+                ],
+                [
+                  227.8820343017578,
+                  175.53162384033203
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 1,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "85c251c61a76445ea9521f156b4d6e7e",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 2
+            },
+            "polygon": [
+              [
+                415.6851501464844,
+                82.16261219978333
+              ],
+              [
+                603.380615234375,
+                82.16261219978333
+              ],
+              [
+                603.380615234375,
+                175.48513793945312
+              ],
+              [
+                415.6851501464844,
+                175.48513793945312
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 0,
+                "column": 2
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  415.6851501464844,
+                  82.16261219978333
+                ],
+                [
+                  603.380615234375,
+                  82.16261219978333
+                ],
+                [
+                  603.380615234375,
+                  175.48513793945312
+                ],
+                [
+                  415.6851501464844,
+                  175.48513793945312
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 3,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "985a33337340433ea6f37e1abaa9231d",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 3
+            },
+            "polygon": [
+              [
+                603.3184814453125,
+                82.14601707458496
+              ],
+              [
+                790.3272705078125,
+                82.14601707458496
+              ],
+              [
+                790.3272705078125,
+                175.4733123779297
+              ],
+              [
+                603.3184814453125,
+                175.4733123779297
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 0,
+                "column": 3
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  603.3184814453125,
+                  82.14601707458496
+                ],
+                [
+                  790.3272705078125,
+                  82.14601707458496
+                ],
+                [
+                  790.3272705078125,
+                  175.4733123779297
+                ],
+                [
+                  603.3184814453125,
+                  175.4733123779297
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 10,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "7e8115d21066466ebcda7427ac4c7b6c",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            },
+            "polygon": [
+              [
+                41.151127338409424,
+                175.38201904296875
+              ],
+              [
+                227.96080017089844,
+                175.38201904296875
+              ],
+              [
+                227.96080017089844,
+                269.3712158203125
+              ],
+              [
+                41.151127338409424,
+                269.3712158203125
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 1,
+                "column": 0
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  41.151127338409424,
+                  175.38201904296875
+                ],
+                [
+                  227.96080017089844,
+                  175.38201904296875
+                ],
+                [
+                  227.96080017089844,
+                  269.3712158203125
+                ],
+                [
+                  41.151127338409424,
+                  269.3712158203125
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 2,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "e015ef81fe0a4578a6f8b2cdf05ec8c7",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "polygon": [
+              [
+                227.82659912109375,
+                175.45223236083984
+              ],
+              [
+                415.77777099609375,
+                175.45223236083984
+              ],
+              [
+                415.77777099609375,
+                269.41270446777344
+              ],
+              [
+                227.82659912109375,
+                269.41270446777344
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 1,
+                "column": 1
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  227.82659912109375,
+                  175.45223236083984
+                ],
+                [
+                  415.77777099609375,
+                  175.45223236083984
+                ],
+                [
+                  415.77777099609375,
+                  269.41270446777344
+                ],
+                [
+                  227.82659912109375,
+                  269.41270446777344
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 4,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "f4fb589ad5394ab7b664ed182cece0fe",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 2
+            },
+            "polygon": [
+              [
+                415.6768798828125,
+                175.40021514892578
+              ],
+              [
+                603.4865112304688,
+                175.40021514892578
+              ],
+              [
+                603.4865112304688,
+                269.39598083496094
+              ],
+              [
+                415.6768798828125,
+                269.39598083496094
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 1,
+                "column": 2
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  415.6768798828125,
+                  175.40021514892578
+                ],
+                [
+                  603.4865112304688,
+                  175.40021514892578
+                ],
+                [
+                  603.4865112304688,
+                  269.39598083496094
+                ],
+                [
+                  415.6768798828125,
+                  269.39598083496094
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 6,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "8bb5602d28584a6b81e087e2872e23c8",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 3
+            },
+            "polygon": [
+              [
+                603.2662963867188,
+                175.3634262084961
+              ],
+              [
+                790.217529296875,
+                175.3634262084961
+              ],
+              [
+                790.217529296875,
+                269.38014221191406
+              ],
+              [
+                603.2662963867188,
+                269.38014221191406
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 1,
+                "column": 3
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  603.2662963867188,
+                  175.3634262084961
+                ],
+                [
+                  790.217529296875,
+                  175.3634262084961
+                ],
+                [
+                  790.217529296875,
+                  269.38014221191406
+                ],
+                [
+                  603.2662963867188,
+                  269.38014221191406
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 13,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "8a2dea4902304c1999da3a31c7925c76",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            },
+            "polygon": [
+              [
+                41.13419556617737,
+                269.3217468261719
+              ],
+              [
+                227.91053771972656,
+                269.3217468261719
+              ],
+              [
+                227.91053771972656,
+                363.2295837402344
+              ],
+              [
+                41.13419556617737,
+                363.2295837402344
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 2,
+                "column": 0
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  41.13419556617737,
+                  269.3217468261719
+                ],
+                [
+                  227.91053771972656,
+                  269.3217468261719
+                ],
+                [
+                  227.91053771972656,
+                  363.2295837402344
+                ],
+                [
+                  41.13419556617737,
+                  363.2295837402344
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 5,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "f775ba793a424001953f384f5dc7d5af",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            },
+            "polygon": [
+              [
+                227.9045867919922,
+                269.4489288330078
+              ],
+              [
+                415.6488037109375,
+                269.4489288330078
+              ],
+              [
+                415.6488037109375,
+                363.1565856933594
+              ],
+              [
+                227.9045867919922,
+                363.1565856933594
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 2,
+                "column": 1
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  227.9045867919922,
+                  269.4489288330078
+                ],
+                [
+                  415.6488037109375,
+                  269.4489288330078
+                ],
+                [
+                  415.6488037109375,
+                  363.1565856933594
+                ],
+                [
+                  227.9045867919922,
+                  363.1565856933594
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 8,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "783b691c6f7a4a5c82a01cac06a76f76",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 2
+            },
+            "polygon": [
+              [
+                415.622802734375,
+                269.4104766845703
+              ],
+              [
+                603.4879760742188,
+                269.4104766845703
+              ],
+              [
+                603.4879760742188,
+                363.20745849609375
+              ],
+              [
+                415.622802734375,
+                363.20745849609375
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 2,
+                "column": 2
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  415.622802734375,
+                  269.4104766845703
+                ],
+                [
+                  603.4879760742188,
+                  269.4104766845703
+                ],
+                [
+                  603.4879760742188,
+                  363.20745849609375
+                ],
+                [
+                  415.622802734375,
+                  363.20745849609375
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 9,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "76bbbfa907d34586be2e7b94aa3d3636",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 3
+            },
+            "polygon": [
+              [
+                603.2382202148438,
+                269.37083435058594
+              ],
+              [
+                790.0379638671875,
+                269.37083435058594
+              ],
+              [
+                790.0379638671875,
+                363.21783447265625
+              ],
+              [
+                603.2382202148438,
+                363.21783447265625
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 2,
+                "column": 3
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  603.2382202148438,
+                  269.37083435058594
+                ],
+                [
+                  790.0379638671875,
+                  269.37083435058594
+                ],
+                [
+                  790.0379638671875,
+                  363.21783447265625
+                ],
+                [
+                  603.2382202148438,
+                  363.21783447265625
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 14,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "72c84c76f4764bdd8869c06082ea2f14",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 3,
+              "column": 0
+            },
+            "polygon": [
+              [
+                41.09304356575012,
+                363.1331787109375
+              ],
+              [
+                227.89102172851562,
+                363.1331787109375
+              ],
+              [
+                227.89102172851562,
+                456.7948303222656
+              ],
+              [
+                41.09304356575012,
+                456.7948303222656
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 3,
+                "column": 0
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  41.09304356575012,
+                  363.1331787109375
+                ],
+                [
+                  227.89102172851562,
+                  363.1331787109375
+                ],
+                [
+                  227.89102172851562,
+                  456.7948303222656
+                ],
+                [
+                  41.09304356575012,
+                  456.7948303222656
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 7,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.086687+00:00"
+          },
+          {
+            "id": "05cb0fe1a3be4fb5855682f7bfd7ff3f",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "table",
+              "table": 0
+            },
+            "polygon": [
+              [
+                39,
+                81
+              ],
+              [
+                795,
+                81
+              ],
+              [
+                795,
+                554
+              ],
+              [
+                39,
+                554
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "table",
+                "table": 0
+              },
+              "polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "level": "region",
+              "reason": "table_region",
+              "region_id": null,
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.085687+00:00"
+          },
+          {
+            "id": "7c396b2e573f4ee5914b0acbd7789dfa",
+            "result_id": "47a529b34c7e42f89f51d3b410764b14",
+            "version_id": "4d33a06e19c24c15ac85d2c7f610664e",
+            "region_id": null,
+            "image_sha256": "78909020041ea1f57a9cbee1f1cffc4e10bede85e9be39450e6dcdc9ae969b85",
+            "structure_sha256": "e1d02fcb798244abd390f7448204d306755889cebdc68b140215e2faae1f93a8",
+            "source": "paddle-table-v2",
+            "model_version": "{\"PP-LCNet_x1_0_table_cls\":\"2fa6323e7dab88fa883081db1460995f46af2922\",\"SLANeXt_wired\":\"763069fcda6a065f2171753205a32bf899a88d15\",\"SLANeXt_wireless\":\"1b73e05c752d2e0763b5d205846dec23122e5808\",\"RT-DETR-L_wired_table_cell_det\":\"e2bd53c06b3a815d86acbf5c6779dada58819cfe\",\"RT-DETR-L_wireless_table_cell_det\":\"25ca86356a601c877476bb0dcc5fd09153d9d64d\"}",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            },
+            "polygon": [
+              [
+                40.894442319869995,
+                82.00569701194763
+              ],
+              [
+                227.9207305908203,
+                82.00569701194763
+              ],
+              [
+                227.9207305908203,
+                175.5334014892578
+              ],
+              [
+                40.894442319869995,
+                175.5334014892578
+              ]
+            ],
+            "details": {
+              "target": {
+                "kind": "cell",
+                "table": 0,
+                "row": 0,
+                "column": 0
+              },
+              "table_polygon": [
+                [
+                  39,
+                  81
+                ],
+                [
+                  795,
+                  81
+                ],
+                [
+                  795,
+                  554
+                ],
+                [
+                  39,
+                  554
+                ]
+              ],
+              "polygon": [
+                [
+                  40.894442319869995,
+                  82.00569701194763
+                ],
+                [
+                  227.9207305908203,
+                  82.00569701194763
+                ],
+                [
+                  227.9207305908203,
+                  175.5334014892578
+                ],
+                [
+                  40.894442319869995,
+                  175.5334014892578
+                ]
+              ],
+              "level": "cell",
+              "reason": "unique_structure_text_and_detection",
+              "region_id": null,
+              "prediction_table": 0,
+              "detection_index": 0,
+              "geometry_origin": "direct_detection",
+              "artifact": "task-results\\fdb34aba146c4f20a760d1120fe6969b\\1789245435802265300\\geometry.json",
+              "contributes_to_votes": false
+            },
+            "status": "valid",
+            "created": "2026-09-12T20:37:20.085687+00:00"
+          }
+        ],
+        "cache_read_ms": 1.0477000032551587
+      }
+    },
+    {
+      "case": "mixed-native-and-real-ppocr",
+      "final_stage": {
+        "id": "7f9d00c4571242b6a407d266ddc96852",
+        "page_id": "1bfc4b5c30c243a4998f5e67af027354",
+        "version_id": "9ea7088d86564a6e92d3791977cf38eb",
+        "kind": "process",
+        "request_key": "0a396b138f195039f53229a93d634fed8c5a03c1dd2482340b3f1226ca20b0c5",
+        "parameters": "{\"mode\":\"auto\",\"engine\":\"ppocr\"}",
+        "status": "succeeded",
+        "phase": "完成",
+        "attempt": 1,
+        "error": null,
+        "output": "{\"result_id\":\"71efc12af33745f89b6aea71f97e3fb0\",\"image_id\":\"145f99c7ddb144c0abeb55429f191b05\"}",
+        "created": "2026-09-12T20:37:21.114012+00:00",
+        "started": "2026-09-12T20:37:21.122013+00:00",
+        "finished": "2026-09-12T20:37:35.644592+00:00"
+      },
+      "text": "Scanned invoice 001234\nAmount $ 123.45\nAccount 00123456789012345678\nPage 001",
+      "region_tasks": [
+        {
+          "id": "f17cb5ac66634b7684dcafcf123bd854",
+          "status": "succeeded",
+          "started": "2026-09-12T20:37:23.072516+00:00",
+          "finished": "2026-09-12T20:37:34.950506+00:00"
+        }
+      ],
+      "audit_harness_note": "Inference and publication completed; report recovered after obsolete attempt-column query failed."
+    }
+  ]
+}

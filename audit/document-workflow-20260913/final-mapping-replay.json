@@ -1,0 +1,1114 @@
+{
+  "passed": true,
+  "scope": "No inference rerun. Replay final mapping code on unchanged saved Paddle artifacts. 99 successful outputs must be identical; malformed HTML safely degrades to image without claiming measured precision.",
+  "original_run_lock": {
+    "manifest_sha256": "bcdb67c8be7d4db380cd88c221e0f4c28f7b33c1b9438b8f89b3d154537edb6f",
+    "model_lock_sha256": "eaef9353e78b54d3b2e82403f0e1c67efff06bad5212b1cdea5f99f22dafe140",
+    "geometry_code_sha256": "53f4843c8541307c33d73f301145c8d867d8ce99006f55bbbdf26b38a1edc82c",
+    "ground_truth_boxes_given_to_models": false
+  },
+  "final_geometry_sha256": "a294eacba77a9a11a435058386dbb34675945a97b6c1a431dbb3d898e7ba3cfa",
+  "mapping_function_sha256": "603cfa654190d8a36207a055d289972e751cbac5833d07e66bafa2a7f2a38896",
+  "records": [
+    {
+      "id": "pubtables-1m-001",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "9302dc456163a518b96bdb80128a2fa81a9df49dc9a6e4c4c66d47a54ba00e55",
+      "levels": {
+        "cell": 0,
+        "region": 41,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-002",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d21db2eb4ab05560d5d81a105dc6a6b024a0ea41d971f0ffb6b328809343ae78",
+      "levels": {
+        "cell": 0,
+        "region": 40,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-003",
+      "prior_status": "failed",
+      "identical_mappings": null,
+      "raw_sha256": "b7d9aa19d44c68a6d0a22ad1926e1889b99e94247e847fb1cd404381fab1949e",
+      "levels": {
+        "cell": 0,
+        "region": 0,
+        "image": 96
+      }
+    },
+    {
+      "id": "pubtables-1m-004",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "f406a9305b258725928c513304abd01e0fc0014f40d0a54712f664382e527934",
+      "levels": {
+        "cell": 0,
+        "region": 76,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-005",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "226f0d482adc211ed3a60be785112160f9e17b87ab2d71e651e30baf44dfda4a",
+      "levels": {
+        "cell": 0,
+        "region": 70,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-006",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "db513d4ba46f6d64584d96b8cedae63a51274aa9c0d61864c408c464eceffd19",
+      "levels": {
+        "cell": 0,
+        "region": 148,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-007",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "982781eee362f3c1a43c485388b542fed83074723a335d031ea0fd8efee2eb29",
+      "levels": {
+        "cell": 0,
+        "region": 93,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-008",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1be378f40fd627ca94cb7c170e4a49d5e89cd6258c9f5d32276401a314928ba6",
+      "levels": {
+        "cell": 0,
+        "region": 96,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-009",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "63c31589ab60b5bd914ba18aa40ac8ae25536b1295f3106ad4f93a5b66b037b1",
+      "levels": {
+        "cell": 0,
+        "region": 114,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-010",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "7587ec024bdcc39a5f4fedea1c1380ccb900c1bb9229358f2a45ef6dc468a14b",
+      "levels": {
+        "cell": 0,
+        "region": 81,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-011",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "481eb229e7e2262c423607c0e6e69c3b9b8f9ce46cad67d408f0017fb5243738",
+      "levels": {
+        "cell": 0,
+        "region": 40,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-012",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "7195ab37eddaea7879830c96e6cec31cf84367500698a2d888df9616142c59d8",
+      "levels": {
+        "cell": 0,
+        "region": 79,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-013",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "97ec0d20fd9e826393843444a7fa53a691b8a1738fc1aecd80376f450b908714",
+      "levels": {
+        "cell": 0,
+        "region": 37,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-014",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3c475a7df5e265b6f0bc8ed304a504098d54b87732f6a8b226d5c8358fc8df6d",
+      "levels": {
+        "cell": 0,
+        "region": 46,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-015",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "b34a35006b9c8e9a8a965f6116c21ef188f7814b282aba7f497b7b38bfc1b7c0",
+      "levels": {
+        "cell": 0,
+        "region": 34,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-016",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "5db7e88e9333e91094eaa62134ae249c3596de8b0cdff33a64cf9457623fd7d0",
+      "levels": {
+        "cell": 0,
+        "region": 134,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-017",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "a3270a4cf3a45786853c5702676d425975ee15063708b79196117f1304f055c9",
+      "levels": {
+        "cell": 0,
+        "region": 159,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-018",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "29dde4610d4b610689ce8a49ee7817079c542823658eabd03d84ae0299054eb0",
+      "levels": {
+        "cell": 0,
+        "region": 69,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-019",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "5e5453101baa55ed310231c2f3acd3b0ef25e758efcf132db3d8348be1937748",
+      "levels": {
+        "cell": 0,
+        "region": 233,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-020",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "c93c14fd2f45c9ec3fa091a17d01e087759b70187e69861a16ab80d6cb1e69cd",
+      "levels": {
+        "cell": 0,
+        "region": 77,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-021",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "a5dcd6f106400c9bb837259e5c335e2d12f23a135f96eb9cddd5c5ae15cebcde",
+      "levels": {
+        "cell": 0,
+        "region": 88,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-022",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "dfc4a3310ac05fb17a9fc8a9e36289e4046b716bc71d1a13f23fd59532c47ac4",
+      "levels": {
+        "cell": 0,
+        "region": 46,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-023",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "eba23c5fa6e5dd8bf78ee1d18f3a9f4455ac757547663076baed7c330e1487f8",
+      "levels": {
+        "cell": 0,
+        "region": 109,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-024",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "c547c64f3e2fc16f8896636d45b5689f506b556e7ecf8a802198c7a56796eab5",
+      "levels": {
+        "cell": 0,
+        "region": 50,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-025",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "607daaeed100ab68968c1ae47f0c9db31faa03eb717389d6e3df59a7f1d853e2",
+      "levels": {
+        "cell": 0,
+        "region": 26,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-026",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3accec9490d3eabf883cbe679fe92dd20f666637316edc8a2ddcfb92b2241cf9",
+      "levels": {
+        "cell": 0,
+        "region": 60,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-027",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "73f2fa54e1617abd191f23e1af41cf24848d4c9a611342e7e223ff1c84f6ec76",
+      "levels": {
+        "cell": 0,
+        "region": 22,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-028",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "88bbe97131a0d4603d936b79f4824b81a0980aeea4af1c4cc322f88863122101",
+      "levels": {
+        "cell": 0,
+        "region": 52,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-029",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "322010227ac473080f1f76b6b592b5dbeea0b459865837c42ef75e7f86c76059",
+      "levels": {
+        "cell": 0,
+        "region": 110,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-030",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "91796a588b05da82423594f4225bfbfef2e4d66a7a49246242cf7f33c9083534",
+      "levels": {
+        "cell": 0,
+        "region": 54,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-031",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1324ab8d1e213a9db38783e5e8738f40278ecd2b676acac5ecbf259211250598",
+      "levels": {
+        "cell": 0,
+        "region": 29,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-032",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "4f14b8f8dab42fe577de98f991ca4c4ac9665530d2643afc77de1c272b1bf754",
+      "levels": {
+        "cell": 0,
+        "region": 85,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-033",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "e2ecc7f810a2b454156ca9bc8ab62c8f1762da49d9893fcd9fff79673f2b2584",
+      "levels": {
+        "cell": 0,
+        "region": 43,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-034",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "7734602013ec9e8b9b51d41b05298cb2aa8bb4a2ed39c05ec93df4da717407bb",
+      "levels": {
+        "cell": 0,
+        "region": 19,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-035",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "f43a35f5a16190180853175a53b33855ed953fd52aaed72bfd7a8e2b9a36a553",
+      "levels": {
+        "cell": 0,
+        "region": 117,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-036",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3cd8017d6c14a8f050f0a879a912401b74f52d4617271986253cb44a2d20b641",
+      "levels": {
+        "cell": 0,
+        "region": 146,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-037",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "831f49914158df445f48e4df7c19161e0ac47177dc2a7f4c7b3c412a69705283",
+      "levels": {
+        "cell": 0,
+        "region": 21,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-038",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1559779560507c77278aaaf6c8707fda0c9ce7349b94a34022eb75c0a35978c6",
+      "levels": {
+        "cell": 0,
+        "region": 31,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-039",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "f8dbd8ff3a8ba2596b5208bd7767f8f0b68a4783e8bc518c42f25e6dfe5aa44f",
+      "levels": {
+        "cell": 0,
+        "region": 199,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-040",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "ecfaa0433eba96ab01b49719014f1939a3c244b8716e0d2ae19390d76d18a455",
+      "levels": {
+        "cell": 0,
+        "region": 37,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-041",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "5062b115261704784e913c6c61c87bd0916bf7a6f5151f015b7c92a2e7e7db2b",
+      "levels": {
+        "cell": 0,
+        "region": 39,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-042",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "a7a8362094c1bed272a2f7a6563cbd028e853b0c25f7752b840e9b987ce3b7c9",
+      "levels": {
+        "cell": 0,
+        "region": 109,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-043",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "c681e696fff69143717ff3866e6fcde753b9b0417059bbfea4ca929db154404f",
+      "levels": {
+        "cell": 0,
+        "region": 105,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-044",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "9b15ab910f1cd222313850026160f4b962bf0d2c6f664c903d85447cd5af12b4",
+      "levels": {
+        "cell": 0,
+        "region": 139,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-045",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1505e327b11bfba8f9a674f3e00d67c17cd0b70a1241c32d69d6025ba366623b",
+      "levels": {
+        "cell": 0,
+        "region": 85,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-046",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d50228f84868191d814e1b96624769e075eabece7bfb8cd3e068a91ea07e0473",
+      "levels": {
+        "cell": 0,
+        "region": 16,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-047",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d8dba0c256c87b8bce8e5b1b0a810000c1baa4bbcc7724de007d6c4815fd7cf7",
+      "levels": {
+        "cell": 0,
+        "region": 157,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-048",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d2a5cdc008498ba46e4db72125bc3051766b5841d1400fc1d2cf7c54370aae25",
+      "levels": {
+        "cell": 0,
+        "region": 19,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-049",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "141b59582d594aa5ae1c366ca889c966a73dc4673051f6669c62c56d84baf30c",
+      "levels": {
+        "cell": 0,
+        "region": 134,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-050",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "6f6c7b4e31a06546c2315cbedc8d9f1080dc590d83615d9705ea2a4626752b2e",
+      "levels": {
+        "cell": 0,
+        "region": 107,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-051",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "4be4f757122de6fafc229158b59dd748412c4c5a22ed248d3edfdc2fd31ad661",
+      "levels": {
+        "cell": 0,
+        "region": 49,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-052",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "6d04d0361555a7a84c8324a8103f1c0c15acd5acc72b5a58e54395fa1b4269a0",
+      "levels": {
+        "cell": 0,
+        "region": 55,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-053",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "dbc7bbe37db3dc01445d33bfec33dfcb11bd9638f109c9f80bee4ea7241ad236",
+      "levels": {
+        "cell": 0,
+        "region": 68,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-054",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3157f4534f4e6e91f69ae75863530609fd2f9ea5f8d55cde06c0c1ba515b7d80",
+      "levels": {
+        "cell": 0,
+        "region": 22,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-055",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3b91089b046d4e218467ec7cf7a4fa9f96992141628b0205da718e3d6012e28e",
+      "levels": {
+        "cell": 0,
+        "region": 47,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-056",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "e4b8e41d6f5c74de7da2c9b6bced21cc096f4ea56a404667a6204e2dadc5cd2f",
+      "levels": {
+        "cell": 0,
+        "region": 61,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-057",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "4f9e7cd59bc6c975365dd4c4ef079e5599ef5db0a86dc59c54f0f5e45bceb1d7",
+      "levels": {
+        "cell": 0,
+        "region": 48,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-058",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "84cdfacf9a846d3867a4d478da4abeb760446a30a5fc15e2bd5c575451b47577",
+      "levels": {
+        "cell": 0,
+        "region": 130,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-059",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d15b5b2400ca9bc26795195d09758af2c9353aeb1ced7fd8d436d8f162c71be9",
+      "levels": {
+        "cell": 0,
+        "region": 68,
+        "image": 0
+      }
+    },
+    {
+      "id": "pubtables-1m-060",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "f13a73f9aa388962b592f00e7b545f778611e1ab796b7c60c850c6c3348a6ff6",
+      "levels": {
+        "cell": 0,
+        "region": 40,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-061",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1e3501f5b27f2e5f8466ad25551c2fa656a91f9a2ae40d15e6f64880967380c7",
+      "levels": {
+        "cell": 0,
+        "region": 16,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-062",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "506e5a1b2361002af6820819df211ea9a96cf9bda3906501ed02996a8bebadca",
+      "levels": {
+        "cell": 0,
+        "region": 21,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-063",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "d5fe62a0a96c426804d4d9ed215732a563b8f5d702c8c61590730ac69d5749e9",
+      "levels": {
+        "cell": 0,
+        "region": 26,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-064",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "c52796c46ce3c699fc5f77908e650985398a9f7392e7661daf6fdd36b092eb2c",
+      "levels": {
+        "cell": 0,
+        "region": 20,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-065",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "449a069b4d50d645dde52197e171ea177263ad72a9274214c06fdd25ad5b12e2",
+      "levels": {
+        "cell": 0,
+        "region": 15,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-066",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "4a3940874588dab6de047576ca7a9bbbd9602206a0195d7acadc02d2c433132f",
+      "levels": {
+        "cell": 0,
+        "region": 41,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-067",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "9401ae88c620e74922f14348deb3e801e1d2f67edc74d7a0fc4bbca2fde74bc8",
+      "levels": {
+        "cell": 0,
+        "region": 23,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-068",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "4934762d3576f43dbc96535d145536dc85c26fcba5ee65ebdef2a28719a0a230",
+      "levels": {
+        "cell": 0,
+        "region": 39,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-069",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "ba60a5d2d4dc95eaf5a2e28f8f840a0a488b20dde14ce898a3c3339698e5d3fc",
+      "levels": {
+        "cell": 0,
+        "region": 53,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-070",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "9e2c357c0f98a5bf7589d3b350ec35b52cfe3cbb261f013349b3c2ce9a9a45b0",
+      "levels": {
+        "cell": 0,
+        "region": 25,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-071",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "de0a2cd428d775f1914cb32a658543fd7ac937eb3706c956464021e66afbb736",
+      "levels": {
+        "cell": 0,
+        "region": 15,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-072",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "6e8efbb9c0d1df55e1d39c2a155fd1ae1ff681fe90eb3e26bdf408df0cb07a0b",
+      "levels": {
+        "cell": 0,
+        "region": 153,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-073",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "fc78bb07d711d5ea8b37ef8a9039b4051191587ca67a421f75fc87ea0a9bff3e",
+      "levels": {
+        "cell": 38,
+        "region": 3,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-074",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "ee90371d204e6b5d295e6ddb99155f7798fe05489b42e9486af4551452f21cb5",
+      "levels": {
+        "cell": 4,
+        "region": 11,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-075",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "54aecdaf8a195ac3942f19bc4edc38fab2366f2c303121fb1b87d71fa48eee0e",
+      "levels": {
+        "cell": 0,
+        "region": 15,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-076",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "1a0f3d0a52aff532b860dcf6475a98866ea1bed6224dbf9108ac2e31f239e966",
+      "levels": {
+        "cell": 18,
+        "region": 1,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-077",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "ddf52e1ac5ee9adbdb24c67f87237b5b1db678b10286a63fd37d2cea79493777",
+      "levels": {
+        "cell": 15,
+        "region": 1,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-078",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "12fc131c03a9b47cbd9fee857a6a9f187c3921095ef709e0ea89dfba8f1d496f",
+      "levels": {
+        "cell": 35,
+        "region": 6,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-079",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3af46a0bfc9db01e4c6793341336bd84ad0d26ef6a68c7bf8b504afb3ff90dfe",
+      "levels": {
+        "cell": 0,
+        "region": 21,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-080",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "a3800851d974f358a785be78a69496d3bfe30b6f4bd0b7d684390c1d9243986a",
+      "levels": {
+        "cell": 0,
+        "region": 19,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-081",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "5cc4aab971bf0b248934278067a984136ff40819c6208905f08e9d3fe7135246",
+      "levels": {
+        "cell": 0,
+        "region": 16,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-082",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "ddedbacaee79bc1a0517b7a46debecec9e3612de8fc2c2311adb76384c7d31dc",
+      "levels": {
+        "cell": 0,
+        "region": 43,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-083",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "541d1d4bc4fe1cae7d2a0be78227d67b2182f2f58fe480f5545f3d1ac74833de",
+      "levels": {
+        "cell": 0,
+        "region": 19,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-084",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "a99af9c00b2412181c0e5dbe86b806970857dfc74d3f012842f12b8db49ffefc",
+      "levels": {
+        "cell": 0,
+        "region": 31,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-085",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "72e976b590d90b26e6db5e080b7820ef7404cc0ede7b7abe67196d410ee1dd06",
+      "levels": {
+        "cell": 15,
+        "region": 8,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-086",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "76a56245a047aa7a8c9425541aa3e36632e2fc4a842cdc5fb3e3a7c96715d5c0",
+      "levels": {
+        "cell": 0,
+        "region": 27,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-087",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "adf9aabc93ede6108f4ba6f32ebc9b924b54da05b34504790b7ffa63cc1d0ea6",
+      "levels": {
+        "cell": 77,
+        "region": 4,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-088",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "dbbc5a3523d4a31773cfc10d3aebb50f1e6a14087333dc4589a125205ad685fb",
+      "levels": {
+        "cell": 0,
+        "region": 14,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-089",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "148a9bcc3a56debefa320f814b26ba01c1102eb8448ecf692dac5d2d973165d4",
+      "levels": {
+        "cell": 11,
+        "region": 6,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-090",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "7fb4d7e7bac414035f9e11c9c182d60b6cd778a0a62b299abd6bb62df8a4112c",
+      "levels": {
+        "cell": 0,
+        "region": 24,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-091",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "59f5d1b087d18909cf37ee75ed7664182e1ac292cb32b2ca870909168fc4e849",
+      "levels": {
+        "cell": 0,
+        "region": 76,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-092",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "47dd8ae466da03706269e1ef07a8304f5ba2e82129c864f91a4241b0d6956bef",
+      "levels": {
+        "cell": 0,
+        "region": 83,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-093",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "85a91bdc5e8554094706892116d540f0fd92ca609f0e6c252fc5ec00c0ef9c70",
+      "levels": {
+        "cell": 11,
+        "region": 5,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-094",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "9f414dc1001e409bff3ad8b737238f1eb183685a272ac72dfed682d8f1c9fc21",
+      "levels": {
+        "cell": 0,
+        "region": 35,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-095",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "da8c4c514a202543fd3d0ee6c8d4ae3ae7cf40a6824c05780932d1048d7206b0",
+      "levels": {
+        "cell": 0,
+        "region": 35,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-096",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "e6923609fa498da2afdc9ee36086b40e6a41d366a01c8dbfa947131b8e2d6430",
+      "levels": {
+        "cell": 0,
+        "region": 42,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-097",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "e9d6273252a7fa68a3fb59b407c1aa19140206e7809e2bc75ab0e9dcf1521457",
+      "levels": {
+        "cell": 0,
+        "region": 22,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-098",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "3c2bf8171709dd106b2ff73c3f5ef69d35008eae6701f2e7b82c0d5f2abf9959",
+      "levels": {
+        "cell": 0,
+        "region": 26,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-099",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "510c35eafea6922132bf527e7bd2b3dc229c52ffc5b58e07c684cd6b425124bf",
+      "levels": {
+        "cell": 0,
+        "region": 31,
+        "image": 0
+      }
+    },
+    {
+      "id": "fintabnet-100",
+      "prior_status": "success",
+      "identical_mappings": true,
+      "raw_sha256": "319fc5c38ffa32e1841f3b6a2feef6a23670c3e0486e8d4c9c951a4080396c47",
+      "levels": {
+        "cell": 0,
+        "region": 19,
+        "image": 0
+      }
+    }
+  ]
+}

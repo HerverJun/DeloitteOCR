@@ -35,6 +35,7 @@ export function TableEditor({
   focusTarget,
   activeIndex = 0,
   onIndexChange,
+  onCellFocus,
 }: {
   tables: Table[];
   onChange: (tables: Table[]) => void;
@@ -42,7 +43,8 @@ export function TableEditor({
   disabled?: boolean;
   activeIndex?: number;
   onIndexChange?: (index: number) => void;
-  focusTarget?: { tableId: string; row: number; column: number; nonce: number } | null;
+  onCellFocus?: (table: number, row: number, column: number) => void;
+  focusTarget?: { tableId?: string; tableIndex?: number; row: number; column: number; nonce: number } | null;
 }) {
   const [localIndex, setLocalIndex] = useState(activeIndex);
   const index = onIndexChange ? activeIndex : localIndex;
@@ -65,7 +67,7 @@ export function TableEditor({
   }, [tables.length]);
   useEffect(() => {
     if (!focusTarget) return;
-    const next = tables.findIndex(t => t.fusion_id === focusTarget.tableId);
+    const next = focusTarget.tableIndex ?? tables.findIndex(t => t.fusion_id === focusTarget.tableId);
     if (next < 0) return;
     setIndex(next);
     setSelection([focusTarget.row, focusTarget.column, focusTarget.row, focusTarget.column]);
@@ -481,6 +483,7 @@ export function TableEditor({
                         aria-description={`${selected ? "已选择。" : ""}${suspect ? "低于待核对阈值。" : ""}${confidenceKnown ? `模型原始分数 ${cell.confidence}` : "模型分数未知"}`}
                         spellCheck={false}
                         onFocus={() => {
+                          onCellFocus?.(index, cell.row, cell.column);
                           // Mouse clicks apply their own Shift anchor after focus.
                           if (
                             !pointerSelection.current &&

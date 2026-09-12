@@ -34,7 +34,7 @@ export type Result = {
   can_redo: boolean;
   edited: Edit;
   original: {
-    origin?: "single-engine" | "fusion";
+    origin?: "single-engine" | "fusion" | "document";
     fusion?: {
       session_id: string;
       policy: { version: string; content_type: string; mode: string; automatic_replacement: boolean };
@@ -52,7 +52,7 @@ export type Result = {
     text: string;
     tables: Table[];
     blocks: Block[];
-    elapsed_seconds: number;
+    elapsed_seconds?: number;
     load_seconds: number;
     project_image_version?: string;
     image: { width: number; height: number };
@@ -66,6 +66,9 @@ export type Project = {
   updated: string;
 };
 export type Photo = {
+  document_kind?: "image" | "pdf" | "tiff";
+  document_id?: string;
+  page_number?: number;
   id: string;
   name: string;
   active_version: string;
@@ -107,7 +110,10 @@ export type Task = {
   kind?: string;
   result_version_id?: string | null;
 };
+export type DocumentRecord = { id: string; project_id: string; name: string; kind: "image" | "pdf" | "tiff"; page_count: number; status: string };
+export type DocumentPage = { id: string; document_id: string; page_number: number; image_id: string | null; active_version: string | null; status: string; stage_status: string | null; stage_error?: string | null; stage_phase?: string | null; render_dpi: number };
 export type ProjectState = {
+  documents?: DocumentRecord[];
   revision?: number;
   disk?: { low_space: boolean; warning: string | null; free_bytes: number };
   project: Project;
@@ -142,6 +148,9 @@ export const engineNames: Record<string, string> = {
   hunyuan: "HunyuanOCR",
   dewarp: "UVDoc 去弯曲",
   fusion: "融合草稿",
+  "pdf-native": "原生 PDF 提取",
+  document: "页面区域识别",
+  geometry: "表格辅助定位",
 };
 
 export type ReviewIssue = {
@@ -160,7 +169,8 @@ export type ReviewIssue = {
   valid_sources: string[];
   coverage: number;
   context_current: boolean;
-  location: { level: "image" | "region" | "cell"; polygon: number[][] | null; version_id: string; reason: string };
+  context?: { row_header: string; column_header: string; neighbors: { row: number; column: number; text: string }[] };
+  location: { level: "image" | "region" | "cell"; polygon: number[][] | null; table_polygon?: number[][] | null; version_id: string; reason: string };
 };
 export type ReviewPage = {
   result_id: string;

@@ -1,0 +1,31 @@
+{
+  "roots": [
+    "C:\\Users\\A\\Desktop\\OCR\\audit",
+    "C:\\Users\\A\\Desktop\\OCR\\fixtures",
+    "C:\\Users\\A\\Desktop\\OCR\\build",
+    "E:\\OCR-deloitte-build",
+    "E:\\OCR-final-build",
+    "E:\\OCR-fusion-20260912",
+    "E:\\OCR-week1-build",
+    "E:\\OCR-week23-build"
+  ],
+  "excluded_directory_names": [
+    ".git",
+    "document-workflow",
+    "document-workflow-20260913",
+    "engine-packages",
+    "inspect",
+    "models",
+    "node_modules",
+    "runtimes",
+    "wheelhouse"
+  ],
+  "metadata_files": 12139,
+  "unique_metadata_files": 7441,
+  "image_files": 16557,
+  "unique_images": 2340,
+  "matches": [],
+  "read_errors": [],
+  "scope": "Existing local material in all known OCR build roots; source-document identifiers and exact image hashes. Near-duplicate crops with renamed documents cannot be disproven by hashes alone.",
+  "frozen_manifest_unchanged": true
+}

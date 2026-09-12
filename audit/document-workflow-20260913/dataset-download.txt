@@ -1,0 +1,2 @@
+C:\Users\A\Desktop\OCR\build\document-workflow\geometry-holdout\PubTables-1M_OTSL.parquet
+C:\Users\A\Desktop\OCR\build\document-workflow\geometry-holdout\FinTabNet_OTSL.parquet

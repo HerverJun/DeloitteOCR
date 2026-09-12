@@ -1,0 +1,32 @@
+{
+  "replay_passed": true,
+  "performance": {
+    "scope": "Warm persisted geometry_view incl. SQLite and decoding, no GPU. UI paired click/DOM timings are separate, automated and not human correction time.",
+    "backend_cached": {
+      "n": 200,
+      "median_ms": 1.510099998995429,
+      "p90_ms": 1.7144000012194738,
+      "p95_ms": 1.8454999953974038
+    },
+    "ui_cached_pairs": {
+      "n": 50,
+      "median_ms": 66.69760000000042,
+      "p90_ms": 68.95920000000024,
+      "p95_ms": 70.96180000000004
+    },
+    "ppocr_cold": {
+      "cold_process_load_seconds": 9.676161999996111,
+      "model_load_seconds": 6.437648400002217
+    },
+    "geometry_cold": {
+      "cold_process_load_seconds": 13.619253000004392,
+      "model_load_seconds": 6.115768299998308
+    },
+    "human_review": {
+      "median": null,
+      "p90": null,
+      "time_saved": null,
+      "status": "not measured"
+    }
+  }
+}

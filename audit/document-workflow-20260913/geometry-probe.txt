@@ -1,0 +1,11 @@
+INFO: Could not find files for the given pattern(s).
+E:\OCR-fusion-20260912\bundle\runtimes\ppocr\Lib\site-packages\paddle\utils\cpp_extension\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md
+  warnings.warn(warning_message)
+Creating model: ('PP-LCNet_x1_0_table_cls', 'C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\models\\PP-LCNet_x1_0_table_cls', None)
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W0913 03:43:21.581640 42684 gpu_resources.cc:116] Please NOTE: device: 0, GPU Compute Capability: 8.9, Driver API Version: 13.2, Runtime API Version: 12.6
+Creating model: ('SLANeXt_wired', 'C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\models\\SLANeXt_wired', None)
+Creating model: ('SLANeXt_wireless', 'C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\models\\SLANeXt_wireless', None)
+Creating model: ('RT-DETR-L_wired_table_cell_det', 'C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\models\\RT-DETR-L_wired_table_cell_det', None)
+Creating model: ('RT-DETR-L_wireless_table_cell_det', 'C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\models\\RT-DETR-L_wireless_table_cell_det', None)
+Geometry inference complete

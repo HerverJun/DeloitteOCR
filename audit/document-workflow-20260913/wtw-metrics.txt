@@ -1,0 +1,32 @@
+{
+  "all": {
+    "images": 20,
+    "targets": 1226,
+    "predicted_cells": 1191,
+    "matched_iou_05": 1168,
+    "detection_recall": 0.9526916802610114,
+    "detection_precision": 0.980688497061293,
+    "wrong_logical_cell_rate": null,
+    "logical_mapping_coverage": null
+  },
+  "photo": {
+    "images": 5,
+    "targets": 187,
+    "predicted_cells": 184,
+    "matched_iou_05": 181,
+    "detection_recall": 0.9679144385026738,
+    "detection_precision": 0.9836956521739131,
+    "wrong_logical_cell_rate": null,
+    "logical_mapping_coverage": null
+  },
+  "chinese": {
+    "images": 17,
+    "targets": 952,
+    "predicted_cells": 929,
+    "matched_iou_05": 908,
+    "detection_recall": 0.9537815126050421,
+    "detection_precision": 0.9773950484391819,
+    "wrong_logical_cell_rate": null,
+    "logical_mapping_coverage": null
+  }
+}

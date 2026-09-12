@@ -1,0 +1,14 @@
+test_ambiguous_multiple_tables_do_not_guess_even_a_region (test_geometry.GeometryMappingTests.test_ambiguous_multiple_tables_do_not_guess_even_a_region) ... ok
+test_direct_detection_unique_structure_and_text_give_cell_coordinates (test_geometry.GeometryMappingTests.test_direct_detection_unique_structure_and_text_give_cell_coordinates) ... ok
+test_same_cell_count_different_structure_and_repeated_values_are_ambiguous (test_geometry.GeometryMappingTests.test_same_cell_count_different_structure_and_repeated_values_are_ambiguous) ... ok
+test_unsupported_postprocessed_box_degrades_without_fake_precision (test_geometry.GeometryMappingTests.test_unsupported_postprocessed_box_degrades_without_fake_precision) ... ok
+test_cancelled_geometry_cannot_commit_late_evidence (test_geometry.GeometryStorageTests.test_cancelled_geometry_cannot_commit_late_evidence) ... ok
+test_geometry_cache_never_changes_text_revision_selection_or_original (test_geometry.GeometryStorageTests.test_geometry_cache_never_changes_text_revision_selection_or_original) ... ok
+test_manual_binding_is_explicit_and_revision_checked (test_geometry.GeometryStorageTests.test_manual_binding_is_explicit_and_revision_checked) ... ok
+test_native_structure_is_separate_preview_and_exports_native_words_once (test_geometry.GeometryStorageTests.test_native_structure_is_separate_preview_and_exports_native_words_once) ... ok
+test_text_edit_keeps_geometry_but_structure_edit_and_undo_expire_it (test_geometry.GeometryStorageTests.test_text_edit_keeps_geometry_but_structure_edit_and_undo_expire_it) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.507s
+
+OK

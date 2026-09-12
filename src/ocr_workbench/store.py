@@ -9,9 +9,10 @@ import threading
 import uuid
 import zlib
 from ocr_workbench.fusion_store import FusionStoreMixin
+from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -41,7 +42,7 @@ class Conflict(ValueError):
     pass
 
 
-class Store(FusionStoreMixin):
+class Store(DocumentStoreMixin, FusionStoreMixin):
     def __init__(self, root):
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
@@ -186,6 +187,9 @@ class Store(FusionStoreMixin):
                 UPDATE fusion_issues SET state='stale' WHERE result_id=OLD.result_id;
                 END""")
 
+        elif version == 9:
+            migrate_v9(db)
+
     @staticmethod
     def _revision_triggers(db, table):
         for action in ("INSERT", "UPDATE", "DELETE"):
@@ -225,7 +229,7 @@ class Store(FusionStoreMixin):
             images = [
                 dict(row)
                 for row in db.execute(
-                    "SELECT i.*,s.result_id selected_result FROM images i LEFT JOIN selections s ON s.image_id=i.id WHERE i.project_id=? ORDER BY i.created,i.id",
+                    "SELECT i.*,s.result_id selected_result,p.document_id,p.page_number,d.kind document_kind FROM images i LEFT JOIN selections s ON s.image_id=i.id LEFT JOIN pages p ON p.image_id=i.id LEFT JOIN documents d ON d.id=p.document_id WHERE i.project_id=? ORDER BY i.created,i.id",
                     (key,),
                 )
             ]
@@ -240,6 +244,8 @@ class Store(FusionStoreMixin):
                 "unchanged": False,
                 "reviews": reviews,
                 "images": images,
+                "documents": [dict(row) for row in db.execute(
+                    "SELECT * FROM documents WHERE project_id=? ORDER BY created,id", (key,))],
                 "versions": [
                     dict(row)
                     for row in db.execute(
@@ -281,7 +287,7 @@ class Store(FusionStoreMixin):
             return [dict(row) for row in db.execute(sql, params)]
 
     def one(self, table, key):
-        if table not in {"projects", "images", "versions", "tasks", "results"}:
+        if table not in {"projects", "images", "versions", "tasks", "results", "documents", "pages", "regions", "document_stages", "geometry_evidence"}:
             raise ValueError("Unknown entity")
         rows = self.rows(f"SELECT * FROM {table} WHERE id=?", (key,))
         if not rows:
@@ -497,6 +503,8 @@ class Store(FusionStoreMixin):
             if fusion:
                 from ocr_workbench.review_issues import reconcile
                 reconcile(db, key, json.loads(row["edited"]), edit)
+            from ocr_workbench.geometry import reconcile_geometry
+            reconcile_geometry(db, key, json.loads(row['edited']), edit)
         return self.result(key)
 
     def history(self, key, direction, expected_revision):
@@ -530,6 +538,8 @@ class Store(FusionStoreMixin):
                     response = json.loads(history_decoded(decision["response"]))
                     if response["cursor"] == position:
                         db.execute("UPDATE fusion_issues SET state='stale',updated=? WHERE result_id=? AND decision_id=?", (now(), key, decision["request_id"]))
+            from ocr_workbench.geometry import reconcile_geometry
+            reconcile_geometry(db, key, json.loads(row['edited']), json.loads(history_decoded(edit['value'])))
         return self.result(key)
 
     @staticmethod

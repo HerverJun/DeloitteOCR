@@ -1,0 +1,38 @@
+page navigation saves current revision before changing image
+PDF preflight names missing text and an explicit page range exports successfully
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('region', { name: '文档与页面', exact: true }).getByRole('button', { name: '搜索', exact: true })
+    - locator resolved to <button type="submit" class="fui-Button r1f29ykk ___xyecdr0 fh7ncta fneth5b ft85np5 fy9rknc figsok6 fwrc4pm fazmxh">搜索</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div class="paper-placement">…</div> from <main id="workspace" class="main-workspace">…</main> subtree intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div class="paper-placement">…</div> from <main id="workspace" class="main-workspace">…</main> subtree intercepts pointer events
+    - retrying click action
+      - waiting 100ms
+    57 × waiting for element to be visible, enabled and stable
+       - element is visible, enabled and stable
+       - scrolling into view if needed
+       - done scrolling
+       - <div class="paper-placement">…</div> from <main id="workspace" class="main-workspace">…</main> subtree intercepts pointer events
+     - retrying click action
+       - waiting 500ms
+
+    at C:\Users\A\Desktop\OCR\scripts\audit_document_ui.mjs:42:57 {
+  name: 'TimeoutError'
+}
+
+Node.js v22.17.0

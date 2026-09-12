@@ -1,0 +1,646 @@
+{
+  "page_count": 1000,
+  "import_seconds": 0.34462209999765037,
+  "images_after_import": 0,
+  "images_after_six_requested_pages": 6,
+  "requested_page_numbers": [
+    1,
+    2,
+    500,
+    501,
+    999,
+    1000
+  ],
+  "render_cache_ms": 2.7402000050642528,
+  "peak_cpu_workers": 2,
+  "peak_parent_rss_mib": 35.24609375,
+  "peak_child_rss_mib": 218.17578125,
+  "peak_combined_rss_mib": 249.3515625,
+  "rss_scope": "parent service logic plus all its live isolated PDF child processes; excludes OS filesystem cache",
+  "samples": [
+    {
+      "time": 62254.133756,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 28512256
+    },
+    {
+      "time": 62254.1669529,
+      "workers": 1,
+      "children_rss": 9117696,
+      "parent_rss": 29360128
+    },
+    {
+      "time": 62254.2001078,
+      "workers": 1,
+      "children_rss": 15319040,
+      "parent_rss": 29360128
+    },
+    {
+      "time": 62254.2329921,
+      "workers": 1,
+      "children_rss": 19537920,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.2657041,
+      "workers": 1,
+      "children_rss": 22986752,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.2992538,
+      "workers": 1,
+      "children_rss": 25145344,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.3326423,
+      "workers": 1,
+      "children_rss": 27435008,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.3664229,
+      "workers": 1,
+      "children_rss": 24358912,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.399886,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 29364224
+    },
+    {
+      "time": 62254.4331398,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 30920704
+    },
+    {
+      "time": 62254.4662003,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 31318016
+    },
+    {
+      "time": 62254.4992967,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 30511104
+    },
+    {
+      "time": 62254.5324002,
+      "workers": 2,
+      "children_rss": 4542464,
+      "parent_rss": 31121408
+    },
+    {
+      "time": 62254.5652508,
+      "workers": 2,
+      "children_rss": 24707072,
+      "parent_rss": 31141888
+    },
+    {
+      "time": 62254.5981939,
+      "workers": 2,
+      "children_rss": 36782080,
+      "parent_rss": 31141888
+    },
+    {
+      "time": 62254.6307389,
+      "workers": 2,
+      "children_rss": 42614784,
+      "parent_rss": 31141888
+    },
+    {
+      "time": 62254.6637865,
+      "workers": 2,
+      "children_rss": 51703808,
+      "parent_rss": 31145984
+    },
+    {
+      "time": 62254.6970102,
+      "workers": 2,
+      "children_rss": 57847808,
+      "parent_rss": 31145984
+    },
+    {
+      "time": 62254.7302198,
+      "workers": 2,
+      "children_rss": 64237568,
+      "parent_rss": 31145984
+    },
+    {
+      "time": 62254.7634569,
+      "workers": 2,
+      "children_rss": 78716928,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.7965529,
+      "workers": 2,
+      "children_rss": 88178688,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.8293102,
+      "workers": 2,
+      "children_rss": 92405760,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.8624176,
+      "workers": 2,
+      "children_rss": 98160640,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.8953698,
+      "workers": 2,
+      "children_rss": 111767552,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.929049,
+      "workers": 2,
+      "children_rss": 119316480,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.9624849,
+      "workers": 2,
+      "children_rss": 127283200,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62254.9958029,
+      "workers": 2,
+      "children_rss": 132583424,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.0299553,
+      "workers": 2,
+      "children_rss": 145301504,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.063133,
+      "workers": 2,
+      "children_rss": 152760320,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.0962267,
+      "workers": 2,
+      "children_rss": 159203328,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.1301402,
+      "workers": 2,
+      "children_rss": 169996288,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.1632931,
+      "workers": 2,
+      "children_rss": 178118656,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.1973349,
+      "workers": 2,
+      "children_rss": 185315328,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.2311363,
+      "workers": 2,
+      "children_rss": 190820352,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.2705822,
+      "workers": 2,
+      "children_rss": 196231168,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.3063068,
+      "workers": 2,
+      "children_rss": 202821632,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.3390746,
+      "workers": 2,
+      "children_rss": 208629760,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.3718115,
+      "workers": 2,
+      "children_rss": 218226688,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.4049357,
+      "workers": 2,
+      "children_rss": 227741696,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.4385028,
+      "workers": 2,
+      "children_rss": 212299776,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.4725328,
+      "workers": 2,
+      "children_rss": 205336576,
+      "parent_rss": 31150080
+    },
+    {
+      "time": 62255.5227645,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 32174080
+    },
+    {
+      "time": 62255.5566346,
+      "workers": 2,
+      "children_rss": 4546560,
+      "parent_rss": 32210944
+    },
+    {
+      "time": 62255.5897837,
+      "workers": 2,
+      "children_rss": 23486464,
+      "parent_rss": 36888576
+    },
+    {
+      "time": 62255.6233462,
+      "workers": 2,
+      "children_rss": 34820096,
+      "parent_rss": 36745216
+    },
+    {
+      "time": 62255.6568698,
+      "workers": 2,
+      "children_rss": 39903232,
+      "parent_rss": 32567296
+    },
+    {
+      "time": 62255.6907084,
+      "workers": 2,
+      "children_rss": 51658752,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.7244478,
+      "workers": 2,
+      "children_rss": 56250368,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.7577992,
+      "workers": 2,
+      "children_rss": 62672896,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.7912136,
+      "workers": 2,
+      "children_rss": 73945088,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.8248811,
+      "workers": 2,
+      "children_rss": 86159360,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.8576291,
+      "workers": 2,
+      "children_rss": 92114944,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.8906238,
+      "workers": 2,
+      "children_rss": 97615872,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.9246054,
+      "workers": 2,
+      "children_rss": 102490112,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.9584122,
+      "workers": 2,
+      "children_rss": 118542336,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62255.9917396,
+      "workers": 2,
+      "children_rss": 126345216,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62256.0253863,
+      "workers": 2,
+      "children_rss": 131006464,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62256.0579307,
+      "workers": 2,
+      "children_rss": 142327808,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62256.0918317,
+      "workers": 2,
+      "children_rss": 150249472,
+      "parent_rss": 32571392
+    },
+    {
+      "time": 62256.1260114,
+      "workers": 2,
+      "children_rss": 159977472,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.1592479,
+      "workers": 2,
+      "children_rss": 168644608,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.1924993,
+      "workers": 2,
+      "children_rss": 180674560,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.2256333,
+      "workers": 2,
+      "children_rss": 188174336,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.2589746,
+      "workers": 2,
+      "children_rss": 193437696,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.2930971,
+      "workers": 2,
+      "children_rss": 198672384,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.3261685,
+      "workers": 2,
+      "children_rss": 204890112,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.3591943,
+      "workers": 2,
+      "children_rss": 210944000,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.3923466,
+      "workers": 2,
+      "children_rss": 220450816,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.4261257,
+      "workers": 2,
+      "children_rss": 228773888,
+      "parent_rss": 32575488
+    },
+    {
+      "time": 62256.4615684,
+      "workers": 2,
+      "children_rss": 213741568,
+      "parent_rss": 32579584
+    },
+    {
+      "time": 62256.4949251,
+      "workers": 2,
+      "children_rss": 205025280,
+      "parent_rss": 32579584
+    },
+    {
+      "time": 62256.5579192,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 33529856
+    },
+    {
+      "time": 62256.5916123,
+      "workers": 2,
+      "children_rss": 17879040,
+      "parent_rss": 36958208
+    },
+    {
+      "time": 62256.6262167,
+      "workers": 2,
+      "children_rss": 25714688,
+      "parent_rss": 36892672
+    },
+    {
+      "time": 62256.6590458,
+      "workers": 2,
+      "children_rss": 37978112,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.6919099,
+      "workers": 2,
+      "children_rss": 44158976,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.7252914,
+      "workers": 2,
+      "children_rss": 52576256,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.758626,
+      "workers": 2,
+      "children_rss": 60936192,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.7927646,
+      "workers": 2,
+      "children_rss": 65560576,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.8259762,
+      "workers": 2,
+      "children_rss": 82137088,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.8612778,
+      "workers": 2,
+      "children_rss": 90832896,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.8942151,
+      "workers": 2,
+      "children_rss": 95883264,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.927678,
+      "workers": 2,
+      "children_rss": 101404672,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.9613708,
+      "workers": 2,
+      "children_rss": 116379648,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62256.9946933,
+      "workers": 2,
+      "children_rss": 123539456,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.0290846,
+      "workers": 2,
+      "children_rss": 130273280,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.0618035,
+      "workers": 2,
+      "children_rss": 138842112,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.0959808,
+      "workers": 2,
+      "children_rss": 148615168,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.1296553,
+      "workers": 2,
+      "children_rss": 158633984,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.1627249,
+      "workers": 2,
+      "children_rss": 165740544,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.19613,
+      "workers": 2,
+      "children_rss": 177688576,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.2292649,
+      "workers": 2,
+      "children_rss": 185487360,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.2625717,
+      "workers": 2,
+      "children_rss": 192380928,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.2968031,
+      "workers": 2,
+      "children_rss": 196980736,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.3300772,
+      "workers": 2,
+      "children_rss": 202588160,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.3628717,
+      "workers": 2,
+      "children_rss": 209539072,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.3961378,
+      "workers": 2,
+      "children_rss": 219725824,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.4297944,
+      "workers": 2,
+      "children_rss": 228704256,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.4633086,
+      "workers": 2,
+      "children_rss": 221483008,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.496498,
+      "workers": 2,
+      "children_rss": 214056960,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.5301062,
+      "workers": 2,
+      "children_rss": 194035712,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.5634955,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 32759808
+    },
+    {
+      "time": 62257.5963965,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 32768000
+    },
+    {
+      "time": 62257.6291062,
+      "workers": 0,
+      "children_rss": 0,
+      "parent_rss": 36638720
+    }
+  ]
+}

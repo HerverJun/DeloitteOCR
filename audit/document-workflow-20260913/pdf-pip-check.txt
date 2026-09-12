@@ -1,0 +1,1 @@
+C:\Users\A\Desktop\OCR\build\document-workflow\bundle\runtimes\pdf\python.exe: No module named pip

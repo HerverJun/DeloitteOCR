@@ -1,0 +1,6 @@
+{
+  "manifest_sha256": "bcdb67c8be7d4db380cd88c221e0f4c28f7b33c1b9438b8f89b3d154537edb6f",
+  "model_lock_sha256": "eaef9353e78b54d3b2e82403f0e1c67efff06bad5212b1cdea5f99f22dafe140",
+  "geometry_code_sha256": "53f4843c8541307c33d73f301145c8d867d8ce99006f55bbbdf26b38a1edc82c",
+  "ground_truth_boxes_given_to_models": false
+}

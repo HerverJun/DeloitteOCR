@@ -1,0 +1,3 @@
+NotoSansSC-Regular.ttf 10595892
+NotoSans-Regular.ttf 626220
+NotoSansSymbols2-Regular.ttf 1233128

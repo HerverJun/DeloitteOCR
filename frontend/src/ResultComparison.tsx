@@ -286,7 +286,7 @@ export function ResultComparison({
                 {engineNames[result.original.engine] ?? result.original.engine}
                 {result.id === baseline?.id ? " · 基准" : ""}
               </strong>
-              <span>{result.original.elapsed_seconds.toFixed(2)} 秒</span>
+              <span>{typeof result.original.elapsed_seconds === "number" ? `${result.original.elapsed_seconds.toFixed(2)} 秒` : "耗时未记录"}</span>
               <Button
                 size="small"
                 appearance={

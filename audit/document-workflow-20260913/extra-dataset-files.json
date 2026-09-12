@@ -1,0 +1,23 @@
+{
+  "anonymous-iccv1968/DocLayout_YOLO_WTW_iccv1968": {
+    "sha": "48303cd6e4cd7a127929501706a6ee385d0e83c4",
+    "files": [
+      ".gitattributes",
+      "README.md",
+      "WTW_images.tar.gz.aa",
+      "WTW_labels.tar.gz.aa",
+      "test.txt",
+      "train.txt"
+    ]
+  },
+  "bsmock/FinTabNet.c": {
+    "sha": "e5673a90b98d02c4832f9e836d72762f0e8933a0",
+    "files": [
+      ".gitattributes",
+      "FinTabNet.c-PDF_Annotations.tar.gz",
+      "FinTabNet.c-Structure.tar.gz",
+      "README.md",
+      "extract_fintabnet.sh"
+    ]
+  }
+}

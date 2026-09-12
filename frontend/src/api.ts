@@ -53,6 +53,10 @@ export async function download(
   aggregate = false,
   confirmedOnly = false,
 ) {
+  if (format === "pdf") {
+    await downloadPdf({ result_ids: ids, confirmed_only: confirmedOnly });
+    return;
+  }
   const response = await request("/export", {
     method: "POST",
     body: JSON.stringify({
@@ -72,4 +76,13 @@ export async function download(
       ?.match(/filename="([^"]+)"/)?.[1] || "OCR-export";
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function downloadPdf(scope: Record<string, unknown>) {
+  const preflight = await api<{ ready: boolean; failures: { page_number: number; reason: string; items?: { text?: string; reason: string }[] }[] }>("/export/preflight", "POST", scope);
+  if (!preflight.ready) throw Error(preflight.failures.map(p => `第 ${p.page_number} 页：${p.reason}${p.items?.length ? "；"+p.items.slice(0,8).map(i => `${i.reason}${i.text ? "「"+i.text+"」" : ""}`).join("；") : ""}`).join("\n")+"\n请补定位、核对内容或从导出范围排除这些页面。");
+  const response = await request("/export", { method: "POST", body: JSON.stringify({ ...scope, format: "pdf" }) });
+  const url = URL.createObjectURL(await response.blob()), anchor = document.createElement("a");
+  anchor.href = url; anchor.download = response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] || "OCR-document.pdf";
+  anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

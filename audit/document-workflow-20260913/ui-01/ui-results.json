@@ -1,0 +1,9 @@
+{
+  "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim",
+  "checks": [],
+  "errors": [
+    "TypeError: Cannot read properties of undefined (reading 'toFixed')",
+    "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: '文档与页面', exact: true }).getByRole('button', { name: /第 1 页/ })\u001b[22m\n"
+  ],
+  "browser_closed": true
+}

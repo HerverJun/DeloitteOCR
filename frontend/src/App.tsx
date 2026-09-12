@@ -39,6 +39,8 @@ import { RecognitionBar, modes } from "./RecognitionBar";
 import { BrandHeader } from "./BrandHeader";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { PhotoList } from "./PhotoList";
+import { DocumentTree } from "./DocumentTree";
+import { DocumentConflicts } from "./DocumentConflicts";
 import {
   usePreference,
   readPreference,
@@ -50,6 +52,8 @@ import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
 import { QuickReview } from "./QuickReview";
+import { GeometryPanel, type GeometryTarget } from "./GeometryPanel";
+import type { Location } from "./RegionPreview";
 import { FusionLauncher, type FusionRequest } from "./FusionLauncher";
 import { adoptedResult, exportPhotos, reviewNames } from "./resultWorkflow";
 import { useEditor } from "./useEditor";
@@ -110,7 +114,11 @@ export function App() {
   const [dragging, setDragging] = useState(false);
   const [highlight, setHighlight] = useState<number | null>(null);
   const [reviewLocation, setReviewLocation] = useState<{ resultId: string; issue: ReviewIssue } | null>(null);
-  const [reviewFocus, setReviewFocus] = useState<{ tableId: string; row: number; column: number; nonce: number } | null>(null);
+  const [reviewFocus, setReviewFocus] = useState<{ tableId?: string; tableIndex?: number; row: number; column: number; nonce: number } | null>(null);
+  const [geometryTarget, setGeometryTarget] = useState<{ resultId: string; target: GeometryTarget } | null>(null);
+  const [geometryLocation, setGeometryLocation] = useState<{ resultId: string; location: Location } | null>(null);
+  const [geometryRefresh, setGeometryRefresh] = useState(0);
+  const [manualBinding, setManualBinding] = useState<{ resultId: string; revision: number; versionId: string; target: GeometryTarget; nonce: number } | null>(null);
   const [newProject, setNewProject] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [rename, setRename] = useState(false);
@@ -360,14 +368,15 @@ export function App() {
       const generation = projectGeneration.current;
       const body = new FormData();
       files.forEach((file) => body.append("files", file, file.name));
-      const response = await request("/projects/" + id + "/images", {
+      const isDocument = files.some(file => /\.(pdf|tiff?)$/i.test(file.name));
+      const response = await request("/projects/" + id + (isDocument ? "/documents" : "/images"), {
         method: "POST",
         body,
       });
       const value = await response.json();
       await refresh(id);
       if (
-        value.images.length &&
+        value.images?.length &&
         selectedProject.current === id &&
         projectGeneration.current === generation
       ) {
@@ -375,7 +384,7 @@ export function App() {
         setSelected(value.images.map((p: Photo) => p.id));
       }
       notify(
-        `导入 ${value.images.length} 张图片` +
+        (isDocument ? `导入 ${value.documents?.length || 0} 个文档，请在文档树中选择页面` : `导入 ${value.images.length} 张图片`) +
           (selectedProject.current !== id ? "（已保存到原项目）" : "") +
           (value.errors.length
             ? `；${value.errors.map((x: any) => x.name + "：" + x.message).join("；")}`
@@ -790,7 +799,7 @@ export function App() {
                 disabled={busy}
                 onClick={() => fileInput.current?.click()}
               >
-                导入图片
+                导入图片 / PDF
               </Button>
               <Button
                 title="导入文件夹"
@@ -804,7 +813,7 @@ export function App() {
               ref={fileInput}
               type="file"
               multiple
-              accept=".jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp,.heic,.heif"
+              accept=".pdf,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp,.heic,.heif"
               hidden
               onChange={(e) => {
                 void importFiles(Array.from(e.target.files || []));
@@ -822,9 +831,14 @@ export function App() {
                 e.target.value = "";
               }}
             />
+            {!!project?.documents?.some(d => d.kind !== "image") && <DocumentTree
+              key={`documents-${projectId}`} documents={project.documents.filter(d => d.kind !== "image")}
+              activeImage={active} reviewOnly={reviewOnly} beforeOpen={editor.flush}
+              onOpen={async imageId => { await editor.flush(); setActive(imageId); setSearch(""); setSearchIndex(0); }}
+              onRefresh={() => refresh(projectId)} onError={onError} />}
             <PhotoList
               key={projectId}
-              photos={project?.images || []}
+              photos={(project?.images || []).filter(image => !image.document_kind || image.document_kind === "image")}
               tasks={project?.tasks || []}
               active={active}
               selected={selected}
@@ -938,7 +952,19 @@ export function App() {
             versions={versions}
             blocks={blocks}
             highlight={highlight}
-            reviewLocation={reviewLocation?.resultId === editor.result?.id ? reviewLocation?.issue.location : undefined}
+            reviewLocation={tab === "review" && reviewLocation?.resultId === editor.result?.id ? reviewLocation?.issue.location : geometryLocation?.resultId === editor.result?.id ? geometryLocation?.location : undefined}
+            manualBinding={manualBinding && manualBinding.resultId === editor.result?.id && manualBinding.versionId === version?.id ? `人工定位 ${manualBinding.nonce}` : undefined}
+            onCancelBinding={() => setManualBinding(null)}
+            onManualBind={async box => {
+              try {
+                if (!manualBinding || manualBinding.resultId !== editor.result?.id || manualBinding.versionId !== version?.id) throw Error("绑定对象已变化，请重新选择");
+                await editor.flush();
+                await api(`/results/${manualBinding.resultId}/geometry`, "POST", { source: "manual", revision: manualBinding.revision,
+                  version_id: manualBinding.versionId, target: manualBinding.target,
+                  polygon: [[box[0],box[1]],[box[2],box[1]],[box[2],box[3]],[box[0],box[3]]] });
+                setManualBinding(null); setGeometryRefresh(n => n+1); notify("人工定位已保存");
+              } catch (e) { onError(String(e)); }
+            }}
             onVersion={(id) => void changeVersion(id)}
             onTransform={(op) => void transform(op)}
             onRegion={(box) => void region(box)}
@@ -1034,7 +1060,7 @@ export function App() {
                 )}
                 {editor.result && (
                   <span>
-                    {editor.result.original.elapsed_seconds.toFixed(2)} 秒
+                    {typeof editor.result.original.elapsed_seconds === "number" ? `${editor.result.original.elapsed_seconds.toFixed(2)} 秒` : "耗时未记录"}
                   </span>
                 )}
               </div>
@@ -1395,6 +1421,18 @@ export function App() {
                       wrap={editor.edit.tables.length || editor.edit.text_sources?.length ? "off" : "soft"}
                       className={editor.edit.tables.length || editor.edit.text_sources?.length ? "tabular-text" : undefined}
                       value={textView}
+                      onSelect={e => {
+                        const { selectionStart: start, selectionEnd: end } = e.currentTarget;
+                        if (!editor.edit || !editor.result || start === end) return;
+                        const segment = documentText(editor.edit).segments.find(s => start >= s.start && end <= s.end && s.kind !== "separator");
+                        if (segment?.kind === "text") {
+                          const rawStart = segment.rawStart! + start-segment.start, rawEnd = segment.rawStart! + end-segment.start;
+                          setGeometryTarget({ resultId: editor.result.id, target: { kind: "text", start: Array.from(editor.edit.text.slice(0,rawStart)).length, end: Array.from(editor.edit.text.slice(0,rawEnd)).length } });
+                        } else if (segment?.kind === "cell" && segment.table !== undefined && segment.cell !== undefined) {
+                          const c = editor.edit.tables[segment.table].cells[segment.cell];
+                          setGeometryTarget({ resultId: editor.result.id, target: { kind: "cell", table: segment.table, row: c.row, column: c.column } });
+                        }
+                      }}
                       onChange={(e) => {
                         try { editor.change(changeDocumentText(editor.edit!, e.target.value)); }
                         catch (error) { onError(String(error)); }
@@ -1482,11 +1520,12 @@ export function App() {
                 )}
                 {tab === "table" && (
                   <TableEditor
-                    key={editor.result.id}
+                    key={`table-${editor.result.id}`}
                     activeIndex={tablePositions[editor.result.id] || 0}
                     onIndexChange={index => setTablePositions(old => ({ ...old, [editor.result!.id]: index }))}
                     disabled={busy}
                     focusTarget={reviewFocus}
+                    onCellFocus={(table, row, column) => setGeometryTarget({ resultId: editor.result!.id, target: { kind: "cell", table, row, column } })}
                     tables={editor.edit.tables}
                     onError={onError}
                     onChange={(tables) =>
@@ -1495,7 +1534,8 @@ export function App() {
                   />
                 )}
                 {tab === "review" && editor.result.original.fusion && photo && <QuickReview
-                  key={editor.result.id} result={editor.result} versionId={photo.active_version}
+                  key={`review-${editor.result.id}`} result={editor.result} versionId={photo.active_version}
+                  version={version} geometryRefresh={geometryRefresh}
                   adopted={currentAdopted === editor.result.id} busy={busy}
                   onDraft={editor.setReviewDraft}
                   getDraft={editor.getReviewDraft}
@@ -1507,6 +1547,21 @@ export function App() {
                     finally { setBusy(--activeActions.current > 0); }
                   }}
                   onConfirm={() => void action(() => setReview("confirmed"))} />}
+                {version && ["table", "text", "review"].includes(tab) && <GeometryPanel
+                  key={`geometry-${editor.result.id}`} result={editor.result} version={version} tasks={tasks} refreshKey={geometryRefresh}
+                  disabled={busy || reviewOnly || !queueHealthy}
+                  target={geometryTarget?.resultId === editor.result.id ? geometryTarget.target : null}
+                  onLocate={location => setGeometryLocation({ resultId: editor.result!.id, location })}
+                  onPrepare={async () => { await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("请先选择结果"); return r; }}
+                  onUpdated={() => { setGeometryRefresh(n => n+1); void refresh(projectId); }}
+                  onBind={target => void action(async () => {
+                    await editor.flush(); const r = editor.getCurrent(); if (!r) return;
+                    setManualBinding({ resultId: r.id, revision: r.revision, versionId: version.id, target, nonce: Date.now() });
+                    notify("请在左侧原图拖动框选文字范围，然后点击应用");
+                  })} />}
+                {editor.result.original.origin === "document" && <DocumentConflicts result={editor.result} beforeSave={async () => {
+                  await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("结果已切换"); return r;
+                }} />}
                 {tab === "compare" && (
                   <ResultComparison
                     results={compared}
@@ -1657,6 +1712,7 @@ export function App() {
                   <option value="txt">纯文本 (.txt)</option>
                   <option value="md">Markdown (.md)</option>
                   <option value="json">完整结果与原始输出 (.json)</option>
+                  <option value="pdf">可搜索 PDF（按文档输出）</option>
                 </select>
               </label>
               <label className="dialog-field">

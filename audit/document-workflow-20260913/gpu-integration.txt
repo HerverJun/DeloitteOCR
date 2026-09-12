@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\scripts\audit_document_gpu.py", line 57, in <module>
+    'repeat_stage_identical':manager.process(page['id'])==stage,'region_tasks':store.rows('SELECT t.id,t.status,t.started,t.finished FROM tasks t JOIN page_ocr_inputs i ON i.task_id=t.id WHERE i.stage_id=?',(stage,))})
+                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\store.py", line 287, in rows
+    return [dict(row) for row in db.execute(sql, params)]
+                                 ^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: t.attempt

@@ -202,7 +202,7 @@ class TaskQueue:
                 self.registry.resolve(
                     task["engine"], task.get("engine_package", "builtin")
                 )
-                if self.registry
+                if self.registry and task.get('kind') != 'geometry'
                 else self.bundle
             )
             if self.adapter and (
@@ -228,7 +228,7 @@ class TaskQueue:
                     db.execute(
                         "UPDATE tasks SET phase=? WHERE id=? AND status='running'",
                         (
-                            ("去弯曲中" if task.get("kind") == "dewarp" else "识别中"),
+                            ("去弯曲中" if task.get("kind") == "dewarp" else "补充表格定位" if task.get('kind') == 'geometry' else "识别中"),
                             task["id"],
                         ),
                     ).rowcount
@@ -238,7 +238,22 @@ class TaskQueue:
             version = self.store.one("versions", task["version_id"])
             output = self.store.root / "task-results" / task["id"] / str(time.time_ns())
             output.mkdir(parents=True)
-            data = self.adapter.recognize(self.store.file(version["path"]), output)
+            input_image = self.store.file(version["path"])
+            if task.get('kind') == 'region_ocr':
+                import json
+                from PIL import Image
+                crop = self.store.rows('SELECT crop_box FROM page_ocr_inputs WHERE task_id=?', (task['id'],))[0]
+                with Image.open(input_image) as source:
+                    cropped = source.crop(json.loads(crop['crop_box']))
+                    input_image = output / 'region-input.png'
+                    cropped.save(input_image)
+            if task.get('kind') == 'geometry':
+                import json
+                geometry_request = self.store.rows('SELECT snapshot,regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
+                snapshot = json.loads(geometry_request['snapshot'])
+                data = self.adapter.recognize(input_image, output, {**snapshot, 'regions': json.loads(geometry_request['regions'])})
+            else:
+                data = self.adapter.recognize(input_image, output)
             if task.get("kind") == "dewarp":
                 from ocr_workbench.imaging import save_version
                 from PIL import Image
@@ -255,6 +270,12 @@ class TaskQueue:
                         },
                         task_id=task["id"],
                     )
+            elif task.get('kind') == 'geometry':
+                from ocr_workbench.geometry import complete_geometry
+                complete_geometry(self.store, task, data, output / 'geometry.json')
+            elif task.get('kind') == 'region_ocr':
+                from ocr_workbench.page_processing import complete_region_task
+                complete_region_task(self.store, task, data)
             else:
                 data["project_image_version"] = version["id"]
                 data["version_operations"] = version["operations"]

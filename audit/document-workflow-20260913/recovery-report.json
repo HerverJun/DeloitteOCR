@@ -1,0 +1,160 @@
+{
+  "scope": "actual PP-OCR inference on a 5-page mixed PDF; process faults injected into this audit only",
+  "checks": [
+    {
+      "name": "first_page_real_ocr_complete",
+      "stage": {
+        "id": "1e1074efc589400f9739921f2277eaf9",
+        "page_id": "857aab45d1c5439582d42451aaefb142",
+        "version_id": "ab73eac5db3c40c5a036f33effb3aa51",
+        "kind": "process",
+        "request_key": "0a396b138f195039f53229a93d634fed8c5a03c1dd2482340b3f1226ca20b0c5",
+        "parameters": "{\"mode\":\"auto\",\"engine\":\"ppocr\"}",
+        "status": "succeeded",
+        "phase": "完成",
+        "attempt": 1,
+        "error": null,
+        "output": "{\"result_id\":\"636acd0d44ce40d684062cd98f11bf0d\",\"image_id\":\"5553dd97308a40eb97bd4a4a356b3a70\"}",
+        "created": "2026-09-12T21:06:59.580817+00:00",
+        "started": "2026-09-12T21:06:59.587817+00:00",
+        "finished": "2026-09-12T21:07:12.001658+00:00"
+      }
+    },
+    {
+      "name": "pause_prevents_waiting_pages_from_starting"
+    },
+    {
+      "name": "cancel_keeps_completed_pages_and_cancels_only_unfinished",
+      "completed": [
+        "21635aea19804f1cb2db817fc36e0d15"
+      ],
+      "cancelled": "8a8aece7292240b2a1fa49ca82993b40"
+    },
+    {
+      "name": "retry_cancelled_page_finishes_with_actual_ocr"
+    },
+    {
+      "name": "killed_model_process_becomes_retriable_failure",
+      "model_pid": 48912,
+      "stage": {
+        "id": "b3064ea364704a439c5e1495cf726f23",
+        "page_id": "e95aa232c2be44e0b6380e28b75c322c",
+        "version_id": "4b744dc649894f5cad4166fc2a4696fa",
+        "kind": "process",
+        "request_key": "0a396b138f195039f53229a93d634fed8c5a03c1dd2482340b3f1226ca20b0c5",
+        "parameters": "{\"mode\":\"auto\",\"engine\":\"ppocr\"}",
+        "status": "failed",
+        "phase": "区域识别未完成",
+        "attempt": 1,
+        "error": "部分区域失败或取消；重试只继续未完成区域",
+        "output": "{\"mode\":\"auto\",\"regions\":1}",
+        "created": "2026-09-12T21:07:17.287973+00:00",
+        "started": "2026-09-12T21:07:17.294972+00:00",
+        "finished": null
+      }
+    },
+    {
+      "name": "model_failure_retry_completes_with_actual_ocr"
+    },
+    {
+      "name": "killed_service_leaves_durable_stage_and_job_object_releases_gpu",
+      "service_pid": 45020,
+      "engine_pid": 45112
+    },
+    {
+      "name": "restart_resume_finishes_only_unfinished_work",
+      "first_page_unchanged": true,
+      "first_page_stage_id_reused": true,
+      "stages": [
+        {
+          "id": "1e1074efc589400f9739921f2277eaf9",
+          "status": "succeeded",
+          "attempt": 1
+        },
+        {
+          "id": "21635aea19804f1cb2db817fc36e0d15",
+          "status": "succeeded",
+          "attempt": 2
+        },
+        {
+          "id": "8a8aece7292240b2a1fa49ca82993b40",
+          "status": "succeeded",
+          "attempt": 3
+        },
+        {
+          "id": "b3064ea364704a439c5e1495cf726f23",
+          "status": "succeeded",
+          "attempt": 2
+        },
+        {
+          "id": "f8b531678b0746bcb354d731d94bdd9f",
+          "status": "succeeded",
+          "attempt": 2
+        }
+      ],
+      "tasks": [
+        {
+          "id": "98de46c80cbe44ddb43549ce9f5c4812",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:01.722174+00:00",
+          "finished": "2026-09-12T21:07:11.983729+00:00"
+        },
+        {
+          "id": "7a0b23c0e2da4d2cacc7aea15d52aee6",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:12.001658+00:00",
+          "finished": "2026-09-12T21:07:12.001658+00:00"
+        },
+        {
+          "id": "96fa16a0a71d4f219394c4a882f6ff95",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:15.923381+00:00",
+          "finished": "2026-09-12T21:07:16.203070+00:00"
+        },
+        {
+          "id": "6bf9996487bf4225b0bcb8e093876ae1",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:16.294095+00:00",
+          "finished": "2026-09-12T21:07:16.572439+00:00"
+        },
+        {
+          "id": "e70ae2676a9441a5987e34f2f6a02ed6",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:16.218072+00:00",
+          "finished": "2026-09-12T21:07:16.218072+00:00"
+        },
+        {
+          "id": "9ed556b92aaf4b6099fad7cf0a9d1793",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:16.589442+00:00",
+          "finished": "2026-09-12T21:07:16.589442+00:00"
+        },
+        {
+          "id": "ed86d01b4b354d0b9b82edfdd49e047d",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:19.642386+00:00",
+          "finished": "2026-09-12T21:07:29.568262+00:00"
+        },
+        {
+          "id": "5e89ac995efd4847bf6c7fcf30796a60",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:29.586266+00:00",
+          "finished": "2026-09-12T21:07:29.586266+00:00"
+        },
+        {
+          "id": "9d6d6619f40a467694fb7179249c0ea1",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:33.023489+00:00",
+          "finished": "2026-09-12T21:07:42.846525+00:00"
+        },
+        {
+          "id": "8bc998b6b1d146d4b8c438a732a03773",
+          "status": "succeeded",
+          "started": "2026-09-12T21:07:42.864641+00:00",
+          "finished": "2026-09-12T21:07:42.864641+00:00"
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

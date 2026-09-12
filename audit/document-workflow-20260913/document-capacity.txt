@@ -1,0 +1,20 @@
+{
+  "page_count": 1000,
+  "import_seconds": 0.34462209999765037,
+  "images_after_import": 0,
+  "images_after_six_requested_pages": 6,
+  "requested_page_numbers": [
+    1,
+    2,
+    500,
+    501,
+    999,
+    1000
+  ],
+  "render_cache_ms": 2.7402000050642528,
+  "peak_cpu_workers": 2,
+  "peak_parent_rss_mib": 35.24609375,
+  "peak_child_rss_mib": 218.17578125,
+  "peak_combined_rss_mib": 249.3515625,
+  "rss_scope": "parent service logic plus all its live isolated PDF child processes; excludes OS filesystem cache"
+}

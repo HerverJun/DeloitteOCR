@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "scope": "Final packaged PDFium under -I; retained exports rerendered against originals and prior independent text, no OCR rerun",
+  "checks": [
+    {
+      "name": "mixed.pdf",
+      "identical_visible_pixels_and_readback": true
+    },
+    {
+      "name": "chinese-two-column.pdf",
+      "identical_visible_pixels_and_readback": true
+    },
+    {
+      "name": "native-table-auto.pdf",
+      "identical_visible_pixels_and_readback": true
+    }
+  ]
+}

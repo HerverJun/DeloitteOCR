@@ -1,0 +1,14 @@
+test_new_unbound_text_is_listed_and_manual_binding_covers_it (test_pdf_export.PdfContentTests.test_new_unbound_text_is_listed_and_manual_binding_covers_it) ... ok
+test_whole_table_fallback_cannot_masquerade_as_cell_geometry (test_pdf_export.PdfContentTests.test_whole_table_fallback_cannot_masquerade_as_cell_geometry) ... ok
+test_changed_visible_native_text_rebuilds_and_removes_old_search_text (test_pdf_export.PdfExportRuntimeTests.test_changed_visible_native_text_rebuilds_and_removes_old_search_text) ... ok
+test_crop_rotations_overlay_readback_and_visible_pixels (test_pdf_export.PdfExportRuntimeTests.test_crop_rotations_overlay_readback_and_visible_pixels) ... ok
+test_native_edit_rebuilds_only_page_and_chinese_is_searchable (test_pdf_export.PdfExportRuntimeTests.test_native_edit_rebuilds_only_page_and_chinese_is_searchable) ... ok
+test_native_export_preserves_render_and_long_identifiers_and_is_idempotent (test_pdf_export.PdfExportRuntimeTests.test_native_export_preserves_render_and_long_identifiers_and_is_idempotent) ... ok
+test_old_ocr_layer_is_removed_while_the_scan_pixels_stay_identical (test_pdf_export.PdfExportRuntimeTests.test_old_ocr_layer_is_removed_while_the_scan_pixels_stay_identical) ... ok
+test_partial_export_keeps_page_order_metadata_bookmarks_and_valid_links (test_pdf_export.PdfExportRuntimeTests.test_partial_export_keeps_page_order_metadata_bookmarks_and_valid_links) ... ok
+test_user_unit_render_matches_metadata_and_export_highlight (test_pdf_export.PdfExportRuntimeTests.test_user_unit_render_matches_metadata_and_export_highlight) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 23.154s
+
+OK

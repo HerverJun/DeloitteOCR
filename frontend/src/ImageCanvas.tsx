@@ -27,6 +27,9 @@ export function ImageCanvas({
   busy,
   recognitionDisabled = false,
   reviewLocation,
+  manualBinding,
+  onManualBind,
+  onCancelBinding,
 }: {
   version: Version | null;
   versions: Version[];
@@ -38,6 +41,9 @@ export function ImageCanvas({
   busy: boolean;
   recognitionDisabled?: boolean;
   reviewLocation?: { level: string; polygon: number[][] | null; version_id: string; reason: string };
+  manualBinding?: string;
+  onManualBind?: (box: number[]) => Promise<void>;
+  onCancelBinding?: () => void;
 }) {
   const [url, setUrl] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -45,7 +51,7 @@ export function ImageCanvas({
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(true);
   const [reviewZoom, setReviewZoom] = useState(false);
-  const [mode, setMode] = useState<"pan" | "crop" | "perspective" | "region">(
+  const [mode, setMode] = useState<"pan" | "crop" | "perspective" | "region" | "binding">(
     "pan",
   );
   const [box, setBox] = useState<number[] | null>(null);
@@ -59,6 +65,7 @@ export function ImageCanvas({
     corner?: number;
   } | null>(null);
   const [size, setSize] = useState([800, 700]);
+  useEffect(() => { if (manualBinding) { setMode("binding"); setBox(null); setPoints([]); } else setMode(m => m === "binding" ? "pan" : m); }, [manualBinding]);
   useEffect(() => {
     if (!stage.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -190,6 +197,7 @@ export function ImageCanvas({
     setFit(false);
   };
   const choose = (next: typeof mode) => {
+    if (mode === "binding" && next !== "binding") onCancelBinding?.();
     setMode(next);
     setBox(
       version && (next === "crop" || next === "region")
@@ -376,6 +384,7 @@ export function ImageCanvas({
               ? `按左上、右上、右下、左下选取四角 (${points.length}/4)`
               : mode === "crop"
                 ? "拖动框选裁剪范围"
+                : mode === "binding" ? `拖动框选原文区域 · ${manualBinding}`
                 : "框选困难区域，用当前所选引擎重新识别"}
           </span>
           <Button
@@ -392,6 +401,7 @@ export function ImageCanvas({
               if (mode === "perspective")
                 onTransform({ kind: "perspective", points });
               else if (mode === "crop") onTransform({ kind: "crop", box });
+              else if (mode === "binding") void onManualBind?.(box!);
               else onRegion(box!);
             }}
           >
