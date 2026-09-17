@@ -81,6 +81,10 @@ audit/deep-review-20260917/ui-*/native-two-pages.pdf
 audit/deep-review-20260917/ui-*/review-table.png
 audit/deep-review-20260917/ui-*/synthetic-invoice.png
 audit/deep-review-20260917/ui-*/synthetic-review.pdf
+audit/bugfixes-20260917/ui-*/native-two-pages.pdf
+audit/bugfixes-20260917/ui-*/review-table.png
+audit/bugfixes-20260917/ui-*/synthetic-invoice.png
+audit/bugfixes-20260917/ui-*/synthetic-review.pdf
 
 # Public page images and verbatim extraction payloads stay in local evidence.
 audit/multimodal-review-20260917/gpu-public-v3/page-*/

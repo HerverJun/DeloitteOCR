@@ -223,7 +223,13 @@ def process_stage(manager, stage, cancelled):
 
 def finalize_waiting_pages(manager):
     store = manager.store
-    stages = store.rows("SELECT * FROM document_stages WHERE status='waiting_gpu' ORDER BY created LIMIT 50")
+    # Limit ready work, not the waiting prefix: paused regions must not keep
+    # independent completed pages outside every worker's fixed scan window.
+    stages = store.rows("""SELECT s.* FROM document_stages s WHERE s.status='waiting_gpu'
+        AND EXISTS (SELECT 1 FROM page_ocr_inputs i WHERE i.stage_id=s.id)
+        AND NOT EXISTS (SELECT 1 FROM page_ocr_inputs i JOIN tasks t ON t.id=i.task_id
+            WHERE i.stage_id=s.id AND t.status NOT IN ('succeeded','failed','cancelled'))
+        ORDER BY s.created,s.id LIMIT 50""")
     for stage in stages:
         if manager.stopping.is_set():
             return

@@ -194,6 +194,9 @@ class Documents:
                 return image
 
     def process(self, page_id, mode='auto', *, force=False, engine='ppocr'):
+        return self.process_pages([page_id], mode, force=force, engine=engine)[0]
+
+    def process_pages(self, page_ids, mode='auto', *, force=False, engine='ppocr'):
         if mode not in ('auto', 'native', 'ocr'):
             raise ValueError('处理模式必须为 auto、native 或 ocr')
         if engine not in ('ppocr', 'paddlevl', 'glm', 'hunyuan'):
@@ -201,10 +204,10 @@ class Documents:
         if self.review_only and mode != 'native':
             raise ValueError('仅校对模式支持原生 PDF 提取；OCR 请使用完整模式')
         from ocr_workbench.table_tool import tool_identity
-        key = self.store.enqueue_document_stage(page_id, 'process',
+        keys = self.store.enqueue_document_stages(page_ids, 'process',
             {'mode': mode, 'engine': engine, 'pipeline_version': 3, 'pdf_table_tool': tool_identity()['key']}, force=force)
         self.wake.set()
-        return key
+        return keys
 
     def start(self):
         if any(t.is_alive() for t in self.threads):

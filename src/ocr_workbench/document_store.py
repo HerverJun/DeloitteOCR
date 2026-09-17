@@ -209,7 +209,9 @@ class DocumentStoreMixin:
         return rows
 
     def enqueue_document_stage(self, page_id, kind, parameters, *, force=False):
-        from ocr_workbench.store import uid, now, encoded, Conflict
+        return self.enqueue_document_stages([page_id], kind, parameters, force=force)[0]
+
+    def enqueue_document_stages(self, page_ids, kind, parameters, *, force=False):
         if kind not in ("render", "process", "table_structure"):
             raise ValueError("未知文档处理阶段")
         if type(force) is not bool:
@@ -219,26 +221,49 @@ class DocumentStoreMixin:
             raise ValueError("密码不能写入处理参数")
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
-            page = db.execute("SELECT * FROM pages WHERE id=?", (page_id,)).fetchone()
-            if not page:
-                raise KeyError("页面不存在")
-            active = db.execute("SELECT active_version FROM images WHERE id=?", (page["image_id"],)).fetchone()
-            version_id = active[0] if active else None
-            key_hash = fingerprint({"kind": kind, "parameters": parameters, "version_id": version_id})
-            pending = db.execute("SELECT id FROM document_stages WHERE page_id=? AND status IN ('queued','running','waiting_gpu')", (page_id,)).fetchone()
-            if pending:
+            # A conflict on any page rolls back all inserts and retries; workers
+            # cannot claim an earlier page before the whole request commits.
+            return [self._enqueue_document_stage(db, page_id, kind, parameters, force=force)
+                    for page_id in page_ids]
+
+    def _enqueue_document_stage(self, db, page_id, kind, parameters, *, force):
+        from ocr_workbench.store import uid, now, encoded, Conflict
+        page = db.execute("SELECT * FROM pages WHERE id=?", (page_id,)).fetchone()
+        if not page:
+            raise KeyError("页面不存在")
+        active = db.execute("SELECT i.active_version,v.parent_id FROM images i JOIN versions v ON v.id=i.active_version WHERE i.id=?", (page["image_id"],)).fetchone()
+        version_id = active[0] if active else None
+        key_hash = fingerprint({"kind": kind, "parameters": parameters, "version_id": version_id})
+        pending = db.execute("SELECT id,kind,parameters,version_id FROM document_stages WHERE page_id=? AND status IN ('queued','running','waiting_gpu')", (page_id,)).fetchone()
+        if pending:
+            # Lazy rendering can publish the first image just before its
+            # worker records version_id. That is still the same request;
+            # a subsequently transformed version is a different request.
+            same_version = (pending['version_id'] == version_id or
+                            (pending['version_id'] is None and active is not None and active['parent_id'] is None))
+            if (pending["kind"] == kind and json.loads(pending["parameters"]) == parameters
+                    and same_version):
                 return pending["id"]
-            prior = db.execute("SELECT id,status FROM document_stages WHERE page_id=? AND kind=? AND (request_key=? OR (version_id IS ? AND parameters=?)) ORDER BY created DESC LIMIT 1", (page_id, kind, key_hash, version_id, encoded(parameters))).fetchone()
-            if prior and not force:
-                if prior["status"] != "succeeded":
-                    db.execute("UPDATE document_stages SET status='queued',error=NULL,phase='等待处理' WHERE id=?", (prior["id"],))
-                return prior["id"]
-            if force:
-                key_hash += "-" + uid()
-            key = uid()
-            db.execute("""INSERT INTO document_stages(id,page_id,version_id,kind,request_key,parameters,created)
-                VALUES(?,?,?,?,?,?,?)""", (key, page_id, version_id, kind, key_hash, encoded(parameters), now()))
-            return key
+            raise Conflict("此页正在执行其他处理请求，请等待完成或取消后重新提交")
+        # The requested DPI and its stage must change together, only after
+        # rejecting conflicting work. Workers render from this page value.
+        if kind == 'render' and 'dpi' in parameters:
+            from ocr_workbench.coordinates import pdf_transform
+            pdf_transform([0, 0, 100, 100], dpi=parameters['dpi'])
+            if page['image_id'] and parameters['dpi'] != page['render_dpi']:
+                raise ValueError('此页已展开；如需不同 DPI，请重新导入文档以保留版本追溯')
+            db.execute('UPDATE pages SET render_dpi=? WHERE id=?', (parameters['dpi'], page_id))
+        prior = db.execute("SELECT id,status FROM document_stages WHERE page_id=? AND kind=? AND (request_key=? OR (version_id IS ? AND parameters=?)) ORDER BY created DESC LIMIT 1", (page_id, kind, key_hash, version_id, encoded(parameters))).fetchone()
+        if prior and not force:
+            if prior["status"] != "succeeded":
+                db.execute("UPDATE document_stages SET status='queued',error=NULL,phase='等待处理' WHERE id=?", (prior["id"],))
+            return prior["id"]
+        if force:
+            key_hash += "-" + uid()
+        key = uid()
+        db.execute("""INSERT INTO document_stages(id,page_id,version_id,kind,request_key,parameters,created)
+            VALUES(?,?,?,?,?,?,?)""", (key, page_id, version_id, kind, key_hash, encoded(parameters), now()))
+        return key
 
     def recover_document_stages(self):
         with self.transaction() as db:

@@ -1,0 +1,49 @@
+R1 task preview synchronizes the only current page
+R3 review navigation replaces the earlier preview with the issue result
+R2 copy flushes the visible edit and preserves original text
+R1 process current page sends the visible page ID
+R1 independent image clears stale document page actions
+R2 fusion clipboard contains literal table text
+R2 text endpoint preserves authentication and private-response headers
+{
+  "scope": "Real source UI/API/SQLite and PDF extraction; seeded OCR, geometry and review suggestions; clipboard captured in memory",
+  "checks": [
+    {
+      "name": "R1 task preview synchronizes the only current page",
+      "passed": true,
+      "page": "d9be1789ade54bb3878090a2d50cc158"
+    },
+    {
+      "name": "R3 review navigation replaces the earlier preview with the issue result",
+      "passed": true,
+      "result": "58ea5fbcfe78430c95a52d232ecc949d"
+    },
+    {
+      "name": "R2 copy flushes the visible edit and preserves original text",
+      "passed": true,
+      "result": "58ea5fbcfe78430c95a52d232ecc949d",
+      "revision": 1
+    },
+    {
+      "name": "R1 process current page sends the visible page ID",
+      "passed": true,
+      "actualPage": "d9be1789ade54bb3878090a2d50cc158"
+    },
+    {
+      "name": "R1 independent image clears stale document page actions",
+      "passed": true
+    },
+    {
+      "name": "R2 fusion clipboard contains literal table text",
+      "passed": true,
+      "contentType": "text/plain; charset=utf-8",
+      "copied": "Item\tCode\tAmount\nAlpha\t00123\t-12.50\nBeta\t00987\t123.45"
+    },
+    {
+      "name": "R2 text endpoint preserves authentication and private-response headers",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "browserClosed": true
+}

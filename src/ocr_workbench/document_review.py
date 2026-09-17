@@ -27,7 +27,11 @@ def document_review_queue(store, document_id, *, offset=0, limit=50, state="open
                     "result_id": page["result_id"], "revision": page["revision"], "version_id": page["active_version"]}
             def add(kind, target, **details):
                 category = details.pop("category", "structure")
-                tasks.append({**base, "id": fingerprint({"page": page["id"], "result": page["result_id"], "kind": kind, "target": target}),
+                # Individual suggestions/jobs keep their identity even when a
+                # text target is rebased; structure alternatives remain grouped.
+                identity = next(({key: details[key]} for key in ('proposal_id', 'task_id', 'issue_id') if key in details),
+                                {'target': target})
+                tasks.append({**base, "id": fingerprint({"page": page["id"], "result": page["result_id"], "kind": kind, **identity}),
                     "kind": kind, "target": target, "category": category, "priority": PRIORITIES.get(category, 3),
                     "state": "pending", **details})
             if not page["result_id"] or page["result_version"] != page["active_version"]:
@@ -37,38 +41,35 @@ def document_review_queue(store, document_id, *, offset=0, limit=50, state="open
                     stage=dict(stage) if stage else None)
                 continue
             edit, raw = json.loads(page["edited"]), json.loads(page["original"])
-            from ocr_workbench.table_tool import view as tool_view
-            tool = tool_view(db, {'id': page['result_id'], 'original': raw})
+            from ocr_workbench.structure_store import structure_snapshot
+            structure = structure_snapshot(db, {'id': page['result_id'], 'original': raw,
+                'version_id': page['active_version'], 'revision': page['revision'], 'selected': page['result_id']})
+            tool = structure['table_tool']
             if state != 'deferred' and tool['state'] not in ('ready', 'empty', 'not_applicable'):
                 add('table_tool', {'kind': 'page'}, reason=tool['message'])
             group = {}
-            proposals = db.execute("SELECT * FROM structure_proposals WHERE result_id=? AND version_id=? AND state!='stale' ORDER BY created DESC,id",
-                (page["result_id"], page["active_version"])).fetchall()
-            for row in proposals:
-                payload = json.loads(row["payload"])
+            for row in structure['proposals']:
                 if row["state"] not in ("pending", "deferred") and state != "all":
-                    continue
-                if row["state"] in ("pending", "deferred") and row["revision"] != page["revision"]:
                     continue
                 if state == "deferred" and row["state"] != "deferred":
                     continue
-                scope = tuple(payload["table_indices"])
-                group.setdefault(scope, []).append({"id": row["id"], "state": row["state"], "kind": payload["kind"],
-                    "provider": payload["provider"], "reason": payload["reason"], "can_apply": payload["can_apply"],
-                    "conflicts": len(payload.get("conflicts", [])), "priority": payload["priority"]})
+                scope = tuple(row["table_indices"])
+                group.setdefault(scope, []).append({"id": row["id"], "state": row["state"], "kind": row["kind"],
+                    "provider": row["provider"], "reason": row["reason"], "can_apply": row["can_apply"],
+                    "conflicts": len(row.get("conflicts", [])), "priority": row["priority"]})
             covered_tables = set()
             for scope, alternatives in group.items():
-                covered_tables.update(scope)
+                if any(p['state'] in ('pending', 'deferred') for p in alternatives):
+                    covered_tables.update(scope)
                 add("structure", {"kind": "tables", "tables": list(scope)}, category="detection" if any(p["priority"] == 0 for p in alternatives) else "structure",
                     reason="表身份待核对" if any(p["priority"] == 0 for p in alternatives) else "结构差异待核对",
                     proposal_ids=[p["id"] for p in alternatives], alternatives=alternatives,
                     state=("pending" if any(p["state"] == "pending" for p in alternatives) else
                            "deferred" if any(p["state"] == "deferred" for p in alternatives) else "resolved"))
-            candidates = db.execute("SELECT COUNT(*) FROM structure_candidates WHERE result_id=? AND version_id=?", (page["result_id"],page["active_version"])).fetchone()[0]
+            candidates = structure['candidate_rows']
             if candidates:
                 summary["candidate_pages"] += 1
-            check = db.execute("SELECT 1 FROM structure_checks WHERE result_id=? AND revision=? AND version_id=?", (page["result_id"],page["revision"],page["active_version"])).fetchone()
-            if check:
+            if structure['checked']:
                 summary["checked_pages"] += 1
             elif candidates and state != "deferred":
                 add("structure_check", {"kind": "page"}, reason="候选已就绪，检查当前修订")

@@ -1,0 +1,58 @@
+{
+  "closed_issues": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8"
+  ],
+  "backend": {
+    "run": 414,
+    "passed": 413,
+    "skipped": 1,
+    "seconds": 154.531,
+    "log": "backend-tests-final.log"
+  },
+  "frontend": {
+    "passed": 51,
+    "production_build": "passed",
+    "component_probe_groups": 6
+  },
+  "browser": {
+    "distinct_checks": 36,
+    "groups": {
+      "fixes": {
+        "checks": 7,
+        "receipt": "ui-regressions-final/results.json"
+      },
+      "document": {
+        "checks": 10,
+        "receipt": "ui-document/ui-results.json"
+      },
+      "structure": {
+        "checks": 6,
+        "receipt": "ui-structure/report.json"
+      },
+      "tools": {
+        "checks": 4,
+        "receipt": "ui-tool-recovery/report.json"
+      },
+      "multimodal": {
+        "checks": 9,
+        "receipt": "ui-multimodal/ui-report.json"
+      }
+    },
+    "sequential_external_edge": true
+  },
+  "review": {
+    "batch_partial_submission": "fixed and independently reviewed",
+    "new_blockers": 0
+  },
+  "schema_migration": false,
+  "installed_bundle_updated": false,
+  "gpu_accuracy_rerun": false,
+  "source_snapshot": "source-snapshot.json"
+}

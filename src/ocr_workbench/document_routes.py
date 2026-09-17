@@ -9,6 +9,55 @@ from ocr_workbench.coordinates import pdf_transform
 from ocr_workbench.store import uid, now
 
 
+def _search_fields(edit):
+    """Search the same saved text/table fields displayed by the text editor."""
+    from ocr_workbench.editing import table_bindings, validate_edit
+
+    parsed, replacements, _ = table_bindings(edit)
+    body, retained, offset = [], [], 0
+    for index, table in enumerate(parsed):
+        try:
+            validate_edit({'text': '', 'tables': [table]})
+        except ValueError:
+            continue  # Unusable model structure stays literal in the editor.
+        source = table['source']
+        body.extend((edit['text'][offset:source['start']], '\n'))
+        offset = source['end']
+        if index not in replacements:
+            retained.append(table)
+    body.append(edit['text'][offset:])
+    yield 'text', ''.join(body)
+    for index, table in enumerate(edit['tables']):
+        if table.get('caption'):
+            yield f'caption:{index}', table['caption']
+        for cell in table['cells']:
+            yield f"table:{index}:{cell['row']}:{cell['column']}", cell['text']
+    for table in retained:
+        # Removing an editable structure still retains its source text on screen.
+        if table.get('caption'):
+            yield 'text', table['caption']
+        for cell in table['cells']:
+            yield 'text', cell['text']
+
+
+def _search_snippet(text, needle):
+    position = text.casefold().find(needle)
+    if position < 0:
+        return None
+    # Case folding can expand a character (e.g. ß -> ss). Map the match back
+    # before slicing the original string so snippets still contain the match.
+    folded_offset, start, end = 0, 0, len(text)
+    for index, character in enumerate(text):
+        following = folded_offset + len(character.casefold())
+        if folded_offset <= position < following:
+            start = index
+        if following >= position + len(needle):
+            end = index + 1
+            break
+        folded_offset = following
+    return text[max(0, start-30):end+80]
+
+
 def register_document_routes(app, documents, maintenance):
     store = documents.store
 
@@ -83,9 +132,9 @@ def register_document_routes(app, documents, maintenance):
                                     any(type(n) is not int or not 1 <= n <= doc['page_count'] for n in numbers)):
             raise ValueError('页面范围无效；每批可显式选择最多 1000 页')
         pages = store.rows('SELECT id,page_number FROM pages WHERE document_id=? ORDER BY page_number', (key,))
-        return {'stage_ids': [documents.process(page['id'], body.get('mode', 'auto'),
-                                force=body.get('force', False), engine=body.get('engine', 'ppocr'))
-                              for page in pages if numbers is None or page['page_number'] in numbers]}
+        page_ids = [page['id'] for page in pages if numbers is None or page['page_number'] in numbers]
+        return {'stage_ids': documents.process_pages(page_ids, body.get('mode', 'auto'),
+                                force=body.get('force', False), engine=body.get('engine', 'ppocr'))}
 
     @app.post('/api/documents/{key}/queue/{action}')
     def action(key: str, action: str):
@@ -99,8 +148,6 @@ def register_document_routes(app, documents, maintenance):
             pdf_transform([0, 0, 100, 100], dpi=dpi)
             if page['image_id'] and dpi != page['render_dpi']:
                 raise ValueError('此页已展开；如需不同 DPI，请重新导入文档以保留版本追溯')
-            with store.transaction() as db:
-                db.execute('UPDATE pages SET render_dpi=? WHERE id=?', (dpi, key))
         stage_id = store.enqueue_document_stage(key, 'render', {'dpi': body.get('dpi', page['render_dpi'])})
         documents.wake.set()
         return {'stage_id': stage_id}
@@ -131,16 +178,21 @@ def register_document_routes(app, documents, maintenance):
             raise ValueError('请输入 1–200 字的搜索词；每次最多返回 100 个结果')
         # Only the adopted revision participates; superseded engines/old edits
         # cannot reappear as phantom search hits.
-        matches = []
-        rows = store.rows('''SELECT p.id page_id,p.page_number,p.image_id,r.id result_id,r.revision,r.edited
-            FROM pages p JOIN selections s ON s.image_id=p.image_id JOIN results r ON r.id=s.result_id
-            WHERE p.document_id=? AND instr(lower(r.edited),lower(?))>0 ORDER BY p.page_number''', (key, q))
-        for row in rows:
-            edit = json.loads(row.pop('edited'))
-            values = [('text', edit['text'])] + [(f"table:{t}:{c['row']}:{c['column']}", c['text'])
-                       for t, table in enumerate(edit['tables']) for c in table['cells']]
-            for target, text in values:
-                position = text.casefold().find(q.casefold())
-                if position >= 0:
-                    matches.append({**row, 'target': target, 'snippet': text[max(0, position-30):position+len(q)+80]})
-        return {'matches': matches[offset:offset+limit], 'total': len(matches), 'offset': offset}
+        matches, total, needle = [], 0, q.casefold()
+        # Stream a consistent adopted snapshot; JSON escaping and SQLite's
+        # ASCII-only lower() cannot safely prefilter visible Unicode content.
+        with store.transaction() as db:
+            db.execute('BEGIN')
+            rows = db.execute('''SELECT p.id page_id,p.page_number,p.image_id,r.id result_id,r.revision,r.edited
+                FROM pages p JOIN selections s ON s.image_id=p.image_id JOIN results r ON r.id=s.result_id
+                WHERE p.document_id=? ORDER BY p.page_number''', (key,))
+            for record in rows:
+                row = dict(record)
+                edit = json.loads(row.pop('edited'))
+                for target, text in _search_fields(edit):
+                    snippet = _search_snippet(text, needle)
+                    if snippet is not None:
+                        if offset <= total < offset + limit:
+                            matches.append({**row, 'target': target, 'snippet': snippet})
+                        total += 1
+        return {'matches': matches, 'total': total, 'offset': offset}

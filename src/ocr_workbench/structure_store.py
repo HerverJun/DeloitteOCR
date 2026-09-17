@@ -142,6 +142,47 @@ def _current_tables(db, result):
     return tables, aligned
 
 
+def current_candidates(db, result, tool):
+    """Latest provider sets for this result's current image and tool run."""
+    from ocr_workbench.table_tool import current_candidate
+    rows = db.execute("""SELECT c.* FROM structure_candidates c JOIN versions v ON v.id=c.version_id
+        WHERE c.result_id=? AND c.version_id=? AND c.image_sha256=v.sha256 ORDER BY c.created DESC,c.id""",
+        (result['id'], result['version_id'])).fetchall()
+    seen, current = set(), []
+    for row in rows:
+        if row['provider'] not in seen and current_candidate(row, tool):
+            seen.add(row['provider'])
+            current.append(row)
+    return current
+
+
+def structure_snapshot(db, result):
+    """Share actionable proposals and check identity within one read snapshot."""
+    from ocr_workbench.table_tool import view as tool_view
+    tool = tool_view(db, result)
+    candidates = current_candidates(db, result, tool)
+    live_sets = {row['id'] for row in candidates}
+    proposals = []
+    for row in db.execute("""SELECT * FROM structure_proposals WHERE result_id=? AND version_id=?
+            AND state!='stale' ORDER BY created DESC,id""", (result['id'], result['version_id'])):
+        item = {**json.loads(row['payload']), 'id': row['id'], 'basis': row['basis'],
+                'revision': row['revision'], 'state': row['state'], 'version_id': row['version_id']}
+        pending = row['state'] in ('pending', 'deferred')
+        if pending and (row['revision'] != result['revision'] or item['candidate_set_id'] not in live_sets):
+            continue
+        # Historical decisions remain visible after unrelated edits or tool
+        # upgrades, but are never offered as fresh, actionable suggestions.
+        item['can_apply'] = bool(item['can_apply'] and pending and result['selected'] == result['id'])
+        proposals.append(item)
+    proposals.sort(key=lambda p: (p['priority'], p['table_indices'], p['kind'] != 'replace_table', p['id']))
+    check = db.execute("""SELECT candidates_sha256 FROM structure_checks
+        WHERE result_id=? AND revision=? AND version_id=?""",
+        (result['id'], result['revision'], result['version_id'])).fetchone()
+    checked = bool(check and check['candidates_sha256'] == fingerprint([row['id'] for row in candidates])
+                   and tool['state'] in ('ready', 'empty', 'not_applicable'))
+    return {'table_tool': tool, 'candidate_rows': candidates, 'proposals': proposals, 'checked': checked}
+
+
 def refresh_proposals(store, result_id, revision):
     from ocr_workbench.store import Conflict, encoded, now
     with store.transaction() as db:
@@ -151,17 +192,10 @@ def refresh_proposals(store, result_id, revision):
             raise Conflict("修订已变化，请保存后重新检查结构")
         version = db.execute("SELECT * FROM versions WHERE id=?", (result["version_id"],)).fetchone()
         import_saved_candidates(store,db,result,version)
-        candidates = db.execute("SELECT * FROM structure_candidates WHERE result_id=? AND version_id=? AND image_sha256=? ORDER BY created DESC,id",
-                                (result_id, version["id"], version["sha256"])).fetchall()
-        from ocr_workbench.table_tool import view as tool_view, current_candidate
+        from ocr_workbench.table_tool import view as tool_view
         tool = tool_view(db, result)
-        candidates = [row for row in candidates if current_candidate(row, tool)]
         # Latest set from each provider, with an explicitly shared text pool.
-        seen, sets = set(), []
-        for row in candidates:
-            if row["provider"] not in seen:
-                seen.add(row["provider"])
-                sets.append((row, json.loads(row["payload"])))
+        sets = [(row, json.loads(row['payload'])) for row in current_candidates(db, result, tool)]
         current, originals = _current_tables(db, result)
         for row, payload in sets:
             from ocr_workbench.structure_groups import group_suggestions
@@ -291,28 +325,15 @@ def _persist_proposal(db, result, proposal):
 
 def structure_view(store, result_id):
     with store.transaction() as db:
+        db.execute('BEGIN')
         result = context(db, result_id)
-        from ocr_workbench.table_tool import view as tool_view, current_candidate
-        tool = tool_view(db, result)
-        rows = db.execute("SELECT * FROM structure_proposals WHERE result_id=? ORDER BY created DESC,id", (result_id,)).fetchall()
-        proposals = []
-        for row in rows:
-            if row["state"] == "stale":
-                continue
-            item = {**json.loads(row["payload"]), "id": row["id"], "basis": row["basis"], "revision": row["revision"], "state": row["state"], "version_id": row["version_id"]}
-            item["can_apply"] = bool(item["can_apply"] and row["revision"] == result["revision"] and row["state"] in ("pending", "deferred"))
-            proposals.append(item)
-        proposals.sort(key=lambda p: (p["priority"], p["table_indices"], p["kind"] != "replace_table", p["id"]))
-        candidate_rows = db.execute("SELECT id,provider,created,payload FROM structure_candidates WHERE result_id=? AND version_id=? ORDER BY created DESC", (result_id,result["version_id"])).fetchall()
-        candidate_rows = [row for row in candidate_rows if current_candidate(row, tool)]
-        live_sets = {row['id'] for row in candidate_rows}
-        proposals = [p for p in proposals if p['state'] not in ('pending','deferred')
-                     or not p['provider'].startswith('pdfplumber/') or p['candidate_set_id'] in live_sets]
+        snapshot = structure_snapshot(db, result)
         candidates = [{"id": r["id"], "provider": r["provider"], "created": r["created"], "tables": len(json.loads(r["payload"])["tables"]),
-                       "token_pool_sha256": json.loads(r["payload"])["token_pool_sha256"]} for r in candidate_rows]
+                       "token_pool_sha256": json.loads(r["payload"])["token_pool_sha256"]} for r in snapshot['candidate_rows']]
         return {"result_id": result_id, "revision": result["revision"], "version_id": result["version_id"],
                 "adopted": result["selected"] == result_id, "experimental": True,
-                "automatic_adoption": False, "candidates": candidates, "proposals": proposals, "table_tool": tool}
+                "automatic_adoption": False, "candidates": candidates, "proposals": snapshot['proposals'],
+                "table_tool": snapshot['table_tool']}
 
 
 def decide_structure(store, result_id, proposal_id, body):
@@ -346,11 +367,9 @@ def decide_structure(store, result_id, proposal_id, body):
             body.get("version_id") != result["version_id"]):
             raise Conflict("结构建议已过期，请重新检查后复核")
         proposal = json.loads(row["payload"])
-        if action == 'accept' and proposal['provider'].startswith('pdfplumber/'):
-            from ocr_workbench.table_tool import view as tool_view, current_candidate
-            candidate = db.execute('SELECT * FROM structure_candidates WHERE id=?', (proposal['candidate_set_id'],)).fetchone()
-            if not candidate or not current_candidate(candidate, tool_view(db, result)):
-                raise Conflict('表格工具候选已过期，请重新提取并检查')
+        from ocr_workbench.table_tool import view as tool_view
+        if proposal['candidate_set_id'] not in {c['id'] for c in current_candidates(db, result, tool_view(db, result))}:
+            raise Conflict('结构候选已过期，请重新提取并检查')
         version = db.execute("SELECT sha256 FROM versions WHERE id=?", (result["version_id"],)).fetchone()
         if version[0] != proposal["image_sha256"]:
             raise Conflict("图像内容已变化，请重新生成建议")

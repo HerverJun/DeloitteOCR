@@ -1,0 +1,81 @@
+test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade (test_audit_review_queue.CurrentStructureQueueTests.test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade) ... FAIL
+test_current_candidates_and_check_agree_with_panel (test_audit_review_queue.CurrentStructureQueueTests.test_current_candidates_and_check_agree_with_panel) ... ok
+test_image_hash_change_hides_pending_and_invalidates_check (test_audit_review_queue.CurrentStructureQueueTests.test_image_hash_change_hides_pending_and_invalidates_check) ... FAIL
+test_new_tool_run_hides_previous_candidates_until_new_check (test_audit_review_queue.CurrentStructureQueueTests.test_new_tool_run_hides_previous_candidates_until_new_check) ... FAIL
+test_revision_change_requires_a_new_check (test_audit_review_queue.CurrentStructureQueueTests.test_revision_change_requires_a_new_check) ... ok
+test_tool_upgrade_hides_pending_and_deferred_even_after_recheck (test_audit_review_queue.CurrentStructureQueueTests.test_tool_upgrade_hides_pending_and_deferred_even_after_recheck) ... FAIL
+test_proposal_identity_survives_target_rebase (test_audit_review_queue.MultimodalQueueIdentityTests.test_proposal_identity_survives_target_rebase) ... FAIL
+test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids (test_audit_review_queue.MultimodalQueueIdentityTests.test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids) ... FAIL
+
+======================================================================
+FAIL: test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade (test_audit_review_queue.CurrentStructureQueueTests.test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 99, in test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade
+    self.assert_no_current_structure()
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 52, in assert_no_current_structure
+    self.assertEqual(queue['summary']['candidate_pages'], 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_image_hash_change_hides_pending_and_invalidates_check (test_audit_review_queue.CurrentStructureQueueTests.test_image_hash_change_hides_pending_and_invalidates_check)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 111, in test_image_hash_change_hides_pending_and_invalidates_check
+    self.assert_no_current_structure()
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 47, in assert_no_current_structure
+    self.assertEqual(panel['candidates'], [])
+AssertionError: Lists differ: [{'id': '1921a22785ba3d5b8ec1454fac788def6[212 chars]7e'}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'id': '1921a22785ba3d5b8ec1454fac788def64e39b3d58543c238be48f220e0b91c0', 'provider': 'pdfplumber/fixture', 'created': '2026-09-17T03:03:03.116725+00:00', 'tables': 1, 'token_pool_sha256': '743378563970541da51487a288216796afcf72f6186ec1cf7a4991ed96354c7e'}
+
++ []
+- [{'created': '2026-09-17T03:03:03.116725+00:00',
+-   'id': '1921a22785ba3d5b8ec1454fac788def64e39b3d58543c238be48f220e0b91c0',
+-   'provider': 'pdfplumber/fixture',
+-   'tables': 1,
+-   'token_pool_sha256': '743378563970541da51487a288216796afcf72f6186ec1cf7a4991ed96354c7e'}]
+
+======================================================================
+FAIL: test_new_tool_run_hides_previous_candidates_until_new_check (test_audit_review_queue.CurrentStructureQueueTests.test_new_tool_run_hides_previous_candidates_until_new_check)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 85, in test_new_tool_run_hides_previous_candidates_until_new_check
+    self.assert_no_current_structure()
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 51, in assert_no_current_structure
+    self.assertFalse(any(t['kind'] == 'structure' and t['state'] != 'resolved' for t in queue['tasks']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_tool_upgrade_hides_pending_and_deferred_even_after_recheck (test_audit_review_queue.CurrentStructureQueueTests.test_tool_upgrade_hides_pending_and_deferred_even_after_recheck)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 72, in test_tool_upgrade_hides_pending_and_deferred_even_after_recheck
+    self.assert_no_current_structure()
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 51, in assert_no_current_structure
+    self.assertFalse(any(t['kind'] == 'structure' and t['state'] != 'resolved' for t in queue['tasks']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_proposal_identity_survives_target_rebase (test_audit_review_queue.MultimodalQueueIdentityTests.test_proposal_identity_survives_target_rebase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 166, in test_proposal_identity_survives_target_rebase
+    self.assertEqual({k: t['id'] for k, t in before.items()}, {k: t['id'] for k, t in after.items()})
+AssertionError: {'08c[28 chars]6': '5b693b88345a388de1bd45217b4d59447958db52b[228 chars]a47'} != {'08c[28 chars]6': '92de6db4739447c016a59ee1aaea3b2ef662ba403[228 chars]5bf'}
+Diff is 642 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids (test_audit_review_queue.MultimodalQueueIdentityTests.test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_audit_review_queue.py", line 144, in test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids
+    self.assertEqual(len({t['id'] for t in first['tasks']}), 8)
+AssertionError: 4 != 8
+
+----------------------------------------------------------------------
+Ran 8 tests in 1.021s
+
+FAILED (failures=6)

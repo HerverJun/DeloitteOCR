@@ -13,7 +13,7 @@ import sys
 import tempfile
 import threading
 from fastapi import FastAPI, Request, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
 from starlette.background import BackgroundTask
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
@@ -22,7 +22,7 @@ from ocr_workbench.store import Store, Conflict, uid, now, encoded
 from ocr_workbench.task_queue import TaskQueue, FusionQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
-from ocr_workbench.editing import present_result
+from ocr_workbench.editing import present_result, export_text
 
 
 def create_app(bundle, data, token, *, start_queue=True, review_only=False):
@@ -348,6 +348,10 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.get("/api/results/{key}")
     def result(key: str):
         return present_result(store.result(key))
+
+    @app.get("/api/results/{key}/text", response_class=PlainTextResponse)
+    def result_text(key: str):
+        return PlainTextResponse(export_text(store.result(key)["edited"]))
 
     @app.post('/api/results/{key}/geometry')
     def add_geometry(key: str, body: dict):

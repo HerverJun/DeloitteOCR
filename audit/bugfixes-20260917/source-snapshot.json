@@ -1,0 +1,120 @@
+{
+  "baseline": "a9d39745e97d04381a4c21c0bd2e3e5320b5361d",
+  "scope": "Changed implementation, regression tests and browser scripts; worktree SHA256 is exact tested bytes, git_blob identifies normalized Git content across line-ending conversions. Existing installed bundle was not updated.",
+  "files": [
+    {
+      "path": "frontend/src/App.tsx",
+      "bytes": 83779,
+      "worktree_sha256": "49a6ee7d3c9e29d156a9d942ec28f4233ac78e45325b8caee1f3207a05c627b7",
+      "git_blob": "718438f375bcaa3f587c91dfe7aa296623c24259"
+    },
+    {
+      "path": "frontend/src/DocumentTree.tsx",
+      "bytes": 15109,
+      "worktree_sha256": "d5e4e2088af70a1e25226dce922d718453c78117a7c93e285fe257cf01060131",
+      "git_blob": "8220298cf9f988266d059c56b4627e560f736feb"
+    },
+    {
+      "path": "frontend/src/documentNavigation.test.ts",
+      "bytes": 2557,
+      "worktree_sha256": "9740744c1c005873470ddc307ef04f0197fae4fde2a76bda1d75a431ca82488a",
+      "git_blob": "0e77593b9879beac8e4562f2495b95bff6d61710"
+    },
+    {
+      "path": "frontend/src/documentNavigation.ts",
+      "bytes": 1070,
+      "worktree_sha256": "f0592ad499b1edd10234429a7c81e56e795c3b3064fb10c848e9c1968b14bc15",
+      "git_blob": "0aa0588558e3811e6ceb84958e2bf6a70750ee44"
+    },
+    {
+      "path": "frontend/src/resultClipboard.test.ts",
+      "bytes": 2808,
+      "worktree_sha256": "4bafbfc5056ec5080658580503fcc48a74d100879fd43edae7e4f2795cf0ee0d",
+      "git_blob": "ad57a4d6430b68451e858f581f3563e606868d25"
+    },
+    {
+      "path": "frontend/src/resultClipboard.ts",
+      "bytes": 804,
+      "worktree_sha256": "095b411ce4f9bc0dbc51c2d9b2f0ef702504e9ecc536503b9ca4d23cf234695a",
+      "git_blob": "a75ca4ae4c97758261970239de372b4e71502c50"
+    },
+    {
+      "path": "scripts/audit_bugfix_ui.mjs",
+      "bytes": 7215,
+      "worktree_sha256": "b7653fbe76632523e21e25bb82a6bce0742a585e7e8af9523657b71e9ef8b0a4",
+      "git_blob": "be61715697c67ca5ac8e1bd58b60ff5e55a5567c"
+    },
+    {
+      "path": "scripts/audit_bugfix_ui.py",
+      "bytes": 2513,
+      "worktree_sha256": "2508fc38e932d17a3d1881860f6e35c606717ff1155a877508d36875f64e7370",
+      "git_blob": "646e6c849b6ad46815f7a9b8d3d59df5bec8d594"
+    },
+    {
+      "path": "scripts/audit_document_ui.mjs",
+      "bytes": 9032,
+      "worktree_sha256": "10c4ecdbe49e6076343bbf3d0eaf6641fe79acce8c569db4765584ac2521b179",
+      "git_blob": "4fd8e5baf4fe81d45e168778acfffc62af436392"
+    },
+    {
+      "path": "src/ocr_workbench/document_review.py",
+      "bytes": 9799,
+      "worktree_sha256": "be43c81140dc5625e42d9a4dbcfb86fa0b8bdedeb83904288b9497a57d4ad50a",
+      "git_blob": "dbb81f7b09102e4d24c9843ab1d706cbeda5f0e5"
+    },
+    {
+      "path": "src/ocr_workbench/document_routes.py",
+      "bytes": 9824,
+      "worktree_sha256": "14538d0750d58a22eef4087599341b9b5d6430d0d08971c3042bb2262c873a5a",
+      "git_blob": "c465f3197c6b994064f90a48d0536b599a703f7f"
+    },
+    {
+      "path": "src/ocr_workbench/document_store.py",
+      "bytes": 19667,
+      "worktree_sha256": "becd482b6af23dff87d14d6800c1c4b00047ad9d528c642d62c8ddb5e401623d",
+      "git_blob": "83eb9094a946179f36a6a1fadff3d7a079af5b92"
+    },
+    {
+      "path": "src/ocr_workbench/documents.py",
+      "bytes": 15431,
+      "worktree_sha256": "ca4d552e02c96b11f699fdfa9ec3465e0c6379668dbe71b0ec581a2c0ed967aa",
+      "git_blob": "76b45cf2c1da70c7913407b8c164120e32f60daf"
+    },
+    {
+      "path": "src/ocr_workbench/page_processing.py",
+      "bytes": 16851,
+      "worktree_sha256": "e800a20d5aaddab8c61b3d1eae6c1af63ce5c25d54c0a1853ad06a5c5ab519e0",
+      "git_blob": "db2c07bc3bf62bfb7e707341bffabe710bc9ec5f"
+    },
+    {
+      "path": "src/ocr_workbench/service.py",
+      "bytes": 25150,
+      "worktree_sha256": "d5fb983aa78768ed1d5ce3a6e82e72ea297d960e50b37eda2dfb25ca6f2d2995",
+      "git_blob": "bba84cd1aeb1e1246facbbc647f769ab92dfc92d"
+    },
+    {
+      "path": "src/ocr_workbench/structure_store.py",
+      "bytes": 33522,
+      "worktree_sha256": "76213a6fb799b1c1b6726087a81e9e181b59d1f5992ebd6029ebc261e012268c",
+      "git_blob": "4de4559f90bd99aa3d359083bda9a6df543010ec"
+    },
+    {
+      "path": "tests/test_audit_document_regressions.py",
+      "bytes": 17306,
+      "worktree_sha256": "f00f5403a47b8e7a20f3b1b888cf70ae20f7464fbe71f05d3ad296fa1b04fe11",
+      "git_blob": "0e3b8d175cc6d6014040c3e56d0889a0caafc68f"
+    },
+    {
+      "path": "tests/test_audit_review_queue.py",
+      "bytes": 13264,
+      "worktree_sha256": "cc307c6a42bd681e816dd16f8721f0b43fa62a667fde8d7c447f19d05eb40d6d",
+      "git_blob": "b58fd12c0243869c46b894381810a6485456e93b"
+    },
+    {
+      "path": "tests/test_result_text.py",
+      "bytes": 4393,
+      "worktree_sha256": "fb01aa04e04fce2ffc5f49c04f391c3463042ab0d6dbc527cec842a68e53da82",
+      "git_blob": "8768e8eefe11142d6d63964017d4fc56fa0aa412"
+    }
+  ]
+}

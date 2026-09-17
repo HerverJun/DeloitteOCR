@@ -1,0 +1,19 @@
+{
+  "scope": "R4/R5/R6; isolated workspaces, CPU and local HTTP only; no GPU, browser, product-data writes or commit",
+  "fixes": {
+    "R4": "Active stages only reuse semantically identical kind/parameters/version requests. Different requests raise Conflict/HTTP 409. Lazy first-image publication remains idempotent. DPI updates occur with stage creation and rejected requests cannot change the page. Document-wide requests enqueue all selected pages in one BEGIN IMMEDIATE transaction; conflicts roll back both inserted stages and retry-state changes, and the worker is woken only after commit.",
+    "R5": "Select waiting_gpu stages whose dependencies have all terminated before applying the 50-stage batch limit. Paused earlier pages no longer starve completed pages, including other projects.",
+    "R6": "Search decoded visible text, current cells/captions and retained source text using Unicode casefold. Replaced source cell values and metadata do not produce hits. Stream one adopted SQLite snapshot and map folded matches back to original snippet offsets."
+  },
+  "validation": {
+    "new_regressions": {"tests": 13, "passed": 13, "seconds": 9.923, "log": "document-regressions-final.log"},
+    "post_review_atomic_batch_regressions": {"tests": 15, "passed": 15, "seconds": 10.292, "log": "document-regressions-batch-atomic.log", "note": "Adds two-page HTTP conflict/rollback, failed-stage retry rollback, successful whole-batch retry, idempotency and selected-page receipts."},
+    "existing_targeted_regressions": {"tests": 34, "passed": 34, "seconds": 70.792, "log": "document-existing-regressions.log", "note": "Executed before the final lazy-publication/DPI storage guards; both final guards are covered by the 13 final dedicated regressions."},
+    "diff_check": "passed"
+  },
+  "remaining_tradeoffs": [
+    "Conflicting page requests are explicitly rejected, so callers retry after completion/cancellation rather than receiving an implicit queued follow-up.",
+    "Search scans decoded saved fields to preserve Unicode correctness; it streams rows and retains only the requested result page, but remains linear in document content."
+  ],
+  "historical_evidence": "audit/deep-review-20260917/backend left unchanged"
+}

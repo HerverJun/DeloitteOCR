@@ -1,0 +1,20 @@
+[
+  {
+    "id": "2d68192c-120e-4f4a-baee-c7e128e31196",
+    "result_id": "42ce8387f2db438395336aaa02a2f32a",
+    "revision": 2,
+    "target": "{\"kind\":\"structure\",\"proposal_id\":\"7d0e2b573c357c04931fe3203bf996cc28c6137e2a8a0a3943f1d1eb7c8297c8\"}",
+    "active_ms": 0,
+    "action": "structure_accept",
+    "created": "2026-09-17T03:11:19.090862+00:00"
+  },
+  {
+    "id": "06e37196-bdcc-49fb-bad5-eba2b0c601a9",
+    "result_id": "7a403b7bd2d444e7bd8a6922dda56ee7",
+    "revision": 0,
+    "target": "{\"kind\":\"structure\",\"proposal_id\":\"91b2d11ba1d6af878e45fffb0b284648be64b6f4817144f055a6888749affc8a\"}",
+    "active_ms": 96,
+    "action": "structure_defer",
+    "created": "2026-09-17T03:11:19.640568+00:00"
+  }
+]

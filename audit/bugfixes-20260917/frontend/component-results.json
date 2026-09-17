@@ -1,0 +1,26 @@
+[
+  {
+    "name": "external-document-page-31-and-independent-image",
+    "passed": true
+  },
+  {
+    "name": "requested-render-opens-when-navigation-is-unchanged",
+    "passed": true
+  },
+  {
+    "name": "late-render-does-not-reopen-old-page",
+    "passed": true
+  },
+  {
+    "name": "ready-render-refresh-race-is-cancelled",
+    "passed": true
+  },
+  {
+    "name": "process-page-flush-navigation-race",
+    "passed": true
+  },
+  {
+    "name": "review-navigation-replaces-sticky-preview-before-focus",
+    "passed": true
+  }
+]

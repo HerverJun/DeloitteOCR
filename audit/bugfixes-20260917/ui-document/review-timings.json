@@ -1,0 +1,11 @@
+[
+  {
+    "id": "efa9797e-5fb0-4073-95f0-c2ce2da5123d",
+    "result_id": "50134fa0ccb446e8891c4e1cbf0c45e3",
+    "revision": 1,
+    "target": "{\"kind\":\"cell\",\"table_id\":\"65050bb107fc2ecaec8964ea\",\"row\":1,\"column\":1,\"structure\":\"0f472bb014dc4413e9443ecf4904632dfbbe887c8e18874de979813d0cf46e55\"}",
+    "active_ms": 64,
+    "action": "manual",
+    "created": "2026-09-17T03:10:08.528001+00:00"
+  }
+]

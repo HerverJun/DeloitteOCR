@@ -22,6 +22,7 @@ src/ocr_workbench/_vendor/** -text
 licenses/pdfplumber/** -text
 licenses/structure-workflow/** -text
 audit/deep-review-20260917/** -text
+audit/bugfixes-20260917/** -text
 audit/generic-tool-fixes-20260917/** -text
 audit/multimodal-review-20260917/** -text
 audit/public-quality-20260916/** -text
@@ -43,6 +44,7 @@ config/structure-workflow-protocol.json -text
 # CRLF is intentional in byte-preserved locks and captured Windows receipts.
 config/*.json whitespace=trailing-space,space-before-tab,cr-at-eol
 audit/deep-review-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/bugfixes-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
 audit/generic-tool-fixes-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
 audit/multimodal-review-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
 audit/public-quality-20260916/** whitespace=trailing-space,space-before-tab,cr-at-eol

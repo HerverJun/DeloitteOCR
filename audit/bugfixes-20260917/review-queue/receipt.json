@@ -1,0 +1,40 @@
+{
+  "issues": [
+    "R7",
+    "R8"
+  ],
+  "source_files": [
+    {
+      "path": "src/ocr_workbench/document_review.py",
+      "sha256": "be43c81140dc5625e42d9a4dbcfb86fa0b8bdedeb83904288b9497a57d4ad50a"
+    },
+    {
+      "path": "src/ocr_workbench/structure_store.py",
+      "sha256": "76213a6fb799b1c1b6726087a81e9e181b59d1f5992ebd6029ebc261e012268c"
+    },
+    {
+      "path": "tests/test_audit_review_queue.py",
+      "sha256": "cc307c6a42bd681e816dd16f8721f0b43fa62a667fde8d7c447f19d05eb40d6d"
+    }
+  ],
+  "validation": {
+    "before": {
+      "run": 8,
+      "failed": 6,
+      "passed": 2
+    },
+    "targeted_regressions": {
+      "run": 81,
+      "passed": 81,
+      "skipped": 0
+    },
+    "final_new_regressions": {
+      "run": 12,
+      "passed": 12,
+      "skipped": 0
+    },
+    "distinct_final_tests": 85
+  },
+  "schema_migration_required": false,
+  "gpu_or_browser_started": false
+}

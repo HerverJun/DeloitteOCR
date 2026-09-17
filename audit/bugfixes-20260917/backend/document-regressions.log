@@ -1,0 +1,15 @@
+test_completed_page_bypasses_fifty_paused_pages_in_another_project (test_audit_document_regressions.AuditDocumentRegressions.test_completed_page_bypasses_fifty_paused_pages_in_another_project) ... ok
+test_completed_request_is_reused_unless_forced (test_audit_document_regressions.AuditDocumentRegressions.test_completed_request_is_reused_unless_forced) ... ok
+test_completion_batch_remains_bounded_and_failure_does_not_starve_ready_page (test_audit_document_regressions.AuditDocumentRegressions.test_completion_batch_remains_bounded_and_failure_does_not_starve_ready_page) ... ok
+test_conflicting_render_dpi_does_not_change_pending_page (test_audit_document_regressions.AuditDocumentRegressions.test_conflicting_render_dpi_does_not_change_pending_page) ... ok
+test_render_then_process_conflicts_until_render_finishes (test_audit_document_regressions.AuditDocumentRegressions.test_render_then_process_conflicts_until_render_finishes) ... ok
+test_same_active_request_reuses_id_but_mode_engine_and_version_conflict (test_audit_document_regressions.AuditDocumentRegressions.test_same_active_request_reuses_id_but_mode_engine_and_version_conflict) ... ok
+test_search_decodes_quotes_paths_newlines_and_unicode_case (test_audit_document_regressions.AuditDocumentRegressions.test_search_decodes_quotes_paths_newlines_and_unicode_case) ... ok
+test_search_only_adopted_revision_and_pagination (test_audit_document_regressions.AuditDocumentRegressions.test_search_only_adopted_revision_and_pagination) ... ok
+test_search_unicode_expansion_maps_snippet_to_original_text (test_audit_document_regressions.AuditDocumentRegressions.test_search_unicode_expansion_maps_snippet_to_original_text) ... ok
+test_search_uses_edited_cells_captions_and_retained_source_text (test_audit_document_regressions.AuditDocumentRegressions.test_search_uses_edited_cells_captions_and_retained_source_text) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 9.672s
+
+OK

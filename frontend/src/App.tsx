@@ -61,6 +61,7 @@ import type { Location } from "./RegionPreview";
 import { FusionLauncher, type FusionRequest } from "./FusionLauncher";
 import { adoptedResult, exportPhotos, reviewNames } from "./resultWorkflow";
 import { useEditor } from "./useEditor";
+import { copySavedResultText } from "./resultClipboard";
 import { changeDocumentTables, changeDocumentText, displayOffset, documentText } from "./documentText";
 import { ProjectStorage } from "./ProjectStorage";
 import { EnginePackages } from "./EnginePackages";
@@ -851,11 +852,27 @@ export function App() {
             />
             {!!project?.documents?.some(d => d.kind !== "image") && <DocumentTree
               key={`documents-${projectId}`} documents={project.documents.filter(d => d.kind !== "image")}
-              activeImage={active} reviewOnly={reviewOnly} beforeOpen={editor.flush}
-              onOpen={async imageId => { await editor.flush(); setActive(imageId); setSearch(""); setSearchIndex(0); }}
+              activeImage={active} activePage={photo?.document_kind && photo.document_kind !== "image" && photo.document_id && photo.page_number
+                ? { documentId: photo.document_id, pageNumber: photo.page_number } : null}
+              reviewOnly={reviewOnly} beforeOpen={editor.flush}
+              onOpen={async (imageId, stillCurrent) => { await editor.flush(); if (stillCurrent && !stillCurrent()) return; setActive(imageId); setSearch(""); setSearchIndex(0); }}
               onReview={async task => {
-                if (task.kind === "fusion" && task.result_id && task.issue_id) await api(`/results/${task.result_id}/issues/position`,"PUT",{issue_id:task.issue_id});
-                setDocumentReviewTarget(task);
+                if (!task.result_id || !task.image_id) throw Error("复核对应的结果或页面不可用，请刷新文档后重试。");
+                const generation = projectGeneration.current;
+                ++activeActions.current; setBusy(true);
+                try {
+                  await editor.flush();
+                  if (generation !== projectGeneration.current) throw Error("项目已切换，请重新选择复核任务。");
+                  await editor.load(task.result_id);
+                  if (generation !== projectGeneration.current || editor.getCurrent()?.id !== task.result_id)
+                    throw Error("复核结果已切换，请重新选择任务。");
+                  setPreviews(old => ({ ...old, [task.image_id!]: task.result_id! }));
+                  setActive(task.image_id);
+                  setSearch(""); setSearchIndex(0);
+                  resultTabs.current.set(task.result_id, documentReviewTab(task.kind));
+                  if (task.kind === "fusion" && task.issue_id) await api(`/results/${task.result_id}/issues/position`,"PUT",{issue_id:task.issue_id});
+                  if (generation === projectGeneration.current && editor.getCurrent()?.id === task.result_id) setDocumentReviewTarget(task);
+                } finally { setBusy(--activeActions.current > 0); }
               }}
               onRefresh={() => refresh(projectId)} onError={onError} />}
             <PhotoList
@@ -1198,18 +1215,12 @@ export function App() {
                   disabled={busy}
                   onClick={() =>
                     void action(async () => {
-                      const id = editor.result!.id;
-                      await editor.flush();
-                      const response = await request("/export", {
-                        method: "POST",
-                        body: JSON.stringify({
-                          result_ids: [id],
-                          format: "txt",
-                        }),
+                      await copySavedResultText({
+                        id: editor.result!.id, flush: editor.flush,
+                        currentId: () => editor.getCurrent()?.id,
+                        requestText: request,
+                        writeText: text => navigator.clipboard.writeText(text),
                       });
-                      await navigator.clipboard.writeText(
-                        await response.text(),
-                      );
                       notify("文字已复制");
                     })
                   }

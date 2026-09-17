@@ -5,18 +5,19 @@ import type { DocumentRecord, DocumentPage } from "./types";
 import "./documents.css";
 import { Thumbnail } from "./PhotoList";
 import { DocumentReviewQueue, type DocumentReviewTask } from "./DocumentReviewQueue";
+import { currentDocumentPage, documentPageOffset, type ActiveDocumentPage, type PageSelection } from "./documentNavigation";
 
 const states: Record<string, string> = { pending: "尚未展开", ready: "可处理", processed: "已处理", blank: "空白页", queued: "等待处理", running: "处理中", succeeded: "已完成", waiting_gpu: "区域识别中", paused: "已暂停", interrupted: "等待继续", waiting_unlock: "等待解锁", failed: "失败", cancelled: "已取消" };
 
-export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, onOpen, onRefresh, onError, onReview }:
-  { documents: DocumentRecord[]; activeImage: string; reviewOnly: boolean; beforeOpen: () => Promise<unknown>;
-    onOpen: (imageId: string) => Promise<unknown>; onRefresh: () => Promise<unknown>; onError: (error: string) => void;
+export function DocumentTree({ documents, activeImage, activePage, reviewOnly, beforeOpen, onOpen, onRefresh, onError, onReview }:
+  { documents: DocumentRecord[]; activeImage: string; activePage: ActiveDocumentPage | null; reviewOnly: boolean; beforeOpen: () => Promise<unknown>;
+    onOpen: (imageId: string, stillCurrent?: () => boolean) => Promise<unknown>; onRefresh: () => Promise<unknown>; onError: (error: string) => void;
     onReview: (task: DocumentReviewTask) => Promise<unknown> }) {
   const [documentId, setDocumentId] = useState("");
   const [pages, setPages] = useState<DocumentPage[]>([]);
   const [offset, setOffset] = useState(0);
   const [jump, setJump] = useState("1");
-  const [selectedPage, setSelectedPage] = useState("");
+  const [selection, setSelection] = useState<PageSelection | null>(null);
   const [mode, setMode] = useState(reviewOnly ? "native" : "auto");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,14 +27,35 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
   const [exportError, setExportError] = useState("");
   const [dpi, setDpi] = useState(150);
   const [hits, setHits] = useState<{ page_id: string; page_number: number; image_id: string; snippet: string }[]>([]);
-  const pendingOpen = useRef("");
-  const latest = useRef({ onOpen, onRefresh, onError });
-  latest.current = { onOpen, onRefresh, onError };
+  type Navigation = { sequence: number; fromImage: string };
+  const navigation = useRef(0);
+  const mounted = useRef(true);
+  const pendingOpen = useRef<{ pageId: string; navigation: Navigation } | null>(null);
+  const latest = useRef({ onOpen, onRefresh, onError, activeImage });
+  latest.current = { onOpen, onRefresh, onError, activeImage };
+  const beginNavigation = (): Navigation => ({ sequence: ++navigation.current, fromImage: latest.current.activeImage });
+  const isCurrent = (intent: Navigation) => mounted.current && intent.sequence === navigation.current && intent.fromImage === latest.current.activeImage;
   const selectedDoc = documents.find(d => d.id === documentId);
-  const current = pages.find(p => p.id === selectedPage) || pages.find(p => p.image_id === activeImage);
+  const visiblePages = pages.filter(page => page.document_id === documentId && page.page_number > offset && page.page_number <= offset + 30);
+  const current = currentDocumentPage(documentId, activeImage, visiblePages, selection);
+
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; ++navigation.current; }; }, []);
+  useEffect(() => {
+    ++navigation.current;
+    pendingOpen.current = null;
+    setSelection(null);
+    setNotice("");
+    if (activePage) {
+      setDocumentId(activePage.documentId);
+      setOffset(documentPageOffset(activePage.pageNumber));
+      setJump(String(activePage.pageNumber));
+      setHits([]); setPassword("");
+    } else setJump("1");
+  }, [activeImage, activePage?.documentId, activePage?.pageNumber]);
 
   useEffect(() => {
-    if (documents.length && !documents.some(d => d.id === documentId)) setDocumentId(documents[0].id);
+    if (documents.length && !documents.some(d => d.id === documentId))
+      setDocumentId(documents.find(document => document.id === activePage?.documentId)?.id || documents[0].id);
   }, [documents, documentId]);
 
   useEffect(() => {
@@ -45,12 +67,20 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
         const value = await api<{ pages: DocumentPage[] }>(`/documents/${documentId}/pages?offset=${offset}&limit=30`);
         if (!valid) return;
         setPages(value.pages);
-        const ready = value.pages.find(p => p.id === pendingOpen.current && p.image_id);
-        if (ready?.image_id) {
-          pendingOpen.current = "";
+        const active = value.pages.find(page => page.image_id === latest.current.activeImage);
+        if (active) setSelection(old => old?.awaitingOpen && old.fromImage === latest.current.activeImage ? old :
+          { page: active, fromImage: latest.current.activeImage, awaitingOpen: false });
+        const pending = pendingOpen.current;
+        const ready = value.pages.find(p => p.id === pending?.pageId && p.image_id);
+        if (pending && ready?.image_id && isCurrent(pending.navigation)) {
           await latest.current.onRefresh();
-          if (valid) await latest.current.onOpen(ready.image_id);
-          if (valid) setNotice("");
+          if (valid && isCurrent(pending.navigation) && pendingOpen.current === pending) {
+            await latest.current.onOpen(ready.image_id, () => valid && isCurrent(pending.navigation));
+            if (pendingOpen.current === pending) {
+              pendingOpen.current = null;
+              if (valid) setNotice("");
+            }
+          }
         }
       } catch (error) { if (valid) latest.current.onError(String(error)); }
       if (valid) timer = setTimeout(() => void load(), 1200);
@@ -65,30 +95,48 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
     finally { setBusy(false); }
   }
 
-  async function openPage(page: DocumentPage) {
+  async function openPage(page: DocumentPage, intent = beginNavigation(), renderOptions: { dpi?: number } = {}) {
     await beforeOpen();
-    setSelectedPage(page.id); setJump(String(page.page_number));
-    if (page.image_id) { pendingOpen.current = ""; await onOpen(page.image_id); }
+    if (!isCurrent(intent)) return;
+    setSelection({ page, fromImage: intent.fromImage, awaitingOpen: !page.image_id }); setJump(String(page.page_number));
+    if (page.image_id) { pendingOpen.current = null; await onOpen(page.image_id, () => isCurrent(intent)); }
     else {
-      await api(`/pages/${page.id}/render`, "POST", {});
-      pendingOpen.current = page.id;
-      setNotice(`正在展开第 ${page.page_number} 页…`);
+      const pending = { pageId: page.id, navigation: intent };
+      pendingOpen.current = pending;
+      try {
+        await api(`/pages/${page.id}/render`, "POST", renderOptions);
+        if (isCurrent(intent)) setNotice(`正在展开第 ${page.page_number} 页…`);
+      } catch (error) {
+        if (pendingOpen.current === pending) pendingOpen.current = null;
+        throw error;
+      }
     }
   }
 
   async function goTo(number: number) {
     if (!selectedDoc || !Number.isInteger(number) || number < 1 || number > selectedDoc.page_count) throw Error("页码超出文档范围");
+    const intent = beginNavigation();
     await beforeOpen();
+    if (!isCurrent(intent)) return;
     const value = await api<{ pages: DocumentPage[] }>(`/documents/${documentId}/pages?offset=${number-1}&limit=1`);
-    setOffset(Math.floor((number-1)/30)*30);
-    await openPage(value.pages[0]);
+    if (!isCurrent(intent)) return;
+    if (!value.pages[0]) throw Error("页面不存在，请刷新文档后重试。");
+    setOffset(documentPageOffset(number));
+    await openPage(value.pages[0], intent);
+  }
+
+  function browsePages(nextOffset: number) {
+    beginNavigation(); pendingOpen.current = null; setNotice("");
+    setSelection(old => old?.awaitingOpen ? null : old);
+    setOffset(nextOffset);
   }
 
   return <section className="document-tree" aria-label="文档与页面">
     <div className="document-heading"><strong>文档与页面</strong><span>{documents.length}</span></div>
     <select aria-label="选择文档" value={documentId} disabled={busy} onChange={e => {
       const next = e.target.value;
-      void act(async () => { await beforeOpen(); pendingOpen.current = ""; setDocumentId(next); setSelectedPage(""); setOffset(0); setJump("1"); setHits([]); setPassword(""); });
+      const intent = beginNavigation();
+      void act(async () => { await beforeOpen(); if (!isCurrent(intent)) return; pendingOpen.current = null; setDocumentId(next); setSelection(null); setPages([]); setOffset(0); setJump("1"); setHits([]); setPassword(""); });
     }}>
       {documents.map(d => <option key={d.id} value={d.id}>{d.name} · {d.page_count || "待解锁"} 页</option>)}
     </select>
@@ -103,19 +151,21 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
         <input aria-label="跳转页码" type="number" min="1" max={selectedDoc.page_count} value={jump} onChange={e => setJump(e.target.value)} /><span>/ {selectedDoc.page_count}</span><Button size="small" type="submit" disabled={busy}>跳转</Button>
         <Button size="small" aria-label="下一页" disabled={busy || !current || current.page_number >= selectedDoc.page_count} onClick={() => void act(() => goTo((current?.page_number || 1)+1))}>›</Button>
       </form>
-      <div className="document-pages" aria-label="文档页面列表">{pages.map(page => <button key={page.id} disabled={busy}
-        aria-current={page.image_id === activeImage || page.id === selectedPage ? "page" : undefined}
+      <div className="document-pages" aria-label="文档页面列表">{visiblePages.map(page => <button key={page.id} disabled={busy}
+        aria-current={page.id === current?.id ? "page" : undefined}
         onClick={() => void act(() => openPage(page))}>{page.active_version ? <Thumbnail id={page.active_version} /> : <span>{page.page_number}</span>}<strong>第 {page.page_number} 页</strong>
         <small>{states[page.stage_status || page.status] || page.status}</small></button>)}</div>
-      {selectedDoc.page_count > 30 && <div className="document-page-batches"><Button size="small" disabled={!offset || busy} onClick={() => setOffset(n => Math.max(0, n-30))}>前 30 页</Button><span>{offset+1}–{Math.min(offset+30, selectedDoc.page_count)}</span><Button size="small" disabled={offset+30 >= selectedDoc.page_count || busy} onClick={() => setOffset(n => n+30)}>后 30 页</Button></div>}
+      {selectedDoc.page_count > 30 && <div className="document-page-batches"><Button size="small" disabled={!offset || busy} onClick={() => browsePages(Math.max(0, offset-30))}>前 30 页</Button><span>{offset+1}–{Math.min(offset+30, selectedDoc.page_count)}</span><Button size="small" disabled={offset+30 >= selectedDoc.page_count || busy} onClick={() => browsePages(offset+30)}>后 30 页</Button></div>}
       {current?.stage_error && <div className="document-stage-error" role="alert"><strong>第 {current.page_number} 页 · {current.stage_phase}</strong><p>{current.stage_error}</p>
         {!current.image_id && <><label>渲染 DPI <input aria-label="降低页面DPI" type="number" min="36" max="1200" value={dpi} onChange={e => setDpi(Number(e.target.value))} /></label><Button size="small" disabled={busy} onClick={() => void act(async () => {
-          await api(`/pages/${current.id}/render`, "POST", { dpi }); pendingOpen.current = current.id; setNotice("已按指定 DPI 重试展开");
+          await openPage(current, beginNavigation(), { dpi });
         })}>调整 DPI 并重试</Button></>}
       </div>}
       <div className="document-process"><select aria-label="页面处理方式" value={mode} onChange={e => setMode(e.target.value)}><option value="auto" disabled={reviewOnly}>自动：原生优先，区域补识别</option><option value="native">仅原生提取</option><option value="ocr" disabled={reviewOnly}>整页重新 OCR</option></select>
         <Button size="small" disabled={busy || !current} onClick={() => void act(async () => {
-          await beforeOpen(); await api(`/pages/${current!.id}/process`, "POST", { mode, force: mode === "ocr" }); setNotice("已加入页面处理队列");
+          const intent = { sequence: navigation.current, fromImage: activeImage };
+          await beforeOpen(); if (!isCurrent(intent)) return;
+          await api(`/pages/${current!.id}/process`, "POST", { mode, force: mode === "ocr" }); setNotice("已加入页面处理队列");
         })}>处理当前页</Button>
         <Button size="small" disabled={busy} onClick={() => void act(async () => {
           await beforeOpen(); await api(`/documents/${documentId}/process`, "POST", { mode }); setNotice("文档已加入处理队列");
@@ -123,7 +173,11 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
       </div>
       <div className="document-actions">{[["pause", "暂停"], ["resume", "继续"], ["retry", "重试"], ["cancel", "取消"]].map(([key, label]) => <Button size="small" key={key} disabled={busy} onClick={() => void act(() => api(`/documents/${documentId}/queue/${key}`, "POST", {}))}>{label}</Button>)}</div>
       <DocumentReviewQueue documentId={documentId} busy={busy} onCheck={beforeOpen} onError={onError} onOpen={async task => {
-        await goTo(task.page_number); await onReview(task);
+        if (task.result_id && task.image_id) {
+          beginNavigation(); pendingOpen.current = null; setSelection(null); setNotice("");
+          setOffset(documentPageOffset(task.page_number)); setJump(String(task.page_number));
+          await onReview(task);
+        } else await goTo(task.page_number);
       }} />
       <form className="document-search" onSubmit={e => { e.preventDefault(); void act(async () => {
         const value = await api<{ matches: typeof hits; total: number }>(`/documents/${documentId}/search?q=${encodeURIComponent(query)}`);

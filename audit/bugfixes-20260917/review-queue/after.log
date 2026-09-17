@@ -1,0 +1,17 @@
+test_changed_candidate_fingerprint_requires_recheck (test_audit_review_queue.CurrentStructureQueueTests.test_changed_candidate_fingerprint_requires_recheck) ... ok
+test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade (test_audit_review_queue.CurrentStructureQueueTests.test_completed_decisions_remain_in_all_but_cannot_apply_after_upgrade) ... ok
+test_current_candidates_and_check_agree_with_panel (test_audit_review_queue.CurrentStructureQueueTests.test_current_candidates_and_check_agree_with_panel) ... ok
+test_image_hash_change_hides_pending_and_invalidates_check (test_audit_review_queue.CurrentStructureQueueTests.test_image_hash_change_hides_pending_and_invalidates_check) ... ok
+test_kept_and_rejected_history_survives_unrelated_edit_and_tool_upgrade (test_audit_review_queue.CurrentStructureQueueTests.test_kept_and_rejected_history_survives_unrelated_edit_and_tool_upgrade) ... ok
+test_new_active_image_version_has_no_current_candidates_or_check (test_audit_review_queue.CurrentStructureQueueTests.test_new_active_image_version_has_no_current_candidates_or_check) ... ok
+test_new_tool_run_hides_previous_candidates_until_new_check (test_audit_review_queue.CurrentStructureQueueTests.test_new_tool_run_hides_previous_candidates_until_new_check) ... ok
+test_panel_pins_revision_and_candidates_during_another_store_edit (test_audit_review_queue.CurrentStructureQueueTests.test_panel_pins_revision_and_candidates_during_another_store_edit) ... ok
+test_revision_change_requires_a_new_check (test_audit_review_queue.CurrentStructureQueueTests.test_revision_change_requires_a_new_check) ... ok
+test_tool_upgrade_hides_pending_and_deferred_even_after_recheck (test_audit_review_queue.CurrentStructureQueueTests.test_tool_upgrade_hides_pending_and_deferred_even_after_recheck) ... ok
+test_proposal_identity_survives_target_rebase (test_audit_review_queue.MultimodalQueueIdentityTests.test_proposal_identity_survives_target_rebase) ... ok
+test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids (test_audit_review_queue.MultimodalQueueIdentityTests.test_repeated_targets_and_pending_tasks_have_unique_stable_paginated_ids) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.620s
+
+OK

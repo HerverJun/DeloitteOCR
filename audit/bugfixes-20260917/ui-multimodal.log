@@ -1,0 +1,9 @@
+available/unavailable model readiness is explicit and prevents unsupported submissions
+text selection survives tab navigation; literal acceptance edits only the durable draft
+lost decision response replays the exact request ID/body without a duplicate revision
+cell review uses the selected table coordinate and preserves leading-zero strings
+page review supports sequential replace/keep/uncertain decisions without auto-confirming the page or creating OCR candidates
+editor undo invalidates old visual proposals and disables stale acceptance
+authenticated JSON, Markdown and XLSX downloads contain traceable review records
+queued review cancellation and original-snapshot retry complete without spawning GPU inference
+small-laptop and narrow viewport have no horizontal document overflow
