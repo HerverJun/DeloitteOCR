@@ -1,0 +1,167 @@
+..................................................................................................................................................Cannot decode imported image 坏图.png
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\imaging.py", line 187, in add_image
+    with Image.open(temporary) as source:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\OCR-generic-tool-fixes-20260917\bundle\runtimes\service\Lib\site-packages\PIL\Image.py", line 3579, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file 'C:\\Users\\A\\AppData\\Local\\Temp\\tmp358zpcoq\\坏图.png'
+Installed and verified model.gguf: 8 bytes
+...........................E.......................................................OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 211, in fail_after_commit
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+.OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 259, in step
+    self.adapter.load()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 50, in load
+    raise RuntimeError(failure)
+RuntimeError: simulated model error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 350, in step
+    db.execute(
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 257, in execute
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+...OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+...OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 168, in fail_once
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+.OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 183, in step
+    self.unload()
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 77, in unload
+    adapter.unload()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 231, in fail_once
+    raise OSError("temporary unload error")
+OSError: temporary unload error
+..............................................E..s.......................F.................................................................
+======================================================================
+ERROR: test_shared_page_and_labeled_crop_preserve_request_evidence (test_multimodal_runtime.CroppingTests.test_shared_page_and_labeled_crop_preserve_request_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_multimodal_runtime.py", line 187, in test_shared_page_and_labeled_crop_preserve_request_evidence
+    data = session.review(image, {'targets': targets, 'image_sha256': hashlib.sha256(image.read_bytes()).hexdigest()},
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\multimodal_runtime.py", line 552, in review
+    reply = validate_reply(self._request(payload, folder / 'response.json'), group)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\multimodal_runtime.py", line 272, in validate_reply
+    raise ReviewProtocolError('审校未完整返回全部目标')
+ocr_workbench.multimodal_runtime.ReviewProtocolError: 审校未完整返回全部目标
+
+======================================================================
+ERROR: test_v4_migration_keeps_consistent_backup_and_all_history (test_store.StoreTests.test_v4_migration_keeps_consistent_backup_and_all_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_store.py", line 173, in test_v4_migration_keeps_consistent_backup_and_all_history
+    migrated = Store(self.store.root)
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\store.py", line 82, in __init__
+    self._migrate(db, target)
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\store.py", line 197, in _migrate
+    migrate_v11(db)
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\multimodal_store.py", line 53, in migrate_v11
+    db.execute(statement)
+sqlite3.OperationalError: table multimodal_requests already exists
+
+======================================================================
+FAIL: test_schema9_upgrade_backup_and_failure_rollback (test_structure_workflow.StructureStoreTests.test_schema9_upgrade_backup_and_failure_rollback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_structure_workflow.py", line 359, in test_schema9_upgrade_backup_and_failure_rollback
+    self.assertEqual(upgraded.rows('PRAGMA user_version')[0]['user_version'],10)
+AssertionError: 11 != 10
+
+----------------------------------------------------------------------
+Ran 376 tests in 144.526s
+
+FAILED (failures=1, errors=2, skipped=1)

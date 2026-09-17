@@ -17,10 +17,23 @@ class Cancelled(Exception):
     pass
 
 
+def check_recognition_result(result, *, allow_empty=False):
+    """An empty, completed region is reviewable; a worker error never is."""
+    if result.get('status') != 'success':
+        raise RuntimeError('模型执行失败，未生成成功结果')
+    empty = not result.get('text', '').strip()
+    if empty and not allow_empty:
+        raise RuntimeError('模型未返回可用文字，未生成成功结果')
+    if empty:
+        result['content_status'] = 'no_text_detected'
+    return result
+
+
 class EngineAdapter:
-    def __init__(self, bundle, engine, session_root):
+    def __init__(self, bundle, engine, session_root, *, worker_source=None):
         self.bundle = Path(bundle).resolve()
         self.engine = engine
+        self.worker_source = Path(worker_source).resolve() if worker_source else None
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
@@ -37,6 +50,16 @@ class EngineAdapter:
         self.cancelled = threading.Event()
         self.load_seconds = 0
         self.ready = False
+        self.geometry_provider = 'paddle'
+
+    def configure_geometry(self, provider):
+        if self.engine != 'geometry' or self.process is not None:
+            raise ValueError('Geometry provider must be selected before worker loading')
+        if provider not in ('paddle', 'tableformer-raw', 'rapidtable', 'context'):
+            raise ValueError('Unknown geometry provider')
+        self.geometry_provider = provider
+        # Use the running application's reviewed source, including its protocol.
+        self.worker_source = Path(__file__).resolve().parents[1]
 
     def load(self):
         if self.cancelled.is_set():
@@ -54,10 +77,14 @@ class EngineAdapter:
             self.gpu_lock.close()
             self.gpu_lock = None
             raise RuntimeError("另一个 OCR 实例正在使用 GPU，请稍后重试")
+        runtime_name = 'ppocr' if self.engine in {'dewarp', 'geometry'} else self.engine
+        if self.engine == 'geometry' and self.geometry_provider in ('tableformer-raw', 'rapidtable'):
+            from ocr_workbench.geometry_provider_config import provider_config
+            runtime_name = provider_config(self.geometry_provider)['runtime']
         runtime = (
             self.bundle
             / "runtimes"
-            / ("ppocr" if self.engine in {"dewarp", "geometry"} else self.engine)
+            / runtime_name
             / "python.exe"
         )
         environment = os.environ.copy()
@@ -77,22 +104,31 @@ class EngineAdapter:
         self.job = ProcessJob()
         self.log = (self.ipc / "engine.log").open("w", encoding="utf-8")
         try:
-            self.process = subprocess.Popen(
-                [
+            command = [
                     str(runtime),
                     "-B",
                     "-X",
                     "utf8",
                     "-I",
-                    "-m",
-                    "ocr_workbench.engine_host",
+                ]
+            if self.worker_source:
+                # Evaluation runs can use reviewed workspace code with an
+                # immutable bundle runtime, without modifying the shipped copy.
+                command += ["-c", "import sys,runpy;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('ocr_workbench.engine_host',run_name='__main__')", str(self.worker_source)]
+            else:
+                command += ["-m", "ocr_workbench.engine_host"]
+            command += [
                     "--bundle",
                     str(self.bundle),
                     "--engine",
                     self.engine,
                     "--ipc",
                     str(self.ipc),
-                ],
+                ]
+            if self.engine == 'geometry':
+                command += ['--geometry-provider', self.geometry_provider]
+            self.process = subprocess.Popen(
+                command,
                 stdout=self.log,
                 stderr=subprocess.STDOUT,
                 env=environment,
@@ -120,7 +156,7 @@ class EngineAdapter:
             self.cancelled.wait(0.05)
         raise TimeoutError("识别超时，请缩小图片或换用其他引擎")
 
-    def recognize(self, image, output, geometry_request=None):
+    def recognize(self, image, output, geometry_request=None, *, allow_empty=False):
         key = uuid.uuid4().hex
         response = self.ipc / "response.json"
         response.unlink(missing_ok=True)
@@ -144,8 +180,7 @@ class EngineAdapter:
                 raise RuntimeError("去弯曲未生成有效图片")
             return result
         result = json.loads((Path(output) / "result.json").read_text(encoding="utf-8"))
-        if result.get("status") != "success" or not result.get("text", "").strip():
-            raise RuntimeError("模型未返回可用文字，未生成成功结果")
+        check_recognition_result(result, allow_empty=allow_empty)
         result["engine_session"] = {
             "id": self.ipc.name,
             "load_seconds": self.load_seconds,

@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "tool failure appears in document queue and structure status",
+      "passed": true
+    },
+    {
+      "name": "auxiliary-only retry reaches valid empty detection and clears failure queue",
+      "passed": true
+    },
+    {
+      "name": "manual content and result revision remain unchanged after retry",
+      "passed": true
+    },
+    {
+      "name": "auxiliary status persists across UI reload",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser_closed": true
+}

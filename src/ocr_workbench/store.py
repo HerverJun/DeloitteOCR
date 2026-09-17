@@ -12,7 +12,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 11
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -189,6 +189,12 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
 
         elif version == 9:
             migrate_v9(db)
+        elif version == 10:
+            from ocr_workbench.structure_store import migrate_v10
+            migrate_v10(db)
+        elif version == 11:
+            from ocr_workbench.multimodal_store import migrate_v11
+            migrate_v11(db)
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -256,7 +262,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 "tasks": [
                     dict(row)
                     for row in db.execute(
-                        "SELECT * FROM tasks WHERE project_id=? ORDER BY created,id",
+                        """SELECT t.*, mr.result_id AS review_result_id FROM tasks t
+                        LEFT JOIN multimodal_requests mr ON mr.task_id=t.id
+                        WHERE t.project_id=? ORDER BY t.created,t.id""",
                         (key,),
                     )
                 ],
@@ -505,6 +513,10 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 reconcile(db, key, json.loads(row["edited"]), edit)
             from ocr_workbench.geometry import reconcile_geometry
             reconcile_geometry(db, key, json.loads(row['edited']), edit)
+            from ocr_workbench.structure_store import reconcile_structure
+            reconcile_structure(db, key, json.loads(row['edited']), edit)
+            from ocr_workbench.multimodal_store import reconcile_review
+            reconcile_review(db, key)
         return self.result(key)
 
     def history(self, key, direction, expected_revision):
@@ -540,6 +552,10 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                         db.execute("UPDATE fusion_issues SET state='stale',updated=? WHERE result_id=? AND decision_id=?", (now(), key, decision["request_id"]))
             from ocr_workbench.geometry import reconcile_geometry
             reconcile_geometry(db, key, json.loads(row['edited']), json.loads(history_decoded(edit['value'])))
+            from ocr_workbench.structure_store import reconcile_structure
+            reconcile_structure(db, key, json.loads(row['edited']), json.loads(history_decoded(edit['value'])))
+            from ocr_workbench.multimodal_store import reconcile_review
+            reconcile_review(db, key)
         return self.result(key)
 
     @staticmethod

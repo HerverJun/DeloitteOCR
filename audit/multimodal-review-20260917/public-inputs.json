@@ -1,0 +1,14 @@
+[
+  {
+    "id": "public-federal-register",
+    "image": "build/public-quality-20260916/additional-public/pages/tool-public-federal-register-2020-17221-p1/input.png",
+    "result": "build/public-quality-20260916/product-additional-01/tool-public-federal-register-2020-17221-p1-result.json",
+    "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/federal-register-2020-17221.pdf"
+  },
+  {
+    "id": "public-nics-table",
+    "image": "build/public-quality-20260916/additional-public/pages/tool-public-nics-background-checks-2015-11-p1/input.png",
+    "result": "build/public-quality-20260916/product-additional-01/tool-public-nics-background-checks-2015-11-p1-result.json",
+    "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11.pdf"
+  }
+]

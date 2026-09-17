@@ -1,0 +1,5 @@
+{"phase": "hashing-final-manifest", "files": 14676, "seconds": 15.0}
+{"phase": "hashing-final-manifest", "files": 29764, "seconds": 30.0}
+{"phase": "hashing-final-manifest", "files": 45167, "seconds": 45.0}
+{"phase": "hashing-final-manifest", "files": 61407, "seconds": 60.0}
+{"phase": "finalized", "bundle": "D:\\OCR-multimodal-workbench-20260917\\bundle", "files": 74113, "bytes": 29568871864, "manifest_sha256": "a72a674eb5001f146bb9b349968d8749454afa27ae83ea6957a7a7324e1763d3", "next": "run --phase verify"}

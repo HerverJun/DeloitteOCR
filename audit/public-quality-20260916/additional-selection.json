@@ -1,0 +1,16 @@
+{
+  "commit": "7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62",
+  "filenames": [
+    "nics-background-checks-2015-11.pdf",
+    "nics-background-checks-2015-11-rotated.pdf",
+    "WARN-Report-for-7-1-2015-to-03-25-2016.pdf",
+    "senate-expenditures.pdf",
+    "federal-register-2020-17221.pdf",
+    "cupertino_usd_4-6-16.pdf",
+    "pdffill-demo.pdf"
+  ],
+  "pages": "first page of every document",
+  "tool_config_sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+  "quality_acceptance": false,
+  "scope": "upstream public regression material, not an independent test"
+}

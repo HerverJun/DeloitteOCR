@@ -1,0 +1,35 @@
+{
+  "ready": true,
+  "profile_id": "qwen35-4b-q4",
+  "model": "Qwen/Qwen3.5-4B",
+  "label": "Qwen3.5-4B · Q4_K_M",
+  "reason": "",
+  "missing": [],
+  "hashes_verified": true,
+  "identity": {
+    "profile_id": "qwen35-4b-q4",
+    "model": "Qwen/Qwen3.5-4B",
+    "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+    "base_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "quantization": "Q4_K_M",
+    "model_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+    "projector_sha256": "cd88edcf8d031894960bb0c9c5b9b7e1fea6ebee02b9f7ce925a00d12891f864",
+    "runtime": "llama.cpp-b10894",
+    "runtime_sha256": "2f1c719ed602d55c6cd4e1db338cb4d5f34328f53aa99d4d30f0be95c793101e",
+    "config_sha256": "82f67ff0c6665ce1a13f49dc65557ecae003f2e9718439af48a6c950c2a9dbaf",
+    "prompt_version": "visual-review-v3",
+    "prompt_sha256": "46529c5c8e8db766bf3eb0fea296f9857a8d7162a97db910241f43bbffc4fdf4"
+  },
+  "profiles": [
+    {
+      "id": "qwen35-4b-q4",
+      "label": "Qwen3.5-4B · Q4_K_M",
+      "model": "Qwen/Qwen3.5-4B"
+    },
+    {
+      "id": "qwen36-35b-a3b-q4-hybrid",
+      "label": "Qwen3.6-35B-A3B · Q4 混合计算",
+      "model": "Qwen/Qwen3.6-35B-A3B"
+    }
+  ]
+}

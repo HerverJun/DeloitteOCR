@@ -1,0 +1,7 @@
+{
+  "files": 801,
+  "all_artifact_and_marker_mtimes_unchanged": true,
+  "resume_seconds": 2.214095899998938,
+  "stdout": "B0 80 replayed\nB1 80 replayed\nB2 80 replayed\nN1 80 replayed\nN2 80 replayed\n",
+  "scope": "80 development tables, five methods; exact same current run lock resumes without rewriting outputs"
+}

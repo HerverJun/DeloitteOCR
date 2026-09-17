@@ -17,6 +17,23 @@ FIXTURES = ROOT / 'build/document-workflow/fixtures'
 
 
 class PdfContentTests(unittest.TestCase):
+    def test_v2_text_extent_cannot_bypass_cell_preflight(self):
+        from ocr_workbench.geometry_contract import evidence_v2
+        table={'rows':1,'columns':1,'cells':[{'row':0,'column':0,'row_span':1,'column_span':1,'text':'00123'}]}
+        result={'original':{'text':'','tables':[table],'blocks':[]},'edited':{'text':'','tables':[table]}}
+        poly=box_polygon([5,5,50,20]);details=evidence_v2(content_polygons=[poly],display_polygon=poly,origin='text_extent')
+        evidence=[{'target':{'kind':'cell','table':0,'row':0,'column':0},'source':'paddle-table-local-v2','polygon':poly,'details':details}]
+        details['level']='cell'
+        units,missing,_=positioned_content(result,evidence,{'width':100,'height':50})
+        self.assertEqual(units,[]);self.assertEqual(len(missing),1)
+
+    def test_duplicate_cell_ranges_do_not_create_duplicate_pdf_units(self):
+        table={'rows':1,'columns':2,'cells':[{'row':0,'column':i,'row_span':1,'column_span':1,'text':str(i)} for i in range(2)]}
+        result={'original':{'text':'','tables':[table],'blocks':[]},'edited':{'text':'','tables':[table]}}
+        evidence=[{'target':{'kind':'cell','table':0,'row':0,'column':i},'source':'legacy','polygon':box_polygon([0,0,100,40]),'details':{'level':'cell'}} for i in range(2)]
+        units,missing,_=positioned_content(result,evidence,{'width':100,'height':50})
+        self.assertEqual(len(units),1);self.assertEqual(len(missing),1)
+
     def test_partial_manual_binding_does_not_duplicate_native_visible_text(self):
         raw = {'text': 'Account 00123', 'tables': [], 'blocks': [{'text': 'Account 00123', 'source': 'pdf-native', 'polygon': box_polygon([10,10,190,30])}]}
         evidence = [{'target': {'kind':'text','start':8,'end':13},'source':'manual','polygon':box_polygon([100,10,190,30])}]

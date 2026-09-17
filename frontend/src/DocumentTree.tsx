@@ -4,12 +4,14 @@ import { api, downloadPdf } from "./api";
 import type { DocumentRecord, DocumentPage } from "./types";
 import "./documents.css";
 import { Thumbnail } from "./PhotoList";
+import { DocumentReviewQueue, type DocumentReviewTask } from "./DocumentReviewQueue";
 
 const states: Record<string, string> = { pending: "尚未展开", ready: "可处理", processed: "已处理", blank: "空白页", queued: "等待处理", running: "处理中", succeeded: "已完成", waiting_gpu: "区域识别中", paused: "已暂停", interrupted: "等待继续", waiting_unlock: "等待解锁", failed: "失败", cancelled: "已取消" };
 
-export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, onOpen, onRefresh, onError }:
+export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, onOpen, onRefresh, onError, onReview }:
   { documents: DocumentRecord[]; activeImage: string; reviewOnly: boolean; beforeOpen: () => Promise<unknown>;
-    onOpen: (imageId: string) => Promise<unknown>; onRefresh: () => Promise<unknown>; onError: (error: string) => void }) {
+    onOpen: (imageId: string) => Promise<unknown>; onRefresh: () => Promise<unknown>; onError: (error: string) => void;
+    onReview: (task: DocumentReviewTask) => Promise<unknown> }) {
   const [documentId, setDocumentId] = useState("");
   const [pages, setPages] = useState<DocumentPage[]>([]);
   const [offset, setOffset] = useState(0);
@@ -120,6 +122,9 @@ export function DocumentTree({ documents, activeImage, reviewOnly, beforeOpen, o
         })}>处理全文</Button>
       </div>
       <div className="document-actions">{[["pause", "暂停"], ["resume", "继续"], ["retry", "重试"], ["cancel", "取消"]].map(([key, label]) => <Button size="small" key={key} disabled={busy} onClick={() => void act(() => api(`/documents/${documentId}/queue/${key}`, "POST", {}))}>{label}</Button>)}</div>
+      <DocumentReviewQueue documentId={documentId} busy={busy} onCheck={beforeOpen} onError={onError} onOpen={async task => {
+        await goTo(task.page_number); await onReview(task);
+      }} />
       <form className="document-search" onSubmit={e => { e.preventDefault(); void act(async () => {
         const value = await api<{ matches: typeof hits; total: number }>(`/documents/${documentId}/search?q=${encodeURIComponent(query)}`);
         setHits(value.matches); setNotice(`找到 ${value.total} 项，最多显示前 50 项`);

@@ -1,0 +1,32 @@
+{
+  "scope": "Real UI/API/SQLite with explicitly seeded OCR and fusion; clipboard OS write captured in memory",
+  "findings": [
+    {
+      "id": "F02-navigation",
+      "visibleImage": "native-two-pages.pdf · 2.png",
+      "visibleResult": "7924ceb354a3479c9802e74830b0002e",
+      "expectedPage": "cbb090e372174cfb8b0a6288825ac64e",
+      "actualPage": "1eb3f9c3a26e4b2989637fcf2526bc86",
+      "markedCurrentPages": [
+        "第 1 页已完成",
+        "第 2 页已完成"
+      ],
+      "reproduced": true
+    },
+    {
+      "id": "F01-copy-zip",
+      "contentType": "application/x-zip-compressed",
+      "characters": 3913,
+      "prefixCodePoints": [
+        80,
+        75,
+        3,
+        4
+      ],
+      "prefix": "PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000�T1]ދt15\u0000\u0000\u00007\u0000\u0000\u0000\u000e\u0000\u0000\u0000OCR-result.txt�,I��t�OI�t��/�+��r�)�H�40042��54�35�",
+      "reproduced": true
+    }
+  ],
+  "pageErrors": [],
+  "browserClosed": true
+}

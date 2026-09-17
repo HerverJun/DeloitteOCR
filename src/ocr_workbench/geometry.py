@@ -4,6 +4,8 @@ from collections import Counter
 from copy import deepcopy
 import json
 import math
+import hashlib
+from pathlib import Path
 import time
 
 from ocr_workbench.coordinates import bounds, box_polygon, validate_polygon
@@ -114,7 +116,20 @@ def conservative_mapping(edit, prediction, width, height):
     return mappings
 
 
-def enqueue_geometry(store, result_id, revision, *, region_ids=None, force=False):
+def geometry_source(provider, algorithm):
+    if provider == 'paddle':
+        return 'paddle-table-v2' if algorithm == 'legacy' else 'paddle-table-' + algorithm
+    return provider + '-' + algorithm
+
+
+def enqueue_geometry(store, result_id, revision, *, region_ids=None, force=False, algorithm=None, provider='paddle'):
+    from ocr_workbench.table_matching import policy_for_algorithm, policy_identity
+    from ocr_workbench.geometry_provider_config import provider_identity
+    policy = policy_for_algorithm(algorithm)
+    algorithm = policy['algorithm']
+    if algorithm == 'legacy' and provider != 'paddle':
+        raise ValueError('旧对应器仅支持 Paddle，实验提供方请选择 local-v2 或 local-v3')
+    selected_provider = provider_identity(provider)
     with store.transaction() as db:
         db.execute('BEGIN IMMEDIATE')
         row = db.execute('SELECT * FROM results WHERE id=?', (result_id,)).fetchone()
@@ -132,17 +147,6 @@ def enqueue_geometry(store, result_id, revision, *, region_ids=None, force=False
         if image['active_version'] != version_id:
             raise Conflict('请切回识别结果对应的图像版本后补充定位')
         structure = structure_fingerprint(edit)
-        cached = db.execute("SELECT id FROM geometry_evidence WHERE result_id=? AND version_id=? AND structure_sha256=? AND status='valid' AND source='paddle-table-v2' LIMIT 1", (result_id, version_id, structure)).fetchone()
-        if cached and not force:
-            return {'cached': True, 'evidence_id': cached['id']}
-        previous = db.execute("""SELECT t.id,t.phase FROM tasks t JOIN geometry_requests g ON g.task_id=t.id
-            WHERE g.result_id=? AND t.version_id=? AND t.status='succeeded' AND g.structure_sha256=?
-            AND json_extract(g.snapshot,'$.revision')=? ORDER BY t.finished DESC LIMIT 1""", (result_id,version_id,structure,revision)).fetchone()
-        if previous and not force:
-            return {'cached': True, 'task_id': previous['id'], 'phase': previous['phase']}
-        pending = db.execute("SELECT t.id FROM tasks t JOIN geometry_requests g ON g.task_id=t.id WHERE g.result_id=? AND t.status IN ('queued','running','paused','interrupted')", (result_id,)).fetchone()
-        if pending:
-            return {'cached': False, 'task_id': pending['id']}
         regions = [dict(r) for r in db.execute("SELECT * FROM regions WHERE version_id=? AND kind='table' ORDER BY reading_order", (version_id,))]
         if region_ids is not None:
             if not isinstance(region_ids, list) or not region_ids or not set(region_ids) <= {r['id'] for r in regions}:
@@ -158,9 +162,46 @@ def enqueue_geometry(store, result_id, revision, *, region_ids=None, force=False
             prior = db.execute("SELECT r.id,r.original FROM results r JOIN tasks t ON t.id=r.task_id WHERE t.image_id=? AND t.version_id=? AND t.engine='ppocr' AND t.status='succeeded' ORDER BY t.created DESC LIMIT 1", (task['image_id'], version_id)).fetchone()
             if prior:
                 ocr_blocks, ocr_source = json.loads(prior['original']).get('blocks', []), prior['id']
-        key = uid()
+        model_config = Path(__file__).resolve().parents[2] / 'config/table-model-lock.json'
+        candidate_identity = {'image_sha256': version['sha256'], 'image_version': version_id,
+            'geometry_provider': selected_provider,
+            'regions': regions, 'ocr_blocks': ocr_blocks, 'ocr_source': ocr_source,
+            'model_lock_sha256': hashlib.sha256(model_config.read_bytes()).hexdigest(),
+            'provider_code_sha256': fingerprint({name:hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+                for name in ('table_geometry_worker.py','geometry_providers.py','geometry_contract.py','coordinates.py')})}
+        candidate_key = fingerprint(candidate_identity)
         snapshot = {'edited': edit, 'revision': revision, 'image_sha256': version['sha256'],
-                    'ocr_blocks': ocr_blocks, 'ocr_source': ocr_source}
+                    'image_version': version_id, 'ocr_blocks': ocr_blocks, 'ocr_source': ocr_source,
+                    'policy': policy, **policy_identity(policy), 'algorithm': algorithm,
+                    'geometry_provider': provider, 'provider_identity': selected_provider,
+                    'candidate_cache_key': candidate_key, 'text_snapshot_sha256': fingerprint(edit)}
+        snapshot['mapping_cache_key'] = fingerprint({'candidate_key': candidate_key, 'edit': edit,
+            'revision': revision, 'algorithm': snapshot['algorithm_version'], 'algorithm_sha256':snapshot['algorithm_sha256'],'policy': policy})
+        request_key = snapshot['mapping_cache_key']
+        if not force:
+            cached = db.execute("SELECT id FROM geometry_evidence WHERE result_id=? AND version_id=? AND status='valid' AND json_extract(details,'$.mapping_cache_key')=? LIMIT 1", (result_id,version_id,request_key)).fetchone()
+            if cached:
+                return {'cached': True, 'evidence_id': cached['id']}
+            previous = db.execute("""SELECT t.id,t.phase FROM tasks t JOIN geometry_requests g ON g.task_id=t.id
+                WHERE g.result_id=? AND t.status='succeeded' AND json_extract(g.snapshot,'$.mapping_cache_key')=?
+                ORDER BY t.finished DESC LIMIT 1""", (result_id,request_key)).fetchone()
+            if previous:
+                return {'cached': True, 'task_id': previous['id'], 'phase': previous['phase']}
+        pending = db.execute("""SELECT t.id,g.snapshot FROM tasks t JOIN geometry_requests g ON g.task_id=t.id
+            WHERE g.result_id=? AND t.status IN ('queued','running','paused','interrupted')""", (result_id,)).fetchall()
+        for item in pending:
+            if json.loads(item['snapshot']).get('mapping_cache_key') == request_key:
+                return {'cached': False, 'task_id': item['id']}
+            db.execute("UPDATE tasks SET status='cancelled',phase='输入快照已更新',finished=? WHERE id=?", (now(),item['id']))
+        # The model cache is independent of adopted edits/policy. Preserve the
+        # original artifact and verify its bytes again in the CPU replay path.
+        prior = db.execute("""SELECT details FROM geometry_evidence WHERE version_id=?
+            AND json_extract(details,'$.candidate_cache_key')=? ORDER BY created DESC LIMIT 1""", (version_id,candidate_key)).fetchone()
+        if prior:
+            details = json.loads(prior['details'])
+            if details.get('artifact_sha256'):
+                snapshot['candidate_artifact'] = {'path': details['artifact'], 'sha256': details['artifact_sha256']}
+        key = uid()
         snapshot['native_structure'] = raw.get('origin') == 'document' and raw['text'] == edit['text'] and not edit.get('tables') and any(b.get('source') == 'pdf-native' for b in ocr_blocks)
         db.execute("""INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,kind)
             VALUES(?,?,?,?,? ,?,'queued','等待补充表格定位',?,'geometry')""",
@@ -169,27 +210,71 @@ def enqueue_geometry(store, result_id, revision, *, region_ids=None, force=False
         return {'cached': False, 'task_id': key}
 
 
-def complete_geometry(store, task, prediction, artifact):
+def complete_geometry(store, task, prediction, artifact, *, candidate_cache_hit=False):
+    if store.one('tasks', task['id'])['status'] != 'running':
+        return False
     request = store.rows('SELECT * FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
     snapshot = json.loads(request['snapshot'])
     version = store.one('versions', task['version_id'])
-    mappings = conservative_mapping(snapshot['edited'], prediction, version['width'], version['height'])
+    algorithm = snapshot.get('algorithm','legacy')
+    provider = snapshot.get('geometry_provider', 'paddle')
+    source_name = geometry_source(provider, algorithm)
+    if provider != 'paddle':
+        from ocr_workbench.geometry_contract import fingerprint as contract_fingerprint
+        from ocr_workbench.geometry_provider_config import verify_provider
+        if prediction.get('component') != provider or prediction.get('model_revisions') != verify_provider(provider):
+            raise ValueError('几何产物提供方或模型锁不一致')
+        if prediction.get('image_sha256') != snapshot['image_sha256'] or prediction.get('image_version') != task['version_id']:
+            raise ValueError('几何产物不属于当前图像')
+        if snapshot.get('ocr_blocks') and prediction.get('ocr_blocks') != snapshot['ocr_blocks']:
+            raise ValueError('几何产物共享 OCR 不一致')
+        if prediction.get('shared_ocr_sha256') != contract_fingerprint(prediction.get('ocr_blocks', [])):
+            raise ValueError('几何产物 OCR 哈希不一致')
+        upstream = prediction.get('upstream_artifact', {})
+        if upstream.get('path') != 'upstream.json':
+            raise ValueError('缺少原始几何产物')
+        raw_path = artifact.parent / 'upstream.json'
+        if not raw_path.is_file() or hashlib.sha256(raw_path.read_bytes()).hexdigest() != upstream.get('sha256'):
+            raise ValueError('原始几何产物哈希不一致')
+    if algorithm in ('local-v2', 'local-v3'):
+        from ocr_workbench.table_matching import local_mapping
+        mappings = local_mapping(snapshot['edited'], prediction, version['width'], version['height'],
+            policy=snapshot['policy'], result_id=request['result_id'], revision=snapshot['revision'],
+            image_version=task['version_id'], ocr_blocks=prediction.get('ocr_blocks',snapshot.get('ocr_blocks',[])))
+    else:
+        mappings = conservative_mapping(snapshot['edited'], prediction, version['width'], version['height'])
+    artifact_sha256 = hashlib.sha256(artifact.read_bytes()).hexdigest() if artifact.exists() else None
     with store.transaction() as db:
         db.execute('BEGIN IMMEDIATE')
         if db.execute('SELECT status FROM tasks WHERE id=?', (task['id'],)).fetchone()[0] != 'running':
             return False
-        current = db.execute('SELECT edited FROM results WHERE id=?', (request['result_id'],)).fetchone()
-        valid = structure_fingerprint(json.loads(current['edited'])) == request['structure_sha256']
-        db.execute("UPDATE geometry_evidence SET status='superseded' WHERE result_id=? AND version_id=? AND source='paddle-table-v2' AND status='valid'", (request['result_id'], task['version_id']))
+        current = db.execute('SELECT edited,revision FROM results WHERE id=?', (request['result_id'],)).fetchone()
+        active = db.execute('SELECT active_version FROM images WHERE id=?',(task['image_id'],)).fetchone()
+        valid = (current['revision'] == snapshot['revision'] and fingerprint(json.loads(current['edited'])) == fingerprint(snapshot['edited'])
+            and structure_fingerprint(json.loads(current['edited'])) == request['structure_sha256']
+            and active['active_version'] == task['version_id'] and version['sha256'] == snapshot['image_sha256']
+            and prediction.get('image_version') in (None,task['version_id']))
+        if valid:
+            db.execute("UPDATE geometry_evidence SET status='superseded' WHERE result_id=? AND version_id=? AND source=? AND status='valid'", (request['result_id'], task['version_id'], source_name))
+            from ocr_workbench.structure_store import record_candidates
+            record_candidates(db, request['result_id'], version, prediction,
+                prediction.get('ocr_blocks', snapshot.get('ocr_blocks', [])),
+                source_result=prediction.get('ocr_source') or snapshot.get('ocr_source') or request['result_id'],
+                artifact=str(artifact.relative_to(store.root)))
         for mapping in mappings:
             details = {**mapping, 'artifact': str(artifact.relative_to(store.root)),
-                       'inference_seconds': prediction['inference_seconds'], 'contributes_to_votes': False}
+                       'inference_seconds': prediction.get('inference_seconds'), 'contributes_to_votes': False,
+                       'geometry_provider': provider, 'algorithm': algorithm, 'candidate_cache_hit': candidate_cache_hit,
+                       'context_seconds': prediction.get('context_seconds'), 'load_seconds': prediction.get('load_seconds'),
+                       'artifact_sha256': artifact_sha256, 'candidate_cache_key': snapshot.get('candidate_cache_key'),
+                       'mapping_cache_key': snapshot.get('mapping_cache_key'), 'policy_sha256': snapshot.get('policy_sha256'),
+                       'anchor_snapshot': mapping.get('anchor_snapshot') or {'revision': snapshot['revision'], 'text_sha256': fingerprint(snapshot['edited'])}}
             db.execute('INSERT INTO geometry_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
                 (uid(), request['result_id'], task['version_id'], mapping.get('region_id'), version['sha256'],
-                 request['structure_sha256'], 'paddle-table-v2', encoded(prediction['model_revisions']),
+                 request['structure_sha256'], source_name, encoded(prediction.get('model_revisions',{})),
                  encoded(mapping['target']), encoded(mapping['polygon']) if mapping['polygon'] else None,
                  encoded(details), 'valid' if valid else 'stale', now()))
-        db.execute("UPDATE tasks SET status='succeeded',phase=?,finished=? WHERE id=?", ('定位完成' if valid else '结构已变更，定位过期', now(), task['id']))
+        db.execute("UPDATE tasks SET status='succeeded',phase=?,finished=? WHERE id=?", ('定位完成' if valid else '文字、结构或图像版本已变更，定位过期', now(), task['id']))
         if valid and snapshot.get('native_structure'):
             from ocr_workbench.native_tables import native_table_preview
             from ocr_workbench.store import history_encoded
@@ -209,9 +294,15 @@ def complete_geometry(store, task, prediction, artifact):
                     edit={'text':preview['text'],'tables':preview['tables']}
                     db.execute('INSERT INTO results VALUES(?,?,?,?,?,?,?)',(result_key,key,encoded(preview),encoded(edit),0,0,now()))
                     db.execute('INSERT INTO edits VALUES(?,?,?,?)',(result_key,0,history_encoded(edit),now()))
-                    for mapping in conservative_mapping(edit,prediction,version['width'],version['height']):
+                    record_candidates(db, result_key, version, prediction,
+                        prediction.get('ocr_blocks', snapshot.get('ocr_blocks', [])),
+                        source_result=prediction.get('ocr_source') or snapshot.get('ocr_source') or request['result_id'],
+                        artifact=str(artifact.relative_to(store.root)))
+                    preview_mappings = local_mapping(edit,prediction,version['width'],version['height'],policy=snapshot['policy'],
+                        result_id=result_key,revision=0,image_version=task['version_id'],ocr_blocks=prediction.get('ocr_blocks', snapshot.get('ocr_blocks',[]))) if algorithm in ('local-v2', 'local-v3') else conservative_mapping(edit,prediction,version['width'],version['height'])
+                    for mapping in preview_mappings:
                         db.execute('INSERT INTO geometry_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                            (uid(),result_key,task['version_id'],mapping.get('region_id'),version['sha256'],structure_fingerprint(edit),'paddle-table-v2',encoded(prediction['model_revisions']),encoded(mapping['target']),encoded(mapping['polygon']) if mapping['polygon'] else None,encoded(dict(mapping,artifact=str(artifact.relative_to(store.root)),contributes_to_votes=False)),'valid',now()))
+                            (uid(),result_key,task['version_id'],mapping.get('region_id'),version['sha256'],structure_fingerprint(edit),source_name,encoded(prediction['model_revisions']),encoded(mapping['target']),encoded(mapping['polygon']) if mapping['polygon'] else None,encoded(dict(mapping,artifact=str(artifact.relative_to(store.root)),contributes_to_votes=False,policy_sha256=snapshot.get('policy_sha256'),geometry_provider=provider,algorithm=algorithm)),'valid',now()))
                     db.execute("UPDATE tasks SET phase='定位完成；原生表格预览待采用' WHERE id=?",(task['id'],))
                 else:
                     db.execute("UPDATE tasks SET phase='定位完成；未发现可可靠填充的原生表格' WHERE id=?",(task['id'],))
@@ -255,24 +346,50 @@ def bind_manual(store, result_id, body):
         else:
             raise ValueError('请选择单元格或文字范围进行人工定位')
         key = uid()
+        from ocr_workbench.geometry_contract import evidence_v2
+        manual_details = evidence_v2(content_polygons=[poly] if target['kind']=='text' else [],
+            cell_polygons=[poly] if target['kind']=='cell' else [],display_polygon=poly,origin='manual',reason='manual_binding',
+            anchor_snapshot={'revision':result['revision'],'text_sha256':fingerprint(result['edited'])})
         db.execute("UPDATE geometry_evidence SET status='superseded' WHERE result_id=? AND target=? AND source='manual' AND status='valid'", (result_id, encoded(target)))
         db.execute('INSERT INTO geometry_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
             (key, result_id, version_id, None, version['sha256'], structure_fingerprint(result['edited']), 'manual', 'human',
-             encoded(target), encoded(poly), encoded({'level': 'cell' if target['kind'] == 'cell' else 'region', 'reason': 'manual_binding'}), 'valid', now()))
+             encoded(target), encoded(poly), encoded(manual_details), 'valid', now()))
         return {'evidence_id': key, 'source': 'manual'}
 
 
-def geometry_view(store, result_id, target=None, *, db=None):
+def geometry_view(store, result_id, target=None, *, db=None, provider=None, algorithm=None):
     started = time.perf_counter()
     if db is None:
         with store.transaction() as connection:
-            return geometry_view(store, result_id, target, db=connection)
+            return geometry_view(store, result_id, target, db=connection, provider=provider, algorithm=algorithm)
     row = db.execute('SELECT r.*,t.version_id FROM results r JOIN tasks t ON t.id=r.task_id WHERE r.id=?', (result_id,)).fetchone()
     if not row:
         raise KeyError('识别结果不存在')
     raw, edit = json.loads(row['original']), json.loads(row['edited'])
     version_id = raw.get('project_image_version') or row['version_id']
     structure = structure_fingerprint(edit)
+    from ocr_workbench.table_matching import policy_for_algorithm,matching_code_fingerprint
+    if provider is None and algorithm is None:
+        remapped = db.execute("""SELECT details,created FROM geometry_evidence WHERE result_id=? AND version_id=? AND status='valid'
+            AND json_extract(details,'$.structure_revision') IS NOT NULL ORDER BY created DESC LIMIT 1""", (result_id,version_id)).fetchone()
+        latest = db.execute("""SELECT g.snapshot,t.finished FROM geometry_requests g JOIN tasks t ON t.id=g.task_id
+            WHERE g.result_id=? AND t.status='succeeded' ORDER BY t.finished DESC LIMIT 1""", (result_id,)).fetchone()
+        if remapped and (not latest or remapped['created'] > latest['finished']):
+            details = json.loads(remapped['details'])
+            provider, algorithm = details.get('geometry_provider','paddle'), details.get('algorithm','local-v3')
+        elif latest:
+            snapshot = json.loads(latest['snapshot'])
+            provider, algorithm = snapshot.get('geometry_provider', 'paddle'), snapshot.get('algorithm')
+        else:
+            latest = db.execute("SELECT details FROM geometry_evidence WHERE result_id=? AND version_id=? AND status='valid' AND source!='manual' ORDER BY created DESC LIMIT 1", (result_id, version_id)).fetchone()
+            if latest:
+                details = json.loads(latest['details'])
+                provider, algorithm = details.get('geometry_provider', 'paddle'), details.get('algorithm')
+    provider = provider or 'paddle'
+    active_policy = policy_for_algorithm(algorithm)
+    active_policy_hash = fingerprint(active_policy)
+    active_algorithm_hash = matching_code_fingerprint()
+    text_snapshot_hash = fingerprint(edit)
     result = []
     clauses, params = ["result_id=?", "version_id=?", "status='valid'"], [result_id, version_id]
     if target is not None:
@@ -281,13 +398,36 @@ def geometry_view(store, result_id, target=None, *, db=None):
         clauses.append('target=?')
         keys = ('kind', 'table', 'row', 'column') if target.get('kind') == 'cell' else ('kind', 'table') if target.get('kind') == 'table' else ('kind', 'start', 'end')
         params.append(encoded({key: target[key] for key in keys if key in target}))
-    for evidence in db.execute("SELECT * FROM geometry_evidence WHERE " + ' AND '.join(clauses) + " ORDER BY source='manual' DESC,created DESC", params):
+    selected_source = geometry_source(provider, active_policy['algorithm'])
+    for evidence in db.execute("SELECT * FROM geometry_evidence WHERE " + ' AND '.join(clauses) + " ORDER BY source='manual' DESC,source=? DESC,created DESC", params+[selected_source]):
         item = dict(evidence)
         if item['structure_sha256'] != structure and json.loads(item['target']).get('kind') != 'text':
             continue
         item['target'], item['details'] = json.loads(item['target']), json.loads(item['details'])
+        if item['source'] not in ('manual', selected_source):
+            continue
+        if item['source'] != 'manual' and item['details'].get('algorithm_version') not in (None, 'legacy-v1') and (item['details'].get('policy_sha256') != active_policy_hash or item['details'].get('algorithm_sha256')!=active_algorithm_hash):
+            continue
+        item['details']['anchor_snapshot_current'] = item['details'].get('anchor_snapshot',{}).get('text_sha256') == text_snapshot_hash
+        item['details']['display_reason'] = geometry_description(item['details'], item['source'])
         item['polygon'] = json.loads(item['polygon']) if item['polygon'] else None
         if target is None or item['target'] == target:
             result.append(item)
     return {'result_id': result_id, 'revision': row['revision'], 'version_id': version_id,
             'experimental': True, 'evidence': result, 'cache_read_ms': (time.perf_counter()-started)*1000}
+
+
+def geometry_description(details, source):
+    if source == 'manual':
+        return '人工定位'
+    if details.get('range_semantics') == 'text_extent':
+        return '文字范围（实验性）· 尚无可靠完整格边界'
+    if details.get('level') == 'cell':
+        return '单元格定位（实验性）' + (' · 位置沿用此前文字快照' if details.get('anchor_snapshot_current') is False else '')
+    reasons = {'table_identity_ambiguous':'无法区分相似表格', 'topology_mismatch':'局部结构不一致',
+        'boxes_slots_out_of_sync':'模型框与逻辑格不同步', 'malformed_structure':'模型结构不完整',
+        'no_local_anchors':'缺少可靠的局部文字锚点', 'repeated_value_ambiguous':'重复内容无法消歧',
+        'empty_cell_without_anchors':'空格缺少行列锚点', 'coordinate_version_mismatch':'图像版本已变化',
+        'timeout':'本次定位超时', 'candidate_budget_exceeded':'表格候选过多',
+        'order_conflict':'文字顺序与表格结构冲突', 'no_text_tokens':'缺少真实文字坐标'}
+    return reasons.get(details.get('reason'),'暂无可靠单元格对应') + ('，显示整表' if details.get('level')=='region' else '，显示全图')

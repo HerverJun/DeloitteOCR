@@ -2,9 +2,17 @@
 
 Windows 单机中文 OCR 工作台，提供原生托盘启动器、本地项目与任务队列、四引擎顺序对比、照片校正、文字与表格校对、批次预处理及批量导出。模型和运行环境随完整包提供，运行时不下载文件。
 
-当前源码为 **0.9.0rc1 文档工作流候选版**，schema 9。新增 PDF/TIFF 分页、原生提取、区域补识别、可搜索 PDF 与实验性表格定位。定位精度未达标，不默认启用精确定位。见 [实施记录](docs/document-workflow-status.md)、[质量报告](docs/document-workflow-quality.md)、[使用与恢复](docs/document-workflow-usage-and-recovery.md)、[许可](docs/document-workflow-licenses.md)。完整交付目录 E:\OCR-document-workflow-20260913，以独立验收回执为准。
+当前源码为 **0.11.0rc1 通用视觉审校版**，schema 11。已有 OCR 之后，可对选中文字、单元格或本页文字与逻辑单元格发起本地多模态二轮审校；默认 Qwen3.5-4B Q4，模型配置与业务解耦。建议经人工采用进入可撤销修订，原始 OCR 保留；支持持久化队列、取消恢复及 JSON / Markdown / XLSX 校验清单，正式导出附带审校来源。见[使用与接口](docs/multimodal-review-usage-20260917.md)、[模型核验与准备](docs/multimodal-models-20260917.md)和[本轮验证与限制](docs/multimodal-review-validation-20260917.md)。独立应用目录为 `D:\OCR-multimodal-workbench-20260917\bundle`。小模型仍会引入错误，尤其在无可靠定位、跨栏文字和密集数表中；模型建议不自动采用。
+
+**最新审计（2026-09-17）**：后端 382 项通过、1 项跳过，前端 39 项和 29 个正常浏览器场景通过，四引擎及本地视觉审校实际运行通过。同时确认 8 项尚未修复的问题，涉及页面操作目标错位、复制归档乱码、复核跳转、排队请求丢失与状态一致性；详见[深度复盘与复现证据](audit/deep-review-20260917/REPORT.md)。当前提交记录候选版本及已知限制，不表示这些缺陷已关闭。
+
+已包含此前 0.10.0rc3 的通用工具恢复修复：页面渲染与辅助表格提取分开保存，取消与临时密码独立处理；缓存核对工具配置和页面身份，失败可在复核队列查看并单独重试，保留人工文字和撤销历史。继续使用固定 pdfplumber 0.11.10 上游默认参数，无样本特判或自动结构采用。见[修复与验证](docs/generic-tool-fixes-20260917.md)和[公开实验范围](docs/public-quality-20260916.md)。原交付目录 `E:\OCR-generic-tool-fixes-20260917\bundle` 保持不变。
 
 以下 0.8.0rc2 / 0.7.0rc2 是历史记录，不能替代本次回归。此前 0.7.0rc2 的验证记录如下：2026-09-12 审计修复已通过 113 项 Python 测试、19 项前端测试、TypeScript/Vite 构建及 21 项浏览器场景验证，说明见 [审计修复说明](docs/audit-20260912-fixes.md)。该次审计未重新生成离线包。历史本机验收还包括 48 项完整应用回归、核心 GUI 13 项、新增 GUI 5 项、500 张队列、20 次加载卸载、12 项多表/透视工程推理与导出、四引擎官方路线对照，以及新版 800 次公开区域推理。PaddleOCR-VL 完整评测的设备峰值由 15902 降至 10759 MiB，成功原始输出与基线零差异。另一台干净 Windows、内网 A4000 和内网真实样本尚未验收，不能将本机通过等同最终发布通过。证据说明见 `docs/最终阶段审计报告.md` 和 `docs/最终阶段验收矩阵.md`；最终 ZIP、源码、搬迁及系统禁网结果由交付目录的独立回执记录。
+
+此前源码完成**表格单元格局部匹配 v2 实验**：真实文字范围与完整格证据分离，支持局部结构对应、缓存快照校验及导出兼容。已完成新冻结主轨/真实结果轨/完整页检测，精确定位仍未达到默认启用门槛。见[实施记录](docs/table-cell-matching-v2-status.md)、[质量报告](docs/table-cell-matching-v2-quality.md)、[复现与许可](docs/table-cell-matching-v2-reproduction.md)。该轮当时未重新打包；后续 0.10.0rc1 包已包含这些能力，当前版本继续保留。
+
+后续源码已接入 **TableFormer raw 可选定位模型与 local-v3 邻居锚点实验**，正式区分完整网格标签，加入公开 PDF 开发和新的封存测试。仍保留 Paddle + local-v2 默认；此前随 0.10.0rc1 独立包交付，当前版本继续保留。见[质量与验收](docs/tableformer-next-20260915-quality.md)、[复现与使用](docs/tableformer-next-20260915-reproduction.md)。
 
 ## 既有融合功能
 

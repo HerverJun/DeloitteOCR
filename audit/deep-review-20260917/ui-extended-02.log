@@ -1,0 +1,7 @@
+{
+  "scope": "Real UI/API/SQLite with explicitly seeded OCR and fusion; clipboard OS write captured in memory",
+  "findings": [],
+  "pageErrors": [],
+  "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '任务队列', exact: true })\u001b[22m\n\n    at C:\\Users\\A\\Desktop\\OCR\\audit\\deep-review-20260917\\extended-ui.mjs:19:59",
+  "browserClosed": true
+}

@@ -1,0 +1,41 @@
+{
+  "python_tests": 252,
+  "python_log_sha256": "b819088580a5e5465924abafba65023ff82a0aca7a075a727000f6831f42b57a",
+  "frontend_test_files": 8,
+  "frontend_tests": 32,
+  "frontend_build": "TypeScript/Vite passed; pre-existing >500KB bundle notice",
+  "frontend_log_note": "Observed passing earlier in this task; raw frontend stdout was not copied into this receipt",
+  "ui_checks": 10,
+  "ui_errors": 0,
+  "browser_closed": true,
+  "post_seal_evaluation_tests_passed": 9,
+  "production_default": false,
+  "code_matches_test_selection": true,
+  "source_reports": [
+    {
+      "name": "development",
+      "path": "build\\table-matching-v2\\reports\\development-final-02.json",
+      "sha256": "3a088e01ffef103f8821a87efd5c7eafa96a2c12b940a2ab06a7085172c628cd"
+    },
+    {
+      "name": "validation",
+      "path": "build\\table-matching-v2\\reports\\validation-final-02.json",
+      "sha256": "47d6422e78c7e2446428a6a73e014632868be4c268b629d10d4e93918f289cd3"
+    },
+    {
+      "name": "test",
+      "path": "build\\table-matching-v2\\reports\\test-final.json",
+      "sha256": "646d1b4e5e6a87d34d970c31acc9893ea24c89c45c7d9a7c35057c6ac89df715"
+    },
+    {
+      "name": "real-development",
+      "path": "build\\table-matching-v2\\reports\\real-development-final-02.json",
+      "sha256": "237aea72e14788b20d7cc20d869879bcc98aec2aa46272fb6adf12b0c907ccef"
+    },
+    {
+      "name": "real-test",
+      "path": "build\\table-matching-v2\\reports\\real-test-final.json",
+      "sha256": "e41a3a6bdc5ba1f619c0aa5a0122cc32fa2b8ecd9d7c08bf804e2306dce1efeb"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+.multimodal-review { margin: 12px 0; padding: 16px; border: 1px solid var(--border, #dce2dd); background: var(--surface, #fff); color: var(--ink, #202823); min-width: 0; font-size: 13px; }
+.result-workspace .result-content > .multimodal-review { flex: 0 0 auto; }
+.result-workspace .result-tabs { min-width: 0; max-width: 100%; overflow-x: auto; flex-shrink: 1; }
+.multimodal-entry { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border, #e2e7df); background: #f7faf3; flex-shrink: 0; }
+.multimodal-entry > div { display: grid; gap: 3px; min-width: 0; }
+.multimodal-entry strong { color: var(--ink, #202823); font-size: 12px; font-weight: 500; }
+.multimodal-entry span { color: var(--muted, #66706a); font-size: 11px; overflow-wrap: anywhere; }
+.multimodal-heading, .multimodal-summary, .multimodal-proposal-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.multimodal-heading > strong { display: inline-flex; align-items: center; gap: 7px; }
+.multimodal-heading > span, .multimodal-summary > span, .multimodal-proposal-heading > span:last-child { color: var(--muted, #66706a); font-size: 12px; }
+.multimodal-intro, .multimodal-selection, .multimodal-footnote, .multimodal-empty { color: var(--muted, #66706a); line-height: 1.7; }
+.multimodal-intro { margin: 10px 0 14px; }
+.multimodal-model-row, .multimodal-filter, .multimodal-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.multimodal-model-row > label, .multimodal-filter > label, .multimodal-export > label { font-size: 12px; font-weight: 600; }
+.multimodal-model-row > .fui-Select { flex: 1 1 170px; min-width: 0; max-width: 100%; }
+.multimodal-review select { color: var(--ink, #202823); }
+.multimodal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; }
+.multimodal-selection, .multimodal-footnote { font-size: 12px; margin: 8px 0; }
+.multimodal-warning { padding: 8px 10px; border-left: 2px solid #a47619; background: #fff9ec; color: #77520c; line-height: 1.65; overflow-wrap: anywhere; }
+.multimodal-warning > p { margin: 0; }
+.multimodal-message { color: #386a12; line-height: 1.6; }
+.multimodal-loading { display: flex; align-items: center; gap: 8px; padding: 14px 0; color: var(--muted, #66706a); }
+.multimodal-tasks, .multimodal-model-reasons { margin: 14px 0; font-size: 12px; }
+.multimodal-review summary { cursor: pointer; line-height: 1.7; }
+.multimodal-tasks ul { list-style: none; margin: 8px 0; padding: 0; max-height: 300px; overflow: auto; }
+.multimodal-tasks li { border-top: 1px solid var(--border, #e2e7df); padding: 10px 0 2px; }
+.multimodal-tasks li > div:first-child { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.multimodal-tasks li > div:first-child > span, .multimodal-tasks li > p { color: var(--muted, #66706a); overflow-wrap: anywhere; }
+.multimodal-tasks li > p { margin: 5px 0; }
+.multimodal-proposals { border-top: 1px solid var(--border, #e2e7df); padding-top: 14px; margin-top: 14px; }
+.multimodal-filter { margin: 12px 0; }
+.multimodal-filter > .fui-Select { min-width: 0; max-width: 100%; }
+.multimodal-proposal-select { width: 100%; min-width: 0; }
+.multimodal-proposal { margin-top: 12px; }
+.multimodal-badge { display: inline-flex; align-items: center; padding: 3px 7px; background: #eef3e8; color: #3d5d2c; border-radius: 3px; font-size: 12px; }
+.multimodal-badge.replace { color: #315b95; background: #eef3fb; }
+.multimodal-badge.uncertain { color: #77520c; background: #fff5de; }
+.multimodal-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.multimodal-comparison > div { min-width: 0; }
+.multimodal-comparison strong { display: block; margin-bottom: 7px; color: var(--muted, #66706a); font-size: 12px; }
+.multimodal-comparison pre { margin: 0; min-height: 70px; max-height: 230px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #f6f8f5; border: 1px solid var(--border, #e2e7df); padding: 10px; font: inherit; line-height: 1.7; }
+.multimodal-reason { display: grid; gap: 4px; line-height: 1.7; overflow-wrap: anywhere; }
+.multimodal-reason > strong { color: var(--muted, #66706a); font-size: 12px; }
+.multimodal-export { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border, #e2e7df); }
+@media (max-width: 1050px) { .multimodal-comparison { grid-template-columns: minmax(0, 1fr); } }

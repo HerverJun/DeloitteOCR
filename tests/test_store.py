@@ -149,6 +149,10 @@ class StoreTests(unittest.TestCase):
                 db.execute('DROP TRIGGER "' + row["name"] + '"')
             db.execute("DROP TABLE reviews")
             db.execute("DROP TABLE project_revisions")
+            for table in ("multimodal_decisions", "multimodal_proposals", "multimodal_requests"):
+                db.execute("DROP TABLE " + table)
+            for table in ("structure_decisions", "structure_checks", "structure_proposals", "structure_candidates"):
+                db.execute("DROP TABLE " + table)
             for table in ("document_conflict_decisions", "review_timings", "page_ocr_inputs", "geometry_requests", "geometry_evidence", "document_stages",
                           "regions", "page_versions", "pages", "documents"):
                 db.execute("DROP TABLE " + table)

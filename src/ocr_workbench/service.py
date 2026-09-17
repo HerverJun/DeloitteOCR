@@ -87,6 +87,10 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     from ocr_workbench.document_routes import register_document_routes
     register_document_routes(app, documents, maintenance)
+    from ocr_workbench.structure_routes import register_structure_routes
+    register_structure_routes(app, store)
+    from ocr_workbench.multimodal_routes import register_multimodal_routes
+    register_multimodal_routes(app, store, bundle, queue, maintenance, require_recognition)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):
@@ -351,7 +355,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
         if body.get('source') == 'manual':
             return bind_manual(store, key, body)
         require_recognition()
-        response = enqueue_geometry(store, key, body.get('revision'), region_ids=body.get('region_ids'), force=body.get('force', False))
+        response = enqueue_geometry(store, key, body.get('revision'), region_ids=body.get('region_ids'), force=body.get('force', False), algorithm=body.get('algorithm'), provider=body.get('provider', 'paddle'))
         queue.wake.set()
         return response
 
@@ -373,13 +377,13 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.post('/api/results/{key}/geometry/location')
     def get_geometry_location(key: str, body: dict):
         from ocr_workbench.geometry import geometry_view
-        return geometry_view(store, key, body.get('target'))
+        return geometry_view(store, key, body.get('target'), provider=body.get('provider'), algorithm=body.get('algorithm'))
 
     @app.post('/api/results/{key}/review-timing')
     def review_timing(key: str, body: dict):
         result = store.result(key)
         milliseconds = body.get('active_ms')
-        if type(milliseconds) is not int or not 0 <= milliseconds <= 86400000 or body.get('action') not in ('candidate','manual','keep','question'):
+        if type(milliseconds) is not int or not 0 <= milliseconds <= 86400000 or body.get('action') not in ('candidate','manual','keep','question','structure_accept','structure_keep','structure_reject','structure_defer'):
             raise ValueError('校对计时无效')
         if result['revision'] != body.get('revision'):
             raise Conflict('计时提交对应的修订已变化')

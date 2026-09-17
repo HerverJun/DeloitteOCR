@@ -1,0 +1,170 @@
+{
+  "duplicate_review_queue_ids": {
+    "confirmed": true,
+    "proposal_count": 6,
+    "unique_queue_ids": 3,
+    "duplicate_groups": [
+      [
+        {
+          "id": "02fe985338fb99490c7ca54955f56b6500e720e9428faabd23ccc31588a01f48",
+          "proposal_id": "4f944be66a5f4fb2a7466c7ee52c27d3",
+          "target": {
+            "kind": "text",
+            "start": 9,
+            "end": 17
+          }
+        },
+        {
+          "id": "02fe985338fb99490c7ca54955f56b6500e720e9428faabd23ccc31588a01f48",
+          "proposal_id": "ebe37cb3307643afae2979e2ad57e2cf",
+          "target": {
+            "kind": "text",
+            "start": 9,
+            "end": 17
+          }
+        }
+      ],
+      [
+        {
+          "id": "20061760e6281a1a24c9a5126d9c2a5040ad6e60b3a75229eb64a96120bb906c",
+          "proposal_id": "7132c3e24f884d3b9ad66ec3270192ef",
+          "target": {
+            "kind": "text",
+            "start": 18,
+            "end": 23
+          }
+        },
+        {
+          "id": "20061760e6281a1a24c9a5126d9c2a5040ad6e60b3a75229eb64a96120bb906c",
+          "proposal_id": "f37ec0ec72e842fe9e98a555c0a11d55",
+          "target": {
+            "kind": "text",
+            "start": 18,
+            "end": 23
+          }
+        }
+      ],
+      [
+        {
+          "id": "ead1d139354e795e97bbe3d98800ff997289e54458f7904ba2b1a8f7525328ad",
+          "proposal_id": "dbab128ed9134a2f934bd2d3d6a34214",
+          "target": {
+            "kind": "text",
+            "start": 0,
+            "end": 8
+          }
+        },
+        {
+          "id": "ead1d139354e795e97bbe3d98800ff997289e54458f7904ba2b1a8f7525328ad",
+          "proposal_id": "6686c0422e0c42d49b5344959287e71f",
+          "target": {
+            "kind": "text",
+            "start": 0,
+            "end": 8
+          }
+        }
+      ]
+    ],
+    "pending_tasks": [
+      {
+        "page_id": "8737a6d429164ef08328fa2edacc451a",
+        "page_number": 1,
+        "image_id": "8737a6d429164ef08328fa2edacc451a",
+        "result_id": "3b058fc26a9a4c4892f0483b2cdf44a7",
+        "revision": 0,
+        "version_id": "e9d05572e66f4a7e9537f73f9ea421f0",
+        "id": "d7c25404e303b12a47b9e89d78379f379d4718c85e462901f549dff78bacbe91",
+        "kind": "multimodal_task",
+        "target": {
+          "kind": "page"
+        },
+        "category": "text",
+        "priority": 3,
+        "state": "queued",
+        "task_id": "1f9c615151a6415d85f6b1ec9efedbca",
+        "reason": "等待视觉审校"
+      },
+      {
+        "page_id": "8737a6d429164ef08328fa2edacc451a",
+        "page_number": 1,
+        "image_id": "8737a6d429164ef08328fa2edacc451a",
+        "result_id": "3b058fc26a9a4c4892f0483b2cdf44a7",
+        "revision": 0,
+        "version_id": "e9d05572e66f4a7e9537f73f9ea421f0",
+        "id": "d7c25404e303b12a47b9e89d78379f379d4718c85e462901f549dff78bacbe91",
+        "kind": "multimodal_task",
+        "target": {
+          "kind": "page"
+        },
+        "category": "text",
+        "priority": 3,
+        "state": "queued",
+        "task_id": "5549d3245b5646748c16987e36a41b96",
+        "reason": "等待视觉审校"
+      }
+    ]
+  },
+  "outdated_pdf_candidates_in_queue": {
+    "confirmed": true,
+    "panel_proposals": 0,
+    "panel_candidates": 0,
+    "tool_state": "outdated",
+    "queue_summary": {
+      "pages": 1,
+      "unprocessed_pages": 0,
+      "checked_pages": 1,
+      "candidate_pages": 1
+    },
+    "stale_queue_rows": [
+      {
+        "page_id": "1da5460745194ea1b34d22beab18baf3",
+        "page_number": 1,
+        "image_id": "1da5460745194ea1b34d22beab18baf3",
+        "result_id": "237f2f8f20d64553b5ca08a52dbeedcf",
+        "revision": 0,
+        "version_id": "fabc941dcc264f1fb6517d4803c2549a",
+        "id": "c17bfecff356f6cf8ebec77c924d9de5b0024713b4ade06d6e9c9bf5e34f6544",
+        "kind": "structure",
+        "target": {
+          "kind": "tables",
+          "tables": [
+            0
+          ]
+        },
+        "category": "structure",
+        "priority": 1,
+        "state": "pending",
+        "reason": "结构差异待核对",
+        "proposal_ids": [
+          "f6079f7eccf82ebc2800fec722c63eecfea83e87821e5612cace12583ff53cdf",
+          "9ba53f5afc86e97103f4bafd4831f4dafad9a4421866b964b86266866ddc3d50"
+        ],
+        "alternatives": [
+          {
+            "id": "f6079f7eccf82ebc2800fec722c63eecfea83e87821e5612cace12583ff53cdf",
+            "state": "pending",
+            "kind": "insert_rows",
+            "provider": "pdfplumber/fixture",
+            "reason": "structure_difference",
+            "can_apply": true,
+            "conflicts": 0,
+            "priority": 1
+          },
+          {
+            "id": "9ba53f5afc86e97103f4bafd4831f4dafad9a4421866b964b86266866ddc3d50",
+            "state": "pending",
+            "kind": "replace_table",
+            "provider": "pdfplumber/fixture",
+            "reason": "structure_difference",
+            "can_apply": true,
+            "conflicts": 0,
+            "priority": 1
+          }
+        ]
+      }
+    ],
+    "stale_rows_after_rechecking": 1,
+    "decision_rejected": "表格工具候选已过期，请重新提取并检查",
+    "content_revision_after": 0
+  }
+}

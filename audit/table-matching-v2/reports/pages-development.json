@@ -1,0 +1,338 @@
+{
+  "version": 2,
+  "complete": true,
+  "split": "development",
+  "track": "page-detection",
+  "annotations_sha256": "1d22895e2a5e568dc38f379abb6d9c284edcd51c79b4e47018f3d50cc913ed0e",
+  "prediction_lock_sha256": "d3fb8f296eb4a729ba738f5eff327d6c8cb0a5e1d64dac9fcd982de226f09291",
+  "groups": {
+    "all": {
+      "pages": 20,
+      "documents": 20,
+      "counts": {
+        "targets": 29,
+        "offered": 28,
+        "matched": 25,
+        "false_positive": 3,
+        "missed": 4,
+        "failed": 0
+      },
+      "precision": 0.8928571428571429,
+      "recall": 0.8620689655172413,
+      "pages_with_false_positive": 2,
+      "inference_ms": {
+        "median": 56.94414999925357,
+        "p90": 85.55946999986192,
+        "p95": 126.96908500011023,
+        "n": 20
+      }
+    },
+    "no_table": {
+      "pages": 7,
+      "documents": 7,
+      "counts": {
+        "targets": 0,
+        "offered": 2,
+        "matched": 0,
+        "false_positive": 2,
+        "missed": 0,
+        "failed": 0
+      },
+      "precision": 0.0,
+      "recall": null,
+      "pages_with_false_positive": 1,
+      "inference_ms": {
+        "median": 63.60889999996289,
+        "p90": 342.9325599994629,
+        "p95": 536.7656799991887,
+        "n": 7
+      }
+    },
+    "single_table": {
+      "pages": 6,
+      "documents": 6,
+      "counts": {
+        "targets": 6,
+        "offered": 4,
+        "matched": 4,
+        "false_positive": 0,
+        "missed": 2,
+        "failed": 0
+      },
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "pages_with_false_positive": 0,
+      "inference_ms": {
+        "median": 54.37919999985752,
+        "p90": 76.35074999961944,
+        "p95": 85.77492499989603,
+        "n": 6
+      }
+    },
+    "multiple_tables": {
+      "pages": 7,
+      "documents": 7,
+      "counts": {
+        "targets": 23,
+        "offered": 22,
+        "matched": 21,
+        "false_positive": 1,
+        "missed": 2,
+        "failed": 0
+      },
+      "precision": 0.9545454545454546,
+      "recall": 0.9130434782608695,
+      "pages_with_false_positive": 1,
+      "inference_ms": {
+        "median": 56.38589999944088,
+        "p90": 64.58736000022327,
+        "p95": 66.47402999969927,
+        "n": 7
+      }
+    }
+  },
+  "rows": [
+    {
+      "sample_id": "doclaynet-5212",
+      "group_id": "redbooks:sg247938",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.7305987999989156
+    },
+    {
+      "sample_id": "doclaynet-1652",
+      "group_id": "ann_reports_10_14_fancy:nyse_smfg_",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06360889999996289
+    },
+    {
+      "sample_id": "doclaynet-4627",
+      "group_id": "20200050106_AdobeOCR.pdf",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06292740000026242
+    },
+    {
+      "sample_id": "doclaynet-2998",
+      "group_id": "eu_tenders:en-draft contract",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05114549999962037
+    },
+    {
+      "sample_id": "doclaynet-5012",
+      "group_id": "WO2020081008A1.pdf",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 2,
+      "matched": 0,
+      "false_positive": 2,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04932050000024901
+    },
+    {
+      "sample_id": "doclaynet-2675",
+      "group_id": "arxiv_two_columns:1001.1154",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.08448839999982738
+    },
+    {
+      "sample_id": "doclaynet-3784",
+      "group_id": "gb_laws:uksi_",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.07162310000057914
+    },
+    {
+      "sample_id": "doclaynet-608",
+      "group_id": "ann_reports_00_04_fancy:nasdaq_eeft_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 1,
+      "failed": 0,
+      "seconds": 0.09519910000017262
+    },
+    {
+      "sample_id": "doclaynet-3563",
+      "group_id": "faa_regulations:cug-complete",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 1,
+      "failed": 0,
+      "seconds": 0.05302850000043691
+    },
+    {
+      "sample_id": "doclaynet-288",
+      "group_id": "ann_reports_00_04_fancy:nyse_hni_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.057502399999066256
+    },
+    {
+      "sample_id": "doclaynet-439",
+      "group_id": "ann_reports_00_04_fancy:nasdaq_shen_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.049016599999959
+    },
+    {
+      "sample_id": "doclaynet-5486",
+      "group_id": "sec_filings:0000049600-21-000027_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05191050000030373
+    },
+    {
+      "sample_id": "doclaynet-2258",
+      "group_id": "arxiv_mediumspaced:1002.0896",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05572989999927813
+    },
+    {
+      "sample_id": "doclaynet-1381",
+      "group_id": "ann_reports_10_14_fancy:nyse_jwn_",
+      "stratum": "multiple_tables",
+      "targets": 4,
+      "offered": 4,
+      "matched": 4,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.055209299998750794
+    },
+    {
+      "sample_id": "doclaynet-166",
+      "group_id": "ann_reports_00_04_fancy:otc_nsany_",
+      "stratum": "multiple_tables",
+      "targets": 3,
+      "offered": 4,
+      "matched": 3,
+      "false_positive": 1,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05116270000144141
+    },
+    {
+      "sample_id": "doclaynet-4857",
+      "group_id": "20200352177_AdobeOCR.pdf",
+      "stratum": "multiple_tables",
+      "targets": 4,
+      "offered": 4,
+      "matched": 4,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06836069999917527
+    },
+    {
+      "sample_id": "doclaynet-2972",
+      "group_id": "eu_tenders:en-changes no 1 to td",
+      "stratum": "multiple_tables",
+      "targets": 3,
+      "offered": 3,
+      "matched": 3,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.048587000001134584
+    },
+    {
+      "sample_id": "doclaynet-4435",
+      "group_id": "manuals:basic-english-language-skills",
+      "stratum": "multiple_tables",
+      "targets": 2,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 2,
+      "failed": 0,
+      "seconds": 0.05638589999944088
+    },
+    {
+      "sample_id": "doclaynet-4937",
+      "group_id": "20020111024_AdobeOCR.pdf",
+      "stratum": "multiple_tables",
+      "targets": 2,
+      "offered": 2,
+      "matched": 2,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06041490000097838
+    },
+    {
+      "sample_id": "doclaynet-4844",
+      "group_id": "20090197849_AdobeOCR.pdf",
+      "stratum": "multiple_tables",
+      "targets": 5,
+      "offered": 5,
+      "matched": 5,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06207180000092194
+    }
+  ],
+  "definition": "One-to-one table bbox IoU >= .5; every page retained, including failed and no-table pages",
+  "scope": "Full-page detector only; no logical cell or end-to-end matching claim"
+}

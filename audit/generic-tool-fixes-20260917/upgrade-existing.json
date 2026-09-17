@@ -1,0 +1,119 @@
+{
+  "version": "0.10.0rc3",
+  "module_source": "C:\\Users\\A\\Desktop\\OCR\\src\\ocr_workbench\\table_tool.py",
+  "rows": [
+    {
+      "id": "pilot-budget-p1",
+      "result_id": "1b7b242cd1fc4c20bd291251bf77182e",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-budget-2014-15-p1",
+      "result_id": "8b19057797094027a94cb8bbe00091af",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-column-span-1-p1",
+      "result_id": "4d96e5bc8064499baafcaf9b8c22af94",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 1,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-row-span-2-p1",
+      "result_id": "d7eae9ab437348ad9b311764959c4f7b",
+      "state": "ready",
+      "tool_candidates": 20,
+      "applicable_tool_proposals": 16,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-twotables-1-p1",
+      "result_id": "e7a25ab786ea44eca885d860530bd7f7",
+      "state": "ready",
+      "tool_candidates": 20,
+      "applicable_tool_proposals": 15,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-hybrid-multipage-p1",
+      "result_id": "788aabb4419643e780bfeef092a21fd2",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-hybrid-multipage-p2",
+      "result_id": "f8b091154a4d4ded9d26a7cc58325b09",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-missing-values-p1",
+      "result_id": "12698a5b9fff4832a06dfbb48ddad7a9",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 1,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-empty-p1",
+      "result_id": "9faf5b1412214e6da6c6ad39db865ea4",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-china-p1",
+      "result_id": "811a7032d59b48db93d848441e74277f",
+      "state": "ready",
+      "tool_candidates": 2,
+      "applicable_tool_proposals": 1,
+      "result_unchanged": true
+    },
+    {
+      "id": "pilot-district-health-p1",
+      "result_id": "60e621cf3a5149f58ec78890872a790c",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "hk-budget-2025-p70",
+      "result_id": "a0751da7fe7c475190c8cd6c0782e8e7",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "hk-budget-2025-p85",
+      "result_id": "4b9885b1116c4a22b1afd7f5bc4a9704",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    }
+  ],
+  "ocr_tasks_unchanged": true,
+  "history_and_selections_unchanged": true,
+  "tool_identity": {
+    "key": "97d991445f6e8a100c0fe3e47e53e88f628855df6ce72b107eb2513280516db3",
+    "config_sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+    "version": "0.11.10",
+    "component": "pdfplumber"
+  },
+  "scope": "Auxiliary upgrade regression on already exposed material; no fresh OCR or quality claim"
+}

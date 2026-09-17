@@ -97,6 +97,8 @@ class TableParser(HTMLParser):
                     self.occupied.add((r, c))
             self.cell = {'row': self.row, 'column': self.col, 'row_span': rs,
                          'column_span': cs, 'text': '', 'confidence': None, 'polygon': None}
+            if tag == 'th':
+                self.cell['is_header'] = True
             self.table['rows'] = max(self.table['rows'], self.row + rs)
             self.table['columns'] = max(self.table['columns'], self.col + cs)
             self.col += cs
@@ -212,12 +214,14 @@ SOURCE_COLUMNS = (
     ('revision', '校对 revision'), ('table_index', '表格序号'),
     ('origin', '结果来源类型'), ('policy_version', '融合策略版本'),
     ('policy_sha256', '融合策略指纹'), ('review_summary', '融合校对状态'),
+    ('document_id', '文档 ID'), ('page_number', '原文页码'),
+    ('structure_review', '结构采用来源'), ('header_cells', '表头单元格'),
 )
 
 
 def export_xlsx(tables, path, *, source_rows=None):
     from openpyxl import Workbook
-    from openpyxl.styles import Alignment
+    from openpyxl.styles import Alignment, Font
     from openpyxl.utils import get_column_letter
     book = Workbook()
     book.remove(book.active)
@@ -235,6 +239,8 @@ def export_xlsx(tables, path, *, source_rows=None):
                 raise ValueError('单元格超过 Excel 的 32,767 字符限制；可导出 TXT / JSON 或缩短单元格后重试')
             out = sheet.cell(row, col)
             out.value = cell['text']
+            if cell.get('is_header'):
+                out.font = Font(bold=True)
             out.data_type = 's'
             out.number_format = '@'
             out.alignment = Alignment(wrap_text=True, vertical='top')

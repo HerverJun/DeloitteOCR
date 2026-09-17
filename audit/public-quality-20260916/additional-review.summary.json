@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "summary_of": {
+    "path": "audit/public-quality-20260916/additional-review.json",
+    "sha256": "c1240e084c4a301416578c8c21c6b6c13010feca1171b8a4dddd56ebbd840aad",
+    "bytes": 7923
+  },
+  "derived_from": [
+    {
+      "path": "audit/public-quality-20260916/additional-product.json",
+      "sha256": "b9731157ea80e29ef855efe284c558be72487b9fb9807cf51618c32f30039d62",
+      "bytes": 5387
+    },
+    {
+      "path": "audit/public-quality-20260916/additional-preparation.json",
+      "sha256": "436e594e51a6ea99363f86562a40f0380097b27c3b9e4e1efade3c9ab67b0683",
+      "bytes": 2661
+    }
+  ],
+  "scope": "Public development workflow evidence; excludes source transcription and is not independent quality acceptance.",
+  "omitted": [
+    "cell text",
+    "source document bodies",
+    "per-cell span coordinates; merged span counts retained"
+  ],
+  "quality_acceptance": false,
+  "human_efficiency": "unmeasured",
+  "source_unchanged": true,
+  "counts": {
+    "pages": 7,
+    "status": {
+      "checked": 7
+    },
+    "pages_with_applicable_tool_proposals": 2,
+    "applicable_tool_proposals": 2,
+    "xlsx_literal_cells": 269,
+    "undo_redo_passed": 2,
+    "conflicts_preserved": 51,
+    "product_cache_reused_pages": 7
+  },
+  "rows": [
+    {
+      "id": "tool-public-nics-background-checks-2015-11-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11.pdf",
+        "pdf_sha256": "4f0ae6e017b0e97de211da8fd97316e55bd927af5740d6ce95e1b7b1539f9407",
+        "image_sha256": "9f0850a6fa20a5f3fb95e0bed4e42fe03656146190a2bb75484a557a19a52bad"
+      },
+      "product_observation_seconds": 52.75
+    },
+    {
+      "id": "tool-public-nics-background-checks-2015-11-rotated-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11-rotated.pdf",
+        "pdf_sha256": "3820767f7b9c8a80d20916daa8664afee49421c4bc6d6efb70bb21ae5f9a7195",
+        "image_sha256": "ec3706652a02838a5199bdb5790eefbbef04e8114c791704d1fff208745bd2da"
+      },
+      "product_observation_seconds": 49.45299999999952
+    },
+    {
+      "id": "tool-public-warn-report-for-7-1-2015-to-03-25-2016-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 1,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 259,
+      "undo_redo": "passed",
+      "conflicts_preserved": 32,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/WARN-Report-for-7-1-2015-to-03-25-2016.pdf",
+        "pdf_sha256": "f52f80bd057313c8abec2e854c65c4d96658e72744c836e81d3048d8a5861046",
+        "image_sha256": "7f78c18bf447174921c6e5d6c054f12271df8b18191657fccdea463a0c81954f"
+      },
+      "tables": [
+        {
+          "rows": 37,
+          "columns": 7,
+          "cells": 259,
+          "merged_span_count": 0
+        }
+      ],
+      "product_observation_seconds": 38.01500000000124
+    },
+    {
+      "id": "tool-public-senate-expenditures-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 1,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 10,
+      "undo_redo": "passed",
+      "conflicts_preserved": 19,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/senate-expenditures.pdf",
+        "pdf_sha256": "16921f0fc9b2c6039b23b694e0317917118ad7dd2b3a95a88518b7e144df527c",
+        "image_sha256": "4de8522994932316c69ba509677fdd538216e80fa2b89f9ab7c3c2c3468c37d6"
+      },
+      "tables": [
+        {
+          "rows": 4,
+          "columns": 7,
+          "cells": 10,
+          "merged_span_count": 8
+        }
+      ],
+      "product_observation_seconds": 35.53099999999904
+    },
+    {
+      "id": "tool-public-federal-register-2020-17221-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/federal-register-2020-17221.pdf",
+        "pdf_sha256": "ac419e4e084ea7a7a33a7be3f129dd07bc705b1a9e45ad751e33357f17d60f5c",
+        "image_sha256": "39cace72363c03227d2142735276971109d887b268a40cc9409466cb7a1a4a7f"
+      },
+      "product_observation_seconds": 42.9369999999999
+    },
+    {
+      "id": "tool-public-cupertino_usd_4-6-16-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/cupertino_usd_4-6-16.pdf",
+        "pdf_sha256": "944ab863d7c83521d6250cc8682d2c985a6ae82622de1d461bb80c21a654206a",
+        "image_sha256": "0cc64180871663e4f05c7c9ed1c44fb6da96bbad81ac15ae5d87c3a435daa8d4"
+      },
+      "product_observation_seconds": 33.39099999999962
+    },
+    {
+      "id": "tool-public-pdffill-demo-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/pdffill-demo.pdf",
+        "pdf_sha256": "2594a5364ea598047a7389b4f35a5e0908c973c7aa4bc6d8c5e8fb34baaba426",
+        "image_sha256": "81efe41ca3dd44d31685f0b4b5d08d33fcd9ad9026399518ba9b0d2f452314ed"
+      },
+      "product_observation_seconds": 32.60900000000038
+    }
+  ]
+}

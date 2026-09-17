@@ -1,0 +1,212 @@
+[
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/processors/llm/llm_page_correction.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/processors/llm/llm_page_correction.py",
+    "bytes": 11683
+  },
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/processors/llm/llm_table.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/processors/llm/llm_table.py",
+    "bytes": 14619
+  },
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/processors/llm/llm_table_merge.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/processors/llm/llm_table_merge.py",
+    "bytes": 18586
+  },
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/processors/llm/llm_mathblock.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/processors/llm/llm_mathblock.py",
+    "bytes": 8594
+  },
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/processors/llm/__init__.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/processors/llm/__init__.py",
+    "bytes": 6498
+  },
+  {
+    "repo": "datalab-to/marker",
+    "path": "marker/services/ollama.py",
+    "sha": "8a1d2344de25d7ec4c5209133aed7af565874ff0",
+    "url": "https://github.com/datalab-to/marker/blob/8a1d2344de25d7ec4c5209133aed7af565874ff0/marker/services/ollama.py",
+    "bytes": 2076
+  },
+  {
+    "repo": "scribeocr/scribe.js",
+    "path": "js/worker/compareOCRModule.js",
+    "sha": "6ff50c5d8f0d0434290c1a0736b73b7e74278bf5",
+    "url": "https://github.com/scribeocr/scribe.js/blob/6ff50c5d8f0d0434290c1a0736b73b7e74278bf5/js/worker/compareOCRModule.js",
+    "bytes": 55497
+  },
+  {
+    "repo": "scribeocr/scribe.js",
+    "path": "js/modifyOCR.js",
+    "sha": "6ff50c5d8f0d0434290c1a0736b73b7e74278bf5",
+    "url": "https://github.com/scribeocr/scribe.js/blob/6ff50c5d8f0d0434290c1a0736b73b7e74278bf5/js/modifyOCR.js",
+    "bytes": 16669
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docs/examples/post_process_ocr_with_vlm.py",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docs/examples/post_process_ocr_with_vlm.py",
+    "bytes": 27566
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docs/examples/code_formula_granite_docling.py",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docs/examples/code_formula_granite_docling.py",
+    "bytes": 4006
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docs/examples/enrich_doclingdocument.py",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docs/examples/enrich_doclingdocument.py",
+    "bytes": 5196
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docs/examples/export_tables.py",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docs/examples/export_tables.py",
+    "bytes": 2724
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docling/datamodel/vlm_model_specs.py",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docling/datamodel/vlm_model_specs.py",
+    "bytes": 18806
+  },
+  {
+    "repo": "docling-project/docling",
+    "path": "docs/usage/enrichments.md",
+    "sha": "d4fa979af44a878700f8576eaba7e27dd9330005",
+    "url": "https://github.com/docling-project/docling/blob/d4fa979af44a878700f8576eaba7e27dd9330005/docs/usage/enrichments.md",
+    "bytes": 8511
+  },
+  {
+    "repo": "allenai/olmocr",
+    "path": "olmocr/pipeline.py",
+    "sha": "f7cfe4c22098b154c76b6ec950d1c0a464eecf8d",
+    "url": "https://github.com/allenai/olmocr/blob/f7cfe4c22098b154c76b6ec950d1c0a464eecf8d/olmocr/pipeline.py",
+    "bytes": 66505
+  },
+  {
+    "repo": "allenai/olmocr",
+    "path": "olmocr/prompts/anchor.py",
+    "sha": "f7cfe4c22098b154c76b6ec950d1c0a464eecf8d",
+    "url": "https://github.com/allenai/olmocr/blob/f7cfe4c22098b154c76b6ec950d1c0a464eecf8d/olmocr/prompts/anchor.py",
+    "bytes": 12533
+  },
+  {
+    "repo": "allenai/olmocr",
+    "path": "olmocr/prompts/prompts.py",
+    "sha": "f7cfe4c22098b154c76b6ec950d1c0a464eecf8d",
+    "url": "https://github.com/allenai/olmocr/blob/f7cfe4c22098b154c76b6ec950d1c0a464eecf8d/olmocr/prompts/prompts.py",
+    "bytes": 11076
+  },
+  {
+    "repo": "allenai/olmocr",
+    "path": "olmocr/bench/tests.py",
+    "sha": "f7cfe4c22098b154c76b6ec950d1c0a464eecf8d",
+    "url": "https://github.com/allenai/olmocr/blob/f7cfe4c22098b154c76b6ec950d1c0a464eecf8d/olmocr/bench/tests.py",
+    "bytes": 36066
+  },
+  {
+    "repo": "PaddlePaddle/PaddleOCR",
+    "path": "docs/version3.x/pipeline_usage/PP-ChatOCRv4.en.md",
+    "sha": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+    "url": "https://github.com/PaddlePaddle/PaddleOCR/blob/dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf/docs/version3.x/pipeline_usage/PP-ChatOCRv4.en.md",
+    "bytes": 183494
+  },
+  {
+    "repo": "PaddlePaddle/PaddleOCR",
+    "path": "paddleocr/_pipelines/pp_chatocrv4_doc.py",
+    "sha": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+    "url": "https://github.com/PaddlePaddle/PaddleOCR/blob/dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf/paddleocr/_pipelines/pp_chatocrv4_doc.py",
+    "bytes": 30671
+  },
+  {
+    "repo": "PaddlePaddle/PaddleOCR",
+    "path": "docs/version3.x/pipeline_usage/PP-StructureV3.en.md",
+    "sha": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+    "url": "https://github.com/PaddlePaddle/PaddleOCR/blob/dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf/docs/version3.x/pipeline_usage/PP-StructureV3.en.md",
+    "bytes": 197870
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "docs/next/middle-json/structured-content-schema.md",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/docs/next/middle-json/structured-content-schema.md",
+    "bytes": 12943
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/model/vlm/contracts.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/model/vlm/contracts.py",
+    "bytes": 1821
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/backend/postprocess/legacy_schema_adapter.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/backend/postprocess/legacy_schema_adapter.py",
+    "bytes": 29068
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/backend/postprocess/llm_aided.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/backend/postprocess/llm_aided.py",
+    "bytes": 3723
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/backend/postprocess/llm_client.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/backend/postprocess/llm_client.py",
+    "bytes": 3938
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/backend/postprocess/table_merge/llm_cell_merge.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/backend/postprocess/table_merge/llm_cell_merge.py",
+    "bytes": 6896
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "mineru/render/docx.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/mineru/render/docx.py",
+    "bytes": 642
+  },
+  {
+    "repo": "opendatalab/MinerU",
+    "path": "tests/unittest/test_llm_aided_postprocess.py",
+    "sha": "22f5abb681c2314feffb9353fdff919d52dd8369",
+    "url": "https://github.com/opendatalab/MinerU/blob/22f5abb681c2314feffb9353fdff919d52dd8369/tests/unittest/test_llm_aided_postprocess.py",
+    "bytes": 30523
+  },
+  {
+    "repo": "zai-org/GLM-OCR",
+    "path": "glmocr/pipeline/pipeline.py",
+    "sha": "cef4d0ea120d1741f5cefe8985eee45f6c8eff1d",
+    "url": "https://github.com/zai-org/GLM-OCR/blob/cef4d0ea120d1741f5cefe8985eee45f6c8eff1d/glmocr/pipeline/pipeline.py",
+    "bytes": 12999
+  }
+]

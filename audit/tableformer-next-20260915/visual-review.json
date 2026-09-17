@@ -1,0 +1,25 @@
+{
+  "reviewer": "Codex visual inspection; not a human sign-off",
+  "reviewed_images": [
+    "visuals/label-conventions.png",
+    "visuals/public-inputs.png"
+  ],
+  "label_samples": [
+    "PMC4369829_table_0",
+    "PMC5717048_table_0",
+    "PMC4995370_table_0",
+    "PMC2577118_table_0",
+    "PMC1804284_table_0",
+    "PMC2714296_table_2"
+  ],
+  "observations": {
+    "merged": "Grid follows labelled spans; no splitting of merged labels.",
+    "empty": "Blank right-hand slots remain in the grid and denominator.",
+    "wide_gutter": "Full-grid boundaries include inter-column gutters; PDF extents visibly remain tighter.",
+    "ruled": "Ruled examples visually align with structure grids.",
+    "public_pdf": "Chinese tables, multi-table pages and an image-based medical-report fixture render legibly. The medical fixture is public and already redacted by its publisher; it is not a clinical evaluation."
+  },
+  "human_review_status": "not_performed",
+  "official_xml": "label-audit/crosscheck.json",
+  "quality_acceptance": false
+}

@@ -1,0 +1,73 @@
+{
+  "pending_render_drops_process": {
+    "render_id": "92326ceb56dc41b9800f4b1d30366b8f",
+    "requested_process_id": "92326ceb56dc41b9800f4b1d30366b8f",
+    "same_id": true,
+    "first_step_worked": true,
+    "second_step_worked": false,
+    "stages": [
+      {
+        "id": "92326ceb56dc41b9800f4b1d30366b8f",
+        "kind": "render",
+        "status": "succeeded",
+        "parameters": "{\"dpi\":72}"
+      }
+    ],
+    "result_count": 0,
+    "image_count": 1,
+    "expected": "The native process request is either queued after render, or explicitly rejected; success must not silently drop it."
+  },
+  "search_false_negatives": {
+    "stored_text": "合同写明 \"甲方\" 应付款，路径 C:\\财务\\报表，收款人 ÉLODIE，参考 STRASSE 与 Straße。",
+    "queries": [
+      {
+        "q": "甲方",
+        "literal_casefold_present": true,
+        "actual_total": 1
+      },
+      {
+        "q": "\"甲方\"",
+        "literal_casefold_present": true,
+        "actual_total": 0
+      },
+      {
+        "q": "C:\\财务\\报表",
+        "literal_casefold_present": true,
+        "actual_total": 0
+      },
+      {
+        "q": "élodie",
+        "literal_casefold_present": true,
+        "actual_total": 0
+      },
+      {
+        "q": "strasse",
+        "literal_casefold_present": true,
+        "actual_total": 1
+      }
+    ]
+  },
+  "completed_page_starved_by_paused_prefix": {
+    "stages": 51,
+    "paused_earlier_region_tasks": 50,
+    "last_region_status_before_finalization": "succeeded",
+    "attempts_before_unblocking": [
+      {
+        "iteration": 1,
+        "last_stage_status": "waiting_gpu",
+        "published_results": 0
+      },
+      {
+        "iteration": 2,
+        "last_stage_status": "waiting_gpu",
+        "published_results": 0
+      },
+      {
+        "iteration": 3,
+        "last_stage_status": "waiting_gpu",
+        "published_results": 0
+      }
+    ],
+    "last_stage_status_after_freeing_one_prefix_slot": "succeeded"
+  }
+}

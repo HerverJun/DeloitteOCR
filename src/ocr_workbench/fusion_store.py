@@ -211,8 +211,8 @@ class FusionStoreMixin:
                             evidence = view['evidence'][0]
                             item['location'] = {'level': evidence['details']['level'], 'polygon': evidence['polygon'],
                                 'table_polygon': evidence['details'].get('table_polygon'),
-                                'version_id': view['version_id'], 'reason': '人工定位' if evidence['source'] == 'manual' else
-                                '模型定位（实验性）' if evidence['details']['level'] == 'cell' else '对应不可靠，降级至表格区域',
+                                'range_semantics': evidence['details'].get('range_semantics'),
+                                'version_id': view['version_id'], 'reason': evidence['details'].get('display_reason','暂无可靠定位'),
                                 'evidence_id': evidence['id'], 'source': evidence['source']}
                         if not item['location'].get('table_polygon'):
                             table_view = geometry_view(self, result_id, {'kind': 'table', 'table': indices[0]}, db=db)
@@ -293,6 +293,8 @@ class FusionStoreMixin:
             reconcile(db, result_id, before, after, deciding=issue_id)
             from ocr_workbench.geometry import reconcile_geometry
             reconcile_geometry(db, result_id, before, after)
+            from ocr_workbench.structure_store import reconcile_structure
+            reconcile_structure(db, result_id, before, after)
             state = "question" if action == "question" else "resolved"
             changed = db.execute("SELECT target FROM fusion_issues WHERE id=?", (issue_id,)).fetchone()
             actual, _ = target_value(after, json.loads(changed[0]))

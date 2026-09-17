@@ -1,0 +1,18 @@
+
+> offline-ocr-workbench@0.11.0-rc.1 build
+> tsc -b && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 3738 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:   0.34 kB
+dist/assets/index-DE5SzOQM.css   81.99 kB │ gzip:  15.86 kB
+dist/assets/index-D6jnpZ69.js   592.80 kB │ gzip: 184.69 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.52s

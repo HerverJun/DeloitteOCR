@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "files": {
+    "inputs\\development.json": "942ca594bdfe36c5b2fc347630ae6f27ace3fd3cb0bafc443f4b92e0f15e868a",
+    "annotations\\development.annotations.json": "1d22895e2a5e568dc38f379abb6d9c284edcd51c79b4e47018f3d50cc913ed0e",
+    "inputs\\validation.json": "96ba8d6cf56b600a74c750ee3977dbb3978ecd0f0a3d8ec658fd139cb396f77c",
+    "annotations\\validation.annotations.json": "f4b1078bbcd17c2e7712365eb7ed2aaa07d8703e33a53dca178be9f0f897dde4",
+    "inputs\\test.json": "204a0dc6877227533f5fc38b126481755ae6d9dfb7598358bdbfea1c69fe5e5f",
+    "sealed\\test.annotations.json": "23400bd8029f49747f939cdf7a9590005c72f4ffdb2949ff8e22fd167cb5ed44",
+    "protocol.json": "1f748615b7f0f8a7d39ee495029e5844450180d72c5ed0d9c078682631b7cd2f",
+    "qualification.json": "fc3a1a4be42c692a90302c8c3cf347986dddb68e710eaa98aeb840eda5df9582"
+  },
+  "summary": {
+    "development": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 29,
+      "strata": {
+        "no_table": 7,
+        "single_table": 6,
+        "multiple_tables": 7
+      }
+    },
+    "validation": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 23,
+      "strata": {
+        "no_table": 7,
+        "single_table": 7,
+        "multiple_tables": 6
+      }
+    },
+    "test": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 30,
+      "strata": {
+        "no_table": 6,
+        "single_table": 7,
+        "multiple_tables": 7
+      }
+    }
+  },
+  "frozen_before_page_inference": true
+}

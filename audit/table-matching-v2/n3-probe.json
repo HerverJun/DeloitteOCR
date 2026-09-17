@@ -1,0 +1,235 @@
+{
+  "scope": "N3 development first 12; no independent test inference",
+  "targets": 1338,
+  "tables": 12,
+  "methods": {
+    "B1": {
+      "counts": {
+        "targets": 1338,
+        "offered": 0,
+        "correct": 0,
+        "wrong": 0,
+        "low_iou": 0,
+        "extra_outputs": 0,
+        "region_fallback": 1338
+      },
+      "precise_coverage": 0.0,
+      "wrong_cell_rate": null,
+      "offered_quality": null,
+      "strict_output_quality": null,
+      "low_iou_rate": null,
+      "offered_rate": 0.0
+    },
+    "B2": {
+      "counts": {
+        "targets": 1338,
+        "offered": 0,
+        "correct": 0,
+        "wrong": 0,
+        "low_iou": 0,
+        "extra_outputs": 0,
+        "region_fallback": 1338
+      },
+      "precise_coverage": 0.0,
+      "wrong_cell_rate": null,
+      "offered_quality": null,
+      "strict_output_quality": null,
+      "low_iou_rate": null,
+      "offered_rate": 0.0
+    },
+    "N1": {
+      "counts": {
+        "targets": 1338,
+        "offered": 51,
+        "correct": 48,
+        "wrong": 2,
+        "low_iou": 0,
+        "extra_outputs": 0,
+        "region_fallback": 1232,
+        "text_fallback": 55,
+        "identity_tie": 1,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 0,
+        "legacy_correct": 48
+      },
+      "precise_coverage": 0.03587443946188341,
+      "wrong_cell_rate": 0.0392156862745098,
+      "offered_quality": 0.9411764705882353,
+      "strict_output_quality": 0.9411764705882353,
+      "low_iou_rate": 0.0,
+      "offered_rate": 0.03811659192825112
+    },
+    "N2": {
+      "counts": {
+        "targets": 1338,
+        "offered": 443,
+        "correct": 214,
+        "wrong": 1,
+        "low_iou": 228,
+        "extra_outputs": 0,
+        "region_fallback": 412,
+        "text_fallback": 483,
+        "identity_tie": 0,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 1,
+        "legacy_correct": 206
+      },
+      "precise_coverage": 0.15994020926756353,
+      "wrong_cell_rate": 0.002257336343115124,
+      "offered_quality": 0.48306997742663654,
+      "strict_output_quality": 0.48306997742663654,
+      "low_iou_rate": 0.5146726862302483,
+      "offered_rate": 0.3310911808669656
+    },
+    "N3-raw": {
+      "counts": {
+        "targets": 1338,
+        "offered": 1058,
+        "correct": 654,
+        "wrong": 1,
+        "low_iou": 398,
+        "extra_outputs": 0,
+        "identity_tie": 5,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 1,
+        "legacy_correct": 654,
+        "text_fallback": 87,
+        "region_fallback": 193
+      },
+      "precise_coverage": 0.48878923766816146,
+      "wrong_cell_rate": 0.000945179584120983,
+      "offered_quality": 0.6181474480151229,
+      "strict_output_quality": 0.6181474480151229,
+      "low_iou_rate": 0.3761814744801512,
+      "offered_rate": 0.7907324364723468
+    },
+    "N3-postprocessed": {
+      "counts": {
+        "targets": 1338,
+        "offered": 0,
+        "correct": 0,
+        "wrong": 0,
+        "low_iou": 0,
+        "extra_outputs": 0,
+        "region_fallback": 251,
+        "text_fallback": 1087
+      },
+      "precise_coverage": 0.0,
+      "wrong_cell_rate": null,
+      "offered_quality": null,
+      "strict_output_quality": null,
+      "low_iou_rate": null,
+      "offered_rate": 0.0
+    }
+  },
+  "oracle_diagnostic_only": {
+    "raw": {
+      "candidates": 1309,
+      "invalid_candidates": 0,
+      "any_candidate": 815,
+      "one_to_one": 815
+    },
+    "postprocessed": {
+      "candidates": 1276,
+      "invalid_candidates": 0,
+      "any_candidate": 486,
+      "one_to_one": 486
+    }
+  },
+  "inference_seconds": {
+    "median": 0.4909641999993255,
+    "p90": 1.313371370000823,
+    "p95": 1.3830211000000416,
+    "n": 12
+  },
+  "rows": [
+    {
+      "id": "PMC4995370_table_0",
+      "targets": 174,
+      "status": "success",
+      "inference_seconds": 1.458163199999035,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC4369829_table_0",
+      "targets": 51,
+      "status": "success",
+      "inference_seconds": 0.37771020000036515,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC5717048_table_0",
+      "targets": 157,
+      "status": "success",
+      "inference_seconds": 0.9472758000010799,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC3574653_table_0",
+      "targets": 55,
+      "status": "success",
+      "inference_seconds": 0.38636890000088897,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC2577118_table_0",
+      "targets": 86,
+      "status": "success",
+      "inference_seconds": 0.5020277999992686,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC4566864_table_0",
+      "targets": 92,
+      "status": "success",
+      "inference_seconds": 0.6068857999998727,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC4795784_table_1",
+      "targets": 220,
+      "status": "success",
+      "inference_seconds": 1.2398429000004398,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC3212536_table_1",
+      "targets": 71,
+      "status": "success",
+      "inference_seconds": 0.4579696000000695,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC5147856_table_0",
+      "targets": 214,
+      "status": "success",
+      "inference_seconds": 1.3215412000008655,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC2761847_table_0",
+      "targets": 68,
+      "status": "success",
+      "inference_seconds": 0.4799005999993824,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC4498019_table_2",
+      "targets": 63,
+      "status": "success",
+      "inference_seconds": 0.38717060000089987,
+      "peak_cuda_bytes": 427572224
+    },
+    {
+      "id": "PMC6156584_table_0",
+      "targets": 87,
+      "status": "success",
+      "inference_seconds": 0.3657156999997824,
+      "peak_cuda_bytes": 427572224
+    }
+  ],
+  "decision": "experimental candidates only; no product model integration or additional OCR vote"
+}

@@ -1,0 +1,214 @@
+{
+  "inference": {
+    "development:ppocr": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 80
+      },
+      "seconds": {
+        "median": 0.6155697499998496,
+        "p90": 0.9278035900000761,
+        "p95": 1.0001242950002962,
+        "n": 80
+      },
+      "load": {
+        "cold_process_load_seconds": 44.98764839999967,
+        "model_load_seconds": 25.45007380000061
+      }
+    },
+    "development:geometry": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 80
+      },
+      "seconds": {
+        "median": 0.2641580999998041,
+        "p90": 0.44711021000002804,
+        "p95": 0.5011352250006439,
+        "n": 80
+      },
+      "load": {
+        "cold_process_load_seconds": 13.675738900000397,
+        "model_load_seconds": 6.237661500000286
+      }
+    },
+    "development:rapidtable": {
+      "device": "CPU (4 intra / 1 inter)",
+      "status_counts": {
+        "success": 80
+      },
+      "seconds": {
+        "median": 0.12933134999957474,
+        "p90": 0.4196901800000888,
+        "p95": 0.4451002499999047,
+        "n": 80
+      },
+      "load": {
+        "cold_load_seconds": 0.2142530999999508
+      }
+    },
+    "development:actual-paddlevl": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 80
+      },
+      "seconds": {
+        "median": 11.09004669999922,
+        "p90": 21.139405999999692,
+        "p95": 25.830597885001037,
+        "n": 80
+      },
+      "load": {
+        "cold_process_load_seconds": 50.11520589999964
+      }
+    },
+    "validation:ppocr": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 60
+      },
+      "seconds": {
+        "median": 0.6154068000000734,
+        "p90": 0.7975943700001153,
+        "p95": 0.9304763550000189,
+        "n": 60
+      },
+      "load": {
+        "cold_process_load_seconds": 9.148208999999952,
+        "model_load_seconds": 6.229859700000816
+      }
+    },
+    "validation:geometry": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 60
+      },
+      "seconds": {
+        "median": 0.2639835999998468,
+        "p90": 0.3878062300000238,
+        "p95": 0.5119016550001106,
+        "n": 60
+      },
+      "load": {
+        "cold_process_load_seconds": 13.291540199999872,
+        "model_load_seconds": 5.891493699999955
+      }
+    },
+    "validation:rapidtable": {
+      "device": "CPU (4 intra / 1 inter)",
+      "status_counts": {
+        "success": 60
+      },
+      "seconds": {
+        "median": 0.11853895000012926,
+        "p90": 0.26935937000034754,
+        "p95": 0.4118424199998113,
+        "n": 60
+      },
+      "load": {
+        "cold_load_seconds": 0.15483750000021246
+      }
+    },
+    "test:ppocr": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 120
+      },
+      "seconds": {
+        "median": 0.5936349499997959,
+        "p90": 0.8223915400005357,
+        "p95": 0.9397856199986562,
+        "n": 120
+      },
+      "load": {
+        "cold_process_load_seconds": 9.223393399999622,
+        "model_load_seconds": 6.216182500000286
+      }
+    },
+    "test:geometry": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 120
+      },
+      "seconds": {
+        "median": 0.26315195000006497,
+        "p90": 0.44224750999983375,
+        "p95": 0.4612485300001026,
+        "n": 120
+      },
+      "load": {
+        "cold_process_load_seconds": 13.264371600000231,
+        "model_load_seconds": 5.838571399999637
+      }
+    },
+    "test:rapidtable": {
+      "device": "CPU (4 intra / 1 inter)",
+      "status_counts": {
+        "success": 120
+      },
+      "seconds": {
+        "median": 0.15205110000079003,
+        "p90": 0.3698768699990979,
+        "p95": 0.4669061099990358,
+        "n": 120
+      },
+      "load": {
+        "cold_load_seconds": 0.1521006999992096
+      }
+    },
+    "test:actual-paddlevl": {
+      "device": "GPU:0",
+      "status_counts": {
+        "success": 120
+      },
+      "seconds": {
+        "median": 10.073191050000787,
+        "p90": 19.7262850500003,
+        "p95": 24.653904300001248,
+        "n": 120
+      },
+      "load": {
+        "cold_process_load_seconds": 11.627323000000615
+      }
+    }
+  },
+  "test_mapping_stages": {
+    "N1": {
+      "token_matching_ms": {
+        "median": 3.2995999999911874,
+        "p90": 7.527699999627657,
+        "p95": 9.326299999429466,
+        "n": 96
+      },
+      "local_correspondence_ms": {
+        "median": 8.091599999715982,
+        "p90": 30.351800000062212,
+        "p95": 43.80120000087118,
+        "n": 96
+      },
+      "scope": "Only tables with stage timing; rejected table identity may have no detailed stage record"
+    },
+    "N2": {
+      "token_matching_ms": {
+        "median": 3.4077000000252156,
+        "p90": 7.521899998755543,
+        "p95": 9.672339999633545,
+        "n": 103
+      },
+      "local_correspondence_ms": {
+        "median": 12.18940000035218,
+        "p90": 51.8435199992382,
+        "p95": 86.26774999993354,
+        "n": 103
+      },
+      "scope": "Only tables with stage timing; rejected table identity may have no detailed stage record"
+    }
+  },
+  "ui_cached_click_dom_ms": {
+    "median": 66.69055000000026,
+    "p90": 69.71584000000048,
+    "p95": 77.93085999999946,
+    "n": 50
+  },
+  "scope": "Local machine, automated timing. CPU/GPU separate; no human or target-machine claim."
+}

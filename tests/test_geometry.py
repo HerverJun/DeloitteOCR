@@ -153,6 +153,57 @@ class GeometryStorageTests(unittest.TestCase):
         self.assertFalse(complete_geometry(self.store, task, prediction(), self.store.root / 'evidence.json'))
         self.assertEqual(geometry_view(self.store, self.result)['evidence'], [])
 
+    def test_late_text_revision_does_not_become_fresh_geometry(self):
+        enqueue_geometry(self.store,self.result,0)
+        task=self.store.claim()
+        changed=deepcopy(self.edit);changed['tables'][0]['cells'][3]['text']='200.00'
+        self.store.save(self.result,changed,0)
+        self.assertTrue(complete_geometry(self.store,task,prediction(),self.store.root/'late.json'))
+        self.assertEqual(geometry_view(self.store,self.result)['evidence'],[])
+        self.assertTrue(all(r['status']=='stale' for r in self.store.rows('SELECT status FROM geometry_evidence')))
+        self.assertFalse(enqueue_geometry(self.store,self.result,1)['cached'])
+
+    def test_text_cache_and_old_anchor_snapshot_are_distinct(self):
+        self.geometry()
+        changed=deepcopy(self.edit);changed['tables'][0]['cells'][3]['text']='200.00'
+        self.store.save(self.result,changed,0)
+        view=geometry_view(self.store,self.result)
+        self.assertTrue(view['evidence'])
+        self.assertTrue(all(not r['details']['anchor_snapshot_current'] for r in view['evidence']))
+        self.assertFalse(enqueue_geometry(self.store,self.result,1)['cached'])
+
+    def test_policy_change_does_not_hit_mapping_cache(self):
+        from unittest.mock import patch
+        from ocr_workbench.table_matching import default_policy
+        self.geometry();policy=default_policy();policy['token_minimum_margin']=.3
+        with patch('ocr_workbench.table_matching.default_policy',return_value=policy):
+            self.assertFalse(enqueue_geometry(self.store,self.result,0)['cached'])
+
+    def test_algorithm_code_change_invalidates_correspondence_without_version_bump(self):
+        from unittest.mock import patch
+        self.geometry()
+        with patch('ocr_workbench.table_matching.matching_code_fingerprint',return_value='changed-implementation'):
+            self.assertFalse(enqueue_geometry(self.store,self.result,0)['cached'])
+            self.assertEqual(geometry_view(self.store,self.result)['evidence'],[])
+
+    def test_candidate_cache_survives_text_edit_without_reusing_correspondence(self):
+        enqueue_geometry(self.store,self.result,0);task=self.store.claim()
+        artifact=self.store.root/'candidate.json';artifact.write_text(json.dumps(prediction()),'utf-8')
+        complete_geometry(self.store,task,prediction(),artifact)
+        changed=deepcopy(self.edit);changed['tables'][0]['cells'][3]['text']='200.00'
+        self.store.save(self.result,changed,0)
+        request=enqueue_geometry(self.store,self.result,1)
+        snapshot=json.loads(self.store.rows('SELECT snapshot FROM geometry_requests WHERE task_id=?',(request['task_id'],))[0]['snapshot'])
+        self.assertEqual(snapshot['candidate_artifact']['path'],'candidate.json')
+        self.assertEqual(snapshot['revision'],1)
+        from ocr_workbench.task_queue import TaskQueue
+        def unexpected_gpu(*args):
+            raise AssertionError('A verified candidate replay must not load a GPU worker')
+        queue=TaskQueue(self.store,self.root,adapter_factory=unexpected_gpu)
+        self.assertTrue(queue.step())
+        self.assertEqual(self.store.one('tasks',request['task_id'])['status'],'succeeded')
+        self.assertIsNone(queue.recovery_task)
+
 
 if __name__ == '__main__':
     unittest.main()

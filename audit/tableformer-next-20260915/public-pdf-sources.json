@@ -1,0 +1,126 @@
+{
+  "sources": [
+    {
+      "id": "camelot-foo",
+      "repository": "camelot-dev/camelot",
+      "path": "tests/files/foo.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:51:28.148781+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "9a607c0d560369aa55a792533c516d61b74d8807",
+      "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/foo.pdf",
+      "transport": "GitHub contents API at the same source commit",
+      "status": "success",
+      "sha256": "7d6c24e45b38375e322419281cee1335ddb97e00fc86abe9f22afcd8b42e6d82",
+      "bytes": 84158,
+      "final_url": "https://api.github.com/repos/camelot-dev/camelot/contents/tests/files/foo.pdf?ref=9a607c0d560369aa55a792533c516d61b74d8807"
+    },
+    {
+      "id": "camelot-column-span",
+      "repository": "camelot-dev/camelot",
+      "path": "tests/files/column_span_2.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:18:04.259320+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "9a607c0d560369aa55a792533c516d61b74d8807",
+      "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/column_span_2.pdf",
+      "status": "success",
+      "sha256": "14290fe5c01ad98b9362906b0c9646756ebf2999a82aaaeefc4dcecff5d3726f",
+      "bytes": 24313,
+      "final_url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/column_span_2.pdf"
+    },
+    {
+      "id": "camelot-row-span",
+      "repository": "camelot-dev/camelot",
+      "path": "tests/files/row_span_1.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:51:28.150781+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "9a607c0d560369aa55a792533c516d61b74d8807",
+      "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/row_span_1.pdf",
+      "status": "success",
+      "sha256": "bd7d9ba30325818cfc0b61951b14789615ba3e347b04e8cc5d726614eac0f7f3",
+      "bytes": 33228,
+      "final_url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/row_span_1.pdf"
+    },
+    {
+      "id": "camelot-multiple-tables",
+      "repository": "camelot-dev/camelot",
+      "path": "tests/files/multiple_tables.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:18:05.794455+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "9a607c0d560369aa55a792533c516d61b74d8807",
+      "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/multiple_tables.pdf",
+      "status": "success",
+      "sha256": "9ac99cf86d3dd9b8e3773b773b942ec784c9e4b6e36febe1637767468e96526a",
+      "bytes": 62330,
+      "final_url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/multiple_tables.pdf"
+    },
+    {
+      "id": "camelot-image",
+      "repository": "camelot-dev/camelot",
+      "path": "tests/files/image.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:18:27.243964+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "9a607c0d560369aa55a792533c516d61b74d8807",
+      "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/image.pdf",
+      "status": "success",
+      "sha256": "0321b83f298e2e8fa41edeff5284f66366d5fe573dbebadd726f48330dcb7bee",
+      "bytes": 542301,
+      "final_url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/image.pdf"
+    },
+    {
+      "id": "pdfplumber-nics",
+      "repository": "jsvine/pdfplumber",
+      "path": "tests/pdfs/nics-background-checks-2015-11.pdf",
+      "pages": [
+        1
+      ],
+      "created_utc": "2026-09-15T14:18:38.659189+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "source_commit": "4c64b92d5caccd71c645e98e0fabb0c4dba7ff45",
+      "url": "https://raw.githubusercontent.com/jsvine/pdfplumber/4c64b92d5caccd71c645e98e0fabb0c4dba7ff45/tests/pdfs/nics-background-checks-2015-11.pdf",
+      "status": "success",
+      "sha256": "4f0ae6e017b0e97de211da8fd97316e55bd927af5740d6ce95e1b7b1539f9407",
+      "bytes": 90468,
+      "final_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/4c64b92d5caccd71c645e98e0fabb0c4dba7ff45/tests/pdfs/nics-background-checks-2015-11.pdf"
+    },
+    {
+      "id": "hk-budget-2024",
+      "url": "https://www.budget.gov.hk/2024/chi/pdf/c_budget_speech_2024-25.pdf",
+      "pages": [
+        1,
+        10,
+        30,
+        60
+      ],
+      "language": "zh",
+      "created_utc": "2026-09-15T14:18:40.378415+00:00",
+      "usage": "local engineering evaluation; source documents are not redistributed",
+      "independent_cell_annotations": false,
+      "status": "success",
+      "sha256": "5868a3a24184ae81cb6e129f0b09b9ca5392ee913e1a844c736a3291ae367ddd",
+      "bytes": 4144291,
+      "final_url": "https://www.budget.gov.hk/2024/chi/pdf/c_budget_speech_2024-25.pdf"
+    }
+  ],
+  "quality_acceptance": false
+}

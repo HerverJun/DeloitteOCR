@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "summary_of": {
+    "path": "audit/multimodal-review-20260917/gpu-public-v3/receipt.json",
+    "sha256": "65ba7493667b1bbdb5c41ac9acaaae401c8bbe66c48f13e042e15430264b3602",
+    "bytes": 55362
+  },
+  "derived_from": [
+    {
+      "path": "audit/multimodal-review-20260917/public-inputs.json",
+      "sha256": "c817cd10160d30270033a8ba7d674acd4f40c280cbcd969ae7ccd01d57c415df",
+      "bytes": 904
+    }
+  ],
+  "scope": "Existing public development material; bounded workflow probe, no independent truth or accuracy claim; no proposals adopted",
+  "omitted": [
+    "source transcription",
+    "target context",
+    "model response text and reasons",
+    "image data and base64",
+    "runtime asset inventory"
+  ],
+  "model_identity": {
+    "profile_id": "qwen35-4b-q4",
+    "model": "Qwen/Qwen3.5-4B",
+    "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+    "base_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "quantization": "Q4_K_M",
+    "model_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+    "projector_sha256": "cd88edcf8d031894960bb0c9c5b9b7e1fea6ebee02b9f7ce925a00d12891f864",
+    "runtime": "llama.cpp-b10894",
+    "runtime_sha256": "2f1c719ed602d55c6cd4e1db338cb4d5f34328f53aa99d4d30f0be95c793101e",
+    "config_sha256": "82f67ff0c6665ce1a13f49dc65557ecae003f2e9718439af48a6c950c2a9dbaf",
+    "prompt_version": "visual-review-v3",
+    "prompt_sha256": "46529c5c8e8db766bf3eb0fea296f9857a8d7162a97db910241f43bbffc4fdf4"
+  },
+  "limits": {
+    "context_tokens": 16384,
+    "max_output_tokens": 4096,
+    "max_targets": 256,
+    "max_target_chars": 4000,
+    "image_max_pixels": 1048576,
+    "image_max_side": 1600,
+    "context_max_pixels": 262144,
+    "request_timeout_seconds": 180,
+    "startup_timeout_seconds": 180,
+    "max_total_chars": 40000,
+    "batch_size": 1,
+    "max_batch_chars": 6000
+  },
+  "invariants": {
+    "source_unchanged_all": true,
+    "proposal_adoption": "none; recorded by original receipt scope",
+    "independent_truth_evaluation": false,
+    "accuracy_claim": false
+  },
+  "counts": {
+    "pages": 2,
+    "status": {
+      "succeeded": 2
+    },
+    "targets": 16,
+    "decisions": {
+      "keep": 9,
+      "uncertain": 4,
+      "replace": 3
+    },
+    "wall_seconds_total": 34.72768899999937
+  },
+  "rows": [
+    {
+      "id": "public-federal-register",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/federal-register-2020-17221.pdf",
+      "image_sha256": "39cace72363c03227d2142735276971109d887b268a40cc9409466cb7a1a4a7f",
+      "source_result_sha256": "b1a9fa5048a8c83907ef33ec3415f4dfc884bb5c4b47579cd55b07fb3de33c22",
+      "selected_by": "first non-empty eligible text lines",
+      "status": "succeeded",
+      "wall_seconds": 19.770151899996563,
+      "source_unchanged": true,
+      "source_paths": {
+        "image": "build/public-quality-20260916/additional-public/pages/tool-public-federal-register-2020-17221-p1/input.png",
+        "result": "build/public-quality-20260916/product-additional-01/tool-public-federal-register-2020-17221-p1-result.json"
+      },
+      "target_count": 8,
+      "target_kinds": {
+        "text": 8
+      },
+      "evidence_levels": {
+        "text": 1,
+        "page": 7
+      },
+      "decision_counts": {
+        "keep": 4,
+        "uncertain": 2,
+        "replace": 2
+      },
+      "timing": {
+        "load_seconds": 2.1436576999985846,
+        "review_seconds": 13.883303700000397
+      }
+    },
+    {
+      "id": "public-nics-table",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11.pdf",
+      "image_sha256": "9f0850a6fa20a5f3fb95e0bed4e42fe03656146190a2bb75484a557a19a52bad",
+      "source_result_sha256": "d8fdbb15c7602b4cea1e602c181ce7f16361216e5b93181701ce39cdf197960c",
+      "selected_by": "first non-empty eligible text lines",
+      "status": "succeeded",
+      "wall_seconds": 14.95753710000281,
+      "source_unchanged": true,
+      "source_paths": {
+        "image": "build/public-quality-20260916/additional-public/pages/tool-public-nics-background-checks-2015-11-p1/input.png",
+        "result": "build/public-quality-20260916/product-additional-01/tool-public-nics-background-checks-2015-11-p1-result.json"
+      },
+      "target_count": 8,
+      "target_kinds": {
+        "text": 8
+      },
+      "evidence_levels": {
+        "page": 8
+      },
+      "decision_counts": {
+        "keep": 5,
+        "uncertain": 2,
+        "replace": 1
+      },
+      "timing": {
+        "load_seconds": 2.0063881000023684,
+        "review_seconds": 12.577222400002938
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "collected_at_utc": "2026-09-17T01:08:24.400650+00:00",
+  "repos": [
+    {
+      "repo": "datalab-to/marker",
+      "branch": "master",
+      "stars": 39784,
+      "pushed_at": "2026-09-13T07:35:22Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "url": "https://github.com/datalab-to/marker"
+    },
+    {
+      "repo": "scribeocr/scribe.js",
+      "branch": "master",
+      "stars": 320,
+      "pushed_at": "2026-09-13T09:07:08Z",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      },
+      "url": "https://github.com/scribeocr/scribe.js"
+    },
+    {
+      "repo": "docling-project/docling",
+      "branch": "main",
+      "stars": 66510,
+      "pushed_at": "2026-09-16T16:33:34Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "url": "https://github.com/docling-project/docling"
+    },
+    {
+      "repo": "ibm-granite/granite-docling",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "repo": "allenai/olmocr",
+      "branch": "main",
+      "stars": 19619,
+      "pushed_at": "2026-03-25T17:52:37Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "url": "https://github.com/allenai/olmocr"
+    },
+    {
+      "repo": "opendatalab/MinerU",
+      "branch": "master",
+      "stars": 80050,
+      "pushed_at": "2026-09-16T14:32:29Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      },
+      "url": "https://github.com/opendatalab/MinerU"
+    },
+    {
+      "repo": "PaddlePaddle/PaddleOCR",
+      "branch": "main",
+      "stars": 89663,
+      "pushed_at": "2026-09-16T03:31:50Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "url": "https://github.com/PaddlePaddle/PaddleOCR"
+    },
+    {
+      "repo": "zai-org/GLM-OCR",
+      "branch": "main",
+      "stars": 7449,
+      "pushed_at": "2026-04-21T08:52:11Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "url": "https://github.com/zai-org/GLM-OCR"
+    },
+    {
+      "repo": "rednote-hilab/dots.ocr",
+      "error": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>"
+    }
+  ]
+}

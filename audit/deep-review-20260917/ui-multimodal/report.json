@@ -1,0 +1,1284 @@
+{
+  "schema_version": 1,
+  "result_id": "888678b8b68244d29ee8bb78d63e28be",
+  "revision": 6,
+  "automatic_adoption": false,
+  "contributes_to_votes": false,
+  "requests": [
+    {
+      "task_id": "140605a6fcc549b2a81ba34cdde83866",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "request_id": "f4f86245-f38b-45cc-b695-b3f067c11f8a",
+      "payload_hash": "f0dcf698192cdb179ac6d88ea045bcb79abad75b200cc6362f9513b29a4569ce",
+      "obsolete": 1,
+      "summary": "固定UI验收建议",
+      "created": "2026-09-17T02:30:53.203151+00:00",
+      "status": "succeeded",
+      "phase": "审校建议已生成",
+      "error": null,
+      "started": "2026-09-17T02:30:53.312636+00:00",
+      "finished": "2026-09-17T02:30:53.322723+00:00",
+      "model_id": "audit-vision",
+      "revision": 0,
+      "version_id": "215b8aff242749738e14732fe3c9e820",
+      "scope": "target",
+      "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+      "target_count": 1,
+      "snapshot_current": false,
+      "snapshot": {
+        "contract_version": 1,
+        "task_id": "140605a6fcc549b2a81ba34cdde83866",
+        "result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "image_id": "ad697180795743cea7fe47d5d0a64679",
+        "revision": 0,
+        "selected_result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "edited_sha256": "4365539f856eef527d85503b274112b3b47fc8eb8f179bdaf5c3cc563a359e45",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "image_version": "215b8aff242749738e14732fe3c9e820",
+        "image_relative_path": "projects\\a9bfcce040f7433c955debc44e53db99\\images\\ad697180795743cea7fe47d5d0a64679\\215b8aff242749738e14732fe3c9e820.png",
+        "width": 900,
+        "height": 700,
+        "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+        "model_id": "audit-vision",
+        "config": {
+          "profile_id": "audit-vision",
+          "model": {
+            "id": "audit-vision"
+          },
+          "config_sha256": "synthetic-ui-only-not-model-evidence",
+          "prompt_version": "fixture"
+        },
+        "scope": "target",
+        "targets": [
+          {
+            "id": "target-0eedd2675abee5a5ce05",
+            "target": {
+              "kind": "text",
+              "start": 14,
+              "end": 27
+            },
+            "before": "Amount 001.00",
+            "evidence": {
+              "polygon": [
+                [
+                  40,
+                  95
+                ],
+                [
+                  750,
+                  95
+                ],
+                [
+                  750,
+                  145
+                ],
+                [
+                  40,
+                  145
+                ]
+              ],
+              "level": "text",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "original_ocr_block",
+              "reason": "唯一精确匹配的原始文字框"
+            },
+            "context": {
+              "preceding": "Invoice 00001\n",
+              "following": "\nName Revenve"
+            }
+          }
+        ]
+      },
+      "response": {
+        "items": [
+          {
+            "target_id": "target-0eedd2675abee5a5ce05",
+            "decision": "replace",
+            "after": "Amount 001.05",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          }
+        ],
+        "summary": "固定UI验收建议",
+        "identity": {
+          "synthetic": true
+        },
+        "timing": {
+          "elapsed_ms": 1
+        }
+      },
+      "task": {
+        "id": "140605a6fcc549b2a81ba34cdde83866",
+        "status": "succeeded",
+        "phase": "审校建议已生成",
+        "error": null,
+        "created": "2026-09-17T02:30:53.203151+00:00",
+        "started": "2026-09-17T02:30:53.312636+00:00",
+        "finished": "2026-09-17T02:30:53.322723+00:00"
+      }
+    },
+    {
+      "task_id": "ca710f6a1dbc4689acc2567d4a2d0cdf",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "request_id": "98d50d97-aa9e-438c-9de3-45459a815113",
+      "payload_hash": "72111b84ef73e052528c46bbacbfd20653cd5cc5305f9a8adfd7aee840051a32",
+      "obsolete": 1,
+      "summary": "固定UI验收建议",
+      "created": "2026-09-17T02:30:55.771718+00:00",
+      "status": "succeeded",
+      "phase": "审校建议已生成",
+      "error": null,
+      "started": "2026-09-17T02:30:55.844908+00:00",
+      "finished": "2026-09-17T02:30:55.855667+00:00",
+      "model_id": "audit-vision",
+      "revision": 1,
+      "version_id": "215b8aff242749738e14732fe3c9e820",
+      "scope": "target",
+      "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+      "target_count": 1,
+      "snapshot_current": false,
+      "snapshot": {
+        "contract_version": 1,
+        "task_id": "ca710f6a1dbc4689acc2567d4a2d0cdf",
+        "result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "image_id": "ad697180795743cea7fe47d5d0a64679",
+        "revision": 1,
+        "selected_result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "edited_sha256": "cfe01bf4b7783e888ee1a27d507ab26421eaeea5d17708341c663d855950b9e3",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "image_version": "215b8aff242749738e14732fe3c9e820",
+        "image_relative_path": "projects\\a9bfcce040f7433c955debc44e53db99\\images\\ad697180795743cea7fe47d5d0a64679\\215b8aff242749738e14732fe3c9e820.png",
+        "width": 900,
+        "height": 700,
+        "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+        "model_id": "audit-vision",
+        "config": {
+          "profile_id": "audit-vision",
+          "model": {
+            "id": "audit-vision"
+          },
+          "config_sha256": "synthetic-ui-only-not-model-evidence",
+          "prompt_version": "fixture"
+        },
+        "scope": "target",
+        "targets": [
+          {
+            "id": "target-45d3f9c5661eafd6acee",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "before": "001.00",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "table_caption": "",
+              "row": 1,
+              "column": 1,
+              "row_cells": [
+                {
+                  "column": 0,
+                  "text": "Revenue"
+                },
+                {
+                  "column": 1,
+                  "text": "001.00"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "items": [
+          {
+            "target_id": "target-45d3f9c5661eafd6acee",
+            "decision": "replace",
+            "after": "001.05",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          }
+        ],
+        "summary": "固定UI验收建议",
+        "identity": {
+          "synthetic": true
+        },
+        "timing": {
+          "elapsed_ms": 1
+        }
+      },
+      "task": {
+        "id": "ca710f6a1dbc4689acc2567d4a2d0cdf",
+        "status": "succeeded",
+        "phase": "审校建议已生成",
+        "error": null,
+        "created": "2026-09-17T02:30:55.771718+00:00",
+        "started": "2026-09-17T02:30:55.844908+00:00",
+        "finished": "2026-09-17T02:30:55.855667+00:00"
+      }
+    },
+    {
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "request_id": "6f590656-843f-4fc9-8063-509a885c4902",
+      "payload_hash": "6a412e34244930832623454aa7edd000df5bb668f60ae9fb7906bbc8f4738164",
+      "obsolete": 1,
+      "summary": "固定UI验收建议",
+      "created": "2026-09-17T02:30:57.874039+00:00",
+      "status": "succeeded",
+      "phase": "审校建议已生成",
+      "error": null,
+      "started": "2026-09-17T02:30:57.992205+00:00",
+      "finished": "2026-09-17T02:30:58.005414+00:00",
+      "model_id": "audit-vision",
+      "revision": 2,
+      "version_id": "215b8aff242749738e14732fe3c9e820",
+      "scope": "page",
+      "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+      "target_count": 7,
+      "snapshot_current": false,
+      "snapshot": {
+        "contract_version": 1,
+        "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+        "result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "image_id": "ad697180795743cea7fe47d5d0a64679",
+        "revision": 2,
+        "selected_result_id": "888678b8b68244d29ee8bb78d63e28be",
+        "edited_sha256": "09a6271bab305accc9570726217b64b29e9329ce9fa248ab00105c3b9411eb1d",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "image_version": "215b8aff242749738e14732fe3c9e820",
+        "image_relative_path": "projects\\a9bfcce040f7433c955debc44e53db99\\images\\ad697180795743cea7fe47d5d0a64679\\215b8aff242749738e14732fe3c9e820.png",
+        "width": 900,
+        "height": 700,
+        "image_sha256": "32cdc490fd1c20e65259cedaa51e295136856686fb2dad0a61ccbd7178e2f28c",
+        "model_id": "audit-vision",
+        "config": {
+          "profile_id": "audit-vision",
+          "model": {
+            "id": "audit-vision"
+          },
+          "config_sha256": "synthetic-ui-only-not-model-evidence",
+          "prompt_version": "fixture"
+        },
+        "scope": "page",
+        "targets": [
+          {
+            "id": "target-341b55d65c6eb1ec7ad6",
+            "target": {
+              "kind": "text",
+              "start": 0,
+              "end": 13
+            },
+            "before": "Invoice 00001",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "preceding": "",
+              "following": "\nAmount 001.05\nName Revenve"
+            }
+          },
+          {
+            "id": "target-0eedd2675abee5a5ce05",
+            "target": {
+              "kind": "text",
+              "start": 14,
+              "end": 27
+            },
+            "before": "Amount 001.05",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "preceding": "Invoice 00001\n",
+              "following": "\nName Revenve"
+            }
+          },
+          {
+            "id": "target-1e733d4d160c5ed24e09",
+            "target": {
+              "kind": "text",
+              "start": 28,
+              "end": 40
+            },
+            "before": "Name Revenve",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "preceding": "Invoice 00001\nAmount 001.05\n",
+              "following": ""
+            }
+          },
+          {
+            "id": "target-3c6a58137103c0ca5b93",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            },
+            "before": "Item",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "table_caption": "",
+              "row": 0,
+              "column": 0,
+              "row_cells": [
+                {
+                  "column": 0,
+                  "text": "Item"
+                },
+                {
+                  "column": 1,
+                  "text": "Amount"
+                }
+              ]
+            }
+          },
+          {
+            "id": "target-30d0a013b420a8c7afd4",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            },
+            "before": "Amount",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "table_caption": "",
+              "row": 0,
+              "column": 1,
+              "row_cells": [
+                {
+                  "column": 0,
+                  "text": "Item"
+                },
+                {
+                  "column": 1,
+                  "text": "Amount"
+                }
+              ]
+            }
+          },
+          {
+            "id": "target-7dcbde671862c11b0569",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            },
+            "before": "Revenue",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "table_caption": "",
+              "row": 1,
+              "column": 0,
+              "row_cells": [
+                {
+                  "column": 0,
+                  "text": "Revenue"
+                },
+                {
+                  "column": 1,
+                  "text": "001.05"
+                }
+              ]
+            }
+          },
+          {
+            "id": "target-45d3f9c5661eafd6acee",
+            "target": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "before": "001.05",
+            "evidence": {
+              "polygon": null,
+              "level": "page",
+              "version_id": "215b8aff242749738e14732fe3c9e820",
+              "source": "full_image",
+              "reason": "没有可靠局部定位，使用全图审校"
+            },
+            "context": {
+              "table_caption": "",
+              "row": 1,
+              "column": 1,
+              "row_cells": [
+                {
+                  "column": 0,
+                  "text": "Revenue"
+                },
+                {
+                  "column": 1,
+                  "text": "001.05"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "items": [
+          {
+            "target_id": "target-341b55d65c6eb1ec7ad6",
+            "decision": "keep",
+            "after": "Invoice 00001",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-0eedd2675abee5a5ce05",
+            "decision": "keep",
+            "after": "Amount 001.05",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-1e733d4d160c5ed24e09",
+            "decision": "replace",
+            "after": "Name Revenue",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-3c6a58137103c0ca5b93",
+            "decision": "keep",
+            "after": "Item",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-30d0a013b420a8c7afd4",
+            "decision": "uncertain",
+            "after": "Amount",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-7dcbde671862c11b0569",
+            "decision": "keep",
+            "after": "Revenue",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          },
+          {
+            "target_id": "target-45d3f9c5661eafd6acee",
+            "decision": "keep",
+            "after": "001.05",
+            "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。"
+          }
+        ],
+        "summary": "固定UI验收建议",
+        "identity": {
+          "synthetic": true
+        },
+        "timing": {
+          "elapsed_ms": 1
+        }
+      },
+      "task": {
+        "id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+        "status": "succeeded",
+        "phase": "审校建议已生成",
+        "error": null,
+        "created": "2026-09-17T02:30:57.874039+00:00",
+        "started": "2026-09-17T02:30:57.992205+00:00",
+        "finished": "2026-09-17T02:30:58.005414+00:00"
+      }
+    }
+  ],
+  "proposals": [
+    {
+      "id": "245a571cee704f7ca9fef5be4c00399f",
+      "task_id": "140605a6fcc549b2a81ba34cdde83866",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-0eedd2675abee5a5ce05",
+      "current_value": "Amount 001.05",
+      "status": "replace",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": [
+          [
+            40,
+            95
+          ],
+          [
+            750,
+            95
+          ],
+          [
+            750,
+            145
+          ],
+          [
+            40,
+            145
+          ]
+        ],
+        "level": "text",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "original_ocr_block",
+        "reason": "唯一精确匹配的原始文字框"
+      },
+      "basis_revision": 0,
+      "revision": 1,
+      "edited_sha256": "cfe01bf4b7783e888ee1a27d507ab26421eaeea5d17708341c663d855950b9e3",
+      "rebase_history": [
+        {
+          "revision": 1,
+          "decision_id": "a1ecc38d-1676-4de3-aac7-3d374e4ba58b",
+          "from": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          },
+          "to": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:53.322723+00:00",
+      "updated": "2026-09-17T02:30:55.316681+00:00",
+      "original_target": {
+        "kind": "text",
+        "start": 14,
+        "end": 27
+      },
+      "target": {
+        "kind": "text",
+        "start": 14,
+        "end": 27
+      },
+      "before": "Amount 001.00",
+      "after": "Amount 001.05",
+      "decision": "replace",
+      "can_accept": false
+    },
+    {
+      "id": "9027ed48ca154e95b3e07f97380a83fb",
+      "task_id": "ca710f6a1dbc4689acc2567d4a2d0cdf",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-45d3f9c5661eafd6acee",
+      "current_value": "001.05",
+      "status": "replace",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 1,
+      "revision": 2,
+      "edited_sha256": "09a6271bab305accc9570726217b64b29e9329ce9fa248ab00105c3b9411eb1d",
+      "rebase_history": [
+        {
+          "revision": 2,
+          "decision_id": "6c36d100-1cf0-4087-8579-d11f8da59d65",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:55.854662+00:00",
+      "updated": "2026-09-17T02:30:57.817407+00:00",
+      "original_target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 1
+      },
+      "target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 1
+      },
+      "before": "001.00",
+      "after": "001.05",
+      "decision": "replace",
+      "can_accept": false
+    },
+    {
+      "id": "ac4696c3a1b24bc6adbe17277d868951",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-341b55d65c6eb1ec7ad6",
+      "current_value": "Invoice 00001",
+      "status": "keep",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          },
+          "to": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          },
+          "to": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          },
+          "to": {
+            "kind": "text",
+            "start": 0,
+            "end": 13
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.004414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "text",
+        "start": 0,
+        "end": 13
+      },
+      "target": {
+        "kind": "text",
+        "start": 0,
+        "end": 13
+      },
+      "before": "Invoice 00001",
+      "after": "Invoice 00001",
+      "decision": "keep",
+      "can_accept": false
+    },
+    {
+      "id": "10c411a5d2fd4e1e96868b9cf27dcc9d",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-0eedd2675abee5a5ce05",
+      "current_value": "Amount 001.05",
+      "status": "keep",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          },
+          "to": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          },
+          "to": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          },
+          "to": {
+            "kind": "text",
+            "start": 14,
+            "end": 27
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "text",
+        "start": 14,
+        "end": 27
+      },
+      "target": {
+        "kind": "text",
+        "start": 14,
+        "end": 27
+      },
+      "before": "Amount 001.05",
+      "after": "Amount 001.05",
+      "decision": "keep",
+      "can_accept": false
+    },
+    {
+      "id": "4e89fc12258241dd817e417e7266cd24",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-1e733d4d160c5ed24e09",
+      "current_value": "Name Revenue",
+      "status": "replace",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          },
+          "to": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          },
+          "to": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          },
+          "to": {
+            "kind": "text",
+            "start": 28,
+            "end": 40
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "text",
+        "start": 28,
+        "end": 40
+      },
+      "target": {
+        "kind": "text",
+        "start": 28,
+        "end": 40
+      },
+      "before": "Name Revenve",
+      "after": "Name Revenue",
+      "decision": "replace",
+      "can_accept": false
+    },
+    {
+      "id": "703228d1eaf34b18a5c779cadf5c4952",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-45d3f9c5661eafd6acee",
+      "current_value": "001.05",
+      "status": "keep",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 1
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 1
+      },
+      "target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 1
+      },
+      "before": "001.05",
+      "after": "001.05",
+      "decision": "keep",
+      "can_accept": false
+    },
+    {
+      "id": "7f8d47846eec4e479bfbf0e9c73e41fd",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-7dcbde671862c11b0569",
+      "current_value": "Revenue",
+      "status": "keep",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 1,
+            "column": 0
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 0
+      },
+      "target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 1,
+        "column": 0
+      },
+      "before": "Revenue",
+      "after": "Revenue",
+      "decision": "keep",
+      "can_accept": false
+    },
+    {
+      "id": "a9e3e2678230465ba7fd0b45f8bbced0",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-3c6a58137103c0ca5b93",
+      "current_value": "Item",
+      "status": "keep",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 0
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 0,
+        "column": 0
+      },
+      "target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 0,
+        "column": 0
+      },
+      "before": "Item",
+      "after": "Item",
+      "decision": "keep",
+      "can_accept": false
+    },
+    {
+      "id": "ea3332a5d1ce4de09eb05426ebdbca8d",
+      "task_id": "81f5f262f38c4ac09f5b8cb1e4380f0a",
+      "result_id": "888678b8b68244d29ee8bb78d63e28be",
+      "target_id": "target-30d0a013b420a8c7afd4",
+      "current_value": "Amount",
+      "status": "uncertain",
+      "state": "stale",
+      "reason": "固定验收响应：对照局部图片检查文字；此数据不代表真实模型效果。",
+      "evidence": {
+        "polygon": null,
+        "level": "page",
+        "version_id": "215b8aff242749738e14732fe3c9e820",
+        "source": "full_image",
+        "reason": "没有可靠局部定位，使用全图审校"
+      },
+      "basis_revision": 2,
+      "revision": 5,
+      "edited_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+      "rebase_history": [
+        {
+          "revision": 3,
+          "decision_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          }
+        },
+        {
+          "revision": 4,
+          "decision_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          }
+        },
+        {
+          "revision": 5,
+          "decision_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+          "from": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          },
+          "to": {
+            "kind": "cell",
+            "table": 0,
+            "row": 0,
+            "column": 1
+          }
+        }
+      ],
+      "created": "2026-09-17T02:30:58.005414+00:00",
+      "updated": "2026-09-17T02:31:00.402231+00:00",
+      "original_target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 0,
+        "column": 1
+      },
+      "target": {
+        "kind": "cell",
+        "table": 0,
+        "row": 0,
+        "column": 1
+      },
+      "before": "Amount",
+      "after": "Amount",
+      "decision": "uncertain",
+      "can_accept": false
+    }
+  ],
+  "decisions": [
+    {
+      "request_id": "a1ecc38d-1676-4de3-aac7-3d374e4ba58b",
+      "proposal_id": "245a571cee704f7ca9fef5be4c00399f",
+      "action": "accept",
+      "created": "2026-09-17T02:30:55.316681+00:00"
+    },
+    {
+      "request_id": "6c36d100-1cf0-4087-8579-d11f8da59d65",
+      "proposal_id": "9027ed48ca154e95b3e07f97380a83fb",
+      "action": "accept",
+      "created": "2026-09-17T02:30:57.817407+00:00"
+    },
+    {
+      "request_id": "4a0a1556-4297-4ce4-973b-c27a33d8739c",
+      "proposal_id": "4e89fc12258241dd817e417e7266cd24",
+      "action": "accept",
+      "created": "2026-09-17T02:31:00.218925+00:00"
+    },
+    {
+      "request_id": "4e949c16-2fcc-43ea-bdd4-1d2d76377934",
+      "proposal_id": "ac4696c3a1b24bc6adbe17277d868951",
+      "action": "accept",
+      "created": "2026-09-17T02:31:00.317240+00:00"
+    },
+    {
+      "request_id": "9fb493b0-9027-4236-b34d-278d096417fd",
+      "proposal_id": "ea3332a5d1ce4de09eb05426ebdbca8d",
+      "action": "question",
+      "created": "2026-09-17T02:31:00.402231+00:00"
+    }
+  ],
+  "document": {
+    "image_id": "ad697180795743cea7fe47d5d0a64679",
+    "name": "视觉审校验收.png",
+    "image_version": "215b8aff242749738e14732fe3c9e820",
+    "page_number": 1,
+    "document_id": "ad697180795743cea7fe47d5d0a64679"
+  },
+  "adopted_content_sha256": "f3286bece499bfe14472692d0170ad60ebfbc545a6d3d67b5592a0b926d116ea",
+  "notice": "本清单记录模型建议与人工决定。模型建议不是原文事实；未采用的建议不改变正式结果，清单为空不代表原文无误。过期建议保留最近关联的内容与修订，不能据此判断当前原文。"
+}

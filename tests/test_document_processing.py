@@ -1,5 +1,6 @@
 """Real PDF runtime checks plus native/region merge and publication invariants."""
 import json
+from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
@@ -120,7 +121,32 @@ class PdfWorkflowTests(unittest.TestCase):
         self.assertEqual(self.store.one('document_stages', key)['status'], 'succeeded')
         for path in self.store.root.rglob('*'):
             if path.is_file() and path.suffix not in ('.pdf', '.png'):
-                self.assertNotIn(password.encode(), path.read_bytes(), path.name)
+                    self.assertNotIn(password.encode(), path.read_bytes(), path.name)
+
+    def test_empty_region_preserves_native_page_but_blocks_unreviewed_pdf_export(self):
+        from ocr_workbench.adapter import check_recognition_result
+        from ocr_workbench.document_conflicts import acknowledge_conflict
+        from ocr_workbench.document_review import document_review_queue
+        from ocr_workbench.pdf_export import build_pdf_export
+        doc=self.import_pdf('mixed.pdf');page=self.store.document_pages(doc['id'])[0]
+        key=self.manager.process(page['id']);self.manager.step()
+        while task:=self.store.claim():
+            complete_region_task(self.store,task,check_recognition_result(
+                {'status':'success','text':'','engine':'ppocr','blocks':[],'tables':[]},allow_empty=True))
+        finalize_waiting_pages(self.manager)
+        stage=self.store.one('document_stages',key)
+        self.assertEqual(stage['status'],'succeeded')
+        result=self.store.result(json.loads(stage['output'])['result_id'])
+        self.assertIn('Page 001',result['edited']['text'])
+        self.assertTrue(any(t['reason']=='区域未识别出文字，需核对原图' for t in document_review_queue(self.store,doc['id'])['tasks']))
+        preflight=lambda:build_pdf_export(self.store,self.manager,{'page_ids':[page['id']]},preflight=True)
+        self.assertFalse(preflight()['ready'])
+        for issue in result['original']['document']['conflicts']:
+            acknowledge_conflict(self.store,result['id'],issue['id'],0)
+        self.assertTrue(preflight()['ready'])
+        edit=deepcopy(result['edited']);edit['text']+='\nnew text'
+        self.store.save(result['id'],edit,0)
+        self.assertFalse(preflight()['ready'])
 
     def test_rotated_cropboxes_native_geometry_matches_rendered_glyphs(self):
         for rotation in (0, 90, 180, 270):

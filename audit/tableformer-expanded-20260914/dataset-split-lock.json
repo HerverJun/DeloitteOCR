@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "seed": "tableformer-expanded-20260914",
+  "new_test": true,
+  "files": {
+    "inputs/test.json": "f53fa79f7610114c7460cd20980fcb4c449eb9f26727296f95deadcd64bd5daa",
+    "sealed/test.annotations.json": "4eccb34fe901fe8554b7beba26894a7070d49af0ff1c3adb29a514a72d589763",
+    "protocol.json": "bd0bece5882a95fee6cb3578d32254e86f14cf8cf80e2f0e75550b4204bfe925",
+    "qualification.json": "028a4b342bccd921e91685b225c95c665f20503e545fa3fec4721c0e656c932a"
+  },
+  "summary": {
+    "test": {
+      "tables": 120,
+      "documents": 120,
+      "targets": 11667,
+      "target_tags": {
+        "merged": 385,
+        "repeated": 3414,
+        "empty": 743
+      }
+    }
+  }
+}

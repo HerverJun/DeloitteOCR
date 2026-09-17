@@ -25,8 +25,10 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False):
     parent = store.root / "exports"
     parent.mkdir(exist_ok=True)
     folder = Path(tempfile.mkdtemp(prefix="export-", dir=parent))
-    snapshots, identities = {}, {}
+    snapshots, identities, pages = {}, {}, {}
     fusion_sources = []
+    structure_files = []
+    multimodal_files = []
 
     def capture_snapshot():
         if not hasattr(store, "transaction"):
@@ -57,6 +59,21 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False):
                         raise Conflict("导出范围含未确认或确认已失效的结果，请重新复核或调整范围")
                 result['original'] = json.loads(result['original'])
                 result['edited'] = json.loads(result['edited'])
+                page = db.execute('SELECT p.document_id,p.page_number FROM pages p JOIN versions v ON v.image_id=p.image_id WHERE v.id=?',
+                    (result['original'].get('project_image_version') or task['version_id'],)).fetchone()
+                pages[key] = dict(page) if page else None
+                from ocr_workbench.structure_export import structure_sources
+                structure = structure_sources(db, result)
+                if structure:
+                    path = folder / f'_structure-{index}.json'
+                    path.write_text(json.dumps(structure,ensure_ascii=False),encoding='utf-8')
+                    structure_files.append({'result_id':key,'revision':result['revision'],'path':path})
+                from ocr_workbench.multimodal_store import review_sources
+                multimodal = review_sources(db, result)
+                if multimodal:
+                    path = folder / f'_multimodal-{index}.json'
+                    path.write_text(json.dumps(multimodal, ensure_ascii=False), encoding='utf-8')
+                    multimodal_files.append({'result_id': key, 'path': path})
                 fusion = result['original'].get('fusion')
                 if fusion:
                     from ocr_workbench.store import history_decoded
@@ -152,9 +169,16 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False):
             "policy_version": original.get("fusion", {}).get("policy", {}).get("version", ""),
             "policy_sha256": original.get("fusion", {}).get("policy_sha256", ""),
             "review_summary": json.dumps(result.get("review_summary", {}), ensure_ascii=False),
+            "document_id": image.get("document_id", ""),
         }
-        return [{**metadata, "sheet": f"Table {sheet_start + index}", "table_index": index + 1}
-                for index in range(len(result["edited"]["tables"]))]
+        if result['id'] in pages or hasattr(store, 'page_for_version'):
+            page = pages[result['id']] if result['id'] in pages else store.page_for_version(metadata['image_version'])
+            if page:
+                metadata.update(document_id=page['document_id'],page_number=page['page_number'])
+        return [{**metadata, "sheet": f"Table {sheet_start + index}", "table_index": index + 1,
+                 "structure_review": json.dumps(table.get('structure_review', {}),ensure_ascii=False),
+                 "header_cells": json.dumps([[c['row'],c['column'],c['row_span'],c['column_span']] for c in table['cells'] if c.get('is_header')])}
+                for index,table in enumerate(result["edited"]["tables"])]
 
     def write(result, path):
         if format == "xlsx":
@@ -228,6 +252,30 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False):
                 original_target.unlink()
             for source in fusion_sources:
                 Path(source['_path']).unlink()
+        if structure_files:
+            original_target = target
+            if target.suffix != '.zip':
+                target = folder / 'OCR-structure-export.zip'
+            with zipfile.ZipFile(target,'a' if target == original_target else 'w',compression=zipfile.ZIP_DEFLATED) as archive:
+                if original_target != target:
+                    archive.write(original_target,original_target.name)
+                for source in structure_files:
+                    archive.write(source['path'],f"sources/structure-{source['result_id']}.json")
+                    source['path'].unlink()
+            if original_target != target:
+                original_target.unlink()
+        if multimodal_files:
+            original_target = target
+            if target.suffix != '.zip':
+                target = folder / 'OCR-reviewed-export.zip'
+            with zipfile.ZipFile(target, 'a' if target == original_target else 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+                if original_target != target:
+                    archive.write(original_target, original_target.name)
+                for source in multimodal_files:
+                    archive.write(source['path'], f"sources/multimodal-{source['result_id']}.json")
+                    source['path'].unlink()
+            if original_target != target:
+                original_target.unlink()
         for path in snapshots.values():
             path.unlink()
         return target

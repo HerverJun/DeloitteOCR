@@ -1,0 +1,1861 @@
+{
+  "scope": "Synthetic functional experiment; manually bound cells, seeded OCR mistakes; not independent accuracy or A4000 validation",
+  "task": {
+    "id": "58a08886131d450e8e435d6eaeffa251",
+    "project_id": "8d044695337843b48822bb7ab3876b95",
+    "image_id": "3128624a42604f74a3737685e1903fae",
+    "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+    "engine": "reviewer",
+    "batch": "2026-09-17T02:00:41.817102+00:00-58a08886131d450e8e435d6eaeffa251",
+    "status": "succeeded",
+    "phase": "审校建议已生成",
+    "error": null,
+    "created": "2026-09-17T02:00:41.817102+00:00",
+    "started": "2026-09-17T02:00:41.823608+00:00",
+    "finished": "2026-09-17T02:00:53.750724+00:00",
+    "result_id": null,
+    "kind": "multimodal",
+    "result_version_id": null,
+    "preprocess": "[]",
+    "input_version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+    "engine_package": "builtin",
+    "fusion_config": null
+  },
+  "wall_seconds": 11.933462600005441,
+  "gpu_samples": [
+    {
+      "seconds": 0.07785250000597443,
+      "used_mib": 1913
+    },
+    {
+      "seconds": 0.6302584000004572,
+      "used_mib": 2097
+    },
+    {
+      "seconds": 1.1856630000038422,
+      "used_mib": 4701
+    },
+    {
+      "seconds": 1.7444292000000132,
+      "used_mib": 6001
+    },
+    {
+      "seconds": 2.3028380000032485,
+      "used_mib": 6241
+    },
+    {
+      "seconds": 2.857660000001488,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 3.414643600001,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 3.9727094000045327,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 4.53038010000455,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 5.090075100000831,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 5.652434200004791,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 6.208890800000518,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 6.767890400005854,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 7.3194829000058235,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 7.875695000002452,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 8.428888200003712,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 8.983323400003428,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 9.542247600002156,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 10.099612900005013,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 10.653096900001401,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 11.207541600000695,
+      "used_mib": 6269
+    },
+    {
+      "seconds": 11.764333600003738,
+      "used_mib": 1900
+    }
+  ],
+  "peak_device_memory_mib": 6269,
+  "original_and_edited_unchanged_after_inference": true,
+  "truth_lines": [
+    "离线视觉审校功能实验",
+    "记录编号：AB-00128",
+    "备注：按原文保留小数与符号。"
+  ],
+  "truth_table": [
+    [
+      "项目",
+      "记录值"
+    ],
+    [
+      "数量",
+      "00075"
+    ],
+    [
+      "调整金额",
+      "-18.50"
+    ]
+  ],
+  "view": {
+    "result_id": "66404d973c9545dc98e16049e0b17bb2",
+    "revision": 0,
+    "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+    "requests": [
+      {
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "request_id": "real-gpu-functional-page-v1",
+        "payload_hash": "15caf07c302e1558881b8f9dec6f0f4a299dec08374702fdcb80c4d7658cf36a",
+        "obsolete": 0,
+        "summary": "共复核 9 项：保留 6，建议修改 3，存疑 0。",
+        "created": "2026-09-17T02:00:41.817102+00:00",
+        "status": "succeeded",
+        "phase": "审校建议已生成",
+        "error": null,
+        "started": "2026-09-17T02:00:41.823608+00:00",
+        "finished": "2026-09-17T02:00:53.750724+00:00",
+        "model_id": "qwen35-4b-q4",
+        "revision": 0,
+        "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+        "scope": "page",
+        "image_sha256": "7826dffe7b824675dcf96345c05cbffff16138e274b5f388d530748463a6a709",
+        "target_count": 9,
+        "snapshot_current": true
+      }
+    ],
+    "proposals": [
+      {
+        "id": "71e470b37426441bbd861b2ef1874523",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-b6b43733b7b626727a88",
+        "current_value": "离线视觉审校功能实验",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图像中文字清晰，与 OCR 结果完全一致。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              40
+            ],
+            [
+              1250,
+              40
+            ],
+            [
+              1250,
+              106
+            ],
+            [
+              50,
+              106
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750116+00:00",
+        "updated": "2026-09-17T02:00:53.750116+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 0,
+          "end": 10
+        },
+        "target": {
+          "kind": "text",
+          "start": 0,
+          "end": 10
+        },
+        "before": "离线视觉审校功能实验",
+        "after": "离线视觉审校功能实验",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "2f571216a8e44673b27a23c69c845bb0",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-3c6a58137103c0ca5b93",
+        "current_value": "项目",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图像中单元格内容清晰显示为'项目'，与 OCR 结果一致。",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              340
+            ],
+            [
+              660,
+              340
+            ],
+            [
+              660,
+              485
+            ],
+            [
+              60,
+              485
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "c482fba9d4c9459fa99ba01228179636",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 0
+        },
+        "before": "项目",
+        "after": "项目",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "3510ae8ef6094ea785cda14d74136399",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-4c20a30e40e3b7b11e74",
+        "current_value": "备注：按原文保留小数与符号。",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图片文字与现有转录完全一致，无差异。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              224
+            ],
+            [
+              1250,
+              224
+            ],
+            [
+              1250,
+              290
+            ],
+            [
+              50,
+              290
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 25,
+          "end": 39
+        },
+        "target": {
+          "kind": "text",
+          "start": 25,
+          "end": 39
+        },
+        "before": "备注：按原文保留小数与符号。",
+        "after": "备注：按原文保留小数与符号。",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "3b46c35a48de4c12958db90751791bfa",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-fdd91420c6e7a55e5054",
+        "current_value": "-18.5O",
+        "status": "replace",
+        "state": "pending",
+        "reason": "图片中数字末尾为'0'，OCR识别为'O'，需修正。",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              630
+            ],
+            [
+              1260,
+              630
+            ],
+            [
+              1260,
+              775
+            ],
+            [
+              660,
+              775
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "27d3f8a84a4c4c45ab47dbe1d1034c9f",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 1
+        },
+        "before": "-18.5O",
+        "after": "-18.50",
+        "decision": "replace",
+        "can_accept": true
+      },
+      {
+        "id": "6a938009f20e49e58f4d8580bb238712",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-8dbed12d9991f7625858",
+        "current_value": "调整金额",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图片中文字清晰显示为'调整金额'，与OCR结果一致。",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              630
+            ],
+            [
+              660,
+              630
+            ],
+            [
+              660,
+              775
+            ],
+            [
+              60,
+              775
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "8f17ca17fa04427c820ed8aa61cf1509",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 0
+        },
+        "before": "调整金额",
+        "after": "调整金额",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "75d3c4f5d62a48e1b3b5b1c5760a09d1",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-45d3f9c5661eafd6acee",
+        "current_value": "O0075",
+        "status": "replace",
+        "state": "pending",
+        "reason": "图片中数字为'0'，OCR识别为'O'，需修正为'0'",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              485
+            ],
+            [
+              1260,
+              485
+            ],
+            [
+              1260,
+              630
+            ],
+            [
+              660,
+              630
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "de572763675148dfb3d7403d35b604aa",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 1
+        },
+        "before": "O0075",
+        "after": "00075",
+        "decision": "replace",
+        "can_accept": true
+      },
+      {
+        "id": "87d70a2c75904b2cbe9750f67a16a661",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-30d0a013b420a8c7afd4",
+        "current_value": "记录值",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图像中的文字与OCR结果完全一致。",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              340
+            ],
+            [
+              1260,
+              340
+            ],
+            [
+              1260,
+              485
+            ],
+            [
+              660,
+              485
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "a464818081d642d1bb8354caaa498912",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 1
+        },
+        "before": "记录值",
+        "after": "记录值",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "949f406f235c481fbeb21bab34fc33ea",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-7dcbde671862c11b0569",
+        "current_value": "数量",
+        "status": "keep",
+        "state": "pending",
+        "reason": "图片中文字与OCR结果完全一致",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              485
+            ],
+            [
+              660,
+              485
+            ],
+            [
+              660,
+              630
+            ],
+            [
+              60,
+              630
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "0063474727694ae086996ea3016cb7c0",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 0
+        },
+        "before": "数量",
+        "after": "数量",
+        "decision": "keep",
+        "can_accept": true
+      },
+      {
+        "id": "fcec1f30bfce416c8c3fd05ef5b36729",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-65c2a0c34fc1236bfd03",
+        "current_value": "记录编号：AB-O0128",
+        "status": "replace",
+        "state": "pending",
+        "reason": "图片中数字为'00128'，OCR原文为'O0128'，字符'0'与'O'不符。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              132
+            ],
+            [
+              1250,
+              132
+            ],
+            [
+              1250,
+              198
+            ],
+            [
+              50,
+              198
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 0,
+        "edited_sha256": "5570ba583d9ae385527ed88b771bf03cd34926d5d7df78e5d205ca854eb50820",
+        "rebase_history": [],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.750724+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 11,
+          "end": 24
+        },
+        "target": {
+          "kind": "text",
+          "start": 11,
+          "end": 24
+        },
+        "before": "记录编号：AB-O0128",
+        "after": "记录编号：AB-00128",
+        "decision": "replace",
+        "can_accept": true
+      }
+    ],
+    "counts": {
+      "pending": 9,
+      "accepted": 0,
+      "rejected": 0,
+      "question": 0,
+      "stale": 0
+    },
+    "automatic_adoption": false,
+    "contributes_to_votes": false
+  },
+  "adopted": {
+    "id": "66404d973c9545dc98e16049e0b17bb2",
+    "task_id": "4aa531723dcb4dfdb4510965d58a6d49",
+    "original": {
+      "engine": "ppocr",
+      "text": "离线视觉审校功能实验\n记录编号：AB-O0128\n备注：按原文保留小数与符号。\n<table>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">项目</td>\n<td rowspan=\"1\" colspan=\"1\">记录值</td>\n</tr>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">数量</td>\n<td rowspan=\"1\" colspan=\"1\">O0075</td>\n</tr>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">调整金额</td>\n<td rowspan=\"1\" colspan=\"1\">-18.5O</td>\n</tr>\n</table>",
+      "tables": [
+        {
+          "rows": 3,
+          "columns": 2,
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "项目"
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "记录值"
+            },
+            {
+              "row": 1,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "数量"
+            },
+            {
+              "row": 1,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "O0075"
+            },
+            {
+              "row": 2,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "调整金额"
+            },
+            {
+              "row": 2,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "-18.5O"
+            }
+          ],
+          "source": {
+            "start": 40,
+            "end": 315,
+            "format": "html",
+            "sha256": "eccb3f0d95cc0c8a762861118aff79df39946223ee2c2619bd1f2159b7310407"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "text": "离线视觉审校功能实验",
+          "kind": "text",
+          "polygon": [
+            [
+              50,
+              40
+            ],
+            [
+              1250,
+              40
+            ],
+            [
+              1250,
+              106
+            ],
+            [
+              50,
+              106
+            ]
+          ]
+        },
+        {
+          "text": "记录编号：AB-O0128",
+          "kind": "text",
+          "polygon": [
+            [
+              50,
+              132
+            ],
+            [
+              1250,
+              132
+            ],
+            [
+              1250,
+              198
+            ],
+            [
+              50,
+              198
+            ]
+          ]
+        },
+        {
+          "text": "备注：按原文保留小数与符号。",
+          "kind": "text",
+          "polygon": [
+            [
+              50,
+              224
+            ],
+            [
+              1250,
+              224
+            ],
+            [
+              1250,
+              290
+            ],
+            [
+              50,
+              290
+            ]
+          ]
+        }
+      ],
+      "image": {
+        "width": 1320,
+        "height": 1000
+      },
+      "project_image_version": "a5c73e7cb36749939ff12b038fb4e56c"
+    },
+    "edited": {
+      "text": "离线视觉审校功能实验\n记录编号：AB-00128\n备注：按原文保留小数与符号。\n<table>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">项目</td>\n<td rowspan=\"1\" colspan=\"1\">记录值</td>\n</tr>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">数量</td>\n<td rowspan=\"1\" colspan=\"1\">O0075</td>\n</tr>\n<tr>\n<td rowspan=\"1\" colspan=\"1\">调整金额</td>\n<td rowspan=\"1\" colspan=\"1\">-18.5O</td>\n</tr>\n</table>",
+      "tables": [
+        {
+          "rows": 3,
+          "columns": 2,
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "项目"
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "记录值"
+            },
+            {
+              "row": 1,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "数量"
+            },
+            {
+              "row": 1,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "00075",
+              "confidence": null
+            },
+            {
+              "row": 2,
+              "column": 0,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "调整金额"
+            },
+            {
+              "row": 2,
+              "column": 1,
+              "row_span": 1,
+              "column_span": 1,
+              "text": "-18.50",
+              "confidence": null
+            }
+          ],
+          "source": {
+            "start": 40,
+            "end": 315,
+            "format": "html",
+            "sha256": "eccb3f0d95cc0c8a762861118aff79df39946223ee2c2619bd1f2159b7310407"
+          }
+        }
+      ]
+    },
+    "cursor": 3,
+    "revision": 3,
+    "updated": "2026-09-17T02:00:53.789696+00:00",
+    "can_undo": true,
+    "can_redo": false
+  },
+  "original_preserved_after_decisions": true,
+  "after_undo": {
+    "result_id": "66404d973c9545dc98e16049e0b17bb2",
+    "revision": 4,
+    "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+    "requests": [
+      {
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "request_id": "real-gpu-functional-page-v1",
+        "payload_hash": "15caf07c302e1558881b8f9dec6f0f4a299dec08374702fdcb80c4d7658cf36a",
+        "obsolete": 1,
+        "summary": "共复核 9 项：保留 6，建议修改 3，存疑 0。",
+        "created": "2026-09-17T02:00:41.817102+00:00",
+        "status": "succeeded",
+        "phase": "审校建议已生成",
+        "error": null,
+        "started": "2026-09-17T02:00:41.823608+00:00",
+        "finished": "2026-09-17T02:00:53.750724+00:00",
+        "model_id": "qwen35-4b-q4",
+        "revision": 0,
+        "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+        "scope": "page",
+        "image_sha256": "7826dffe7b824675dcf96345c05cbffff16138e274b5f388d530748463a6a709",
+        "target_count": 9,
+        "snapshot_current": false
+      }
+    ],
+    "proposals": [
+      {
+        "id": "71e470b37426441bbd861b2ef1874523",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-b6b43733b7b626727a88",
+        "current_value": "离线视觉审校功能实验",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图像中文字清晰，与 OCR 结果完全一致。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              40
+            ],
+            [
+              1250,
+              40
+            ],
+            [
+              1250,
+              106
+            ],
+            [
+              50,
+              106
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            },
+            "to": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            },
+            "to": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            },
+            "to": {
+              "kind": "text",
+              "start": 0,
+              "end": 10
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750116+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 0,
+          "end": 10
+        },
+        "target": {
+          "kind": "text",
+          "start": 0,
+          "end": 10
+        },
+        "before": "离线视觉审校功能实验",
+        "after": "离线视觉审校功能实验",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "2f571216a8e44673b27a23c69c845bb0",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-3c6a58137103c0ca5b93",
+        "current_value": "项目",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图像中单元格内容清晰显示为'项目'，与 OCR 结果一致。",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              340
+            ],
+            [
+              660,
+              340
+            ],
+            [
+              660,
+              485
+            ],
+            [
+              60,
+              485
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "c482fba9d4c9459fa99ba01228179636",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 0
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 0
+        },
+        "before": "项目",
+        "after": "项目",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "3510ae8ef6094ea785cda14d74136399",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-4c20a30e40e3b7b11e74",
+        "current_value": "备注：按原文保留小数与符号。",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图片文字与现有转录完全一致，无差异。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              224
+            ],
+            [
+              1250,
+              224
+            ],
+            [
+              1250,
+              290
+            ],
+            [
+              50,
+              290
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            },
+            "to": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            },
+            "to": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            },
+            "to": {
+              "kind": "text",
+              "start": 25,
+              "end": 39
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 25,
+          "end": 39
+        },
+        "target": {
+          "kind": "text",
+          "start": 25,
+          "end": 39
+        },
+        "before": "备注：按原文保留小数与符号。",
+        "after": "备注：按原文保留小数与符号。",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "3b46c35a48de4c12958db90751791bfa",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-fdd91420c6e7a55e5054",
+        "current_value": "-18.50",
+        "status": "replace",
+        "state": "stale",
+        "reason": "图片中数字末尾为'0'，OCR识别为'O'，需修正。",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              630
+            ],
+            [
+              1260,
+              630
+            ],
+            [
+              1260,
+              775
+            ],
+            [
+              660,
+              775
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "27d3f8a84a4c4c45ab47dbe1d1034c9f",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 1
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 1
+        },
+        "before": "-18.5O",
+        "after": "-18.50",
+        "decision": "replace",
+        "can_accept": false
+      },
+      {
+        "id": "6a938009f20e49e58f4d8580bb238712",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-8dbed12d9991f7625858",
+        "current_value": "调整金额",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图片中文字清晰显示为'调整金额'，与OCR结果一致。",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              630
+            ],
+            [
+              660,
+              630
+            ],
+            [
+              660,
+              775
+            ],
+            [
+              60,
+              775
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "8f17ca17fa04427c820ed8aa61cf1509",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 2,
+              "column": 0
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 2,
+          "column": 0
+        },
+        "before": "调整金额",
+        "after": "调整金额",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "75d3c4f5d62a48e1b3b5b1c5760a09d1",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-45d3f9c5661eafd6acee",
+        "current_value": "00075",
+        "status": "replace",
+        "state": "stale",
+        "reason": "图片中数字为'0'，OCR识别为'O'，需修正为'0'",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              485
+            ],
+            [
+              1260,
+              485
+            ],
+            [
+              1260,
+              630
+            ],
+            [
+              660,
+              630
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "de572763675148dfb3d7403d35b604aa",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 1
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 1
+        },
+        "before": "O0075",
+        "after": "00075",
+        "decision": "replace",
+        "can_accept": false
+      },
+      {
+        "id": "87d70a2c75904b2cbe9750f67a16a661",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-30d0a013b420a8c7afd4",
+        "current_value": "记录值",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图像中的文字与OCR结果完全一致。",
+        "evidence": {
+          "polygon": [
+            [
+              660,
+              340
+            ],
+            [
+              1260,
+              340
+            ],
+            [
+              1260,
+              485
+            ],
+            [
+              660,
+              485
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "a464818081d642d1bb8354caaa498912",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 0,
+              "column": 1
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 1
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 0,
+          "column": 1
+        },
+        "before": "记录值",
+        "after": "记录值",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "949f406f235c481fbeb21bab34fc33ea",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-7dcbde671862c11b0569",
+        "current_value": "数量",
+        "status": "keep",
+        "state": "stale",
+        "reason": "图片中文字与OCR结果完全一致",
+        "evidence": {
+          "polygon": [
+            [
+              60,
+              485
+            ],
+            [
+              660,
+              485
+            ],
+            [
+              660,
+              630
+            ],
+            [
+              60,
+              630
+            ]
+          ],
+          "level": "cell",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "manual",
+          "reason": "人工定位",
+          "evidence_id": "0063474727694ae086996ea3016cb7c0",
+          "range_semantics": "full_cell"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            },
+            "to": {
+              "kind": "cell",
+              "table": 0,
+              "row": 1,
+              "column": 0
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 0
+        },
+        "target": {
+          "kind": "cell",
+          "table": 0,
+          "row": 1,
+          "column": 0
+        },
+        "before": "数量",
+        "after": "数量",
+        "decision": "keep",
+        "can_accept": false
+      },
+      {
+        "id": "fcec1f30bfce416c8c3fd05ef5b36729",
+        "task_id": "58a08886131d450e8e435d6eaeffa251",
+        "result_id": "66404d973c9545dc98e16049e0b17bb2",
+        "target_id": "target-65c2a0c34fc1236bfd03",
+        "current_value": "记录编号：AB-00128",
+        "status": "replace",
+        "state": "stale",
+        "reason": "图片中数字为'00128'，OCR原文为'O0128'，字符'0'与'O'不符。",
+        "evidence": {
+          "polygon": [
+            [
+              50,
+              132
+            ],
+            [
+              1250,
+              132
+            ],
+            [
+              1250,
+              198
+            ],
+            [
+              50,
+              198
+            ]
+          ],
+          "level": "text",
+          "version_id": "a5c73e7cb36749939ff12b038fb4e56c",
+          "source": "original_ocr_block",
+          "reason": "唯一精确匹配的原始文字框"
+        },
+        "basis_revision": 0,
+        "revision": 3,
+        "edited_sha256": "780460bd1959dd0f742289c133a605492e208bf7c97749cf1ae197982a585a10",
+        "rebase_history": [
+          {
+            "revision": 1,
+            "decision_id": "smoke-accept-3b46c35a48de4c12958db90751791bfa",
+            "from": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            },
+            "to": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            }
+          },
+          {
+            "revision": 2,
+            "decision_id": "smoke-accept-75d3c4f5d62a48e1b3b5b1c5760a09d1",
+            "from": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            },
+            "to": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            }
+          },
+          {
+            "revision": 3,
+            "decision_id": "smoke-accept-fcec1f30bfce416c8c3fd05ef5b36729",
+            "from": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            },
+            "to": {
+              "kind": "text",
+              "start": 11,
+              "end": 24
+            }
+          }
+        ],
+        "created": "2026-09-17T02:00:53.750724+00:00",
+        "updated": "2026-09-17T02:00:53.790696+00:00",
+        "original_target": {
+          "kind": "text",
+          "start": 11,
+          "end": 24
+        },
+        "target": {
+          "kind": "text",
+          "start": 11,
+          "end": 24
+        },
+        "before": "记录编号：AB-O0128",
+        "after": "记录编号：AB-00128",
+        "decision": "replace",
+        "can_accept": false
+      }
+    ],
+    "counts": {
+      "pending": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "question": 0,
+      "stale": 9
+    },
+    "automatic_adoption": false,
+    "contributes_to_votes": false
+  }
+}

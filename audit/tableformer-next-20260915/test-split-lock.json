@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "seed": "tableformer-next-20260915",
+  "new_test": true,
+  "files": {
+    "inputs/test.json": "2df7c01ac10188d4b6513cc77a7763979bd16c28219554b2048a8aa6fd4c0752",
+    "sealed/test.annotations.json": "3e1b24df2cbb3568ec4478929edcb6660d35f14b60656f3ed3b901d7dab5b069",
+    "protocol.json": "0b86f518a3fda5d4cb264594cc5ded9e2e53c97438b8dd172bef0524c378a8d0",
+    "qualification.json": "76596c9f3216bdcf19cc6c3cd13b42d0c824a17a25a5aaed54e548eaf5b71979"
+  },
+  "summary": {
+    "test": {
+      "tables": 120,
+      "documents": 120,
+      "targets": 11278,
+      "target_tags": {
+        "empty": 718,
+        "repeated": 3164,
+        "merged": 352
+      }
+    }
+  }
+}

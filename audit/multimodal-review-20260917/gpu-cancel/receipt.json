@@ -1,0 +1,108 @@
+{
+  "scope": "Synthetic functional experiment; manually bound cells, seeded OCR mistakes; not independent accuracy or A4000 validation",
+  "task": {
+    "id": "6b6d80dfaf39401ca8eb1edadbde2cf6",
+    "project_id": "a9069094ff9d4feb958d635bfed34f4d",
+    "image_id": "c90cf15651394b08b0a8f1e436b63259",
+    "version_id": "870c1082e0d84ebe9f3681115cfa6040",
+    "engine": "reviewer",
+    "batch": "2026-09-17T02:03:56.311729+00:00-6b6d80dfaf39401ca8eb1edadbde2cf6",
+    "status": "cancelled",
+    "phase": "已取消",
+    "error": null,
+    "created": "2026-09-17T02:03:56.311729+00:00",
+    "started": "2026-09-17T02:03:56.319262+00:00",
+    "finished": null,
+    "result_id": null,
+    "kind": "multimodal",
+    "result_version_id": null,
+    "preprocess": "[]",
+    "input_version_id": "870c1082e0d84ebe9f3681115cfa6040",
+    "engine_package": "builtin",
+    "fusion_config": null
+  },
+  "wall_seconds": 2.6674345999999787,
+  "gpu_samples": [
+    {
+      "seconds": 0.08051410000189207,
+      "used_mib": 1926
+    },
+    {
+      "seconds": 0.6437991000057082,
+      "used_mib": 2110
+    },
+    {
+      "seconds": 1.1979457000052207,
+      "used_mib": 4709
+    },
+    {
+      "seconds": 1.7573846000013873,
+      "used_mib": 5377
+    },
+    {
+      "seconds": 2.3176049000030616,
+      "used_mib": 6252
+    }
+  ],
+  "cancel_seconds": 0.36303159999806667,
+  "no_local_geometry": false,
+  "peak_device_memory_mib": 6252,
+  "original_and_edited_unchanged_after_inference": true,
+  "truth_lines": [
+    "离线视觉审校功能实验",
+    "记录编号：AB-00128",
+    "备注：按原文保留小数与符号。"
+  ],
+  "truth_table": [
+    [
+      "项目",
+      "记录值"
+    ],
+    [
+      "数量",
+      "00075"
+    ],
+    [
+      "调整金额",
+      "-18.50"
+    ]
+  ],
+  "view": {
+    "result_id": "3dfd7dee82ef48cfa91a5da9767b3327",
+    "revision": 0,
+    "version_id": "870c1082e0d84ebe9f3681115cfa6040",
+    "requests": [
+      {
+        "task_id": "6b6d80dfaf39401ca8eb1edadbde2cf6",
+        "result_id": "3dfd7dee82ef48cfa91a5da9767b3327",
+        "request_id": "real-gpu-functional-page-v1",
+        "payload_hash": "db58d291ddc02fe105b7be287f80212378e734a460b715847a73a74c3c2114e2",
+        "obsolete": 0,
+        "summary": "",
+        "created": "2026-09-17T02:03:56.312729+00:00",
+        "status": "cancelled",
+        "phase": "已取消",
+        "error": null,
+        "started": "2026-09-17T02:03:56.319262+00:00",
+        "finished": null,
+        "model_id": "qwen35-4b-q4",
+        "revision": 0,
+        "version_id": "870c1082e0d84ebe9f3681115cfa6040",
+        "scope": "page",
+        "image_sha256": "7826dffe7b824675dcf96345c05cbffff16138e274b5f388d530748463a6a709",
+        "target_count": 9,
+        "snapshot_current": true
+      }
+    ],
+    "proposals": [],
+    "counts": {
+      "pending": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "question": 0,
+      "stale": 0
+    },
+    "automatic_adoption": false,
+    "contributes_to_votes": false
+  }
+}

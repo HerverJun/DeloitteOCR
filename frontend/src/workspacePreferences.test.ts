@@ -36,4 +36,9 @@ describe("资料筛选与批量范围", () => {
       "unrecognized",
     );
   });
+  it("审校的运行与失败不覆盖已有OCR识别状态", () => {
+    expect(imageStatus("0", [task("0", "succeeded"), task("0", "running", "reviewer")])).toBe("succeeded");
+    expect(imageStatus("0", [task("0", "succeeded"), { ...task("0", "failed"), kind: "multimodal" }])).toBe("succeeded");
+    expect(imageStatus("0", [task("0", "succeeded", "reviewer")])).toBe("unrecognized");
+  });
 });

@@ -1,0 +1,17 @@
+test_encrypted_auxiliary_retry_waits_for_password_and_resumes (test_table_tool_lifecycle.TableToolLifecycleTests.test_encrypted_auxiliary_retry_waits_for_password_and_resumes) ... FAIL
+
+======================================================================
+FAIL: test_encrypted_auxiliary_retry_waits_for_password_and_resumes (test_table_tool_lifecycle.TableToolLifecycleTests.test_encrypted_auxiliary_retry_waits_for_password_and_resumes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_table_tool_lifecycle.py", line 113, in test_encrypted_auxiliary_retry_waits_for_password_and_resumes
+    self.assertEqual(self.store.one('document_stages', job)['status'], 'waiting_unlock')
+AssertionError: 'failed' != 'waiting_unlock'
+- failed
++ waiting_unlock
+
+
+----------------------------------------------------------------------
+Ran 1 test in 2.578s
+
+FAILED (failures=1)

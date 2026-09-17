@@ -1,0 +1,40 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : 2026916 21:23:12
+   Source : E:\OCR-document-workflow-20260913\bundle\
+     Dest : E:\OCR-structure-workflow-20260916\bundle\
+
+    Files : *.*
+	    
+Exc Files : manifest.json
+	    
+ Exc Dirs : app
+	    audit
+	    config
+	    docs
+	    fixtures
+	    tools
+	    web
+	    locks
+	    
+  Options : *.* /NDL /NFL /S /E /DCOPY:DAT /COPY:DAT /NP /XJ /R:1 /W:1 
+
+------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :      8865      8824        41         0         0         0
+   Files :     72300     72299         1         0         0         0
+   Bytes :  23.944 g  23.930 g   14.60 m         0         0         0
+   Times :   0:01:02   0:00:57                       0:00:00   0:00:05
+
+
+   Speed :           449,415,838 Bytes/sec.
+   Speed :            25,715.781 MegaBytes/min.
+   Ended : 2026916 21:24:15
+

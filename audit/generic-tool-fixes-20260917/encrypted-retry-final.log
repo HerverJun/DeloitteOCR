@@ -1,0 +1,6 @@
+test_encrypted_auxiliary_retry_waits_for_password_and_resumes (test_table_tool_lifecycle.TableToolLifecycleTests.test_encrypted_auxiliary_retry_waits_for_password_and_resumes) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.002s
+
+OK

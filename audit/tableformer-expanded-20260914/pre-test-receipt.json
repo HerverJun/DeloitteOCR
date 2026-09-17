@@ -1,0 +1,16 @@
+{
+  "created_utc": "2026-09-14T14:39:51.118909+00:00",
+  "files": {
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\selection-seal.json": "8b8e13324109a32d0728a912e2cc84acfe66c60869b54873e7c032b0be9d7308",
+    "C:\\Users\\A\\Desktop\\OCR\\scripts\\summarize_tableformer_experiment.py": "64e690de023ece69a7be56101815c212fa73c2b2aa735010524b1c430e1d4701",
+    "C:\\Users\\A\\Desktop\\OCR\\tests\\test_tableformer_experiment.py": "18c5b1fa991567cd579860bab635eee4028b24104ee4e2ecb698a6e4a640b7e1"
+  },
+  "unit_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "cached_paddle_lineage_checked_tables": 140,
+  "cached_paddle_lineage_mismatches": 0,
+  "test_inference_started": false,
+  "matcher_or_threshold_changes": false
+}

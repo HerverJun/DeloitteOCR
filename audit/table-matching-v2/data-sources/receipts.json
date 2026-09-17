@@ -1,0 +1,22 @@
+[
+  {
+    "name": "pubtables-upstream-readme",
+    "url": "https://raw.githubusercontent.com/microsoft/table-transformer/main/README.md",
+    "error": "HTTPSConnectionPool(host='raw.githubusercontent.com', port=443): Read timed out. (read timeout=20)"
+  },
+  {
+    "name": "pubtables-canonical-card",
+    "url": "https://hf-mirror.com/datasets/bsmock/pubtables-1m/raw/35b1c097807e0b07ec5313879b85956b7b3890db/README.md",
+    "sha256": "24508398ed3e345c337c08e807dc22828379c4cd6c19075e2c5dbc0038cf05a9"
+  },
+  {
+    "name": "pubtables-otsl-card",
+    "url": "https://hf-mirror.com/datasets/docling-project/PubTables-1M_OTSL/raw/77d8208f09ae52e5d8703c9fea5783ec37b8997c/README.md",
+    "sha256": "6e4f75367628466d258e5209eb61ca62624dfe3bb415a91dd8c57a794768a320"
+  },
+  {
+    "name": "doclaynet-upstream-readme",
+    "url": "https://raw.githubusercontent.com/DS4SD/DocLayNet/main/README.md",
+    "error": "HTTPSConnectionPool(host='raw.githubusercontent.com', port=443): Read timed out. (read timeout=20)"
+  }
+]

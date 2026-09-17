@@ -1,0 +1,429 @@
+{
+  "version": 2,
+  "bundle_read_only": "E:\\OCR-document-workflow-20260913\\bundle",
+  "models": [
+    {
+      "name": "PP-OCRv6_medium_det",
+      "revision": "8e0f56fb2ef86b461d99cfc7ac5c137738985f61",
+      "source_manifest_sha256": "5cbabc5c08fa1b97fda13a48770683b970568b971c9d59c9189d307caab10d01",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 23247,
+          "sha256": "59f37b08a9a49aa6c1275e7b0363991353582f4dc7676539a5d2b05aab57e744",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 312150,
+          "sha256": "0f1a7ec35da36173529c7a60238b7f7919e3831929c3f700ad90ad4896adecd5",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 61960476,
+          "sha256": "85218d2e3d98f5a21c58b4220627be923a97aee5db3cc71f39536ab31ac53960",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 886,
+          "sha256": "7298d5ead546584af2504d03355f881ac7a7bc0eb1e282d3e159277c1d0af871",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "PP-OCRv6_medium_rec",
+      "revision": "e5a92bcbc5cc1b494628e458d267778f0704fd7c",
+      "source_manifest_sha256": "dc10d52048b6fd8dbbfa1e413c20a0498cd55252cce042ec2e645b739da8a917",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 23474,
+          "sha256": "75ff9c4853ed171f36224127805062f9bcd1cfbbcacae3d577344866df74f6d3",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 221814,
+          "sha256": "0b2e25e990bd072f1bf77d59d67d508bce6c4bd44af6624e0fb27d6da2cd00e8",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 76465087,
+          "sha256": "1b01c79a914587933f615569e75de54f2e638ebb5d3f3b3c1b38c24ede8c7319",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 150580,
+          "sha256": "991b700facf5b50a7de193468207d5f4255b538dde0d312ae3b7c7a9b6873129",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "PaddleOCR-VL-1.6",
+      "revision": "c5630abae1d940eafe0697512a0325494b02ab42",
+      "source_manifest_sha256": "e50512c596566d5db6f9a0f0e21736144ba4393ab01810ec6c3da6b53b278df0",
+      "files": [
+        {
+          "name": "LICENSE",
+          "bytes": 11376,
+          "sha256": "b8c4d7deccd236af023af1c88c4d4e8f0fc2f41914e0fb23a3ec9678fb5a8456",
+          "matches_source": true
+        },
+        {
+          "name": "README.md",
+          "bytes": 21424,
+          "sha256": "d6c5b77a660577f6e18021defccd835bdc93a8c6538f5a479d597f3e94288abf",
+          "matches_source": true
+        },
+        {
+          "name": "added_tokens.json",
+          "bytes": 25381,
+          "sha256": "f59f889088e0fe21c523e7cf121bb6dca3b0bb148cb7159fbb4572c74dfc5644",
+          "matches_source": true
+        },
+        {
+          "name": "chat_template.jinja",
+          "bytes": 1474,
+          "sha256": "2f27812dab7f333e471884e0c803d807f11953d5453140dfb1aaba234f872bc8",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 2059,
+          "sha256": "ce7f4565f8b1db78532ad5d1b9ebe55c2139d49bd4cb04778b580a08a598f171",
+          "matches_source": true
+        },
+        {
+          "name": "configuration_paddleocr_vl.py",
+          "bytes": 8104,
+          "sha256": "753dd93654c3a9c8c85a3eaee1e3092dd12591b0f2dce0305e1abfb7a41ff160",
+          "matches_source": true
+        },
+        {
+          "name": "generation_config.json",
+          "bytes": 133,
+          "sha256": "a6701d78ab3b4d972307cdec3b69d4c13f46e0d5140514f50ab7d84259324b94",
+          "matches_source": true
+        },
+        {
+          "name": "image_processing_paddleocr_vl.py",
+          "bytes": 25032,
+          "sha256": "a4fa521b9cb16e207f94b7f2d16427771776dfc634420d319fc4916ee58049ec",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 43,
+          "sha256": "1587aece2d6442366efce34161d5f7d5f67f09ebfbf043168e5fade892c2780e",
+          "matches_source": true
+        },
+        {
+          "name": "model.safetensors",
+          "bytes": 1917255968,
+          "sha256": "85a479d506a11e724e7285d395c551be69f41dbc16b6342d3cacfb189aed71db",
+          "matches_source": true
+        },
+        {
+          "name": "modeling_paddleocr_vl.py",
+          "bytes": 103889,
+          "sha256": "c5013dff57ca8b87dc1de64d0fd839a44313de09d230a4fb2d08289d2cad5111",
+          "matches_source": true
+        },
+        {
+          "name": "preprocessor_config.json",
+          "bytes": 641,
+          "sha256": "111872ab1e8bb7fd040ac5087bfced7ab8f011f02139b088cba294964c3b1d0e",
+          "matches_source": true
+        },
+        {
+          "name": "processing_paddleocr_vl.py",
+          "bytes": 12253,
+          "sha256": "e29cb1e5f275f2bd3ce051bd5c9983a33894e693b2823a0e13d4c07c8c4f9e13",
+          "matches_source": true
+        },
+        {
+          "name": "processor_config.json",
+          "bytes": 137,
+          "sha256": "1568858960a9760c54431dae693a6152e601ff55cdf6d2eab97a4a99958faea0",
+          "matches_source": true
+        },
+        {
+          "name": "special_tokens_map.json",
+          "bytes": 1151,
+          "sha256": "d3a125c03103deb2acaf7730791bdbbf196f620e5a2213b664511ff9b4b25bab",
+          "matches_source": true
+        },
+        {
+          "name": "tokenizer.json",
+          "bytes": 11189060,
+          "sha256": "c8a215a59183d0d0781adc33bacd3ce6162716f7fd568fb30234a74d69803a7d",
+          "matches_source": true
+        },
+        {
+          "name": "tokenizer.model",
+          "bytes": 1614363,
+          "sha256": "34ef7db83df785924fb83d7b887b6e822a031c56e15cff40aaf9b982988180df",
+          "matches_source": true
+        },
+        {
+          "name": "tokenizer_config.json",
+          "bytes": 186947,
+          "sha256": "1f979337347cc0cb72a6282d8a23ed183539aa81a87a906f022aee2bab83c7c5",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "PP-DocLayoutV3",
+      "revision": "7b48a7566925fa464281f930c58eee04fe2c862a",
+      "source_manifest_sha256": "d934ce473d9401da568697f7bca752d44ee319be679d773196f20270960746c5",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 12077,
+          "sha256": "8483bc2af32658aae3d38ddec2b7186f94f925481b70ae9e9034daaf80e6b9e1",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 1196890,
+          "sha256": "2b68367c5b312a03de5a6e1642c597c8f95165a7e40cd59c6700cf4a5042f4fd",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 130806572,
+          "sha256": "70bd316b0582769ec968829fd1feb1a6a58b7c941b938327e551b6b12b45c137",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 1482,
+          "sha256": "506fcfac13b3b546ae40d7886b44126420f392adb694e3f8bb6a6286a1f90fdc",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "PP-LCNet_x1_0_table_cls",
+      "revision": "2fa6323e7dab88fa883081db1460995f46af2922",
+      "source_manifest_sha256": "4eced94432eda766a2e2db61c7c512793a74a6945ff7e86aeb896dbefa5bfc44",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 11629,
+          "sha256": "ab8d4e04a6d2d5adeae5efeed08fe3b33d1bda8f363116ce1bea8d1c22fbca38",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 2539,
+          "sha256": "3ba2c2754d073d0e91b54fa11bcfff987dead2f94d7a8d3d57c1804071b176ab",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 104441,
+          "sha256": "43401e76ed7b0e34787533016ea4ec9193d5b5964c3f948991fc5b531651ef33",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 6743918,
+          "sha256": "d0224afd9cfddf22da17407c6c78491baaa1f25922fbb312c9b0d2037c802db0",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 762,
+          "sha256": "891b1f4b0ccddaf6aca0fce8c8a38e5ab5da9f62fb9adaa7c75e161ee03bb787",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "SLANeXt_wired",
+      "revision": "763069fcda6a065f2171753205a32bf899a88d15",
+      "source_manifest_sha256": "601894caa523eb4bf822af2d2d0e7a3662b8f47fd65cf6fc217b8fe029cb6b8b",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 12912,
+          "sha256": "6e5529b446ac4ece9afdbabc006407b849171921a0687665199ca6be06fdc504",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 4948,
+          "sha256": "1379eb21de34e69e3c5e68492304751db7f139037487c2c62133cdb22233993d",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 959302,
+          "sha256": "5b872f08e74f628ca1db8405db147e82e6e0c7cb358e101fd01cdafc946632d8",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 364771513,
+          "sha256": "ff0362a30f707fa7d27d8453c4396b992fca287377a42d01515bca6eeb3908f5",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 2066,
+          "sha256": "abbbd1b4dc6b1a2e9cd34c035514da53a1a6b1ec267292b0b8802025650a33bf",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "SLANeXt_wireless",
+      "revision": "1b73e05c752d2e0763b5d205846dec23122e5808",
+      "source_manifest_sha256": "4d0880f896d34304d9329800d44a430945afd26f070268c22568e2ee0256d2c3",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 13142,
+          "sha256": "e931fc5d2be31ea6f8518d0b2285e1213b8d68d140380f3a8183763c37ead666",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 4951,
+          "sha256": "af459c24c87f3af37d6515f4a875b120d5da53ae61152514e1831d80f21c3387",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 959302,
+          "sha256": "5b872f08e74f628ca1db8405db147e82e6e0c7cb358e101fd01cdafc946632d8",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 364771513,
+          "sha256": "6bf0568e24638491c75920954a92583d8c0d46aa76a2a635fb2fa666ffb618ff",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 2069,
+          "sha256": "58d1d7fdffd3e58cfec98571b817ea012f2107d644bd4f8e4607fae84f1923a6",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "RT-DETR-L_wired_table_cell_det",
+      "revision": "e2bd53c06b3a815d86acbf5c6779dada58819cfe",
+      "source_manifest_sha256": "9983db1762244fe5b30010a109048d8c1ea7a8c902e1508142362a6e88848bfe",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 14392,
+          "sha256": "400b7336ab11edafd5c00fb2ceff791f2e50bc99ccc7fbe3e3e48832ae97a463",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 5695,
+          "sha256": "411eaf19f4cbdfcc5bf4da8aaf15eeb57e7e98213cb721cdb890ec0fa2c1930e",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 1081363,
+          "sha256": "abea237f1e53d3dc3bf7ea1321dfebe78552a6070e567dfc94028b622fd575e8",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 128841073,
+          "sha256": "357321c2845f0a035e8d118622649685a3cdb89d28b09a64e45a5a3df7a9fedc",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 1630,
+          "sha256": "edf6d6180f2b9e3e666c744ee5ded38a72c6ef9056cd193250e3e55ba268acef",
+          "matches_source": true
+        }
+      ]
+    },
+    {
+      "name": "RT-DETR-L_wireless_table_cell_det",
+      "revision": "25ca86356a601c877476bb0dcc5fd09153d9d64d",
+      "source_manifest_sha256": "33755319fd31c8a8c2f66c52282883878b0a79bd76561cb76be12524215298a3",
+      "files": [
+        {
+          "name": "README.md",
+          "bytes": 15124,
+          "sha256": "ddba71f68d0baeb0154ecfd7da506cf7a994403cd3628a56a6df80d1f60067a9",
+          "matches_source": true
+        },
+        {
+          "name": "config.json",
+          "bytes": 5698,
+          "sha256": "cf38c6c63c0c5c5b1598c19019cd4d4e6af35a14667c6ec2656aeb215b7e97e1",
+          "matches_source": true
+        },
+        {
+          "name": "inference.json",
+          "bytes": 1081363,
+          "sha256": "abea237f1e53d3dc3bf7ea1321dfebe78552a6070e567dfc94028b622fd575e8",
+          "matches_source": true
+        },
+        {
+          "name": "inference.pdiparams",
+          "bytes": 128841073,
+          "sha256": "c0f8c9ea07be8916ece73a8acf807bd21aed3ef11969b319c2dccb2406774c34",
+          "matches_source": true
+        },
+        {
+          "name": "inference.yml",
+          "bytes": 1633,
+          "sha256": "f2d0f00ea42aacc162f72a35cf54330e392a7d669e9a1b43896d3bd77a512621",
+          "matches_source": true
+        }
+      ]
+    }
+  ],
+  "all_models_match_source": true,
+  "vendor": [
+    {
+      "path": "tf_cell_matcher.py",
+      "sha256": "e07969f390eb141487a0b9e6d23c2a24f5da48316fc95454f5201aa19ef9879b",
+      "matches_lock": true
+    },
+    {
+      "path": "otsl.py",
+      "sha256": "51d6cac594424aa69f48b5be861ef930849344a762611a4b7449eda283e6b3f6",
+      "matches_lock": true
+    },
+    {
+      "path": "settings.py",
+      "sha256": "68aacd3855426e2ccc6804f51e797323dca9bfbef034fa8b49a243d81920004a",
+      "matches_lock": true
+    }
+  ],
+  "service_import": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "torch_imported": false,
+    "matcher_loaded": true
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER, 595.97, 16376 MiB",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13600KF",
+  "ram_bytes": 34164097024,
+  "logical_cpu_count": 20,
+  "platform": "Windows-11-10.0.22631-SP0",
+  "limitation": "Inventory verifies this existing local bundle; no new package or clean target-machine acceptance performed"
+}

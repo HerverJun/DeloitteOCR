@@ -1,0 +1,40 @@
+[
+  {
+    "name": "pubtables-upstream-readme",
+    "url": "https://raw.githubusercontent.com/microsoft/table-transformer/main/README.md",
+    "error": "HTTPSConnectionPool(host='raw.githubusercontent.com', port=443): Read timed out. (read timeout=20)"
+  },
+  {
+    "name": "pubtables-canonical-card",
+    "url": "https://hf-mirror.com/datasets/bsmock/pubtables-1m/raw/35b1c097807e0b07ec5313879b85956b7b3890db/README.md",
+    "sha256": "24508398ed3e345c337c08e807dc22828379c4cd6c19075e2c5dbc0038cf05a9"
+  },
+  {
+    "name": "pubtables-otsl-card",
+    "url": "https://hf-mirror.com/datasets/docling-project/PubTables-1M_OTSL/raw/77d8208f09ae52e5d8703c9fea5783ec37b8997c/README.md",
+    "sha256": "6e4f75367628466d258e5209eb61ca62624dfe3bb415a91dd8c57a794768a320"
+  },
+  {
+    "name": "doclaynet-upstream-readme",
+    "url": "https://raw.githubusercontent.com/DS4SD/DocLayNet/main/README.md",
+    "error": "HTTPSConnectionPool(host='raw.githubusercontent.com', port=443): Read timed out. (read timeout=20)"
+  },
+  {
+    "name": "doclaynet-upstream-readme",
+    "url": "https://api.github.com/repos/DS4SD/DocLayNet/contents/README.md",
+    "git_blob_sha": "7eb63995ef0745358d74499a4cadcf878bff62f2",
+    "sha256": "5fe6e3068dc64710183ce936f0e46de7d6fe0acd98758ad529d4c7450ad5d88e"
+  },
+  {
+    "name": "doclaynet-license",
+    "url": "https://api.github.com/repos/DS4SD/DocLayNet/contents/LICENSE",
+    "git_blob_sha": "b13f50ebccb1948aec15ab1fbab45f15e345ae61",
+    "sha256": "2d6f51b40d9b47e2b01e1503e8e16230b5745bc927ae9024f734e36fcee8e7f5"
+  },
+  {
+    "name": "pubtables-upstream-readme-first-success",
+    "url": "https://raw.githubusercontent.com/microsoft/table-transformer/main/README.md",
+    "sha256": "8628e5f41182405922bf250964a8c69a71f344c21a31cecdb4cb7ec3ee894a22",
+    "note": "First request succeeded; later retry timed out. Original fetched bytes retained."
+  }
+]

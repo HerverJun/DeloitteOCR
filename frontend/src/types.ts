@@ -6,6 +6,8 @@ export type Cell = {
   text: string;
   confidence?: number | null;
   polygon?: number[][] | null;
+  is_header?: boolean;
+  structure_source?: { provider: string; token_ids: string[]; original_cell_id: string; text_state: string; [key: string]: unknown };
 };
 export type Table = {
   fusion_id?: string;
@@ -14,6 +16,7 @@ export type Table = {
   caption?: string;
   source?: { start: number; end: number; format: string; sha256: string };
   cells: Cell[];
+  structure_review?: Record<string, unknown>;
 };
 export type TextSource = { start: number; end: number; table_index: number | null; original_table: Table };
 // text_sources is presentation metadata, never part of the saved edit payload.
@@ -109,6 +112,7 @@ export type Task = {
   engine_package?: string;
   kind?: string;
   result_version_id?: string | null;
+  review_result_id?: string | null;
 };
 export type DocumentRecord = { id: string; project_id: string; name: string; kind: "image" | "pdf" | "tiff"; page_count: number; status: string };
 export type DocumentPage = { id: string; document_id: string; page_number: number; image_id: string | null; active_version: string | null; status: string; stage_status: string | null; stage_error?: string | null; stage_phase?: string | null; render_dpi: number };
@@ -151,6 +155,7 @@ export const engineNames: Record<string, string> = {
   "pdf-native": "原生 PDF 提取",
   document: "页面区域识别",
   geometry: "表格辅助定位",
+  reviewer: "多模态审校",
 };
 
 export type ReviewIssue = {
@@ -170,7 +175,7 @@ export type ReviewIssue = {
   coverage: number;
   context_current: boolean;
   context?: { row_header: string; column_header: string; neighbors: { row: number; column: number; text: string }[] };
-  location: { level: "image" | "region" | "cell"; polygon: number[][] | null; table_polygon?: number[][] | null; version_id: string; reason: string };
+  location: { level: "image" | "region" | "cell"; polygon: number[][] | null; table_polygon?: number[][] | null; version_id: string; reason: string; range_semantics?: string };
 };
 export type ReviewPage = {
   result_id: string;

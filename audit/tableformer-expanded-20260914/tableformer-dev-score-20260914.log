@@ -1,0 +1,268 @@
+{
+  "complete": true,
+  "results": {
+    "Paddle": {
+      "counts": {
+        "targets": 8488,
+        "offered": 374,
+        "correct": 202,
+        "wrong": 9,
+        "low_iou": 159,
+        "extra_outputs": 0,
+        "region_fallback": 7382,
+        "text_fallback": 732,
+        "identity_tie": 6,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 5,
+        "legacy_correct": 202
+      },
+      "precise_coverage": 0.023798303487276153,
+      "wrong_cell_rate": 0.02406417112299465,
+      "offered_quality": 0.5401069518716578,
+      "strict_output_quality": 0.5401069518716578,
+      "low_iou_rate": 0.42513368983957217,
+      "offered_rate": 0.044062205466541,
+      "tables": 80,
+      "documents": 80,
+      "primary_failure_stages": {
+        "local_correspondence": 3446,
+        "text_anchor": 1820,
+        "accepted": 374,
+        "table_identity": 2755,
+        "geometry": 78,
+        "inference": 15
+      },
+      "reason_codes_nonadditive": {
+        "order_conflict": 2337,
+        "repeated_value_ambiguous": 1567,
+        "no_local_anchors": 1105,
+        "empty_cell_without_anchors": 253,
+        "accepted": 374,
+        "table_identity_ambiguous": 2755,
+        "noncontiguous_group": 4,
+        "candidate_budget_exceeded": 4,
+        "timeout": 15,
+        "unverified_lineage": 74
+      },
+      "boundary_iou": {
+        "median": 0.521844066290841,
+        "p90": 0.7099304154766993,
+        "p95": 0.7526603191858255,
+        "n": 374
+      },
+      "boundary_error_types": {
+        "oversized": 159
+      },
+      "mean_table_precise_coverage": 0.040177515803399455,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.005163892223751379,
+          0.049562290992397666
+        ],
+        "wrong_cell_rate": [
+          0.0034370577162098665,
+          0.07322825586746427
+        ],
+        "offered_quality": [
+          0.20416158536585366,
+          0.8307156889310391
+        ]
+      },
+      "mapping_ms": {
+        "median": 28.187050000269664,
+        "p90": 62.516289999075525,
+        "p95": 77.37851999954728,
+        "n": 80
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 28.187050000269664,
+        "p90": 62.516289999075525,
+        "p95": 77.37851999954728,
+        "n": 80
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    },
+    "RapidTable": {
+      "counts": {
+        "targets": 8488,
+        "offered": 1952,
+        "correct": 720,
+        "wrong": 12,
+        "low_iou": 1220,
+        "extra_outputs": 0,
+        "region_fallback": 3746,
+        "text_fallback": 2790,
+        "identity_tie": 0,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 12,
+        "legacy_correct": 690
+      },
+      "precise_coverage": 0.08482563619227144,
+      "wrong_cell_rate": 0.006147540983606557,
+      "offered_quality": 0.36885245901639346,
+      "strict_output_quality": 0.36885245901639346,
+      "low_iou_rate": 0.625,
+      "offered_rate": 0.2299717247879359,
+      "tables": 80,
+      "documents": 80,
+      "primary_failure_stages": {
+        "local_correspondence": 3493,
+        "text_anchor": 2286,
+        "accepted": 1952,
+        "table_identity": 733,
+        "geometry": 24
+      },
+      "reason_codes_nonadditive": {
+        "no_local_anchors": 3454,
+        "repeated_value_ambiguous": 1989,
+        "accepted": 1952,
+        "empty_cell_without_anchors": 297,
+        "table_identity_ambiguous": 733,
+        "noncontiguous_group": 24,
+        "order_conflict": 37,
+        "candidate_budget_exceeded": 2
+      },
+      "boundary_iou": {
+        "median": 0.4456160623032096,
+        "p90": 0.6850181228104857,
+        "p95": 0.7577133907574187,
+        "n": 1952
+      },
+      "boundary_error_types": {
+        "offset_or_shape": 85,
+        "oversized": 1016,
+        "undersized": 119
+      },
+      "mean_table_precise_coverage": 0.08312985451535902,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.05862373078967637,
+          0.11471622515341215
+        ],
+        "wrong_cell_rate": [
+          0.0007145817432144834,
+          0.015337025404447407
+        ],
+        "offered_quality": [
+          0.2714438293618303,
+          0.46106013446215144
+        ]
+      },
+      "mapping_ms": {
+        "median": 22.07315000032395,
+        "p90": 59.872350001387545,
+        "p95": 70.5311599998822,
+        "n": 80
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 22.07315000032395,
+        "p90": 59.872350001387545,
+        "p95": 70.5311599998822,
+        "n": 80
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    },
+    "TableFormer": {
+      "counts": {
+        "targets": 8488,
+        "offered": 6310,
+        "correct": 2974,
+        "wrong": 1,
+        "low_iou": 3329,
+        "extra_outputs": 0,
+        "identity_tie": 6,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 1,
+        "legacy_correct": 2974,
+        "text_fallback": 404,
+        "region_fallback": 1774
+      },
+      "precise_coverage": 0.3503770028275212,
+      "wrong_cell_rate": 0.0001584786053882726,
+      "offered_quality": 0.47131537242472266,
+      "strict_output_quality": 0.47131537242472266,
+      "low_iou_rate": 0.5275752773375594,
+      "offered_rate": 0.7434024505183789,
+      "tables": 80,
+      "documents": 80,
+      "primary_failure_stages": {
+        "accepted": 6310,
+        "local_correspondence": 1050,
+        "text_anchor": 1125,
+        "geometry": 3
+      },
+      "reason_codes_nonadditive": {
+        "accepted": 6310,
+        "no_local_anchors": 1034,
+        "repeated_value_ambiguous": 904,
+        "empty_cell_without_anchors": 221,
+        "candidate_tie": 1,
+        "candidate_budget_exceeded": 2,
+        "noncontiguous_group": 3,
+        "order_conflict": 13
+      },
+      "boundary_iou": {
+        "median": 0.48978914264068046,
+        "p90": 0.71988062155368,
+        "p95": 0.7741163548380192,
+        "n": 6310
+      },
+      "boundary_error_types": {
+        "oversized": 3329
+      },
+      "mean_table_precise_coverage": 0.34309007862532986,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.28079936538241,
+          0.4145771551857912
+        ],
+        "wrong_cell_rate": [
+          0.0,
+          0.0005093013015243869
+        ],
+        "offered_quality": [
+          0.3813774802413058,
+          0.5569549789965473
+        ]
+      },
+      "mapping_ms": {
+        "median": 22.775149999688438,
+        "p90": 76.44519999994372,
+        "p95": 94.89816500108644,
+        "n": 80
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 22.775149999688438,
+        "p90": 76.44519999994372,
+        "p95": 94.89816500108644,
+        "n": 80
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    }
+  },
+  "deltas": {}
+}

@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "source_url": "https://codait-cos-dax.s3.us.cloud-object-storage.appdomain.cloud/dax-doclaynet/1.0.0/DocLayNet_core.zip",
+  "source_version": "DocLayNet 1.0.0",
+  "license": "CDLA-Permissive-1.0",
+  "source_loader_revision": "5656dbae459cf15b3a112d46bb6b5484cabcd2d2",
+  "seed": "pages-v2-20260913",
+  "page_count": 60,
+  "split_counts": {
+    "development": 20,
+    "validation": 20,
+    "test": 20
+  },
+  "strata": {
+    "no_table": 20,
+    "single_table": 20,
+    "multiple_tables": 20
+  },
+  "selection": "seeded image ID ordering across official test, val, train annotations; one page per document/company-template stem; pHash <=6 exclusions against retained pages and historical/new crop corpus",
+  "scope": "human-labelled page-level table detection only; labels never passed to the model; not a cell matching test",
+  "freeze_timing": "supplementary page protocol before any page detector inference; main crop grouping was already frozen",
+  "upstream_training_overlap": "not excluded or claimed absent; independent only of local strategy selection"
+}

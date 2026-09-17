@@ -1,0 +1,25 @@
+{
+  "backend": {
+    "tests": 303,
+    "skipped": 1,
+    "status": "passed",
+    "passed": 302,
+    "log": "full-regression-04.log"
+  },
+  "frontend": {
+    "tests": 32,
+    "build": "passed"
+  },
+  "grits": {
+    "tests": 6,
+    "status": "passed"
+  },
+  "ui": {
+    "checks": 6,
+    "errors": 0,
+    "browser_closed": true,
+    "run": "ui-05"
+  },
+  "human_participants": 0,
+  "independent_quality": "unmeasured"
+}

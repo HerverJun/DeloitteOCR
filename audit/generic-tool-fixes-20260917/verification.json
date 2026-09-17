@@ -1,0 +1,18 @@
+{
+  "tool": "pdfplumber 0.11.10",
+  "config_sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+  "table_settings": {},
+  "upstream_source_files_unchanged": 20,
+  "backend_run": 321,
+  "backend_passed": 320,
+  "backend_skipped": 1,
+  "backend_log": "backend-final-04.log",
+  "installed_lifecycle_passed": 12,
+  "installed_lifecycle_log": "installed-lifecycle-final.log",
+  "encrypted_password_recovery": "passed",
+  "frontend_passed": 32,
+  "ui_passed": 4,
+  "public_auxiliary_refresh_pages": 20,
+  "public_ocr_rerun": false,
+  "independent_quality_acceptance": false
+}

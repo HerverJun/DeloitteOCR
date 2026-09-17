@@ -1,0 +1,85 @@
+{
+  "python": {
+    "tests": 273,
+    "passed": 273,
+    "runtime": "E:/OCR-document-workflow-20260913/bundle/runtimes/service/python.exe",
+    "source_path_explicit": true,
+    "fault_injection_logs_expected": true
+  },
+  "frontend": {
+    "files": 8,
+    "tests": 32,
+    "passed": 32,
+    "build": "pass",
+    "existing_large_chunk_warning": true
+  },
+  "ui": {
+    "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim",
+    "checks": [
+      {
+        "name": "page navigation saves current revision before changing image",
+        "passed": true
+      },
+      {
+        "name": "PDF preflight names missing text and an explicit page range exports successfully",
+        "passed": true
+      },
+      {
+        "name": "document search uses adopted saved content",
+        "passed": true
+      },
+      {
+        "name": "TIFF page opens lazily through CPU queue",
+        "passed": true
+      },
+      {
+        "name": "encrypted PDF unlock removes password field after success",
+        "passed": true
+      },
+      {
+        "name": "v2 text extent is labelled explicitly and does not claim a full-cell location",
+        "passed": true
+      },
+      {
+        "name": "quick review shows whole-table/local image and row/column/neighbour context",
+        "passed": true
+      },
+      {
+        "name": "image review locates the exact table editor cell in reverse",
+        "passed": true
+      },
+      {
+        "name": "geometry changes and reload preserve draft; successful review submits local timing",
+        "passed": true
+      },
+      {
+        "name": "cell focus locates image; manual drag binds geometry without enqueuing OCR",
+        "passed": true
+      }
+    ],
+    "errors": [],
+    "browser_closed": true
+  },
+  "queue": {
+    "status": "pass",
+    "sample": "camelot-foo-p1",
+    "provider": "tableformer-raw",
+    "algorithm": "local-v3",
+    "initial_complete_cells": 41,
+    "text_unchanged_by_geometry": true,
+    "candidate_cache_replay_without_gpu": true,
+    "manual_binding_precedes_model": true,
+    "result_id": "206700b7dc814a3e80a89b593df2f35e",
+    "version_id": "a79ddfb9a845480492a348ad17cc5c6b"
+  },
+  "diff_check": {
+    "passed": true,
+    "cr_at_eol": true,
+    "historical_crlf_config_preserved": true
+  },
+  "screenshots_visually_reviewed": [
+    "03-manual-cell-binding.png",
+    "04-small-laptop.png"
+  ],
+  "production_release": false
+}

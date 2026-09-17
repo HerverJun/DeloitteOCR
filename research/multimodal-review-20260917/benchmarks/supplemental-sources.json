@@ -1,0 +1,44 @@
+[
+  {
+    "name": "HIPE-OCRepair-eval",
+    "url": "https://raw.githubusercontent.com/hipe-eval/HIPE-OCRepair-2026-eval/main/README.md",
+    "retrieved_at": "2026-09-17T01:10:17.200229+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\HIPE-OCRepair-eval.md",
+    "sha256": "8c8edcb432a155837f8d77a2df8dff20e2620b3656f25dbd2b5016520addc086"
+  },
+  {
+    "name": "HIPE-OCRepair-data",
+    "url": "https://raw.githubusercontent.com/hipe-eval/HIPE-OCRepair-2026-data/main/README.md",
+    "retrieved_at": "2026-09-17T01:10:17.201230+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\HIPE-OCRepair-data.md",
+    "sha256": "699e70c99a74d75644b322cd5e91cd77a0a8cc8f20257271eff43cec19c23a1a"
+  },
+  {
+    "name": "OCRBench_v2",
+    "url": "https://raw.githubusercontent.com/Yuliang-Liu/MultimodalOCR/6af7d948ab4d4bdf625af36c884fb7da19075d1a/OCRBench_v2/README.md",
+    "retrieved_at": "2026-09-17T01:10:17.201230+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\OCRBench_v2.md",
+    "sha256": "3d9fb1d19221c832b085a173ad299b3ae053c63103531dd384f93a293b9f4151"
+  },
+  {
+    "name": "CC-OCR",
+    "url": "https://raw.githubusercontent.com/AlibabaResearch/AdvancedLiterateMachinery/fb6187ebe5374d5682ac0bc05f31e3639ab6fb15/Benchmarks/CC-OCR/README.md",
+    "retrieved_at": "2026-09-17T01:10:17.202228+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\CC-OCR.md",
+    "sha256": "0d027fc3938bfffc095e22e24e98001a747a88d997e8cff04a05fb844874788e"
+  },
+  {
+    "name": "postcorrection-thomas",
+    "url": "https://aclanthology.org/2024.lt4hala-1.14/",
+    "retrieved_at": "2026-09-17T01:10:17.202228+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\postcorrection-thomas.html",
+    "sha256": "1c6d2c82752381f54f022fb72e12d5068661a9d470c4d5747e858f39623051c1"
+  },
+  {
+    "name": "postcorrection-boros",
+    "url": "https://aclanthology.org/2024.latechclfl-1.14/",
+    "retrieved_at": "2026-09-17T01:10:17.416608+00:00",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\postcorrection-boros.html",
+    "sha256": "404b8ba4790e1ba3aaa0f0e32b8e6e0e20f7feb6c4e95c6b39f34fd2f81b6913"
+  }
+]

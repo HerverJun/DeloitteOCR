@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "development": {
+      "tables": 80,
+      "targets": 8488,
+      "documents": 80,
+      "target_tags": {
+        "repeated": 2574,
+        "empty": 395,
+        "merged": 314
+      }
+    },
+    "validation": {
+      "tables": 60,
+      "targets": 5930,
+      "documents": 60,
+      "target_tags": {
+        "repeated": 2212,
+        "merged": 224,
+        "empty": 372
+      }
+    },
+    "test": {
+      "tables": 120,
+      "targets": 12051,
+      "documents": 120,
+      "target_tags": {
+        "empty": 973,
+        "repeated": 3895,
+        "merged": 424
+      }
+    }
+  },
+  "rejections_before_inference": {
+    "slot_count_conflict": 59,
+    "size_outside_scope": 494,
+    "coordinate_conversion_conflict": 40,
+    "transcription_replacement_character": 7,
+    "near_duplicate": 1,
+    "annotation_span_conflict": 1
+  },
+  "excluded_document_count": 104,
+  "near_duplicates": [
+    {
+      "id": "PMC3200929_table_2",
+      "prior": "PMC2983951_table_3",
+      "phash_distance": 6,
+      "text_jaccard": 0.05704697986577181,
+      "action": "excluded_before_inference"
+    }
+  ],
+  "annotation_checks": "all retained cells: bounds, PDF conversion, span and transcription checks; key attributes counted on target cells",
+  "unqualified_tracks": [
+    "FinTabNet canonical refresh",
+    "native PDF end-to-end",
+    "page-level detection",
+    "Chinese/photo logical matching"
+  ],
+  "unused_qualified_candidates": 60,
+  "source": {
+    "url": "https://hf-mirror.com/datasets/docling-project/PubTables-1M_OTSL/resolve/77d8208f09ae52e5d8703c9fea5783ec37b8997c/data/test-00017-of-00032-33455af462204ba4.parquet",
+    "file": "C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\geometry-holdout\\PubTables-1M_OTSL.parquet",
+    "bytes": 194797135,
+    "sha256": "128b4cd8375d33487cc94779481540ec5025a8d980cd261d26f48889610e8231",
+    "repo": "docling-project/PubTables-1M_OTSL",
+    "revision": "77d8208f09ae52e5d8703c9fea5783ec37b8997c",
+    "shard": "data/test-00017-of-00032-33455af462204ba4.parquet"
+  }
+}

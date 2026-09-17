@@ -1,0 +1,11 @@
+{
+  "commit": "0bb3ab71c4ec2a8b6c656c67af40eeaf863f306e",
+  "url": "https://raw.githubusercontent.com/microsoft/table-transformer/0bb3ab71c4ec2a8b6c656c67af40eeaf863f306e/scripts/process_pubmed.py",
+  "sha256": "163a34651c89797c692d85a00e3b2088d475026ab063b7b1c3849899711730d7",
+  "pdf_saved_before_grid_dilation": true,
+  "save_pdf_annotations_line": 1727,
+  "dilate_grid_lines": [
+    1761,
+    1800
+  ]
+}

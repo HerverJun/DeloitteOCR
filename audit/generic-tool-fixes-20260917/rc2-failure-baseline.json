@@ -1,0 +1,49 @@
+{
+  "version": "0.10.0rc2",
+  "module_source": "E:\\OCR-public-quality-20260916\\bundle\\app\\ocr_workbench\\documents.py",
+  "fixture": "generated native PDF (not public material)",
+  "fixture_sha256": "ccb144326654063222c6f8666866a2a018ca3b61371a1f52863d51f3348a4376",
+  "known_failures_reproduced": 4,
+  "findings": [
+    {
+      "id": "cached-tool-config-not-revalidated",
+      "reproduced": true,
+      "stage_status": "succeeded",
+      "tool_calls": [],
+      "retained_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "current_fingerprint": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+      "expected": "A fresh processing stage checks cached prediction identity and regenerates incompatible auxiliary output."
+    },
+    {
+      "id": "shutdown-cancellation-swallowed",
+      "reproduced": true,
+      "stop_requested": true,
+      "stage_status": "succeeded",
+      "published_results": 1,
+      "expected": "Propagate the dedicated cancellation signal so shutdown leaves a resumable interrupted stage."
+    },
+    {
+      "id": "auxiliary-failure-not-in-review-queue",
+      "reproduced": true,
+      "stage_status": "succeeded",
+      "raw_error": "Injected auxiliary timeout",
+      "review_tasks": 0,
+      "candidate_sets": 0,
+      "expected": "Distinguish tool failure, valid empty detection and incompatible input; expose actionable retry/status."
+    },
+    {
+      "id": "auxiliary-timeout-prevents-render-publication",
+      "reproduced": true,
+      "fault_injection": "Only the auxiliary table function waits; parent timeout shortened to 8 seconds.",
+      "native_extraction_completed": true,
+      "native_units": 7,
+      "page_image_published": false,
+      "native_result_published": false,
+      "error": "PDF 页面处理超时，请降低 DPI 或检查文档",
+      "expected": "Publish base rendering/native extraction independently; timeout in table detection only degrades auxiliary structure."
+    }
+  ],
+  "production_sources_modified": false,
+  "shutdown_executed": false,
+  "scope": "Lifecycle and recovery fault injection; no document-specific algorithm changes or quality claims."
+}

@@ -44,6 +44,8 @@ def validate_edit(edit):
                 raise ValueError("单元格超出表格边界")
             if not isinstance(cell.get("text"), str) or len(cell["text"]) > 5_000_000:
                 raise ValueError("单元格文本过长或格式无效")
+            if 'is_header' in cell and type(cell['is_header']) is not bool:
+                raise ValueError("表头标记必须为布尔值")
             for y in range(r, r + rs):
                 for x in range(c, c + cs):
                     if (y, x) in occupied:
@@ -69,10 +71,11 @@ def tables_html(tables):
             for c in range(table["columns"]):
                 cell = cells.get((r, c))
                 if cell:
+                    tag = 'th' if cell.get('is_header') else 'td'
                     lines.append(
-                        f'<td rowspan="{cell["row_span"]}" colspan="{cell["column_span"]}">'
+                        f'<{tag} rowspan="{cell["row_span"]}" colspan="{cell["column_span"]}">'
                         + html.escape(cell["text"]).replace("\n", "<br>")
-                        + "</td>"
+                        + f"</{tag}>"
                     )
                 elif (r, c) not in covered:
                     lines.append("<td></td>")

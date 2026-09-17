@@ -58,6 +58,11 @@ try{
   await page.getByRole('tab',{name:'快速校对',exact:true}).click();
   const review=page.getByRole('region',{name:'快速校对',exact:true});
   await expect(review.getByLabel('原图预览范围',{exact:true})).toBeVisible();
+  if(seed.geometry_v2){
+    await expect(review.locator('figcaption')).toContainText('文字范围');
+    await expect(review.getByLabel('原图预览范围',{exact:true}).locator('option[value="local"]')).toHaveText('文字范围');
+    record('v2 text extent is labelled explicitly and does not claim a full-cell location');
+  }
   await review.getByLabel('原图预览范围',{exact:true}).selectOption('table');
   await expect(review.locator('.review-context')).toContainText('相邻内容');
   await page.screenshot({path:path.join(out,'02-review-whole-table.png'),fullPage:true,animations:'disabled'});

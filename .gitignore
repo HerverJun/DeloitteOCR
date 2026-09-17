@@ -67,3 +67,34 @@ audit/fusion-*/evaluation*/frozen-data/
 # Document audit interaction databases and temporary project payloads remain local.
 audit/document-workflow-*/ui-*/workspace/
 audit/document-workflow-*/pdf-visuals/workspace/
+
+# Keep audit receipts and reproducible probes, not live databases or sessions.
+audit/**/workspace/
+audit/**/workbench.sqlite3*
+audit/**/seed.json
+audit/**/session.json
+audit/**/session-token.txt
+audit/**/request.json
+audit/deep-review-20260917/four-engines/项目 中文 空格/
+audit/deep-review-20260917/commit-inventory.json
+audit/deep-review-20260917/ui-*/native-two-pages.pdf
+audit/deep-review-20260917/ui-*/review-table.png
+audit/deep-review-20260917/ui-*/synthetic-invoice.png
+audit/deep-review-20260917/ui-*/synthetic-review.pdf
+
+# Public page images and verbatim extraction payloads stay in local evidence.
+audit/multimodal-review-20260917/gpu-public-v3/page-*/
+audit/multimodal-review-20260917/gpu-public-v3/receipt.json
+audit/public-quality-20260916/additional-review.json
+audit/public-quality-20260916/existing-review.json
+
+# Research retains authored analysis, collection scripts and pinned source indexes.
+# Downloaded upstream mirrors can be restored from the recorded URLs/revisions.
+research/multimodal-review-20260917/github/*/
+research/multimodal-review-20260917/github/*__api.json
+research/multimodal-review-20260917/github/*__README.md
+research/multimodal-review-20260917/github/scribeocr__scribe.js__comparison.md
+research/multimodal-review-20260917/benchmarks/*.html
+research/multimodal-review-20260917/benchmarks/*.md
+!research/multimodal-review-20260917/benchmarks/benchmark-findings.md
+research/multimodal-review-20260917/benchmarks/*.metadata.json

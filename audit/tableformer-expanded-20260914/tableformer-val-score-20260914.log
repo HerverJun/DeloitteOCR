@@ -1,0 +1,263 @@
+{
+  "complete": true,
+  "results": {
+    "Paddle": {
+      "counts": {
+        "targets": 5930,
+        "offered": 731,
+        "correct": 206,
+        "wrong": 8,
+        "low_iou": 513,
+        "extra_outputs": 0,
+        "region_fallback": 4476,
+        "text_fallback": 723,
+        "identity_tie": 4,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 9,
+        "legacy_correct": 206
+      },
+      "precise_coverage": 0.03473861720067454,
+      "wrong_cell_rate": 0.01094391244870041,
+      "offered_quality": 0.2818057455540356,
+      "strict_output_quality": 0.2818057455540356,
+      "low_iou_rate": 0.7017783857729138,
+      "offered_rate": 0.12327150084317032,
+      "tables": 60,
+      "documents": 60,
+      "primary_failure_stages": {
+        "local_correspondence": 2370,
+        "text_anchor": 1694,
+        "table_identity": 1131,
+        "accepted": 731,
+        "geometry": 4
+      },
+      "reason_codes_nonadditive": {
+        "order_conflict": 1215,
+        "no_local_anchors": 1151,
+        "repeated_value_ambiguous": 1437,
+        "table_identity_ambiguous": 1131,
+        "empty_cell_without_anchors": 257,
+        "accepted": 731,
+        "noncontiguous_group": 3,
+        "unverified_lineage": 1,
+        "candidate_budget_exceeded": 4
+      },
+      "boundary_iou": {
+        "median": 0.40310933256347026,
+        "p90": 0.6165773200723061,
+        "p95": 0.6610444905661543,
+        "n": 731
+      },
+      "boundary_error_types": {
+        "oversized": 513
+      },
+      "mean_table_precise_coverage": 0.03578541715663162,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.005238969143081761,
+          0.07592337341418061
+        ],
+        "wrong_cell_rate": [
+          0.0014129877806543982,
+          0.04256002551369082
+        ],
+        "offered_quality": [
+          0.06645493106120726,
+          0.518903891590026
+        ]
+      },
+      "mapping_ms": {
+        "median": 28.38560000054713,
+        "p90": 70.48684000019422,
+        "p95": 79.92724499999893,
+        "n": 60
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 28.38560000054713,
+        "p90": 70.48684000019422,
+        "p95": 79.92724499999893,
+        "n": 60
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    },
+    "RapidTable": {
+      "counts": {
+        "targets": 5930,
+        "offered": 789,
+        "correct": 273,
+        "wrong": 12,
+        "low_iou": 501,
+        "extra_outputs": 0,
+        "region_fallback": 3700,
+        "text_fallback": 1441,
+        "identity_tie": 3,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 11,
+        "legacy_correct": 267
+      },
+      "precise_coverage": 0.04603709949409781,
+      "wrong_cell_rate": 0.015209125475285171,
+      "offered_quality": 0.34600760456273766,
+      "strict_output_quality": 0.34600760456273766,
+      "low_iou_rate": 0.6349809885931559,
+      "offered_rate": 0.1330522765598651,
+      "tables": 60,
+      "documents": 60,
+      "primary_failure_stages": {
+        "table_identity": 1575,
+        "local_correspondence": 1939,
+        "geometry": 8,
+        "text_anchor": 1619,
+        "accepted": 789
+      },
+      "reason_codes_nonadditive": {
+        "table_identity_ambiguous": 1575,
+        "no_local_anchors": 1928,
+        "noncontiguous_group": 8,
+        "repeated_value_ambiguous": 1422,
+        "accepted": 789,
+        "empty_cell_without_anchors": 197,
+        "candidate_tie": 1,
+        "order_conflict": 6,
+        "candidate_budget_exceeded": 4
+      },
+      "boundary_iou": {
+        "median": 0.4148540846096986,
+        "p90": 0.6711681562440059,
+        "p95": 0.7489771319924661,
+        "n": 789
+      },
+      "boundary_error_types": {
+        "offset_or_shape": 45,
+        "undersized": 72,
+        "oversized": 384
+      },
+      "mean_table_precise_coverage": 0.048223323948563,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.026797267527403714,
+          0.06812401691475445
+        ],
+        "wrong_cell_rate": [
+          0.0022495925383064492,
+          0.03983928571428571
+        ],
+        "offered_quality": [
+          0.22506522406384286,
+          0.47772680218332386
+        ]
+      },
+      "mapping_ms": {
+        "median": 16.978199999357457,
+        "p90": 43.797500000073356,
+        "p95": 79.63558999945232,
+        "n": 60
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 16.978199999357457,
+        "p90": 43.797500000073356,
+        "p95": 79.63558999945232,
+        "n": 60
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    },
+    "TableFormer": {
+      "counts": {
+        "targets": 5930,
+        "offered": 3940,
+        "correct": 1662,
+        "wrong": 2,
+        "low_iou": 2264,
+        "extra_outputs": 0,
+        "text_fallback": 234,
+        "identity_tie": 12,
+        "invalid_geometry": 0,
+        "no_intersection": 0,
+        "legacy_wrong": 2,
+        "legacy_correct": 1662,
+        "region_fallback": 1756
+      },
+      "precise_coverage": 0.2802698145025295,
+      "wrong_cell_rate": 0.0005076142131979696,
+      "offered_quality": 0.4218274111675127,
+      "strict_output_quality": 0.4218274111675127,
+      "low_iou_rate": 0.5746192893401015,
+      "offered_rate": 0.6644182124789207,
+      "tables": 60,
+      "documents": 60,
+      "primary_failure_stages": {
+        "local_correspondence": 786,
+        "accepted": 3940,
+        "text_anchor": 1204
+      },
+      "reason_codes_nonadditive": {
+        "no_local_anchors": 786,
+        "accepted": 3940,
+        "repeated_value_ambiguous": 1093,
+        "empty_cell_without_anchors": 111
+      },
+      "boundary_iou": {
+        "median": 0.4710661897853202,
+        "p90": 0.6694413918149444,
+        "p95": 0.7239704150202103,
+        "n": 3940
+      },
+      "boundary_error_types": {
+        "oversized": 2262,
+        "offset_or_shape": 2
+      },
+      "mean_table_precise_coverage": 0.2915892607071568,
+      "document_group_bootstrap_95pct": {
+        "precise_coverage": [
+          0.22289527527338965,
+          0.34502871445664146
+        ],
+        "wrong_cell_rate": [
+          0.0,
+          0.0013090079513773105
+        ],
+        "offered_quality": [
+          0.33806483082741434,
+          0.5166846026001926
+        ]
+      },
+      "mapping_ms": {
+        "median": 20.921950000229117,
+        "p90": 79.95084999984101,
+        "p95": 89.64731000032769,
+        "n": 60
+      },
+      "mapping_ms_at_most_250_cells": {
+        "median": 20.921950000229117,
+        "p90": 79.95084999984101,
+        "p95": 89.64731000032769,
+        "n": 60
+      },
+      "mapping_ms_above_250_cells": {
+        "median": null,
+        "p90": null,
+        "p95": null,
+        "n": 0
+      },
+      "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+      "thresholds_passed": false
+    }
+  },
+  "deltas": {}
+}

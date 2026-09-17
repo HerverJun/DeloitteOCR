@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-16",
+  "python_tests": {
+    "passed": 273,
+    "failed": 0
+  },
+  "frontend_tests": {
+    "passed": 32,
+    "failed": 0
+  },
+  "typescript": "passed",
+  "delivery_hashes_verified": 13,
+  "source_evidence_hashes_verified": 705,
+  "test_provider_receipts_verified": 600,
+  "test_replay_receipts_verified": 960,
+  "new_test_documents": 120,
+  "historical_excluded_documents": 584,
+  "document_overlap": 0,
+  "sealed_code_drift": false,
+  "confirmed_product_findings": 2,
+  "product_source_modified": false,
+  "gpu_benchmark_rerun": false,
+  "browser_ui_rerun": false,
+  "files": {
+    "C:\\Users\\A\\Desktop\\OCR\\audit\\tableformer-review-20260916\\reproductions.json": "f7b0c33173bdff70107d96c9030cce40a6aab44da77fd06ef76a5e8e5d5ae1eb",
+    "C:\\Users\\A\\Desktop\\OCR\\audit\\tableformer-review-20260916\\tableformer-review-frontend-20260916.log": "e696706495a2efa9f907e934aa078814b26785342c473ec597a52219cb983e58",
+    "C:\\Users\\A\\Desktop\\OCR\\audit\\tableformer-review-20260916\\tableformer-review-tests-20260916.log": "d496bc7478bb2417a7a9cba43c2619b3782cf7622bbe062ee9341c8fca216363",
+    "C:\\Users\\A\\Desktop\\OCR\\audit\\tableformer-review-20260916\\tableformer-review-typescript-20260916.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "C:\\Users\\A\\Desktop\\OCR\\docs\\tableformer-next-review-20260916.md": "adbeab1e4c8eb22281f49f0c8f3de82ea4b4578d617ed20e7585eefe2bd2f4da"
+  }
+}

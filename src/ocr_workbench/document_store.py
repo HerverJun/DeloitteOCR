@@ -210,7 +210,7 @@ class DocumentStoreMixin:
 
     def enqueue_document_stage(self, page_id, kind, parameters, *, force=False):
         from ocr_workbench.store import uid, now, encoded, Conflict
-        if kind not in ("render", "process"):
+        if kind not in ("render", "process", "table_structure"):
             raise ValueError("未知文档处理阶段")
         if type(force) is not bool:
             raise ValueError("强制重新处理选项必须是布尔值")

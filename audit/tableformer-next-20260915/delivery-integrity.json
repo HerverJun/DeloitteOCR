@@ -1,0 +1,22 @@
+{
+  "status": "pass",
+  "source_evidence_hashes_checked": 705,
+  "sealed_code_drift": false,
+  "all_four_reports_complete": true,
+  "local_document_links_valid": true,
+  "delivery_files_sha256": {
+    "audit/tableformer-next-20260915/engineering-checks.json": "592ee7be3fd351c0c959d844d6af2488c3a2c8ef1a1f9287721acc98e8eb83ce",
+    "audit/tableformer-next-20260915/official-label-crosscheck.json": "0b7d892a4a7762ccf45d5fb0c87eed16a97b278f097e9f7c1158e70810e48bfd",
+    "audit/tableformer-next-20260915/post-test-diagnostics.json": "a873b1b71ef26dc71bf51e2b74072134f551f11eb4c5e4adc9f7235e3ed42725",
+    "audit/tableformer-next-20260915/public-pdf-sources.json": "7b2e9d8e9d68e8f40473ceeaf4827e6dcc0ae00cb6398a947a2cac4e51240d4d",
+    "audit/tableformer-next-20260915/queue-integration.json": "2700f54b4ff19e67038ca3281b6b156c9940a0fa378a4c1acc168269c620a5d9",
+    "audit/tableformer-next-20260915/selection-seal.json": "8be04b3d0235341bdc8c140616c28ff3b40089152cc7fae88feafd3bc6d45157",
+    "audit/tableformer-next-20260915/summary.json": "0c06e3b5b7a61bc9a555ef2c9eac228fe1a338892852487f0e62030202e4df62",
+    "audit/tableformer-next-20260915/test-split-lock.json": "083e0fed2544851ed539893e8b1044cf6c92bab780accb04414971f0665667fb",
+    "audit/tableformer-next-20260915/ui-results.json": "40348a4edfa77e02dea977a87a5d433c0197de2b3597cfd434fc05b8c728cb8d",
+    "audit/tableformer-next-20260915/visual-review.json": "f9c4232accda2e531ad2418d1db6b66c1a499b121d8a954fc527015a8f0f5b66",
+    "docs/tableformer-next-20260915-quality.md": "a53ba51939e2aaa46acad1d5046f161d9c863e49786d719adccf9b50afba26eb",
+    "docs/tableformer-next-20260915-reproduction.md": "740d9b988e0fca4d72714b5c46f2270393db61a508a2e3fadf24f8210737d14a",
+    "scripts/summarize_tableformer_next.py": "85153ee15543356bd4ccc694462072ee25dab95b2b2529d55298048b0dd6403d"
+  }
+}

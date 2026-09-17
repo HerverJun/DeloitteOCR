@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "empty OCR regions remain visible and navigate to original image",
+      "passed": true
+    },
+    {
+      "name": "explicit acknowledgement resolves only the selected region",
+      "passed": true
+    },
+    {
+      "name": "editing content invalidates previous acknowledgements",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser_closed": true,
+  "scope": "scripted UI checks; no human efficiency or quality claim"
+}

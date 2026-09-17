@@ -1,0 +1,14 @@
+{
+  "existing_inference_to_final_source_changes": [
+    "src/ocr_workbench/geometry_providers.py",
+    "src/ocr_workbench/native_tables.py",
+    "src/ocr_workbench/__init__.py"
+  ],
+  "interpretation": "Version bump, geometry origin contract name, lossless preservation of interleaved OCR during explicit native-table adoption. Empty-region recovery, engine inference and upstream tool settings are identical. Final review replays both cohorts with frozen source and saved predictions.",
+  "final_review_runs": [
+    "review-existing-final",
+    "review-additional-final"
+  ],
+  "additional_inference_source_unchanged": true,
+  "tool_settings_unchanged": true
+}

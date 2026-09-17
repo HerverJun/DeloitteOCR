@@ -1,0 +1,21 @@
+{
+  "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim",
+  "checks": [
+    {
+      "name": "page navigation saves current revision before changing image",
+      "passed": true
+    },
+    {
+      "name": "PDF preflight names missing text and an explicit page range exports successfully",
+      "passed": true
+    },
+    {
+      "name": "document search uses adopted saved content",
+      "passed": true
+    }
+  ],
+  "errors": [
+    "Error: locator.click: Error: strict mode violation: getByRole('region', { name: '文档与页面', exact: true }).getByRole('button', { name: /第 2 页/ }) resolved to 2 elements:\n    1) <button>…</button> aka getByRole('button', { name: '第 2 页 尚未展开' })\n    2) <button>…</button> aka getByRole('button', { name: '第 2 页 · 页面尚无当前版本的采用结果 页面核对' })\n\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: '文档与页面', exact: true }).getByRole('button', { name: /第 2 页/ })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n"
+  ],
+  "browser_closed": true
+}

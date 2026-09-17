@@ -235,6 +235,8 @@ def render_page(request):
         finally:
             textpage.close()
         native = native_content(path, number, metadata, password or None, pdfium_chars)
+        # Auxiliary table detection runs after this base page is published, in
+        # a separate CPU request. Its timeout cannot discard native extraction.
         regions = uncovered_regions(image, native)
         native['coverage_regions'] = regions
         native['page_class'] = ('mixed' if native['units'] and regions else
@@ -279,6 +281,9 @@ def main():
             result = inspect_document(request)
         elif request['operation'] == 'render':
             result = render_page(request)
+        elif request['operation'] == 'table-structure':
+            from ocr_workbench.pdf_tables import extract_tables
+            result = extract_tables(request['path'], request['page_number'], request['metadata'], request.get('password'))
         elif request['operation'] in ('inspect-tiff', 'render-tiff'):
             result = tiff_document(request)
         elif request['operation'] == 'export':
@@ -289,7 +294,14 @@ def main():
         response = {'status': 'success', 'result': result}
     except Exception as error:
         import pikepdf
-        unlock = isinstance(error, pikepdf.PasswordError)
+        from pdfminer.pdfdocument import PDFPasswordIncorrect
+        # Upstream adapters may wrap the typed password exception; preserve its
+        # control-flow meaning without guessing from localized error strings.
+        current, seen, unlock = error, set(), False
+        while current is not None and id(current) not in seen:
+            seen.add(id(current))
+            unlock |= isinstance(current, (pikepdf.PasswordError, PDFPasswordIncorrect))
+            current = current.__cause__ or current.__context__
         message = ('PDF 需要密码或密码不正确' if unlock else
                    str(error) if isinstance(error, ValueError) else 'PDF 解析或渲染失败，请检查文件与独立运行时')
         secret = request.get('password')

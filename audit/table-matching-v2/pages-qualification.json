@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "development": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 29,
+      "strata": {
+        "no_table": 7,
+        "single_table": 6,
+        "multiple_tables": 7
+      }
+    },
+    "validation": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 23,
+      "strata": {
+        "no_table": 7,
+        "single_table": 7,
+        "multiple_tables": 6
+      }
+    },
+    "test": {
+      "pages": 20,
+      "documents": 20,
+      "tables": 30,
+      "strata": {
+        "no_table": 6,
+        "single_table": 7,
+        "multiple_tables": 7
+      }
+    }
+  },
+  "rejections": {},
+  "source_metadata": [
+    {
+      "entry": "COCO/test.json",
+      "sha256": "96d47230ef6740cf99a7c7dac08efb6286efa50a8c99e69aa81088088600ea0f"
+    }
+  ],
+  "archive_etag": "\"52242220284e12538949c5b06eb2777c-448\""
+}

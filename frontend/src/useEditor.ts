@@ -49,7 +49,8 @@ export function useEditor(onError: (message: string) => void) {
       const intent = decision.current;
       setSaveState("保存中");
       try {
-        const saved = await api<Result>(`/results/${intent.resultId}/issues/${intent.issueId}/decision`, "POST", intent.body);
+        const route = intent.body.decision_kind === "structure" ? "structure" : intent.body.decision_kind === "multimodal" ? "multimodal" : "issues";
+        const saved = await api<Result>(`/results/${intent.resultId}/${route}/${intent.issueId}/decision`, "POST", intent.body);
         if (current.current?.id !== intent.resultId) throw Error("决策保存期间结果已切换，请重新加载。");
         current.current = saved;
         setResult(saved);

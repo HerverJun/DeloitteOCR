@@ -1,0 +1,39 @@
+{
+  "scope": "SUPPLEMENT ONLY: detector polygon recall/precision, no fixed-text logical correspondence score. Does not count toward primary 100 tables. Raw direct detector score >= .5, Hungarian maximum-IoU one-to-one matching, polygon IoU >= .5.",
+  "limitations": "Mirror lacks cell text and row/column/span; cannot measure wrong-row/column rate. Images include multiple tables, rotations and repeated templates. One blank spreadsheet returned no OCR text; geometry still evaluated with empty OCR input.",
+  "groups": {
+    "all": {
+      "images": 20,
+      "targets": 1226,
+      "predicted_cells": 1191,
+      "matched_iou_05": 1168,
+      "detection_recall": 0.9526916802610114,
+      "detection_precision": 0.980688497061293,
+      "wrong_logical_cell_rate": null,
+      "logical_mapping_coverage": null
+    },
+    "photo": {
+      "images": 5,
+      "targets": 187,
+      "predicted_cells": 184,
+      "matched_iou_05": 181,
+      "detection_recall": 0.9679144385026738,
+      "detection_precision": 0.9836956521739131,
+      "wrong_logical_cell_rate": null,
+      "logical_mapping_coverage": null
+    },
+    "chinese": {
+      "images": 17,
+      "targets": 952,
+      "predicted_cells": 929,
+      "matched_iou_05": 908,
+      "detection_recall": 0.9537815126050421,
+      "detection_precision": 0.9773950484391819,
+      "wrong_logical_cell_rate": null,
+      "logical_mapping_coverage": null
+    }
+  },
+  "historical_exposed": true,
+  "rerun_in_this_round": false,
+  "source_sha256": "9aaf5d60f2faccbbc4d061bd00d42d8c2fd7e7d80b78d8ed243c2aa9e473a0de"
+}

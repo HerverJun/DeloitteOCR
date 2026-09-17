@@ -1,0 +1,13 @@
+
+> offline-ocr-workbench@0.10.0-rc.1 test
+> vitest run
+
+
+ RUN  v5.0.0 C:/Users/A/Desktop/OCR/frontend
+
+
+ Test Files  8 passed (8)
+      Tests  32 passed (32)
+   Start at  21:25:40
+   Duration  300ms (transform 56%, import 27%, tests 12%, worker 5%)
+

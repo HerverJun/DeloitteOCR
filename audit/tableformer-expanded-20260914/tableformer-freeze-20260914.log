@@ -1,0 +1,17 @@
+qualified 10 rejected 615
+qualified 20 rejected 620
+qualified 30 rejected 637
+qualified 40 rejected 657
+qualified 50 rejected 664
+qualified 60 rejected 687
+qualified 70 rejected 708
+qualified 80 rejected 718
+qualified 90 rejected 741
+qualified 100 rejected 755
+qualified 110 rejected 781
+qualified 120 rejected 796
+qualified 130 rejected 808
+qualified 140 rejected 837
+qualified 150 rejected 853
+qualified 160 rejected 872
+{"tables": 120, "documents": 120, "targets": 11667, "target_tags": {"merged": 385, "repeated": 3414, "empty": 743}}

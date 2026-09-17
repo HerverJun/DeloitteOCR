@@ -1,0 +1,51 @@
+[
+  {
+    "name": "document-review-cannot-replace-sticky-preview",
+    "reproduced": true,
+    "review_item_result": "adopted-B",
+    "expected_loaded_result": "adopted-B",
+    "actual_loaded_result": "preview-A",
+    "expected_tab": "structure",
+    "actual_tab": "text",
+    "source": "frontend/src/App.tsx:166,290-292,855-859"
+  },
+  {
+    "name": "document-current-page-desync",
+    "reproduced": true,
+    "workspace_active_image": "image-2",
+    "expected_process_url": "/pages/page-2/process",
+    "actual_process_url": "/pages/page-1/process",
+    "aria_current_page_count": 2,
+    "source": "frontend/src/DocumentTree.tsx:33,107,118"
+  },
+  {
+    "name": "serialized-autosave-race-control",
+    "passed": true,
+    "saved_revisions": [
+      0,
+      1
+    ],
+    "final_text": "second draft during first save",
+    "recovery_cleared": true
+  },
+  {
+    "name": "failed-save-and-reload-retain-draft",
+    "passed": true,
+    "original_result_retained": true,
+    "navigation_prevented": true,
+    "recovery_draft_retained": true
+  },
+  {
+    "name": "recovered-revision-conflict-does-not-overwrite",
+    "passed": true,
+    "server_revision": 3,
+    "submitted_revision": 1,
+    "recovery_draft_retained": true
+  },
+  {
+    "name": "out-of-order-load-and-review-draft-navigation",
+    "passed": true,
+    "late_read_ignored": true,
+    "manual_draft_navigation_prevented": true
+  }
+]

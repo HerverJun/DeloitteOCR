@@ -1,0 +1,145 @@
+[
+  {
+    "query": "OCRBench v2 in:name",
+    "total": 0,
+    "items": []
+  },
+  {
+    "query": "CC-OCR in:name",
+    "total": 114,
+    "items": [
+      {
+        "repo": "Mingtzge/2019-CCF-BDCI-OCR-MCZJ-OCR-IdentificationIDElement",
+        "description": "2019CCF-BDCI大赛 最佳创新探索奖获得者 基于OCR身份证要素提取赛题冠军 天晨破晓团队 赛题源码",
+        "branch": "master"
+      },
+      {
+        "repo": "linglanfeng/CCF2019-OCR",
+        "description": "CCF2019-OCR身份证要素识别-数据生成器",
+        "branch": "master"
+      },
+      {
+        "repo": "hzli-ucas/CCF-OCR",
+        "description": "身份证复印件识别，CCF BDCI参赛项目",
+        "branch": "master"
+      },
+      {
+        "repo": "Mingtzge/2019-CCF-BDCI-OCR-MCZJ-fake_data_generator",
+        "description": "2019CCF-BDCI大赛 OCR赛题第一名 天晨破晓团队 仿真数据生成方案源码",
+        "branch": "master"
+      },
+      {
+        "repo": "Kiyoraka/Project-OCR-CC",
+        "description": "Python",
+        "branch": "main"
+      },
+      {
+        "repo": "QuangDuyxyz/OCR_CCCD",
+        "description": null,
+        "branch": "main"
+      },
+      {
+        "repo": "Eioss/CC-OCR-V2",
+        "description": null,
+        "branch": "main"
+      },
+      {
+        "repo": "Wa/CC-OCR",
+        "description": "An deep SNN approach to the OCR of Chinese calligraphy",
+        "branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "OCR post correction LLM in:description",
+    "total": 12,
+    "items": [
+      {
+        "repo": "Shef-AIRE/llms_post-ocr_correction",
+        "description": "Leveraging LLMs for Post-OCR Correction of Historical Newspapers",
+        "branch": "main"
+      },
+      {
+        "repo": "impresso/llm-transcript-postcorrection",
+        "description": "    Benchmarking experiments on LLM-based post-correction of historical OCR, HTR, and ASR transcripts.",
+        "branch": "main"
+      },
+      {
+        "repo": "ieg-dhr/NLP-Course4Humanities_2024",
+        "description": "This repository is part of an NLP course for humanities and cultural studies. This course uses historical newspapers as a source and applies NLP methods to them. NLP tasks: Tokenization, Lemmatization, TF-IDF, Part-of-speech tagging, semantic search with transformers, article extraction and OCR post-correction with LLMs, NER and text classification",
+        "branch": "main"
+      },
+      {
+        "repo": "veraDanilova/ocr_post-correction_RESOURCEFUL-2025",
+        "description": "Post-OCR Correction of Historical German Periodicals using LLMs",
+        "branch": "main"
+      },
+      {
+        "repo": "Bath-Impact-Lab/Grammatically-Enhanced-OCR",
+        "description": "LLM integration enhancement for post OCR text correction for Papermerge",
+        "branch": "main"
+      },
+      {
+        "repo": "hipe-eval/HIPE-OCRepair-2026",
+        "description": "Website for HIPE-OCRepair: ICDAR2026 Competition on LLM-Assisted OCR Post-Correction for Historical Documents",
+        "branch": "main"
+      },
+      {
+        "repo": "ssasnouski/PaddleOCR_LLM_PDF",
+        "description": "Exemple of building multi-page searchable PDF documents with OCR text layer, optimized file size, and post-OCR correction with LLM",
+        "branch": "main"
+      },
+      {
+        "repo": "fatemehEsnaashari/LLM-Prompt-Engineering",
+        "description": "Post-OCR correction of the 1743 Dictionnaire de Trévoux using Llama and Gemma LLMs with quantitative evaluation (CER/WER).",
+        "branch": "main"
+      }
+    ]
+  },
+  {
+    "query": "multimodal OCR correction in:readme stars:>30",
+    "total": 242,
+    "items": [
+      {
+        "repo": "BradyFU/Awesome-Multimodal-Large-Language-Models",
+        "description": ":sparkles::sparkles:Latest Advances on Multimodal Large Language Models",
+        "branch": "main"
+      },
+      {
+        "repo": "Yuliang-Liu/MultimodalOCR",
+        "description": "On the Hidden Mystery of OCR in Large Multimodal Models (OCRBench)",
+        "branch": "main"
+      },
+      {
+        "repo": "Yuliang-Liu/AWESOME-OCR-LLM",
+        "description": "OCR in the Era of Large Language Models",
+        "branch": "main"
+      },
+      {
+        "repo": "verl-project/verl-omni",
+        "description": "Multimodal RL training framework for diffusion & omni models",
+        "branch": "main"
+      },
+      {
+        "repo": "ombharatiya/ai-system-design-guide",
+        "description": "AI system design guide for engineers building production AI systems and evals.",
+        "branch": "main"
+      },
+      {
+        "repo": "iflytek/iFly-Skills",
+        "description": "Official collection of iFLYTEK skills for speech, OCR, translation, proofreading, and multimodal AI capabilities.",
+        "branch": "main"
+      },
+      {
+        "repo": "h9-tec/Awesome_Arabic_NLP",
+        "description": null,
+        "branch": "main"
+      },
+      {
+        "repo": "gokayfem/awesome-vlm-architectures",
+        "description": "Curated visual catalog of 155+ vision-language model (VLM/MLLM) architectures: papers, diagrams, training recipes, datasets, and a release timeline for multimodal AI agents.",
+        "branch": "main"
+      }
+    ]
+  }
+]

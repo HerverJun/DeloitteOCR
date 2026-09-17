@@ -1,0 +1,178 @@
+ M README.md
+ M config/geometry-evaluation.json
+ M frontend/package-lock.json
+ M frontend/package.json
+ M frontend/src/App.tsx
+ M frontend/src/DocumentConflicts.tsx
+ M frontend/src/DocumentTree.tsx
+ M frontend/src/GeometryPanel.tsx
+ M frontend/src/RegionPreview.tsx
+ M frontend/src/TableEditor.tsx
+ M frontend/src/TaskQueue.tsx
+ M frontend/src/resultWorkflow.test.ts
+ M frontend/src/resultWorkflow.ts
+ M frontend/src/types.ts
+ M frontend/src/useEditor.ts
+ M frontend/src/workspacePreferences.test.ts
+ M frontend/src/workspacePreferences.ts
+ M scripts/audit_document_ui.mjs
+ M scripts/audit_document_ui.py
+ M scripts/evaluate_geometry_gpu.py
+ M scripts/evaluate_rapid_reference.py
+ M src/ocr_workbench/__init__.py
+ M src/ocr_workbench/adapter.py
+ M src/ocr_workbench/document_conflicts.py
+ M src/ocr_workbench/document_store.py
+ M src/ocr_workbench/documents.py
+ M src/ocr_workbench/editing.py
+ M src/ocr_workbench/engine_host.py
+ M src/ocr_workbench/exporting.py
+ M src/ocr_workbench/fusion_store.py
+ M src/ocr_workbench/geometry.py
+ M src/ocr_workbench/native_tables.py
+ M src/ocr_workbench/page_processing.py
+ M src/ocr_workbench/pdf_export.py
+ M src/ocr_workbench/pdf_worker.py
+ M src/ocr_workbench/service.py
+ M src/ocr_workbench/store.py
+ M src/ocr_workbench/table_geometry_worker.py
+ M src/ocr_workbench/tables.py
+ M src/ocr_workbench/task_queue.py
+ M tests/test_document_processing.py
+ M tests/test_geometry.py
+ M tests/test_pdf_export.py
+ M tests/test_store.py
+?? audit/generic-tool-fixes-20260917/
+?? audit/multimodal-review-20260917/
+?? audit/public-quality-20260916/
+?? audit/structure-workflow-20260916/
+?? audit/table-matching-v2/
+?? audit/tableformer-expanded-20260914/
+?? audit/tableformer-next-20260915/
+?? audit/tableformer-review-20260916/
+?? config/geometry-evaluation-legacy-v1.json
+?? config/geometry-evaluation-v3.json
+?? config/geometry-matching-policy-v3.json
+?? config/geometry-matching-policy.json
+?? config/geometry-providers.json
+?? config/multimodal-review.json
+?? config/pdf-table-tool.json
+?? config/structure-workflow-protocol.json
+?? docs/generic-tool-fixes-20260917.md
+?? docs/multimodal-development-plan-20260917.md
+?? docs/multimodal-models-20260917.md
+?? docs/multimodal-review-usage-20260917.md
+?? docs/multimodal-review-validation-20260917.md
+?? docs/public-quality-20260916.md
+?? docs/public-quality-tool-policy-20260916.md
+?? docs/structure-workflow-development-plan-20260916.md
+?? docs/structure-workflow-quality-20260916.md
+?? docs/structure-workflow-reproduction-20260916.md
+?? docs/structure-workflow-status-20260916.md
+?? docs/structure-workflow-usage-20260916.md
+?? docs/table-cell-matching-v2-plan.md
+?? docs/table-cell-matching-v2-quality.md
+?? docs/table-cell-matching-v2-reproduction.md
+?? docs/table-cell-matching-v2-status.md
+?? docs/tableformer-expanded-20260914-quality.md
+?? docs/tableformer-expanded-20260914-reproduction.md
+?? docs/tableformer-next-20260915-quality.md
+?? docs/tableformer-next-20260915-reproduction.md
+?? docs/tableformer-next-review-20260916.md
+?? frontend/src/DocumentReviewQueue.tsx
+?? frontend/src/MultimodalReview.tsx
+?? frontend/src/StructureReview.tsx
+?? frontend/src/multimodal.css
+?? frontend/src/multimodalTypes.test.ts
+?? frontend/src/multimodalTypes.ts
+?? frontend/src/structure.css
+?? licenses/pdfplumber/
+?? licenses/structure-workflow/
+?? research/multimodal-review-20260917/
+?? "research/\345\244\232\346\250\241\346\200\201\344\272\214\350\275\256\345\256\241\346\240\241\344\270\216\346\231\272\350\203\275\350\276\223\345\207\272\346\216\242\347\264\242-2026-09-17.md"
+?? scripts/audit_geometry_label_contract.py
+?? scripts/audit_geometry_v2_cache.py
+?? scripts/audit_geometry_v2_regressions.py
+?? scripts/audit_geometry_v2_runtime.py
+?? scripts/audit_multimodal_installed.py
+?? scripts/audit_multimodal_public.py
+?? scripts/audit_multimodal_runtime.py
+?? scripts/audit_multimodal_ui.mjs
+?? scripts/audit_multimodal_ui.py
+?? scripts/audit_public_quality.py
+?? scripts/audit_public_quality_ui.mjs
+?? scripts/audit_public_quality_ui.py
+?? scripts/audit_structure_bundle.py
+?? scripts/audit_structure_export.py
+?? scripts/audit_structure_public.py
+?? scripts/audit_structure_ui.mjs
+?? scripts/audit_structure_ui.py
+?? scripts/audit_table_tool_ui.mjs
+?? scripts/audit_table_tool_ui.py
+?? scripts/audit_table_tool_upgrade.py
+?? scripts/audit_tableformer_grid_labels.py
+?? scripts/audit_tableformer_queue.py
+?? scripts/compare_tableformer_geometry.py
+?? scripts/develop_tableformer_v3.py
+?? scripts/diagnose_geometry_legacy.py
+?? scripts/evaluate_geometry_pages.py
+?? scripts/evaluate_public_pdf_geometry.py
+?? scripts/evaluate_tableformer_probe.py
+?? scripts/freeze_geometry_pages.py
+?? scripts/freeze_geometry_v2.py
+?? scripts/freeze_tableformer_holdout.py
+?? scripts/freeze_tableformer_v3.py
+?? scripts/geometry_eval_common.py
+?? scripts/geometry_reference_identity.py
+?? scripts/infer_geometry_real_results.py
+?? scripts/prepare_multimodal_bundle.py
+?? scripts/prepare_multimodal_models.py
+?? scripts/prepare_public_pdf_geometry.py
+?? scripts/prepare_structure_public.py
+?? scripts/publish_geometry_v2_evidence.py
+?? scripts/release_structure_bundle.py
+?? scripts/render_structure_workbook.mjs
+?? scripts/replay_geometry_v2.py
+?? scripts/report_geometry_v2.py
+?? scripts/run_tableformer_acceptance.py
+?? scripts/seal_geometry_test.py
+?? scripts/structure_eval.py
+?? scripts/structure_exposure_registry.py
+?? scripts/summarize_structure_workflow.py
+?? scripts/summarize_tableformer_experiment.py
+?? scripts/summarize_tableformer_next.py
+?? src/ocr_workbench/_vendor/
+?? src/ocr_workbench/document_review.py
+?? src/ocr_workbench/geometry_candidate_worker.py
+?? src/ocr_workbench/geometry_contract.py
+?? src/ocr_workbench/geometry_diagnostics.py
+?? src/ocr_workbench/geometry_labels.py
+?? src/ocr_workbench/geometry_legacy_rapid.py
+?? src/ocr_workbench/geometry_provider_config.py
+?? src/ocr_workbench/geometry_providers.py
+?? src/ocr_workbench/multimodal_contract.py
+?? src/ocr_workbench/multimodal_export.py
+?? src/ocr_workbench/multimodal_routes.py
+?? src/ocr_workbench/multimodal_runtime.py
+?? src/ocr_workbench/multimodal_store.py
+?? src/ocr_workbench/pdf_tables.py
+?? src/ocr_workbench/structure_diagnostics.py
+?? src/ocr_workbench/structure_export.py
+?? src/ocr_workbench/structure_groups.py
+?? src/ocr_workbench/structure_routes.py
+?? src/ocr_workbench/structure_store.py
+?? src/ocr_workbench/table_anchor_refinement.py
+?? src/ocr_workbench/table_matching.py
+?? src/ocr_workbench/table_tool.py
+?? tests/test_geometry_evaluation.py
+?? tests/test_multimodal_integration.py
+?? tests/test_multimodal_runtime.py
+?? tests/test_multimodal_store.py
+?? tests/test_pdf_table_tools.py
+?? tests/test_structure_evaluation.py
+?? tests/test_structure_workflow.py
+?? tests/test_table_matching.py
+?? tests/test_table_tool_lifecycle.py
+?? tests/test_tableformer_experiment.py
+?? tests/test_tableformer_grid_labels.py
+?? tests/test_tableformer_next.py

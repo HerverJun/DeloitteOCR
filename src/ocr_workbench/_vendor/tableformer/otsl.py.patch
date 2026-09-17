@@ -1,0 +1,11 @@
+--- upstream/otsl.py
++++ vendored/otsl.py
+@@ -2,7 +2,7 @@
+ import logging
+ from itertools import groupby
+ 
+-import docling_ibm_models.tableformer.settings as s
++from . import settings as s
+ 
+ LOG_LEVEL = logging.INFO
+ # LOG_LEVEL = logging.DEBUG

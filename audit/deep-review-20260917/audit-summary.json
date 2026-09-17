@@ -1,0 +1,107 @@
+{
+  "date": "2026-09-17",
+  "application": "0.11.0rc1",
+  "schema": 11,
+  "audit_complete": true,
+  "product_defects_fixed": false,
+  "findings": {
+    "total": 8,
+    "P1": 1,
+    "P2": 7
+  },
+  "backend_suite": {
+    "run": 383,
+    "passed": 382,
+    "skipped": 1,
+    "seconds": 146.977
+  },
+  "frontend_suite": {
+    "passed": 39,
+    "build_passed": true
+  },
+  "normal_browser_checks_passed": 29,
+  "browser_suites": [
+    {
+      "evidence": "ui-multimodal/ui-report.json",
+      "checks_passed": 9,
+      "browser_closed": true
+    },
+    {
+      "evidence": "ui-document-scoped/ui-results.json",
+      "checks_passed": 10,
+      "browser_closed": true
+    },
+    {
+      "evidence": "ui-structure/report.json",
+      "checks_passed": 6,
+      "browser_closed": true
+    },
+    {
+      "evidence": "ui-tool-recovery/report.json",
+      "checks_passed": 4,
+      "browser_closed": true
+    }
+  ],
+  "browser_defects_reproduced": 3,
+  "four_real_engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "22b9916510024fd487e9ebbbe2676cbc",
+      "elapsed_seconds": 0.7972466999999597,
+      "session": {
+        "id": "f0fe6f2a5e3648a8bd26d1cfc4fad919",
+        "load_seconds": 6.294626599999901,
+        "pid": 26084
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "923cde5a64af43f6b6ced4c6c35c4688",
+      "elapsed_seconds": 3.73197380000056,
+      "session": {
+        "id": "32146b9b58d24fd0ae194c476a5e4f57",
+        "load_seconds": 9.720037600003707,
+        "pid": 36440
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "7754cc0b06cf4948ac2580c8777bfbdf",
+      "elapsed_seconds": 5.010180299999774,
+      "session": {
+        "id": "bf48a9bb529c44cda9b61168dcff06b9",
+        "load_seconds": 2.942430899995088,
+        "pid": 39316
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "f3d0f1f44d0c4d7080255dac7ca3d1e4",
+      "elapsed_seconds": 1.3051803999987897,
+      "session": {
+        "id": "909c7367dc7946d0b3509bcc21d65b0f",
+        "load_seconds": 3.018290400003025,
+        "pid": 30108
+      }
+    }
+  ],
+  "real_review": {
+    "localized_seconds": 12.517866700000013,
+    "localized_peak_device_mib": 6251,
+    "full_page_seconds": 18.790631100004248,
+    "full_page_peak_device_mib": 8169,
+    "full_page_spurious_change": {
+      "before": "数量",
+      "after": "00075"
+    },
+    "cancel_seconds": 0.27819249999447493
+  },
+  "source_files_unchanged": 145,
+  "report_links_verified": true,
+  "important_limits": [
+    "Synthetic GPU fixtures are not independent quality validation",
+    "Target RTX A4000 and another Windows machine were not tested",
+    "No new system-level airgap or long-duration stress test",
+    "Quick engine checks do not prove cross-task resident session reuse"
+  ]
+}

@@ -1,0 +1,3796 @@
+{
+  "version": 2,
+  "complete": true,
+  "incomplete_reasons": [],
+  "split": "test",
+  "annotations_sha256": "9b5203cdd3eaab8b03f01c4d3deef9f7ad2f34fac24f78d86a1ba8c7ddd9af7c",
+  "replay_lock_sha256": "2a4b664a7d799bbdf63b0c42aadd5943e0b4ca4ce4ff814d52fac4788ba284dd",
+  "track": "real-result",
+  "real_result_identity_rule": "unique-optimal-lcs-ranks-v1",
+  "groups": {
+    "B0": {
+      "all": {
+        "counts": {
+          "targets": 12051,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 2028,
+          "no_output": 1910,
+          "region_fallback": 10141
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "region_baseline": 10141
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        },
+        "mapping_ms": {
+          "median": 1.025100000333623,
+          "p90": 1.3215100012530459,
+          "p95": 1.5370500013887067,
+          "n": 120
+        },
+        "mapping_ms_at_most_250_cells": {
+          "median": 1.025100000333623,
+          "p90": 1.3215100012530459,
+          "p95": 1.5370500013887067,
+          "n": 120
+        },
+        "mapping_ms_above_250_cells": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+        "thresholds_passed": false
+      },
+      "source:pubtables-1m": {
+        "counts": {
+          "targets": 12051,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 10141
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "region_baseline": 10141
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "input:rendered-table-crop": {
+        "counts": {
+          "targets": 12051,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 10141
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "region_baseline": 10141
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:merged": {
+        "counts": {
+          "targets": 424,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 193,
+          "no_output": 231
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 193,
+          "inference": 231
+        },
+        "reason_codes_nonadditive": {
+          "region_baseline": 193,
+          "inference_failed": 231
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:not-merged": {
+        "counts": {
+          "targets": 11627,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1679,
+          "region_fallback": 9948
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1679,
+          "legacy": 9948
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1679,
+          "region_baseline": 9948
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "tables-with:merged": {
+        "counts": {
+          "targets": 6549,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 5355,
+          "no_output": 1194
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 5355,
+          "inference": 1194
+        },
+        "reason_codes_nonadditive": {
+          "region_baseline": 5355,
+          "inference_failed": 1194
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:repeated": {
+        "counts": {
+          "targets": 3895,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 3568,
+          "no_output": 327
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "legacy": 3568,
+          "inference": 327
+        },
+        "reason_codes_nonadditive": {
+          "region_baseline": 3568,
+          "inference_failed": 327
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:not-repeated": {
+        "counts": {
+          "targets": 8156,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1583,
+          "region_fallback": 6573
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1583,
+          "legacy": 6573
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1583,
+          "region_baseline": 6573
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "tables-with:repeated": {
+        "counts": {
+          "targets": 11258,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1645,
+          "region_fallback": 9613
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "inference": 1645,
+          "legacy": 9613
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1645,
+          "region_baseline": 9613
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:empty": {
+        "counts": {
+          "targets": 973,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 817,
+          "no_output": 156
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "legacy": 817,
+          "inference": 156
+        },
+        "reason_codes_nonadditive": {
+          "region_baseline": 817,
+          "inference_failed": 156
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:not-empty": {
+        "counts": {
+          "targets": 11078,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1754,
+          "region_fallback": 9324
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1754,
+          "legacy": 9324
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1754,
+          "region_baseline": 9324
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "tables-with:empty": {
+        "counts": {
+          "targets": 6264,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "no_output": 1242,
+          "region_fallback": 5022
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "inference": 1242,
+          "legacy": 5022
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1242,
+          "region_baseline": 5022
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      }
+    },
+    "B1": {
+      "all": {
+        "counts": {
+          "targets": 12051,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 2028,
+          "no_output": 1910,
+          "region_fallback": 10091,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004149033275246868,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "structure_or_table_identity_ambiguous": 9882,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        },
+        "mapping_ms": {
+          "median": 5.698600000869192,
+          "p90": 9.936709999237792,
+          "p95": 10.739929999454034,
+          "n": 120
+        },
+        "mapping_ms_at_most_250_cells": {
+          "median": 5.698600000869192,
+          "p90": 9.936709999237792,
+          "p95": 10.739929999454034,
+          "n": 120
+        },
+        "mapping_ms_above_250_cells": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+        "thresholds_passed": false
+      },
+      "source:pubtables-1m": {
+        "counts": {
+          "targets": 12051,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 10091,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004149033275246868,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "structure_or_table_identity_ambiguous": 9882,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "input:rendered-table-crop": {
+        "counts": {
+          "targets": 12051,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 10091,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004149033275246868,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1910,
+          "legacy": 10141
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "structure_or_table_identity_ambiguous": 9882,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "target:merged": {
+        "counts": {
+          "targets": 424,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 193,
+          "no_output": 231
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 193,
+          "inference": 231
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 193,
+          "inference_failed": 231
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:not-merged": {
+        "counts": {
+          "targets": 11627,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1679,
+          "region_fallback": 9898,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004300335426163241,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1679,
+          "legacy": 9948
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1679,
+          "structure_or_table_identity_ambiguous": 9689,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "tables-with:merged": {
+        "counts": {
+          "targets": 6549,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 5355,
+          "no_output": 1194
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 5355,
+          "inference": 1194
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 5355,
+          "inference_failed": 1194
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:repeated": {
+        "counts": {
+          "targets": 3895,
+          "offered": 32,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 32,
+          "extra_outputs": 0,
+          "region_fallback": 3536,
+          "no_output": 327,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.008215661103979461,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "legacy": 3568,
+          "inference": 327
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 3455,
+          "inference_failed": 327,
+          "postprocessed_box_without_unique_detection_support": 11,
+          "unique_structure_text_and_detection": 32,
+          "repeated_or_empty_content_ambiguous": 68,
+          "text_anchor_disagrees": 2
+        },
+        "boundary_iou": {
+          "median": 0.4036890842987425,
+          "p90": 0.42695276960046535,
+          "p95": 0.43276026020467595,
+          "n": 32
+        },
+        "boundary_error_types": {
+          "oversized": 32
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "target:not-repeated": {
+        "counts": {
+          "targets": 8156,
+          "offered": 18,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 18,
+          "extra_outputs": 0,
+          "no_output": 1583,
+          "region_fallback": 6555,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.002206964198136341,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1583,
+          "legacy": 6573
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1583,
+          "structure_or_table_identity_ambiguous": 6427,
+          "postprocessed_box_without_unique_detection_support": 123,
+          "text_anchor_disagrees": 5,
+          "unique_structure_text_and_detection": 18
+        },
+        "boundary_iou": {
+          "median": 0.4125873462010081,
+          "p90": 0.4368309532329247,
+          "p95": 0.44092148705312245,
+          "n": 18
+        },
+        "boundary_error_types": {
+          "oversized": 18
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "tables-with:repeated": {
+        "counts": {
+          "targets": 11258,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1645,
+          "region_fallback": 9563,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004441286196482501,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "inference": 1645,
+          "legacy": 9613
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1645,
+          "structure_or_table_identity_ambiguous": 9354,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "target:empty": {
+        "counts": {
+          "targets": 973,
+          "offered": 0,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 0,
+          "extra_outputs": 0,
+          "region_fallback": 817,
+          "no_output": 156
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": null,
+        "offered_quality": null,
+        "strict_output_quality": null,
+        "low_iou_rate": null,
+        "offered_rate": 0.0,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "legacy": 817,
+          "inference": 156
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 816,
+          "inference_failed": 156,
+          "postprocessed_box_without_unique_detection_support": 1
+        },
+        "boundary_iou": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "boundary_error_types": {},
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": null,
+          "offered_quality": null
+        }
+      },
+      "target:not-empty": {
+        "counts": {
+          "targets": 11078,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1754,
+          "region_fallback": 9274,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.004513450081242101,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1754,
+          "legacy": 9324
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1754,
+          "structure_or_table_identity_ambiguous": 9066,
+          "postprocessed_box_without_unique_detection_support": 133,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "tables-with:empty": {
+        "counts": {
+          "targets": 6264,
+          "offered": 50,
+          "correct": 0,
+          "wrong": 0,
+          "low_iou": 50,
+          "extra_outputs": 0,
+          "no_output": 1242,
+          "region_fallback": 4972,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 0
+        },
+        "precise_coverage": 0.0,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.0,
+        "strict_output_quality": 0.0,
+        "low_iou_rate": 1.0,
+        "offered_rate": 0.007982120051085569,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "inference": 1242,
+          "legacy": 5022
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1242,
+          "structure_or_table_identity_ambiguous": 4763,
+          "postprocessed_box_without_unique_detection_support": 134,
+          "text_anchor_disagrees": 7,
+          "unique_structure_text_and_detection": 50,
+          "repeated_or_empty_content_ambiguous": 68
+        },
+        "boundary_iou": {
+          "median": 0.40499119650837756,
+          "p90": 0.43158177315377105,
+          "p95": 0.4394702748225767,
+          "n": 50
+        },
+        "boundary_error_types": {
+          "oversized": 50
+        },
+        "mean_table_precise_coverage": 0.0,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.0
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "B2": {
+      "all": {
+        "counts": {
+          "targets": 12051,
+          "offered": 324,
+          "correct": 153,
+          "wrong": 4,
+          "low_iou": 167,
+          "extra_outputs": 2028,
+          "no_output": 1920,
+          "region_fallback": 9807,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 4,
+          "legacy_correct": 155
+        },
+        "precise_coverage": 0.012696041822255415,
+        "wrong_cell_rate": 0.012345679012345678,
+        "offered_quality": 0.4722222222222222,
+        "strict_output_quality": 0.06505102040816327,
+        "low_iou_rate": 0.5154320987654321,
+        "offered_rate": 0.0268857356235997,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1920,
+          "legacy": 10131
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1920,
+          "structure_or_table_identity_ambiguous": 9718,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 324
+        },
+        "boundary_iou": {
+          "median": 0.4921832884200666,
+          "p90": 0.7224350492183242,
+          "p95": 0.7952949812030943,
+          "n": 324
+        },
+        "boundary_error_types": {
+          "oversized": 76,
+          "undersized": 42,
+          "offset_or_shape": 49
+        },
+        "mean_table_precise_coverage": 0.01074326794135336,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            8.340739842981996e-05,
+            0.031295615506902706
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        },
+        "mapping_ms": {
+          "median": 3.085800000008021,
+          "p90": 4.767949998495169,
+          "p95": 5.294029999095073,
+          "n": 120
+        },
+        "mapping_ms_at_most_250_cells": {
+          "median": 3.085800000008021,
+          "p90": 4.767949998495169,
+          "p95": 5.294029999095073,
+          "n": 120
+        },
+        "mapping_ms_above_250_cells": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+        "thresholds_passed": false
+      },
+      "source:pubtables-1m": {
+        "counts": {
+          "targets": 12051,
+          "offered": 324,
+          "correct": 153,
+          "wrong": 4,
+          "low_iou": 167,
+          "extra_outputs": 0,
+          "no_output": 1920,
+          "region_fallback": 9807,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 4,
+          "legacy_correct": 155
+        },
+        "precise_coverage": 0.012696041822255415,
+        "wrong_cell_rate": 0.012345679012345678,
+        "offered_quality": 0.4722222222222222,
+        "strict_output_quality": 0.4722222222222222,
+        "low_iou_rate": 0.5154320987654321,
+        "offered_rate": 0.0268857356235997,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1920,
+          "legacy": 10131
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1920,
+          "structure_or_table_identity_ambiguous": 9718,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 324
+        },
+        "boundary_iou": {
+          "median": 0.4921832884200666,
+          "p90": 0.7224350492183242,
+          "p95": 0.7952949812030943,
+          "n": 324
+        },
+        "boundary_error_types": {
+          "oversized": 76,
+          "undersized": 42,
+          "offset_or_shape": 49
+        },
+        "mean_table_precise_coverage": 0.01074326794135336,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            8.340739842981996e-05,
+            0.031295615506902706
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        }
+      },
+      "input:rendered-table-crop": {
+        "counts": {
+          "targets": 12051,
+          "offered": 324,
+          "correct": 153,
+          "wrong": 4,
+          "low_iou": 167,
+          "extra_outputs": 0,
+          "no_output": 1920,
+          "region_fallback": 9807,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 4,
+          "legacy_correct": 155
+        },
+        "precise_coverage": 0.012696041822255415,
+        "wrong_cell_rate": 0.012345679012345678,
+        "offered_quality": 0.4722222222222222,
+        "strict_output_quality": 0.4722222222222222,
+        "low_iou_rate": 0.5154320987654321,
+        "offered_rate": 0.0268857356235997,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1920,
+          "legacy": 10131
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1920,
+          "structure_or_table_identity_ambiguous": 9718,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 324
+        },
+        "boundary_iou": {
+          "median": 0.4921832884200666,
+          "p90": 0.7224350492183242,
+          "p95": 0.7952949812030943,
+          "n": 324
+        },
+        "boundary_error_types": {
+          "oversized": 76,
+          "undersized": 42,
+          "offset_or_shape": 49
+        },
+        "mean_table_precise_coverage": 0.01074326794135336,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            8.340739842981996e-05,
+            0.031295615506902706
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        }
+      },
+      "target:merged": {
+        "counts": {
+          "targets": 424,
+          "offered": 3,
+          "correct": 1,
+          "wrong": 1,
+          "low_iou": 1,
+          "extra_outputs": 0,
+          "region_fallback": 186,
+          "no_output": 235,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 1,
+          "legacy_correct": 1
+        },
+        "precise_coverage": 0.0023584905660377358,
+        "wrong_cell_rate": 0.3333333333333333,
+        "offered_quality": 0.3333333333333333,
+        "strict_output_quality": 0.3333333333333333,
+        "low_iou_rate": 0.3333333333333333,
+        "offered_rate": 0.007075471698113208,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 189,
+          "inference": 235
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 186,
+          "inference_failed": 235,
+          "unique_structure_and_text": 3
+        },
+        "boundary_iou": {
+          "median": 0.334032083830277,
+          "p90": 0.5497516362559456,
+          "p95": 0.5767165803091542,
+          "n": 3
+        },
+        "boundary_error_types": {
+          "offset_or_shape": 1
+        },
+        "mean_table_precise_coverage": 0.00546448087431694,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.00882682177348551
+          ],
+          "wrong_cell_rate": [
+            0.3333333333333333,
+            0.3333333333333333
+          ],
+          "offered_quality": [
+            0.3333333333333333,
+            0.3333333333333333
+          ]
+        }
+      },
+      "target:not-merged": {
+        "counts": {
+          "targets": 11627,
+          "offered": 321,
+          "correct": 152,
+          "wrong": 3,
+          "low_iou": 166,
+          "extra_outputs": 0,
+          "no_output": 1685,
+          "region_fallback": 9621,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 3,
+          "legacy_correct": 154
+        },
+        "precise_coverage": 0.013073019695536252,
+        "wrong_cell_rate": 0.009345794392523364,
+        "offered_quality": 0.4735202492211838,
+        "strict_output_quality": 0.4735202492211838,
+        "low_iou_rate": 0.5171339563862928,
+        "offered_rate": 0.027608153435968005,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1685,
+          "legacy": 9942
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1685,
+          "structure_or_table_identity_ambiguous": 9532,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 321
+        },
+        "boundary_iou": {
+          "median": 0.49275763570452574,
+          "p90": 0.7242182590781843,
+          "p95": 0.796515107016722,
+          "n": 321
+        },
+        "boundary_error_types": {
+          "oversized": 76,
+          "undersized": 42,
+          "offset_or_shape": 48
+        },
+        "mean_table_precise_coverage": 0.010753321315631345,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            8.588741074965457e-05,
+            0.03221172570055183
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        }
+      },
+      "tables-with:merged": {
+        "counts": {
+          "targets": 6549,
+          "offered": 63,
+          "correct": 36,
+          "wrong": 1,
+          "low_iou": 26,
+          "extra_outputs": 0,
+          "region_fallback": 5282,
+          "no_output": 1204,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 1,
+          "legacy_correct": 36
+        },
+        "precise_coverage": 0.005497022446174988,
+        "wrong_cell_rate": 0.015873015873015872,
+        "offered_quality": 0.5714285714285714,
+        "strict_output_quality": 0.5714285714285714,
+        "low_iou_rate": 0.4126984126984127,
+        "offered_rate": 0.00961978928080623,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "legacy": 5345,
+          "inference": 1204
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 5281,
+          "inference_failed": 1204,
+          "unique_structure_and_text": 63,
+          "text_or_geometry_ambiguous": 1
+        },
+        "boundary_iou": {
+          "median": 0.5313309909688462,
+          "p90": 0.7617259461552369,
+          "p95": 0.7882530721455642,
+          "n": 63
+        },
+        "boundary_error_types": {
+          "offset_or_shape": 6,
+          "oversized": 20
+        },
+        "mean_table_precise_coverage": 0.006084164272435356,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.018450972002732748
+          ],
+          "wrong_cell_rate": [
+            0.015873015873015872,
+            0.015873015873015872
+          ],
+          "offered_quality": [
+            0.5714285714285714,
+            0.5714285714285714
+          ]
+        }
+      },
+      "target:repeated": {
+        "counts": {
+          "targets": 3895,
+          "offered": 88,
+          "correct": 29,
+          "wrong": 1,
+          "low_iou": 58,
+          "extra_outputs": 0,
+          "region_fallback": 3480,
+          "no_output": 327,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 1,
+          "legacy_correct": 29
+        },
+        "precise_coverage": 0.007445442875481386,
+        "wrong_cell_rate": 0.011363636363636364,
+        "offered_quality": 0.32954545454545453,
+        "strict_output_quality": 0.32954545454545453,
+        "low_iou_rate": 0.6590909090909091,
+        "offered_rate": 0.022593068035943516,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "legacy": 3568,
+          "inference": 327
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 3409,
+          "inference_failed": 327,
+          "unique_structure_and_text": 88,
+          "text_or_geometry_ambiguous": 71
+        },
+        "boundary_iou": {
+          "median": 0.41657102919412686,
+          "p90": 0.6893652608907127,
+          "p95": 0.7607416162546199,
+          "n": 88
+        },
+        "boundary_error_types": {
+          "oversized": 46,
+          "offset_or_shape": 8,
+          "undersized": 4
+        },
+        "mean_table_precise_coverage": 0.013254234297812278,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.018581127679480974
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.25
+          ],
+          "offered_quality": [
+            0.0,
+            0.56
+          ]
+        }
+      },
+      "target:not-repeated": {
+        "counts": {
+          "targets": 8156,
+          "offered": 236,
+          "correct": 124,
+          "wrong": 3,
+          "low_iou": 109,
+          "extra_outputs": 0,
+          "no_output": 1593,
+          "region_fallback": 6327,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 3,
+          "legacy_correct": 126
+        },
+        "precise_coverage": 0.015203531142717018,
+        "wrong_cell_rate": 0.012711864406779662,
+        "offered_quality": 0.5254237288135594,
+        "strict_output_quality": 0.5254237288135594,
+        "low_iou_rate": 0.461864406779661,
+        "offered_rate": 0.02893575282000981,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1593,
+          "legacy": 6563
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1593,
+          "structure_or_table_identity_ambiguous": 6309,
+          "text_or_geometry_ambiguous": 18,
+          "unique_structure_and_text": 236
+        },
+        "boundary_iou": {
+          "median": 0.5157058796421423,
+          "p90": 0.7284508556961427,
+          "p95": 0.802762454255769,
+          "n": 236
+        },
+        "boundary_error_types": {
+          "oversized": 30,
+          "undersized": 38,
+          "offset_or_shape": 41
+        },
+        "mean_table_precise_coverage": 0.00996227038196515,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.00012394424844277264,
+            0.03976186993666844
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.027777777777777776
+          ],
+          "offered_quality": [
+            0.05,
+            0.72
+          ]
+        }
+      },
+      "tables-with:repeated": {
+        "counts": {
+          "targets": 11258,
+          "offered": 324,
+          "correct": 153,
+          "wrong": 4,
+          "low_iou": 167,
+          "extra_outputs": 0,
+          "no_output": 1645,
+          "region_fallback": 9289,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 4,
+          "legacy_correct": 155
+        },
+        "precise_coverage": 0.013590335761236454,
+        "wrong_cell_rate": 0.012345679012345678,
+        "offered_quality": 0.4722222222222222,
+        "strict_output_quality": 0.4722222222222222,
+        "low_iou_rate": 0.5154320987654321,
+        "offered_rate": 0.028779534553206608,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "inference": 1645,
+          "legacy": 9613
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1645,
+          "structure_or_table_identity_ambiguous": 9200,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 324
+        },
+        "boundary_iou": {
+          "median": 0.4921832884200666,
+          "p90": 0.7224350492183242,
+          "p95": 0.7952949812030943,
+          "n": 324
+        },
+        "boundary_error_types": {
+          "oversized": 76,
+          "undersized": 42,
+          "offset_or_shape": 49
+        },
+        "mean_table_precise_coverage": 0.011827450944609205,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            9.220673435966932e-05,
+            0.034779944102827066
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        }
+      },
+      "target:empty": {
+        "counts": {
+          "targets": 973,
+          "offered": 15,
+          "correct": 12,
+          "wrong": 0,
+          "low_iou": 3,
+          "extra_outputs": 0,
+          "region_fallback": 802,
+          "no_output": 156,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 12
+        },
+        "precise_coverage": 0.012332990750256937,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.8,
+        "strict_output_quality": 0.8,
+        "low_iou_rate": 0.2,
+        "offered_rate": 0.015416238437821172,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "legacy": 817,
+          "inference": 156
+        },
+        "reason_codes_nonadditive": {
+          "structure_or_table_identity_ambiguous": 802,
+          "inference_failed": 156,
+          "unique_structure_and_text": 15
+        },
+        "boundary_iou": {
+          "median": 0.5780080294887138,
+          "p90": 0.6844140287601874,
+          "p95": 0.7035975802473589,
+          "n": 15
+        },
+        "boundary_error_types": {
+          "offset_or_shape": 1,
+          "undersized": 1,
+          "oversized": 1
+        },
+        "mean_table_precise_coverage": 0.013559322033898306,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.045590576249602034
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.8,
+            0.8
+          ]
+        }
+      },
+      "target:not-empty": {
+        "counts": {
+          "targets": 11078,
+          "offered": 309,
+          "correct": 141,
+          "wrong": 4,
+          "low_iou": 164,
+          "extra_outputs": 0,
+          "no_output": 1764,
+          "region_fallback": 9005,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 4,
+          "legacy_correct": 143
+        },
+        "precise_coverage": 0.012727929229102725,
+        "wrong_cell_rate": 0.012944983818770227,
+        "offered_quality": 0.4563106796116505,
+        "strict_output_quality": 0.4563106796116505,
+        "low_iou_rate": 0.5307443365695793,
+        "offered_rate": 0.027893121502076186,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1764,
+          "legacy": 9314
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1764,
+          "structure_or_table_identity_ambiguous": 8916,
+          "text_or_geometry_ambiguous": 89,
+          "unique_structure_and_text": 309
+        },
+        "boundary_iou": {
+          "median": 0.48182315153846816,
+          "p90": 0.7276860922445544,
+          "p95": 0.7969607139826016,
+          "n": 309
+        },
+        "boundary_error_types": {
+          "oversized": 75,
+          "undersized": 41,
+          "offset_or_shape": 48
+        },
+        "mean_table_precise_coverage": 0.010642120286774885,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            8.98295047321807e-05,
+            0.030866843279939733
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.02631578947368421
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7017543859649122
+          ]
+        }
+      },
+      "tables-with:empty": {
+        "counts": {
+          "targets": 6264,
+          "offered": 181,
+          "correct": 93,
+          "wrong": 3,
+          "low_iou": 85,
+          "extra_outputs": 0,
+          "no_output": 1252,
+          "region_fallback": 4831,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 3,
+          "legacy_correct": 94
+        },
+        "precise_coverage": 0.014846743295019157,
+        "wrong_cell_rate": 0.016574585635359115,
+        "offered_quality": 0.5138121546961326,
+        "strict_output_quality": 0.5138121546961326,
+        "low_iou_rate": 0.4696132596685083,
+        "offered_rate": 0.028895274584929756,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "inference": 1252,
+          "legacy": 5012
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1252,
+          "structure_or_table_identity_ambiguous": 4755,
+          "text_or_geometry_ambiguous": 76,
+          "unique_structure_and_text": 181
+        },
+        "boundary_iou": {
+          "median": 0.507836943089408,
+          "p90": 0.7297254614487897,
+          "p95": 0.8002401641787606,
+          "n": 181
+        },
+        "boundary_error_types": {
+          "oversized": 56,
+          "undersized": 5,
+          "offset_or_shape": 24
+        },
+        "mean_table_precise_coverage": 0.011928346068781905,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.046990400061576676
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.023255813953488372
+          ],
+          "offered_quality": [
+            0.019230769230769232,
+            0.7131782945736435
+          ]
+        }
+      }
+    },
+    "N1": {
+      "all": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1251,
+          "correct": 615,
+          "wrong": 29,
+          "low_iou": 607,
+          "extra_outputs": 2028,
+          "no_output": 1910,
+          "region_fallback": 8226,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 29,
+          "legacy_correct": 615,
+          "text_fallback": 664
+        },
+        "precise_coverage": 0.05103310928553647,
+        "wrong_cell_rate": 0.023181454836131096,
+        "offered_quality": 0.49160671462829736,
+        "strict_output_quality": 0.18755718206770358,
+        "low_iou_rate": 0.48521183053557154,
+        "offered_rate": 0.10380881254667662,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1989,
+          "table_identity": 2315,
+          "accepted": 1251,
+          "local_correspondence": 3756,
+          "text_anchor": 2639,
+          "geometry": 101
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "table_identity_ambiguous": 2315,
+          "accepted": 1251,
+          "no_local_anchors": 894,
+          "repeated_value_ambiguous": 2248,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 99,
+          "order_conflict": 2862,
+          "empty_cell_without_anchors": 391,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.49500805787543795,
+          "p90": 0.7150647766714076,
+          "p95": 0.8016906720767587,
+          "n": 1251
+        },
+        "boundary_error_types": {
+          "oversized": 602,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.05633864043862656,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.02334309507086359,
+            0.08363015680450309
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08109332897852535
+          ],
+          "offered_quality": [
+            0.3125664063242911,
+            0.6674426130766977
+          ]
+        },
+        "mapping_ms": {
+          "median": 26.330849999794737,
+          "p90": 62.22745999966722,
+          "p95": 73.94286999915488,
+          "n": 120
+        },
+        "mapping_ms_at_most_250_cells": {
+          "median": 26.330849999794737,
+          "p90": 62.22745999966722,
+          "p95": 73.94286999915488,
+          "n": 120
+        },
+        "mapping_ms_above_250_cells": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+        "thresholds_passed": false
+      },
+      "source:pubtables-1m": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1251,
+          "correct": 615,
+          "wrong": 29,
+          "low_iou": 607,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 8226,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 29,
+          "legacy_correct": 615,
+          "text_fallback": 664
+        },
+        "precise_coverage": 0.05103310928553647,
+        "wrong_cell_rate": 0.023181454836131096,
+        "offered_quality": 0.49160671462829736,
+        "strict_output_quality": 0.49160671462829736,
+        "low_iou_rate": 0.48521183053557154,
+        "offered_rate": 0.10380881254667662,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1989,
+          "table_identity": 2315,
+          "accepted": 1251,
+          "local_correspondence": 3756,
+          "text_anchor": 2639,
+          "geometry": 101
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "table_identity_ambiguous": 2315,
+          "accepted": 1251,
+          "no_local_anchors": 894,
+          "repeated_value_ambiguous": 2248,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 99,
+          "order_conflict": 2862,
+          "empty_cell_without_anchors": 391,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.49500805787543795,
+          "p90": 0.7150647766714076,
+          "p95": 0.8016906720767587,
+          "n": 1251
+        },
+        "boundary_error_types": {
+          "oversized": 602,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.05633864043862656,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.02334309507086359,
+            0.08363015680450309
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08109332897852535
+          ],
+          "offered_quality": [
+            0.3125664063242911,
+            0.6674426130766977
+          ]
+        }
+      },
+      "input:rendered-table-crop": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1251,
+          "correct": 615,
+          "wrong": 29,
+          "low_iou": 607,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "region_fallback": 8226,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 29,
+          "legacy_correct": 615,
+          "text_fallback": 664
+        },
+        "precise_coverage": 0.05103310928553647,
+        "wrong_cell_rate": 0.023181454836131096,
+        "offered_quality": 0.49160671462829736,
+        "strict_output_quality": 0.49160671462829736,
+        "low_iou_rate": 0.48521183053557154,
+        "offered_rate": 0.10380881254667662,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1989,
+          "table_identity": 2315,
+          "accepted": 1251,
+          "local_correspondence": 3756,
+          "text_anchor": 2639,
+          "geometry": 101
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "table_identity_ambiguous": 2315,
+          "accepted": 1251,
+          "no_local_anchors": 894,
+          "repeated_value_ambiguous": 2248,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 99,
+          "order_conflict": 2862,
+          "empty_cell_without_anchors": 391,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.49500805787543795,
+          "p90": 0.7150647766714076,
+          "p95": 0.8016906720767587,
+          "n": 1251
+        },
+        "boundary_error_types": {
+          "oversized": 602,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.05633864043862656,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.02334309507086359,
+            0.08363015680450309
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08109332897852535
+          ],
+          "offered_quality": [
+            0.3125664063242911,
+            0.6674426130766977
+          ]
+        }
+      },
+      "target:merged": {
+        "counts": {
+          "targets": 424,
+          "offered": 3,
+          "correct": 2,
+          "wrong": 0,
+          "low_iou": 1,
+          "extra_outputs": 0,
+          "region_fallback": 76,
+          "text_fallback": 114,
+          "no_output": 231,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 2
+        },
+        "precise_coverage": 0.0047169811320754715,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.6666666666666666,
+        "strict_output_quality": 0.6666666666666666,
+        "low_iou_rate": 0.3333333333333333,
+        "offered_rate": 0.007075471698113208,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "local_correspondence": 135,
+          "inference": 231,
+          "geometry": 4,
+          "table_identity": 47,
+          "accepted": 3,
+          "text_anchor": 4
+        },
+        "reason_codes_nonadditive": {
+          "no_local_anchors": 121,
+          "inference_failed": 231,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 2,
+          "table_identity_ambiguous": 47,
+          "order_conflict": 14,
+          "accepted": 3,
+          "repeated_value_ambiguous": 4
+        },
+        "boundary_iou": {
+          "median": 0.5978971078844778,
+          "p90": 0.6521014515020704,
+          "p95": 0.6588769944542695,
+          "n": 3
+        },
+        "boundary_error_types": {
+          "oversized": 1
+        },
+        "mean_table_precise_coverage": 0.009562841530054645,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.013125090893981258
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "target:not-merged": {
+        "counts": {
+          "targets": 11627,
+          "offered": 1248,
+          "correct": 613,
+          "wrong": 29,
+          "low_iou": 606,
+          "extra_outputs": 0,
+          "no_output": 1679,
+          "region_fallback": 8150,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 29,
+          "legacy_correct": 613,
+          "text_fallback": 550
+        },
+        "precise_coverage": 0.05272211232476133,
+        "wrong_cell_rate": 0.023237179487179488,
+        "offered_quality": 0.4911858974358974,
+        "strict_output_quality": 0.4911858974358974,
+        "low_iou_rate": 0.4855769230769231,
+        "offered_rate": 0.10733637223703449,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1758,
+          "table_identity": 2268,
+          "accepted": 1248,
+          "text_anchor": 2635,
+          "local_correspondence": 3621,
+          "geometry": 97
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1679,
+          "table_identity_ambiguous": 2268,
+          "accepted": 1248,
+          "repeated_value_ambiguous": 2244,
+          "no_local_anchors": 773,
+          "order_conflict": 2848,
+          "unverified_lineage": 97,
+          "empty_cell_without_anchors": 391,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.4949773667719748,
+          "p90": 0.7152027716075372,
+          "p95": 0.8017364888031622,
+          "n": 1248
+        },
+        "boundary_error_types": {
+          "oversized": 601,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.056827948061218235,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.023940587616174718,
+            0.08588708041387999
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08115272345940742
+          ],
+          "offered_quality": [
+            0.31159224769181787,
+            0.6675081788440566
+          ]
+        }
+      },
+      "tables-with:merged": {
+        "counts": {
+          "targets": 6549,
+          "offered": 406,
+          "correct": 189,
+          "wrong": 27,
+          "low_iou": 190,
+          "extra_outputs": 0,
+          "region_fallback": 4579,
+          "text_fallback": 370,
+          "no_output": 1194,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 27,
+          "legacy_correct": 189
+        },
+        "precise_coverage": 0.02885936784241869,
+        "wrong_cell_rate": 0.0665024630541872,
+        "offered_quality": 0.46551724137931033,
+        "strict_output_quality": 0.46551724137931033,
+        "low_iou_rate": 0.46798029556650245,
+        "offered_rate": 0.06199419758741793,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "local_correspondence": 1959,
+          "inference": 1273,
+          "text_anchor": 1436,
+          "accepted": 406,
+          "geometry": 6,
+          "table_identity": 1469
+        },
+        "reason_codes_nonadditive": {
+          "no_local_anchors": 509,
+          "inference_failed": 1194,
+          "repeated_value_ambiguous": 1225,
+          "accepted": 406,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 4,
+          "order_conflict": 1450,
+          "table_identity_ambiguous": 1469,
+          "empty_cell_without_anchors": 211,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.48257754182782897,
+          "p90": 0.6778850647483456,
+          "p95": 0.7162069456496816,
+          "n": 406
+        },
+        "boundary_error_types": {
+          "oversized": 190
+        },
+        "mean_table_precise_coverage": 0.02847529733726893,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0030399175669519863,
+            0.06730090714177872
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.3121840973249092
+          ],
+          "offered_quality": [
+            0.1051883971291866,
+            0.8196875268017952
+          ]
+        }
+      },
+      "target:repeated": {
+        "counts": {
+          "targets": 3895,
+          "offered": 334,
+          "correct": 143,
+          "wrong": 27,
+          "low_iou": 164,
+          "extra_outputs": 0,
+          "region_fallback": 3218,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 27,
+          "legacy_correct": 143,
+          "no_output": 327,
+          "text_fallback": 16
+        },
+        "precise_coverage": 0.03671373555840821,
+        "wrong_cell_rate": 0.08083832335329341,
+        "offered_quality": 0.4281437125748503,
+        "strict_output_quality": 0.4281437125748503,
+        "low_iou_rate": 0.49101796407185627,
+        "offered_rate": 0.08575096277278563,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "table_identity": 944,
+          "accepted": 334,
+          "text_anchor": 2246,
+          "inference": 355,
+          "geometry": 16
+        },
+        "reason_codes_nonadditive": {
+          "table_identity_ambiguous": 944,
+          "accepted": 334,
+          "repeated_value_ambiguous": 2246,
+          "inference_failed": 327,
+          "unverified_lineage": 16,
+          "timeout": 28
+        },
+        "boundary_iou": {
+          "median": 0.48018852958379676,
+          "p90": 0.7191830131379372,
+          "p95": 0.8078500950092791,
+          "n": 334
+        },
+        "boundary_error_types": {
+          "oversized": 163,
+          "offset_or_shape": 1
+        },
+        "mean_table_precise_coverage": 0.04056191226374421,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.011328898158803223,
+            0.07191999587186436
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.25800312346888776
+          ],
+          "offered_quality": [
+            0.18647635135135138,
+            0.6666901408450704
+          ]
+        }
+      },
+      "target:not-repeated": {
+        "counts": {
+          "targets": 8156,
+          "offered": 917,
+          "correct": 472,
+          "wrong": 2,
+          "low_iou": 443,
+          "extra_outputs": 0,
+          "no_output": 1583,
+          "region_fallback": 5008,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 2,
+          "legacy_correct": 472,
+          "text_fallback": 648
+        },
+        "precise_coverage": 0.05787150564001962,
+        "wrong_cell_rate": 0.0021810250817884407,
+        "offered_quality": 0.514721919302072,
+        "strict_output_quality": 0.514721919302072,
+        "low_iou_rate": 0.4830970556161396,
+        "offered_rate": 0.11243256498283473,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1634,
+          "table_identity": 1371,
+          "accepted": 917,
+          "local_correspondence": 3756,
+          "geometry": 85,
+          "text_anchor": 393
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1583,
+          "table_identity_ambiguous": 1371,
+          "accepted": 917,
+          "no_local_anchors": 894,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 83,
+          "order_conflict": 2862,
+          "empty_cell_without_anchors": 391,
+          "repeated_value_ambiguous": 2,
+          "timeout": 51
+        },
+        "boundary_iou": {
+          "median": 0.5084878413324371,
+          "p90": 0.7119150261978843,
+          "p95": 0.7926611180221919,
+          "n": 917
+        },
+        "boundary_error_types": {
+          "oversized": 439,
+          "offset_or_shape": 4
+        },
+        "mean_table_precise_coverage": 0.05574700497568138,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.02699366980589416,
+            0.09411479593541378
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.008100498158977688
+          ],
+          "offered_quality": [
+            0.32491481623277185,
+            0.7065911467045835
+          ]
+        }
+      },
+      "tables-with:repeated": {
+        "counts": {
+          "targets": 11258,
+          "offered": 1040,
+          "correct": 445,
+          "wrong": 29,
+          "low_iou": 566,
+          "extra_outputs": 0,
+          "no_output": 1645,
+          "region_fallback": 8016,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 29,
+          "legacy_correct": 445,
+          "text_fallback": 557
+        },
+        "precise_coverage": 0.03952744714869426,
+        "wrong_cell_rate": 0.027884615384615386,
+        "offered_quality": 0.42788461538461536,
+        "strict_output_quality": 0.42788461538461536,
+        "low_iou_rate": 0.5442307692307692,
+        "offered_rate": 0.09237875288683603,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "inference": 1724,
+          "table_identity": 2229,
+          "accepted": 1040,
+          "local_correspondence": 3582,
+          "text_anchor": 2637,
+          "geometry": 46
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1645,
+          "table_identity_ambiguous": 2229,
+          "accepted": 1040,
+          "no_local_anchors": 804,
+          "repeated_value_ambiguous": 2248,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 44,
+          "order_conflict": 2778,
+          "empty_cell_without_anchors": 389,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.47556060512646076,
+          "p90": 0.7160927094797597,
+          "p95": 0.8391325263785218,
+          "n": 1040
+        },
+        "boundary_error_types": {
+          "oversized": 561,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.04383195861698164,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.01584087587975665,
+            0.0700247821636485
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08887504121494263
+          ],
+          "offered_quality": [
+            0.24935548681975725,
+            0.6313981757318652
+          ]
+        }
+      },
+      "target:empty": {
+        "counts": {
+          "targets": 973,
+          "offered": 89,
+          "correct": 21,
+          "wrong": 0,
+          "low_iou": 68,
+          "extra_outputs": 0,
+          "region_fallback": 728,
+          "no_output": 156,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 0,
+          "legacy_correct": 21
+        },
+        "precise_coverage": 0.02158273381294964,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.23595505617977527,
+        "strict_output_quality": 0.23595505617977527,
+        "low_iou_rate": 0.7640449438202247,
+        "offered_rate": 0.09146968139773895,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "table_identity": 313,
+          "text_anchor": 391,
+          "inference": 180,
+          "accepted": 89
+        },
+        "reason_codes_nonadditive": {
+          "table_identity_ambiguous": 313,
+          "empty_cell_without_anchors": 391,
+          "inference_failed": 156,
+          "accepted": 89,
+          "timeout": 24
+        },
+        "boundary_iou": {
+          "median": 0.403313398362978,
+          "p90": 0.651089132819478,
+          "p95": 0.6687102660593874,
+          "n": 89
+        },
+        "boundary_error_types": {
+          "oversized": 68
+        },
+        "mean_table_precise_coverage": 0.025020177562550445,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.06465914879012248
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.55
+          ]
+        }
+      },
+      "target:not-empty": {
+        "counts": {
+          "targets": 11078,
+          "offered": 1162,
+          "correct": 594,
+          "wrong": 29,
+          "low_iou": 539,
+          "extra_outputs": 0,
+          "no_output": 1754,
+          "region_fallback": 7498,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 29,
+          "legacy_correct": 594,
+          "text_fallback": 664
+        },
+        "precise_coverage": 0.053619786965156166,
+        "wrong_cell_rate": 0.02495697074010327,
+        "offered_quality": 0.5111876075731497,
+        "strict_output_quality": 0.5111876075731497,
+        "low_iou_rate": 0.463855421686747,
+        "offered_rate": 0.10489257988806644,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1809,
+          "table_identity": 2002,
+          "accepted": 1162,
+          "local_correspondence": 3756,
+          "text_anchor": 2248,
+          "geometry": 101
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1754,
+          "table_identity_ambiguous": 2002,
+          "accepted": 1162,
+          "no_local_anchors": 894,
+          "repeated_value_ambiguous": 2248,
+          "noncontiguous_group": 2,
+          "unverified_lineage": 99,
+          "order_conflict": 2862,
+          "timeout": 55
+        },
+        "boundary_iou": {
+          "median": 0.5078645531375221,
+          "p90": 0.7173342258534818,
+          "p95": 0.8089007008127356,
+          "n": 1162
+        },
+        "boundary_error_types": {
+          "oversized": 534,
+          "offset_or_shape": 5
+        },
+        "mean_table_precise_coverage": 0.05629920218524609,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.025364369052689628,
+            0.08680109655508281
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.08485979661699553
+          ],
+          "offered_quality": [
+            0.3262070376432079,
+            0.6818421473078766
+          ]
+        }
+      },
+      "tables-with:empty": {
+        "counts": {
+          "targets": 6264,
+          "offered": 468,
+          "correct": 183,
+          "wrong": 0,
+          "low_iou": 285,
+          "extra_outputs": 0,
+          "no_output": 1242,
+          "region_fallback": 4296,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 1,
+          "legacy_wrong": 0,
+          "legacy_correct": 183,
+          "text_fallback": 258
+        },
+        "precise_coverage": 0.02921455938697318,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.391025641025641,
+        "strict_output_quality": 0.391025641025641,
+        "low_iou_rate": 0.6089743589743589,
+        "offered_rate": 0.07471264367816093,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "inference": 1321,
+          "table_identity": 1452,
+          "text_anchor": 1329,
+          "accepted": 468,
+          "local_correspondence": 1693,
+          "geometry": 1
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1242,
+          "table_identity_ambiguous": 1452,
+          "repeated_value_ambiguous": 938,
+          "empty_cell_without_anchors": 391,
+          "accepted": 468,
+          "order_conflict": 1290,
+          "no_local_anchors": 403,
+          "unverified_lineage": 1,
+          "timeout": 79
+        },
+        "boundary_iou": {
+          "median": 0.47289981543628723,
+          "p90": 0.6932805747194626,
+          "p95": 0.7177121350653932,
+          "n": 468
+        },
+        "boundary_error_types": {
+          "oversized": 285
+        },
+        "mean_table_precise_coverage": 0.027029067395066088,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0014230972617586919,
+            0.06522503157779799
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.045623055651572764,
+            0.7048731030873887
+          ]
+        }
+      }
+    },
+    "N2": {
+      "all": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1829,
+          "correct": 659,
+          "wrong": 7,
+          "low_iou": 1158,
+          "extra_outputs": 2028,
+          "no_output": 1910,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 638,
+          "region_fallback": 5367,
+          "text_fallback": 2945
+        },
+        "precise_coverage": 0.05468425856775371,
+        "wrong_cell_rate": 0.0038272279934390375,
+        "offered_quality": 0.36030617823947514,
+        "strict_output_quality": 0.1708581799325901,
+        "low_iou_rate": 0.6331328594860579,
+        "offered_rate": 0.1517716372085304,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1954,
+          "accepted": 1829,
+          "local_correspondence": 3485,
+          "text_anchor": 3346,
+          "table_identity": 1421,
+          "geometry": 6,
+          "structure": 10
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "accepted": 1829,
+          "no_local_anchors": 3432,
+          "empty_cell_without_anchors": 673,
+          "repeated_value_ambiguous": 2673,
+          "table_identity_ambiguous": 1421,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.4471872844442491,
+          "p90": 0.6551221923993972,
+          "p95": 0.7190638196449441,
+          "n": 1829
+        },
+        "boundary_error_types": {
+          "oversized": 800,
+          "offset_or_shape": 180,
+          "undersized": 178
+        },
+        "mean_table_precise_coverage": 0.05968073384189754,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0426648128656733,
+            0.06769889423678097
+          ],
+          "wrong_cell_rate": [
+            0.0005374350738108256,
+            0.008983989066326905
+          ],
+          "offered_quality": [
+            0.283737965630877,
+            0.4463170642870151
+          ]
+        },
+        "mapping_ms": {
+          "median": 24.859899999682966,
+          "p90": 68.47097000027136,
+          "p95": 95.04728500014605,
+          "n": 120
+        },
+        "mapping_ms_at_most_250_cells": {
+          "median": 24.859899999682966,
+          "p90": 68.47097000027136,
+          "p95": 95.04728500014605,
+          "n": 120
+        },
+        "mapping_ms_above_250_cells": {
+          "median": null,
+          "p90": null,
+          "p95": null,
+          "n": 0
+        },
+        "mapping_timing_scope": "artifact read, provider adaptation and correspondence; CPU only; model inference excluded",
+        "thresholds_passed": false
+      },
+      "source:pubtables-1m": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1829,
+          "correct": 659,
+          "wrong": 7,
+          "low_iou": 1158,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 638,
+          "region_fallback": 5367,
+          "text_fallback": 2945
+        },
+        "precise_coverage": 0.05468425856775371,
+        "wrong_cell_rate": 0.0038272279934390375,
+        "offered_quality": 0.36030617823947514,
+        "strict_output_quality": 0.36030617823947514,
+        "low_iou_rate": 0.6331328594860579,
+        "offered_rate": 0.1517716372085304,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1954,
+          "accepted": 1829,
+          "local_correspondence": 3485,
+          "text_anchor": 3346,
+          "table_identity": 1421,
+          "geometry": 6,
+          "structure": 10
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "accepted": 1829,
+          "no_local_anchors": 3432,
+          "empty_cell_without_anchors": 673,
+          "repeated_value_ambiguous": 2673,
+          "table_identity_ambiguous": 1421,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.4471872844442491,
+          "p90": 0.6551221923993972,
+          "p95": 0.7190638196449441,
+          "n": 1829
+        },
+        "boundary_error_types": {
+          "oversized": 800,
+          "offset_or_shape": 180,
+          "undersized": 178
+        },
+        "mean_table_precise_coverage": 0.05968073384189754,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0426648128656733,
+            0.06769889423678097
+          ],
+          "wrong_cell_rate": [
+            0.0005374350738108256,
+            0.008983989066326905
+          ],
+          "offered_quality": [
+            0.283737965630877,
+            0.4463170642870151
+          ]
+        }
+      },
+      "input:rendered-table-crop": {
+        "counts": {
+          "targets": 12051,
+          "offered": 1829,
+          "correct": 659,
+          "wrong": 7,
+          "low_iou": 1158,
+          "extra_outputs": 0,
+          "no_output": 1910,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 638,
+          "region_fallback": 5367,
+          "text_fallback": 2945
+        },
+        "precise_coverage": 0.05468425856775371,
+        "wrong_cell_rate": 0.0038272279934390375,
+        "offered_quality": 0.36030617823947514,
+        "strict_output_quality": 0.36030617823947514,
+        "low_iou_rate": 0.6331328594860579,
+        "offered_rate": 0.1517716372085304,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1954,
+          "accepted": 1829,
+          "local_correspondence": 3485,
+          "text_anchor": 3346,
+          "table_identity": 1421,
+          "geometry": 6,
+          "structure": 10
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1910,
+          "accepted": 1829,
+          "no_local_anchors": 3432,
+          "empty_cell_without_anchors": 673,
+          "repeated_value_ambiguous": 2673,
+          "table_identity_ambiguous": 1421,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.4471872844442491,
+          "p90": 0.6551221923993972,
+          "p95": 0.7190638196449441,
+          "n": 1829
+        },
+        "boundary_error_types": {
+          "oversized": 800,
+          "offset_or_shape": 180,
+          "undersized": 178
+        },
+        "mean_table_precise_coverage": 0.05968073384189754,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0426648128656733,
+            0.06769889423678097
+          ],
+          "wrong_cell_rate": [
+            0.0005374350738108256,
+            0.008983989066326905
+          ],
+          "offered_quality": [
+            0.283737965630877,
+            0.4463170642870151
+          ]
+        }
+      },
+      "target:merged": {
+        "counts": {
+          "targets": 424,
+          "offered": 16,
+          "correct": 7,
+          "wrong": 0,
+          "low_iou": 9,
+          "extra_outputs": 0,
+          "region_fallback": 49,
+          "text_fallback": 128,
+          "no_output": 231,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 6
+        },
+        "precise_coverage": 0.01650943396226415,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.4375,
+        "strict_output_quality": 0.4375,
+        "low_iou_rate": 0.5625,
+        "offered_rate": 0.03773584905660377,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "local_correspondence": 141,
+          "inference": 231,
+          "accepted": 16,
+          "text_anchor": 16,
+          "geometry": 6,
+          "structure": 4,
+          "table_identity": 10
+        },
+        "reason_codes_nonadditive": {
+          "no_local_anchors": 133,
+          "inference_failed": 231,
+          "accepted": 16,
+          "repeated_value_ambiguous": 16,
+          "noncontiguous_group": 6,
+          "malformed_structure": 4,
+          "candidate_tie": 3,
+          "table_identity_ambiguous": 10,
+          "order_conflict": 1,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.4559113881844792,
+          "p90": 0.6975946692835536,
+          "p95": 0.7474319142436524,
+          "n": 16
+        },
+        "boundary_error_types": {
+          "offset_or_shape": 3,
+          "undersized": 4,
+          "oversized": 2
+        },
+        "mean_table_precise_coverage": 0.012998840867693326,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.0,
+            0.040651958046298016
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.0,
+            0.6666666666666666
+          ]
+        }
+      },
+      "target:not-merged": {
+        "counts": {
+          "targets": 11627,
+          "offered": 1813,
+          "correct": 652,
+          "wrong": 7,
+          "low_iou": 1149,
+          "extra_outputs": 0,
+          "no_output": 1679,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 632,
+          "region_fallback": 5318,
+          "text_fallback": 2817
+        },
+        "precise_coverage": 0.05607637395716866,
+        "wrong_cell_rate": 0.003861003861003861,
+        "offered_quality": 0.35962493105350246,
+        "strict_output_quality": 0.35962493105350246,
+        "low_iou_rate": 0.6337562051847766,
+        "offered_rate": 0.1559301625526791,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1723,
+          "accepted": 1813,
+          "local_correspondence": 3344,
+          "text_anchor": 3330,
+          "table_identity": 1411,
+          "structure": 6
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1679,
+          "accepted": 1813,
+          "no_local_anchors": 3299,
+          "empty_cell_without_anchors": 673,
+          "repeated_value_ambiguous": 2657,
+          "table_identity_ambiguous": 1411,
+          "timeout": 44,
+          "order_conflict": 45,
+          "malformed_structure": 6
+        },
+        "boundary_iou": {
+          "median": 0.4471872844442491,
+          "p90": 0.6522474837096766,
+          "p95": 0.7185474827277404,
+          "n": 1813
+        },
+        "boundary_error_types": {
+          "oversized": 798,
+          "offset_or_shape": 177,
+          "undersized": 174
+        },
+        "mean_table_precise_coverage": 0.06090173026696809,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.043701929630544596,
+            0.0693527770665234
+          ],
+          "wrong_cell_rate": [
+            0.0005417815105656387,
+            0.009064130733315023
+          ],
+          "offered_quality": [
+            0.28315625548855455,
+            0.44703467226610233
+          ]
+        }
+      },
+      "tables-with:merged": {
+        "counts": {
+          "targets": 6549,
+          "offered": 787,
+          "correct": 288,
+          "wrong": 6,
+          "low_iou": 492,
+          "extra_outputs": 0,
+          "region_fallback": 2954,
+          "text_fallback": 1614,
+          "no_output": 1194,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 5,
+          "legacy_correct": 278
+        },
+        "precise_coverage": 0.043976179569399906,
+        "wrong_cell_rate": 0.007623888182973317,
+        "offered_quality": 0.36594663278271916,
+        "strict_output_quality": 0.36594663278271916,
+        "low_iou_rate": 0.625158831003812,
+        "offered_rate": 0.12017101847610322,
+        "tables": 61,
+        "documents": 61,
+        "primary_failure_stages": {
+          "local_correspondence": 1927,
+          "inference": 1238,
+          "accepted": 787,
+          "text_anchor": 2131,
+          "geometry": 6,
+          "structure": 10,
+          "table_identity": 450
+        },
+        "reason_codes_nonadditive": {
+          "no_local_anchors": 1874,
+          "inference_failed": 1194,
+          "accepted": 787,
+          "repeated_value_ambiguous": 1656,
+          "empty_cell_without_anchors": 475,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "table_identity_ambiguous": 450,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.44557088021343044,
+          "p90": 0.6744090243967544,
+          "p95": 0.7183738776394871,
+          "n": 787
+        },
+        "boundary_error_types": {
+          "oversized": 256,
+          "offset_or_shape": 120,
+          "undersized": 116
+        },
+        "mean_table_precise_coverage": 0.050627145582529606,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.029774022175824977,
+            0.06354671974185702
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.018336980786533216
+          ],
+          "offered_quality": [
+            0.2620921072564763,
+            0.4872769072835486
+          ]
+        }
+      },
+      "target:repeated": {
+        "counts": {
+          "targets": 3895,
+          "offered": 315,
+          "correct": 87,
+          "wrong": 0,
+          "low_iou": 228,
+          "extra_outputs": 0,
+          "identity_tie": 0,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 0,
+          "legacy_correct": 85,
+          "region_fallback": 3252,
+          "no_output": 327,
+          "text_fallback": 1
+        },
+        "precise_coverage": 0.02233632862644416,
+        "wrong_cell_rate": 0.0,
+        "offered_quality": 0.2761904761904762,
+        "strict_output_quality": 0.2761904761904762,
+        "low_iou_rate": 0.7238095238095238,
+        "offered_rate": 0.08087291399229782,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "accepted": 315,
+          "text_anchor": 2672,
+          "inference": 357,
+          "table_identity": 549,
+          "local_correspondence": 2
+        },
+        "reason_codes_nonadditive": {
+          "accepted": 315,
+          "repeated_value_ambiguous": 2672,
+          "inference_failed": 327,
+          "table_identity_ambiguous": 549,
+          "timeout": 30,
+          "no_local_anchors": 2
+        },
+        "boundary_iou": {
+          "median": 0.40481989569754423,
+          "p90": 0.5904313966284186,
+          "p95": 0.6815127716245549,
+          "n": 315
+        },
+        "boundary_error_types": {
+          "oversized": 180,
+          "offset_or_shape": 18,
+          "undersized": 30
+        },
+        "mean_table_precise_coverage": 0.03076386031003562,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.012727238703136006,
+            0.035592039502285434
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.0
+          ],
+          "offered_quality": [
+            0.1646218280364622,
+            0.41251008064516126
+          ]
+        }
+      },
+      "target:not-repeated": {
+        "counts": {
+          "targets": 8156,
+          "offered": 1514,
+          "correct": 572,
+          "wrong": 7,
+          "low_iou": 930,
+          "extra_outputs": 0,
+          "no_output": 1583,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 553,
+          "region_fallback": 2115,
+          "text_fallback": 2944
+        },
+        "precise_coverage": 0.07013241785188817,
+        "wrong_cell_rate": 0.004623513870541612,
+        "offered_quality": 0.37780713342140027,
+        "strict_output_quality": 0.37780713342140027,
+        "low_iou_rate": 0.6142668428005285,
+        "offered_rate": 0.18563021088769005,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1597,
+          "accepted": 1514,
+          "local_correspondence": 3483,
+          "text_anchor": 674,
+          "table_identity": 872,
+          "geometry": 6,
+          "structure": 10
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1583,
+          "accepted": 1514,
+          "no_local_anchors": 3430,
+          "empty_cell_without_anchors": 673,
+          "table_identity_ambiguous": 872,
+          "timeout": 14,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4,
+          "repeated_value_ambiguous": 1
+        },
+        "boundary_iou": {
+          "median": 0.45539939027304055,
+          "p90": 0.6648529272618263,
+          "p95": 0.7222431431686043,
+          "n": 1514
+        },
+        "boundary_error_types": {
+          "oversized": 620,
+          "offset_or_shape": 162,
+          "undersized": 148
+        },
+        "mean_table_precise_coverage": 0.07398792468673855,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.05536090026243345,
+            0.08526496410943082
+          ],
+          "wrong_cell_rate": [
+            0.0006364867506551163,
+            0.010849933788751348
+          ],
+          "offered_quality": [
+            0.2997439167147919,
+            0.4614983952099373
+          ]
+        }
+      },
+      "tables-with:repeated": {
+        "counts": {
+          "targets": 11258,
+          "offered": 1712,
+          "correct": 634,
+          "wrong": 6,
+          "low_iou": 1068,
+          "extra_outputs": 0,
+          "no_output": 1645,
+          "identity_tie": 4,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 6,
+          "legacy_correct": 613,
+          "region_fallback": 5209,
+          "text_fallback": 2692
+        },
+        "precise_coverage": 0.056315508971398115,
+        "wrong_cell_rate": 0.0035046728971962616,
+        "offered_quality": 0.3703271028037383,
+        "strict_output_quality": 0.3703271028037383,
+        "low_iou_rate": 0.6238317757009346,
+        "offered_rate": 0.15206963936756085,
+        "tables": 109,
+        "documents": 109,
+        "primary_failure_stages": {
+          "inference": 1689,
+          "accepted": 1712,
+          "local_correspondence": 3202,
+          "text_anchor": 3345,
+          "table_identity": 1304,
+          "geometry": 6
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1645,
+          "accepted": 1712,
+          "no_local_anchors": 3149,
+          "empty_cell_without_anchors": 672,
+          "repeated_value_ambiguous": 2673,
+          "table_identity_ambiguous": 1304,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.4536187579320635,
+          "p90": 0.66203780426163,
+          "p95": 0.7219168403320348,
+          "n": 1712
+        },
+        "boundary_error_types": {
+          "oversized": 754,
+          "offset_or_shape": 164,
+          "undersized": 150
+        },
+        "mean_table_precise_coverage": 0.06281080222092926,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.04278179110866286,
+            0.07069162112982462
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.009122027917333773
+          ],
+          "offered_quality": [
+            0.2872872997581861,
+            0.46047266508007256
+          ]
+        }
+      },
+      "target:empty": {
+        "counts": {
+          "targets": 973,
+          "offered": 51,
+          "correct": 14,
+          "wrong": 1,
+          "low_iou": 32,
+          "extra_outputs": 0,
+          "region_fallback": 766,
+          "identity_tie": 4,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 1,
+          "legacy_correct": 14,
+          "no_output": 156
+        },
+        "precise_coverage": 0.014388489208633094,
+        "wrong_cell_rate": 0.0196078431372549,
+        "offered_quality": 0.27450980392156865,
+        "strict_output_quality": 0.27450980392156865,
+        "low_iou_rate": 0.6274509803921569,
+        "offered_rate": 0.052415210688591986,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "text_anchor": 673,
+          "table_identity": 93,
+          "accepted": 51,
+          "inference": 156
+        },
+        "reason_codes_nonadditive": {
+          "empty_cell_without_anchors": 673,
+          "table_identity_ambiguous": 93,
+          "accepted": 51,
+          "inference_failed": 156
+        },
+        "boundary_iou": {
+          "median": 0.4295717259875051,
+          "p90": 0.5597062940618597,
+          "p95": 0.641846170042047,
+          "n": 51
+        },
+        "boundary_error_types": {
+          "offset_or_shape": 4,
+          "oversized": 28
+        },
+        "mean_table_precise_coverage": 0.02881275514381631,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.005217300630185429,
+            0.02796440137044164
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.058823529411764705
+          ],
+          "offered_quality": [
+            0.10625504982493941,
+            0.5454545454545454
+          ]
+        }
+      },
+      "target:not-empty": {
+        "counts": {
+          "targets": 11078,
+          "offered": 1778,
+          "correct": 645,
+          "wrong": 6,
+          "low_iou": 1126,
+          "extra_outputs": 0,
+          "no_output": 1754,
+          "identity_tie": 1,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 5,
+          "legacy_correct": 624,
+          "region_fallback": 4601,
+          "text_fallback": 2945
+        },
+        "precise_coverage": 0.05822350604802311,
+        "wrong_cell_rate": 0.003374578177727784,
+        "offered_quality": 0.3627671541057368,
+        "strict_output_quality": 0.3627671541057368,
+        "low_iou_rate": 0.6332958380202475,
+        "offered_rate": 0.16049828488896914,
+        "tables": 120,
+        "documents": 120,
+        "primary_failure_stages": {
+          "inference": 1798,
+          "accepted": 1778,
+          "local_correspondence": 3485,
+          "text_anchor": 2673,
+          "table_identity": 1328,
+          "geometry": 6,
+          "structure": 10
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1754,
+          "accepted": 1778,
+          "no_local_anchors": 3432,
+          "repeated_value_ambiguous": 2673,
+          "table_identity_ambiguous": 1328,
+          "timeout": 44,
+          "order_conflict": 46,
+          "noncontiguous_group": 6,
+          "malformed_structure": 10,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.44740890485381357,
+          "p90": 0.6570889857843771,
+          "p95": 0.7205167875391244,
+          "n": 1778
+        },
+        "boundary_error_types": {
+          "oversized": 772,
+          "offset_or_shape": 176,
+          "undersized": 178
+        },
+        "mean_table_precise_coverage": 0.061928820986471754,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.04534691101781531,
+            0.07175391908337461
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.008867162219393052
+          ],
+          "offered_quality": [
+            0.2853662795338442,
+            0.4478443510309857
+          ]
+        }
+      },
+      "tables-with:empty": {
+        "counts": {
+          "targets": 6264,
+          "offered": 931,
+          "correct": 306,
+          "wrong": 6,
+          "low_iou": 614,
+          "extra_outputs": 0,
+          "no_output": 1242,
+          "identity_tie": 5,
+          "invalid_geometry": 0,
+          "no_intersection": 0,
+          "legacy_wrong": 5,
+          "legacy_correct": 293,
+          "region_fallback": 2665,
+          "text_fallback": 1426
+        },
+        "precise_coverage": 0.04885057471264368,
+        "wrong_cell_rate": 0.00644468313641246,
+        "offered_quality": 0.32867883995703545,
+        "strict_output_quality": 0.32867883995703545,
+        "low_iou_rate": 0.6595059076262084,
+        "offered_rate": 0.14862707535121328,
+        "tables": 59,
+        "documents": 59,
+        "primary_failure_stages": {
+          "inference": 1242,
+          "accepted": 931,
+          "local_correspondence": 1661,
+          "text_anchor": 1957,
+          "table_identity": 458,
+          "structure": 10,
+          "geometry": 5
+        },
+        "reason_codes_nonadditive": {
+          "inference_failed": 1242,
+          "accepted": 931,
+          "no_local_anchors": 1654,
+          "empty_cell_without_anchors": 673,
+          "repeated_value_ambiguous": 1284,
+          "table_identity_ambiguous": 458,
+          "malformed_structure": 10,
+          "noncontiguous_group": 5,
+          "candidate_tie": 3,
+          "candidate_budget_exceeded": 4
+        },
+        "boundary_iou": {
+          "median": 0.43214783768962317,
+          "p90": 0.6486950740882559,
+          "p95": 0.7165172673765303,
+          "n": 931
+        },
+        "boundary_error_types": {
+          "oversized": 490,
+          "offset_or_shape": 62,
+          "undersized": 62
+        },
+        "mean_table_precise_coverage": 0.05074533282354627,
+        "document_group_bootstrap_95pct": {
+          "precise_coverage": [
+            0.03338922072101214,
+            0.06852834592239485
+          ],
+          "wrong_cell_rate": [
+            0.0,
+            0.016967568835088053
+          ],
+          "offered_quality": [
+            0.22641007076507486,
+            0.46136066298749756
+          ]
+        }
+      }
+    }
+  },
+  "deltas": {
+    "N1": {
+      "baseline": "B1",
+      "new_correct": 615,
+      "lost_correct": 0,
+      "new_wrong": 29,
+      "new_low_iou": 557
+    },
+    "N2": {
+      "baseline": "B2",
+      "new_correct": 597,
+      "lost_correct": 91,
+      "new_wrong": 7,
+      "new_low_iou": 1102
+    }
+  },
+  "definitions": {
+    "precise_coverage": "C/N: correct identity, nonambiguous full polygon IoU >= .5",
+    "wrong_cell_rate": "W/A: another target has strictly higher polygon IoU",
+    "offered_quality": "C/A",
+    "strict_output_quality": "C/(A+extra/duplicate outputs)",
+    "legacy_fields": "Historical bounding-rectangle IoU and strict higher-other-target rule retained independently",
+    "failure_denominator": "Every annotation target remains in N, including missing markers and inference failures",
+    "confidence_interval": "1000 bootstrap resamples of original document/template groups, fixed seed"
+  },
+  "unmeasured_groups": [
+    "native PDF real-result track",
+    "physical scan real-result track",
+    "FinTabNet canonical refresh",
+    "ruled/borderless",
+    "page-level multi-table cell matching",
+    "Chinese/photo logical"
+  ],
+  "production_acceptance": false,
+  "production_reason": "Control-track crop results alone cannot establish production applicability; real-result and critical cohorts required",
+  "detailed_report": {
+    "name": "real-test",
+    "path": "build\\table-matching-v2\\reports\\real-test-final.json",
+    "sha256": "e41a3a6bdc5ba1f619c0aa5a0122cc32fa2b8ecd9d7c08bf804e2306dce1efeb"
+  }
+}

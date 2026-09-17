@@ -1,0 +1,338 @@
+{
+  "version": 2,
+  "complete": true,
+  "split": "validation",
+  "track": "page-detection",
+  "annotations_sha256": "f4b1078bbcd17c2e7712365eb7ed2aaa07d8703e33a53dca178be9f0f897dde4",
+  "prediction_lock_sha256": "d72a1b78ffc580f7cb11d3b0b27509c32ca1e04a59b31f1506c68fcb021ef373",
+  "groups": {
+    "all": {
+      "pages": 20,
+      "documents": 20,
+      "counts": {
+        "targets": 23,
+        "offered": 19,
+        "matched": 18,
+        "false_positive": 1,
+        "missed": 5,
+        "failed": 0
+      },
+      "precision": 0.9473684210526315,
+      "recall": 0.782608695652174,
+      "pages_with_false_positive": 1,
+      "inference_ms": {
+        "median": 52.547400000548805,
+        "p90": 67.51863999943454,
+        "p95": 104.8233749986143,
+        "n": 20
+      }
+    },
+    "no_table": {
+      "pages": 7,
+      "documents": 7,
+      "counts": {
+        "targets": 0,
+        "offered": 0,
+        "matched": 0,
+        "false_positive": 0,
+        "missed": 0,
+        "failed": 0
+      },
+      "precision": null,
+      "recall": null,
+      "pages_with_false_positive": 0,
+      "inference_ms": {
+        "median": 53.02269999992859,
+        "p90": 309.25010000064526,
+        "p95": 495.7899500002891,
+        "n": 7
+      }
+    },
+    "single_table": {
+      "pages": 7,
+      "documents": 7,
+      "counts": {
+        "targets": 7,
+        "offered": 7,
+        "matched": 7,
+        "false_positive": 0,
+        "missed": 0,
+        "failed": 0
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "pages_with_false_positive": 0,
+      "inference_ms": {
+        "median": 48.44260000027134,
+        "p90": 55.33323999989079,
+        "p95": 55.78206999980466,
+        "n": 7
+      }
+    },
+    "multiple_tables": {
+      "pages": 6,
+      "documents": 6,
+      "counts": {
+        "targets": 16,
+        "offered": 12,
+        "matched": 11,
+        "false_positive": 1,
+        "missed": 5,
+        "failed": 0
+      },
+      "precision": 0.9166666666666666,
+      "recall": 0.6875,
+      "pages_with_false_positive": 1,
+      "inference_ms": {
+        "median": 57.93255000025965,
+        "p90": 70.58959999903891,
+        "p95": 72.50894999879165,
+        "n": 6
+      }
+    }
+  },
+  "rows": [
+    {
+      "sample_id": "doclaynet-3438",
+      "group_id": "faa_regulations:00-80t-80",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.682329799999934
+    },
+    {
+      "sample_id": "doclaynet-4720",
+      "group_id": "20190010119_AdobeOCR.pdf",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04984909999984666
+    },
+    {
+      "sample_id": "doclaynet-2788",
+      "group_id": "botswana_laws:botswana-constitution",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.0515837000002648
+    },
+    {
+      "sample_id": "doclaynet-742",
+      "group_id": "ann_reports_00_04_fancy:nyse_glw_",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.053370000001450535
+    },
+    {
+      "sample_id": "doclaynet-4377",
+      "group_id": "manuals:ibm-i-s5445349",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05302269999992859
+    },
+    {
+      "sample_id": "doclaynet-5035",
+      "group_id": "philippine_laws:presidential decree no. 1067, s. ",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05207210000116902
+    },
+    {
+      "sample_id": "doclaynet-1314",
+      "group_id": "ann_reports_10_14_fancy:nyse_rci_",
+      "stratum": "no_table",
+      "targets": 0,
+      "offered": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.06053030000111903
+    },
+    {
+      "sample_id": "doclaynet-3872",
+      "group_id": "japanese_laws:s24bc003781002en13.0_r01c168",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04820990000007441
+    },
+    {
+      "sample_id": "doclaynet-5444",
+      "group_id": "sec_filings:0000016875-21-000008_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04855979999956617
+    },
+    {
+      "sample_id": "doclaynet-772",
+      "group_id": "ann_reports_00_04_fancy:asx_sto_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05623089999971853
+    },
+    {
+      "sample_id": "doclaynet-5364",
+      "group_id": "sec_filings:0000006201-21-000014_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.054734800000005635
+    },
+    {
+      "sample_id": "doclaynet-5476",
+      "group_id": "sec_filings:0000030625-21-000034_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04844260000027134
+    },
+    {
+      "sample_id": "doclaynet-1705",
+      "group_id": "ann_reports_10_14_fancy:asx_sea_",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04821850000007544
+    },
+    {
+      "sample_id": "doclaynet-3021",
+      "group_id": "eu_tenders:en-technical annex a_dpr_12924-lot 1, tasks and dl table",
+      "stratum": "single_table",
+      "targets": 1,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.04826839999986987
+    },
+    {
+      "sample_id": "doclaynet-691",
+      "group_id": "ann_reports_00_04_fancy:nyse_mgm_",
+      "stratum": "multiple_tables",
+      "targets": 2,
+      "offered": 2,
+      "matched": 2,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.0511186000003363
+    },
+    {
+      "sample_id": "doclaynet-4884",
+      "group_id": "patents_superacid_pags:6930141_adobeocr",
+      "stratum": "multiple_tables",
+      "targets": 2,
+      "offered": 2,
+      "matched": 2,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.07442829999854439
+    },
+    {
+      "sample_id": "doclaynet-425",
+      "group_id": "ann_reports_00_04_fancy:nyse_hig_",
+      "stratum": "multiple_tables",
+      "targets": 3,
+      "offered": 3,
+      "matched": 3,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.0482981999994081
+    },
+    {
+      "sample_id": "doclaynet-4662",
+      "group_id": "patents_euv_sensitivity:7049044_adobeocr",
+      "stratum": "multiple_tables",
+      "targets": 3,
+      "offered": 2,
+      "matched": 1,
+      "false_positive": 1,
+      "missed": 2,
+      "failed": 0,
+      "seconds": 0.06205779999982042
+    },
+    {
+      "sample_id": "doclaynet-2853",
+      "group_id": "eu_tenders:en-c4l tenderform en",
+      "stratum": "multiple_tables",
+      "targets": 2,
+      "offered": 2,
+      "matched": 2,
+      "false_positive": 0,
+      "missed": 0,
+      "failed": 0,
+      "seconds": 0.05380730000069889
+    },
+    {
+      "sample_id": "doclaynet-980",
+      "group_id": "ann_reports_10_14_fancy:nyse_chk_",
+      "stratum": "multiple_tables",
+      "targets": 4,
+      "offered": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 3,
+      "failed": 0,
+      "seconds": 0.06675089999953343
+    }
+  ],
+  "definition": "One-to-one table bbox IoU >= .5; every page retained, including failed and no-table pages",
+  "scope": "Full-page detector only; no logical cell or end-to-end matching claim"
+}

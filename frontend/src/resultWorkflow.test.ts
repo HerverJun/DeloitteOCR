@@ -15,6 +15,16 @@ it("explicit adoption survives later failure and preview-independent batch selec
   );
 });
 
+it("a completed visual review never becomes an OCR candidate or changes implicit adoption", () => {
+  const photo = { id: "A", selected_result: null } as Photo;
+  const tasks = [
+    { image_id: "A", result_id: "ocr-source", status: "succeeded", kind: "ocr", engine: "glm" },
+    { image_id: "A", result_id: "review-output", status: "succeeded", kind: "multimodal", engine: "reviewer" },
+  ] as Task[];
+  expect(adoptedResult(photo, tasks)).toBe("ocr-source");
+  expect(adoptedResult(photo, tasks.slice(1))).toBeNull();
+});
+
 it("selected scope never silently expands to the project and confirmed filter preserves explicit scope", () => {
   const photos = [
     { id: "A", name: "A", review_status: "confirmed" },

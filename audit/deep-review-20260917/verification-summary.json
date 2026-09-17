@@ -1,0 +1,18 @@
+{
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "source_files_compared": 145,
+  "source_files_changed_during_audit": [],
+  "backend_config_equal_installed": true,
+  "review_export": {
+    "passed": true,
+    "sheets": [
+      "校验清单",
+      "任务与来源",
+      "说明"
+    ],
+    "proposals": 9,
+    "formula_cells": 0,
+    "before_after_literal_strings_preserved": true
+  }
+}

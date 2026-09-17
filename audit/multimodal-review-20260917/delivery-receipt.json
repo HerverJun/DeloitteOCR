@@ -1,0 +1,25 @@
+{
+  "version": "0.11.0rc1",
+  "schema": 11,
+  "bundle": "D:\\OCR-multimodal-workbench-20260917\\bundle",
+  "complete_manifest_verified": true,
+  "manifest_sha256": "a72a674eb5001f146bb9b349968d8749454afa27ae83ea6957a7a7324e1763d3",
+  "review_profile": "qwen35-4b-q4",
+  "model_hashes_verified": true,
+  "installed_checks_passed": 14,
+  "installed_errors": [],
+  "backend_full": {
+    "run": 382,
+    "passed": 381,
+    "skipped": 1
+  },
+  "post_snapshot_guard_targeted": {
+    "run": 62,
+    "passed": 62
+  },
+  "frontend_tests_passed": 39,
+  "browser_flows_passed": 9,
+  "no_automatic_adoption": true,
+  "quality_limit": "Functional development checks only; no independent accuracy or A4000 validation",
+  "model_processes_closed": true
+}

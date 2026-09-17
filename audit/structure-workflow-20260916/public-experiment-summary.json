@@ -1,0 +1,1948 @@
+{
+  "scope": "public-material experimental delivery; not independent quality acceptance",
+  "named_documents": 11,
+  "unique_original_documents": 10,
+  "pages": 13,
+  "unique_page_images": 12,
+  "template_groups": 10,
+  "physical_scans_verified": 0,
+  "independent_annotations": 0,
+  "human_participants": 0,
+  "default_provider": "paddle",
+  "default_matcher": "local-v2",
+  "automatic_adoption": false,
+  "matcher_source_unchanged": {
+    "src/ocr_workbench/table_matching.py": true,
+    "src/ocr_workbench/table_anchor_refinement.py": true,
+    "config/geometry-matching-policy.json": true,
+    "config/geometry-matching-policy-v3.json": true
+  },
+  "inference_stages": [
+    {
+      "phase": "context",
+      "status": {
+        "success": 13
+      },
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 2.435596500000429,
+        "p95": 59.1177361,
+        "sum": 88.49407399999927
+      },
+      "worker_load_seconds": [
+        0.69067350000023
+      ]
+    },
+    {
+      "phase": "adopted",
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 16.14214009999978,
+        "p95": 124.23867809999956,
+        "sum": 407.05441429999973
+      },
+      "worker_load_seconds": [
+        48.37931740000022,
+        12.398307600000408
+      ]
+    },
+    {
+      "phase": "paddle",
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 0.5785052999999607,
+        "p95": 22.803715699999884,
+        "sum": 54.461782099999255
+      },
+      "worker_load_seconds": [
+        21.049338400000124,
+        16.358491199999662
+      ]
+    },
+    {
+      "phase": "tableformer-raw",
+      "status": {
+        "success": 13
+      },
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 0.822646500000701,
+        "p95": 33.699974699999984,
+        "sum": 46.58664300000237
+      },
+      "worker_load_seconds": [
+        30.906781800000317
+      ]
+    },
+    {
+      "phase": "rapidtable",
+      "status": {
+        "success": 13
+      },
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 0.21975430000020424,
+        "p95": 3.461122100000466,
+        "sum": 8.333054500001708
+      },
+      "worker_load_seconds": [
+        2.0233134999998583
+      ]
+    }
+  ],
+  "inference_ledger": [
+    {
+      "phase": "context",
+      "id": "pilot-budget-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "30968ce91976ea064621222d1ec0e3a8dbc38e5bfb230e6a8ab0786de148672e"
+      },
+      "inference_seconds": 56.905452299999524,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 0,
+      "seconds": 59.1177361,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-budget-2014-15-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "3724fe9842a5429d0e159eb1d57d68efb4bcbd11b8a4e950d82cf0e9a20f2a57"
+      },
+      "inference_seconds": 3.109132999999929,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 0,
+      "seconds": 3.197312399999646,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-column-span-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "c3a4e30e5fd4d958eabd6afe5ac03371d841e4473f95c7cca2014b36b7426840"
+      },
+      "inference_seconds": 3.274228299999777,
+      "shared_ocr_sha256": "48e6ca45cc160bf6650d82314ab36c15558086cecfa6d8167e9614ddd5d5d4b9",
+      "candidate_tables": 0,
+      "seconds": 3.3454117999999653,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-row-span-2-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "2bd6f8061596b6b6a8ae3b074f278707482e080d77e0fcbfd6b9052b5129cf29"
+      },
+      "inference_seconds": 2.3546100000003207,
+      "shared_ocr_sha256": "e25439f1529970f2b109c182809c8f48abcdcb1bd5127bb27ca28c31521e4145",
+      "candidate_tables": 0,
+      "seconds": 2.4323426000000836,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-twotables-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "12eed2ba39ae999f7accdda792ee76af0f510059c99e4d46c4d60dbbe8d28360"
+      },
+      "inference_seconds": 2.5799282000007224,
+      "shared_ocr_sha256": "859c59bad6aa2d4c0d860e1f74834667cd594d15cd630402a59d41a291b0fc40",
+      "candidate_tables": 0,
+      "seconds": 2.6844609999998283,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-hybrid-multipage-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "172903c0532d7e41efb93d5c4631a76afef3517e73d8b7f8a4f3de58af877aef"
+      },
+      "inference_seconds": 1.8336202999998932,
+      "shared_ocr_sha256": "58856240108ae2dabbc6bcf3b005ab1775f4413469b81e21039947136f03a7ca",
+      "candidate_tables": 0,
+      "seconds": 1.8795067000000927,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-hybrid-multipage-p2",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "71a6c681d0aea5982cee22f742453344d8e479838a6c8e5acc5e8ab74e1e65ae"
+      },
+      "inference_seconds": 1.7065686999994796,
+      "shared_ocr_sha256": "db35fa55ba22bcd818ac0adc137e160155ce21d3ac3c0c7a2220964f824a3650",
+      "candidate_tables": 0,
+      "seconds": 1.7728938999998718,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-missing-values-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "dc6de38a0f2b423ce2b2396ebf72a729d6e6f41a31768cd2aecb49bb36887e12"
+      },
+      "inference_seconds": 2.382923000000119,
+      "shared_ocr_sha256": "d0271df82b4a804b01321b5134ca44e982f394197d608e511a862d6c10b07275",
+      "candidate_tables": 0,
+      "seconds": 2.435596500000429,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-empty-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "e71c5e6337cf1e61148f2999d32b267ede6353e9c15ba6c07a98585729eb207b"
+      },
+      "inference_seconds": 1.8351505999999063,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 0,
+      "seconds": 1.879843599999731,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-china-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "17a06072c6299963bf669fa22a10a9026e770114521718976ab6fec8baf3821d"
+      },
+      "inference_seconds": 2.6861622999995234,
+      "shared_ocr_sha256": "bc16874d98025b7b7f580adfe6e4c9a0075d97291bb895cac25b021dbb2e9ad5",
+      "candidate_tables": 0,
+      "seconds": 2.791772999999921,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "pilot-district-health-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "9b1677606a514da97664299dde4e0d7781b2fdffd9e806d5fd3d54a366aee5e5"
+      },
+      "inference_seconds": 2.5784081000001606,
+      "shared_ocr_sha256": "417e610365045d290e29b761f2943247c4329ab7bb278ec1633d1f8da392c7f0",
+      "candidate_tables": 0,
+      "seconds": 2.694419399999788,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "hk-budget-2025-p70",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "f5e74b2268ec3168f557a3a3e060e86e9d22ea913b3470e212188d9c0a9375a9"
+      },
+      "inference_seconds": 2.1302827999998044,
+      "shared_ocr_sha256": "ad99c65bf87ce3ef548a8540d87a3a2067071d1dc843f2f7d3b9a101e0e9fa19",
+      "candidate_tables": 0,
+      "seconds": 2.2335135000002992,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "context",
+      "id": "hk-budget-2025-p85",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "9d4e01942fb44c7cdadec3175c0bcd6c3c4691d3ed3405a1a12de934972a2e2c"
+      },
+      "inference_seconds": 1.931200500000159,
+      "shared_ocr_sha256": "4ef790878e97f9c888c65939c4c5856c2321866e50a1b6344221ff922f0af96d",
+      "candidate_tables": 0,
+      "seconds": 2.0292634999996153,
+      "run_lock_sha256": "5bc649104775867b69a664a6132c131055337af67d486185dcc2bdfbaa1a4d49"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-budget-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "dee8a71e423987322de4291ff82fe9c9e2fa1a4dbcb2d4ebefc9e5ec2d333989"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 94.8306591999999,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-budget-2014-15-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "f930a4867b5ecd18152cc5343f699d543028a0905f8e6982e9aba52a85968cf1"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 46.013489500000105,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-column-span-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "7495805ad6901bf4f838db5635eab8f839e2e1dd13b3fd6189907a9335b6f5e3"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 38.60721639999974,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-row-span-2-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "60afe52452c88d679e12c6ab3104d05a59d8f696cbd4f0598999b59c1e197731"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 16.103708800000277,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-twotables-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "674a1c786a4e5cb727e6ab127fca310c4483ce85eb57e1f9039a6d51d4c77485"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 2,
+      "seconds": 16.14214009999978,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-hybrid-multipage-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "06cab241c071ccb2c9240236dc29400a48c72c9b23f643eb78f29d872cf6ff6a"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 1.1777034000006097,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-hybrid-multipage-p2",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "3f4fae64bae6e4fbd0ab6ffe4452645d83d22fde504d176be993169b4cc9f881"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 1.17095800000061,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-missing-values-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "aa01ed120570483b317f5f978eea58307c16211401c606a6effa3832c59019f6"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 21.81114230000003,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-empty-p1",
+      "status": "failed",
+      "error": "模型未返回可用文字，未生成成功结果",
+      "artifact_sha256": {},
+      "seconds": 1.3200240999995003,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-china-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "40eb16f6f16dbb5ac8873af53fb2126c7d267e658464e99dcc3da22f65147ce5"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 2,
+      "seconds": 124.23867809999956,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "pilot-district-health-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "dc75f02e7d49f7707254e4443cdea0234e3a8cf43ff54d5c76a3a2100437f214"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 30.214501699999346,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "hk-budget-2025-p70",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "dae36b2af0d701dcc2ff3f7e7f9a18af3abf9e8577c97530ad8ab62d1836e760"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 0,
+      "seconds": 10.518618199999764,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "adopted",
+      "id": "hk-budget-2025-p85",
+      "status": "success",
+      "artifact_sha256": {
+        "result.json": "6e1b3da45a303f026d2bf89d15b99878639494cfbf54206cfa832b2e4bdf1ff6"
+      },
+      "inference_seconds": null,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 1,
+      "seconds": 4.905574500000512,
+      "run_lock_sha256": "d869c283ee7abcdabb9d2060da725306756190a495a5f783b9cc7da685a0f7cf"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-budget-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "a3bafe23a31ee62a1ae0c2f421f4995812e13a7f4be813fbe530d5558fe95b35"
+      },
+      "inference_seconds": 1.6091036999996504,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 22.803715699999884,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-budget-2014-15-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "729f16753424804154798a050f9e529e3db5cc0f0dce2a8264988fe10b7f1f31"
+      },
+      "inference_seconds": 0.6602869999996983,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 0.7917671999994127,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-column-span-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "82d12416554d691925f3e8e2d59bb855337c82092e9b203575945bba09fac93a"
+      },
+      "inference_seconds": 1.386094299999968,
+      "shared_ocr_sha256": "48e6ca45cc160bf6650d82314ab36c15558086cecfa6d8167e9614ddd5d5d4b9",
+      "candidate_tables": 1,
+      "seconds": 1.5593245999998544,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-row-span-2-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "92b21ea5f9bc607ad723eff2a8994826dacdaa28406a73dc4af4b920dcb0d753"
+      },
+      "inference_seconds": 0.26825129999997444,
+      "shared_ocr_sha256": "e25439f1529970f2b109c182809c8f48abcdcb1bd5127bb27ca28c31521e4145",
+      "candidate_tables": 1,
+      "seconds": 0.37969949999933306,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-twotables-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "82dfc7850118630adc94a6bdd0f99ee1d4feb6b2d22f35b0f371983a5ee0e1ab"
+      },
+      "inference_seconds": 0.3054156999996849,
+      "shared_ocr_sha256": "859c59bad6aa2d4c0d860e1f74834667cd594d15cd630402a59d41a291b0fc40",
+      "candidate_tables": 2,
+      "seconds": 0.42424620000019786,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-hybrid-multipage-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "3cdcdec7c4dc58292e3805bf99f8ff1427233da02f6cc4a8652025e094a69bae"
+      },
+      "inference_seconds": 0.10974160000023403,
+      "shared_ocr_sha256": "58856240108ae2dabbc6bcf3b005ab1775f4413469b81e21039947136f03a7ca",
+      "candidate_tables": 1,
+      "seconds": 0.1674410000005082,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-hybrid-multipage-p2",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "e4f5d47a872713de9e60dba672d331e1ac3b09ba758744dc4478ee00295ee82c"
+      },
+      "inference_seconds": 0.08055530000001454,
+      "shared_ocr_sha256": "db35fa55ba22bcd818ac0adc137e160155ce21d3ac3c0c7a2220964f824a3650",
+      "candidate_tables": 1,
+      "seconds": 0.16602860000057262,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-missing-values-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "460dea91b0404b8e6afa55ad40d8d7182d1be6dbde2e27915b2e226a44ae3758"
+      },
+      "inference_seconds": 0.26397799999995186,
+      "shared_ocr_sha256": "d0271df82b4a804b01321b5134ca44e982f394197d608e511a862d6c10b07275",
+      "candidate_tables": 1,
+      "seconds": 0.37385840000024473,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-empty-p1",
+      "status": "failed",
+      "error": "冻结 OCR 输入没有文字框；禁止隐式补识别",
+      "artifact_sha256": {},
+      "seconds": 4.861390299999584,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-china-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "478b877a3f2cd0d126e20b535f2ac1085276c17f5d615d7ade39aeda5805125e"
+      },
+      "inference_seconds": 1.4604034000003594,
+      "shared_ocr_sha256": "bc16874d98025b7b7f580adfe6e4c9a0075d97291bb895cac25b021dbb2e9ad5",
+      "candidate_tables": 2,
+      "seconds": 17.894406999999774,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "pilot-district-health-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "e14e4469a795ec1295acb6d28f1a79d7eef34eba9efee63290288f3821fe8f41"
+      },
+      "inference_seconds": 0.4566536000002088,
+      "shared_ocr_sha256": "417e610365045d290e29b761f2943247c4329ab7bb278ec1633d1f8da392c7f0",
+      "candidate_tables": 1,
+      "seconds": 0.5785052999999607,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "hk-budget-2025-p70",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "9209f0c78f8d34eb16049a8aca7231a3f9a09e6f1a046708db3c0d30a25b398b"
+      },
+      "inference_seconds": 4.147905699999683,
+      "shared_ocr_sha256": "ad99c65bf87ce3ef548a8540d87a3a2067071d1dc843f2f7d3b9a101e0e9fa19",
+      "candidate_tables": 0,
+      "seconds": 4.246459899999536,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "paddle",
+      "id": "hk-budget-2025-p85",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "f24a8c85a08b4a7101e3c7c29fa3cd790a03c33f9d67bedb4a8420378045cd71"
+      },
+      "inference_seconds": 0.10583580000002257,
+      "shared_ocr_sha256": "4ef790878e97f9c888c65939c4c5856c2321866e50a1b6344221ff922f0af96d",
+      "candidate_tables": 0,
+      "seconds": 0.214938400000392,
+      "run_lock_sha256": "02c064561f4043025eac9f10841660b5674692b7336a1ad6fc62641f9ad6bb09"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-budget-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "ae12f10911bd87a08810a8ff0239e30d4e6200b06ee6dd322312f051af00e2ed",
+        "upstream.json": "45ea780350a6424a459086268faa63e326fbaa3959e0eb96f7e4fc9fa3d765bb"
+      },
+      "inference_seconds": 2.6708142000006774,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 33.699974699999984,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-budget-2014-15-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "3e98ee84a7312d78b5239df983604046b5c77a24d3d1e169c04634064030c0ee",
+        "upstream.json": "45ea780350a6424a459086268faa63e326fbaa3959e0eb96f7e4fc9fa3d765bb"
+      },
+      "inference_seconds": 2.4516816000004837,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 2.6014279000000897,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-column-span-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "74b43218f7d411e15de1dbea1bedb79c73f4b662f06707329654a0174563b132",
+        "upstream.json": "1ca29a4475d51fac070828da66be9e4d36389fe04c76c1097834c80442b983ba"
+      },
+      "inference_seconds": 3.250565400000596,
+      "shared_ocr_sha256": "48e6ca45cc160bf6650d82314ab36c15558086cecfa6d8167e9614ddd5d5d4b9",
+      "candidate_tables": 1,
+      "seconds": 3.4627300000001924,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-row-span-2-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "199e9491c9e08a55ad89e348a55d14dc3c78a124789e16b294a505084abddadc",
+        "upstream.json": "6a3050592dd1dcc6409fbf10a9204c8715641b3351dd76c7085fd3b3aea9d406"
+      },
+      "inference_seconds": 0.6016964999998891,
+      "shared_ocr_sha256": "e25439f1529970f2b109c182809c8f48abcdcb1bd5127bb27ca28c31521e4145",
+      "candidate_tables": 1,
+      "seconds": 0.7247896999997465,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-twotables-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "329134fea83080b09a9ed368b9eff8846bc805cfffac0ba3d0554a4f9252fa51",
+        "upstream.json": "4d7aded7ed95f0b0540442fa2240189f64ec5b61bb5485c57fa85114a349d69b"
+      },
+      "inference_seconds": 0.7299380000004021,
+      "shared_ocr_sha256": "859c59bad6aa2d4c0d860e1f74834667cd594d15cd630402a59d41a291b0fc40",
+      "candidate_tables": 2,
+      "seconds": 0.822646500000701,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-hybrid-multipage-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "f784e8d402fb2d9e55b688066d879ba248ead6bf2e21739dbaa0667e189e2ec9",
+        "upstream.json": "07418214b6bbc428635470163f53770ca04aee1813f33cea67e439b6558dbafc"
+      },
+      "inference_seconds": 0.2661243000002287,
+      "shared_ocr_sha256": "58856240108ae2dabbc6bcf3b005ab1775f4413469b81e21039947136f03a7ca",
+      "candidate_tables": 1,
+      "seconds": 0.3673558000000412,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-hybrid-multipage-p2",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "c01285a98bb57db973986e0a0ca41bcbaa3dbf21499db0385143c4d555b4f083",
+        "upstream.json": "da338b31997bc67cab227f550ee19ec08f505186290a21292f00014af2557f83"
+      },
+      "inference_seconds": 0.2998436000007132,
+      "shared_ocr_sha256": "db35fa55ba22bcd818ac0adc137e160155ce21d3ac3c0c7a2220964f824a3650",
+      "candidate_tables": 1,
+      "seconds": 0.36813600000004953,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-missing-values-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "d089764bbf46a6de3f05bf91d4a0ed8cf3e5e663a3a27c62c9c336b67d9fbf89",
+        "upstream.json": "59a0b1fa6fe2820852286036b794666b4698812ae485943428b2f3f0c0b1e608"
+      },
+      "inference_seconds": 1.1933028000003105,
+      "shared_ocr_sha256": "d0271df82b4a804b01321b5134ca44e982f394197d608e511a862d6c10b07275",
+      "candidate_tables": 1,
+      "seconds": 1.2765306999999666,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-empty-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "8aedfe31b683f1425fa585d680abce00e720b4646d6277a1aafedb29cf5d35a1",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.003912799999852723,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 0,
+      "seconds": 0.06576260000019829,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-china-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "4fbe832dff666f266342cfaaaacc4ce8aaf03ec00397c9a4416aedcc7ef1ed6e",
+        "upstream.json": "33c9aa540faf204bd28b96265a48483f352c35c927b7145f608747c2bb534845"
+      },
+      "inference_seconds": 0.8739846999997098,
+      "shared_ocr_sha256": "bc16874d98025b7b7f580adfe6e4c9a0075d97291bb895cac25b021dbb2e9ad5",
+      "candidate_tables": 2,
+      "seconds": 0.9741434999996272,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "pilot-district-health-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "86e03bb41668413d65e8ecbf58e579290677454543e0fb0e3fa2e4d32736c0d0",
+        "upstream.json": "b3ec912181ce1954ae1befebfd3dd4c50ed42d5296d90cc2a1632fc1443c4059"
+      },
+      "inference_seconds": 1.8515327999994042,
+      "shared_ocr_sha256": "417e610365045d290e29b761f2943247c4329ab7bb278ec1633d1f8da392c7f0",
+      "candidate_tables": 1,
+      "seconds": 1.9908393000005162,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "hk-budget-2025-p70",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "43f47fcdc2cfa33d9f120370a59ac348d29303f1206341d3d8b07299d00dc21c",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.011462600000413659,
+      "shared_ocr_sha256": "ad99c65bf87ce3ef548a8540d87a3a2067071d1dc843f2f7d3b9a101e0e9fa19",
+      "candidate_tables": 0,
+      "seconds": 0.11662680000063119,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "tableformer-raw",
+      "id": "hk-budget-2025-p85",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "c3a4f518336814544bfa1168537aa37177be02c1954470c6d11706bfe35d03df",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.0057408000002396875,
+      "shared_ocr_sha256": "4ef790878e97f9c888c65939c4c5856c2321866e50a1b6344221ff922f0af96d",
+      "candidate_tables": 0,
+      "seconds": 0.1156795000006241,
+      "run_lock_sha256": "20535c6c62d30a0e36c383b5d14568ff9b0b2176ddd729e7add626c6fb651acb"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-budget-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "ff6020d708856c1c18d0fe73b6b7fb5862509b8a8bcdf57bcf1c98407bb7535c",
+        "upstream.json": "2a5a42f49fd5f24c3ba62b1bb0f51c851ad10d179d1f66265b73975332c3d3bc"
+      },
+      "inference_seconds": 1.3048447000001033,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 3.461122100000466,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-budget-2014-15-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "609da1214edb4ef0ab3f0647963b9d78b668a3f9d8f920fb23f5fa3295221e9e",
+        "upstream.json": "2a5a42f49fd5f24c3ba62b1bb0f51c851ad10d179d1f66265b73975332c3d3bc"
+      },
+      "inference_seconds": 1.1227198000005956,
+      "shared_ocr_sha256": "df8d2ab588ae443faf6849767266ed988fe7316d95aac95c57995ae633afc0fd",
+      "candidate_tables": 1,
+      "seconds": 1.2308086000002731,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-column-span-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "02564cae069c2f7a870f7626e8d24d961f313a396be5a08a5792b15a0e43e81d",
+        "upstream.json": "865aefdbd671273e15748c7a5a77dbf5e650f625749b04c18d93254e84aaa77a"
+      },
+      "inference_seconds": 1.3751986999996006,
+      "shared_ocr_sha256": "48e6ca45cc160bf6650d82314ab36c15558086cecfa6d8167e9614ddd5d5d4b9",
+      "candidate_tables": 1,
+      "seconds": 1.4900692000001072,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-row-span-2-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "f7db710f30e1e17c30f490491e13feb3b1dcc1ca329c1f46b65f2dfbe41b7cb4",
+        "upstream.json": "65c33389f52ae61607e5aa192e11a013ba12e4f22683ed68e46d35d17d5603ee"
+      },
+      "inference_seconds": 0.1411562999992384,
+      "shared_ocr_sha256": "e25439f1529970f2b109c182809c8f48abcdcb1bd5127bb27ca28c31521e4145",
+      "candidate_tables": 1,
+      "seconds": 0.21975430000020424,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-twotables-1-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "6fe26d97e9b6010f0b1f23bbde90a3a0e6b692cbe7f0ae7d55cf115336fb3c8c",
+        "upstream.json": "6a98d9cf15124f64326958309cec17c664c67f722a6939b6635f93f12f7b69f4"
+      },
+      "inference_seconds": 0.11541719999968336,
+      "shared_ocr_sha256": "859c59bad6aa2d4c0d860e1f74834667cd594d15cd630402a59d41a291b0fc40",
+      "candidate_tables": 2,
+      "seconds": 0.2221347999993668,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-hybrid-multipage-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "248f8bb2489d8858d20c0e5ffd0e569e741aaf4f3b3c11547c5ee7b5d5c9d3dd",
+        "upstream.json": "cc911615b34caabddfd0bee65f3f91e2e73df3a77f57d09d11010753ecc0fba0"
+      },
+      "inference_seconds": 0.032208499999796913,
+      "shared_ocr_sha256": "58856240108ae2dabbc6bcf3b005ab1775f4413469b81e21039947136f03a7ca",
+      "candidate_tables": 1,
+      "seconds": 0.11608940000041912,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-hybrid-multipage-p2",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "cc98728ea4f9629dbcf314433754a1d52339acbd934f3f49078168a529856cac",
+        "upstream.json": "7812a0df2bda85b0ad490db4e9cec9091bcc43508160506a39d0c05f347d0d5b"
+      },
+      "inference_seconds": 0.03048419999959151,
+      "shared_ocr_sha256": "db35fa55ba22bcd818ac0adc137e160155ce21d3ac3c0c7a2220964f824a3650",
+      "candidate_tables": 1,
+      "seconds": 0.11716200000046229,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-missing-values-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "d2621166a4a20235af36a97a556c9e5c287f65c52f809586d22fbc82101a5d9f",
+        "upstream.json": "467334feeb0c73dceb60b5198fe954383405b549ebdfa944f843b410d5205c68"
+      },
+      "inference_seconds": 0.22493680000025051,
+      "shared_ocr_sha256": "d0271df82b4a804b01321b5134ca44e982f394197d608e511a862d6c10b07275",
+      "candidate_tables": 1,
+      "seconds": 0.3224977999998373,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-empty-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "5a5f4d1dffc7b21b455e2e0a3f0e6a07ec85738656985bc53f595a1e40dbca7f",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.0041171000002577784,
+      "shared_ocr_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "candidate_tables": 0,
+      "seconds": 0.11459220000051573,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-china-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "b71773d436203015bd78322f34e234d9a1b54238dde904b607d5e8eccf0c2f48",
+        "upstream.json": "2e6411bf2093ee76b0b4433b26f28c21e7454d9854e7cb89f0674e8b0e9a2770"
+      },
+      "inference_seconds": 0.13129400000070746,
+      "shared_ocr_sha256": "bc16874d98025b7b7f580adfe6e4c9a0075d97291bb895cac25b021dbb2e9ad5",
+      "candidate_tables": 2,
+      "seconds": 0.2195797999993374,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "pilot-district-health-p1",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "840759a1ea5890b37a08ea97ceb19ffd3983577c96c3222e05e17d61c205b318",
+        "upstream.json": "a3ce54ff19c05e1635c96751995f1d6333d57b78aad912f89b6b3d7a8c254f9c"
+      },
+      "inference_seconds": 0.46118939999996655,
+      "shared_ocr_sha256": "417e610365045d290e29b761f2943247c4329ab7bb278ec1633d1f8da392c7f0",
+      "candidate_tables": 1,
+      "seconds": 0.5863215999997919,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "hk-budget-2025-p70",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "417b275f482d8cfa55f8a4c0f4b280ea493365ecddfc45363ecf459d4581d267",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.009315399999650253,
+      "shared_ocr_sha256": "ad99c65bf87ce3ef548a8540d87a3a2067071d1dc843f2f7d3b9a101e0e9fa19",
+      "candidate_tables": 0,
+      "seconds": 0.11709760000030656,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    },
+    {
+      "phase": "rapidtable",
+      "id": "hk-budget-2025-p85",
+      "status": "success",
+      "artifact_sha256": {
+        "geometry.json": "0a864fd19a79d6194585a0bf1ec2a65bfdffc36a35fbe9de7390c0af10d22291",
+        "upstream.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "inference_seconds": 0.005462699999952747,
+      "shared_ocr_sha256": "4ef790878e97f9c888c65939c4c5856c2321866e50a1b6344221ff922f0af96d",
+      "candidate_tables": 0,
+      "seconds": 0.1158251000006203,
+      "run_lock_sha256": "993cc1cce6917cd20a6a93d056e0ece8e2dee918dd04ef9e6f302a8d95fec2b9"
+    }
+  ],
+  "A": [
+    {
+      "provider": "paddle",
+      "algorithm": "local-v2",
+      "pages": 13,
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "adopted_cells": 1831,
+      "offered_cells_not_accuracy": 55,
+      "page_mapping_ms": {
+        "count": 12,
+        "median": 18.113199999788776,
+        "p95": 150.6601999999475,
+        "sum": 529.9558999977307
+      },
+      "system_rejection_stages": {
+        "table_identity": 708,
+        "local_correspondence": 659,
+        "text_anchor": 392,
+        "accepted": 55,
+        "geometry": 1,
+        "detection": 16
+      }
+    },
+    {
+      "provider": "rapidtable",
+      "algorithm": "local-v2",
+      "pages": 13,
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "adopted_cells": 1831,
+      "offered_cells_not_accuracy": 246,
+      "page_mapping_ms": {
+        "count": 12,
+        "median": 20.3449499999806,
+        "p95": 175.51199999979872,
+        "sum": 696.3192000011986
+      },
+      "system_rejection_stages": {
+        "text_anchor": 670,
+        "local_correspondence": 899,
+        "accepted": 246,
+        "detection": 16
+      }
+    },
+    {
+      "provider": "tableformer-raw",
+      "algorithm": "local-v2",
+      "pages": 13,
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "adopted_cells": 1831,
+      "offered_cells_not_accuracy": 882,
+      "page_mapping_ms": {
+        "count": 12,
+        "median": 32.1632000000136,
+        "p95": 213.62829999998212,
+        "sum": 838.1365000022925
+      },
+      "system_rejection_stages": {
+        "accepted": 882,
+        "local_correspondence": 440,
+        "text_anchor": 492,
+        "geometry": 1,
+        "detection": 16
+      }
+    },
+    {
+      "provider": "tableformer-raw",
+      "algorithm": "local-v3",
+      "pages": 13,
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "adopted_cells": 1831,
+      "offered_cells_not_accuracy": 877,
+      "page_mapping_ms": {
+        "count": 12,
+        "median": 46.11780000004728,
+        "p95": 248.33829999988666,
+        "sum": 1077.4749999982305
+      },
+      "system_rejection_stages": {
+        "accepted": 877,
+        "local_correspondence": 431,
+        "text_anchor": 436,
+        "inference": 69,
+        "geometry": 2,
+        "detection": 16
+      }
+    }
+  ],
+  "B": [
+    {
+      "pool": "native",
+      "provider": "paddle",
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "tables": 12,
+      "unassigned": 2162,
+      "reason_codes": {
+        "boxes_slots_out_of_sync": 5,
+        "incomplete_grid": 1
+      },
+      "maximum_table_ms": 56.90779999986262
+    },
+    {
+      "pool": "native",
+      "provider": "tableformer-raw",
+      "status": {
+        "success": 13
+      },
+      "tables": 12,
+      "unassigned": 613,
+      "reason_codes": {},
+      "maximum_table_ms": 31.91750000041793
+    },
+    {
+      "pool": "native",
+      "provider": "rapidtable",
+      "status": {
+        "success": 13
+      },
+      "tables": 12,
+      "unassigned": 1898,
+      "reason_codes": {
+        "incomplete_grid": 4
+      },
+      "maximum_table_ms": 46.38760000034381
+    },
+    {
+      "pool": "native",
+      "provider": "paddlevl",
+      "status": {
+        "unavailable": 13
+      },
+      "tables": 0,
+      "unassigned": 0,
+      "reason_codes": {},
+      "maximum_table_ms": 0
+    },
+    {
+      "pool": "ocr",
+      "provider": "paddle",
+      "status": {
+        "success": 12,
+        "failed": 1
+      },
+      "tables": 12,
+      "unassigned": 988,
+      "reason_codes": {
+        "boxes_slots_out_of_sync": 5,
+        "incomplete_grid": 1
+      },
+      "maximum_table_ms": 109.39589999998134
+    },
+    {
+      "pool": "ocr",
+      "provider": "tableformer-raw",
+      "status": {
+        "success": 13
+      },
+      "tables": 12,
+      "unassigned": 554,
+      "reason_codes": {},
+      "maximum_table_ms": 26.8130000004021
+    },
+    {
+      "pool": "ocr",
+      "provider": "rapidtable",
+      "status": {
+        "success": 13
+      },
+      "tables": 12,
+      "unassigned": 1246,
+      "reason_codes": {
+        "incomplete_grid": 4
+      },
+      "maximum_table_ms": 25.752300000021933
+    },
+    {
+      "pool": "ocr",
+      "provider": "paddlevl",
+      "status": {
+        "unavailable": 13
+      },
+      "tables": 0,
+      "unassigned": 0,
+      "reason_codes": {},
+      "maximum_table_ms": 0
+    }
+  ],
+  "C": [
+    {
+      "run": "public-workflow-01",
+      "status": {
+        "failed": 7,
+        "success": 6
+      },
+      "pdf_ready": 1,
+      "xlsx_readbacks": 1,
+      "wall_seconds_all_attempts": {
+        "count": 13,
+        "median": 39.12499050000042,
+        "p95": 104.0537847000005,
+        "sum": 540.8071808999994
+      },
+      "rows": [
+        {
+          "id": "pilot-budget-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 104.0537847000005
+        },
+        {
+          "id": "pilot-budget-2014-15-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 102.81533649999983
+        },
+        {
+          "id": "pilot-column-span-1-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 1,
+          "applicable": 1,
+          "accepted_kind": "native_table",
+          "cached_geometry_p95_ms": 33.45100000024104,
+          "xlsx_seconds": 0.2884367000006023,
+          "xlsx_readback": "passed",
+          "pdf_preflight": {
+            "ready": false,
+            "failures": [
+              {
+                "page_id": "603718e8de72433386ddc625f9b9088c",
+                "page_number": 1,
+                "reason": "定位或内容预检未通过",
+                "items": [
+                  {
+                    "target": {
+                      "kind": "cell",
+                      "table": 0,
+                      "row": 0,
+                      "column": 0
+                    },
+                    "text": "Sl. No.",
+                    "reason": "缺少可靠定位"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "f35765212a6f4ca1944e1ee275fdd4dc"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "cdf51c88b2604ed3b6ba89c89fdc89ad"
+                  }
+                ]
+              }
+            ],
+            "document_count": 0,
+            "page_count": 0
+          },
+          "pdf_seconds": 0.08977820000018255,
+          "status": "success",
+          "result_id": "ed467d513c664430afff41891c7793ca",
+          "page_class": "mixed",
+          "result_tables": 1,
+          "cache_reused": true,
+          "wall_seconds": 43.417273699999896
+        },
+        {
+          "id": "pilot-row-span-2-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 1,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 11.278100000708946,
+          "pdf_preflight": {
+            "ready": false,
+            "failures": [
+              {
+                "page_id": "9b5fc7f91a7847ffaef775f66e056810",
+                "page_number": 1,
+                "reason": "定位或内容预检未通过",
+                "items": [
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "2605a561c8aa40b093103bf2855e877b"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "80a49de754364ce489b277308759710c"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "65a3b266827f4ab0bf01795e4df51f09"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "e17a0415dc9f4d48bd406163ede7a780"
+                  }
+                ]
+              }
+            ],
+            "document_count": 0,
+            "page_count": 0
+          },
+          "pdf_seconds": 0.03296860000045854,
+          "status": "success",
+          "result_id": "9493a2ae7cb6406bb1f42127c585b9a5",
+          "page_class": "mixed",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 38.61675370000012
+        },
+        {
+          "id": "pilot-twotables-1-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 1,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 14.523800000461051,
+          "pdf_preflight": {
+            "ready": false,
+            "failures": [
+              {
+                "page_id": "f3ed92a0d8ea4381bfd787aa55f164f0",
+                "page_number": 1,
+                "reason": "定位或内容预检未通过",
+                "items": [
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "d2ff9751686d48dda2f588d0aba12c13"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "074760e3e12b4366a474d957ae6cba16"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "ef03064c518f472fac7460d377488565"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6268d46ac4a4434483bc66df249b868b"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "8cb432a9e25f48aeb213388ebd09d87a"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "c68f581fdd1840878045b4a9bc2463a6"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "20ef79f7a30f450789bfd7be6888c010"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "9fb7501ade3c4f838cab720c113a55ab"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "5d135f6e2a774e20a072a465981424a4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "0a53a8d93d524b3b8ffed2dcbc84cf0e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "4bd0ec6fd08d4e0994befa39e6d8234e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "e93bd4841a0345faa52ceea88e5d8a41"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "09875e9ebcff469e91d1decbacc48b45"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "f3f2f41332474ce0b222b70c2a8def5a"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "d3131cc919124978b10d87c21c2b6dfd"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "65d85866658e4291a450fb38e962b018"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "e4e6e72ad1704e5fae6472d1159d2ff6"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "a18fc763d0184de393eb6fc560a75453"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "c1db415e82dd42369072cc213b07730b"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "ccdf9182ee504cc38aca3b7b44f0b0ce"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "04c774b3fc884891bf88615d320f7fe4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "33f116748f4a429abd7923373764f671"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "10a1845c396844fea884c60000b63b81"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "ebbeb4249da04fa992c00b9c076b82f8"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "c5640a3de6d64704bd69ac3cb5d48b38"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "57ca8918c5c8407893e281ae03bc65d4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "7e93be81b7894ce3959488a2828f0c5d"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6508725081644a7eb7276b234e468ca4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "151febbc10e94d9c8362506a1f6be034"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "de8446741a7646b58e0c916f8a73fc96"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "d6b2d6e96c834aa6b08a8f9c2d1542f4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "855158d30c574224a946d43889af60f3"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6aede43d59ee434987dbe02c5adcbd09"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "010cee4d492241c78fe5693b5a35eb66"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "2d730cb184954d63a776ac158a8112a0"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "8b8a01e9819b42c0b5ca5082db9c885f"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "de9146ab34654250b4e0ae0193c423b8"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6058d1979eec4569a95e3caea35ae837"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "5c875a151b15452ca848c9e0baa6f6e8"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6fe327a0be4040c5ad3df59ab331c0a5"
+                  }
+                ]
+              }
+            ],
+            "document_count": 0,
+            "page_count": 0
+          },
+          "pdf_seconds": 0.03787390000070445,
+          "status": "success",
+          "result_id": "1cd6016b13424e6b91789d55e230905f",
+          "page_class": "mixed",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 39.12499050000042
+        },
+        {
+          "id": "pilot-hybrid-multipage-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 37.09959700000036
+        },
+        {
+          "id": "pilot-hybrid-multipage-p2",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 36.18849769999906
+        },
+        {
+          "id": "pilot-missing-values-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 1,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 13.269699999000295,
+          "pdf_preflight": {
+            "ready": false,
+            "failures": [
+              {
+                "page_id": "9e9773b8e3964f7eb8028bca730d2b47",
+                "page_number": 1,
+                "reason": "定位或内容预检未通过",
+                "items": [
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "cfbcaf480fe0460a9a0260608265b608"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "fb2a6fc1bd9c4aaf9baa146c374e0ec7"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "7458769cc02c47c0b176bb493fe6f88f"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "44fbf70884a242d58cb08a704c6f8383"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "88192e35b23d4e279f3cb753d979972d"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "fd1fbaa5a6b94b3c8ef70b30d9cd3f22"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "45e044de80134251a1008e7184a07014"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "8f6673ed474446b2b86947703cfde5b5"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "0401047111154e4ba81ee324e94eac0e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "a5cde33a0fc24fa49820673b2ec13243"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "1bc79f7246b6457ea224dbaf8a1cc2b4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "bc09b3e784b04e6ba315d5cfa421b6a6"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6d20b91f37c540088f11427bdab45336"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "084a7d56a22d4621af501f1fe00ed31e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "19100ee5a995405ca931b197a38f9503"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "5801b36bcd5b41e893c116a838e9be98"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "2fa8f4845ba64ccf994967f895be9ff6"
+                  }
+                ]
+              }
+            ],
+            "document_count": 0,
+            "page_count": 0
+          },
+          "pdf_seconds": 0.037660100000721286,
+          "status": "success",
+          "result_id": "20da812e1b15495397c8adfe7243362f",
+          "page_class": "mixed",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 45.99993420000101
+        },
+        {
+          "id": "pilot-empty-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 0,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 4.007100000308128,
+          "pdf_preflight": {
+            "ready": true,
+            "failures": [],
+            "document_count": 1,
+            "page_count": 1
+          },
+          "pdf_readback": "one_page_verified",
+          "pdf_seconds": 3.3504472999993595,
+          "status": "success",
+          "result_id": "9c193d8013084145a5dfa18c0f254fb5",
+          "page_class": "blank",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 5.960967199998777
+        },
+        {
+          "id": "pilot-china-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 40.42402960000072
+        },
+        {
+          "id": "pilot-district-health-p1",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 1,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 16.102700001283665,
+          "pdf_preflight": {
+            "ready": false,
+            "failures": [
+              {
+                "page_id": "5bb9cd0de2634f4f9a59f590481c6de7",
+                "page_number": 1,
+                "reason": "定位或内容预检未通过",
+                "items": [
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "84009eee1bee4c92a0b8a1ce89529dff"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "38c485d063a14116aba36f949c095737"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "fbdc923f7c2c4dbfa6dcf97b5503ac15"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "1aeecdd4f5ae4e23b3f042b122d3602b"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "766aef9e195e404cabbce081a949a5f3"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "198aef173ba348f387da1d16dd84eb79"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "8809bc1a7b0041f1859032d423fd4a88"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "fa3de99bb2dc48979963cdc5b5c5398a"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "2c81142b26ac4588a2948a83b0d4bbf7"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "16ba12fc00bd4dbebe3f4ec24146ff02"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "ac129d9ff3224b618723b6f238292d7b"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6494691ff95e4952860f067048067395"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "512efac42ca5412a9dcfc4537cbcea9e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "1f5a9f8bc5d44285bedf257863b467a8"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "b56a591bd0314bfe965b412a11843853"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "ed97e5022d714dc2a0eeee204d68f5dd"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "5e11932eccbc41f5b39753d66bbff847"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "00071375305c4648bc19a28859abb7ea"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "f80a6bc4ce96417fb9a8ac1b86580527"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "0b599ce8261f4e78be6260cac8913813"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "96e50b81e87541f280eee33e079c08db"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "f96596bce89a49b88ab04e1b7b1ade0c"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "dd9d1008ed894f65a2b995988caf3837"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "7e29eeef387e4b32973de0423632acf4"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "0d8cb9b275594e70a0005b21fc1aba07"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "31a6507a26154087916407df45c74f4e"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "e4390e33d4434839a4f68e1fd31de478"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "883c3e4ce4104119bda0b1fe390de944"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "d88e0229ad684b4f95dcafe0b55940ee"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "6831d9006b484a559489f760a539a92a"
+                  },
+                  {
+                    "reason": "原生与 OCR 内容重叠冲突尚未核对",
+                    "conflict_id": "81f9ba523ddb4d0eb031727cda590324"
+                  }
+                ]
+              }
+            ],
+            "document_count": 0,
+            "page_count": 0
+          },
+          "pdf_seconds": 0.04815550000057556,
+          "status": "success",
+          "result_id": "c2ccb3df97c24db6bcd9361e703e0a5b",
+          "page_class": "mixed",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 46.85884369999985
+        },
+        {
+          "id": "hk-budget-2025-p70",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "StopIteration()",
+          "wall_seconds": 0.24342579999938607
+        },
+        {
+          "id": "hk-budget-2025-p85",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "StopIteration()",
+          "wall_seconds": 0.003746599999431055
+        }
+      ]
+    },
+    {
+      "run": "public-workflow-02",
+      "status": {
+        "failed": 1,
+        "success": 1
+      },
+      "pdf_ready": 1,
+      "xlsx_readbacks": 0,
+      "wall_seconds_all_attempts": {
+        "count": 2,
+        "median": 26.59842540000045,
+        "p95": 33.80465910000021,
+        "sum": 53.1968508000009
+      },
+      "rows": [
+        {
+          "id": "hk-budget-2025-p70",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "status": "failed",
+          "error": "RuntimeError('部分区域失败或取消；重试只继续未完成区域')",
+          "wall_seconds": 19.392191700000694
+        },
+        {
+          "id": "hk-budget-2025-p85",
+          "scripted_review": true,
+          "human_review_time": "unmeasured",
+          "baseline_revision": 0,
+          "baseline_tables": 0,
+          "suggestions": 0,
+          "applicable": 0,
+          "cached_geometry_p95_ms": 8.453299999018782,
+          "pdf_preflight": {
+            "ready": true,
+            "failures": [],
+            "document_count": 1,
+            "page_count": 1
+          },
+          "pdf_readback": "one_page_verified",
+          "pdf_seconds": 1.5670887999986007,
+          "status": "success",
+          "result_id": "a3a53fe40ef045999b64f8cee0f0f849",
+          "page_class": "native",
+          "result_tables": 0,
+          "cache_reused": true,
+          "wall_seconds": 33.80465910000021
+        }
+      ]
+    }
+  ],
+  "export_followup": {
+    "version": "0.10.0rc1",
+    "installed_app": false,
+    "module_source": "C:\\Users\\A\\Desktop\\OCR\\src\\ocr_workbench\\structure_store.py",
+    "result_id": "ed467d513c664430afff41891c7793ca",
+    "revision": 6,
+    "tables": 1,
+    "xlsx_cells_read": 396,
+    "pdf_all_cell_text_found": true,
+    "pdf_attachments": [
+      "OCR-sources.json"
+    ],
+    "pdf_preflight": {
+      "ready": true,
+      "failures": [],
+      "document_count": 1,
+      "page_count": 1
+    },
+    "cached_geometry_p95_ms": 83.4285999990243,
+    "scripted_choices": [
+      {
+        "conflict_id": "f35765212a6f4ca1944e1ee275fdd4dc",
+        "removed_ocr": "Rate of Accidental Deaths & Suicides and Population Growth Durina 1967 to 2013",
+        "retained_native": [
+          "Rate",
+          "of",
+          "Accidental",
+          "Deaths",
+          "&",
+          "Suicides",
+          "and",
+          "Population",
+          "Growth",
+          "During",
+          "1967",
+          "to",
+          "2013"
+        ]
+      },
+      {
+        "conflict_id": "cdf51c88b2604ed3b6ba89c89fdc89ad",
+        "removed_ocr": "SI.",
+        "retained_native": [
+          "Sl."
+        ]
+      }
+    ],
+    "scripted_bindings": [
+      {
+        "target": {
+          "kind": "text",
+          "start": 1,
+          "end": 81
+        },
+        "polygon": [
+          [
+            233.25,
+            24.888799999999947
+          ],
+          [
+            1042.5119116666667,
+            24.888799999999947
+          ],
+          [
+            1042.5119116666667,
+            54.134720000000016
+          ],
+          [
+            233.25,
+            54.134720000000016
+          ]
+        ],
+        "source": "scripted explicit binding to native title units"
+      }
+    ],
+    "human_review_time": "unmeasured",
+    "quality_acceptance": false,
+    "source_revision": 6
+  },
+  "acceptance": {
+    "usable_table_gain": "unmeasured",
+    "correction_burden_reduction": "unmeasured",
+    "human_time_reduction": "unmeasured",
+    "merged_structure_gain": "unmeasured",
+    "suggestion_precision": "unmeasured",
+    "geometry_CANW": "unmeasured",
+    "independent_residual_errors": "unmeasured"
+  },
+  "timing_limit": "Development wall times include loading and shared-machine contention; no comparative human-efficiency or isolated-throughput claim"
+}

@@ -1,0 +1,7 @@
+{
+  "reason": "Performance import consumes its temporary input; the benchmark accidentally passed the frozen image path. Original image restored byte-for-byte from the imported source copy; benchmark corrected to copy input first.",
+  "sample_id": "PMC2447848_table_1",
+  "sha256": "626149bed1fa674151e63b264a518d83b7f1572cd7cef181121734a5419a31aa",
+  "restored_sha256": "626149bed1fa674151e63b264a518d83b7f1572cd7cef181121734a5419a31aa",
+  "model_outputs_unchanged": true
+}

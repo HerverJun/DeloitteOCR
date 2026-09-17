@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/docling-project/docling-ibm-models",
+  "revision": "d1569fdffee1d09cb3111d6d5490991cb59d59fd",
+  "license": "MIT",
+  "modifications": "Relative imports only; no inference/model package initialization. No matching postprocessor or index compression enabled.",
+  "files": [
+    {
+      "path": "tf_cell_matcher.py",
+      "upstream_sha256": "05409019c51a6a758d7e6f695c148c5e56fea13de17da6d48e788a31d15ad6f6",
+      "vendored_sha256": "e07969f390eb141487a0b9e6d23c2a24f5da48316fc95454f5201aa19ef9879b"
+    },
+    {
+      "path": "otsl.py",
+      "upstream_sha256": "41d381de2be7b162e42cce8813e73c682d8e67c255aaf62f7308be829f2fda69",
+      "vendored_sha256": "51d6cac594424aa69f48b5be861ef930849344a762611a4b7449eda283e6b3f6"
+    },
+    {
+      "path": "settings.py",
+      "upstream_sha256": "68aacd3855426e2ccc6804f51e797323dca9bfbef034fa8b49a243d81920004a",
+      "vendored_sha256": "68aacd3855426e2ccc6804f51e797323dca9bfbef034fa8b49a243d81920004a"
+    }
+  ]
+}

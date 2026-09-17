@@ -1,0 +1,47 @@
+{
+  "scope": "actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim",
+  "checks": [
+    {
+      "name": "page navigation saves current revision before changing image",
+      "passed": true
+    },
+    {
+      "name": "PDF preflight names missing text and an explicit page range exports successfully",
+      "passed": true
+    },
+    {
+      "name": "document search uses adopted saved content",
+      "passed": true
+    },
+    {
+      "name": "TIFF page opens lazily through CPU queue",
+      "passed": true
+    },
+    {
+      "name": "encrypted PDF unlock removes password field after success",
+      "passed": true
+    },
+    {
+      "name": "v2 text extent is labelled explicitly and does not claim a full-cell location",
+      "passed": true
+    },
+    {
+      "name": "quick review shows whole-table/local image and row/column/neighbour context",
+      "passed": true
+    },
+    {
+      "name": "image review locates the exact table editor cell in reverse",
+      "passed": true
+    },
+    {
+      "name": "geometry changes and reload preserve draft; successful review submits local timing",
+      "passed": true
+    },
+    {
+      "name": "cell focus locates image; manual drag binds geometry without enqueuing OCR",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser_closed": true
+}

@@ -1,0 +1,53 @@
+{
+  "rows": [
+    {
+      "id": "tool-public-nics-background-checks-2015-11",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11.pdf",
+      "source_pdf_sha256": "4f0ae6e017b0e97de211da8fd97316e55bd927af5740d6ce95e1b7b1539f9407",
+      "status": "success",
+      "page_count": 1
+    },
+    {
+      "id": "tool-public-nics-background-checks-2015-11-rotated",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11-rotated.pdf",
+      "source_pdf_sha256": "3820767f7b9c8a80d20916daa8664afee49421c4bc6d6efb70bb21ae5f9a7195",
+      "status": "success",
+      "page_count": 1
+    },
+    {
+      "id": "tool-public-warn-report-for-7-1-2015-to-03-25-2016",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/WARN-Report-for-7-1-2015-to-03-25-2016.pdf",
+      "source_pdf_sha256": "f52f80bd057313c8abec2e854c65c4d96658e72744c836e81d3048d8a5861046",
+      "status": "success",
+      "page_count": 16
+    },
+    {
+      "id": "tool-public-senate-expenditures",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/senate-expenditures.pdf",
+      "source_pdf_sha256": "16921f0fc9b2c6039b23b694e0317917118ad7dd2b3a95a88518b7e144df527c",
+      "status": "success",
+      "page_count": 1
+    },
+    {
+      "id": "tool-public-federal-register-2020-17221",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/federal-register-2020-17221.pdf",
+      "source_pdf_sha256": "ac419e4e084ea7a7a33a7be3f129dd07bc705b1a9e45ad751e33357f17d60f5c",
+      "status": "success",
+      "page_count": 15
+    },
+    {
+      "id": "tool-public-cupertino_usd_4-6-16",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/cupertino_usd_4-6-16.pdf",
+      "source_pdf_sha256": "944ab863d7c83521d6250cc8682d2c985a6ae82622de1d461bb80c21a654206a",
+      "status": "success",
+      "page_count": 1
+    },
+    {
+      "id": "tool-public-pdffill-demo",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/pdffill-demo.pdf",
+      "source_pdf_sha256": "2594a5364ea598047a7389b4f35a5e0908c973c7aa4bc6d8c5e8fb34baaba426",
+      "status": "success",
+      "page_count": 7
+    }
+  ]
+}

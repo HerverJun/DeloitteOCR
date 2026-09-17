@@ -1,0 +1,32 @@
+[
+  {
+    "file": "scribeocr__scribe.js__comparison.md",
+    "url": "https://raw.githubusercontent.com/scribeocr/scribe.js/6ff50c5d8f0d0434290c1a0736b73b7e74278bf5/docs/scribe_vs_tesseract.md",
+    "bytes": 5049
+  },
+  {
+    "file": "granite-docling-258M__README.md",
+    "url": "https://huggingface.co/ibm-granite/granite-docling-258M/raw/main/README.md",
+    "bytes": 21039
+  },
+  {
+    "file": "granite-docling-258M__api.json",
+    "url": "https://huggingface.co/api/models/ibm-granite/granite-docling-258M",
+    "bytes": 3919
+  },
+  {
+    "file": "PaddleOCR-VL__api.json",
+    "url": "https://huggingface.co/api/models/PaddlePaddle/PaddleOCR-VL",
+    "bytes": 5388
+  },
+  {
+    "file": "olmOCR-2-7B-1025__api.json",
+    "url": "https://huggingface.co/api/models/allenai/olmOCR-2-7B-1025",
+    "bytes": 5875
+  },
+  {
+    "file": "glmOCR__api.json",
+    "url": "https://huggingface.co/api/models/zai-org/GLM-OCR",
+    "bytes": 8944
+  }
+]

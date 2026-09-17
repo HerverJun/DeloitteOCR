@@ -37,6 +37,11 @@ def merge_page(native, ocr_results, version, doc, page, mode):
     conflicts, tables, provenance = [], [], []
     normalize = lambda value: ''.join(value.split())
     for result in ocr_results:
+        if result.get('content_status') == 'no_text_detected':
+            crop = result['region_crop_box']
+            conflicts.append({'id':uid(), 'reason':'region_no_text', 'native':[],
+                'ocr':{'text':'','polygon':box_polygon(crop),'source':result.get('engine')},
+                'task_id':result.get('region_task_id'),'state':'pending'})
         blocks = result.get('blocks', [])
         if not blocks and result.get('text', '').strip():
             blocks = [{'text': result['text'], 'polygon': None, 'kind': 'text', 'confidence': None}]
@@ -84,6 +89,9 @@ def merge_page(native, ocr_results, version, doc, page, mode):
             'document': {'id': doc['id'], 'page_id': page['id'], 'page_number': page['page_number'],
                          'source_sha256': doc['sha256'], 'mode': mode, 'page_class': native.get('page_class'),
                          'native_flagged': native.get('flagged', []), 'conflicts': conflicts,
+                         'table_structure': native.get('table_structure') if mode != 'ocr' else None,
+                         'table_structure_error': native.get('table_structure_error'),
+                         'table_tool': native.get('table_tool'),
                          'merge_provenance': provenance,
                          'sources': ['pdf-native'] if native_units else [],
                          'ocr_sources': [r.get('engine') for r in ocr_results]},
@@ -93,6 +101,9 @@ def merge_page(native, ocr_results, version, doc, page, mode):
 def publish_page(manager, stage, data):
     """One transaction publishes a complete page and completes its durable stage."""
     store = manager.store
+    from ocr_workbench.documents import DocumentCancelled
+    if manager.stopping.is_set():
+        raise DocumentCancelled()
     with store.transaction() as db:
         db.execute('BEGIN IMMEDIATE')
         current = db.execute('SELECT * FROM document_stages WHERE id=?', (stage['id'],)).fetchone()
@@ -110,10 +121,20 @@ def publish_page(manager, stage, data):
         db.execute('INSERT INTO edits VALUES(?,?,?,?)', (result_id, 0, history_encoded(edit), now()))
         db.execute('INSERT OR IGNORE INTO selections VALUES(?,?)', (image['id'], result_id))
         db.execute("UPDATE pages SET status=?,updated=? WHERE id=?",
-                   ('blank' if not data['text'] else 'processed', now(), page['id']))
+                   ('blank' if not data['text'] and not data['document']['conflicts'] else 'processed', now(), page['id']))
         db.execute("UPDATE document_stages SET status='succeeded',phase='完成',output=?,finished=? WHERE id=?",
                    (encoded({'result_id': result_id, 'image_id': image['id']}), now(), stage['id']))
         db.execute('UPDATE projects SET updated=? WHERE id=?', (now(), image['project_id']))
+        prediction = data['document'].get('table_structure')
+        if prediction and prediction.get('pdfplumber_tables'):
+            from ocr_workbench.table_tool import record
+            version = dict(db.execute('SELECT * FROM versions WHERE id=?', (data['project_image_version'],)).fetchone())
+            # Tool detections may overlap (nested grids, competing regions).
+            # Offer each upstream table independently, never select a winner by
+            # area, filename or observed quality on development materials.
+            record(db, result_id, version, prediction, data['blocks'])
+        if manager.stopping.is_set():
+            raise DocumentCancelled()
     if manager.gpu is not None and not manager.review_only and not data['tables'] and sum(b.get('source') == 'pdf-native' for b in data.get('blocks', [])) >= 4:
         from ocr_workbench.geometry import enqueue_geometry
         enqueue_geometry(store,result_id,0)
@@ -147,6 +168,16 @@ def process_stage(manager, stage, cancelled):
         if mode == 'native':
             raise ValueError('原生提取需要原页面版本；当前图像已经处理，请切回原页或选择 OCR')
         mode = 'ocr'
+    from ocr_workbench.table_tool import prepare
+    from ocr_workbench.documents import DocumentCancelled
+    prepare(manager, page, doc, version, native, mode, cancelled)
+    if cancelled():
+        raise DocumentCancelled()
+    auxiliary = {'mode': mode, 'table_structure': native.get('table_structure'),
+                 'table_structure_error': native.get('table_structure_error'), 'table_tool': native['table_tool']}
+    # Refresh this snapshot even when already completed OCR regions are resumed.
+    with store.transaction() as db:
+        db.execute("UPDATE document_stages SET output=? WHERE id=? AND status='running'", (encoded(auxiliary), stage['id']))
     prior = store.rows('SELECT t.status FROM tasks t JOIN page_ocr_inputs i ON i.task_id=t.id WHERE i.stage_id=?', (stage['id'],))
     if prior:
         with store.transaction() as db:
@@ -184,7 +215,8 @@ def process_stage(manager, stage, cancelled):
                 (task_id, doc['project_id'], image['id'], version['id'], engine, 'page-'+stage['id'], now(), package))
             db.execute('INSERT INTO page_ocr_inputs VALUES(?,?,?,?,NULL)', (task_id, stage['id'], region['id'], encoded(box)))
         db.execute("UPDATE document_stages SET version_id=?,status='waiting_gpu',phase='等待区域识别',output=? WHERE id=?",
-                   (version['id'], encoded({'mode': mode, 'regions': len(needed)}), stage['id']))
+                   (version['id'], encoded({'mode': mode, 'regions': len(needed),
+                    **auxiliary}), stage['id']))
     if manager.gpu:
         manager.gpu.wake.set()
 
@@ -193,6 +225,8 @@ def finalize_waiting_pages(manager):
     store = manager.store
     stages = store.rows("SELECT * FROM document_stages WHERE status='waiting_gpu' ORDER BY created LIMIT 50")
     for stage in stages:
+        if manager.stopping.is_set():
+            return
         inputs = store.rows('SELECT t.status,i.output FROM page_ocr_inputs i JOIN tasks t ON t.id=i.task_id WHERE i.stage_id=? ORDER BY t.created,t.id', (stage['id'],))
         states = {row['status'] for row in inputs}
         if not inputs or states & {'queued', 'running', 'paused', 'interrupted'}:
@@ -202,7 +236,15 @@ def finalize_waiting_pages(manager):
                 db.execute("UPDATE document_stages SET status='failed',phase='区域识别未完成',error='部分区域失败或取消；重试只继续未完成区域' WHERE id=? AND status='waiting_gpu'", (stage['id'],))
             continue
         page, doc, version, native = _context(manager, stage)
-        mode = json.loads(stage['output'])['mode']
+        output = json.loads(stage['output'])
+        mode = output['mode']
+        from ocr_workbench.table_tool import tool_identity
+        if mode != 'ocr' and doc['kind'] == 'pdf' and (output.get('table_tool') or {}).get('tool_key') != tool_identity()['key']:
+            with store.transaction() as db:
+                db.execute("UPDATE document_stages SET status='queued',phase='更新表格候选' WHERE id=? AND status='waiting_gpu'", (stage['id'],))
+            continue
+        for key in ('table_structure', 'table_structure_error', 'table_tool'):
+            native[key] = output.get(key)
         data = merge_page(native, [json.loads(row['output']) for row in inputs], version, doc, page, mode)
         publish_page(manager, stage, data)
 
@@ -210,6 +252,7 @@ def finalize_waiting_pages(manager):
 def complete_region_task(store, task, data):
     row = store.rows('SELECT * FROM page_ocr_inputs WHERE task_id=?', (task['id'],))[0]
     mapped = map_region_result(data, json.loads(row['crop_box']), task['version_id'])
+    mapped['region_task_id'] = task['id']
     with store.transaction() as db:
         db.execute('BEGIN IMMEDIATE')
         if db.execute("UPDATE tasks SET status='succeeded',phase='区域识别完成',finished=? WHERE id=? AND status='running'", (now(), task['id'])).rowcount != 1:

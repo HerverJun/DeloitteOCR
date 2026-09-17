@@ -1,0 +1,13 @@
+{
+  "passed": 7,
+  "checks": [
+    "Unicode workspace import preserves original bytes",
+    "Batch preprocessing persists one shared transformed version across engines",
+    "Save/reopen/conflict/undo/redo preserves immutable original and edited content",
+    "TXT/Markdown/JSON/XLSX exports preserve saved revisions, merges, identifiers and literal formulas",
+    "Confirmed-only export rejects stale review and removes the incomplete export",
+    "Editing after undo truncates redo without changing original",
+    "Path containment, orphan inventory and project cleanup preserve unrelated project"
+  ],
+  "scope": "synthetic data, isolated workspace, no GPU or browser"
+}

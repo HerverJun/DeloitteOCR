@@ -28,6 +28,45 @@ def serializable(value):
     return json.loads(json.dumps(value, default=json_safe))
 
 
+class GeometryContextSession:
+    """Shared page detection/OCR, loaded separately from candidate models."""
+    def __init__(self, models):
+        self.models = Path(models)
+        self.layout = None
+        self.loaded = 0
+
+    def predict(self, image_path, request):
+        import numpy as np
+        from PIL import Image
+        started = time.perf_counter()
+        regions = request.get('regions', [])
+        if not regions:
+            from paddlex import create_model
+            if self.layout is None:
+                self.layout = create_model('PP-DocLayoutV3', model_dir=str(self.models / 'PP-DocLayoutV3'), device='gpu:0')
+            with Image.open(image_path) as im:
+                pixels = np.ascontiguousarray(np.asarray(im.convert('RGB'))[:, :, ::-1])
+            layout = next(iter(self.layout(pixels)))
+            regions = [{'box': b['coordinate'], 'source': 'PP-DocLayoutV3'}
+                       for b in layout['boxes'] if b['label'] == 'table']
+        blocks, source = request.get('ocr_blocks', []), request.get('ocr_source')
+        if not blocks:
+            if request.get('allow_auxiliary_ocr') is False:
+                raise ValueError('冻结 OCR 输入没有文字框；禁止隐式补识别')
+            from ocr_workbench.worker import load_paddle, paddle_engine
+            ocr, seconds = load_paddle('ppocr', self.models)
+            _, blocks, _ = paddle_engine('ppocr', self.models, image_path, ocr, seconds)
+            del ocr
+            source = 'PP-OCRv6-auxiliary'
+        return {'status': 'success', 'component': 'shared-geometry-context', 'regions': regions,
+                'ocr_blocks': blocks, 'ocr_source': source, 'image_version': request.get('image_version'),
+                'contributes_to_votes': False, 'inference_seconds': time.perf_counter() - started}
+
+    def write(self, image, output, request):
+        from ocr_workbench.atomic_files import write_json
+        write_json(Path(output) / 'geometry.json', serializable(self.predict(image, request)), durable=True)
+
+
 class GeometrySession:
     def __init__(self, models):
         import paddle
@@ -70,6 +109,8 @@ class GeometrySession:
         blocks = [b for b in request.get('ocr_blocks', []) if b.get('polygon') and b.get('text', '').strip()]
         ocr_source = request.get('ocr_source', 'external')
         if not blocks:
+            if request.get('allow_auxiliary_ocr') is False:
+                raise ValueError('冻结 OCR 输入没有文字框；禁止隐式补识别')
             # This is only needed when this version has no PP-OCR/native word
             # evidence. It is recorded as auxiliary and is never counted as a vote.
             from ocr_workbench.worker import load_paddle, paddle_engine
@@ -118,10 +159,15 @@ class GeometrySession:
                     pixels[y0:y1, x0:x1], deepcopy(overall), box,
                     use_ocr_results_with_table_cells=False, flag_find_nei_text=False)
             evidence['final'] = serializable(dict(result))
+            from ocr_workbench.geometry_providers import paddle_lineage
+            evidence['lineage'] = paddle_lineage(evidence)
+            evidence['coordinate_contract'] = {'version': 2, 'raw_detector': 'crop-xyxy',
+                'raw_structure': 'crop-quad8', 'final': 'image-xyxy', 'interval_end': 'exclusive'}
             output.append(evidence)
         return {'status': 'success', 'component': 'paddle-table-v2', 'experimental': True,
                 'paddlex_version': '3.7.0', 'model_revisions': self.revisions,
                 'tables': output, 'ocr_source': ocr_source, 'contributes_to_votes': False,
+                'image_version': request.get('image_version'), 'contract_version': 2,
                 'ocr_blocks': blocks, 'load_seconds': self.loaded, 'inference_seconds': time.perf_counter()-started}
 
     def write(self, image, output, request):

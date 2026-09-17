@@ -1,0 +1,96 @@
+{
+  "passed": true,
+  "quick": true,
+  "checks": [
+    "packaged launcher starts embedded service in Chinese data path",
+    "health reports packaged application version",
+    "unauthenticated and cross-origin requests rejected",
+    "all real engine tasks succeeded",
+    "ppocr retains exact long identifier",
+    "ppocr resident session reused",
+    "ppocr truthful table capability",
+    "paddlevl retains exact long identifier",
+    "paddlevl resident session reused",
+    "paddlevl truthful table capability",
+    "glm retains exact long identifier",
+    "glm resident session reused",
+    "glm truthful table capability",
+    "hunyuan retains exact long identifier",
+    "hunyuan resident session reused",
+    "hunyuan truthful table capability",
+    "GPU tasks serialized",
+    "engine processes released after queue idle",
+    "graceful launcher/service exit and token cleanup"
+  ],
+  "engines": [
+    {
+      "engine": "ppocr",
+      "result_id": "22b9916510024fd487e9ebbbe2676cbc",
+      "elapsed_seconds": 0.7972466999999597,
+      "session": {
+        "id": "f0fe6f2a5e3648a8bd26d1cfc4fad919",
+        "load_seconds": 6.294626599999901,
+        "pid": 26084
+      }
+    },
+    {
+      "engine": "paddlevl",
+      "result_id": "923cde5a64af43f6b6ced4c6c35c4688",
+      "elapsed_seconds": 3.73197380000056,
+      "session": {
+        "id": "32146b9b58d24fd0ae194c476a5e4f57",
+        "load_seconds": 9.720037600003707,
+        "pid": 36440
+      }
+    },
+    {
+      "engine": "glm",
+      "result_id": "7754cc0b06cf4948ac2580c8777bfbdf",
+      "elapsed_seconds": 5.010180299999774,
+      "session": {
+        "id": "bf48a9bb529c44cda9b61168dcff06b9",
+        "load_seconds": 2.942430899995088,
+        "pid": 39316
+      }
+    },
+    {
+      "engine": "hunyuan",
+      "result_id": "f3d0f1f44d0c4d7080255dac7ca3d1e4",
+      "elapsed_seconds": 1.3051803999987897,
+      "session": {
+        "id": "909c7367dc7946d0b3509bcc21d65b0f",
+        "load_seconds": 3.018290400003025,
+        "pid": 30108
+      }
+    }
+  ],
+  "errors": [],
+  "health": {
+    "status": "ready",
+    "version": "0.11.0rc1",
+    "review_only": false,
+    "queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    },
+    "fusion_queue": {
+      "alive": true,
+      "healthy": true,
+      "state": "running",
+      "last_error": null,
+      "consecutive_failures": 0,
+      "retry_at": null,
+      "task_id": null,
+      "engine": null,
+      "loaded": false
+    }
+  },
+  "bundle_manifest_sha256": "a72a674eb5001f146bb9b349968d8749454afa27ae83ea6957a7a7324e1763d3"
+}

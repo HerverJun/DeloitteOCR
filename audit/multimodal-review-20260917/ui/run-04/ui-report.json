@@ -1,0 +1,55 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "name": "available/unavailable model readiness is explicit and prevents unsupported submissions",
+      "passed": true
+    },
+    {
+      "name": "text selection survives tab navigation; literal acceptance edits only the durable draft",
+      "passed": true
+    },
+    {
+      "name": "lost decision response replays the exact request ID/body without a duplicate revision",
+      "passed": true
+    },
+    {
+      "name": "cell review uses the selected table coordinate and preserves leading-zero strings",
+      "passed": true
+    },
+    {
+      "name": "page review supports sequential replace/keep/uncertain decisions without auto-confirming the page or creating OCR candidates",
+      "passed": true
+    },
+    {
+      "name": "editor undo invalidates old visual proposals and disables stale acceptance",
+      "passed": true
+    },
+    {
+      "name": "authenticated JSON, Markdown and XLSX downloads contain traceable review records",
+      "passed": true
+    }
+  ],
+  "errors": [
+    "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: '多模态二轮审校', exact: true }).getByRole('button', { name: '重试任务', exact: true })\u001b[22m\n\n    at C:\\Users\\A\\Desktop\\OCR\\scripts\\audit_multimodal_ui.mjs:144:67"
+  ],
+  "downloads": [
+    {
+      "format": "json",
+      "filename": "OCR-review-report.json",
+      "saved": "C:\\Users\\A\\Desktop\\OCR\\audit\\multimodal-review-20260917\\ui\\run-04\\report.json"
+    },
+    {
+      "format": "md",
+      "filename": "OCR-review-report.md",
+      "saved": "C:\\Users\\A\\Desktop\\OCR\\audit\\multimodal-review-20260917\\ui\\run-04\\report.md"
+    },
+    {
+      "format": "xlsx",
+      "filename": "OCR-review-report.xlsx",
+      "saved": "C:\\Users\\A\\Desktop\\OCR\\audit\\multimodal-review-20260917\\ui\\run-04\\report.xlsx"
+    }
+  ],
+  "scope": "Synthetic model catalog and deterministic inference; real API, storage, edits, history and exports. No model accuracy, speed, or GPU claim.",
+  "browser_closed": true
+}

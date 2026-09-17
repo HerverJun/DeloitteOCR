@@ -1,0 +1,11 @@
+test_extra_output_on_no_table_page_is_not_deliverable (test_structure_evaluation.EvaluationTests.test_extra_output_on_no_table_page_is_not_deliverable) ... ok
+test_failed_and_missing_pages_keep_all_target_cells (test_structure_evaluation.EvaluationTests.test_failed_and_missing_pages_keep_all_target_cells) ... ok
+test_official_metrics_crosscheck_identical_text_and_span_perturbations (test_structure_evaluation.EvaluationTests.test_official_metrics_crosscheck_identical_text_and_span_perturbations) ... ok
+test_paired_intervals_resample_groups_not_cells (test_structure_evaluation.EvaluationTests.test_paired_intervals_resample_groups_not_cells) ... ok
+test_suggestion_improvement_rejects_new_numeric_damage (test_structure_evaluation.EvaluationTests.test_suggestion_improvement_rejects_new_numeric_damage) ... ok
+test_unreviewed_or_text_extent_annotations_fail_closed (test_structure_evaluation.EvaluationTests.test_unreviewed_or_text_extent_annotations_fail_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.251s
+
+OK

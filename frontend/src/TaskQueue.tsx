@@ -85,7 +85,9 @@ export function TaskQueue({
                 ) : (
                   <span className="task-dot" />
                 )}
-                {statuses[t.status]}
+                {(t.kind === "multimodal" || t.engine === "reviewer") && ["queued", "running"].includes(t.status)
+                  ? t.status === "queued" ? "等待审校" : "审校中"
+                  : statuses[t.status]}
               </span>
               <span className="task-filename" title={t.error || undefined}>
                 {project.images.find((p) => p.id === t.image_id)?.name}
@@ -101,7 +103,13 @@ export function TaskQueue({
               </span>
               <span>{engineNames[t.engine]}</span>
               <div>
-                {t.result_id || t.result_version_id ? (
+                {t.kind === "multimodal" || t.engine === "reviewer" ? <>
+                  <Button size="small" onClick={() => onView(t)}>查看审校</Button>
+                  {t.status !== "succeeded" && <Button size="small" onClick={() => onAction(
+                    ["failed", "cancelled"].includes(t.status) ? "retry" : ["paused", "interrupted"].includes(t.status) ? "resume" : "cancel", t)}>
+                    {["failed", "cancelled"].includes(t.status) ? "重试" : ["paused", "interrupted"].includes(t.status) ? "继续" : "取消"}
+                  </Button>}
+                </> : t.result_id || t.result_version_id ? (
                   <Button size="small" onClick={() => onView(t)}>
                     {t.result_id ? "查看" : "查看图片"}
                   </Button>

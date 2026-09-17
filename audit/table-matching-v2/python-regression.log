@@ -1,0 +1,381 @@
+test_concurrent_readers_never_observe_partial_json (test_atomic_files.AtomicFileTests.test_concurrent_readers_never_observe_partial_json) ... ok
+test_transient_read_and_replace_sharing_violations (test_atomic_files.AtomicFileTests.test_transient_read_and_replace_sharing_violations) ... ok
+test_cancelled_preprocess_does_not_publish_version (test_batch_maintenance.BatchMaintenanceTests.test_cancelled_preprocess_does_not_publish_version) ... ok
+test_delete_isolated_project_and_edited_results (test_batch_maintenance.BatchMaintenanceTests.test_delete_isolated_project_and_edited_results) ... ok
+test_file_failure_restores_original_and_database (test_batch_maintenance.BatchMaintenanceTests.test_file_failure_restores_original_and_database) ... ok
+test_oom_message_does_not_claim_a_quality_fallback (test_batch_maintenance.BatchMaintenanceTests.test_oom_message_does_not_claim_a_quality_fallback) ... ok
+test_orphan_inventory_is_read_only_and_quarantine_rechecks_references (test_batch_maintenance.BatchMaintenanceTests.test_orphan_inventory_is_read_only_and_quarantine_rechecks_references) ... ok
+test_orphan_scan_waits_for_in_progress_queue_image_publication (test_batch_maintenance.BatchMaintenanceTests.test_orphan_scan_waits_for_in_progress_queue_image_publication) ... ok
+test_preset_persists_and_reuses_one_version_across_engines (test_batch_maintenance.BatchMaintenanceTests.test_preset_persists_and_reuses_one_version_across_engines) ... ok
+test_restart_completes_cleanup_after_database_commit (test_batch_maintenance.BatchMaintenanceTests.test_restart_completes_cleanup_after_database_commit) ... ok
+test_running_and_queued_project_cannot_delete (test_batch_maintenance.BatchMaintenanceTests.test_running_and_queued_project_cannot_delete) ... ok
+test_storage_explains_history_and_reports_runtime_low_space (test_batch_maintenance.BatchMaintenanceTests.test_storage_explains_history_and_reports_runtime_low_space) ... ok
+test_thumbnail_and_invalid_preset (test_batch_maintenance.BatchMaintenanceTests.test_thumbnail_and_invalid_preset) ... ok
+test_cer_insert_delete_substitute_and_unicode (test_benchmark_metrics.MetricTests.test_cer_insert_delete_substitute_and_unicode) ... ok
+test_numeric_fields_preserve_leading_zero_and_token_boundaries (test_benchmark_metrics.MetricTests.test_numeric_fields_preserve_leading_zero_and_token_boundaries) ... ok
+test_structure_includes_merges_and_empty_cells (test_benchmark_metrics.MetricTests.test_structure_includes_merges_and_empty_cells) ... ok
+test_auth_import_pages_process_search_and_export_snapshot (test_document_api.DocumentApiTests.test_auth_import_pages_process_search_and_export_snapshot) ... ok
+test_geometry_manual_revision_version_and_native_conflict_decisions (test_document_api.DocumentApiTests.test_geometry_manual_revision_version_and_native_conflict_decisions) ... ok
+test_cropbox_rotation_round_trip_and_viewport_corners (test_document_foundation.CoordinateTests.test_cropbox_rotation_round_trip_and_viewport_corners) ... ok
+test_geometry_identity_ignores_text_but_detects_topology (test_document_foundation.CoordinateTests.test_geometry_identity_ignores_text_but_detects_topology) ... ok
+test_invalid_nonfinite_and_nonlinear_transforms (test_document_foundation.CoordinateTests.test_invalid_nonfinite_and_nonlinear_transforms) ... ok
+test_nonlinear_version_does_not_reuse_pdf_mapping (test_document_foundation.DocumentFoundationTests.test_nonlinear_version_does_not_reuse_pdf_mapping) ... ok
+test_regions_bind_version_and_reject_cross_page_and_outside (test_document_foundation.DocumentFoundationTests.test_regions_bind_version_and_reject_cross_page_and_outside) ... ok
+test_schema8_migration_preserves_ids_paths_and_backs_up_before_write (test_document_foundation.DocumentFoundationTests.test_schema8_migration_preserves_ids_paths_and_backs_up_before_write) ... ok
+test_single_image_links_and_derived_versions_keep_identity (test_document_foundation.DocumentFoundationTests.test_single_image_links_and_derived_versions_keep_identity) ... ok
+test_stages_resume_without_repeating_success_and_late_commit_is_rejected (test_document_foundation.DocumentFoundationTests.test_stages_resume_without_repeating_success_and_late_commit_is_rejected) ... ok
+test_v9_failure_rolls_back_new_tables_and_rejects_future_schema (test_document_foundation.DocumentFoundationTests.test_v9_failure_rolls_back_new_tables_and_rejects_future_schema) ... ok
+test_duplicate_agreement_and_ambiguous_overlap_are_distinguished (test_document_processing.PageMergeTests.test_duplicate_agreement_and_ambiguous_overlap_are_distinguished) ... ok
+test_region_coordinates_map_without_modifying_input_or_fabricating_missing_boxes (test_document_processing.PageMergeTests.test_region_coordinates_map_without_modifying_input_or_fabricating_missing_boxes) ... ok
+test_chinese_two_column_text_and_damaged_unicode_are_distinguished (test_document_processing.PdfWorkflowTests.test_chinese_two_column_text_and_damaged_unicode_are_distinguished) ... ok
+test_encrypted_unlock_is_ephemeral_and_resume_keeps_completed_pages (test_document_processing.PdfWorkflowTests.test_encrypted_unlock_is_ephemeral_and_resume_keeps_completed_pages) ... ok
+test_lazy_thousand_page_import_materializes_no_images_and_pages_are_ordered (test_document_processing.PdfWorkflowTests.test_lazy_thousand_page_import_materializes_no_images_and_pages_are_ordered) ... ok
+test_mixed_page_keeps_native_page_number_and_region_ocr_maps_to_full_page (test_document_processing.PdfWorkflowTests.test_mixed_page_keeps_native_page_number_and_region_ocr_maps_to_full_page) ... ok
+test_native_page_auto_processing_retains_ids_and_does_not_enqueue_gpu (test_document_processing.PdfWorkflowTests.test_native_page_auto_processing_retains_ids_and_does_not_enqueue_gpu) ... ok
+test_old_invisible_ocr_is_flagged_and_blank_page_keeps_number (test_document_processing.PdfWorkflowTests.test_old_invisible_ocr_is_flagged_and_blank_page_keeps_number) ... ok
+test_rotated_cropboxes_native_geometry_matches_rendered_glyphs (test_document_processing.PdfWorkflowTests.test_rotated_cropboxes_native_geometry_matches_rendered_glyphs) ... ok
+test_tiff_is_lazy_and_corrupt_pdf_has_no_partial_document (test_document_processing.PdfWorkflowTests.test_tiff_is_lazy_and_corrupt_pdf_has_no_partial_document) ... ok
+test_clipboard_tsv_round_trip_retains_newlines_quotes_and_identifiers (test_editing.EditingTests.test_clipboard_tsv_round_trip_retains_newlines_quotes_and_identifiers) ... ok
+test_fenced_html_code_stays_literal_and_duplicate_tables_remain_distinct (test_editing.EditingTests.test_fenced_html_code_stays_literal_and_duplicate_tables_remain_distinct) ... ok
+test_html_replaced_without_stale_duplicate (test_editing.EditingTests.test_html_replaced_without_stale_duplicate) ... ok
+test_incomplete_manual_markup_retains_source_and_edited_cells (test_editing.EditingTests.test_incomplete_manual_markup_retains_source_and_edited_cells) ... ok
+test_malformed_manual_edits_raise_validation_errors (test_editing.EditingTests.test_malformed_manual_edits_raise_validation_errors) ... ok
+test_manual_tables_unbound_deletion_and_literal_pasted_values (test_editing.EditingTests.test_manual_tables_unbound_deletion_and_literal_pasted_values) ... ok
+test_markdown_table_replaced (test_editing.EditingTests.test_markdown_table_replaced) ... ok
+test_mismatched_legacy_tables_do_not_delete_or_replace_source (test_editing.EditingTests.test_mismatched_legacy_tables_do_not_delete_or_replace_source) ... ok
+test_mixed_html_markdown_document_order (test_editing.EditingTests.test_mixed_html_markdown_document_order) ... ok
+test_overlap_rejected_and_long_cells_remain_editable (test_editing.EditingTests.test_overlap_rejected_and_long_cells_remain_editable) ... ok
+test_partial_parse_replaces_usable_table_and_retains_failed_markup (test_editing.EditingTests.test_partial_parse_replaces_usable_table_and_retains_failed_markup) ... ok
+test_plain_pipe_text_remains_literal_in_exports (test_editing.EditingTests.test_plain_pipe_text_remains_literal_in_exports) ... ok
+test_plain_text_uses_edited_cells (test_editing.EditingTests.test_plain_text_uses_edited_cells) ... ok
+test_presentation_spans_use_utf16_and_the_same_saved_table_binding_as_export (test_editing.EditingTests.test_presentation_spans_use_utf16_and_the_same_saved_table_binding_as_export) ... ok
+test_real_mixed_parse_and_export_preserves_order_and_newlines (test_editing.EditingTests.test_real_mixed_parse_and_export_preserves_order_and_newlines) ... ok
+test_source_matching_survives_shift_and_preserves_unmatched_tables (test_editing.EditingTests.test_source_matching_survives_shift_and_preserves_unmatched_tables) ... ok
+test_unrepresented_table_is_appended (test_editing.EditingTests.test_unrepresented_table_is_appended) ... ok
+test_unusable_source_table_is_never_expanded_by_plain_text_presentation (test_editing.EditingTests.test_unusable_source_table_is_never_expanded_by_plain_text_presentation) ... ok
+test_activation_receipt_skips_repeated_hash_and_probe (test_engine_packages.EnginePackageTests.test_activation_receipt_skips_repeated_hash_and_probe) ... ok
+test_broken_zip_reports_recovery_and_cleans_staging (test_engine_packages.EnginePackageTests.test_broken_zip_reports_recovery_and_cleans_staging) ... ok
+test_failed_probe_keeps_current_and_staged_package (test_engine_packages.EnginePackageTests.test_failed_probe_keeps_current_and_staged_package) ... ok
+test_failed_real_inference_keeps_current (test_engine_packages.EnginePackageTests.test_failed_real_inference_keeps_current) ... ok
+test_failed_recheck_does_not_reuse_activation_receipt (test_engine_packages.EnginePackageTests.test_failed_recheck_does_not_reuse_activation_receipt) ... ok
+test_force_and_switch_recheck_previously_verified_package (test_engine_packages.EnginePackageTests.test_force_and_switch_recheck_previously_verified_package) ... ok
+test_manifest_change_rechecks_only_active_package (test_engine_packages.EnginePackageTests.test_manifest_change_rechecks_only_active_package) ... ok
+test_modified_staged_file_and_extra_code_rejected (test_engine_packages.EnginePackageTests.test_modified_staged_file_and_extra_code_rejected) ... ok
+test_nonportable_runtime_and_missing_weights_rejected (test_engine_packages.EnginePackageTests.test_nonportable_runtime_and_missing_weights_rejected) ... ok
+test_restart_retains_active_and_old_version (test_engine_packages.EnginePackageTests.test_restart_retains_active_and_old_version) ... ok
+test_stage_does_not_execute_and_activation_is_atomic (test_engine_packages.EnginePackageTests.test_stage_does_not_execute_and_activation_is_atomic) ... ok
+test_staged_junction_rejected_before_execution (test_engine_packages.EnginePackageTests.test_staged_junction_rejected_before_execution) ... ok
+test_unsafe_paths_and_extra_archive_members_rejected (test_engine_packages.EnginePackageTests.test_unsafe_paths_and_extra_archive_members_rejected) ... ok
+test_confirmed_export_captures_one_revision_snapshot_across_files (test_exporting.ExportSnapshotTests.test_confirmed_export_captures_one_revision_snapshot_across_files) ... ok
+test_excel_generation_uses_captured_values_and_provenance (test_exporting.ExportSnapshotTests.test_excel_generation_uses_captured_values_and_provenance) ... ok
+test_unconfirmed_stale_or_changed_version_is_rejected (test_exporting.ExportSnapshotTests.test_unconfirmed_stale_or_changed_version_is_rejected) ... ok
+test_aggregate_is_explicit_and_single_remains_workbook (test_exporting.ExportTests.test_aggregate_is_explicit_and_single_remains_workbook) ... ok
+test_default_separate_workbooks_preserve_tables_strings_and_merges (test_exporting.ExportTests.test_default_separate_workbooks_preserve_tables_strings_and_merges) ... ok
+test_excel_limit_does_not_block_text_json_or_markdown_export (test_exporting.ExportTests.test_excel_limit_does_not_block_text_json_or_markdown_export) ... ok
+test_failed_batch_leaves_no_partial_archive (test_exporting.ExportTests.test_failed_batch_leaves_no_partial_archive) ... ok
+test_missing_table_blocks_every_excel_mode_and_names_image (test_exporting.ExportTests.test_missing_table_blocks_every_excel_mode_and_names_image) ... ok
+test_same_unsafe_names_keep_distinct_literal_provenance (test_exporting.ExportTests.test_same_unsafe_names_keep_distinct_literal_provenance) ... ok
+test_tables_removed_after_preflight_still_abort_and_clean_up (test_exporting.ExportTests.test_tables_removed_after_preflight_still_abort_and_clean_up) ... ok
+test_text_json_and_markdown_use_saved_edits (test_exporting.ExportTests.test_text_json_and_markdown_use_saved_edits) ... ok
+test_cancellation_interrupts_cpu_fusion (test_fusion.FusionTests.test_cancellation_interrupts_cpu_fusion) ... ok
+test_canonical_edit_regenerates_text_offsets_and_hash_after_cell_edit (test_fusion.FusionTests.test_canonical_edit_regenerates_text_offsets_and_hash_after_cell_edit) ... ok
+test_distinct_long_body_anchors_match_a_table_but_never_imply_cell_alignment (test_fusion.FusionTests.test_distinct_long_body_anchors_match_a_table_but_never_imply_cell_alignment) ... ok
+test_duplicate_headers_and_same_shape_do_not_create_identity (test_fusion.FusionTests.test_duplicate_headers_and_same_shape_do_not_create_identity) ... ok
+test_failures_reduce_coverage_empty_strings_remain_valid_candidates (test_fusion.FusionTests.test_failures_reduce_coverage_empty_strings_remain_valid_candidates) ... ok
+test_fragment_evidence_and_reading_order_remain_explicit (test_fusion.FusionTests.test_fragment_evidence_and_reading_order_remain_explicit) ... ok
+test_incomplete_structure_uses_one_identity_matched_complete_skeleton (test_fusion.FusionTests.test_incomplete_structure_uses_one_identity_matched_complete_skeleton) ... ok
+test_location_uses_real_region_and_rejects_invalid_or_wrong_version_coordinates (test_fusion.FusionTests.test_location_uses_real_region_and_rejects_invalid_or_wrong_version_coordinates) ... ok
+test_missing_row_merge_conflict_and_shift_require_whole_table_review (test_fusion.FusionTests.test_missing_row_merge_conflict_and_shift_require_whole_table_review) ... ok
+test_missing_table_requires_explicit_placement_and_preserves_other_tables (test_fusion.FusionTests.test_missing_table_requires_explicit_placement_and_preserves_other_tables) ... ok
+test_numeric_protection_and_ties_keep_baseline (test_fusion.FusionTests.test_numeric_protection_and_ties_keep_baseline) ... ok
+test_ppocr_does_not_vote_on_structure_or_fabricate_cells (test_fusion.FusionTests.test_ppocr_does_not_vote_on_structure_or_fabricate_cells) ... ok
+test_real_text_regions_preserve_offsets_and_whole_numeric_candidates (test_fusion.FusionTests.test_real_text_regions_preserve_offsets_and_whole_numeric_candidates) ... ok
+test_rejects_unknown_batches_versions_fused_and_duplicate_votes (test_fusion.FusionTests.test_rejects_unknown_batches_versions_fused_and_duplicate_votes) ... ok
+test_reordered_or_unmatched_regions_never_write_across_regions (test_fusion.FusionTests.test_reordered_or_unmatched_regions_never_write_across_regions) ... ok
+test_reordered_tables_match_identity_and_keep_literal_complete_amounts (test_fusion.FusionTests.test_reordered_tables_match_identity_and_keep_literal_complete_amounts) ... ok
+test_repeated_region_text_and_duplicate_boxes_are_explicitly_ambiguous (test_fusion.FusionTests.test_repeated_region_text_and_duplicate_boxes_are_explicitly_ambiguous) ... ok
+test_sparse_baseline_preserves_raw_text_without_inventing_cells (test_fusion.FusionTests.test_sparse_baseline_preserves_raw_text_without_inventing_cells) ... ok
+test_text_lines_can_combine_original_candidates_without_inventing_text (test_fusion.FusionTests.test_text_lines_can_combine_original_candidates_without_inventing_text) ... ok
+test_unique_insertions_deletions_and_long_spans_are_never_silently_dropped (test_fusion.FusionTests.test_unique_insertions_deletions_and_long_spans_are_never_silently_dropped) ... ok
+test_whole_table_preserves_actual_location_source_without_inheriting_scores (test_fusion.FusionTests.test_whole_table_preserves_actual_location_source_without_inheriting_scores) ... ok
+test_corrected_and_introduced_errors_do_not_cancel_out_of_report (test_fusion_metrics.FusionMetricsTests.test_corrected_and_introduced_errors_do_not_cancel_out_of_report) ... ok
+test_counts_are_the_same_minimum_edit_distance (test_fusion_metrics.FusionMetricsTests.test_counts_are_the_same_minimum_edit_distance) ... ok
+test_all_exports_include_same_saved_fusion_evidence_and_literal_numbers (test_fusion_store.FusionStoreTests.test_all_exports_include_same_saved_fusion_evidence_and_literal_numbers) ... ok
+test_atomic_candidate_response_retry_and_confirmation_invalidation (test_fusion_store.FusionStoreTests.test_atomic_candidate_response_retry_and_confirmation_invalidation) ... ok
+test_cancelled_cpu_task_must_exit_before_project_deletion (test_fusion_store.FusionStoreTests.test_cancelled_cpu_task_must_exit_before_project_deletion) ... ok
+test_conflict_and_transaction_failure_do_not_finish_issue (test_fusion_store.FusionStoreTests.test_conflict_and_transaction_failure_do_not_finish_issue) ... ok
+test_cpu_routes_never_construct_an_adapter_and_fusion_stays_preview (test_fusion_store.FusionStoreTests.test_cpu_routes_never_construct_an_adapter_and_fusion_stays_preview) ... ok
+test_dependency_waits_for_all_terminal_and_records_failure (test_fusion_store.FusionStoreTests.test_dependency_waits_for_all_terminal_and_records_failure) ... ok
+test_mixed_handwriting_review_uses_saved_document_and_supports_legacy_targets (test_fusion_store.FusionStoreTests.test_mixed_handwriting_review_uses_saved_document_and_supports_legacy_targets) ... ok
+test_multiwindow_revision_conflict_preserves_the_second_pending_issue (test_fusion_store.FusionStoreTests.test_multiwindow_revision_conflict_preserves_the_second_pending_issue) ... ok
+test_preprocessed_dependencies_bind_success_and_cancellation_to_one_version (test_fusion_store.FusionStoreTests.test_preprocessed_dependencies_bind_success_and_cancellation_to_one_version) ... ok
+test_preview_cannot_submit_decision_and_pagination_is_bounded (test_fusion_store.FusionStoreTests.test_preview_cannot_submit_decision_and_pagination_is_bounded) ... ok
+test_project_cleanup_accounts_for_and_cascades_fusion_data (test_fusion_store.FusionStoreTests.test_project_cleanup_accounts_for_and_cascades_fusion_data) ... ok
+test_request_retry_does_not_create_extra_tasks_and_sources_are_frozen (test_fusion_store.FusionStoreTests.test_request_retry_does_not_create_extra_tasks_and_sources_are_frozen) ... ok
+test_unrelated_edit_preserves_decision_but_structure_and_undo_invalidate (test_fusion_store.FusionStoreTests.test_unrelated_edit_preserves_decision_but_structure_and_undo_invalidate) ... ok
+test_workspace_copy_preserves_frozen_sources_decisions_and_exports (test_fusion_store.FusionStoreTests.test_workspace_copy_preserves_frozen_sources_decisions_and_exports) ... ok
+test_ambiguous_multiple_tables_do_not_guess_even_a_region (test_geometry.GeometryMappingTests.test_ambiguous_multiple_tables_do_not_guess_even_a_region) ... ok
+test_direct_detection_unique_structure_and_text_give_cell_coordinates (test_geometry.GeometryMappingTests.test_direct_detection_unique_structure_and_text_give_cell_coordinates) ... ok
+test_malformed_model_structure_degrades_without_crashing (test_geometry.GeometryMappingTests.test_malformed_model_structure_degrades_without_crashing) ... ok
+test_same_cell_count_different_structure_and_repeated_values_are_ambiguous (test_geometry.GeometryMappingTests.test_same_cell_count_different_structure_and_repeated_values_are_ambiguous) ... ok
+test_unsupported_postprocessed_box_degrades_without_fake_precision (test_geometry.GeometryMappingTests.test_unsupported_postprocessed_box_degrades_without_fake_precision) ... ok
+test_algorithm_code_change_invalidates_correspondence_without_version_bump (test_geometry.GeometryStorageTests.test_algorithm_code_change_invalidates_correspondence_without_version_bump) ... ok
+test_cancelled_geometry_cannot_commit_late_evidence (test_geometry.GeometryStorageTests.test_cancelled_geometry_cannot_commit_late_evidence) ... ok
+test_candidate_cache_survives_text_edit_without_reusing_correspondence (test_geometry.GeometryStorageTests.test_candidate_cache_survives_text_edit_without_reusing_correspondence) ... ok
+test_geometry_cache_never_changes_text_revision_selection_or_original (test_geometry.GeometryStorageTests.test_geometry_cache_never_changes_text_revision_selection_or_original) ... ok
+test_late_text_revision_does_not_become_fresh_geometry (test_geometry.GeometryStorageTests.test_late_text_revision_does_not_become_fresh_geometry) ... ok
+test_manual_binding_is_explicit_and_revision_checked (test_geometry.GeometryStorageTests.test_manual_binding_is_explicit_and_revision_checked) ... ok
+test_native_structure_is_separate_preview_and_exports_native_words_once (test_geometry.GeometryStorageTests.test_native_structure_is_separate_preview_and_exports_native_words_once) ... ok
+test_policy_change_does_not_hit_mapping_cache (test_geometry.GeometryStorageTests.test_policy_change_does_not_hit_mapping_cache) ... ok
+test_text_cache_and_old_anchor_snapshot_are_distinct (test_geometry.GeometryStorageTests.test_text_cache_and_old_anchor_snapshot_are_distinct) ... ok
+test_text_edit_keeps_geometry_but_structure_edit_and_undo_expire_it (test_geometry.GeometryStorageTests.test_text_edit_keeps_geometry_but_structure_edit_and_undo_expire_it) ... ok
+test_all_failed_targets_stay_in_denominator (test_geometry_evaluation.EvaluationIntegrityTests.test_all_failed_targets_stay_in_denominator) ... ok
+test_changed_run_lock_cannot_reuse_old_success (test_geometry_evaluation.EvaluationIntegrityTests.test_changed_run_lock_cannot_reuse_old_success) ... ok
+test_oracle_requires_one_to_one_assignment (test_geometry_evaluation.EvaluationIntegrityTests.test_oracle_requires_one_to_one_assignment) ... ok
+test_real_result_identity_handles_inserted_row_without_geometry (test_geometry_evaluation.EvaluationIntegrityTests.test_real_result_identity_handles_inserted_row_without_geometry) ... ok
+test_real_result_symmetric_table_has_no_invented_reference_identity (test_geometry_evaluation.EvaluationIntegrityTests.test_real_result_symmetric_table_has_no_invented_reference_identity) ... ok
+test_tampered_output_and_unreceipted_success_are_rejected (test_geometry_evaluation.EvaluationIntegrityTests.test_tampered_output_and_unreceipted_success_are_rejected) ... ok
+test_text_range_mislabeled_as_cell_fails_independent_scoring (test_geometry_evaluation.EvaluationIntegrityTests.test_text_range_mislabeled_as_cell_fails_independent_scoring) ... ok
+test_ties_and_extra_cells_are_not_reported_as_success (test_geometry_evaluation.EvaluationIntegrityTests.test_ties_and_extra_cells_are_not_reported_as_success) ... ok
+test_background_dewarp_does_not_override_newer_user_version (test_imaging.ImagingTests.test_background_dewarp_does_not_override_newer_user_version) ... ok
+test_cancelled_dewarp_does_not_activate_a_late_version (test_imaging.ImagingTests.test_cancelled_dewarp_does_not_activate_a_late_version) ... ok
+test_exif_original_hash_and_immutable_processing_chain (test_imaging.ImagingTests.test_exif_original_hash_and_immutable_processing_chain) ... ok
+test_import_commit_failure_removes_published_files (test_imaging.ImagingTests.test_import_commit_failure_removes_published_files) ... ok
+test_import_disk_failure_cleans_stage_and_preserves_uploaded_source (test_imaging.ImagingTests.test_import_disk_failure_cleans_stage_and_preserves_uploaded_source) ... ok
+test_invalid_images_and_crops_leave_no_new_version (test_imaging.ImagingTests.test_invalid_images_and_crops_leave_no_new_version) ... Cannot decode imported image 坏图.png
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\imaging.py", line 187, in add_image
+    with Image.open(temporary) as source:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\OCR-document-workflow-20260913\bundle\runtimes\service\Lib\site-packages\PIL\Image.py", line 3579, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file 'C:\\Users\\A\\AppData\\Local\\Temp\\tmpidb9uflg\\坏图.png'
+ok
+test_transparency_flattens_white_and_perspective_preserves_colors (test_imaging.ImagingTests.test_transparency_flattens_white_and_perspective_preserves_colors) ... ok
+test_version_commit_failure_preserves_original_and_no_new_file (test_imaging.ImagingTests.test_version_commit_failure_preserves_original_and_no_new_file) ... ok
+test_external_network_blocked_loopback_allowed (test_offline.OfflineTests.test_external_network_blocked_loopback_allowed) ... ok
+test_duplicate_cell_ranges_do_not_create_duplicate_pdf_units (test_pdf_export.PdfContentTests.test_duplicate_cell_ranges_do_not_create_duplicate_pdf_units) ... ok
+test_new_unbound_text_is_listed_and_manual_binding_covers_it (test_pdf_export.PdfContentTests.test_new_unbound_text_is_listed_and_manual_binding_covers_it) ... ok
+test_partial_manual_binding_does_not_duplicate_native_visible_text (test_pdf_export.PdfContentTests.test_partial_manual_binding_does_not_duplicate_native_visible_text) ... ok
+test_removed_native_table_forces_rebuild_even_with_other_native_text (test_pdf_export.PdfContentTests.test_removed_native_table_forces_rebuild_even_with_other_native_text) ... ok
+test_v2_text_extent_cannot_bypass_cell_preflight (test_pdf_export.PdfContentTests.test_v2_text_extent_cannot_bypass_cell_preflight) ... ok
+test_whole_table_fallback_cannot_masquerade_as_cell_geometry (test_pdf_export.PdfContentTests.test_whole_table_fallback_cannot_masquerade_as_cell_geometry) ... ok
+test_changed_visible_native_text_rebuilds_and_removes_old_search_text (test_pdf_export.PdfExportRuntimeTests.test_changed_visible_native_text_rebuilds_and_removes_old_search_text) ... ok
+test_crop_rotations_overlay_readback_and_visible_pixels (test_pdf_export.PdfExportRuntimeTests.test_crop_rotations_overlay_readback_and_visible_pixels) ... ok
+test_encrypted_export_requires_ephemeral_password_and_missing_glyph_fails (test_pdf_export.PdfExportRuntimeTests.test_encrypted_export_requires_ephemeral_password_and_missing_glyph_fails) ... ok
+test_export_capture_does_not_follow_later_edits (test_pdf_export.PdfExportRuntimeTests.test_export_capture_does_not_follow_later_edits) ... ok
+test_multiple_documents_zip_has_independent_pdfs_and_source_manifests (test_pdf_export.PdfExportRuntimeTests.test_multiple_documents_zip_has_independent_pdfs_and_source_manifests) ... ok
+test_native_edit_rebuilds_only_page_and_chinese_is_searchable (test_pdf_export.PdfExportRuntimeTests.test_native_edit_rebuilds_only_page_and_chinese_is_searchable) ... ok
+test_native_export_preserves_render_and_long_identifiers_and_is_idempotent (test_pdf_export.PdfExportRuntimeTests.test_native_export_preserves_render_and_long_identifiers_and_is_idempotent) ... ok
+test_old_ocr_layer_is_removed_while_the_scan_pixels_stay_identical (test_pdf_export.PdfExportRuntimeTests.test_old_ocr_layer_is_removed_while_the_scan_pixels_stay_identical) ... ok
+test_partial_export_keeps_page_order_metadata_bookmarks_and_valid_links (test_pdf_export.PdfExportRuntimeTests.test_partial_export_keeps_page_order_metadata_bookmarks_and_valid_links) ... ok
+test_tiff_page_rebuild_keeps_selected_image_and_search_text (test_pdf_export.PdfExportRuntimeTests.test_tiff_page_rebuild_keeps_selected_image_and_search_text) ... ok
+test_user_unit_render_matches_metadata_and_export_highlight (test_pdf_export.PdfExportRuntimeTests.test_user_unit_render_matches_metadata_and_export_highlight) ... ok
+test_job_close_terminates_worker_and_descendant (test_processes.ProcessTests.test_job_close_terminates_worker_and_descendant) ... ok
+test_cancel_while_loading_cannot_publish_result (test_queue.QueueTests.test_cancel_while_loading_cannot_publish_result) ... ok
+test_claim_commit_then_error_interrupts_owned_task_without_reexecuting (test_queue.QueueTests.test_claim_commit_then_error_interrupts_owned_task_without_reexecuting) ... OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 211, in fail_after_commit
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+ok
+test_failure_status_write_error_is_reconciled_and_batch_can_continue (test_queue.QueueTests.test_failure_status_write_error_is_reconciled_and_batch_can_continue) ... OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 234, in step
+    self.adapter.load()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 50, in load
+    raise RuntimeError(failure)
+RuntimeError: simulated model error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 316, in step
+    db.execute(
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 257, in execute
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+ok
+test_package_checks_cannot_overlap_queue_gpu_owner (test_queue.QueueTests.test_package_checks_cannot_overlap_queue_gpu_owner) ... ok
+test_pause_resume_and_engine_switch_release_old_session (test_queue.QueueTests.test_pause_resume_and_engine_switch_release_old_session) ... ok
+test_persistent_claim_failure_suspends_until_explicit_recovery (test_queue.QueueTests.test_persistent_claim_failure_suspends_until_explicit_recovery) ... OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+ok
+test_simulated_oom_releases_engine_continues_batch_and_retries_same_engine (test_queue.QueueTests.test_simulated_oom_releases_engine_continues_batch_and_retries_same_engine) ... ok
+test_stop_interrupts_loading_and_recovery_pauses_queued (test_queue.QueueTests.test_stop_interrupts_loading_and_recovery_pauses_queued) ... ok
+test_transient_claim_failure_recovers_and_reports_last_error (test_queue.QueueTests.test_transient_claim_failure_recovers_and_reports_last_error) ... OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 180, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 168, in fail_once
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+ok
+test_unload_failure_retains_owner_and_does_not_duplicate_completed_result (test_queue.QueueTests.test_unload_failure_retains_owner_and_does_not_duplicate_completed_result) ... OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 118, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 182, in step
+    self.unload()
+  File "C:\Users/A/Desktop/OCR/src\ocr_workbench\task_queue.py", line 76, in unload
+    adapter.unload()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 231, in fail_once
+    raise OSError("temporary unload error")
+OSError: temporary unload error
+ok
+test_confirmed_export_route_delivers_checked_content_and_cleans_up (test_service_audit.ServiceAuditTests.test_confirmed_export_route_delivers_checked_content_and_cleans_up) ... ok
+test_health_reports_worker_failure_and_review_mode_readiness (test_service_audit.ServiceAuditTests.test_health_reports_worker_failure_and_review_mode_readiness) ... ok
+test_project_revision_shortcut_and_review_invalidation (test_service_audit.ServiceAuditTests.test_project_revision_shortcut_and_review_invalidation) ... ok
+test_project_snapshot_keeps_revision_review_and_names_in_one_database_view (test_service_audit.ServiceAuditTests.test_project_snapshot_keeps_revision_review_and_names_in_one_database_view) ... ok
+test_recovery_route_requests_recovery_and_restarts_only_dead_worker (test_service_audit.ServiceAuditTests.test_recovery_route_requests_recovery_and_restarts_only_dead_worker) ... ok
+test_review_mode_keeps_existing_result_edit_and_export_available (test_service_audit.ServiceAuditTests.test_review_mode_keeps_existing_result_edit_and_export_available) ... ok
+test_review_mode_rejects_recognition_and_activation_routes (test_service_audit.ServiceAuditTests.test_review_mode_rejects_recognition_and_activation_routes) ... ok
+test_corruption_prevents_dependency_code_execution_and_publishes_error (test_startup.StartupTests.test_corruption_prevents_dependency_code_execution_and_publishes_error) ... ok
+test_junction_rejected_without_hashing_target (test_startup.StartupTests.test_junction_rejected_without_hashing_target) ... ok
+test_manifest_traversal_and_case_duplicate_rejected (test_startup.StartupTests.test_manifest_traversal_and_case_duplicate_rejected) ... ok
+test_missing_changed_and_unlisted_files (test_startup.StartupTests.test_missing_changed_and_unlisted_files) ... ok
+test_missing_driver_has_actionable_error (test_startup.StartupTests.test_missing_driver_has_actionable_error) ... ok
+test_review_mode_allows_damaged_disabled_engine_files (test_startup.StartupTests.test_review_mode_allows_damaged_disabled_engine_files) ... ok
+test_review_mode_skips_gpu_and_engine_code_but_probes_service (test_startup.StartupTests.test_review_mode_skips_gpu_and_engine_code_but_probes_service) ... ok
+test_review_mode_still_rejects_corrupt_core_before_any_probe (test_startup.StartupTests.test_review_mode_still_rejects_corrupt_core_before_any_probe) ... ok
+test_transient_windows_reader_lock_does_not_abort_check (test_startup.StartupTests.test_transient_windows_reader_lock_does_not_abort_check) ... ok
+test_concurrent_startups_only_run_one_full_check (test_startup_cache.StartupCacheTests.test_concurrent_startups_only_run_one_full_check) ... ok
+test_core_receipt_cannot_enable_recognition_but_full_covers_core (test_startup_cache.StartupCacheTests.test_core_receipt_cannot_enable_recognition_but_full_covers_core) ... ok
+test_engine_failure_does_not_rehash_already_verified_base (test_startup_cache.StartupCacheTests.test_engine_failure_does_not_rehash_already_verified_base) ... ok
+test_first_run_notice_precedes_probes_and_persists_through_progress (test_startup_cache.StartupCacheTests.test_first_run_notice_precedes_probes_and_persists_through_progress) ... ok
+test_force_detects_damage_and_failure_does_not_leave_old_success (test_startup_cache.StartupCacheTests.test_force_detects_damage_and_failure_does_not_leave_old_success) ... ok
+test_forced_core_still_checks_core_files (test_startup_cache.StartupCacheTests.test_forced_core_still_checks_core_files) ... ok
+test_interrupted_check_invalidates_success_and_releases_lock (test_startup_cache.StartupCacheTests.test_interrupted_check_invalidates_success_and_releases_lock) ... ok
+test_lock_serializes_separate_processes (test_startup_cache.StartupCacheTests.test_lock_serializes_separate_processes) ... ok
+test_low_disk_does_not_invalidate_verified_files (test_startup_cache.StartupCacheTests.test_low_disk_does_not_invalidate_verified_files) ... ok
+test_manifest_change_during_check_cannot_be_saved (test_startup_cache.StartupCacheTests.test_manifest_change_during_check_cannot_be_saved) ... ok
+test_missing_malformed_incomplete_and_old_policy_receipts_fall_back (test_startup_cache.StartupCacheTests.test_missing_malformed_incomplete_and_old_policy_receipts_fall_back) ... ok
+test_missing_required_entry_invalidates_receipt (test_startup_cache.StartupCacheTests.test_missing_required_entry_invalidates_receipt) ... ok
+test_receipt_save_failure_warns_and_next_start_checks_again (test_startup_cache.StartupCacheTests.test_receipt_save_failure_warns_and_next_start_checks_again) ... ok
+test_repeat_and_other_project_do_not_scan_hash_payloads_or_probe (test_startup_cache.StartupCacheTests.test_repeat_and_other_project_do_not_scan_hash_payloads_or_probe) ... ok
+test_service_cli_preserves_explicit_full_and_development_skip (test_startup_cache.StartupCacheTests.test_service_cli_preserves_explicit_full_and_development_skip) ... ok
+test_unavailable_cache_checks_fully_without_blocking_startup (test_startup_cache.StartupCacheTests.test_unavailable_cache_checks_fully_without_blocking_startup) ... ok
+test_upgrade_and_relocation_require_full_verification (test_startup_cache.StartupCacheTests.test_upgrade_and_relocation_require_full_verification) ... ok
+test_batch_groups_by_engine_and_duplicate_complete_is_idempotent (test_store.StoreTests.test_batch_groups_by_engine_and_duplicate_complete_is_idempotent) ... ok
+test_cancelled_task_cannot_commit_late_result (test_store.StoreTests.test_cancelled_task_cannot_commit_late_result) ... ok
+test_compressed_long_history_can_undo_and_redo_every_edit_after_restart (test_store.StoreTests.test_compressed_long_history_can_undo_and_redo_every_edit_after_restart) ... ok
+test_conflict_and_branching_undo_history (test_store.StoreTests.test_conflict_and_branching_undo_history) ... ok
+test_cross_project_version_and_bad_table_rejected_atomically (test_store.StoreTests.test_cross_project_version_and_bad_table_rejected_atomically) ... ok
+test_disk_full_rollback_has_actionable_save_error (test_store.StoreTests.test_disk_full_rollback_has_actionable_save_error) ... ok
+test_edit_history_persists_and_never_changes_original (test_store.StoreTests.test_edit_history_persists_and_never_changes_original) ... ok
+test_failed_migration_rolls_back_schema_and_version (test_store.StoreTests.test_failed_migration_rolls_back_schema_and_version) ... ok
+test_future_database_rejected_without_modifying_any_bytes (test_store.StoreTests.test_future_database_rejected_without_modifying_any_bytes) ... ok
+test_project_revision_tracks_external_writes_with_query_indexes (test_store.StoreTests.test_project_revision_tracks_external_writes_with_query_indexes) ... ok
+test_recovery_requires_resume_and_preserves_success (test_store.StoreTests.test_recovery_requires_resume_and_preserves_success) ... ok
+test_review_is_bound_to_adopted_result_revision_and_image_version (test_store.StoreTests.test_review_is_bound_to_adopted_result_revision_and_image_version) ... ok
+test_v4_migration_keeps_consistent_backup_and_all_history (test_store.StoreTests.test_v4_migration_keeps_consistent_backup_and_all_history) ... ok
+test_bad_merged_header_preserves_body (test_table_matching.LocalMatchingTests.test_bad_merged_header_preserves_body) ... ok
+test_broken_other_table_does_not_discard_valid_region (test_table_matching.LocalMatchingTests.test_broken_other_table_does_not_discard_valid_region) ... ok
+test_empty_cell_uses_real_candidate_and_two_anchors (test_table_matching.LocalMatchingTests.test_empty_cell_uses_real_candidate_and_two_anchors) ... ok
+test_extra_header_and_missing_row_do_not_shift_independent_body (test_table_matching.LocalMatchingTests.test_extra_header_and_missing_row_do_not_shift_independent_body) ... ok
+test_line_crossing_two_cells_is_not_split (test_table_matching.LocalMatchingTests.test_line_crossing_two_cells_is_not_split) ... ok
+test_many_to_one_never_copies_parent_box_to_children (test_table_matching.LocalMatchingTests.test_many_to_one_never_copies_parent_box_to_children) ... ok
+test_normalization_does_not_change_numeric_identity (test_table_matching.LocalMatchingTests.test_normalization_does_not_change_numeric_identity) ... ok
+test_one_to_many_requires_contiguous_real_member_geometry (test_table_matching.LocalMatchingTests.test_one_to_many_requires_contiguous_real_member_geometry) ... ok
+test_polygon_iou_does_not_use_bounding_rectangles (test_table_matching.LocalMatchingTests.test_polygon_iou_does_not_use_bounding_rectangles) ... ok
+test_rapid_span_mismatch_is_explicit_not_compressed (test_table_matching.LocalMatchingTests.test_rapid_span_mismatch_is_explicit_not_compressed) ... ok
+test_repeated_amounts_need_two_axis_anchors (test_table_matching.LocalMatchingTests.test_repeated_amounts_need_two_axis_anchors) ... ok
+test_short_word_in_large_cell_uses_token_containment (test_table_matching.LocalMatchingTests.test_short_word_in_large_cell_uses_token_containment) ... ok
+test_similar_tables_are_ambiguous_and_order_independent (test_table_matching.LocalMatchingTests.test_similar_tables_are_ambiguous_and_order_independent) ... ok
+test_text_extent_cannot_claim_full_cell_export_capability (test_table_matching.LocalMatchingTests.test_text_extent_cannot_claim_full_cell_export_capability) ... ok
+test_version_mismatch_and_budget_failure_keep_all_targets (test_table_matching.LocalMatchingTests.test_version_mismatch_and_budget_failure_keep_all_targets) ... ok
+test_caption_preserved_without_inventing_a_span (test_tables.TableTests.test_caption_preserved_without_inventing_a_span) ... ok
+test_indentation_inside_html_table_does_not_become_markdown_code (test_tables.TableTests.test_indentation_inside_html_table_does_not_become_markdown_code) ... ok
+test_markdown_requires_matching_columns_and_keeps_code_pipes_in_cells (test_tables.TableTests.test_markdown_requires_matching_columns_and_keeps_code_pipes_in_cells) ... ok
+test_multiple_tables_and_markdown (test_tables.TableTests.test_multiple_tables_and_markdown) ... ok
+test_plain_pipes_escapes_and_code_are_not_tables (test_tables.TableTests.test_plain_pipes_escapes_and_code_are_not_tables) ... ok
+test_recovery_keeps_completed_tables_and_reports_bad_source (test_tables.TableTests.test_recovery_keeps_completed_tables_and_reports_bad_source) ... ok
+test_spans_empty_cells_and_exact_excel_strings (test_tables.TableTests.test_spans_empty_cells_and_exact_excel_strings) ... ok
+test_truncated_invalid_or_overlapping_table_fails (test_tables.TableTests.test_truncated_invalid_or_overlapping_table_fails) ... ok
+test_version_and_dependency_repaired_for_lf_and_crlf (test_wheel_patch.WheelPatchTests.test_version_and_dependency_repaired_for_lf_and_crlf) ... ok
+test_exception_still_removes_alias_and_preserves_model (test_windows_paths.PathTests.test_exception_still_removes_alias_and_preserves_model) ... ok
+test_unicode_model_alias_reads_real_bytes_and_cleans_only_link (test_windows_paths.PathTests.test_unicode_model_alias_reads_real_bytes_and_cleans_only_link) ... ok
+test_excel_limit_keeps_full_editable_table_and_success_result (test_worker_results.WorkerResultTests.test_excel_limit_keeps_full_editable_table_and_success_result) ... ok
+test_optional_excel_write_failure_does_not_fail_recognition (test_worker_results.WorkerResultTests.test_optional_excel_write_failure_does_not_fail_recognition) ... ok
+test_truncated_table_publishes_text_raw_and_warning (test_worker_results.WorkerResultTests.test_truncated_table_publishes_text_raw_and_warning) ... ok
+test_valid_table_publishes_workbook_without_warnings (test_worker_results.WorkerResultTests.test_valid_table_publishes_workbook_without_warnings) ... ok
+
+----------------------------------------------------------------------
+Ran 252 tests in 96.450s
+
+OK

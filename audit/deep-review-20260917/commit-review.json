@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "review_date": "2026-09-17",
+  "base_commit": "42188b8123904555fea5d82a7f25f1e81a4257dc",
+  "staged_files_before_this_receipt": 568,
+  "byte_preserved_staged_files": 408,
+  "vendor_checkout_hashes_match": true,
+  "grits_pinned_files": 2,
+  "tableformer_pinned_files": 3,
+  "python_syntax_checked": 123,
+  "release_lock_schema_uses_current_constant": 11,
+  "runtime_databases_sessions_weights_excluded": true,
+  "embedded_image_requests_excluded": true,
+  "staged_whitespace_check_passed": true,
+  "product_tests_reused": "383 backend (382 passed, 1 skipped), 39 frontend, build and 29 normal browser checks; product business files unchanged since audit",
+  "known_unfixed_findings": {
+    "P1": 1,
+    "P2": 7
+  },
+  "deployment_or_remote_push": false
+}

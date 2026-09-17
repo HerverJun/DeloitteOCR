@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "summary_of": {
+    "path": "audit/public-quality-20260916/existing-review.json",
+    "sha256": "f63fae5b2d229f18fe5ec121c2b6e272fe484d133a45fb46090a162504c19f7e",
+    "bytes": 12159
+  },
+  "derived_from": [
+    {
+      "path": "audit/public-quality-20260916/existing-product.json",
+      "sha256": "9c0936cb617e01dfc9e27b27d4b2774f8c52189def270b4fbff0f01065e58218",
+      "bytes": 9581
+    },
+    {
+      "path": "build/structure-workflow-20260916/public-pdfs-02/download-summary.json",
+      "sha256": "58810ac0736f469dfe224ef2bcafac85140ee32c6f3c40b9507cbb85f453f0a4",
+      "bytes": 7395
+    }
+  ],
+  "scope": "Public development workflow evidence; excludes source transcription and is not independent quality acceptance.",
+  "omitted": [
+    "cell text",
+    "source document bodies",
+    "per-cell span coordinates; merged span counts retained"
+  ],
+  "quality_acceptance": false,
+  "human_efficiency": "unmeasured",
+  "source_unchanged": true,
+  "counts": {
+    "pages": 13,
+    "status": {
+      "checked": 13
+    },
+    "pages_with_applicable_tool_proposals": 5,
+    "applicable_tool_proposals": 34,
+    "xlsx_literal_cells": 612,
+    "undo_redo_passed": 5,
+    "conflicts_preserved": 76,
+    "product_cache_reused_pages": 13
+  },
+  "rows": [
+    {
+      "id": "pilot-budget-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/budget.pdf",
+        "pdf_sha256": "61f82b26cb0a95dee9c029f498013b311f3ede3bf007cb09e6dc2a5555aa3b1e",
+        "image_sha256": "b8b74a03302fc6ca5cdf92daa55b899597d8a2c54a5ea59200f4495b6550bfa7"
+      },
+      "product_observation_seconds": 40.14099999999962
+    },
+    {
+      "id": "pilot-budget-2014-15-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/budget_2014-15.pdf",
+        "pdf_sha256": "61f82b26cb0a95dee9c029f498013b311f3ede3bf007cb09e6dc2a5555aa3b1e",
+        "image_sha256": "b8b74a03302fc6ca5cdf92daa55b899597d8a2c54a5ea59200f4495b6550bfa7"
+      },
+      "product_observation_seconds": 39.34300000000076
+    },
+    {
+      "id": "pilot-column-span-1-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 1,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 395,
+      "undo_redo": "passed",
+      "conflicts_preserved": 2,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/column_span_1.pdf",
+        "pdf_sha256": "b43c8722ddc0e9aee33b09d9b6d8da583270cd4fa22bec168c4c485adc594e8d",
+        "image_sha256": "e0d4fb1413447374a1271b5dc1f6483756b310aa30aaa6e5eab808e6bfb23023"
+      },
+      "tables": [
+        {
+          "rows": 51,
+          "columns": 8,
+          "cells": 395,
+          "merged_span_count": 7
+        }
+      ],
+      "product_observation_seconds": 36.59399999999914
+    },
+    {
+      "id": "pilot-row-span-2-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 16,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 66,
+      "undo_redo": "passed",
+      "conflicts_preserved": 4,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/row_span_2.pdf",
+        "pdf_sha256": "6845bf6cca560534204cc58e1462d7b68987330fae79593df024f75c0103cfec",
+        "image_sha256": "7f1b0c950c2a132cc3a063be034402b01e746c6ee2186d9656a5a679b9f1d2e3"
+      },
+      "tables": [
+        {
+          "rows": 7,
+          "columns": 10,
+          "cells": 66,
+          "merged_span_count": 2
+        }
+      ],
+      "product_observation_seconds": 35.15600000000086
+    },
+    {
+      "id": "pilot-twotables-1-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 15,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 27,
+      "undo_redo": "passed",
+      "conflicts_preserved": 40,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/twotables_1.pdf",
+        "pdf_sha256": "971692a90eb13fd852824cfb3fbfe44eae0987017a6ff7dc79366a46fd867601",
+        "image_sha256": "5bebffacf2e33b56645814e99900be97af27aa001c43367dfabad641e098875a"
+      },
+      "tables": [
+        {
+          "rows": 3,
+          "columns": 10,
+          "cells": 27,
+          "merged_span_count": 3
+        }
+      ],
+      "product_observation_seconds": 36.20399999999972
+    },
+    {
+      "id": "pilot-hybrid-multipage-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/hybrid_multipage.pdf",
+        "pdf_sha256": "19b15e3e1baa3ffe8875cdca198f098075395ce560ff855eed2d7bc7284c658c",
+        "image_sha256": "0e0a4485aa5e9c7d082d1bc16146a315d92366792925c05013a3321ec94e291c"
+      },
+      "product_observation_seconds": 30.563000000000102
+    },
+    {
+      "id": "pilot-hybrid-multipage-p2",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/hybrid_multipage.pdf",
+        "pdf_sha256": "19b15e3e1baa3ffe8875cdca198f098075395ce560ff855eed2d7bc7284c658c",
+        "image_sha256": "04a4ba04714c2493b19b8eda5b62cb0b0b2b3548c63d525137b9b9853a7394c3"
+      },
+      "product_observation_seconds": 30.48400000000038
+    },
+    {
+      "id": "pilot-missing-values-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 1,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 106,
+      "undo_redo": "passed",
+      "conflicts_preserved": 17,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/missing_values.pdf",
+        "pdf_sha256": "e7bc3e24b4aa859ca9aab91aa67fbabdf682719ac2ef4447e7317ba7aac1d009",
+        "image_sha256": "cdbcb1567d8b3f7bac2c777aa7e43b17531222159436cfeaea7a01b13952d8f3"
+      },
+      "tables": [
+        {
+          "rows": 42,
+          "columns": 5,
+          "cells": 106,
+          "merged_span_count": 9
+        }
+      ],
+      "product_observation_seconds": 42.14099999999962
+    },
+    {
+      "id": "pilot-empty-p1",
+      "source_status": "processed",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/empty.pdf",
+        "pdf_sha256": "c4baea244855cbc08644775c889a15611e83167fcc7d7f3619aea24bcfe12d8f",
+        "image_sha256": "c4126ee53e3f98b852c95e460618b505988938a5afdbfe71266547eedff5e6f9"
+      },
+      "product_observation_seconds": 1.3430000000007567
+    },
+    {
+      "id": "pilot-china-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 1,
+      "scripted_provider": "pdfplumber/pdfplumber:0",
+      "xlsx_literal_cells": 18,
+      "undo_redo": "passed",
+      "conflicts_preserved": 13,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/tabula/china.pdf",
+        "pdf_sha256": "ed8cf637429ea739958f057bd4431bc9578f1839ea6795259718c62d96974524",
+        "image_sha256": "61e548139927eb035fac8bc9ca49780110efcabbf06755fc9004b095b0c05283"
+      },
+      "tables": [
+        {
+          "rows": 9,
+          "columns": 2,
+          "cells": 18,
+          "merged_span_count": 0
+        }
+      ],
+      "product_observation_seconds": 38.8130000000001
+    },
+    {
+      "id": "pilot-district-health-p1",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://raw.githubusercontent.com/camelot-dev/camelot/9a607c0d560369aa55a792533c516d61b74d8807/tests/files/district_health.pdf",
+        "pdf_sha256": "1a081f75a1f9346f0c304dacaeaaa43bb266987346254058f4e6668baee24da3",
+        "image_sha256": "4ea8d2ac7f5998552e5e124467ea2f18c9bf7c04c42c7fd86a6be68d0a56a701"
+      },
+      "product_observation_seconds": 42.07799999999952
+    },
+    {
+      "id": "hk-budget-2025-p70",
+      "source_status": "processed_with_review",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://www.budget.gov.hk/2025/chi/pdf/c_budget_speech_2025-26.pdf",
+        "pdf_sha256": "d8e58143064158bce173acc56ce661f255679a8b575ec7693b0ad53588822eb7",
+        "image_sha256": "b159e6e4cb50b14fa687f1e92196b07ce9aa6051212940e66d4f32890a081f30"
+      },
+      "product_observation_seconds": 29.40600000000086
+    },
+    {
+      "id": "hk-budget-2025-p85",
+      "source_status": "processed",
+      "status": "checked",
+      "applicable_tool_proposals": 0,
+      "source": {
+        "url": "https://www.budget.gov.hk/2025/chi/pdf/c_budget_speech_2025-26.pdf",
+        "pdf_sha256": "d8e58143064158bce173acc56ce661f255679a8b575ec7693b0ad53588822eb7",
+        "image_sha256": "bd4469c0bdc2248dbb2a5a21b81830e7f9e996eae75565b8669941ac6a3fe31e"
+      },
+      "product_observation_seconds": 18.561999999999898
+    }
+  ]
+}

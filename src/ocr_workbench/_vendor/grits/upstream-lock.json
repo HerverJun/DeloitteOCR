@@ -1,0 +1,9 @@
+{
+  "repository": "microsoft/table-transformer",
+  "commit": "ef21069f2a42254bbd049609f7d4bebc25abcf09",
+  "files": {
+    "grits.py": "75c13031657252c251f5d0b483aca2601e229a06d46e60d0aa3c739418f543d7",
+    "LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "modifications": []
+}

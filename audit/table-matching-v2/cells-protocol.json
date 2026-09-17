@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "seed": "table-cell-matching-v2-20260913",
+  "counts": {
+    "development": 80,
+    "validation": 60,
+    "test": 120
+  },
+  "minimum_cells_per_table": 50,
+  "maximum_cells_per_table": 250,
+  "one_table_per_document": true,
+  "historical_manifest_sha256": "bcdb67c8be7d4db380cd88c221e0f4c28f7b33c1b9438b8f89b3d154537edb6f",
+  "selection": "first 320 qualified canonical documents in pinned archive order, sorted by seeded hash; near-duplicate exclusions before splitting",
+  "near_duplicate_rules": {
+    "phash_hamming_at_most": 6,
+    "text_jaccard_at_least": 0.9,
+    "shape_required_for_text": true
+  },
+  "coordinate_policy": "canonical pdf_bbox affine-mapped via pdf_table_bbox to OTSL table_bbox; max discrepancy 2 pixels; boundary roundoff <=1 pixel",
+  "sample_scope": "PubTables crop matching only; FinTabNet without newly verified canonical labels and page-level/native/Chinese/photo tracks cannot be claimed by this manifest",
+  "scope_adjustment_reason": "Available pinned local shard has canonical PubTables labels accessible in the official archive; other tracks require separately qualified inputs.",
+  "source_revision": "35b1c097807e0b07ec5313879b85956b7b3890db",
+  "test_labels": "sealed/test.annotations.json; never read by inference or development replay",
+  "text_policy": "reference text/structure is control-track input; independent PP-OCR provides coordinates; no target polygons given to inference"
+}

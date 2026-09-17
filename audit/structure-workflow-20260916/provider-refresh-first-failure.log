@@ -1,0 +1,15 @@
+test_check_after_second_provider_keeps_unchanged_alternatives (test_structure_workflow.StructureStoreTests.test_check_after_second_provider_keeps_unchanged_alternatives) ... FAIL
+
+======================================================================
+FAIL: test_check_after_second_provider_keeps_unchanged_alternatives (test_structure_workflow.StructureStoreTests.test_check_after_second_provider_keeps_unchanged_alternatives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\tests\test_structure_workflow.py", line 236, in test_check_after_second_provider_keeps_unchanged_alternatives
+    self.assertEqual({p['provider'] for p in refreshed['proposals']},{'paddle','tableformer-raw'})
+AssertionError: Items in the second set but not the first:
+'paddle'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.272s
+
+FAILED (failures=1)

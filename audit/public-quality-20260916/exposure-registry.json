@@ -1,0 +1,150 @@
+{
+  "exclude_from_future_independent_acceptance": true,
+  "prior_registry": "audit/structure-workflow-20260916/exposure-registry.json",
+  "roots": [
+    "build/public-quality-20260916"
+  ],
+  "entries": [
+    {
+      "id": "pilot-budget-p1",
+      "group_id": "camelot-budget",
+      "source_pdf_sha256": "61f82b26cb0a95dee9c029f498013b311f3ede3bf007cb09e6dc2a5555aa3b1e",
+      "sha256": "b8b74a03302fc6ca5cdf92daa55b899597d8a2c54a5ea59200f4495b6550bfa7",
+      "source_url": null
+    },
+    {
+      "id": "pilot-budget-2014-15-p1",
+      "group_id": "camelot-budget",
+      "source_pdf_sha256": "61f82b26cb0a95dee9c029f498013b311f3ede3bf007cb09e6dc2a5555aa3b1e",
+      "sha256": "b8b74a03302fc6ca5cdf92daa55b899597d8a2c54a5ea59200f4495b6550bfa7",
+      "source_url": null
+    },
+    {
+      "id": "pilot-column-span-1-p1",
+      "group_id": "column_span_1",
+      "source_pdf_sha256": "b43c8722ddc0e9aee33b09d9b6d8da583270cd4fa22bec168c4c485adc594e8d",
+      "sha256": "e0d4fb1413447374a1271b5dc1f6483756b310aa30aaa6e5eab808e6bfb23023",
+      "source_url": null
+    },
+    {
+      "id": "pilot-row-span-2-p1",
+      "group_id": "row_span_2",
+      "source_pdf_sha256": "6845bf6cca560534204cc58e1462d7b68987330fae79593df024f75c0103cfec",
+      "sha256": "7f1b0c950c2a132cc3a063be034402b01e746c6ee2186d9656a5a679b9f1d2e3",
+      "source_url": null
+    },
+    {
+      "id": "pilot-twotables-1-p1",
+      "group_id": "twotables_1",
+      "source_pdf_sha256": "971692a90eb13fd852824cfb3fbfe44eae0987017a6ff7dc79366a46fd867601",
+      "sha256": "5bebffacf2e33b56645814e99900be97af27aa001c43367dfabad641e098875a",
+      "source_url": null
+    },
+    {
+      "id": "pilot-hybrid-multipage-p1",
+      "group_id": "hybrid_multipage",
+      "source_pdf_sha256": "19b15e3e1baa3ffe8875cdca198f098075395ce560ff855eed2d7bc7284c658c",
+      "sha256": "0e0a4485aa5e9c7d082d1bc16146a315d92366792925c05013a3321ec94e291c",
+      "source_url": null
+    },
+    {
+      "id": "pilot-hybrid-multipage-p2",
+      "group_id": "hybrid_multipage",
+      "source_pdf_sha256": "19b15e3e1baa3ffe8875cdca198f098075395ce560ff855eed2d7bc7284c658c",
+      "sha256": "04a4ba04714c2493b19b8eda5b62cb0b0b2b3548c63d525137b9b9853a7394c3",
+      "source_url": null
+    },
+    {
+      "id": "pilot-missing-values-p1",
+      "group_id": "missing_values",
+      "source_pdf_sha256": "e7bc3e24b4aa859ca9aab91aa67fbabdf682719ac2ef4447e7317ba7aac1d009",
+      "sha256": "cdbcb1567d8b3f7bac2c777aa7e43b17531222159436cfeaea7a01b13952d8f3",
+      "source_url": null
+    },
+    {
+      "id": "pilot-empty-p1",
+      "group_id": "empty",
+      "source_pdf_sha256": "c4baea244855cbc08644775c889a15611e83167fcc7d7f3619aea24bcfe12d8f",
+      "sha256": "c4126ee53e3f98b852c95e460618b505988938a5afdbfe71266547eedff5e6f9",
+      "source_url": null
+    },
+    {
+      "id": "pilot-china-p1",
+      "group_id": "china",
+      "source_pdf_sha256": "ed8cf637429ea739958f057bd4431bc9578f1839ea6795259718c62d96974524",
+      "sha256": "61e548139927eb035fac8bc9ca49780110efcabbf06755fc9004b095b0c05283",
+      "source_url": null
+    },
+    {
+      "id": "pilot-district-health-p1",
+      "group_id": "district_health",
+      "source_pdf_sha256": "1a081f75a1f9346f0c304dacaeaaa43bb266987346254058f4e6668baee24da3",
+      "sha256": "4ea8d2ac7f5998552e5e124467ea2f18c9bf7c04c42c7fd86a6be68d0a56a701",
+      "source_url": null
+    },
+    {
+      "id": "hk-budget-2025-p70",
+      "group_id": "hk-budget-speech",
+      "source_pdf_sha256": "d8e58143064158bce173acc56ce661f255679a8b575ec7693b0ad53588822eb7",
+      "sha256": "b159e6e4cb50b14fa687f1e92196b07ce9aa6051212940e66d4f32890a081f30",
+      "source_url": null
+    },
+    {
+      "id": "hk-budget-2025-p85",
+      "group_id": "hk-budget-speech",
+      "source_pdf_sha256": "d8e58143064158bce173acc56ce661f255679a8b575ec7693b0ad53588822eb7",
+      "sha256": "bd4469c0bdc2248dbb2a5a21b81830e7f9e996eae75565b8669941ac6a3fe31e",
+      "source_url": null
+    },
+    {
+      "id": "tool-public-nics-background-checks-2015-11-p1",
+      "group_id": "nics",
+      "source_pdf_sha256": "4f0ae6e017b0e97de211da8fd97316e55bd927af5740d6ce95e1b7b1539f9407",
+      "sha256": "9f0850a6fa20a5f3fb95e0bed4e42fe03656146190a2bb75484a557a19a52bad",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11.pdf"
+    },
+    {
+      "id": "tool-public-nics-background-checks-2015-11-rotated-p1",
+      "group_id": "nics",
+      "source_pdf_sha256": "3820767f7b9c8a80d20916daa8664afee49421c4bc6d6efb70bb21ae5f9a7195",
+      "sha256": "ec3706652a02838a5199bdb5790eefbbef04e8114c791704d1fff208745bd2da",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/nics-background-checks-2015-11-rotated.pdf"
+    },
+    {
+      "id": "tool-public-warn-report-for-7-1-2015-to-03-25-2016-p1",
+      "group_id": "tool-public-warn-report-for-7-1-2015-to-03-25-2016",
+      "source_pdf_sha256": "f52f80bd057313c8abec2e854c65c4d96658e72744c836e81d3048d8a5861046",
+      "sha256": "7f78c18bf447174921c6e5d6c054f12271df8b18191657fccdea463a0c81954f",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/WARN-Report-for-7-1-2015-to-03-25-2016.pdf"
+    },
+    {
+      "id": "tool-public-senate-expenditures-p1",
+      "group_id": "tool-public-senate-expenditures",
+      "source_pdf_sha256": "16921f0fc9b2c6039b23b694e0317917118ad7dd2b3a95a88518b7e144df527c",
+      "sha256": "4de8522994932316c69ba509677fdd538216e80fa2b89f9ab7c3c2c3468c37d6",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/senate-expenditures.pdf"
+    },
+    {
+      "id": "tool-public-federal-register-2020-17221-p1",
+      "group_id": "tool-public-federal-register-2020-17221",
+      "source_pdf_sha256": "ac419e4e084ea7a7a33a7be3f129dd07bc705b1a9e45ad751e33357f17d60f5c",
+      "sha256": "39cace72363c03227d2142735276971109d887b268a40cc9409466cb7a1a4a7f",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/federal-register-2020-17221.pdf"
+    },
+    {
+      "id": "tool-public-cupertino_usd_4-6-16-p1",
+      "group_id": "tool-public-cupertino_usd_4-6-16",
+      "source_pdf_sha256": "944ab863d7c83521d6250cc8682d2c985a6ae82622de1d461bb80c21a654206a",
+      "sha256": "0cc64180871663e4f05c7c9ed1c44fb6da96bbad81ac15ae5d87c3a435daa8d4",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/cupertino_usd_4-6-16.pdf"
+    },
+    {
+      "id": "tool-public-pdffill-demo-p1",
+      "group_id": "tool-public-pdffill-demo",
+      "source_pdf_sha256": "2594a5364ea598047a7389b4f35a5e0908c973c7aa4bc6d8c5e8fb34baaba426",
+      "sha256": "81efe41ca3dd44d31685f0b4b5d08d33fcd9ad9026399518ba9b0d2f452314ed",
+      "source_url": "https://raw.githubusercontent.com/jsvine/pdfplumber/7d4f2f582f2d99f9e60ba522fdf7afd2f6d54c62/tests/pdfs/pdffill-demo.pdf"
+    }
+  ],
+  "public_upstream_regression_documents_are_not_independent": true
+}

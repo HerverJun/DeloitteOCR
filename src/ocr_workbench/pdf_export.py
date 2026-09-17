@@ -11,17 +11,21 @@ from ocr_workbench.coordinates import validate_polygon
 from ocr_workbench.document_store import structure_fingerprint, fingerprint
 from ocr_workbench.editing import table_bindings, validate_edit
 from ocr_workbench.geometry import geometry_view
+from ocr_workbench.geometry_contract import full_cell_evidence
 from ocr_workbench.review_issues import relocate_text
 from ocr_workbench.store import Conflict
 
 
-def positioned_content(result, evidence, version):
+def positioned_content(result, evidence, version, native_structure=None):
     """No coordinate inference from table dimensions or unbound new text."""
     raw, edit = result['original'], result['edited']
     validate_edit(edit)
     text = edit['text']
     covered = bytearray(len(text))
     units, missing = [], []
+    positioned_cells = {}
+    native_structure = native_structure or {}
+    retained_native = {(u['text'],fingerprint(u['polygon'])) for units in native_structure.values() for u in units}
     native_changed = False
     parsed, replacements, _ = table_bindings(edit)
     for n, table in enumerate(parsed):
@@ -37,6 +41,12 @@ def positioned_content(result, evidence, version):
         except (ValueError, TypeError):
             missing.append({'target': target, 'text': value[:120], 'reason': '缺少可靠定位'})
             return False
+        if target.get('kind') == 'cell':
+            geometry_key = fingerprint(valid)
+            if geometry_key in positioned_cells and positioned_cells[geometry_key] != target:
+                missing.append({'target': target, 'text': value[:120], 'reason': '多个逻辑格共享同一范围，需要独立定位'})
+                return False
+            positioned_cells[geometry_key] = target
         units.append({'text': value, 'polygon': valid, 'target': target, 'source': source, 'native_preserved': native})
         return True
 
@@ -49,6 +59,8 @@ def positioned_content(result, evidence, version):
     for block in raw.get('blocks', []):
         value = block.get('text', '')
         if not value.strip() or block.get('kind') == 'table' or not (block.get('source_kind') == 'native' or block.get('source') == 'pdf-native'):
+            continue
+        if block.get('polygon') and (value,fingerprint(block['polygon'])) in retained_native:
             continue
         span = block.get('text_range')
         if not span:
@@ -72,7 +84,8 @@ def positioned_content(result, evidence, version):
     # Deleting/restructuring a native table must remove its old searchable
     # visible text too, including when another native line remains on the page.
     if raw.get('document', {}).get('table_native_cells') and not same_structure:
-        native_changed = True
+        previous_native = {(u['text'],fingerprint(u['polygon'])) for cell in raw['document']['table_native_cells'].values() for u in cell['units']}
+        native_changed = not previous_native or not previous_native.issubset(retained_native)
     for ti, table in enumerate(edit['tables']):
         if table.get('caption'):
             # Captions require their own text binding; a table box is insufficient.
@@ -80,6 +93,11 @@ def positioned_content(result, evidence, version):
                 missing.append({'target': {'kind': 'caption', 'table': ti}, 'text': table['caption'], 'reason': '表格标题需要文字定位'})
         for cell in table['cells']:
             target = {'kind': 'cell', 'table': ti, 'row': cell['row'], 'column': cell['column']}
+            retained = native_structure.get((ti,cell['row'],cell['column']))
+            if retained:
+                for unit in retained:
+                    add(unit['text'],unit['polygon'],target,'pdf-native',native=True)
+                continue
             native_cell = raw.get('document',{}).get('table_native_cells',{}).get(f"{ti}:{cell['row']}:{cell['column']}") if same_structure else None
             if native_cell and native_cell['text'] == cell['text']:
                 for original_unit in native_cell['units']:
@@ -89,8 +107,17 @@ def positioned_content(result, evidence, version):
                 native_changed = True
             item = by_target.get(json.dumps(target, sort_keys=True))
             poly, source = None, 'unlocated'
-            if item and item['details']['level'] == 'cell':
-                poly, source = item['polygon'], item['source']
+            if item and full_cell_evidence(item):
+                # Display padding is never used as PDF evidence. For a verified
+                # rectangular merged union the member extent equals the cell.
+                members = item['details'].get('cell_polygons')
+                if members:
+                    from ocr_workbench.coordinates import bounds, box_polygon
+                    boxes = [bounds(p) for p in members]
+                    poly = members[0] if len(members) == 1 else box_polygon([min(b[0] for b in boxes),min(b[1] for b in boxes),max(b[2] for b in boxes),max(b[3] for b in boxes)])
+                else:
+                    poly = item['polygon']
+                source = item['source']
             elif same_structure and ti < len(raw.get('tables', [])):
                 original = next((c for c in raw['tables'][ti]['cells'] if c['row'] == cell['row'] and c['column'] == cell['column']), {})
                 poly, source = original.get('polygon'), raw.get('engine')
@@ -101,6 +128,8 @@ def positioned_content(result, evidence, version):
         if not value.strip() or block.get('kind') == 'table':
             continue
         native = block.get('source_kind') == 'native' or block.get('source') == 'pdf-native'
+        if native and block.get('polygon') and (value,fingerprint(block['polygon'])) in retained_native:
+            continue
         span = block.get('text_range')
         if not span:
             start = raw['text'].find(value, cursor)
@@ -190,7 +219,8 @@ def capture_pdf(store, body, folder):
                     continue
             version = dict(db.execute('SELECT * FROM versions WHERE id=?', (adopted['version_id'],)).fetchone())
             view = geometry_view(store, result['id'], db=db)
-            units, missing, native_changed = positioned_content(result, view['evidence'], version)
+            from ocr_workbench.structure_export import native_structure_units
+            units, missing, native_changed = positioned_content(result, view['evidence'], version,native_structure_units(db,result,version))
             rawdoc = result['original'].get('document', {})
             if rawdoc.get('native_only_incomplete'):
                 missing.append({'reason': '仅原生提取尚有未识别区域'})
@@ -198,7 +228,7 @@ def capture_pdf(store, body, folder):
                 # Resolving overlaps requires an explicit recorded choice.
                 decision = db.execute('SELECT * FROM document_conflict_decisions WHERE result_id=? AND conflict_id=?', (result['id'], conflict['id'])).fetchone()
                 if not decision or decision['edited_sha256'] != fingerprint(result['edited']):
-                    missing.append({'reason': '原生与 OCR 内容重叠冲突尚未核对', 'conflict_id': conflict['id']})
+                    missing.append({'reason': '未识别出文字的区域尚未核对' if conflict.get('reason')=='region_no_text' else '原生与 OCR 内容重叠冲突尚未核对', 'conflict_id': conflict['id']})
             if missing:
                 failures.append({**info, 'reason': '定位或内容预检未通过', 'items': missing})
                 continue
@@ -223,6 +253,10 @@ def capture_pdf(store, body, folder):
                 'rebuild_reasons': list(dict.fromkeys(reasons)), 'units': units,
                 'geometry_coverage': 1.0 if units else None, 'origin': result['original'].get('origin', 'single-engine')}
             specification['conflict_reviews'] = [dict(d) for d in db.execute('SELECT * FROM document_conflict_decisions WHERE result_id=?', (result['id'],))]
+            from ocr_workbench.structure_export import structure_sources
+            specification['structure_sources'] = structure_sources(db,result)
+            from ocr_workbench.multimodal_store import review_sources
+            specification['multimodal_sources'] = review_sources(db, result)
             path = folder / f'page-{ordinal:05d}.json'
             write_json(path, specification)
             doc['pages'].append(str(path))

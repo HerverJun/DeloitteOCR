@@ -1,0 +1,872 @@
+[
+  {
+    "path": "src/ocr_workbench/acceptance_entry.py",
+    "sha256": "09b19d77ce5682bae2de93f8c3eecde47a6e2178595e34c71720c9ace7abee2e",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\acceptance_entry.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/adapter.py",
+    "sha256": "344df08b2447ee1c547c842fb205a8e4a7c90b72501d2ffa0a0d1e900b57c097",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\adapter.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/airgap.py",
+    "sha256": "46e1fedd4ffc6ccfc6808ff87398314da2dee0cf26ab19d4f47a762e13501128",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\airgap.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/atomic_files.py",
+    "sha256": "276bba51792301f57e44360e14c6c47fa64d111d14d59963db8b89d186064750",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\atomic_files.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/cli.py",
+    "sha256": "c89c5c8b2735e5386b556d8a97b0506efe1544da4e72d4604dd40bd92628588b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\cli.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/coordinates.py",
+    "sha256": "ffcf8ae43fc5e50c5bfeb35aae3a2aaa69b4fc26d47a038d0582b31c916e2e9d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\coordinates.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/documents.py",
+    "sha256": "cf4bed969efcaa13008b87d6ea8ac0ddc1e7f21567e8d2b1650179f2fe02463d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\documents.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/document_conflicts.py",
+    "sha256": "c68e364dde69c6a654a76ab25535139c0d9621c518a868092c61fe9c1043cb01",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\document_conflicts.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/document_review.py",
+    "sha256": "c6d5586a4bf1f49e749f3dc6d14c4e3f620b19c260666d0477383de0d1cdcbad",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\document_review.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/document_routes.py",
+    "sha256": "7858c6ec6f3ae249d3f3c25168e2b969d25b98c1edcf532ba8c0c06ffedbc07f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\document_routes.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/document_store.py",
+    "sha256": "f84fc7e6b3fb26419b79c691c113e1dfe00618032221ef1f17bc8d7c6206a6c4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\document_store.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/editing.py",
+    "sha256": "51d9797354d97127076b843157ac6ca9bb7253a1c0c4c62bb3a0d07f2710c0ed",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\editing.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/engine_host.py",
+    "sha256": "81fa1679fda7a30e758545ab3fff1db4b60662872a7ef46405a3d29e7d128fe5",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\engine_host.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/engine_packages.py",
+    "sha256": "c539e12ec6e017bdc2a8c499e72f287f5602d1bb1449d4c533e4dd6ea6a5a820",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\engine_packages.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/errors.py",
+    "sha256": "139aa18cfcf29e0a92a405edc4ea259cb3b233494dd453e465e8928d8bb1ae6e",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\errors.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/exporting.py",
+    "sha256": "e25e44da65594ccaeb6313652b557ac4b6193c3b8940f30c68a67f9021708dbd",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\exporting.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/fusion.py",
+    "sha256": "a1d1e6cfec53ad432d593e40498e481b265d860a572d92931bb974756487215c",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\fusion.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/fusion_alignment.py",
+    "sha256": "f682b9267c5bd986a21a88e56a924a4ec0e4078da89ed3dcb5996dec484aaef8",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\fusion_alignment.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/fusion_store.py",
+    "sha256": "91e809a6da959c60289b9ff8d69305d93ad9a98aba2409f13742abfbc9f0d6b4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\fusion_store.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry.py",
+    "sha256": "e6eb53aaa18f8d4e5dfa120664bd3632983b93a8e86e35c812d3c1ca91d6a352",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_candidate_worker.py",
+    "sha256": "661bd666bf05ec31af9752219594fa5c68ed43b998650d708c47b5f976e78bf3",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_candidate_worker.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_contract.py",
+    "sha256": "6b09c725dd314447129f7eca1fe1d0757f2b161dc34d3c05a89640363f886605",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_contract.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_diagnostics.py",
+    "sha256": "8be22a7329eb29d794942ec40117a93bb2799e927dbad30db4b44b4db5974d95",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_diagnostics.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_labels.py",
+    "sha256": "008e95cae17aec6d3691d8754cd915f7a5bbe7a772a1364d979819096c29a097",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_labels.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_legacy_rapid.py",
+    "sha256": "00ca4f777c7ea11df34e49cb69680c18dca8efbdf4b0d5ed35672daf26c12548",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_legacy_rapid.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_providers.py",
+    "sha256": "39e8286af695d232d22c4628c1939994cb3585900260c44fe4e9eec0edaec4ad",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_providers.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/geometry_provider_config.py",
+    "sha256": "5985d53d46b6eb1735d97f682faa91af9c22627e0230aae1c2abc0be763f7437",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\geometry_provider_config.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/glm.py",
+    "sha256": "53591b123a8f724b3f964c41963f51c125a29ad0f894a9b8d2ea1b1ae550a85b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\glm.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/hunyuan.py",
+    "sha256": "00e427c050a66f41dbbff221cebb73b6ca7c9ea6257c1df4ae7f17e32f476613",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\hunyuan.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/image_utils.py",
+    "sha256": "49728a94ff0493e8f21a3baaebcc435cb3ece09b411717deb56d7ac12298dc73",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\image_utils.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/imaging.py",
+    "sha256": "a1a8bb7979834e4ba9facbf15b17e4ab0a0a2454e943b94d446cda59855732bc",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\imaging.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/launcher.py",
+    "sha256": "a409e0b9d93a09bf90597ddb1724edefcb6bb403b56a82a4611b211ced13f2f5",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\launcher.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/maintenance.py",
+    "sha256": "0c4c7e464a81e70be58a53125bab2b35356ee663a201f94a67dccda8528d3f7f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\maintenance.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/multimodal_contract.py",
+    "sha256": "26dbf9edff2527283c4e2e9e986ef92a9c2b9093e06d9049f6969822fa2f0521",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\multimodal_contract.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/multimodal_export.py",
+    "sha256": "29169d5b7bf14027ecfaf66805688e0295d3bd0ecbb716757f7937f20c3bbc7d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\multimodal_export.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/multimodal_routes.py",
+    "sha256": "b7270b9213cdee02e772c24596b0c7f7fdda52ab64d4bf8e16e3c37745dd19ec",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\multimodal_routes.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/multimodal_runtime.py",
+    "sha256": "4dbb7df9a97d7752fe389c43906154fcff2ba35cbc2fa58d63d0dd7bf746ec03",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\multimodal_runtime.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/multimodal_store.py",
+    "sha256": "b77c5ce9c6d726c7f8fe68d0e06897d8033171596338d7afa9f5f5864ab31c53",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\multimodal_store.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/native_tables.py",
+    "sha256": "26a1655e0178092f361e83e815f560f20553e6e4b0b86bfc725a7b764d27790a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\native_tables.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/offline.py",
+    "sha256": "bcde3068035686d405ff64899c09131df9469da98853c9b9fc6b321474e3590a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\offline.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/page_processing.py",
+    "sha256": "9a7973c58dfae473843df6056ff9c45308172526a3921875010af298a273557a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\page_processing.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/pdf_export.py",
+    "sha256": "cb871cdb5db5ec06f331c64c0d9618326032ffb95a7f618cf145c34a5b7cf884",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\pdf_export.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/pdf_export_worker.py",
+    "sha256": "dea3cf971bef7c553c8a6fe98c13702db85e0776afd10856d690e64f18d43560",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\pdf_export_worker.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/pdf_tables.py",
+    "sha256": "f8aa91798b9e3811a9eafac21f81a9fb9f9ca7b6740b08fcc23baab4c3946c46",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\pdf_tables.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/pdf_worker.py",
+    "sha256": "9dca65377fe1cb1c9cf25b7cff91c33fcc37f8fa1a313459053d0b82a47844f2",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\pdf_worker.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/processes.py",
+    "sha256": "6f27ac4bc096017a59d7dc861a142d7dfe975351d8d20b31a90e3f5a0058a5b4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\processes.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/review_issues.py",
+    "sha256": "a1a57c15375dad3683dd2a59566d3b631d5e8aca53cb71ea259393798e7b2022",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\review_issues.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/runtime_audit.py",
+    "sha256": "ce217c58b35548a4b644c9a90c2b3516b94b5dbd66fc2dc89bf2eeed5c491524",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\runtime_audit.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/service.py",
+    "sha256": "5d08a3e0f8f5de2d8fe71ed77b795dc8cb6dcea67ccb65f429303a7a74cb11ab",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\service.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/startup.py",
+    "sha256": "2404c86c5bae315ef39a2e82310b9e0289e5b240195deb8497fa3c9aa013b08f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\startup.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/store.py",
+    "sha256": "ff7fe29e0f3b637ce7d2483f9c1f51078d6b25c06bcc18a5ebf17f95a9c1e2a7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\store.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/structure_diagnostics.py",
+    "sha256": "76b29a8449a08453d23f56da60591ed6ee9910c789f3c043f291852ea2ca0ff7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\structure_diagnostics.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/structure_export.py",
+    "sha256": "12be6a19c705396c37e1489f4fb4962fe1f5bac49f437ee60a0eec19eac62c2b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\structure_export.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/structure_groups.py",
+    "sha256": "2c2c9ba46403932cebbcd2aa50c3404a0de36a304e04cf52897a42fbe1bddefc",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\structure_groups.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/structure_routes.py",
+    "sha256": "5562ee0811c9971f218c7a9f813e561dab5215d5729d417fd780d0f76f1f779d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\structure_routes.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/structure_store.py",
+    "sha256": "2d4152495b796a424e0e82a7b25f8b40f8972d3b118e5799ef11be718f028726",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\structure_store.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/tables.py",
+    "sha256": "b86565687571da195f86f722493c532a8a17355574ba44eaeedb4cc4002ddca7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\tables.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/table_anchor_refinement.py",
+    "sha256": "c9076eeea1102d48a9bc455d32920221234bc8743fab5c297c4cb07dcc3ac5c1",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\table_anchor_refinement.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/table_geometry_worker.py",
+    "sha256": "63e53c075ed8f1226ded78eba35b44e168ab1855676a0a7968e2b45edd2d8a6f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\table_geometry_worker.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/table_matching.py",
+    "sha256": "e3bf8f238bcf3673aab68dfc87a084da254c0a7681ac550c6a7a5d3d4d76d469",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\table_matching.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/table_tool.py",
+    "sha256": "9dee8c973b177b7cd66869141570efdf1b5e1d3f2214fdee1255104585faa1e4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\table_tool.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/task_queue.py",
+    "sha256": "e41283a73bdd5a2e7d3f08d7923ea9d72a5dfd7a92ba57436ed98c3c2e440e47",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\task_queue.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/verification_cache.py",
+    "sha256": "a3309104aa8b0287101cf94914f4c27ee0e3c99a69f78562be2a0fda284af83e",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\verification_cache.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/windows_paths.py",
+    "sha256": "7561b1f4ab2c96b1f177c569ff67a2ac26e43cdf7f56127c16669c332657551d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\windows_paths.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/worker.py",
+    "sha256": "76bfd613a4b9af345c856a9d69496d96fbd5549c1dce6fb1f3fee677c0d2a2e7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\worker.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/__init__.py",
+    "sha256": "edbe31a79a87853f83855d078a81462bd4037017c0e8445d889b24f063ca5e4f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\__init__.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/__init__.py",
+    "sha256": "fa6ed2d1a504c024371b1de6b4a58977e25c74af7ef5e3446b3b1a43549b4943",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\__init__.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/grits/grits.py",
+    "sha256": "75c13031657252c251f5d0b483aca2601e229a06d46e60d0aa3c739418f543d7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\grits\\grits.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/grits/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\grits\\__init__.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/tableformer/otsl.py",
+    "sha256": "51d6cac594424aa69f48b5be861ef930849344a762611a4b7449eda283e6b3f6",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\tableformer\\otsl.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/tableformer/settings.py",
+    "sha256": "68aacd3855426e2ccc6804f51e797323dca9bfbef034fa8b49a243d81920004a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\tableformer\\settings.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/tableformer/tf_cell_matcher.py",
+    "sha256": "e07969f390eb141487a0b9e6d23c2a24f5da48316fc95454f5201aa19ef9879b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\tableformer\\tf_cell_matcher.py",
+    "installed_equal": true
+  },
+  {
+    "path": "src/ocr_workbench/_vendor/tableformer/__init__.py",
+    "sha256": "4efae9479cf391dab045b9ff903a45f3cdb76d776f42f4496bc1b9f093d381c2",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\app\\ocr_workbench\\_vendor\\tableformer\\__init__.py",
+    "installed_equal": true
+  },
+  {
+    "path": "config/build-assets.json",
+    "sha256": "b9eccaaaa7700d3d000948f2d9d44ca6b7f28709b28c218a045684063ff55723",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\build-assets.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/development-machine.json",
+    "sha256": "3f9b878cf85f48e700c93757fe69309b5b8b9055b2eb35c1847900c932ebc8b7",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\development-machine.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/engines.json",
+    "sha256": "9902ec0818517f19f457c8f97dc67ac78830d64e56c0b4d1150962bcebcf7038",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\engines.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/fusion-policy.json",
+    "sha256": "978f1d2c150a9450e4928ddbdd2ca7d03bf3a6454580d3a0cf72fe6eaf612c1d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\fusion-policy.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-evaluation-legacy-v1.json",
+    "sha256": "612a8d1045e4b65ffe57751627338d9f377a8f2860c5b8d052fc80fa834570cb",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-evaluation-legacy-v1.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-evaluation-v3.json",
+    "sha256": "e9ac707d1a1157bff9217dad2844122c10e95f685ea114cc7df711c79c5f665c",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-evaluation-v3.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-evaluation.json",
+    "sha256": "e95b2ebd010321b3696f0fc49322d0be5ae1f78517d1e194bde8e5f8e46d1e28",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-evaluation.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-matching-policy-v3.json",
+    "sha256": "27410b0ef925327184f859c723e24d1fb76db2cc4b0a5052808f77bca70537dd",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-matching-policy-v3.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-matching-policy.json",
+    "sha256": "0b3bd511b49c7bd801fbb74529d46e25d8698c342accd1ac081ae49f8c0da5de",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-matching-policy.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/geometry-providers.json",
+    "sha256": "65cd5242ff01de9a35da6255e597b18247d9360529eb54d7d14ecf2a8f0e53b3",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\geometry-providers.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/hunyuan-prompts.json",
+    "sha256": "55a13c7178c94a77b1f72c5c67b8656912151743bed218093e672ca89feb7744",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\hunyuan-prompts.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/model-lock.json",
+    "sha256": "7043e8920204bd86520e16173b25068796e518a78d1edf210d991cd2bf980965",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\model-lock.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/multimodal-review.json",
+    "sha256": "a48ef85c1c7ee819e98aa552a47d947b915f8eab22ac6f2b18a194b3d35e361a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\multimodal-review.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/pdf-font-lock.json",
+    "sha256": "fc7cb5de57a16bbf13dbbc891bdac8185e31b200583e9a716e95174385bd0c68",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\pdf-font-lock.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/pdf-table-tool.json",
+    "sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\pdf-table-tool.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/pdf-wheelhouse.json",
+    "sha256": "ff56c09902c81a7bb97c1044edb692cd4ebf527544451b9b2fb90694fdd0e2d9",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\pdf-wheelhouse.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/service-wheelhouse.json",
+    "sha256": "47d4b8c341e1f8707754f950c703f1555761d19c2bb499846525f5cba7e5fc74",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\service-wheelhouse.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/structure-workflow-protocol.json",
+    "sha256": "413c59c2e631e52f39aa750131df67158ca10b70a14c603907f5838ba61f5917",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\structure-workflow-protocol.json",
+    "installed_equal": true
+  },
+  {
+    "path": "config/table-model-lock.json",
+    "sha256": "eaef9353e78b54d3b2e82403f0e1c67efff06bad5212b1cdea5f99f22dafe140",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\config\\table-model-lock.json",
+    "installed_equal": true
+  },
+  {
+    "path": "frontend/src/api.test.ts",
+    "sha256": "c2c15ba8ca691d2efb5b9920d2c8c269d9bbde290e3100919b279903a7889910",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\api.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/api.ts",
+    "sha256": "5632a6011cbcff40c1231ee28e3b157cee96640042c7a593b6c68d0651d5ea44",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\api.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/App.tsx",
+    "sha256": "589e40dcb01a21fe32ef516593f7f316b7b6cc5f4c469f7ef838e0b77bedd806",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\App.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/BrandHeader.tsx",
+    "sha256": "30040cbb0cf9c96806a7e75eb29a6bde842ed1c0acd63ac970ca66ffc1a65f6c",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\BrandHeader.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/comparisonOps.ts",
+    "sha256": "0e48c93cbaf6544d6bf87862cd15563b797b85d731e34896066ef71e2675236b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\comparisonOps.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/DocumentConflicts.tsx",
+    "sha256": "94efe9805b7f1d99cf4c9dc1aeb7781950998d9f215be322e8ab0a4ea19150d2",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\DocumentConflicts.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/DocumentReviewQueue.tsx",
+    "sha256": "248246e376097a4606f90830dfe32c7291751520b48ac9ee7fcfb9c03b7e356d",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\DocumentReviewQueue.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/documents.css",
+    "sha256": "cb6db1075f9c5bc89a7f8e7d719b984f75e23c78253c20a8c1565339cf8a6c00",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\documents.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/documentText.test.ts",
+    "sha256": "39baf3ad3144a80108e7b5110a1eba942ff4d1b3387bc06390fdad64bcb872d6",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\documentText.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/documentText.ts",
+    "sha256": "7871b046a9f0eecc2c8c7065b8cf4357bb8ee2af8fd502cb0c98adfca75498a4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\documentText.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/DocumentTree.tsx",
+    "sha256": "ddf551b3fa30b037137696487b4ebf3a0a87a6c4f22dd441d8a9bed0c25bd930",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\DocumentTree.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/editor.css",
+    "sha256": "64b033bbfdcee2bd8fbde6fc9f86101b064c9bf689aeb4ce44bf3fb61a9ef382",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\editor.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/editorRecovery.test.ts",
+    "sha256": "69f036d66757d2a5515b112d0656373098ff508aefbe8ac5dba757d243a64c37",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\editorRecovery.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/editorRecovery.ts",
+    "sha256": "3bc88e93d303ff3a779a45044709e6b3c9a70369e6da4824297a5d9907c68470",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\editorRecovery.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/EnginePackages.tsx",
+    "sha256": "52f6c9a3d17b357fff80b7ed382b3338cc7723212348753d12538036778ef32b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\EnginePackages.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/fusion.css",
+    "sha256": "bc677d9d3518d3f7ab1b37b95bea23637b2e143672d1e42435835021762f1fe3",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\fusion.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/FusionLauncher.tsx",
+    "sha256": "2b1959135387effa7e8db67c41a27ef44c499783ad4bab919a470171dc1d4518",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\FusionLauncher.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/geometry.css",
+    "sha256": "d1b418b52fcabcad4861f67dacc60b6619fe853f9dc4a1c2cd15805d4a6bd7b6",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\geometry.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/GeometryPanel.tsx",
+    "sha256": "1205131c505b3f3837db515e67ba043920ec6fc0fac8117c76c7aaebf84498e1",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\GeometryPanel.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/ImageCanvas.tsx",
+    "sha256": "fad99f6daf97615c9a7cb9566c9481a9cd8a98d061105b5b841a7d9538a213d1",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\ImageCanvas.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/main.tsx",
+    "sha256": "3c9f2ec123dcc7853ce3c87e58d06941249896cf3dc62a4d4c4202b9c0150897",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\main.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/multimodal.css",
+    "sha256": "887cb9e9750c1af43c6467f9219bfa36420fe772944bb9a6bdb0fd9ed386d4ac",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\multimodal.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/MultimodalReview.tsx",
+    "sha256": "1571056b264ea50e0ee4c4a85dc5aeafc27e9c3d79b4ab1ea2be956e6bd431ad",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\MultimodalReview.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/multimodalTypes.test.ts",
+    "sha256": "70a280154d7c352b1b661ee037e413125286715ef67dd76ac2d8152e1381f8b6",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\multimodalTypes.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/multimodalTypes.ts",
+    "sha256": "9879267598bb61eb1668fc2d5b56e32a608925c16f2d93072b6c4b016bd2bc27",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\multimodalTypes.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/PhotoList.tsx",
+    "sha256": "a8408497f3e6f33dccd8debc922d64e3c4c0d2531cdf4508eafd8e33daf258e1",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\PhotoList.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/professional.css",
+    "sha256": "f3ebf7b9a41b2cabaeef8b87c768e7304e452ab943eb29c1cf82a8fe0c63ef3f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\professional.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/ProjectStorage.tsx",
+    "sha256": "729245152cf0694741d379135576f09fe0bad04e57d13829cad917a11609c5ed",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\ProjectStorage.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/QuickReview.tsx",
+    "sha256": "ff18a167a7bd05733a398555e680a616f051974ca9c8bd2d2fd6c5cf3a8c7204",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\QuickReview.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/recognition.css",
+    "sha256": "57bfa531d3f8c8cadd686d8c4d00a1dd59500ca1dad90cc24efd946cbae35bcc",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\recognition.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/RecognitionBar.tsx",
+    "sha256": "76d0d5c778dd674b0cc33d6f70779280357dc5df949dd34b7884e634072b79e0",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\RecognitionBar.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/RegionPreview.tsx",
+    "sha256": "0872b024caaa7bab4bf6d32d2193d15fc21e2a882c8d7cd99090fc177a870541",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\RegionPreview.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/resultComparison.test.ts",
+    "sha256": "96650343c7f08ed41d17a8145f660186bc41253585ac8f965716bf7b01c014cf",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\resultComparison.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/ResultComparison.tsx",
+    "sha256": "b252544847520e731bbaf480bc1e8d191e6c1e503a3a2ea5caab08a9376a52fd",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\ResultComparison.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/resultWorkflow.test.ts",
+    "sha256": "8915653b5fd3018291a27f9e8807299fbfc134630bfcd54ea5ab5b4fbf39b5f4",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\resultWorkflow.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/resultWorkflow.ts",
+    "sha256": "6283c0e3377eb56fcd5e2f4d24df8dc710df243b56db18172fd550219e1d22f1",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\resultWorkflow.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/reviewClock.ts",
+    "sha256": "be0eaf8f9a1decbf800b513ad30b57e77d8e1c27ca55a5e5c3bb05659a241dce",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\reviewClock.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/structure.css",
+    "sha256": "927995037ebc3f3ca67a36458e6a2fa661bd2aa1ee4b06ec04a726e3a0b43f72",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\structure.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/StructureReview.tsx",
+    "sha256": "4de16f2ceeddd4993cd4db9e4c8272c8f45942eadc55a359e134e85599623552",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\StructureReview.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/style.css",
+    "sha256": "ff3e535a337472f3d61bcc89ad4215dbbfa9721e7f810432ec72757388785f0a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\style.css",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/tableEditing.test.ts",
+    "sha256": "3ae328202489cd26531f0ce0d794ec6ee129c29d26610b5325ed3af5c6180275",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\tableEditing.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/tableEditing.ts",
+    "sha256": "77e5150483b933dfee3f7803643447940157edecbc210093b33b6033db6bc8f2",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\tableEditing.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/TableEditor.tsx",
+    "sha256": "d4480dfd3610570b6107109017d8e53f4f62acf9991de7c91d58aaeb87751260",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\TableEditor.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/tableLimits.ts",
+    "sha256": "c7f047140df5e7b190332b416e7f346f88264b745ae64a74462c052c50c5820a",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\tableLimits.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/tableOps.test.ts",
+    "sha256": "d0e71f34680712ad3a7b3000c5958787861e9aa43ee4b7431dd3d1dc07206f99",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\tableOps.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/tableOps.ts",
+    "sha256": "7b957031b8c7604b27f0c0eae9cfed4520035e5b879f468205d3a2be49d30f4b",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\tableOps.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/TaskQueue.tsx",
+    "sha256": "a5838cd2e69a3128f78e2d1502a85c530e0527fb07f84e489c15f13a210e6933",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\TaskQueue.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/theme.ts",
+    "sha256": "636246a1e5ff6f0df57d0c555ac55de7cf3cd4d0da1f35f9391dcb50ce5e6d42",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\theme.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/types.ts",
+    "sha256": "8996242e33119511708d6f66b06138e146d23b457e141faeeb63da1908a1ae06",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\types.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/useEditor.ts",
+    "sha256": "bdb9ca69558c0cb904fb73c2e10b92ccc6e0936da9ebb206dcbbd5e23241555f",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\useEditor.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/WorkspaceLayout.tsx",
+    "sha256": "ebed68a647e3482c32f96c997d57bd2d91ed4bf76fbf346ec7f42099f64db9df",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\WorkspaceLayout.tsx",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/workspacePreferences.test.ts",
+    "sha256": "886b643343681ce1f718844cc86311ed63acf3c4ad54b2dcd41c1cfd657f53f8",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\workspacePreferences.test.ts",
+    "installed_equal": false
+  },
+  {
+    "path": "frontend/src/workspacePreferences.ts",
+    "sha256": "943b8cdccdf315d1f44e1c9f1cf76571c8ffedfa368978ddcc5a6e5694afaab8",
+    "installed_path": "D:\\OCR-multimodal-workbench-20260917\\bundle\\frontend\\src\\workspacePreferences.ts",
+    "installed_equal": false
+  }
+]

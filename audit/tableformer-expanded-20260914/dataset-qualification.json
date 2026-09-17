@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "tables": 120,
+    "documents": 120,
+    "targets": 11667,
+    "target_tags": {
+      "merged": 385,
+      "repeated": 3414,
+      "empty": 743
+    }
+  },
+  "rejected": {
+    "cell_count": 805,
+    "coordinate_mismatch": 55,
+    "invalid_transcription": 10,
+    "near_duplicate": 1,
+    "span_mismatch": 1
+  },
+  "near_duplicates": [
+    {
+      "id": "PMC3200929_table_2",
+      "prior": "PMC2983951_table_3",
+      "phash_distance": 6,
+      "text_jaccard": 0.05704697986577181
+    }
+  ],
+  "excluded_prior_documents": 424,
+  "prior_canonical_candidates": 320,
+  "source": {
+    "url": "https://hf-mirror.com/datasets/docling-project/PubTables-1M_OTSL/resolve/77d8208f09ae52e5d8703c9fea5783ec37b8997c/data/test-00017-of-00032-33455af462204ba4.parquet",
+    "file": "C:\\Users\\A\\Desktop\\OCR\\build\\document-workflow\\geometry-holdout\\PubTables-1M_OTSL.parquet",
+    "bytes": 194797135,
+    "sha256": "128b4cd8375d33487cc94779481540ec5025a8d980cd261d26f48889610e8231",
+    "repo": "docling-project/PubTables-1M_OTSL",
+    "revision": "77d8208f09ae52e5d8703c9fea5783ec37b8997c",
+    "shard": "data/test-00017-of-00032-33455af462204ba4.parquet"
+  },
+  "scope": "PubTables rendered crops; fixed reference structure and identical real PP-OCR inputs; not native/scanned/Chinese end-to-end",
+  "unused_new_candidates": 40
+}

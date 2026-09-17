@@ -296,6 +296,13 @@ export function TableEditor({
           >
             拆分
           </Button>
+          <Button size="small" onClick={() => action(() => {
+            const next = structuredClone(table);
+            const selected = next.cells.filter(c => c.row >= rect[0] && c.row <= rect[2] && c.column >= rect[1] && c.column <= rect[3]);
+            const header = !selected.every(c => c.is_header);
+            selected.forEach(c => { c.is_header = header; });
+            return next;
+          })}>切换表头</Button>
         </div>
       </div>
       {creating && newTableForm}

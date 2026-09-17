@@ -1,0 +1,1307 @@
+{
+  "tables": 260,
+  "all_nonrotated_rows_span_table_width_columns_span_table_height": true,
+  "maximum_error": 0.0,
+  "records": [
+    {
+      "split": "development",
+      "id": "PMC4995370_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4369829_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5717048_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3574653_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2577118_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4566864_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4795784_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3212536_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5147856_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2761847_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4498019_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6156584_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3198435_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6210530_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1929140_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2817697_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4940880_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5685491_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5829779_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4607152_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2846848_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4601795_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5142779_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3287339_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1804284_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4919831_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4430217_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6013457_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4345003_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4705509_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2977608_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6143767_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3418246_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6224105_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6108503_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6165285_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4654893_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1431701_table_5",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2650090_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1769359_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4543480_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6201568_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2714296_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5047007_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3691196_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5725465_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1866461_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3117786_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2953516_table_6",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3012690_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3651354_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3705342_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC1184070_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4424527_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6041810_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3557638_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2862029_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4500408_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2983951_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4436863_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3107822_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5799979_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC5722557_table_6",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6168541_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4494277_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4886403_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3014685_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4999282_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3618349_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2447848_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4376798_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4507179_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6031427_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3484122_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC6194601_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2364634_table_6",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC3217969_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4752331_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC4556713_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "development",
+      "id": "PMC2766386_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3541075_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5844864_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3113783_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2557016_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5837756_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4471408_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2970268_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3017527_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4667423_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2670826_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2673585_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3230846_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4593389_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3317125_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2577639_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3672612_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4794569_table_5",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC1635047_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC6097322_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3554515_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4479238_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3606492_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4550389_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5687736_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC6234536_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4711943_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5963948_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3610936_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4404343_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4689483_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2679023_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2888213_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3191373_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4574194_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2684100_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4728773_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4994276_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3671246_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4847916_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5982000_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC1906769_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4999075_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4460960_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5077097_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4502603_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5674232_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4878077_table_5",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3177874_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5750934_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5849718_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5752084_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4840326_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4417331_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4706835_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC3092754_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC2225983_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC4658170_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC5708813_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC6138901_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "validation",
+      "id": "PMC6174244_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4448538_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3111347_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4351928_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4376772_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2873379_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3254357_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5993764_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4522996_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3287850_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2983846_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5684214_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6104916_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3127753_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3347023_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6167883_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4749311_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5738582_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3673139_table_6",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4559326_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2763875_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5132221_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4577082_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3393727_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3017864_table_10",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4744022_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6047133_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6083571_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4563886_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4803290_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4876008_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6033098_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6178176_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3326702_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2367490_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5096353_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3322450_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3345610_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5869529_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3203887_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4519320_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3135505_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4654447_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5131398_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2603015_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4701444_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3115942_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC1215471_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4505177_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3009376_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5027644_table_15",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3584557_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4359479_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3364286_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3609832_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6089154_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6231614_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4661269_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3171725_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3297012_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5013261_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3283306_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3008005_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4893325_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6053820_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4894278_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3287916_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3155965_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6208001_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2695821_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5090242_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6169037_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3608992_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC1913535_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3308956_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3231932_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3459804_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3682885_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC1890282_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4932447_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC1819369_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4988649_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5721622_table_4",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6148029_table_3",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5911475_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4519276_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5036688_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4678235_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3552839_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3178567_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5067596_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4383418_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5700134_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4344310_table_11",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4885691_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2791104_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2094712_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6064110_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5705694_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6073911_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5784145_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3317676_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3414795_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3382792_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4533825_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5994128_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6085644_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4470686_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5814674_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5726739_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4588806_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5932808_table_5",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3292891_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5057460_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4694813_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5739476_table_1",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC3534702_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC5730165_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC6098613_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC2413008_table_2",
+      "nonrotated_axis_extent_error": 0.0
+    },
+    {
+      "split": "test",
+      "id": "PMC4689442_table_0",
+      "nonrotated_axis_extent_error": 0.0
+    }
+  ]
+}

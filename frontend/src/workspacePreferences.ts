@@ -38,7 +38,7 @@ export const validEngine = (v: unknown): v is string =>
   ["ppocr", "paddlevl", "glm", "hunyuan", "all"].includes(v);
 export function imageStatus(id: string, tasks: Task[]): string {
   const relevant = tasks.filter(
-    (t) => t.image_id === id && t.kind !== "dewarp" && t.engine !== "dewarp",
+    (t) => t.image_id === id && t.kind !== "dewarp" && t.engine !== "dewarp" && t.kind !== "multimodal" && t.engine !== "reviewer",
   );
   if (relevant.some((t) => ["queued", "running"].includes(t.status)))
     return "processing";

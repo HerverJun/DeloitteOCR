@@ -1,0 +1,313 @@
+{
+  "scope": "Post-test descriptive audit only; no changes to sealed implementation or scores",
+  "reports": {
+    "test-control": {
+      "report_sha256": "f8e3f3291dc9b8cd828823b04a4236b579d604838f81da5f9763d71c6cd0b5e2",
+      "lost_correct": [
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 25,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 0
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 1
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 2
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 0
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 7
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        }
+      ],
+      "timeout_targets_by_sample": {
+        "PMC5663128_table_3": 18
+      },
+      "tables_at_least_90pct": 30,
+      "tables_with_any_correct": 120
+    },
+    "test-real-result": {
+      "report_sha256": "05e6b219d6a953f7fd8d452bfdf210dc7143deef7ca1ecb98ea8be34cbd72052",
+      "lost_correct": [
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 22,
+            "column": 4
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 22,
+            "column": 5
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 0
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 1
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 2
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 3
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 4
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5960211_table_1",
+          "target": {
+            "table": 0,
+            "row": 23,
+            "column": 5
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 25,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 0
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 1
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 2
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 26,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 0
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 6
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        {
+          "sample_id": "PMC5663128_table_3",
+          "target": {
+            "table": 0,
+            "row": 27,
+            "column": 7
+          },
+          "reason_codes": [
+            "timeout"
+          ]
+        }
+      ],
+      "timeout_targets_by_sample": {
+        "PMC5960211_table_1": 8,
+        "PMC5663128_table_3": 18
+      },
+      "tables_at_least_90pct": 16,
+      "tables_with_any_correct": 119
+    }
+  },
+  "real_adoption": {
+    "tables_per_sample": {
+      "1": 119,
+      "2": 1
+    },
+    "adopted_cells": 11598,
+    "all_actual_offered_cells": 8103,
+    "matcher_reason_codes": {
+      "accepted": 8103,
+      "no_local_anchors": 1988,
+      "empty_cell_without_anchors": 484,
+      "repeated_value_ambiguous": 895,
+      "order_conflict": 39,
+      "prediction_table_reused": 63,
+      "timeout": 26
+    },
+    "reference_targets_without_association": 1734,
+    "extra_or_unassociated_adopted_outputs": 2054,
+    "reference_identity_caveat": "No-output reference targets are not failed model calls; all 120 adoption calls succeeded. Unassociated adopted cells are retained as extra outputs even when no complete geometry is offered."
+  },
+  "public_inference_stage_reasons": {
+    "timeout": 28
+  }
+}

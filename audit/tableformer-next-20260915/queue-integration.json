@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "sample": "camelot-foo-p1",
+  "provider": "tableformer-raw",
+  "algorithm": "local-v3",
+  "initial_complete_cells": 41,
+  "text_unchanged_by_geometry": true,
+  "candidate_cache_replay_without_gpu": true,
+  "manual_binding_precedes_model": true,
+  "result_id": "206700b7dc814a3e80a89b593df2f35e",
+  "version_id": "a79ddfb9a845480492a348ad17cc5c6b"
+}

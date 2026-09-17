@@ -40,6 +40,10 @@ import { BrandHeader } from "./BrandHeader";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { PhotoList } from "./PhotoList";
 import { DocumentTree } from "./DocumentTree";
+import { documentReviewTab, type DocumentReviewTask } from "./DocumentReviewQueue";
+import { StructureReview } from "./StructureReview";
+import { MultimodalReview } from "./MultimodalReview";
+import { multimodalTargetLabel } from "./multimodalTypes";
 import { DocumentConflicts } from "./DocumentConflicts";
 import {
   usePreference,
@@ -154,6 +158,19 @@ export function App() {
   const editor = useEditor(onError);
   const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
   const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
+  const [documentReviewTarget, setDocumentReviewTarget] = useState<DocumentReviewTask | null>(null);
+  const [structureFocus, setStructureFocus] = useState("");
+  const [multimodalFocus, setMultimodalFocus] = useState("");
+  const [reviewEntry, setReviewEntry] = useState(0);
+  useEffect(() => {
+    if (!documentReviewTarget?.result_id || editor.result?.id !== documentReviewTarget.result_id) return;
+    const task = documentReviewTarget;
+    if (task.kind === "fusion") { setTab("review"); setReviewEntry(n => n+1); }
+    else if (documentReviewTab(task.kind) === "multimodal") { setTab("multimodal"); setMultimodalFocus(task.proposal_id || task.proposal_ids?.[0] || ""); }
+    else { setTab("structure"); setStructureFocus(task.proposal_ids?.[0] || ""); }
+    if (task.target.tables?.length) setReviewFocus({ tableIndex:task.target.tables[0], row:0, column:0, nonce:Date.now() });
+    setDocumentReviewTarget(null);
+  }, [documentReviewTarget, editor.result?.id]);
   const refresh = useCallback(async (id: string, incremental = false) => {
     if (!id) return;
     const suffix =
@@ -268,7 +285,8 @@ export function App() {
   const versions = project?.versions.filter((v) => v.image_id === active) || [];
   const version = versions.find((v) => v.id === photo?.active_version) || null;
   const tasks = project?.tasks.filter((t) => t.image_id === active) || [];
-  const finished = tasks.filter((t) => t.status === "succeeded" && t.result_id);
+  const recognitionTasks = tasks.filter(t => t.kind !== "multimodal" && t.engine !== "reviewer");
+  const finished = recognitionTasks.filter((t) => t.status === "succeeded" && t.result_id);
   const currentResult =
     (active && previews[active]) ||
     (photo && project ? adoptedResult(photo, project.tasks) : null);
@@ -280,7 +298,7 @@ export function App() {
       resultTabs.current.get(id) ||
       explicitImageTabs.current.get(active) ||
       (editor.result.edited.tables.length ? "table" : "text");
-    const restoredTab = editor.getReviewDraft() && editor.result.original.fusion ? "review" : initialTab;
+    const restoredTab = documentReviewTarget?.result_id === id ? documentReviewTab(documentReviewTarget.kind) : editor.getReviewDraft() && editor.result.original.fusion ? "review" : initialTab;
     resultTabs.current.set(id, restoredTab);
     setTab(restoredTab);
   }, [loadedResultId]);
@@ -615,7 +633,7 @@ export function App() {
   const pending =
     project?.tasks.filter((t) => ["queued", "running"].includes(t.status))
       .length || 0;
-  const latestTask = tasks.at(-1);
+  const latestTask = recognitionTasks.at(-1);
   const attention =
     project?.tasks.filter((t) =>
       ["failed", "paused", "interrupted"].includes(t.status),
@@ -835,6 +853,10 @@ export function App() {
               key={`documents-${projectId}`} documents={project.documents.filter(d => d.kind !== "image")}
               activeImage={active} reviewOnly={reviewOnly} beforeOpen={editor.flush}
               onOpen={async imageId => { await editor.flush(); setActive(imageId); setSearch(""); setSearchIndex(0); }}
+              onReview={async task => {
+                if (task.kind === "fusion" && task.result_id && task.issue_id) await api(`/results/${task.result_id}/issues/position`,"PUT",{issue_id:task.issue_id});
+                setDocumentReviewTarget(task);
+              }}
               onRefresh={() => refresh(projectId)} onError={onError} />}
             <PhotoList
               key={projectId}
@@ -931,7 +953,7 @@ export function App() {
               hasActive={!!active}
               onRun={() => void action(() => run())}
             />
-            <FusionLauncher engines={engines} tasks={tasks} versionId={version?.id}
+            <FusionLauncher engines={engines} tasks={recognitionTasks} versionId={version?.id}
               selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
               onStart={runFusion} />
             <button
@@ -985,7 +1007,15 @@ export function App() {
               onView={(t) =>
                 void action(async () => {
                   await editor.flush();
-                  if (t.result_id) {
+                  if (t.kind === "multimodal" || t.engine === "reviewer") {
+                    const targetPhoto = project!.images.find(item => item.id === t.image_id);
+                    const resultId = t.review_result_id || t.result_id || (targetPhoto ? adoptedResult(targetPhoto, project!.tasks) : null);
+                    if (!resultId) throw Error("审校对应的识别结果不可用，请在原页面查看。");
+                    await previewResult(resultId, t.image_id);
+                    resultTabs.current.set(resultId, "multimodal");
+                    explicitImageTabs.current.set(t.image_id, "multimodal");
+                    setTab("multimodal");
+                  } else if (t.result_id) {
                     await previewResult(t.result_id, t.image_id);
                   } else {
                     setActive(t.image_id);
@@ -1072,7 +1102,7 @@ export function App() {
               role="tablist"
               aria-label="结果视图"
               onKeyDown={(e) => {
-                const choices = editor.result?.original.fusion ? ["table", "text", "compare", "review"] : ["table", "text", "compare"];
+                const choices = editor.result?.original.fusion ? ["table", "structure", "text", "compare", "multimodal", "review"] : ["table", "structure", "text", "compare", "multimodal"];
                 if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
                   return;
                 e.preventDefault();
@@ -1106,6 +1136,9 @@ export function App() {
                   ? ` ${editor.edit.tables.length}`
                   : ""}
               </button>
+              <button role="tab" aria-selected={tab === "structure"} tabIndex={tab === "structure" ? 0 : -1}
+                aria-controls="result-content" id="tab-structure" className={tab === "structure" ? "active" : ""}
+                onClick={() => chooseTab("structure")}>结构复核</button>
               <button
                 role="tab"
                 aria-selected={tab === "text"}
@@ -1130,6 +1163,9 @@ export function App() {
                 <Columns3 size={15} />
                 模型对比
               </button>
+              <button role="tab" aria-selected={tab === "multimodal"} tabIndex={tab === "multimodal" ? 0 : -1}
+                aria-controls="result-content" id="tab-multimodal" className={tab === "multimodal" ? "active" : ""}
+                onClick={() => chooseTab("multimodal")}><ScanLine size={15} />视觉审校</button>
               {editor.result?.original.fusion && <button role="tab" aria-selected={tab === "review"}
                 tabIndex={tab === "review" ? 0 : -1} aria-controls="result-content" id="tab-review"
                 className={tab === "review" ? "active" : ""} onClick={() => chooseTab("review")}>快速校对</button>}
@@ -1272,7 +1308,7 @@ export function App() {
                       ? "重试此任务"
                       : "继续此任务"}
                   </Button>
-                ) : tasks.some((t) =>
+                ) : recognitionTasks.some((t) =>
                     ["running", "queued"].includes(t.status),
                   ) ? (
                   <Button onClick={() => setShowQueue(true)}>
@@ -1393,6 +1429,10 @@ export function App() {
                     </button>
                   </div>
                 )}
+                {["table", "text"].includes(tab) && <div className="multimodal-entry">
+                  <div><strong>对照原图再核对一轮</strong><span>{geometryTarget?.resultId === editor.result.id ? `已选中：${multimodalTargetLabel(geometryTarget.target)}` : "可选中文字或表格单元格，也可复核本页。"}</span></div>
+                  <Button size="small" icon={<ScanLine size={15} />} disabled={busy} onClick={() => chooseTab("multimodal")}>视觉审校</Button>
+                </div>}
                 {tab === "text" && (
                   <div className="text-editor">
                     <div className="text-search">
@@ -1431,10 +1471,10 @@ export function App() {
                         } else if (segment?.kind === "cell" && segment.table !== undefined && segment.cell !== undefined) {
                           const c = editor.edit.tables[segment.table].cells[segment.cell];
                           setGeometryTarget({ resultId: editor.result.id, target: { kind: "cell", table: segment.table, row: c.row, column: c.column } });
-                        }
+                        } else setGeometryTarget(null);
                       }}
                       onChange={(e) => {
-                        try { editor.change(changeDocumentText(editor.edit!, e.target.value)); }
+                        try { editor.change(changeDocumentText(editor.edit!, e.target.value)); setGeometryTarget(null); }
                         catch (error) { onError(String(error)); }
                       }}
                     />
@@ -1534,7 +1574,7 @@ export function App() {
                   />
                 )}
                 {tab === "review" && editor.result.original.fusion && photo && <QuickReview
-                  key={`review-${editor.result.id}`} result={editor.result} versionId={photo.active_version}
+                  key={`review-${editor.result.id}-${reviewEntry}`} result={editor.result} versionId={photo.active_version}
                   version={version} geometryRefresh={geometryRefresh}
                   adopted={currentAdopted === editor.result.id} busy={busy}
                   onDraft={editor.setReviewDraft}
@@ -1547,7 +1587,34 @@ export function App() {
                     finally { setBusy(--activeActions.current > 0); }
                   }}
                   onConfirm={() => void action(() => setReview("confirmed"))} />}
-                {version && ["table", "text", "review"].includes(tab) && <GeometryPanel
+                {version && ["structure", "review"].includes(tab) && <StructureReview key={`structure-${editor.result.id}`} result={editor.result} version={version}
+                  busy={busy} refreshKey={geometryRefresh} focusId={structureFocus} getPendingDecision={editor.getPendingDecision}
+                  onPrepare={async () => { await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("请选择结果"); return r; }}
+                  onDecision={async (id, body) => {
+                    ++activeActions.current; setBusy(true);
+                    try { await editor.decide(id,body); await refresh(projectId); } finally { setBusy(--activeActions.current > 0); }
+                  }}
+                  onUpdated={() => { setGeometryRefresh(n => n+1); void refresh(projectId); }}
+                  onLocate={location => setGeometryLocation({ resultId:editor.result!.id,location })}
+                  onManual={(table,row,column) => { setReviewFocus({tableIndex:table,row,column,nonce:Date.now()}); chooseTab("table"); }} />}
+                {version && tab === "multimodal" && <MultimodalReview key={`multimodal-${editor.result.id}`} result={editor.result} version={version}
+                  busy={busy || !matchesVersion} adopted={currentAdopted === editor.result.id} refreshKey={geometryRefresh} focusId={multimodalFocus}
+                  target={geometryTarget?.resultId === editor.result.id ? geometryTarget.target : null}
+                  beforeSubmit={async () => { await editor.flush(); const current = editor.getCurrent(); if (!current) throw Error("请先选择识别结果"); return current; }}
+                  getPendingDecision={editor.getPendingDecision}
+                  onDecision={async (proposalId, body) => {
+                    ++activeActions.current; setBusy(true);
+                    try {
+                      await editor.decide(proposalId, { ...body, decision_kind: "multimodal" });
+                      const current = editor.getCurrent();
+                      if (!current) throw Error("审校后识别结果不可用，请重新加载。");
+                      return current;
+                    } finally { setBusy(--activeActions.current > 0); }
+                  }}
+                  onResult={async () => { await refresh(projectId); notify("审校决定已保存"); }}
+                  onQueued={async () => { await refresh(projectId); }}
+                  onLocate={location => setGeometryLocation({ resultId: editor.result!.id, location })} />}
+                {version && ["table", "text", "review", "structure"].includes(tab) && <GeometryPanel
                   key={`geometry-${editor.result.id}`} result={editor.result} version={version} tasks={tasks} refreshKey={geometryRefresh}
                   disabled={busy || reviewOnly || !queueHealthy}
                   target={geometryTarget?.resultId === editor.result.id ? geometryTarget.target : null}
@@ -1559,13 +1626,13 @@ export function App() {
                     setManualBinding({ resultId: r.id, revision: r.revision, versionId: version.id, target, nonce: Date.now() });
                     notify("请在左侧原图拖动框选文字范围，然后点击应用");
                   })} />}
-                {editor.result.original.origin === "document" && <DocumentConflicts result={editor.result} beforeSave={async () => {
+                {version && editor.result.original.origin === "document" && <DocumentConflicts result={editor.result} onLocate={polygon => setGeometryLocation({resultId:editor.result!.id,location:{level:"region",polygon,version_id:version.id,reason:"页面内容待核对"}})} beforeSave={async () => {
                   await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("结果已切换"); return r;
                 }} />}
                 {tab === "compare" && (
                   <ResultComparison
                     results={compared}
-                    tasks={tasks}
+                    tasks={recognitionTasks}
                     versions={versions}
                     selectedResultId={currentAdopted}
                     reviewStatus={photo?.review_status}

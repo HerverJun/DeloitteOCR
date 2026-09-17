@@ -1,0 +1,35 @@
+{
+  "all_verified": true,
+  "rows": [
+    {
+      "source": "dataset",
+      "split": "development",
+      "images_hash_verified": 80
+    },
+    {
+      "source": "dataset",
+      "split": "validation",
+      "images_hash_verified": 60
+    },
+    {
+      "source": "dataset",
+      "split": "test",
+      "images_hash_verified": 120
+    },
+    {
+      "source": "pages",
+      "split": "development",
+      "images_hash_verified": 20
+    },
+    {
+      "source": "pages",
+      "split": "validation",
+      "images_hash_verified": 20
+    },
+    {
+      "source": "pages",
+      "split": "test",
+      "images_hash_verified": 20
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+[
+  {
+    "repo": "Shef-AIRE/llms_post-ocr_correction",
+    "retrieved_at": "2026-09-17T01:09:27.183638+00:00",
+    "commit": "3605fc2e7b9470bf030a571989c3d97e5f250de8",
+    "pushed_at": "2026-05-12T11:22:07Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    },
+    "url": "https://raw.githubusercontent.com/Shef-AIRE/llms_post-ocr_correction/3605fc2e7b9470bf030a571989c3d97e5f250de8/README.md",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\Shef-AIRE__llms_post-ocr_correction.README.md",
+    "sha256": "f676fec0e5d19779728affc66baacfc55c94d97b354f774ed860a9cd2cdf3abf"
+  },
+  {
+    "repo": "impresso/llm-transcript-postcorrection",
+    "retrieved_at": "2026-09-17T01:09:27.184666+00:00",
+    "commit": "3affcc4ec485c7eab24955387534bdf1f88ce5b2",
+    "pushed_at": "2026-07-09T20:03:01Z",
+    "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "spdx_id": "AGPL-3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0",
+      "node_id": "MDc6TGljZW5zZTE="
+    },
+    "url": "https://raw.githubusercontent.com/impresso/llm-transcript-postcorrection/3affcc4ec485c7eab24955387534bdf1f88ce5b2/README.md",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\impresso__llm-transcript-postcorrection.README.md",
+    "sha256": "18269249a85b663a655d764a5b7a1014481d1e6520559433f722cdca850f85ac"
+  },
+  {
+    "repo": "hipe-eval/HIPE-OCRepair-2026",
+    "retrieved_at": "2026-09-17T01:09:27.184666+00:00",
+    "commit": "00d5b5450e38b4f585bbfb775675d8534def3f0b",
+    "pushed_at": "2026-04-17T13:55:56Z",
+    "license": null,
+    "url": "https://raw.githubusercontent.com/hipe-eval/HIPE-OCRepair-2026/00d5b5450e38b4f585bbfb775675d8534def3f0b/README.md",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\hipe-eval__HIPE-OCRepair-2026.README.md",
+    "sha256": "c342621bf9c7362b44d947639f1bd3131604e9a6cae2eb4c0f0611a76b75fad8"
+  },
+  {
+    "repo": "Yuliang-Liu/MultimodalOCR",
+    "retrieved_at": "2026-09-17T01:09:27.185671+00:00",
+    "commit": "6af7d948ab4d4bdf625af36c884fb7da19075d1a",
+    "pushed_at": "2026-08-16T06:13:38Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    },
+    "url": "https://raw.githubusercontent.com/Yuliang-Liu/MultimodalOCR/6af7d948ab4d4bdf625af36c884fb7da19075d1a/README.md",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\Yuliang-Liu__MultimodalOCR.README.md",
+    "sha256": "542559ed3748c9c792ac0e9d27ea632a7883a8f686c648d2c553870a3eb8a4fe"
+  },
+  {
+    "repo": "AlibabaResearch/AdvancedLiterateMachinery",
+    "retrieved_at": "2026-09-17T01:09:27.185671+00:00",
+    "commit": "fb6187ebe5374d5682ac0bc05f31e3639ab6fb15",
+    "pushed_at": "2026-03-17T02:55:55Z",
+    "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "spdx_id": "Apache-2.0",
+      "url": "https://api.github.com/licenses/apache-2.0",
+      "node_id": "MDc6TGljZW5zZTI="
+    },
+    "url": "https://raw.githubusercontent.com/AlibabaResearch/AdvancedLiterateMachinery/fb6187ebe5374d5682ac0bc05f31e3639ab6fb15/README.md",
+    "path": "research\\multimodal-review-20260917\\benchmarks\\AlibabaResearch__AdvancedLiterateMachinery.README.md",
+    "sha256": "d8a682f021aec07795a4e8f6e64c888195047019cf5a161cf67ceb6ece9ce8f3"
+  }
+]

@@ -1,0 +1,71 @@
+{
+  "version": "0.10.0rc3",
+  "module_source": "C:\\Users\\A\\Desktop\\OCR\\src\\ocr_workbench\\table_tool.py",
+  "rows": [
+    {
+      "id": "tool-public-nics-background-checks-2015-11-p1",
+      "result_id": "ff1fb4e2953844988ee2943e5a37237d",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-nics-background-checks-2015-11-rotated-p1",
+      "result_id": "010798f1053f4a10b732ab3db8951ce5",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-warn-report-for-7-1-2015-to-03-25-2016-p1",
+      "result_id": "b3ab780f5dff44a4976dd5c1f5dc646e",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 1,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-senate-expenditures-p1",
+      "result_id": "ced13a2736604b548c20186d20acba65",
+      "state": "ready",
+      "tool_candidates": 1,
+      "applicable_tool_proposals": 1,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-federal-register-2020-17221-p1",
+      "result_id": "83505abd006d444ab6b6d511e344e64e",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-cupertino_usd_4-6-16-p1",
+      "result_id": "d629e705a10541a99b6980ae76f8f393",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    },
+    {
+      "id": "tool-public-pdffill-demo-p1",
+      "result_id": "32cd42cab66141609edc08c30a0147a5",
+      "state": "empty",
+      "tool_candidates": 0,
+      "applicable_tool_proposals": 0,
+      "result_unchanged": true
+    }
+  ],
+  "ocr_tasks_unchanged": true,
+  "history_and_selections_unchanged": true,
+  "tool_identity": {
+    "key": "97d991445f6e8a100c0fe3e47e53e88f628855df6ce72b107eb2513280516db3",
+    "config_sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+    "version": "0.11.10",
+    "component": "pdfplumber"
+  },
+  "scope": "Auxiliary upgrade regression on already exposed material; no fresh OCR or quality claim"
+}

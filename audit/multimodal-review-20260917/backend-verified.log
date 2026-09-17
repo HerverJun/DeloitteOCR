@@ -1,0 +1,130 @@
+..................................................................................................................................................Cannot decode imported image 坏图.png
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\imaging.py", line 187, in add_image
+    with Image.open(temporary) as source:
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\OCR-generic-tool-fixes-20260917\bundle\runtimes\service\Lib\site-packages\PIL\Image.py", line 3579, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file 'C:\\Users\\A\\AppData\\Local\\Temp\\tmpde926fl4\\坏图.png'
+Installed and verified model.gguf: 8 bytes
+.........................................................................................OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 211, in fail_after_commit
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+.OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 259, in step
+    self.adapter.load()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 50, in load
+    raise RuntimeError(failure)
+RuntimeError: simulated model error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 350, in step
+    db.execute(
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 257, in execute
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+...OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "unittest\mock.py", line 1139, in __call__
+  File "unittest\mock.py", line 1143, in _mock_call
+  File "unittest\mock.py", line 1198, in _execute_mock_call
+sqlite3.OperationalError: database is locked
+...OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 181, in step
+    task = self.store.claim()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 168, in fail_once
+    raise sqlite3.OperationalError("database is locked")
+sqlite3.OperationalError: database is locked
+.OCR queue failed
+Traceback (most recent call last):
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 119, in run
+    worked = self.step()
+             ^^^^^^^^^^^
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 183, in step
+    self.unload()
+  File "C:\Users\A\Desktop\OCR\src\ocr_workbench\task_queue.py", line 77, in unload
+    adapter.unload()
+  File "C:\Users\A\Desktop\OCR\tests\test_queue.py", line 231, in fail_once
+    raise OSError("temporary unload error")
+OSError: temporary unload error
+.................................................s.........................................................................................
+----------------------------------------------------------------------
+Ran 382 tests in 146.997s
+
+OK (skipped=1)

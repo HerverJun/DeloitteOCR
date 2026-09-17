@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "document queue groups whole-table and local insertion alternatives into one task per table",
+      "passed": true
+    },
+    {
+      "name": "manual amount survives candidate adoption and missing row has literal source text",
+      "passed": true
+    },
+    {
+      "name": "structure adoption shares durable editor undo and redo",
+      "passed": true
+    },
+    {
+      "name": "cross-page navigation, deferral and keep-current decisions persist",
+      "passed": true
+    },
+    {
+      "name": "reload restores adopted revision and source token IDs",
+      "passed": true
+    },
+    {
+      "name": "small-laptop viewport has no horizontal document overflow and timing is not a human efficiency claim",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "scope": "Synthetic OCR/structure and raster PDF for interaction only; no accuracy/human efficiency claim",
+  "browser_closed": true
+}

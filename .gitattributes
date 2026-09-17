@@ -16,3 +16,45 @@ config/pdf-font-lock.json -text
 config/pdf-wheelhouse.json -text
 config/table-model-lock.json -text
 config/geometry-evaluation.json -text
+
+# Pinned upstream code and immutable evidence must survive Windows checkout byte-for-byte.
+src/ocr_workbench/_vendor/** -text
+licenses/pdfplumber/** -text
+licenses/structure-workflow/** -text
+audit/deep-review-20260917/** -text
+audit/generic-tool-fixes-20260917/** -text
+audit/multimodal-review-20260917/** -text
+audit/public-quality-20260916/** -text
+audit/structure-workflow-20260916/** -text
+audit/table-matching-v2/** -text
+audit/tableformer-expanded-20260914/** -text
+audit/tableformer-next-20260915/** -text
+audit/tableformer-review-20260916/** -text
+research/multimodal-review-20260917/** -text
+config/geometry-evaluation-legacy-v1.json -text
+config/geometry-evaluation-v3.json -text
+config/geometry-matching-policy.json -text
+config/geometry-matching-policy-v3.json -text
+config/geometry-providers.json -text
+config/multimodal-review.json -text
+config/pdf-table-tool.json -text
+config/structure-workflow-protocol.json -text
+
+# CRLF is intentional in byte-preserved locks and captured Windows receipts.
+config/*.json whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/deep-review-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/generic-tool-fixes-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/multimodal-review-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/public-quality-20260916/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/structure-workflow-20260916/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/table-matching-v2/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/tableformer-expanded-20260914/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/tableformer-next-20260915/** whitespace=trailing-space,space-before-tab,cr-at-eol
+audit/tableformer-review-20260916/** whitespace=trailing-space,space-before-tab,cr-at-eol
+research/multimodal-review-20260917/** whitespace=trailing-space,space-before-tab,cr-at-eol
+
+# Preserve captured console formatting and pinned upstream whitespace as evidence.
+audit/**/*.log -whitespace
+audit/table-matching-v2/data-sources/** -whitespace
+src/ocr_workbench/_vendor/** -whitespace
+licenses/structure-workflow/tableformer-model-card.md -whitespace

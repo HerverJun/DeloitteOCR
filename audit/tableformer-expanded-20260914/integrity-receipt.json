@@ -1,0 +1,32 @@
+{
+  "verified_utc": "2026-09-14T14:57:52.055359+00:00",
+  "original_selection_intact": true,
+  "grid_protocol_sealed_before_test_scoring": true,
+  "pretest_summarizer_intact": true,
+  "source_and_policy_unchanged_since_development": true,
+  "inference_items": {
+    "reused_ocr_paddle_rapid": 420,
+    "new_tableformer_development_validation": 140,
+    "new_test_four_providers": 480
+  },
+  "replayed_mappings": 780,
+  "all_inference_and_replay_markers_successful": true,
+  "reports_complete": 6,
+  "shared_ocr_consistent_all_splits": true,
+  "targeted_tests_passed": 8,
+  "targeted_tests_failed": 0,
+  "report_files": {
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\development.diagnostics.json": "a42995d5f6d4ddd370839a5958a743909ed7b8a667ed2993a8018a4620d82db6",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\development.grid.diagnostics.json": "621554a78e9372c557080035b79c9869a9eda4b5fc29bbf833b4a318fbf5c88a",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\development.grid.json": "18b388b6bceea55396ea39de3c041e73891c92c0ca8a0f95ff71cf9cf2629c14",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\development.json": "9e2e57202e8a3ee27fb42ab94bb0bf608aee8ae002e71c8c7978ff371d85cdaa",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\test.diagnostics.json": "be496640856f0b30cd941355c8c11fd16ac3956108aaa9098b08eb70c002534a",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\test.grid.diagnostics.json": "f7fea606186288e2f622e575a81a672fa18645a3e0596d6e23e0ad36e55ac366",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\test.grid.json": "3b94c120ec8a72ececb81f278b7fb1aa8e2a144a4e32a3ec7a7afd65941b7f22",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\test.json": "e455a9d5797008dab9341a0c656d0d8e34296e07120d4eed0d054e1e947a117a",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\validation.diagnostics.json": "9a95cbec9e9a123fca2831656d124781aeee203406f65cd75b1e241a209d1039",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\validation.grid.diagnostics.json": "e6e17c5bc558d62b6d100697117680fe0c6836e4a7382cbfda9d8c4d9a6a0a75",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\validation.grid.json": "5e09fdf303617e40c13244085484d0259753bec06088d4c671239bcbbed09a6b",
+    "C:\\Users\\A\\Desktop\\OCR\\build\\tableformer-expanded-20260914\\reports\\validation.json": "00e2e5d4de118defbefc2eb54703cf22a9cd9a50efd29de4fb2e9cf575d55290"
+  }
+}

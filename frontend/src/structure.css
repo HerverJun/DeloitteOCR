@@ -1,0 +1,23 @@
+.structure-review { margin: 12px 0; padding: 16px; border: 1px solid var(--line, #dce2dd); background: #fff; min-width: 0; font-size: 13px; }
+.structure-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.structure-heading > span, .structure-source, .structure-empty { color: #64766b; font-size: 12px; }
+.structure-review > select { width: 100%; padding: 8px; border: 1px solid #cad5ce; color: #26382d; background: #fff; }
+.structure-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+.structure-actions > label, .structure-ack { display: flex; gap: 6px; align-items: center; }
+.structure-comparison { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.structure-comparison > div { min-width: 0; }
+.structure-table { margin: 10px 0; min-width: 0; }
+.structure-table > strong { display: block; margin-bottom: 6px; font-size: 12px; }
+.structure-table-scroll { overflow: auto; max-height: 320px; border: 1px solid #dbe3dd; }
+.structure-table table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.structure-table td { border: 1px solid #dbe3dd; padding: 8px; min-width: 55px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.structure-table td[data-header] { background: #eef4ef; font-weight: 600; }
+.structure-table td[data-empty] { color: #8a5c14; background: #fff8e9; }
+.structure-differences { padding-left: 22px; max-height: 170px; overflow: auto; }
+.structure-review details { margin: 12px 0; }
+.structure-review details code { font-size: 11px; word-break: break-all; }
+.document-review { display: grid; gap: 7px; border-top: 1px solid #dce2dd; padding-top: 10px; }
+.document-review-list { display: grid; gap: 5px; max-height: 290px; overflow: auto; }
+.document-review-list > button { text-align: left; display: grid; gap: 3px; padding: 8px; border: 1px solid #dce2dd; border-radius: 4px; color: #26382d; background: #f8faf8; }
+.document-review-list small { color: #64766b; }
+@media (max-width: 1050px) { .structure-comparison { grid-template-columns: minmax(0,1fr); } }

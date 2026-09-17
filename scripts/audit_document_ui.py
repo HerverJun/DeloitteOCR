@@ -15,7 +15,7 @@ from ocr_workbench.imaging import add_image
 from ocr_workbench.tables import parse_tables
 from ocr_workbench.fusion import default_policy
 from ocr_workbench.geometry import enqueue_geometry,complete_geometry
-p=argparse.ArgumentParser();p.add_argument('--bundle',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--bundle',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--geometry-v2',action='store_true');a=p.parse_args()
 out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
 token='local-document-ui-fixture';app=create_app(a.bundle,out/'workspace',token,start_queue=False,review_only=True)
 store=app.state.store;manager=app.state.documents;project=store.project('文档工作流验收')
@@ -49,6 +49,12 @@ enqueue_geometry(store,result,0);task=store.claim()
 prediction={'model_revisions':{'test':'synthetic-ui-only'},'inference_seconds':.01,'tables':[
     {'table_box':[0,0,900,600],'final':{'pred_html':raw['edited']['text'],'cell_box_list':boxes},
      'raw':{'det':{'boxes':[{'score':1,'coordinate':box} for box in boxes]}}}]}
+if a.geometry_v2:
+    prediction['ocr_source']='synthetic-ui-word-fixture'
+    prediction['ocr_blocks']=[{'id':f'ui-word:{i}','text':cell['text'],'granularity':'word',
+        'polygon':[[box[0]+12,box[1]+40],[box[0]+200,box[1]+40],[box[0]+200,box[1]+70],[box[0]+12,box[1]+70]]}
+        for i,(cell,box) in enumerate(zip(raw['edited']['tables'][0]['cells'],boxes))]
+    prediction['tables'][0]['raw']['det']['boxes'].pop(4)
 complete_geometry(store,task,prediction,store.root/'ui-synthetic-geometry.json')
 app.router.routes[:]=[r for r in app.router.routes if not (getattr(r,'path',None)=='' and type(r).__name__=='Mount')]
 app.mount('/',StaticFiles(directory=root/'frontend/dist',html=True))
@@ -57,7 +63,7 @@ deadline=time.monotonic()+15
 while not server.started:
     if time.monotonic()>deadline:raise TimeoutError('UI service startup')
     time.sleep(.03)
-seed={'base':'http://127.0.0.1:'+str(server.servers[0].sockets[0].getsockname()[1]),'token':token,'project':project['id'],'document':doc['id'],'encrypted':encrypted['id'],'tiff':tiff['id'],'photo':photo,'result':result,
+seed={'base':'http://127.0.0.1:'+str(server.servers[0].sockets[0].getsockname()[1]),'token':token,'project':project['id'],'document':doc['id'],'encrypted':encrypted['id'],'tiff':tiff['id'],'photo':photo,'result':result,'geometry_v2':a.geometry_v2,
       'scope':'actual PDF import/extraction/export and HTTP/SQLite/UI; seeded OCR+geometry only for deterministic interaction/performance; no human efficiency or model accuracy claim'}
 (out/'seed.json').write_text(json.dumps(seed,ensure_ascii=False,indent=2),'utf-8')
 manager.start()

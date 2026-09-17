@@ -1,0 +1,14 @@
+test_all_failed_targets_stay_in_denominator (test_geometry_evaluation.EvaluationIntegrityTests.test_all_failed_targets_stay_in_denominator) ... ok
+test_changed_run_lock_cannot_reuse_old_success (test_geometry_evaluation.EvaluationIntegrityTests.test_changed_run_lock_cannot_reuse_old_success) ... ok
+test_oracle_requires_one_to_one_assignment (test_geometry_evaluation.EvaluationIntegrityTests.test_oracle_requires_one_to_one_assignment) ... ok
+test_real_result_identity_handles_inserted_row_without_geometry (test_geometry_evaluation.EvaluationIntegrityTests.test_real_result_identity_handles_inserted_row_without_geometry) ... ok
+test_real_result_symmetric_table_has_no_invented_reference_identity (test_geometry_evaluation.EvaluationIntegrityTests.test_real_result_symmetric_table_has_no_invented_reference_identity) ... ok
+test_replay_matrix_roundtrips_and_resumes_immutable_lock (test_geometry_evaluation.EvaluationIntegrityTests.test_replay_matrix_roundtrips_and_resumes_immutable_lock) ... ok
+test_tampered_output_and_unreceipted_success_are_rejected (test_geometry_evaluation.EvaluationIntegrityTests.test_tampered_output_and_unreceipted_success_are_rejected) ... ok
+test_text_range_mislabeled_as_cell_fails_independent_scoring (test_geometry_evaluation.EvaluationIntegrityTests.test_text_range_mislabeled_as_cell_fails_independent_scoring) ... ok
+test_ties_and_extra_cells_are_not_reported_as_success (test_geometry_evaluation.EvaluationIntegrityTests.test_ties_and_extra_cells_are_not_reported_as_success) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.029s
+
+OK

@@ -1,0 +1,162 @@
+{
+  "captured_at": "2026-09-17T01:33:14.014828+00:00",
+  "branch": "codex/document-workflow-0.9.0rc1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "2c1ac14fc72522b3a803dc14f99c7ef81b44e23595af6c1bf0711a1669eb20c0"
+    },
+    {
+      "path": "config/geometry-evaluation.json",
+      "sha256": "e95b2ebd010321b3696f0fc49322d0be5ae1f78517d1e194bde8e5f8e46d1e28"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "sha256": "12f87945fb59ebc0d915d62f4608d877b0b6e25f911742d8afbcedf1ecca8284"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "f80df65843b175e758b7249ee3a7989773216f78313834f301d5b098e5ebd1c1"
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "sha256": "7779aa891a0698a53246437243da2b57ba1a3a5acc7963b66039e372fa5018f7"
+    },
+    {
+      "path": "frontend/src/DocumentConflicts.tsx",
+      "sha256": "94efe9805b7f1d99cf4c9dc1aeb7781950998d9f215be322e8ab0a4ea19150d2"
+    },
+    {
+      "path": "frontend/src/DocumentTree.tsx",
+      "sha256": "ddf551b3fa30b037137696487b4ebf3a0a87a6c4f22dd441d8a9bed0c25bd930"
+    },
+    {
+      "path": "frontend/src/GeometryPanel.tsx",
+      "sha256": "1205131c505b3f3837db515e67ba043920ec6fc0fac8117c76c7aaebf84498e1"
+    },
+    {
+      "path": "frontend/src/RegionPreview.tsx",
+      "sha256": "0872b024caaa7bab4bf6d32d2193d15fc21e2a882c8d7cd99090fc177a870541"
+    },
+    {
+      "path": "frontend/src/TableEditor.tsx",
+      "sha256": "d4480dfd3610570b6107109017d8e53f4f62acf9991de7c91d58aaeb87751260"
+    },
+    {
+      "path": "frontend/src/types.ts",
+      "sha256": "6973ef2705a624319bdd558fbdda9ebf9ce32d11d3f2c89b5c50be86a9ac1ce7"
+    },
+    {
+      "path": "frontend/src/useEditor.ts",
+      "sha256": "e4c1ee42ac73027248c3c75eb15018a771a4a222629c4554ec70478e3b9875c7"
+    },
+    {
+      "path": "scripts/audit_document_ui.mjs",
+      "sha256": "8c2a34fbc4ce0a69121a2a5d50d7d25ed425570b61f27b6a83394d6cde021ebe"
+    },
+    {
+      "path": "scripts/audit_document_ui.py",
+      "sha256": "44651066c0230013b6c55af5115da836a8405c2ea6eb9feb4f3cceddf5687972"
+    },
+    {
+      "path": "scripts/evaluate_geometry_gpu.py",
+      "sha256": "64ac55bea707e634cf8e51ed1f98095bdb17e6639f453edaf841daa443affb32"
+    },
+    {
+      "path": "scripts/evaluate_rapid_reference.py",
+      "sha256": "50f10a36fba64f99bc9f5084aa60533c0e9fcc912d60e5d62cbb0b4f59bf9485"
+    },
+    {
+      "path": "src/ocr_workbench/__init__.py",
+      "sha256": "ef44e0d4e547020fa77f329c2a4f7977c1c304460473fc9e46b5ee17aa3e008a"
+    },
+    {
+      "path": "src/ocr_workbench/adapter.py",
+      "sha256": "344df08b2447ee1c547c842fb205a8e4a7c90b72501d2ffa0a0d1e900b57c097"
+    },
+    {
+      "path": "src/ocr_workbench/document_conflicts.py",
+      "sha256": "c68e364dde69c6a654a76ab25535139c0d9621c518a868092c61fe9c1043cb01"
+    },
+    {
+      "path": "src/ocr_workbench/document_store.py",
+      "sha256": "f84fc7e6b3fb26419b79c691c113e1dfe00618032221ef1f17bc8d7c6206a6c4"
+    },
+    {
+      "path": "src/ocr_workbench/documents.py",
+      "sha256": "cf4bed969efcaa13008b87d6ea8ac0ddc1e7f21567e8d2b1650179f2fe02463d"
+    },
+    {
+      "path": "src/ocr_workbench/editing.py",
+      "sha256": "51d9797354d97127076b843157ac6ca9bb7253a1c0c4c62bb3a0d07f2710c0ed"
+    },
+    {
+      "path": "src/ocr_workbench/engine_host.py",
+      "sha256": "81fa1679fda7a30e758545ab3fff1db4b60662872a7ef46405a3d29e7d128fe5"
+    },
+    {
+      "path": "src/ocr_workbench/exporting.py",
+      "sha256": "49be49c512f0d8a38281473e41dcaee2deaa61ca1ea65bafbfdd27aa03fa28f5"
+    },
+    {
+      "path": "src/ocr_workbench/fusion_store.py",
+      "sha256": "91e809a6da959c60289b9ff8d69305d93ad9a98aba2409f13742abfbc9f0d6b4"
+    },
+    {
+      "path": "src/ocr_workbench/geometry.py",
+      "sha256": "e6eb53aaa18f8d4e5dfa120664bd3632983b93a8e86e35c812d3c1ca91d6a352"
+    },
+    {
+      "path": "src/ocr_workbench/native_tables.py",
+      "sha256": "26a1655e0178092f361e83e815f560f20553e6e4b0b86bfc725a7b764d27790a"
+    },
+    {
+      "path": "src/ocr_workbench/page_processing.py",
+      "sha256": "9a7973c58dfae473843df6056ff9c45308172526a3921875010af298a273557a"
+    },
+    {
+      "path": "src/ocr_workbench/pdf_export.py",
+      "sha256": "6bbd0d1e4c3af8ff17b62f9bb68e57999ed02e6cdb8aa988513555e5d9223397"
+    },
+    {
+      "path": "src/ocr_workbench/pdf_worker.py",
+      "sha256": "9dca65377fe1cb1c9cf25b7cff91c33fcc37f8fa1a313459053d0b82a47844f2"
+    },
+    {
+      "path": "src/ocr_workbench/service.py",
+      "sha256": "9d3794b31cadde5aade36e25e762c3c1df7e68aee1fbe797669659fbc766009f"
+    },
+    {
+      "path": "src/ocr_workbench/store.py",
+      "sha256": "653f7b37f1a48cc63ec5109737de89ec140964d2357eb18af6af90434c62c863"
+    },
+    {
+      "path": "src/ocr_workbench/table_geometry_worker.py",
+      "sha256": "63e53c075ed8f1226ded78eba35b44e168ab1855676a0a7968e2b45edd2d8a6f"
+    },
+    {
+      "path": "src/ocr_workbench/tables.py",
+      "sha256": "b86565687571da195f86f722493c532a8a17355574ba44eaeedb4cc4002ddca7"
+    },
+    {
+      "path": "src/ocr_workbench/task_queue.py",
+      "sha256": "20ce05275b25c0f589d8823e24acaffcc24d3d1d345d7a558abc4f6f0899ce84"
+    },
+    {
+      "path": "tests/test_document_processing.py",
+      "sha256": "1559b577521bafad903872248380730764c03f051add07dc9feadac2b2a55395"
+    },
+    {
+      "path": "tests/test_geometry.py",
+      "sha256": "d24355aff0aec9956035ffa667f4b5088c08fab18a7dd2191d36b14e19c8ed82"
+    },
+    {
+      "path": "tests/test_pdf_export.py",
+      "sha256": "c11a8afa53e1f44b291cdbc5a2da8f516ed68d45ff08321259407f502927ef8d"
+    },
+    {
+      "path": "tests/test_store.py",
+      "sha256": "1cfaa289a9d42e376cb54346b696d2380346d90a00d6281c8f1d25e83d69fbdc"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "fixture": "isolated temporary SQLite store; existing test helper; model configuration verification mocked, cache/view logic real",
+  "switch_back_cached": true,
+  "preview": {
+    "source": "tableformer-raw-local-v3",
+    "polygon": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        100.0,
+        0.0
+      ],
+      [
+        100.0,
+        40.0
+      ],
+      [
+        0.0,
+        40.0
+      ]
+    ]
+  },
+  "pdf_export_default": {
+    "source": "paddle-table-local-v2",
+    "polygon": [
+      [
+        10,
+        10
+      ],
+      [
+        100,
+        10
+      ],
+      [
+        100,
+        40
+      ],
+      [
+        10,
+        40
+      ]
+    ]
+  },
+  "tampered_upstream_cached": true,
+  "tampered_upstream_still_shown_as": "cell"
+}

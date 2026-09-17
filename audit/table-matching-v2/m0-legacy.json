@@ -1,0 +1,3962 @@
+{
+  "protocol": "m0-legacy-diagnostics-v2",
+  "manifest_sha256": "bcdb67c8be7d4db380cd88c221e0f4c28f7b33c1b9438b8f89b3d154537edb6f",
+  "targets": 5819,
+  "tables": 100,
+  "primary_reasons": {
+    "topology_mismatch": 5357,
+    "inference_failed": 95,
+    "text_coverage_insufficient": 107,
+    "accepted": 224,
+    "text_anchor_disagrees": 21,
+    "postprocessed_box_without_unique_detection_support": 14,
+    "repeated_or_empty_content_ambiguous": 1
+  },
+  "independent_gates": {
+    "topology_fail": 5357,
+    "text_shared_pass": 3873,
+    "slots_pass": 4085,
+    "text_shared_fail": 1851,
+    "malformed_structure": 1,
+    "slots_fail": 1639,
+    "topology_pass": 367
+  },
+  "oracle_diagnostic_only": {
+    "direct_detection": {
+      "candidates": 6694,
+      "invalid_candidates": 0,
+      "any_candidate": 1801,
+      "one_to_one": 1801
+    },
+    "structure_prediction": {
+      "candidates": 6774,
+      "invalid_candidates": 1,
+      "any_candidate": 4,
+      "one_to_one": 4
+    },
+    "postprocessed": {
+      "candidates": 6011,
+      "invalid_candidates": 0,
+      "any_candidate": 1811,
+      "one_to_one": 1811
+    },
+    "text_extent": {
+      "candidates": 6141,
+      "invalid_candidates": 0,
+      "any_candidate": 2387,
+      "one_to_one": 2387
+    }
+  },
+  "all_legacy_replays_identical": true,
+  "rows": [
+    {
+      "id": "pubtables-1m-001",
+      "targets": 40,
+      "primary_reasons": {
+        "topology_mismatch": 40
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 40,
+        "text_shared_pass": 40,
+        "slots_pass": 40
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 54,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 42,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 42,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 42,
+          "invalid_candidates": 0,
+          "any_candidate": 32,
+          "one_to_one": 32
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-002",
+      "targets": 39,
+      "primary_reasons": {
+        "topology_mismatch": 39
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 39,
+        "text_shared_fail": 39,
+        "slots_pass": 39
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 45,
+          "invalid_candidates": 0,
+          "any_candidate": 20,
+          "one_to_one": 20
+        },
+        "structure_prediction": {
+          "candidates": 31,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 31,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        },
+        "text_extent": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-003",
+      "targets": 95,
+      "primary_reasons": {
+        "inference_failed": 95
+      },
+      "gates_independent_not_additive": {
+        "malformed_structure": 1
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 97,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 115,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 97,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 87,
+          "invalid_candidates": 0,
+          "any_candidate": 40,
+          "one_to_one": 40
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-004",
+      "targets": 75,
+      "primary_reasons": {
+        "topology_mismatch": 75
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 75,
+        "text_shared_fail": 75,
+        "slots_fail": 75
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 103,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 77,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 70,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 78,
+          "invalid_candidates": 0,
+          "any_candidate": 16,
+          "one_to_one": 16
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-005",
+      "targets": 69,
+      "primary_reasons": {
+        "topology_mismatch": 69
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 69,
+        "text_shared_pass": 69,
+        "slots_pass": 69
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 102,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        },
+        "structure_prediction": {
+          "candidates": 96,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 96,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        },
+        "text_extent": {
+          "candidates": 77,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-006",
+      "targets": 147,
+      "primary_reasons": {
+        "topology_mismatch": 147
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 147,
+        "text_shared_pass": 147,
+        "slots_pass": 147
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 155,
+          "invalid_candidates": 0,
+          "any_candidate": 93,
+          "one_to_one": 93
+        },
+        "structure_prediction": {
+          "candidates": 148,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 148,
+          "invalid_candidates": 0,
+          "any_candidate": 91,
+          "one_to_one": 91
+        },
+        "text_extent": {
+          "candidates": 144,
+          "invalid_candidates": 0,
+          "any_candidate": 59,
+          "one_to_one": 59
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-007",
+      "targets": 92,
+      "primary_reasons": {
+        "topology_mismatch": 92
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 92,
+        "text_shared_fail": 92,
+        "slots_fail": 92
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 142,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "structure_prediction": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 88,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 95,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-008",
+      "targets": 95,
+      "primary_reasons": {
+        "topology_mismatch": 95
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 95,
+        "text_shared_fail": 95,
+        "slots_pass": 95
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 162,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "structure_prediction": {
+          "candidates": 106,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 106,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 96,
+          "invalid_candidates": 0,
+          "any_candidate": 26,
+          "one_to_one": 26
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-009",
+      "targets": 113,
+      "primary_reasons": {
+        "topology_mismatch": 113
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 113,
+        "text_shared_pass": 113,
+        "slots_pass": 113
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 155,
+          "invalid_candidates": 0,
+          "any_candidate": 90,
+          "one_to_one": 90
+        },
+        "structure_prediction": {
+          "candidates": 122,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 122,
+          "invalid_candidates": 0,
+          "any_candidate": 88,
+          "one_to_one": 88
+        },
+        "text_extent": {
+          "candidates": 159,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-010",
+      "targets": 80,
+      "primary_reasons": {
+        "topology_mismatch": 80
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 80,
+        "text_shared_pass": 80,
+        "slots_pass": 80
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 113,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        },
+        "structure_prediction": {
+          "candidates": 94,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 94,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        },
+        "text_extent": {
+          "candidates": 96,
+          "invalid_candidates": 0,
+          "any_candidate": 36,
+          "one_to_one": 36
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-011",
+      "targets": 39,
+      "primary_reasons": {
+        "topology_mismatch": 39
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 39,
+        "text_shared_fail": 39,
+        "slots_pass": 39
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 76,
+          "invalid_candidates": 0,
+          "any_candidate": 32,
+          "one_to_one": 32
+        },
+        "structure_prediction": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 24,
+          "one_to_one": 24
+        },
+        "text_extent": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-012",
+      "targets": 78,
+      "primary_reasons": {
+        "topology_mismatch": 78
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 78,
+        "text_shared_pass": 78,
+        "slots_fail": 78
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 46,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        },
+        "structure_prediction": {
+          "candidates": 179,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 101,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "text_extent": {
+          "candidates": 101,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-013",
+      "targets": 36,
+      "primary_reasons": {
+        "topology_mismatch": 36
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 36,
+        "text_shared_pass": 36,
+        "slots_pass": 36
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 54,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "structure_prediction": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-014",
+      "targets": 45,
+      "primary_reasons": {
+        "topology_mismatch": 45
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 45,
+        "text_shared_pass": 45,
+        "slots_fail": 45
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "structure_prediction": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 49,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        },
+        "text_extent": {
+          "candidates": 49,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-015",
+      "targets": 33,
+      "primary_reasons": {
+        "topology_mismatch": 33
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 33,
+        "text_shared_pass": 33,
+        "slots_pass": 33
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 11,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 36,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 36,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        },
+        "text_extent": {
+          "candidates": 36,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-016",
+      "targets": 133,
+      "primary_reasons": {
+        "topology_mismatch": 133
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 133,
+        "text_shared_fail": 133,
+        "slots_fail": 133
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 273,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        },
+        "structure_prediction": {
+          "candidates": 331,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 266,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "text_extent": {
+          "candidates": 249,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-017",
+      "targets": 158,
+      "primary_reasons": {
+        "topology_mismatch": 158
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 158,
+        "text_shared_pass": 158,
+        "slots_pass": 158
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 199,
+          "invalid_candidates": 0,
+          "any_candidate": 29,
+          "one_to_one": 29
+        },
+        "structure_prediction": {
+          "candidates": 177,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 177,
+          "invalid_candidates": 0,
+          "any_candidate": 29,
+          "one_to_one": 29
+        },
+        "text_extent": {
+          "candidates": 161,
+          "invalid_candidates": 0,
+          "any_candidate": 143,
+          "one_to_one": 143
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-018",
+      "targets": 68,
+      "primary_reasons": {
+        "topology_mismatch": 68
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 68,
+        "text_shared_fail": 68,
+        "slots_pass": 68
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 89,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        },
+        "structure_prediction": {
+          "candidates": 59,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 59,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 67,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-019",
+      "targets": 232,
+      "primary_reasons": {
+        "topology_mismatch": 232
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 232,
+        "text_shared_pass": 232,
+        "slots_pass": 232
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 270,
+          "invalid_candidates": 0,
+          "any_candidate": 232,
+          "one_to_one": 232
+        },
+        "structure_prediction": {
+          "candidates": 223,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 223,
+          "invalid_candidates": 0,
+          "any_candidate": 208,
+          "one_to_one": 208
+        },
+        "text_extent": {
+          "candidates": 238,
+          "invalid_candidates": 0,
+          "any_candidate": 40,
+          "one_to_one": 40
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-020",
+      "targets": 76,
+      "primary_reasons": {
+        "topology_mismatch": 76
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 76,
+        "text_shared_pass": 76,
+        "slots_pass": 76
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 114,
+          "invalid_candidates": 0,
+          "any_candidate": 38,
+          "one_to_one": 38
+        },
+        "structure_prediction": {
+          "candidates": 77,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 77,
+          "invalid_candidates": 0,
+          "any_candidate": 38,
+          "one_to_one": 38
+        },
+        "text_extent": {
+          "candidates": 77,
+          "invalid_candidates": 0,
+          "any_candidate": 58,
+          "one_to_one": 58
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-021",
+      "targets": 87,
+      "primary_reasons": {
+        "topology_mismatch": 87
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 87,
+        "text_shared_fail": 87,
+        "slots_fail": 87
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 64,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        },
+        "structure_prediction": {
+          "candidates": 91,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 64,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        },
+        "text_extent": {
+          "candidates": 91,
+          "invalid_candidates": 0,
+          "any_candidate": 26,
+          "one_to_one": 26
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-022",
+      "targets": 45,
+      "primary_reasons": {
+        "topology_mismatch": 45
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 45,
+        "text_shared_fail": 45,
+        "slots_fail": 45
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 7,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 50,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "text_extent": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-023",
+      "targets": 108,
+      "primary_reasons": {
+        "topology_mismatch": 108
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 108,
+        "text_shared_pass": 108,
+        "slots_pass": 108
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 118,
+          "invalid_candidates": 0,
+          "any_candidate": 82,
+          "one_to_one": 82
+        },
+        "structure_prediction": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 82,
+          "one_to_one": 82
+        },
+        "text_extent": {
+          "candidates": 114,
+          "invalid_candidates": 0,
+          "any_candidate": 20,
+          "one_to_one": 20
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-024",
+      "targets": 49,
+      "primary_reasons": {
+        "topology_mismatch": 49
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 49,
+        "text_shared_pass": 49,
+        "slots_pass": 49
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 11,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 51,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 51,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 51,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-025",
+      "targets": 25,
+      "primary_reasons": {
+        "topology_mismatch": 25
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 25,
+        "text_shared_fail": 25,
+        "slots_pass": 25
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 33,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "structure_prediction": {
+          "candidates": 27,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 27,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 20,
+          "one_to_one": 20
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-026",
+      "targets": 59,
+      "primary_reasons": {
+        "topology_mismatch": 59
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 59,
+        "text_shared_pass": 59,
+        "slots_pass": 59
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 76,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 60,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 60,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 61,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-027",
+      "targets": 21,
+      "primary_reasons": {
+        "topology_mismatch": 21
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 21,
+        "text_shared_fail": 21,
+        "slots_pass": 21
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 6,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 12,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 12,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 16,
+          "one_to_one": 16
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-028",
+      "targets": 51,
+      "primary_reasons": {
+        "topology_mismatch": 51
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 51,
+        "text_shared_pass": 51,
+        "slots_fail": 51
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 93,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "structure_prediction": {
+          "candidates": 72,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 65,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 61,
+          "invalid_candidates": 0,
+          "any_candidate": 42,
+          "one_to_one": 42
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-029",
+      "targets": 109,
+      "primary_reasons": {
+        "topology_mismatch": 109
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 109,
+        "text_shared_pass": 109,
+        "slots_fail": 109
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 23,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "structure_prediction": {
+          "candidates": 143,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 105,
+          "invalid_candidates": 0,
+          "any_candidate": 33,
+          "one_to_one": 33
+        },
+        "text_extent": {
+          "candidates": 105,
+          "invalid_candidates": 0,
+          "any_candidate": 33,
+          "one_to_one": 33
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-030",
+      "targets": 53,
+      "primary_reasons": {
+        "topology_mismatch": 53
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 53,
+        "text_shared_pass": 53,
+        "slots_fail": 53
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        },
+        "structure_prediction": {
+          "candidates": 352,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 90,
+          "invalid_candidates": 0,
+          "any_candidate": 27,
+          "one_to_one": 27
+        },
+        "text_extent": {
+          "candidates": 90,
+          "invalid_candidates": 0,
+          "any_candidate": 27,
+          "one_to_one": 27
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-031",
+      "targets": 28,
+      "primary_reasons": {
+        "topology_mismatch": 28
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 28,
+        "text_shared_fail": 28,
+        "slots_pass": 28
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 55,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "structure_prediction": {
+          "candidates": 32,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 32,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 39,
+          "invalid_candidates": 0,
+          "any_candidate": 24,
+          "one_to_one": 24
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-032",
+      "targets": 84,
+      "primary_reasons": {
+        "topology_mismatch": 84
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 84,
+        "text_shared_pass": 84,
+        "slots_pass": 84
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 56,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 86,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 86,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        },
+        "text_extent": {
+          "candidates": 87,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-033",
+      "targets": 42,
+      "primary_reasons": {
+        "topology_mismatch": 42
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 42,
+        "text_shared_pass": 42,
+        "slots_pass": 42
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 44,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 44,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "text_extent": {
+          "candidates": 47,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-034",
+      "targets": 18,
+      "primary_reasons": {
+        "topology_mismatch": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 18,
+        "text_shared_fail": 18,
+        "slots_pass": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "structure_prediction": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 24,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-035",
+      "targets": 116,
+      "primary_reasons": {
+        "topology_mismatch": 116
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 116,
+        "text_shared_pass": 116,
+        "slots_pass": 116
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 169,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 129,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 129,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 118,
+          "invalid_candidates": 0,
+          "any_candidate": 34,
+          "one_to_one": 34
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-036",
+      "targets": 145,
+      "primary_reasons": {
+        "topology_mismatch": 145
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 145,
+        "text_shared_pass": 145,
+        "slots_pass": 145
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 152,
+          "invalid_candidates": 0,
+          "any_candidate": 144,
+          "one_to_one": 144
+        },
+        "structure_prediction": {
+          "candidates": 146,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 146,
+          "invalid_candidates": 0,
+          "any_candidate": 142,
+          "one_to_one": 142
+        },
+        "text_extent": {
+          "candidates": 149,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-037",
+      "targets": 20,
+      "primary_reasons": {
+        "topology_mismatch": 20
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 20,
+        "text_shared_pass": 20,
+        "slots_pass": 20
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 23,
+          "invalid_candidates": 0,
+          "any_candidate": 15,
+          "one_to_one": 15
+        },
+        "structure_prediction": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 15,
+          "one_to_one": 15
+        },
+        "text_extent": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-038",
+      "targets": 30,
+      "primary_reasons": {
+        "topology_mismatch": 30
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 30,
+        "text_shared_fail": 30,
+        "slots_pass": 30
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 50,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        },
+        "structure_prediction": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        },
+        "text_extent": {
+          "candidates": 27,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-039",
+      "targets": 198,
+      "primary_reasons": {
+        "topology_mismatch": 198
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 198,
+        "text_shared_fail": 198,
+        "slots_fail": 198
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 210,
+          "invalid_candidates": 0,
+          "any_candidate": 81,
+          "one_to_one": 81
+        },
+        "structure_prediction": {
+          "candidates": 199,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 175,
+          "invalid_candidates": 0,
+          "any_candidate": 75,
+          "one_to_one": 75
+        },
+        "text_extent": {
+          "candidates": 167,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-040",
+      "targets": 36,
+      "primary_reasons": {
+        "topology_mismatch": 36
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 36,
+        "text_shared_fail": 36,
+        "slots_fail": 36
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 31,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 31,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-041",
+      "targets": 38,
+      "primary_reasons": {
+        "topology_mismatch": 38
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 38,
+        "text_shared_pass": 38,
+        "slots_pass": 38
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 42,
+          "invalid_candidates": 0,
+          "any_candidate": 36,
+          "one_to_one": 36
+        },
+        "structure_prediction": {
+          "candidates": 39,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 39,
+          "invalid_candidates": 0,
+          "any_candidate": 32,
+          "one_to_one": 32
+        },
+        "text_extent": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-042",
+      "targets": 108,
+      "primary_reasons": {
+        "topology_mismatch": 108
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 108,
+        "text_shared_pass": 108,
+        "slots_pass": 108
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 125,
+          "invalid_candidates": 0,
+          "any_candidate": 73,
+          "one_to_one": 73
+        },
+        "structure_prediction": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 71,
+          "one_to_one": 71
+        },
+        "text_extent": {
+          "candidates": 111,
+          "invalid_candidates": 0,
+          "any_candidate": 36,
+          "one_to_one": 36
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-043",
+      "targets": 104,
+      "primary_reasons": {
+        "topology_mismatch": 104
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 104,
+        "text_shared_fail": 104,
+        "slots_fail": 104
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 74,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        },
+        "structure_prediction": {
+          "candidates": 116,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 70,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        },
+        "text_extent": {
+          "candidates": 113,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-044",
+      "targets": 138,
+      "primary_reasons": {
+        "topology_mismatch": 138
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 138,
+        "text_shared_pass": 138,
+        "slots_pass": 138
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 165,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 144,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 144,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 138,
+          "invalid_candidates": 0,
+          "any_candidate": 36,
+          "one_to_one": 36
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-045",
+      "targets": 84,
+      "primary_reasons": {
+        "topology_mismatch": 84
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 84,
+        "text_shared_pass": 84,
+        "slots_pass": 84
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 92,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "structure_prediction": {
+          "candidates": 86,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 86,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "text_extent": {
+          "candidates": 87,
+          "invalid_candidates": 0,
+          "any_candidate": 76,
+          "one_to_one": 76
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-046",
+      "targets": 15,
+      "primary_reasons": {
+        "topology_mismatch": 15
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 15,
+        "text_shared_fail": 15,
+        "slots_pass": 15
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 26,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-047",
+      "targets": 156,
+      "primary_reasons": {
+        "topology_mismatch": 156
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 156,
+        "text_shared_fail": 156,
+        "slots_fail": 156
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 153,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "structure_prediction": {
+          "candidates": 158,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 118,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 148,
+          "invalid_candidates": 0,
+          "any_candidate": 82,
+          "one_to_one": 82
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-048",
+      "targets": 18,
+      "primary_reasons": {
+        "topology_mismatch": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 18,
+        "text_shared_pass": 18,
+        "slots_pass": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "structure_prediction": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        },
+        "text_extent": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-049",
+      "targets": 133,
+      "primary_reasons": {
+        "topology_mismatch": 133
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 133,
+        "text_shared_pass": 133,
+        "slots_pass": 133
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 151,
+          "invalid_candidates": 0,
+          "any_candidate": 65,
+          "one_to_one": 65
+        },
+        "structure_prediction": {
+          "candidates": 135,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 135,
+          "invalid_candidates": 0,
+          "any_candidate": 65,
+          "one_to_one": 65
+        },
+        "text_extent": {
+          "candidates": 140,
+          "invalid_candidates": 0,
+          "any_candidate": 30,
+          "one_to_one": 30
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-050",
+      "targets": 106,
+      "primary_reasons": {
+        "topology_mismatch": 106
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 106,
+        "text_shared_pass": 106,
+        "slots_pass": 106
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 113,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        },
+        "structure_prediction": {
+          "candidates": 112,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 112,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        },
+        "text_extent": {
+          "candidates": 110,
+          "invalid_candidates": 0,
+          "any_candidate": 54,
+          "one_to_one": 54
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-051",
+      "targets": 48,
+      "primary_reasons": {
+        "topology_mismatch": 48
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 48,
+        "text_shared_fail": 48,
+        "slots_pass": 48
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 50,
+          "invalid_candidates": 0,
+          "any_candidate": 38,
+          "one_to_one": 38
+        },
+        "structure_prediction": {
+          "candidates": 39,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "postprocessed": {
+          "candidates": 39,
+          "invalid_candidates": 0,
+          "any_candidate": 30,
+          "one_to_one": 30
+        },
+        "text_extent": {
+          "candidates": 82,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-052",
+      "targets": 54,
+      "primary_reasons": {
+        "topology_mismatch": 54
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 54,
+        "text_shared_fail": 54,
+        "slots_pass": 54
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 76,
+          "invalid_candidates": 0,
+          "any_candidate": 33,
+          "one_to_one": 33
+        },
+        "structure_prediction": {
+          "candidates": 62,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 62,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "text_extent": {
+          "candidates": 73,
+          "invalid_candidates": 0,
+          "any_candidate": 34,
+          "one_to_one": 34
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-053",
+      "targets": 67,
+      "primary_reasons": {
+        "topology_mismatch": 67
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 67,
+        "text_shared_pass": 67,
+        "slots_fail": 67
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 82,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 55,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        },
+        "text_extent": {
+          "candidates": 55,
+          "invalid_candidates": 0,
+          "any_candidate": 12,
+          "one_to_one": 12
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-054",
+      "targets": 21,
+      "primary_reasons": {
+        "text_coverage_insufficient": 21
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 21,
+        "text_shared_fail": 21,
+        "slots_pass": 21
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "structure_prediction": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "text_extent": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-055",
+      "targets": 46,
+      "primary_reasons": {
+        "topology_mismatch": 46
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 46,
+        "text_shared_pass": 46,
+        "slots_pass": 46
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 82,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        },
+        "structure_prediction": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "text_extent": {
+          "candidates": 50,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-056",
+      "targets": 60,
+      "primary_reasons": {
+        "topology_mismatch": 60
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 60,
+        "text_shared_fail": 60,
+        "slots_pass": 60
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 72,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 61,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 61,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 59,
+          "invalid_candidates": 0,
+          "any_candidate": 48,
+          "one_to_one": 48
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-057",
+      "targets": 47,
+      "primary_reasons": {
+        "topology_mismatch": 47
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 47,
+        "text_shared_pass": 47,
+        "slots_fail": 47
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 60,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "structure_prediction": {
+          "candidates": 56,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 24,
+          "one_to_one": 24
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-058",
+      "targets": 129,
+      "primary_reasons": {
+        "topology_mismatch": 129
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 129,
+        "text_shared_pass": 129,
+        "slots_pass": 129
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 202,
+          "invalid_candidates": 0,
+          "any_candidate": 96,
+          "one_to_one": 96
+        },
+        "structure_prediction": {
+          "candidates": 132,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 132,
+          "invalid_candidates": 0,
+          "any_candidate": 96,
+          "one_to_one": 96
+        },
+        "text_extent": {
+          "candidates": 96,
+          "invalid_candidates": 0,
+          "any_candidate": 29,
+          "one_to_one": 29
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-059",
+      "targets": 67,
+      "primary_reasons": {
+        "topology_mismatch": 67
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 67,
+        "text_shared_fail": 67,
+        "slots_pass": 67
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 14,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "structure_prediction": {
+          "candidates": 54,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 54,
+          "invalid_candidates": 0,
+          "any_candidate": 21,
+          "one_to_one": 21
+        },
+        "text_extent": {
+          "candidates": 57,
+          "invalid_candidates": 0,
+          "any_candidate": 21,
+          "one_to_one": 21
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "pubtables-1m-060",
+      "targets": 39,
+      "primary_reasons": {
+        "topology_mismatch": 39
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 39,
+        "text_shared_pass": 39,
+        "slots_fail": 39
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 60,
+          "invalid_candidates": 0,
+          "any_candidate": 24,
+          "one_to_one": 24
+        },
+        "structure_prediction": {
+          "candidates": 48,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 44,
+          "invalid_candidates": 0,
+          "any_candidate": 23,
+          "one_to_one": 23
+        },
+        "text_extent": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 25,
+          "one_to_one": 25
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-061",
+      "targets": 15,
+      "primary_reasons": {
+        "topology_mismatch": 15
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 15,
+        "text_shared_fail": 15,
+        "slots_fail": 15
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 12,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-062",
+      "targets": 20,
+      "primary_reasons": {
+        "topology_mismatch": 20
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 20,
+        "text_shared_fail": 20,
+        "slots_pass": 20
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "structure_prediction": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "text_extent": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-063",
+      "targets": 25,
+      "primary_reasons": {
+        "topology_mismatch": 25
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 25,
+        "text_shared_fail": 25,
+        "slots_pass": 25
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "text_extent": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 17,
+          "one_to_one": 17
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-064",
+      "targets": 19,
+      "primary_reasons": {
+        "topology_mismatch": 19
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 19,
+        "text_shared_pass": 19,
+        "slots_pass": 19
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "structure_prediction": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 16,
+          "one_to_one": 16
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-065",
+      "targets": 14,
+      "primary_reasons": {
+        "topology_mismatch": 14
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 14,
+        "text_shared_pass": 14,
+        "slots_pass": 14
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "text_extent": {
+          "candidates": 12,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-066",
+      "targets": 40,
+      "primary_reasons": {
+        "topology_mismatch": 40
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 40,
+        "text_shared_pass": 40,
+        "slots_pass": 40
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 42,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "structure_prediction": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        },
+        "text_extent": {
+          "candidates": 32,
+          "invalid_candidates": 0,
+          "any_candidate": 30,
+          "one_to_one": 30
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-067",
+      "targets": 22,
+      "primary_reasons": {
+        "topology_mismatch": 22
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 22,
+        "text_shared_pass": 22,
+        "slots_fail": 22
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "structure_prediction": {
+          "candidates": 32,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "text_extent": {
+          "candidates": 23,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-068",
+      "targets": 38,
+      "primary_reasons": {
+        "topology_mismatch": 38
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 38,
+        "text_shared_pass": 38,
+        "slots_pass": 38
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 37,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 37,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 36,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-069",
+      "targets": 52,
+      "primary_reasons": {
+        "topology_mismatch": 52
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 52,
+        "text_shared_fail": 52,
+        "slots_pass": 52
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 114,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 74,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 74,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "text_extent": {
+          "candidates": 59,
+          "invalid_candidates": 0,
+          "any_candidate": 20,
+          "one_to_one": 20
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-070",
+      "targets": 24,
+      "primary_reasons": {
+        "text_coverage_insufficient": 24
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 24,
+        "text_shared_fail": 24,
+        "slots_pass": 24
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 24,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "structure_prediction": {
+          "candidates": 24,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 24,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "text_extent": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-071",
+      "targets": 14,
+      "primary_reasons": {
+        "text_coverage_insufficient": 14
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 14,
+        "text_shared_fail": 14,
+        "slots_pass": 14
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "structure_prediction": {
+          "candidates": 14,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 14,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "text_extent": {
+          "candidates": 9,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-072",
+      "targets": 152,
+      "primary_reasons": {
+        "topology_mismatch": 152
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 152,
+        "text_shared_pass": 152,
+        "slots_pass": 152
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 153,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 147,
+          "invalid_candidates": 1,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 148,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 119,
+          "invalid_candidates": 0,
+          "any_candidate": 98,
+          "one_to_one": 98
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-073",
+      "targets": 40,
+      "primary_reasons": {
+        "accepted": 38,
+        "text_anchor_disagrees": 2
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 40,
+        "text_shared_pass": 40,
+        "slots_pass": 40
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "structure_prediction": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "text_extent": {
+          "candidates": 35,
+          "invalid_candidates": 0,
+          "any_candidate": 29,
+          "one_to_one": 29
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-074",
+      "targets": 14,
+      "primary_reasons": {
+        "postprocessed_box_without_unique_detection_support": 8,
+        "accepted": 4,
+        "text_anchor_disagrees": 2
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 14,
+        "text_shared_pass": 14,
+        "slots_pass": 14
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 14,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 14,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "text_extent": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-075",
+      "targets": 14,
+      "primary_reasons": {
+        "topology_mismatch": 14
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 14,
+        "text_shared_pass": 14,
+        "slots_pass": 14
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 12,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-076",
+      "targets": 18,
+      "primary_reasons": {
+        "accepted": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 18,
+        "text_shared_pass": 18,
+        "slots_pass": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "text_extent": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-077",
+      "targets": 15,
+      "primary_reasons": {
+        "accepted": 15
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 15,
+        "text_shared_pass": 15,
+        "slots_pass": 15
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "structure_prediction": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "text_extent": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-078",
+      "targets": 40,
+      "primary_reasons": {
+        "accepted": 35,
+        "postprocessed_box_without_unique_detection_support": 4,
+        "text_anchor_disagrees": 1
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 40,
+        "text_shared_pass": 40,
+        "slots_pass": 40
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 15,
+          "one_to_one": 15
+        },
+        "structure_prediction": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "text_extent": {
+          "candidates": 35,
+          "invalid_candidates": 0,
+          "any_candidate": 30,
+          "one_to_one": 30
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-079",
+      "targets": 20,
+      "primary_reasons": {
+        "topology_mismatch": 20
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 20,
+        "text_shared_fail": 20,
+        "slots_fail": 20
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 23,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "structure_prediction": {
+          "candidates": 32,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "text_extent": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-080",
+      "targets": 18,
+      "primary_reasons": {
+        "topology_mismatch": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 18,
+        "text_shared_fail": 18,
+        "slots_fail": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "structure_prediction": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "text_extent": {
+          "candidates": 13,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-081",
+      "targets": 15,
+      "primary_reasons": {
+        "topology_mismatch": 15
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 15,
+        "text_shared_fail": 15,
+        "slots_fail": 15
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "postprocessed": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 90,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-082",
+      "targets": 42,
+      "primary_reasons": {
+        "topology_mismatch": 42
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 42,
+        "text_shared_pass": 42,
+        "slots_pass": 42
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        },
+        "structure_prediction": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "text_extent": {
+          "candidates": 37,
+          "invalid_candidates": 0,
+          "any_candidate": 32,
+          "one_to_one": 32
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-083",
+      "targets": 18,
+      "primary_reasons": {
+        "topology_mismatch": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 18,
+        "text_shared_pass": 18,
+        "slots_fail": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "text_extent": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-084",
+      "targets": 30,
+      "primary_reasons": {
+        "text_coverage_insufficient": 30
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 30,
+        "text_shared_fail": 30,
+        "slots_pass": 30
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "structure_prediction": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 26,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-085",
+      "targets": 22,
+      "primary_reasons": {
+        "accepted": 15,
+        "text_anchor_disagrees": 7
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 22,
+        "text_shared_pass": 22,
+        "slots_pass": 22
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "structure_prediction": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 22,
+          "invalid_candidates": 0,
+          "any_candidate": 9,
+          "one_to_one": 9
+        },
+        "text_extent": {
+          "candidates": 38,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-086",
+      "targets": 26,
+      "primary_reasons": {
+        "topology_mismatch": 26
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 26,
+        "text_shared_pass": 26,
+        "slots_pass": 26
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 26,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "structure_prediction": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 1,
+          "one_to_one": 1
+        },
+        "text_extent": {
+          "candidates": 25,
+          "invalid_candidates": 0,
+          "any_candidate": 16,
+          "one_to_one": 16
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-087",
+      "targets": 80,
+      "primary_reasons": {
+        "accepted": 77,
+        "text_anchor_disagrees": 3
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 80,
+        "text_shared_pass": 80,
+        "slots_pass": 80
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 80,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "structure_prediction": {
+          "candidates": 80,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 80,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 69,
+          "invalid_candidates": 0,
+          "any_candidate": 39,
+          "one_to_one": 39
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-088",
+      "targets": 13,
+      "primary_reasons": {
+        "topology_mismatch": 13
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 13,
+        "text_shared_pass": 13,
+        "slots_pass": 13
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 7,
+          "one_to_one": 7
+        },
+        "structure_prediction": {
+          "candidates": 10,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 10,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "text_extent": {
+          "candidates": 10,
+          "invalid_candidates": 0,
+          "any_candidate": 8,
+          "one_to_one": 8
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-089",
+      "targets": 16,
+      "primary_reasons": {
+        "postprocessed_box_without_unique_detection_support": 2,
+        "accepted": 11,
+        "text_anchor_disagrees": 3
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 16,
+        "text_shared_pass": 16,
+        "slots_pass": 16
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-090",
+      "targets": 23,
+      "primary_reasons": {
+        "topology_mismatch": 23
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 23,
+        "text_shared_pass": 23,
+        "slots_pass": 23
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 28,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 19,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 15,
+          "one_to_one": 15
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-091",
+      "targets": 75,
+      "primary_reasons": {
+        "topology_mismatch": 75
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 75,
+        "text_shared_pass": 75,
+        "slots_pass": 75
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 91,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "structure_prediction": {
+          "candidates": 67,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 67,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        },
+        "text_extent": {
+          "candidates": 72,
+          "invalid_candidates": 0,
+          "any_candidate": 60,
+          "one_to_one": 60
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-092",
+      "targets": 82,
+      "primary_reasons": {
+        "topology_mismatch": 82
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 82,
+        "text_shared_pass": 82,
+        "slots_fail": 82
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 118,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        },
+        "structure_prediction": {
+          "candidates": 125,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 109,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        },
+        "text_extent": {
+          "candidates": 88,
+          "invalid_candidates": 0,
+          "any_candidate": 70,
+          "one_to_one": 70
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-093",
+      "targets": 15,
+      "primary_reasons": {
+        "repeated_or_empty_content_ambiguous": 1,
+        "accepted": 11,
+        "text_anchor_disagrees": 3
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 15,
+        "text_shared_pass": 15,
+        "slots_pass": 15
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "structure_prediction": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "text_extent": {
+          "candidates": 15,
+          "invalid_candidates": 0,
+          "any_candidate": 14,
+          "one_to_one": 14
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-094",
+      "targets": 34,
+      "primary_reasons": {
+        "topology_mismatch": 34
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 34,
+        "text_shared_pass": 34,
+        "slots_fail": 34
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "structure_prediction": {
+          "candidates": 53,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 5,
+          "one_to_one": 5
+        },
+        "text_extent": {
+          "candidates": 31,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-095",
+      "targets": 34,
+      "primary_reasons": {
+        "topology_mismatch": 34
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 34,
+        "text_shared_pass": 34,
+        "slots_pass": 34
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 34,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 30,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 29,
+          "invalid_candidates": 0,
+          "any_candidate": 28,
+          "one_to_one": 28
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-096",
+      "targets": 41,
+      "primary_reasons": {
+        "topology_mismatch": 41
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 41,
+        "text_shared_pass": 41,
+        "slots_pass": 41
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 52,
+          "invalid_candidates": 0,
+          "any_candidate": 22,
+          "one_to_one": 22
+        },
+        "structure_prediction": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        },
+        "text_extent": {
+          "candidates": 35,
+          "invalid_candidates": 0,
+          "any_candidate": 32,
+          "one_to_one": 32
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-097",
+      "targets": 21,
+      "primary_reasons": {
+        "topology_mismatch": 21
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 21,
+        "text_shared_fail": 21,
+        "slots_pass": 21
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 23,
+          "invalid_candidates": 0,
+          "any_candidate": 11,
+          "one_to_one": 11
+        },
+        "structure_prediction": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 16,
+          "invalid_candidates": 0,
+          "any_candidate": 10,
+          "one_to_one": 10
+        },
+        "text_extent": {
+          "candidates": 17,
+          "invalid_candidates": 0,
+          "any_candidate": 16,
+          "one_to_one": 16
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-098",
+      "targets": 25,
+      "primary_reasons": {
+        "topology_mismatch": 25
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 25,
+        "text_shared_fail": 25,
+        "slots_pass": 25
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 43,
+          "invalid_candidates": 0,
+          "any_candidate": 6,
+          "one_to_one": 6
+        },
+        "structure_prediction": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "text_extent": {
+          "candidates": 21,
+          "invalid_candidates": 0,
+          "any_candidate": 18,
+          "one_to_one": 18
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-099",
+      "targets": 30,
+      "primary_reasons": {
+        "topology_mismatch": 30
+      },
+      "gates_independent_not_additive": {
+        "topology_fail": 30,
+        "text_shared_pass": 30,
+        "slots_pass": 30
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 41,
+          "invalid_candidates": 0,
+          "any_candidate": 4,
+          "one_to_one": 4
+        },
+        "structure_prediction": {
+          "candidates": 29,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 29,
+          "invalid_candidates": 0,
+          "any_candidate": 2,
+          "one_to_one": 2
+        },
+        "text_extent": {
+          "candidates": 24,
+          "invalid_candidates": 0,
+          "any_candidate": 19,
+          "one_to_one": 19
+        }
+      },
+      "legacy_replay_identical": true
+    },
+    {
+      "id": "fintabnet-100",
+      "targets": 18,
+      "primary_reasons": {
+        "text_coverage_insufficient": 18
+      },
+      "gates_independent_not_additive": {
+        "topology_pass": 18,
+        "text_shared_fail": 18,
+        "slots_pass": 18
+      },
+      "oracle_diagnostic_only": {
+        "direct_detection": {
+          "candidates": 40,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "structure_prediction": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 0,
+          "one_to_one": 0
+        },
+        "postprocessed": {
+          "candidates": 18,
+          "invalid_candidates": 0,
+          "any_candidate": 3,
+          "one_to_one": 3
+        },
+        "text_extent": {
+          "candidates": 20,
+          "invalid_candidates": 0,
+          "any_candidate": 13,
+          "one_to_one": 13
+        }
+      },
+      "legacy_replay_identical": true
+    }
+  ]
+}

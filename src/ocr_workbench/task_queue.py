@@ -31,6 +31,7 @@ class TaskQueue:
         self.recovery_requested = threading.Event()
         self.retry_delays = (0.3, 0.6, 1.2, 2.4, 5.0)
         self.fusion_only = False
+        self.review_factory = None
 
     def start(self):
         with self.guard:
@@ -192,12 +193,31 @@ class TaskQueue:
                 self.recovery_task = None
                 return True
         try:
+            if task.get("kind") == "multimodal":
+                self._run_multimodal(task)
+                return True
             from ocr_workbench.imaging import prepare_task
+            geometry_provider, shared_context = 'paddle', None
 
             prepared = prepare_task(self.store, task)
             if prepared is None:
                 raise Cancelled()
             task = prepared
+            if task.get('kind') == 'geometry':
+                import json
+                import hashlib
+                from ocr_workbench.geometry import complete_geometry
+                request_row = self.store.rows('SELECT snapshot FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
+                geometry_snapshot = json.loads(request_row['snapshot'])
+                geometry_provider = geometry_snapshot.get('geometry_provider', 'paddle')
+                candidate = geometry_snapshot.get('candidate_artifact')
+                if candidate:
+                    artifact = self.store.file(candidate['path'])
+                    if artifact.exists() and hashlib.sha256(artifact.read_bytes()).hexdigest() == candidate['sha256']:
+                        if self.cancel_event.is_set() or self.stopping.is_set():
+                            raise Cancelled()
+                        complete_geometry(self.store, task, json.loads(artifact.read_text('utf-8')), artifact, candidate_cache_hit=True)
+                        return True
             resolved = (
                 self.registry.resolve(
                     task["engine"], task.get("engine_package", "builtin")
@@ -205,9 +225,25 @@ class TaskQueue:
                 if self.registry and task.get('kind') != 'geometry'
                 else self.bundle
             )
+            if task.get('kind') == 'geometry' and geometry_provider != 'paddle':
+                regions = json.loads(self.store.rows('SELECT regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]['regions'])
+                if not geometry_snapshot.get('ocr_blocks') or not regions:
+                    self.unload()
+                    with self.guard:
+                        self.adapter = self.factory(resolved, 'geometry', self.store.root / 'sessions')
+                        self.adapter.configure_geometry('context')
+                        self.adapter.cancelled = self.cancel_event
+                    self.adapter.load()
+                    context_output = self.store.root / 'task-results' / task['id'] / ('context-' + str(time.time_ns()))
+                    context_output.mkdir(parents=True)
+                    version = self.store.one('versions', task['version_id'])
+                    shared_context = self.adapter.recognize(self.store.file(version['path']), context_output,
+                        {**geometry_snapshot, 'regions': regions})
+                    self.unload()
             if self.adapter and (
                 self.adapter.engine != task["engine"]
                 or getattr(self.adapter, "bundle", self.bundle) != resolved
+                or task.get('kind') == 'geometry' and getattr(self.adapter, 'geometry_provider', 'paddle') != geometry_provider
             ):
                 self.unload()
             if self.adapter is None:
@@ -218,6 +254,8 @@ class TaskQueue:
                         self.store.root / "sessions",
                     )
                     self.adapter.cancelled = self.cancel_event
+                    if task.get('kind') == 'geometry' and hasattr(self.adapter, 'configure_geometry'):
+                        self.adapter.configure_geometry(geometry_provider)
                 self.adapter.load()
             else:
                 self.adapter.cancelled = self.cancel_event
@@ -251,7 +289,16 @@ class TaskQueue:
                 import json
                 geometry_request = self.store.rows('SELECT snapshot,regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
                 snapshot = json.loads(geometry_request['snapshot'])
-                data = self.adapter.recognize(input_image, output, {**snapshot, 'regions': json.loads(geometry_request['regions'])})
+                request = {**snapshot, 'regions': json.loads(geometry_request['regions'])}
+                if shared_context:
+                    request.update({key: shared_context[key] for key in ('regions', 'ocr_blocks', 'ocr_source')})
+                data = self.adapter.recognize(input_image, output, request)
+                if shared_context:
+                    data['context_seconds'] = shared_context['inference_seconds']
+                    from ocr_workbench.atomic_files import write_json
+                    write_json(output / 'geometry.json', data, durable=True)
+            elif task.get('kind') == 'region_ocr':
+                data = self.adapter.recognize(input_image, output, allow_empty=True)
             else:
                 data = self.adapter.recognize(input_image, output)
             if task.get("kind") == "dewarp":
@@ -301,15 +348,54 @@ class TaskQueue:
 
             with self.store.transaction() as db:
                 db.execute(
-                    "UPDATE tasks SET status='failed',phase='识别失败',error=?,finished=? WHERE id=? AND status='running'",
-                    (friendly_engine_error(error), now(), task["id"]),
+                    "UPDATE tasks SET status='failed',phase=?,error=?,finished=? WHERE id=? AND status='running'",
+                    ("审校失败" if task.get("kind") == "multimodal" else "识别失败",
+                     friendly_engine_error(error), now(), task["id"]),
                 )
             self.unload()
         finally:
             with self.guard:
                 self.current = None
-        self.recovery_task = None
+                self.recovery_task = None
         return True
+
+    def _run_multimodal(self, task):
+        """Run an auxiliary review inside the queue's existing GPU ownership."""
+        from ocr_workbench.multimodal_store import prepare_review, complete_review
+        from ocr_workbench.multimodal_runtime import ReviewSession, ReviewCancelled
+        from ocr_workbench.atomic_files import write_json
+
+        self.unload()
+        snapshot = prepare_review(self.store, task["id"])
+        output = self.store.root / "task-results" / task["id"] / str(time.time_ns())
+        output.mkdir(parents=True)
+
+        def progress(done, total):
+            if self.cancel_event.is_set() or self.stopping.is_set():
+                raise Cancelled()
+            with self.store.transaction() as db:
+                changed = db.execute(
+                    "UPDATE tasks SET phase=? WHERE id=? AND status='running'",
+                    (f"视觉审校 {done}/{total}", task["id"]),
+                ).rowcount
+            if changed != 1:
+                raise Cancelled()
+
+        progress(0, len(snapshot["targets"]))
+        factory = self.review_factory or ReviewSession
+        try:
+            with factory(self.bundle, snapshot["config"], output, self.cancel_event) as session:
+                response = session.review(
+                    self.store.file(snapshot["image_relative_path"]), snapshot,
+                    progress_callback=progress,
+                )
+        except ReviewCancelled as error:
+            raise Cancelled() from error
+        if self.cancel_event.is_set() or self.stopping.is_set():
+            raise Cancelled()
+        write_json(output / "review.json", response, durable=True)
+        response["artifact"] = str((output / "review.json").relative_to(self.store.root))
+        complete_review(self.store, task["id"], response)
 
     def action(self, project_id, action, task_ids=None):
         self.store.one("projects", project_id)
@@ -414,5 +500,5 @@ class FusionQueue(TaskQueue):
         finally:
             with self.guard:
                 self.current = None
-        self.recovery_task = None
+                self.recovery_task = None
         return True

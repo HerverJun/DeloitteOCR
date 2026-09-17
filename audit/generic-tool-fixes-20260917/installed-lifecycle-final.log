@@ -1,0 +1,18 @@
+Installed module: E:\OCR-generic-tool-fixes-20260917\bundle\app\ocr_workbench\table_tool.py
+test_auxiliary_timeout_and_crash_preserve_base_result_and_show_review_issue (test_table_tool_lifecycle.TableToolLifecycleTests.test_auxiliary_timeout_and_crash_preserve_base_result_and_show_review_issue) ... ok
+test_base_render_never_runs_auxiliary_tool (test_table_tool_lifecycle.TableToolLifecycleTests.test_base_render_never_runs_auxiliary_tool) ... ok
+test_broken_cache_recomputes_and_empty_detection_is_not_failure (test_table_tool_lifecycle.TableToolLifecycleTests.test_broken_cache_recomputes_and_empty_detection_is_not_failure) ... ok
+test_cache_reuse_config_change_and_legacy_snapshot (test_table_tool_lifecycle.TableToolLifecycleTests.test_cache_reuse_config_change_and_legacy_snapshot) ... ok
+test_encrypted_auxiliary_retry_waits_for_password_and_resumes (test_table_tool_lifecycle.TableToolLifecycleTests.test_encrypted_auxiliary_retry_waits_for_password_and_resumes) ... ok
+test_real_subprocess_timeout_retains_published_native_page (test_table_tool_lifecycle.TableToolLifecycleTests.test_real_subprocess_timeout_retains_published_native_page) ... ok
+test_resuming_regions_refreshes_auxiliary_snapshot_without_repeating_completed_ocr (test_table_tool_lifecycle.TableToolLifecycleTests.test_resuming_regions_refreshes_auxiliary_snapshot_without_repeating_completed_ocr) ... ok
+test_retry_failure_and_cancellation_remain_actionable (test_table_tool_lifecycle.TableToolLifecycleTests.test_retry_failure_and_cancellation_remain_actionable) ... ok
+test_retry_preserves_manual_edit_revision_history_selection_and_original (test_table_tool_lifecycle.TableToolLifecycleTests.test_retry_preserves_manual_edit_revision_history_selection_and_original) ... ok
+test_service_stop_during_tool_remains_interrupted_without_publishing (test_table_tool_lifecycle.TableToolLifecycleTests.test_service_stop_during_tool_remains_interrupted_without_publishing) ... ok
+test_stop_after_tool_returns_also_prevents_publication (test_table_tool_lifecycle.TableToolLifecycleTests.test_stop_after_tool_returns_also_prevents_publication) ... ok
+test_waiting_unlock_propagates_without_failure_or_partial_result (test_table_tool_lifecycle.TableToolLifecycleTests.test_waiting_unlock_propagates_without_failure_or_partial_result) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 35.525s
+
+OK

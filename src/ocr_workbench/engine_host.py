@@ -16,12 +16,16 @@ def publish(path, data):
 
 
 class Resident:
-    def __init__(self, bundle, engine, ipc):
+    def __init__(self, bundle, engine, ipc, geometry_provider='paddle'):
         self.bundle, self.engine = bundle, engine
         self.stack = ExitStack()
         self.first = True
         try:
-            if engine in {"ppocr", "paddlevl", "dewarp", "geometry"}:
+            if engine == 'geometry' and geometry_provider in ('tableformer-raw', 'rapidtable'):
+                from ocr_workbench.geometry_candidate_worker import CandidateSession
+                self.session = CandidateSession(geometry_provider)
+                self.loaded = self.session.loaded
+            elif engine in {"ppocr", "paddlevl", "dewarp", "geometry"}:
                 from ocr_workbench.windows_paths import ascii_model_directory
                 from ocr_workbench.worker import load_paddle
 
@@ -29,8 +33,8 @@ class Resident:
                     ascii_model_directory(bundle / "models")
                 )
                 if engine == "geometry":
-                    from ocr_workbench.table_geometry_worker import GeometrySession
-                    self.session = GeometrySession(self.models)
+                    from ocr_workbench.table_geometry_worker import GeometrySession, GeometryContextSession
+                    self.session = (GeometryContextSession if geometry_provider == 'context' else GeometrySession)(self.models)
                     self.loaded = self.session.loaded
                 elif engine == "dewarp":
                     from paddlex import create_model
@@ -133,6 +137,7 @@ def main():
         choices=["ppocr", "paddlevl", "glm", "hunyuan", "dewarp", "geometry"],
     )
     p.add_argument("--ipc", type=Path, required=True)
+    p.add_argument('--geometry-provider', choices=['paddle', 'tableformer-raw', 'rapidtable', 'context'], default='paddle')
     args = p.parse_args()
     from ocr_workbench.offline import configure, install_guard
 
@@ -140,7 +145,7 @@ def main():
     install_guard(args.ipc / "network-blocked.log")
     session = None
     try:
-        session = Resident(args.bundle, args.engine, args.ipc)
+        session = Resident(args.bundle, args.engine, args.ipc, args.geometry_provider)
         publish(
             args.ipc / "status.json",
             {"status": "ready", "load_seconds": session.loaded},

@@ -60,6 +60,8 @@ class PdfCPU:
                         if cancelled():
                             raise DocumentCancelled()
                         if time.monotonic() > deadline:
+                            if request['operation'] == 'table-structure':
+                                raise TimeoutError('表格提取超时；页面与原生文字已保存，可单独重试表格提取')
                             raise TimeoutError('PDF 页面处理超时，请降低 DPI 或检查文档')
                         time.sleep(.05)
                     if process.returncode or not response.is_file():
@@ -198,7 +200,9 @@ class Documents:
             raise ValueError('请选择四种识别引擎之一')
         if self.review_only and mode != 'native':
             raise ValueError('仅校对模式支持原生 PDF 提取；OCR 请使用完整模式')
-        key = self.store.enqueue_document_stage(page_id, 'process', {'mode': mode, 'engine': engine}, force=force)
+        from ocr_workbench.table_tool import tool_identity
+        key = self.store.enqueue_document_stage(page_id, 'process',
+            {'mode': mode, 'engine': engine, 'pipeline_version': 3, 'pdf_table_tool': tool_identity()['key']}, force=force)
         self.wake.set()
         return key
 
@@ -249,6 +253,9 @@ class Documents:
                 with self.store.transaction() as db:
                     db.execute('UPDATE document_stages SET version_id=? WHERE id=? AND version_id IS NULL', (image['active_version'],stage['id']))
                 self.store.finish_document_stage(stage['id'], {'image_id': image['id']})
+            elif stage['kind'] == 'table_structure':
+                from ocr_workbench.table_tool import retry_stage
+                retry_stage(self, stage, cancelled)
             else:
                 process_stage(self, stage, cancelled)
         except WaitingUnlock:

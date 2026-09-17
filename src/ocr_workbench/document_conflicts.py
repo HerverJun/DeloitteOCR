@@ -20,9 +20,9 @@ def acknowledge_conflict(store, result_id, conflict_id, revision):
         db.execute('BEGIN IMMEDIATE')
         row = db.execute('SELECT original,edited,revision FROM results WHERE id=?', (result_id,)).fetchone()
         if row is None: raise KeyError('结果不存在')
-        if row['revision'] != revision: raise Conflict('结果已变化，请保存并重新核对重叠内容')
+        if row['revision'] != revision: raise Conflict('结果已变化，请保存并重新核对页面内容')
         if not any(c['id'] == conflict_id for c in json.loads(row['original']).get('document', {}).get('conflicts', [])):
-            raise ValueError('重叠冲突不存在')
+            raise ValueError('页面复核项不存在')
         db.execute('INSERT OR REPLACE INTO document_conflict_decisions VALUES(?,?,?,?,?)',
                    (result_id, conflict_id, revision, fingerprint(json.loads(row['edited'])), now()))
         return {'saved': True, 'revision': revision}

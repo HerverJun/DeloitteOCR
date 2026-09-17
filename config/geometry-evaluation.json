@@ -1,19 +1,48 @@
 {
-  "protocol_version": 1,
+  "protocol_version": 2,
   "created": "2026-09-13",
   "production_default": false,
   "experimental_until_passed": true,
-  "minimum_tables": 100,
-  "minimum_targets": 1000,
-  "group_by": "original_document_id",
+  "minimum_tables": 120,
+  "minimum_targets": 6000,
+  "group_by": "original_document_or_template_group",
   "exclude_prior_tuning_materials": true,
-  "cohorts": ["pubtables-1m", "fintabnet", "chinese", "borderless", "merged", "photo"],
+  "cohorts": [
+    "pubtables-1m",
+    "fintabnet",
+    "chinese",
+    "borderless",
+    "merged",
+    "photo"
+  ],
   "text_results_fixed": true,
-  "comparators": ["existing-region", "paddle-table-v2", "rapidtable"],
+  "comparators": [
+    "B0",
+    "B1",
+    "B2",
+    "N1",
+    "N2",
+    "N3-development-probe"
+  ],
   "iou_threshold": 0.5,
   "minimum_precise_coverage": 0.9,
   "maximum_wrong_cell_rate": 0.01,
   "cached_ui_p95_ms": 300,
   "human_time_status": "not_measured",
-  "target_machine_status": {"A4000": "not_measured", "independent_windows": "not_measured"}
+  "target_machine_status": {
+    "A4000": "not_measured",
+    "independent_windows": "not_measured"
+  },
+  "minimum_independent_documents": 100,
+  "minimum_offered_quality": 0.95,
+  "correspondence_p95_ms": 200,
+  "correspondence_maximum_cells_for_budget": 250,
+  "tracks": [
+    "control",
+    "real-result",
+    "page-detection",
+    "polygon-detection-supplement"
+  ],
+  "legacy_protocol": "geometry-evaluation-legacy-v1.json",
+  "legacy_reports_immutable": true
 }

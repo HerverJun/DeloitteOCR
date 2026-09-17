@@ -1,0 +1,651 @@
+{
+  "boundary_convention": "full_grid",
+  "tolerance_pixels": 2,
+  "annotations_sha256": "eed6c4438c4e87e377aae890d83b1c0ec330aa54524c920d6509e6b7ad4a5a59",
+  "manifest_sha256": "f85e1fe4d0c46cbd104c4d32b5fd430dfe2d861a6862bbabbe7c8264c74cf59d",
+  "source_archive_sha256": "be13440e09f9ecc2b502dc87898420080bf572986a2ae74e0b8713d5cebaa384",
+  "uses_predictions_or_ocr": false,
+  "complete": true,
+  "samples": [
+    {
+      "id": "PMC4995370_table_0",
+      "targets": 174,
+      "status": "pass",
+      "maximum_pixel_error": 0.9273000000000025,
+      "targets_within_2px": 174,
+      "xml_sha256": "85ef033856922cca914b1464860087deb5e6911d89b439e74a62c98d315540dc"
+    },
+    {
+      "id": "PMC4369829_table_0",
+      "targets": 51,
+      "status": "pass",
+      "maximum_pixel_error": 0.6411000000000513,
+      "targets_within_2px": 51,
+      "xml_sha256": "a90f34b4cf07a02a3e0d39b1aeb4a65629e9d6f923edbef8f0a48307d8c0dbef"
+    },
+    {
+      "id": "PMC5717048_table_0",
+      "targets": 157,
+      "status": "pass",
+      "maximum_pixel_error": 0.9273000000000025,
+      "targets_within_2px": 157,
+      "xml_sha256": "2023b1fd1a9c7486221e4bc6bf7fc9e04f03cf182ffd02123fd96ef4b64ce263"
+    },
+    {
+      "id": "PMC3574653_table_0",
+      "targets": 55,
+      "status": "pass",
+      "maximum_pixel_error": 0.787399999999991,
+      "targets_within_2px": 55,
+      "xml_sha256": "5ef9045f2e2a3d28f6e3e17dfa76f9b4f434a37c136b61866d47430d52a8f569"
+    },
+    {
+      "id": "PMC2577118_table_0",
+      "targets": 86,
+      "status": "pass",
+      "maximum_pixel_error": 0.6646999999999821,
+      "targets_within_2px": 86,
+      "xml_sha256": "6c362dfe91415983c7c35d4e37f337a3bd48aa7694d84e48a4be183172276d4e"
+    },
+    {
+      "id": "PMC4566864_table_0",
+      "targets": 92,
+      "status": "pass",
+      "maximum_pixel_error": 0.9446000000000367,
+      "targets_within_2px": 92,
+      "xml_sha256": "a724189c35b8432f6731ef32b7b7f539c8ab675660efb2e6a71234d9baa96864"
+    },
+    {
+      "id": "PMC4795784_table_1",
+      "targets": 220,
+      "status": "pass",
+      "maximum_pixel_error": 0.8100000000000023,
+      "targets_within_2px": 220,
+      "xml_sha256": "07832ebd8ad152c52f4fdb555b6abf507781036c6f98d6b97b11da88865a4d98"
+    },
+    {
+      "id": "PMC3212536_table_1",
+      "targets": 71,
+      "status": "pass",
+      "maximum_pixel_error": 0.8208999999999946,
+      "targets_within_2px": 71,
+      "xml_sha256": "ad4bc2add6678201f625c88f1ccb6352d3f8d370428250ea02ae1eaef485ce4c"
+    },
+    {
+      "id": "PMC5147856_table_0",
+      "targets": 214,
+      "status": "pass",
+      "maximum_pixel_error": 0.467200000000048,
+      "targets_within_2px": 214,
+      "xml_sha256": "76479b9bf224886a73b5b1bcec0e68556d881fe1ff9fbe280aac0828b442f092"
+    },
+    {
+      "id": "PMC2761847_table_0",
+      "targets": 68,
+      "status": "pass",
+      "maximum_pixel_error": 0.9280999999999722,
+      "targets_within_2px": 68,
+      "xml_sha256": "d89939f73eaaac7d696e88ae72bd5b420bad9bd74f3334e8df717789bd700720"
+    },
+    {
+      "id": "PMC4498019_table_2",
+      "targets": 63,
+      "status": "pass",
+      "maximum_pixel_error": 0.5080000000000027,
+      "targets_within_2px": 63,
+      "xml_sha256": "497f0dc2c99e6bec0e6d23c34672d2684ea006ac0f590eeb6f08956e8a6748ca"
+    },
+    {
+      "id": "PMC6156584_table_0",
+      "targets": 87,
+      "status": "pass",
+      "maximum_pixel_error": 0.9420000000000002,
+      "targets_within_2px": 87,
+      "xml_sha256": "29e6d9b59e8c3df6f1de29e371dbc8c54a8e7b897f5158163f0421b6aa5716fa"
+    },
+    {
+      "id": "PMC3198435_table_2",
+      "targets": 68,
+      "status": "pass",
+      "maximum_pixel_error": 0.841700000000003,
+      "targets_within_2px": 68,
+      "xml_sha256": "a68fddcdf977af45e279328e3c342300f49b613bbe4e6fe7de1a476d25723dc3"
+    },
+    {
+      "id": "PMC6210530_table_2",
+      "targets": 100,
+      "status": "pass",
+      "maximum_pixel_error": 0.9188000000000329,
+      "targets_within_2px": 100,
+      "xml_sha256": "655c7c2dcec858c016d979e7055ef4e1af927d589f011be0bdbd658774bea889"
+    },
+    {
+      "id": "PMC1929140_table_0",
+      "targets": 89,
+      "status": "pass",
+      "maximum_pixel_error": 0.917900000000003,
+      "targets_within_2px": 89,
+      "xml_sha256": "1938f46a2ff999ed765dd0118931d4b89cb56ff0b7a72da03720b75b7333d8c0"
+    },
+    {
+      "id": "PMC2817697_table_0",
+      "targets": 93,
+      "status": "pass",
+      "maximum_pixel_error": 0.8679000000000201,
+      "targets_within_2px": 93,
+      "xml_sha256": "95a4a4bb667329b23638a2deb173ac43127866ffe4383175b959660127b4561c"
+    },
+    {
+      "id": "PMC4940880_table_2",
+      "targets": 79,
+      "status": "pass",
+      "maximum_pixel_error": 0.9722000000000008,
+      "targets_within_2px": 79,
+      "xml_sha256": "d790e8a95e1737f55a1594949770f6a4eb9a6b2ea214a96118901c3df3fe38c6"
+    },
+    {
+      "id": "PMC5685491_table_1",
+      "targets": 93,
+      "status": "pass",
+      "maximum_pixel_error": 0.7614999999999981,
+      "targets_within_2px": 93,
+      "xml_sha256": "74e0eda96d9d42f53da26a21a6feef8ddd15ec3698fd1b8deed5eec76e7464ae"
+    },
+    {
+      "id": "PMC5829779_table_3",
+      "targets": 52,
+      "status": "pass",
+      "maximum_pixel_error": 0.7222000000000435,
+      "targets_within_2px": 52,
+      "xml_sha256": "d941c0037ab0aeda93ba2afcd93b0b77d75c041550512f48077e878162670e4c"
+    },
+    {
+      "id": "PMC4607152_table_2",
+      "targets": 104,
+      "status": "pass",
+      "maximum_pixel_error": 0.7984999999999332,
+      "targets_within_2px": 104,
+      "xml_sha256": "c37f026beddbd7b3c7b3ed3bc11ff0bebd4fbb520c9413c56e2451b34b660e28"
+    },
+    {
+      "id": "PMC2846848_table_0",
+      "targets": 110,
+      "status": "pass",
+      "maximum_pixel_error": 0.7954000000000008,
+      "targets_within_2px": 110,
+      "xml_sha256": "c2744f38e52730e56b8c73769d9ea6ba3c0b157984b95c3da6f118ae6a15800c"
+    },
+    {
+      "id": "PMC4601795_table_1",
+      "targets": 191,
+      "status": "pass",
+      "maximum_pixel_error": 0.9924000000000035,
+      "targets_within_2px": 191,
+      "xml_sha256": "af80e56f050846b84e50fb228bf03ba59b7ee25329a6e05e29f394ecd1740436"
+    },
+    {
+      "id": "PMC5142779_table_0",
+      "targets": 61,
+      "status": "pass",
+      "maximum_pixel_error": 0.5656999999999925,
+      "targets_within_2px": 61,
+      "xml_sha256": "9f64c1b00e936249f440aa8b26adf7e90f44a2b2336d1ebfd2d2f6bcb939242c"
+    },
+    {
+      "id": "PMC3287339_table_0",
+      "targets": 75,
+      "status": "pass",
+      "maximum_pixel_error": 0.6387,
+      "targets_within_2px": 75,
+      "xml_sha256": "2965138e6ab4f9814e9bf5d09a49cc9629d1da2898418f281abc72fb6a0365b8"
+    },
+    {
+      "id": "PMC1804284_table_0",
+      "targets": 91,
+      "status": "pass",
+      "maximum_pixel_error": 0.7538999999999874,
+      "targets_within_2px": 91,
+      "xml_sha256": "ef0352a152e2a79b13ff35e718566015067905ebec08173057077780aceb0c1e"
+    },
+    {
+      "id": "PMC4919831_table_0",
+      "targets": 68,
+      "status": "pass",
+      "maximum_pixel_error": 0.30689999999999884,
+      "targets_within_2px": 68,
+      "xml_sha256": "22f8b01dddebbf9fddcc926156e150d7cc86742c1f5b59445f347dbbe6b5641c"
+    },
+    {
+      "id": "PMC4430217_table_3",
+      "targets": 66,
+      "status": "pass",
+      "maximum_pixel_error": 0.5411000000000001,
+      "targets_within_2px": 66,
+      "xml_sha256": "57fe839396f5ccd952219fb375f551053512d520387e9a79762d6c90cbdbcaec"
+    },
+    {
+      "id": "PMC6013457_table_0",
+      "targets": 86,
+      "status": "pass",
+      "maximum_pixel_error": 0.9183999999999983,
+      "targets_within_2px": 86,
+      "xml_sha256": "be083591631dea5ae3b4363fc7c6aeae298f12427cfd4decd7b2ba2b36183123"
+    },
+    {
+      "id": "PMC4345003_table_3",
+      "targets": 107,
+      "status": "pass",
+      "maximum_pixel_error": 0.6812999999999647,
+      "targets_within_2px": 107,
+      "xml_sha256": "67ec4e42df192a583ce8b51ac81dcb3c556e2611038005e41cb366bdb9d563d0"
+    },
+    {
+      "id": "PMC4705509_table_1",
+      "targets": 123,
+      "status": "pass",
+      "maximum_pixel_error": 0.9701999999999984,
+      "targets_within_2px": 123,
+      "xml_sha256": "03da9e96e4e8e5d0ab47c2cf6d367a25e1a413f0942dba02243797c4bca9ca79"
+    },
+    {
+      "id": "PMC2977608_table_1",
+      "targets": 60,
+      "status": "pass",
+      "maximum_pixel_error": 0.8903999999999996,
+      "targets_within_2px": 60,
+      "xml_sha256": "80ea30710fecea14e192b074cedadd5827f140fbc5c520268f9cf26534c6fb80"
+    },
+    {
+      "id": "PMC6143767_table_1",
+      "targets": 64,
+      "status": "pass",
+      "maximum_pixel_error": 0.8995999999999995,
+      "targets_within_2px": 64,
+      "xml_sha256": "a99dfb31da6d34e99ff1631f827ece44a829d77b4b94b3acb4c19c39fc64cf50"
+    },
+    {
+      "id": "PMC3418246_table_0",
+      "targets": 148,
+      "status": "pass",
+      "maximum_pixel_error": 0.8453999999999979,
+      "targets_within_2px": 148,
+      "xml_sha256": "06c8930ba93052773be27f5386a26b98bca934f9f873d344ebeeff618ef02d6a"
+    },
+    {
+      "id": "PMC6224105_table_0",
+      "targets": 155,
+      "status": "pass",
+      "maximum_pixel_error": 0.98599999999999,
+      "targets_within_2px": 155,
+      "xml_sha256": "455aaf92c10a4d8273d23b9773fd06b8ca94d4b53efffa351f491b5f9f4fbad9"
+    },
+    {
+      "id": "PMC6108503_table_0",
+      "targets": 184,
+      "status": "pass",
+      "maximum_pixel_error": 0.9662000000000006,
+      "targets_within_2px": 184,
+      "xml_sha256": "439025d27c769864d9960cfadcd75a9cdedea6212ceacd8e036979f5af2c7d85"
+    },
+    {
+      "id": "PMC6165285_table_0",
+      "targets": 164,
+      "status": "pass",
+      "maximum_pixel_error": 0.831899999999905,
+      "targets_within_2px": 164,
+      "xml_sha256": "1d771cfe81e091d15a7845684abf78f48387026ad007f454a06727673e0321f9"
+    },
+    {
+      "id": "PMC4654893_table_1",
+      "targets": 108,
+      "status": "pass",
+      "maximum_pixel_error": 0.42680000000000007,
+      "targets_within_2px": 108,
+      "xml_sha256": "ca52c6602865953c5b950cf36228a4b15b04990d96ce9871da5bb2e0cd9f1e4c"
+    },
+    {
+      "id": "PMC1431701_table_5",
+      "targets": 104,
+      "status": "pass",
+      "maximum_pixel_error": 0.9187000000000012,
+      "targets_within_2px": 104,
+      "xml_sha256": "a60c7a183e1f8b84acdd599905f05ff4529350bf4d154d74903fdc70ebabfe9b"
+    },
+    {
+      "id": "PMC2650090_table_2",
+      "targets": 106,
+      "status": "pass",
+      "maximum_pixel_error": 0.6096999999999753,
+      "targets_within_2px": 106,
+      "xml_sha256": "8a633cad2f0af85b3675584815547e1416df871f1fbb1b2e9c7bb0afcd2190fb"
+    },
+    {
+      "id": "PMC1769359_table_4",
+      "targets": 212,
+      "status": "pass",
+      "maximum_pixel_error": 0.9574999999999818,
+      "targets_within_2px": 212,
+      "xml_sha256": "a4f73eed1a27edca47df463c2659e7844eabb0a2f5ebdebf25058e084e9f195b"
+    },
+    {
+      "id": "PMC4543480_table_0",
+      "targets": 68,
+      "status": "pass",
+      "maximum_pixel_error": 0.8032000000000039,
+      "targets_within_2px": 68,
+      "xml_sha256": "014d94d9c0a65c9268a87b37e1880f3f98d52cfe733f7f7ae0f78c3cf5802b6a"
+    },
+    {
+      "id": "PMC6201568_table_1",
+      "targets": 174,
+      "status": "pass",
+      "maximum_pixel_error": 0.7182000000000244,
+      "targets_within_2px": 174,
+      "xml_sha256": "a29d8ba86bf759ac0513229056a6bd337bf3b1174d77e29f7c6a608f6072efc9"
+    },
+    {
+      "id": "PMC2714296_table_2",
+      "targets": 61,
+      "status": "pass",
+      "maximum_pixel_error": 0.7087999999999965,
+      "targets_within_2px": 61,
+      "xml_sha256": "3e23b48348a05613ddc26b6c8291696a6c57910d8302bda6594410e5abfd26a8"
+    },
+    {
+      "id": "PMC5047007_table_0",
+      "targets": 194,
+      "status": "pass",
+      "maximum_pixel_error": 0.7980000000000018,
+      "targets_within_2px": 194,
+      "xml_sha256": "bc28fa110e940bc9eef2ffdfc9899fec9095f558c01a1e0fafc85a7199ba3285"
+    },
+    {
+      "id": "PMC3691196_table_3",
+      "targets": 92,
+      "status": "pass",
+      "maximum_pixel_error": 0.9898999999999987,
+      "targets_within_2px": 92,
+      "xml_sha256": "f3cbad6a524afe912f4c59ef493a9baa55c909080b05b231274fb69d972c315c"
+    },
+    {
+      "id": "PMC5725465_table_0",
+      "targets": 57,
+      "status": "pass",
+      "maximum_pixel_error": 0.9697999999999638,
+      "targets_within_2px": 57,
+      "xml_sha256": "14f8ab6848928108997de0f3c7bc69ad7d56773f85ae847bd7b8a8d91492800d"
+    },
+    {
+      "id": "PMC1866461_table_1",
+      "targets": 94,
+      "status": "pass",
+      "maximum_pixel_error": 0.8733000000000004,
+      "targets_within_2px": 94,
+      "xml_sha256": "93b1e0d50b8f7fc19c8dca7cb702e33a140287032a7019016e61bea87e40f3eb"
+    },
+    {
+      "id": "PMC3117786_table_0",
+      "targets": 196,
+      "status": "pass",
+      "maximum_pixel_error": 0.9519000000000233,
+      "targets_within_2px": 196,
+      "xml_sha256": "5c946c40d3c4318d8dc82a0b2205203d62a3fb8dd95070ab82ffd0c924e8eb8f"
+    },
+    {
+      "id": "PMC2953516_table_6",
+      "targets": 55,
+      "status": "pass",
+      "maximum_pixel_error": 0.7287000000000603,
+      "targets_within_2px": 55,
+      "xml_sha256": "cd0d12a1354e04c93552dbf31ec2bd6014e73c1390de927bfa86b191a709e2b8"
+    },
+    {
+      "id": "PMC3012690_table_1",
+      "targets": 70,
+      "status": "pass",
+      "maximum_pixel_error": 0.7845999999999549,
+      "targets_within_2px": 70,
+      "xml_sha256": "5ba95eef1c57ebdee45e0f7f36226df9639a55b1fce991c02911fa6178d0a2cc"
+    },
+    {
+      "id": "PMC3651354_table_3",
+      "targets": 52,
+      "status": "pass",
+      "maximum_pixel_error": 0.9472999999999843,
+      "targets_within_2px": 52,
+      "xml_sha256": "4d43da9192f40c984bb57b97cb73f3555d05dffc6fbafc2ff3607991b995065e"
+    },
+    {
+      "id": "PMC3705342_table_1",
+      "targets": 83,
+      "status": "pass",
+      "maximum_pixel_error": 0.5733999999999995,
+      "targets_within_2px": 83,
+      "xml_sha256": "092f7871bb8be755c06b58e0dc971012d338302be31aaf390f34d3a1909224d9"
+    },
+    {
+      "id": "PMC1184070_table_1",
+      "targets": 109,
+      "status": "pass",
+      "maximum_pixel_error": 0.44860000000005584,
+      "targets_within_2px": 109,
+      "xml_sha256": "8672d4c7e9c5d37b3f41f9fbf752295ce1f2afa9c5751a258ab1c86082d1d864"
+    },
+    {
+      "id": "PMC4424527_table_0",
+      "targets": 85,
+      "status": "pass",
+      "maximum_pixel_error": 0.8728999999999587,
+      "targets_within_2px": 85,
+      "xml_sha256": "3e64156f96f7b872cf0bb14c10a6a11e5911f8c5ff0d9b36decbb16c5166a6a7"
+    },
+    {
+      "id": "PMC6041810_table_0",
+      "targets": 97,
+      "status": "pass",
+      "maximum_pixel_error": 0.7622000000000071,
+      "targets_within_2px": 97,
+      "xml_sha256": "cb70c1313a31866508758f78b3c283cbec4e14b22b0c941e9c7e557d808ad78a"
+    },
+    {
+      "id": "PMC3557638_table_0",
+      "targets": 58,
+      "status": "pass",
+      "maximum_pixel_error": 0.8448000000000206,
+      "targets_within_2px": 58,
+      "xml_sha256": "04c4203fe31a23c1a035a3b7c56d2a0ccbd57d96d207b12a0fe939a85017b52c"
+    },
+    {
+      "id": "PMC2862029_table_0",
+      "targets": 88,
+      "status": "pass",
+      "maximum_pixel_error": 0.9547000000000025,
+      "targets_within_2px": 88,
+      "xml_sha256": "b49b205bb7724c0fab99fe2f3f1104d6ea813bda52fc12d43755735ae9e048cb"
+    },
+    {
+      "id": "PMC4500408_table_3",
+      "targets": 72,
+      "status": "pass",
+      "maximum_pixel_error": 0.5409999999999968,
+      "targets_within_2px": 72,
+      "xml_sha256": "684414395b9058f422aee2661af3553967f3ff01c9fea2ad12a770b96c26f177"
+    },
+    {
+      "id": "PMC2983951_table_3",
+      "targets": 175,
+      "status": "pass",
+      "maximum_pixel_error": 0.658800000000042,
+      "targets_within_2px": 175,
+      "xml_sha256": "0a7798956b3495e6300880a8249cf9642db30645654b35acca4ec692fc718951"
+    },
+    {
+      "id": "PMC4436863_table_0",
+      "targets": 79,
+      "status": "pass",
+      "maximum_pixel_error": 0.5494999999998527,
+      "targets_within_2px": 79,
+      "xml_sha256": "b4c75210d6074169b566e4af30a4095b5d277430b6bb52f6dbb8795991bc3d57"
+    },
+    {
+      "id": "PMC3107822_table_1",
+      "targets": 54,
+      "status": "pass",
+      "maximum_pixel_error": 0.6844999999999999,
+      "targets_within_2px": 54,
+      "xml_sha256": "49bae630abeaf4429cd254838f8b62ad10beee85785207b023243220571788be"
+    },
+    {
+      "id": "PMC5799979_table_0",
+      "targets": 59,
+      "status": "pass",
+      "maximum_pixel_error": 0.6829999999999998,
+      "targets_within_2px": 59,
+      "xml_sha256": "745df7e7c462c77071da7f9bb02a3dafb2a27c32fa7341520a765f39ee0a9f58"
+    },
+    {
+      "id": "PMC5722557_table_6",
+      "targets": 179,
+      "status": "pass",
+      "maximum_pixel_error": 0.8438999999999623,
+      "targets_within_2px": 179,
+      "xml_sha256": "0ec41b9c601abdca485eeb06d60d0c8c878852053a2ff46569808e42a1a31548"
+    },
+    {
+      "id": "PMC6168541_table_1",
+      "targets": 56,
+      "status": "pass",
+      "maximum_pixel_error": 0.8556000000000026,
+      "targets_within_2px": 56,
+      "xml_sha256": "cdccb5bfe6c613d1f3575e28c512a02b382ddaa0dabf4748ff7a939fbc667e82"
+    },
+    {
+      "id": "PMC4494277_table_0",
+      "targets": 53,
+      "status": "pass",
+      "maximum_pixel_error": 0.9943000000000026,
+      "targets_within_2px": 53,
+      "xml_sha256": "a93f092bf9811626a753abedae5763af48b54df7df3e4d8f9b4b1970ce341681"
+    },
+    {
+      "id": "PMC4886403_table_2",
+      "targets": 125,
+      "status": "pass",
+      "maximum_pixel_error": 0.8754000000000133,
+      "targets_within_2px": 125,
+      "xml_sha256": "437da05a9a0c6ad247cf7a735228df754a636545e44c1ba562de8fb3533e5b48"
+    },
+    {
+      "id": "PMC3014685_table_1",
+      "targets": 192,
+      "status": "pass",
+      "maximum_pixel_error": 0.7156999999999698,
+      "targets_within_2px": 192,
+      "xml_sha256": "5ff802103cc6d5e4ffc1f3f78615a770132981f327bd870fbed755a3d4f3bca9"
+    },
+    {
+      "id": "PMC4999282_table_0",
+      "targets": 104,
+      "status": "pass",
+      "maximum_pixel_error": 0.9125999999999976,
+      "targets_within_2px": 104,
+      "xml_sha256": "c5ec85112a3ca9a976b622923bd317ff44b233757b22a47e002ecd326dab19dc"
+    },
+    {
+      "id": "PMC3618349_table_0",
+      "targets": 66,
+      "status": "pass",
+      "maximum_pixel_error": 0.9472000000000094,
+      "targets_within_2px": 66,
+      "xml_sha256": "be67224d5403b7c586b7d5761d3e15ad1f31fa292d4997ca041b22f713f0972c"
+    },
+    {
+      "id": "PMC2447848_table_1",
+      "targets": 236,
+      "status": "pass",
+      "maximum_pixel_error": 0.9442999999998847,
+      "targets_within_2px": 236,
+      "xml_sha256": "d5b4b65131e29d02f5f6a7446f11c93c854343c5202f018099a121862895a59c"
+    },
+    {
+      "id": "PMC4376798_table_1",
+      "targets": 67,
+      "status": "pass",
+      "maximum_pixel_error": 0.9235999999999933,
+      "targets_within_2px": 67,
+      "xml_sha256": "1d73db04e1f83b65cbad9b585a03d238cd3d651bdd58d92568c0a690da45a2de"
+    },
+    {
+      "id": "PMC4507179_table_1",
+      "targets": 66,
+      "status": "pass",
+      "maximum_pixel_error": 0.6415000000000077,
+      "targets_within_2px": 66,
+      "xml_sha256": "b82d287c0d83fca50544928e40af549cb85b42c47fce4fba3de1921751211658"
+    },
+    {
+      "id": "PMC6031427_table_1",
+      "targets": 63,
+      "status": "pass",
+      "maximum_pixel_error": 0.6273000000000479,
+      "targets_within_2px": 63,
+      "xml_sha256": "9318f9586287528e08fe764e01ec668ff86db5f3b3d75927fa255f79d662e657"
+    },
+    {
+      "id": "PMC3484122_table_1",
+      "targets": 145,
+      "status": "pass",
+      "maximum_pixel_error": 0.4497000000000071,
+      "targets_within_2px": 145,
+      "xml_sha256": "64a5f45ec4179a9f181d258cd12807bae49109331f2245fa8c2142a61680b1d9"
+    },
+    {
+      "id": "PMC6194601_table_2",
+      "targets": 213,
+      "status": "pass",
+      "maximum_pixel_error": 0.7139000000000806,
+      "targets_within_2px": 213,
+      "xml_sha256": "f7e0252e5ad4cf3e89e92b5d654db00bdc0cb6efb1df02023aec6ed41aa23abf"
+    },
+    {
+      "id": "PMC2364634_table_6",
+      "targets": 189,
+      "status": "pass",
+      "maximum_pixel_error": 0.9664999999999964,
+      "targets_within_2px": 189,
+      "xml_sha256": "4075a9f5deb9e55c282406643ed097b156619ca42557e26afddd96bcf1e479be"
+    },
+    {
+      "id": "PMC3217969_table_1",
+      "targets": 54,
+      "status": "pass",
+      "maximum_pixel_error": 0.691900000000004,
+      "targets_within_2px": 54,
+      "xml_sha256": "5316a8de8b18accaae9a3cf2962bf52f23e81c7fdc77df8626367f788dc6036e"
+    },
+    {
+      "id": "PMC4752331_table_1",
+      "targets": 97,
+      "status": "pass",
+      "maximum_pixel_error": 0.9924000000000035,
+      "targets_within_2px": 97,
+      "xml_sha256": "a67adba9a86913c6fe200f115a12dfc146d40fd14089c50f3c3f6ebc07fafcc2"
+    },
+    {
+      "id": "PMC4556713_table_0",
+      "targets": 84,
+      "status": "pass",
+      "maximum_pixel_error": 0.9924000000000035,
+      "targets_within_2px": 84,
+      "xml_sha256": "3b1eac58d7cec070528dc5cc4597e9e36818680f2209a95e8dad6d080884cedb"
+    },
+    {
+      "id": "PMC2766386_table_0",
+      "targets": 128,
+      "status": "pass",
+      "maximum_pixel_error": 0.4035999999999973,
+      "targets_within_2px": 128,
+      "xml_sha256": "7b782ad5a87d34857dbb8281d7e49539122759449ca87c4a94b64c9cd0074256"
+    }
+  ]
+}

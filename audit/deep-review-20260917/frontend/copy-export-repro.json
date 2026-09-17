@@ -1,0 +1,21 @@
+{
+  "reproduced": true,
+  "source_handler": "frontend/src/App.tsx:1203-1212",
+  "request": {
+    "result_ids": [
+      "synthetic-fusion-result"
+    ],
+    "format": "txt"
+  },
+  "returned_filename": "OCR-fusion-export.zip",
+  "returned_prefix_hex": "504b0304",
+  "zip_members": [
+    "OCR-result.txt",
+    "fusion-sources.json",
+    "sources/653d08dc0c3a4effb5b816f5d8c030dd.json"
+  ],
+  "clipboard_equals_expected_text": false,
+  "clipboard_character_count": 3130,
+  "expected_text": "项目\t金额\n项目甲\t00123",
+  "plain_result_control_extension": ".txt"
+}

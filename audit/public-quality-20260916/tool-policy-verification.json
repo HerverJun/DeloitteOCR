@@ -1,0 +1,11 @@
+{
+  "tool": "pdfplumber 0.11.10",
+  "settings": {},
+  "upstream_default_settings_unchanged_since_before_evaluation": true,
+  "config_sha256": "fdf7055779b7e42fc4f20dab28bc67871cf7f3b50a16775e60adecd3903610ec",
+  "prototype_in_product": false,
+  "checked_production_files_have_no_sample_names_or_literals": true,
+  "upstream_code_unmodified": true,
+  "human_efficiency": "unmeasured",
+  "independent_quality_acceptance": false
+}
