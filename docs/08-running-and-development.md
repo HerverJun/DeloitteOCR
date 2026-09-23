@@ -18,15 +18,15 @@ cd E:\project\image-classification-platform
 .\scripts\start.ps1
 ```
 
-脚本创建隔离环境，从 `requirements-windows-cu128.lock.txt` 安装已验证的完整依赖，使用 `pnpm-lock.yaml` 安装前端并构建。默认缓存位于 `E:\image-platform-data\caches`，无 E 盘时通过 `-CacheDir D:\image-platform-cache` 指定。
+脚本创建隔离环境，从 `requirements-windows-cu128.lock.txt` 安装已验证的完整依赖，使用 `pnpm-lock.yaml` 安装前端并构建。默认缓存位于 `%LOCALAPPDATA%\PrismImagePlatform\cache`，无需 E 盘；可以通过 `-CacheDir D:\image-platform-cache` 指定其他缓存目录。
 
-默认 Python 包源为清华镜像，PyTorch CUDA wheel 源为南京大学镜像，两个大 wheel 使用官方索引公布的 SHA256 校验；来源记录见 `sources/implementation-dependencies.json`。可以显式改用官方源：
+默认 Python 包源为官方 PyPI，PyTorch CUDA wheel 源为 PyTorch 官方索引，两个大 wheel 使用固定 SHA256 校验；来源记录见 `sources/implementation-dependencies.json`。如需更换网络镜像，可显式指定：
 
 ```powershell
-.\scripts\setup.ps1 -IndexUrl https://pypi.org/simple -TorchWheelBase https://download.pytorch.org/whl/cu128
+.\scripts\setup.ps1 -IndexUrl https://pypi.tuna.tsinghua.edu.cn/simple -TorchWheelBase https://mirrors.nju.edu.cn/pytorch/whl/cu128
 ```
 
-下载器支持分块续传，只会在 SHA256 一致后生成可安装 wheel。PyTorch wheel 的 SHA 已固定；其余 Python 包锁定版本，尚未提供所有包的离线镜像或逐文件哈希锁。脚本在本机已有缓存和环境上验证过，尚未在第二台全新 Windows 主机完成安装验收。
+下载器支持分块续传，只会在 SHA256 一致后生成可安装 wheel。PyTorch wheel 的 SHA 已固定；其余 Python 包锁定版本，尚未提供所有包的离线镜像或逐文件哈希锁。新克隆目录的安装演练与 CI 范围见 [工程化交付指南](12-git-ci-install-backup.md)。
 
 首次训练会下载 Hugging Face 上固定 revision 的预训练权重，并校验固定 SHA256；需要网络。之后相同权重从缓存读取。无 GPU 时可以在训练/分类表单中选择 CPU；本脚本仍安装上述 GPU 版本依赖，CPU 精简安装不是本轮交付的验收范围。
 
@@ -83,7 +83,7 @@ ResNet18 用于轻量基线，DINOv2 ViT-S/14 用于特征能力对照。两者�
 
 默认数据目录为项目内 `.local-data`，包含 SQLite、图片上传、缩略图、数据清单、模型、特征缓存和日志。可在启动前设置 `$env:ICP_DATA_DIR = 'E:\my-platform-data'`；API 与 worker 必须使用同一目录。设置后会打开对应目录中的独立平台数据。
 
-停止平台后，备份整个数据目录以及通过目录导入的外部源图片。备份完成再启动。只复制 SQLite 文件不包含模型和图片；运行中仅复制数据库主文件可能遗漏 WAL 中的事务。迁移后外部图片绝对路径须保持可用。
+停止平台后使用 [备份与恢复命令](12-git-ci-install-backup.md) 创建经 SHA256 校验的工作区副本，工具会同时收集被引用的外部原图，并在独立新目录恢复时改写路径。只复制 SQLite 文件不包含模型和图片；运行中仅复制数据库主文件可能遗漏 WAL 中的事务。
 
 ## 本地开发
 

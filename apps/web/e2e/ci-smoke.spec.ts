@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+test.skip(process.env.CI_SMOKE !== '1', 'This test requires a fresh empty data directory');
+
 test('clean install serves a new project, upload and annotation', async ({ page, request }) => {
   const projectName = `CI_${Date.now()}`;
   await page.goto('/');

@@ -44,6 +44,7 @@ jobs:
         working-directory: apps/web
         env:
           ICP_DATA_DIR: ${{ runner.temp }}/prism-ci-data
+          CI_SMOKE: '1'
         run: |
           python -m image_platform.cli serve --port 8765 > "$RUNNER_TEMP/prism-api.log" 2>&1 &
           api_pid=$!
