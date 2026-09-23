@@ -1,0 +1,49 @@
+{
+  "recorded_at": "2026-09-18T12:57:39.406136+00:00",
+  "timm_version": "1.0.22",
+  "mode": "registry_lookup_only_no_weights_loaded",
+  "models": [
+    {
+      "name": "resnet18.a1_in1k",
+      "recognized": true,
+      "default_input_size": [
+        3,
+        224,
+        224
+      ],
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "hf_hub_id": "timm/resnet18.a1_in1k",
+      "license_from_registry": "apache-2.0"
+    },
+    {
+      "name": "vit_small_patch14_dinov2.lvd142m",
+      "recognized": true,
+      "default_input_size": [
+        3,
+        518,
+        518
+      ],
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "hf_hub_id": "timm/vit_small_patch14_dinov2.lvd142m",
+      "license_from_registry": "apache-2.0"
+    }
+  ]
+}

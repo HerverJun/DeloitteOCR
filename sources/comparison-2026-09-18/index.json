@@ -1,0 +1,206 @@
+[
+  {
+    "key": "dinov3",
+    "url": "https://raw.githubusercontent.com/facebookresearch/dinov3/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.471785+00:00",
+    "file": "sources/comparison-2026-09-18/dinov3.txt",
+    "bytes": 36231,
+    "sha256": "da4e6e2fa1f2580be9a782338dc108ae68f98b6c9d10636583f97d8a340e664d"
+  },
+  {
+    "key": "timm",
+    "url": "https://raw.githubusercontent.com/huggingface/pytorch-image-models/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.442553+00:00",
+    "file": "sources/comparison-2026-09-18/timm.txt",
+    "bytes": 43245,
+    "sha256": "69742305ea2bd528f4f6fa54cca26dd710a0d8d1527bc3ad9142c435fca08943"
+  },
+  {
+    "key": "paddleclas",
+    "url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleClas/release/2.6/README_en.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.628525+00:00",
+    "file": "sources/comparison-2026-09-18/paddleclas.txt",
+    "bytes": 11134,
+    "sha256": "bc3a362d23f49245bad981b42a3d652dacc062975e729044121fade79f8f24e2"
+  },
+  {
+    "key": "repvit",
+    "url": "https://raw.githubusercontent.com/THU-MIG/RepViT/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.366316+00:00",
+    "file": "sources/comparison-2026-09-18/repvit.txt",
+    "bytes": 10226,
+    "sha256": "97a21e19c926e223f1ead4a8b10636b3681936f0868842cb10c012372288a3a1"
+  },
+  {
+    "key": "mobileclip",
+    "url": "https://raw.githubusercontent.com/apple/ml-mobileclip/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.369708+00:00",
+    "file": "sources/comparison-2026-09-18/mobileclip.txt",
+    "bytes": 15022,
+    "sha256": "ee6649a0fa45635dcd6a7b543dec5cc3ac64e017186e70199348f0f4a8cef62e"
+  },
+  {
+    "key": "mobilenetv4",
+    "url": "https://raw.githubusercontent.com/tensorflow/models/master/official/vision/modeling/backbones/mobilenet.py",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:47.909177+00:00",
+    "file": "sources/comparison-2026-09-18/mobilenetv4.txt",
+    "bytes": 63339,
+    "sha256": "3dd1495d32930dd0252cf835e03a3e1cc19f949b2d15354656ee867232fcc3e0"
+  },
+  {
+    "key": "ort-cuda",
+    "url": "https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:49.066023+00:00",
+    "file": "sources/comparison-2026-09-18/ort-cuda.txt",
+    "bytes": 127792,
+    "sha256": "1b8e203439f2ff52a7bafd1fc3f5df24f6df1ddbf07dc6076d79a19cf72eceaa"
+  },
+  {
+    "key": "ort-tensorrt",
+    "url": "https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:49.223701+00:00",
+    "file": "sources/comparison-2026-09-18/ort-tensorrt.txt",
+    "bytes": 137444,
+    "sha256": "182969831ed54e45b44c9f3c73a2fe60969ab8d23a61cc9e3f8e31e71032d4a5"
+  },
+  {
+    "key": "tipadapter",
+    "url": "https://raw.githubusercontent.com/gaopengcuhk/Tip-Adapter/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:48.140220+00:00",
+    "file": "sources/comparison-2026-09-18/tipadapter.txt",
+    "bytes": 3839,
+    "sha256": "084dafd2675f17e02740b8da2dd8c2532a7dc4fbec1580176ab67307f308b503"
+  },
+  {
+    "key": "openvino",
+    "url": "https://docs.openvino.ai/2025/openvino-workflow/model-optimization-guide/quantizing-models-post-training.html",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:34:53.514487+00:00",
+    "file": "sources/comparison-2026-09-18/openvino.txt",
+    "bytes": 776851,
+    "sha256": "9d88c98e177523dd218fa573e5d87823751943c7582d86a9f2d4fa5471142bc1"
+  },
+  {
+    "key": "autogluon",
+    "url": "https://raw.githubusercontent.com/autogluon/autogluon/master/multimodal/README.md",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "key": "paddleclas-current",
+    "url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleClas/develop/README_en.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.202561+00:00",
+    "file": "sources/comparison-2026-09-18/paddleclas-current.txt",
+    "bytes": 11134,
+    "sha256": "bc3a362d23f49245bad981b42a3d652dacc062975e729044121fade79f8f24e2"
+  },
+  {
+    "key": "dinov3-license",
+    "url": "https://raw.githubusercontent.com/facebookresearch/dinov3/main/LICENSE",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "key": "mobileclip-license",
+    "url": "https://raw.githubusercontent.com/apple/ml-mobileclip/main/LICENSE",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.202561+00:00",
+    "file": "sources/comparison-2026-09-18/mobileclip-license.txt",
+    "bytes": 1540,
+    "sha256": "e7b09f708a137b12d14656d05dce036353b426f53eebd215106738a00a0a9357"
+  },
+  {
+    "key": "mobileclip-weights-license",
+    "url": "https://raw.githubusercontent.com/apple/ml-mobileclip/main/LICENSE_weights",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "key": "mobilenetv4-card",
+    "url": "https://huggingface.co/timm/mobilenetv4_conv_small.e2400_r224_in1k/raw/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.202561+00:00",
+    "file": "sources/comparison-2026-09-18/mobilenetv4-card.txt",
+    "bytes": 13066,
+    "sha256": "864651a7a9c0457023728da202cb1119abf3fa0872ded374ba736efde6454eb7"
+  },
+  {
+    "key": "repvit-card",
+    "url": "https://huggingface.co/timm/repvit_m0_9.dist_450e_in1k/raw/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.262363+00:00",
+    "file": "sources/comparison-2026-09-18/repvit-card.txt",
+    "bytes": 3478,
+    "sha256": "2ca7112f2cca6d5d32874fafd615138203b18a4a1a72ff79a90af517e1e73c04"
+  },
+  {
+    "key": "paddleclas-repo",
+    "url": "https://api.github.com/repos/PaddlePaddle/PaddleClas",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.759636+00:00",
+    "file": "sources/comparison-2026-09-18/paddleclas-repo.txt",
+    "bytes": 6846,
+    "sha256": "2a3da0509e66074200be4341386f09eb323af95f635ea24f5be9a1221eac2ea1"
+  },
+  {
+    "key": "autogluon-image",
+    "url": "https://auto.gluon.ai/stable/tutorials/multimodal/image_prediction/beginner_image_cls.html",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:36:00.214817+00:00",
+    "file": "sources/comparison-2026-09-18/autogluon-image.txt",
+    "bytes": 94366,
+    "sha256": "c8051895ab3177204133f2fb7e754914fdab47366ff6c815cc281c1646bfc41f"
+  },
+  {
+    "key": "timm-distill",
+    "url": "https://raw.githubusercontent.com/huggingface/pytorch-image-models/main/timm/utils/model.py",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:35:58.982567+00:00",
+    "file": "sources/comparison-2026-09-18/timm-distill.txt",
+    "bytes": 10577,
+    "sha256": "cbd0ae079c31bbdef9c21e6eabe038ab440661bbf6d341b65ada29fe99425a4d"
+  },
+  {
+    "key": "dinov3-license-correct",
+    "url": "https://raw.githubusercontent.com/facebookresearch/dinov3/main/LICENSE.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:38:58.745719+00:00",
+    "file": "sources/comparison-2026-09-18/dinov3-license-correct.txt",
+    "bytes": 7503,
+    "sha256": "25d122eb8f5b880fd23c736fb6ea8018ee45c12237e00b8a86d14c653904999e"
+  },
+  {
+    "key": "mobileclip-model-license",
+    "url": "https://raw.githubusercontent.com/apple-aiml-research/ml-mobileclip/main/LICENSE_MODELS",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:38:58.587082+00:00",
+    "file": "sources/comparison-2026-09-18/mobileclip-model-license.txt",
+    "bytes": 5816,
+    "sha256": "30c59d255d2b4075ba11b81ce5aa0109c28d28138d66d52f7f5d8cbba814df8b"
+  },
+  {
+    "key": "siglip2-card",
+    "url": "https://huggingface.co/google/siglip2-base-patch16-224/raw/main/README.md",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:38:58.567257+00:00",
+    "file": "sources/comparison-2026-09-18/siglip2-card.txt",
+    "bytes": 3375,
+    "sha256": "39ac3705d62af9ffa1a14675b8ccb220a75f2d81acd530e564a3b1e3dfe418d8"
+  },
+  {
+    "key": "openvino-current",
+    "url": "https://docs.openvino.ai/2026/openvino-workflow/model-optimization-guide/quantizing-models-post-training.html",
+    "http_status": 200,
+    "retrieved_at": "2026-09-18T14:39:02.643034+00:00",
+    "file": "sources/comparison-2026-09-18/openvino-current.txt",
+    "bytes": 786805,
+    "sha256": "30309845b44b972bb2568b55fcd949f141af92eec95da564287c93d544486c82"
+  }
+]

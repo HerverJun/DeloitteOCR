@@ -1,0 +1,1006 @@
+{
+  "started_at": "2026-09-19T13:50:21.978Z",
+  "record": true,
+  "source": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/",
+  "checks": [
+    "new project initially has no assets or models",
+    "60 real photos imported; 59 auto-labelled and one unlabelled",
+    "manual annotation saved; all 3 classes have 20 labelled images",
+    "frozen 60-image snapshot split into 36 train / 12 validation / 12 test",
+    "new classifier trained from the frozen snapshot and exported to ONNX",
+    "model ZIP downloaded through UI",
+    "30 independent official-test images imported without labels after training",
+    "all 30 unseen images classified; original predictions compared with sealed ground truth",
+    "human review saved without altering original predictions or frozen snapshot",
+    "CSV and JSONL downloaded, each contains all 30 predictions and correct model ID",
+    "exports retain original prediction and include current annotation and effective label",
+    "project selection, completed jobs and all results persist after browser reload"
+  ],
+  "timeline": [
+    {
+      "id": "01-create",
+      "start": 0.551,
+      "end": 23.856
+    },
+    {
+      "id": "02-empty",
+      "start": 23.857,
+      "end": 47.401
+    },
+    {
+      "id": "03-import",
+      "start": 47.402,
+      "end": 69.204
+    },
+    {
+      "id": "04-images",
+      "start": 69.205,
+      "end": 90.369
+    },
+    {
+      "id": "05-label",
+      "start": 90.37,
+      "end": 114.418
+    },
+    {
+      "id": "06-freeze",
+      "start": 114.418,
+      "end": 138.584
+    },
+    {
+      "id": "07-configure",
+      "start": 138.584,
+      "end": 162.768
+    },
+    {
+      "id": "08-train",
+      "start": 162.768,
+      "end": 187.13
+    },
+    {
+      "id": "09-evaluate",
+      "start": 187.131,
+      "end": 210.316
+    },
+    {
+      "id": "10-model",
+      "start": 210.317,
+      "end": 231.262
+    },
+    {
+      "id": "11-unseen",
+      "start": 231.262,
+      "end": 254.238
+    },
+    {
+      "id": "12-scope",
+      "start": 254.238,
+      "end": 276.145
+    },
+    {
+      "id": "13-classify",
+      "start": 276.145,
+      "end": 299.994
+    },
+    {
+      "id": "14-review",
+      "start": 299.995,
+      "end": 322.878
+    },
+    {
+      "id": "15-save",
+      "start": 322.878,
+      "end": 345.871
+    },
+    {
+      "id": "16-export",
+      "start": 345.871,
+      "end": 369.619
+    },
+    {
+      "id": "17-reload",
+      "start": 369.619,
+      "end": 395.801
+    }
+  ],
+  "project_id": "project_5bec92f75d924d53",
+  "import_job_id": "job_b344363c99f74376",
+  "dataset": {
+    "id": "dataset_bea98b73393e47a9",
+    "name": "花卉样本 v1 · 60 张",
+    "stats": {
+      "total": 60,
+      "splits": {
+        "train": 36,
+        "val": 12,
+        "test": 12
+      },
+      "classes": {
+        "daisy": {
+          "train": 12,
+          "val": 4,
+          "test": 4
+        },
+        "rose": {
+          "train": 12,
+          "val": 4,
+          "test": 4
+        },
+        "sunflower": {
+          "test": 4,
+          "train": 12,
+          "val": 4
+        }
+      },
+      "seed": 42,
+      "prior_dataset_id": null,
+      "holdout_policy": "initial_group_split",
+      "warning": "测试集仅用于最终报告；样本少时不能证明低错误率。"
+    },
+    "created_at": "2026-09-19T13:52:22.436247+00:00"
+  },
+  "train_job_id": "job_d7c10509d8454d4e",
+  "train_job": {
+    "id": "job_d7c10509d8454d4e",
+    "project_id": "project_5bec92f75d924d53",
+    "kind": "train",
+    "state": "succeeded",
+    "params": {
+      "batch_size": 16,
+      "dataset_id": "dataset_bea98b73393e47a9",
+      "device": "cuda",
+      "encoder": "dinov2",
+      "epochs": 100,
+      "head_method": "logistic_cv",
+      "input_size": 224,
+      "minimum_precision": 0.95,
+      "seed": 42
+    },
+    "stage": "训练与导出完成",
+    "total": 1,
+    "done": 1,
+    "failed": 0,
+    "error": null,
+    "result": {
+      "metrics": {
+        "best_epoch": 0,
+        "business_validated": false,
+        "cache_hits": 60,
+        "device": "cuda",
+        "export": {
+          "atol": 0.0001,
+          "batches": [
+            {
+              "batch_size": 1,
+              "class_match": true,
+              "decision_match": true,
+              "max_abs_error": 4.76837158203125e-7
+            },
+            {
+              "batch_size": 3,
+              "class_match": true,
+              "decision_match": true,
+              "max_abs_error": 0.000001430511474609375
+            },
+            {
+              "batch_size": 16,
+              "class_match": true,
+              "decision_match": true,
+              "max_abs_error": 0.0000034570693969726562
+            },
+            {
+              "batch_size": 32,
+              "class_match": true,
+              "decision_match": true,
+              "max_abs_error": 0.00000286102294921875
+            }
+          ],
+          "input_sha256": [
+            "0306c0dd3ab37f670522d8902a257fee7b256e1ee8a06638f010f7356f391388",
+            "129f4833ef8c651e13574f2db81fac0faaf5ae995fd57b5fafafedfc6da54b61",
+            "1932d5ff2a52d3eee4b67d350b364675faab6e4628730714efd5ea8981a1a8e5",
+            "3eb54b1cb5939066182769fcfba8cab245a1f0d69888eed2a527f291af85172a",
+            "4578a7934b3104dcc8e53e67eb27dadcf375b11228374c4bf8a59cb614b8d827",
+            "65c3a00a15780803e7e028f9d9faacc4b1edd035914e8374ac087a9f083535c6",
+            "7a8a509aa364c9c0933651f16e3c86c85b5a582cd2e7199298847708b806b975",
+            "a62b681e668e45db5d35c5b4ec28497537f0c9d8875f31a82c790bcb4ef37440"
+          ],
+          "max_abs_error": 0.0000034570693969726562,
+          "node_provider_events": {
+            "CPUExecutionProvider": 324,
+            "CUDAExecutionProvider": 1408
+          },
+          "passed": true,
+          "rtol": 0.001
+        },
+        "feature_seconds": 0.08894310000323458,
+        "head_method": "logistic_cv",
+        "history": [
+          {
+            "C": 0.1,
+            "iterations": 8,
+            "val_loss": 0.7762559314741194
+          },
+          {
+            "C": 1,
+            "iterations": 15,
+            "val_loss": 0.25046876313837346
+          },
+          {
+            "C": 10,
+            "iterations": 18,
+            "val_loss": 0.05126721326409523
+          },
+          {
+            "C": 100,
+            "iterations": 25,
+            "val_loss": 0.009411120259072389
+          }
+        ],
+        "selected_c": 100,
+        "test": {
+          "accepted_correct": 10,
+          "accepted_count": 10,
+          "accepted_precision": 1,
+          "accepted_precision_ci95_wilson": [
+            0.7224672001371107,
+            0.9999999999999999
+          ],
+          "accuracy": 1,
+          "accuracy_ci95_wilson": [
+            0.7575059933447592,
+            1
+          ],
+          "class_counts": {
+            "daisy": 4,
+            "rose": 4,
+            "sunflower": 4
+          },
+          "classification_report": {
+            "accuracy": 1,
+            "daisy": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "macro avg": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 12
+            },
+            "rose": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "sunflower": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "weighted avg": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 12
+            }
+          },
+          "confusion_matrix": [
+            [
+              4,
+              0,
+              0
+            ],
+            [
+              0,
+              4,
+              0
+            ],
+            [
+              0,
+              0,
+              4
+            ]
+          ],
+          "coverage": 0.8333333333333334,
+          "interval_scope": "Descriptive binomial interval on this fixed split; not a guarantee or correction for validation selection.",
+          "label_order": [
+            "daisy",
+            "rose",
+            "sunflower"
+          ],
+          "macro_f1": 1,
+          "matrix_columns": "predicted",
+          "matrix_rows": "true",
+          "sample_count": 12,
+          "thresholds_disabled_count": 0
+        },
+        "validation": {
+          "accepted_correct": 12,
+          "accepted_count": 12,
+          "accepted_precision": 1,
+          "accepted_precision_ci95_wilson": [
+            0.7575059933447592,
+            1
+          ],
+          "accuracy": 1,
+          "accuracy_ci95_wilson": [
+            0.7575059933447592,
+            1
+          ],
+          "class_counts": {
+            "daisy": 4,
+            "rose": 4,
+            "sunflower": 4
+          },
+          "classification_report": {
+            "accuracy": 1,
+            "daisy": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "macro avg": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 12
+            },
+            "rose": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "sunflower": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 4
+            },
+            "weighted avg": {
+              "f1-score": 1,
+              "precision": 1,
+              "recall": 1,
+              "support": 12
+            }
+          },
+          "confusion_matrix": [
+            [
+              4,
+              0,
+              0
+            ],
+            [
+              0,
+              4,
+              0
+            ],
+            [
+              0,
+              0,
+              4
+            ]
+          ],
+          "coverage": 1,
+          "interval_scope": "Descriptive binomial interval on this fixed split; not a guarantee or correction for validation selection.",
+          "label_order": [
+            "daisy",
+            "rose",
+            "sunflower"
+          ],
+          "macro_f1": 1,
+          "matrix_columns": "predicted",
+          "matrix_rows": "true",
+          "sample_count": 12,
+          "thresholds_disabled_count": 0
+        },
+        "warning": "开发实验结果。阈值来自有限验证样本，尚未完成独立业务验收。"
+      },
+      "model_id": "model_d7c10509d8454d4e"
+    },
+    "created_at": "2026-09-19T13:53:04.616805+00:00",
+    "updated_at": "2026-09-19T13:53:08.982503+00:00"
+  },
+  "model": {
+    "id": "model_d7c10509d8454d4e",
+    "project_id": "project_5bec92f75d924d53",
+    "job_id": "job_d7c10509d8454d4e",
+    "name": "dinov2 · logistic_cv · seed 42 · 花卉样本 v1 · 60 张",
+    "package_path": "E:\\project\\image-classification-platform\\.local-data\\models\\model_d7c10509d8454d4e",
+    "metadata": {
+      "created_at": "2026-09-19T13:53:08.700456+00:00",
+      "decision_policy": {
+        "comparison": "greater_or_equal",
+        "score_transform": "stable_softmax",
+        "status": "validated",
+        "thresholds_by_label_id": {
+          "daisy": 0.9663754572868347,
+          "rose": 0.9883476963043213,
+          "sunflower": 0.9917339553833008
+        },
+        "tie_break": "smallest_class_index",
+        "validation_dataset_version": "dataset_bea98b73393e47a9",
+        "version": "validation-v1"
+      },
+      "encoder": {
+        "adapter": "timm",
+        "model_name": "vit_small_patch14_dinov2.lvd142m",
+        "weights_license": "apache-2.0",
+        "weights_sha256": "04d27f3400d059fc0cfd7d17dd1909a75bf3ea8fb3eeb48b97cb99e57ee20081",
+        "weights_source": "https://huggingface.co/timm/vit_small_patch14_dinov2.lvd142m/blob/4610ca143709d58a633b6397a74412c2c3842454/model.safetensors"
+      },
+      "feature": {
+        "dimension": 384,
+        "epsilon": 1e-12,
+        "included_in_onnx": true,
+        "normalization": "l2",
+        "pooling": "cls_last"
+      },
+      "input": {
+        "channels": 3,
+        "dtype": "float32",
+        "dynamic_batch": true,
+        "height": 224,
+        "layout": "NCHW",
+        "name": "images",
+        "width": 224
+      },
+      "labels": [
+        {
+          "class_index": 0,
+          "definition": "牛眼菊",
+          "display_name": "牛眼菊",
+          "label_id": "daisy"
+        },
+        {
+          "class_index": 1,
+          "definition": "玫瑰",
+          "display_name": "玫瑰",
+          "label_id": "rose"
+        },
+        {
+          "class_index": 2,
+          "definition": "向日葵",
+          "display_name": "向日葵",
+          "label_id": "sunflower"
+        }
+      ],
+      "model_version_id": "model_d7c10509d8454d4e",
+      "output": {
+        "dtype": "float32",
+        "kind": "logits",
+        "name": "logits",
+        "num_classes": 3
+      },
+      "preprocessing": {
+        "alpha_background": [
+          255,
+          255,
+          255
+        ],
+        "color_mode": "RGB",
+        "exif_transpose": true,
+        "interpolation": "bicubic",
+        "layout": "NCHW",
+        "max_decode_pixels": 80000000,
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "padding_alignment": "center_extra_right_bottom",
+        "padding_color": [
+          255,
+          255,
+          255
+        ],
+        "rescale": 0.00392156862745098,
+        "resize": "fit_long_edge_and_pad",
+        "rounding": "floor_x_plus_half",
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "version": "letterbox-rgb-v1"
+      },
+      "project_id": "project_5bec92f75d924d53",
+      "provenance": {
+        "config_sha256": "f7c18a1797e11340bc16d0b70c4cdf3e50deb92f9bcd9a80d6ddea08c61b29bd",
+        "dataset_version_id": "dataset_bea98b73393e47a9",
+        "environment_lock_sha256": "3294e905d1df2a9fe6e103e6716da58e2464b30caae4e54deba55401730eae10",
+        "export_validation_report_sha256": "210cb45425715a48cea0b93be83ca944ade0f9861734f9d1068294a07fa416dc",
+        "manifest_sha256": "365c5c727b931300c66a562969f35cf8a83db2e22dc4f88f92a8362bec68f191",
+        "model_onnx_sha256": "e3f29e3cf386da16433743b422d426c172c5540f3a6747474e2926060cfaf38b",
+        "opset": 17
+      },
+      "schema_version": "1.0",
+      "task_type": "single_label"
+    },
+    "metrics": {
+      "best_epoch": 0,
+      "business_validated": false,
+      "cache_hits": 60,
+      "device": "cuda",
+      "export": {
+        "atol": 0.0001,
+        "batches": [
+          {
+            "batch_size": 1,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 4.76837158203125e-7
+          },
+          {
+            "batch_size": 3,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 0.000001430511474609375
+          },
+          {
+            "batch_size": 16,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 0.0000034570693969726562
+          },
+          {
+            "batch_size": 32,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 0.00000286102294921875
+          }
+        ],
+        "input_sha256": [
+          "0306c0dd3ab37f670522d8902a257fee7b256e1ee8a06638f010f7356f391388",
+          "129f4833ef8c651e13574f2db81fac0faaf5ae995fd57b5fafafedfc6da54b61",
+          "1932d5ff2a52d3eee4b67d350b364675faab6e4628730714efd5ea8981a1a8e5",
+          "3eb54b1cb5939066182769fcfba8cab245a1f0d69888eed2a527f291af85172a",
+          "4578a7934b3104dcc8e53e67eb27dadcf375b11228374c4bf8a59cb614b8d827",
+          "65c3a00a15780803e7e028f9d9faacc4b1edd035914e8374ac087a9f083535c6",
+          "7a8a509aa364c9c0933651f16e3c86c85b5a582cd2e7199298847708b806b975",
+          "a62b681e668e45db5d35c5b4ec28497537f0c9d8875f31a82c790bcb4ef37440"
+        ],
+        "max_abs_error": 0.0000034570693969726562,
+        "node_provider_events": {
+          "CPUExecutionProvider": 324,
+          "CUDAExecutionProvider": 1408
+        },
+        "passed": true,
+        "rtol": 0.001
+      },
+      "feature_seconds": 0.08894310000323458,
+      "head_method": "logistic_cv",
+      "history": [
+        {
+          "C": 0.1,
+          "iterations": 8,
+          "val_loss": 0.7762559314741194
+        },
+        {
+          "C": 1,
+          "iterations": 15,
+          "val_loss": 0.25046876313837346
+        },
+        {
+          "C": 10,
+          "iterations": 18,
+          "val_loss": 0.05126721326409523
+        },
+        {
+          "C": 100,
+          "iterations": 25,
+          "val_loss": 0.009411120259072389
+        }
+      ],
+      "selected_c": 100,
+      "test": {
+        "accepted_correct": 10,
+        "accepted_count": 10,
+        "accepted_precision": 1,
+        "accepted_precision_ci95_wilson": [
+          0.7224672001371107,
+          0.9999999999999999
+        ],
+        "accuracy": 1,
+        "accuracy_ci95_wilson": [
+          0.7575059933447592,
+          1
+        ],
+        "class_counts": {
+          "daisy": 4,
+          "rose": 4,
+          "sunflower": 4
+        },
+        "classification_report": {
+          "accuracy": 1,
+          "daisy": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "macro avg": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 12
+          },
+          "rose": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "sunflower": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "weighted avg": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 12
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            0,
+            4
+          ]
+        ],
+        "coverage": 0.8333333333333334,
+        "interval_scope": "Descriptive binomial interval on this fixed split; not a guarantee or correction for validation selection.",
+        "label_order": [
+          "daisy",
+          "rose",
+          "sunflower"
+        ],
+        "macro_f1": 1,
+        "matrix_columns": "predicted",
+        "matrix_rows": "true",
+        "sample_count": 12,
+        "thresholds_disabled_count": 0
+      },
+      "validation": {
+        "accepted_correct": 12,
+        "accepted_count": 12,
+        "accepted_precision": 1,
+        "accepted_precision_ci95_wilson": [
+          0.7575059933447592,
+          1
+        ],
+        "accuracy": 1,
+        "accuracy_ci95_wilson": [
+          0.7575059933447592,
+          1
+        ],
+        "class_counts": {
+          "daisy": 4,
+          "rose": 4,
+          "sunflower": 4
+        },
+        "classification_report": {
+          "accuracy": 1,
+          "daisy": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "macro avg": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 12
+          },
+          "rose": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "sunflower": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 4
+          },
+          "weighted avg": {
+            "f1-score": 1,
+            "precision": 1,
+            "recall": 1,
+            "support": 12
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            0,
+            4
+          ]
+        ],
+        "coverage": 1,
+        "interval_scope": "Descriptive binomial interval on this fixed split; not a guarantee or correction for validation selection.",
+        "label_order": [
+          "daisy",
+          "rose",
+          "sunflower"
+        ],
+        "macro_f1": 1,
+        "matrix_columns": "predicted",
+        "matrix_rows": "true",
+        "sample_count": 12,
+        "thresholds_disabled_count": 0
+      },
+      "warning": "开发实验结果。阈值来自有限验证样本，尚未完成独立业务验收。"
+    },
+    "created_at": "2026-09-19T13:53:08.951478+00:00"
+  },
+  "holdout_import_job_id": "job_500716ffe4e64597",
+  "inference_job_id": "job_d3809c56c0994480",
+  "inference_job": {
+    "id": "job_d3809c56c0994480",
+    "project_id": "project_5bec92f75d924d53",
+    "kind": "inference",
+    "state": "succeeded",
+    "params": {
+      "asset_ids": null,
+      "auto_accept": false,
+      "batch_size": 32,
+      "device": "cuda",
+      "model_id": "model_d7c10509d8454d4e",
+      "model_sha256": "e3f29e3cf386da16433743b422d426c172c5540f3a6747474e2926060cfaf38b",
+      "scope": "unlabeled"
+    },
+    "stage": "批量分类",
+    "total": 30,
+    "done": 30,
+    "failed": 0,
+    "error": null,
+    "result": {
+      "auto_accept": false,
+      "batch_size_final": 32,
+      "decode_workers": 4,
+      "elapsed_seconds": 0.2647828999979538,
+      "execution_seconds": 1.283651400000963,
+      "images_per_second_this_run": 113.30036796270392,
+      "prefetch_batches": 1,
+      "processed_this_run": 30,
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "session_cache_hit": false,
+      "stage_timings": {
+        "commit_seconds": 0.01083239999570651,
+        "inference_seconds": 0.19555890000629006,
+        "package_validation_seconds": 0.07532780000474304,
+        "preprocess_wait_seconds": 0.04056430000491673,
+        "preprocess_worker_seconds": 0.1533843999786768,
+        "session_seconds": 0.9435338000039337
+      }
+    },
+    "created_at": "2026-09-19T13:54:58.078852+00:00",
+    "updated_at": "2026-09-19T13:55:00.119816+00:00"
+  },
+  "holdout": {
+    "count": 30,
+    "correct": 30,
+    "rows": [
+      {
+        "name": "image_05411.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9969255328178406
+      },
+      {
+        "name": "image_06211.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9950070381164551
+      },
+      {
+        "name": "image_05414.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9957834482192993
+      },
+      {
+        "name": "image_01148.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9950475692749023
+      },
+      {
+        "name": "image_06198.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9869497418403625
+      },
+      {
+        "name": "image_01146.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9962199330329895
+      },
+      {
+        "name": "image_01150.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9968456625938416
+      },
+      {
+        "name": "image_01143.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9908548593521118
+      },
+      {
+        "name": "image_06210.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9900851249694824
+      },
+      {
+        "name": "image_01151.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9971940517425537
+      },
+      {
+        "name": "image_05408.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9950463771820068
+      },
+      {
+        "name": "image_05409.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9852862358093262
+      },
+      {
+        "name": "image_05401.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9929808378219604
+      },
+      {
+        "name": "image_05403.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9915652275085449
+      },
+      {
+        "name": "image_06201.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9879742860794067
+      },
+      {
+        "name": "image_06207.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9924924969673157
+      },
+      {
+        "name": "image_05399.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9952060580253601
+      },
+      {
+        "name": "image_05406.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9972545504570007
+      },
+      {
+        "name": "image_01144.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9952883720397949
+      },
+      {
+        "name": "image_06199.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9951678514480591
+      },
+      {
+        "name": "image_01145.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.995159924030304
+      },
+      {
+        "name": "image_06208.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9956369996070862
+      },
+      {
+        "name": "image_01149.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9961821436882019
+      },
+      {
+        "name": "image_06203.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9919602274894714
+      },
+      {
+        "name": "image_06212.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9936089515686035
+      },
+      {
+        "name": "image_06202.jpg",
+        "truth": "daisy",
+        "prediction": "daisy",
+        "score": 0.9825940728187561
+      },
+      {
+        "name": "image_05402.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9967286586761475
+      },
+      {
+        "name": "image_01154.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9946976900100708
+      },
+      {
+        "name": "image_05405.jpg",
+        "truth": "sunflower",
+        "prediction": "sunflower",
+        "score": 0.9819918870925903
+      },
+      {
+        "name": "image_01153.jpg",
+        "truth": "rose",
+        "prediction": "rose",
+        "score": 0.9949741363525391
+      }
+    ]
+  },
+  "reviewed_filename": "image_05411.jpg",
+  "status": "passed",
+  "page_errors": [],
+  "http_errors": [],
+  "elapsed_seconds": 395.802
+}

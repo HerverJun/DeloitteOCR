@@ -1,0 +1,265 @@
+{
+  "checked_at": "2026-09-18T14:21:08.976353+00:00",
+  "status": "local_mvp_verified",
+  "version": "0.1.0",
+  "url": "http://127.0.0.1:8765",
+  "data_scope": "60 synthetic shape images across three classes; no business-data validation",
+  "python_tests": {
+    "status": "passed",
+    "tests": 20,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "report": "reports/python-tests.xml"
+  },
+  "static_checks": {
+    "ruff": "passed",
+    "typescript": "passed",
+    "vite_build": "passed",
+    "pip_check": "No broken requirements found."
+  },
+  "browser_tests": {
+    "status": "passed",
+    "count": 5,
+    "duration_ms": 12688.648000000001,
+    "report": "reports/browser-tests.json",
+    "flows": [
+      "desktop/mobile overview",
+      "project creation/upload/annotation persistence",
+      "asset gallery/search",
+      "training/model/jobs/runtime navigation",
+      "model evaluation/real GPU classification/review/CSV and JSONL export/pause and cancel confirmation"
+    ]
+  },
+  "visual_review": {
+    "status": "passed",
+    "screenshots": [
+      "reports/screenshots/overview-desktop.png",
+      "reports/screenshots/overview-mobile.png",
+      "reports/screenshots/assets.png",
+      "reports/screenshots/classification-results.png"
+    ]
+  },
+  "gpu_pipelines": [
+    {
+      "report": "reports/pipeline-dinov2-224-cuda.json",
+      "encoder": "dinov2",
+      "input_size": 224,
+      "model_id": "model_c93cfd87e5124a37",
+      "inputs": 60,
+      "results": 60,
+      "onnx": {
+        "atol": 0.0001,
+        "batches": [
+          {
+            "batch_size": 1,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 4.76837158203125e-06
+          },
+          {
+            "batch_size": 3,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 2.1457672119140625e-06
+          },
+          {
+            "batch_size": 16,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 3.5762786865234375e-06
+          },
+          {
+            "batch_size": 32,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 4.76837158203125e-06
+          }
+        ],
+        "input_sha256": [
+          "1d750ff9e741150a562ec63dcc5aeb4098fda6504cf75d9fed2d22ddd05ec562",
+          "2f6fde636fe9c5edfd10a840feb490b5c858cb27151afdabd63fdbb3778a70a6",
+          "33d1bdc4c0d029ee91b615d379dfa818f03bdc1713244158b16ecf06daa90446",
+          "6306f15b3a7b3b3a8e68f0845670b84742c6bf60794570e15d8cb174a2c5d7d9",
+          "8486208205bf5e485551b3f550661c6ac36d340d0a07f7d04eb7f67c560059e5",
+          "8c9856119b7d83e06409adb7a0a60180453f58157d7ffe4d726850de8b759b8c",
+          "94cb12979a2f3454f9d44fd8d52bf3c7a276e889454ff07e4039c27bfbcad3e4",
+          "98f0dd9a3e62404e4ce22b0d2cb95b98a89c682a371b7cacc5bbc49b85a45612"
+        ],
+        "max_abs_error": 4.76837158203125e-06,
+        "node_provider_events": {
+          "CPUExecutionProvider": 324,
+          "CUDAExecutionProvider": 1408
+        },
+        "passed": true,
+        "rtol": 0.001
+      },
+      "synthetic": true
+    },
+    {
+      "report": "reports/pipeline-dinov2-336-cuda.json",
+      "encoder": "dinov2",
+      "input_size": 336,
+      "model_id": "model_a86b8c894d304bdc",
+      "inputs": 60,
+      "results": 60,
+      "onnx": {
+        "atol": 0.0001,
+        "batches": [
+          {
+            "batch_size": 1,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 1.430511474609375e-06
+          },
+          {
+            "batch_size": 3,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 3.5762786865234375e-06
+          },
+          {
+            "batch_size": 16,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 4.0531158447265625e-06
+          },
+          {
+            "batch_size": 32,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 2.5033950805664062e-06
+          }
+        ],
+        "input_sha256": [
+          "1d750ff9e741150a562ec63dcc5aeb4098fda6504cf75d9fed2d22ddd05ec562",
+          "2f6fde636fe9c5edfd10a840feb490b5c858cb27151afdabd63fdbb3778a70a6",
+          "33d1bdc4c0d029ee91b615d379dfa818f03bdc1713244158b16ecf06daa90446",
+          "6306f15b3a7b3b3a8e68f0845670b84742c6bf60794570e15d8cb174a2c5d7d9",
+          "8486208205bf5e485551b3f550661c6ac36d340d0a07f7d04eb7f67c560059e5",
+          "8c9856119b7d83e06409adb7a0a60180453f58157d7ffe4d726850de8b759b8c",
+          "94cb12979a2f3454f9d44fd8d52bf3c7a276e889454ff07e4039c27bfbcad3e4",
+          "98f0dd9a3e62404e4ce22b0d2cb95b98a89c682a371b7cacc5bbc49b85a45612"
+        ],
+        "max_abs_error": 4.0531158447265625e-06,
+        "node_provider_events": {
+          "CPUExecutionProvider": 324,
+          "CUDAExecutionProvider": 1408
+        },
+        "passed": true,
+        "rtol": 0.001
+      },
+      "synthetic": true
+    },
+    {
+      "report": "reports/pipeline-resnet18-224-cuda.json",
+      "encoder": "resnet18",
+      "input_size": 224,
+      "model_id": "model_fc64192b639d44cd",
+      "inputs": 60,
+      "results": 60,
+      "onnx": {
+        "atol": 0.0001,
+        "batches": [
+          {
+            "batch_size": 1,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 5.245208740234375e-06
+          },
+          {
+            "batch_size": 3,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 5.245208740234375e-06
+          },
+          {
+            "batch_size": 16,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 2.0742416381835938e-05
+          },
+          {
+            "batch_size": 32,
+            "class_match": true,
+            "decision_match": true,
+            "max_abs_error": 2.09808349609375e-05
+          }
+        ],
+        "input_sha256": [
+          "1d750ff9e741150a562ec63dcc5aeb4098fda6504cf75d9fed2d22ddd05ec562",
+          "2f6fde636fe9c5edfd10a840feb490b5c858cb27151afdabd63fdbb3778a70a6",
+          "33d1bdc4c0d029ee91b615d379dfa818f03bdc1713244158b16ecf06daa90446",
+          "6306f15b3a7b3b3a8e68f0845670b84742c6bf60794570e15d8cb174a2c5d7d9",
+          "8486208205bf5e485551b3f550661c6ac36d340d0a07f7d04eb7f67c560059e5",
+          "8c9856119b7d83e06409adb7a0a60180453f58157d7ffe4d726850de8b759b8c",
+          "94cb12979a2f3454f9d44fd8d52bf3c7a276e889454ff07e4039c27bfbcad3e4",
+          "98f0dd9a3e62404e4ce22b0d2cb95b98a89c682a371b7cacc5bbc49b85a45612"
+        ],
+        "max_abs_error": 2.09808349609375e-05,
+        "node_provider_events": {
+          "CUDAExecutionProvider": 216
+        },
+        "passed": true,
+        "rtol": 0.001
+      },
+      "synthetic": true
+    }
+  ],
+  "mixed_failures_and_retry": {
+    "checked_at": "2026-09-18T14:14:25.878773+00:00",
+    "status": "passed",
+    "device": "cuda",
+    "model_id": "model_fc64192b639d44cd",
+    "initial": {
+      "inputs": 4,
+      "succeeded": 1,
+      "failed": 3,
+      "failures": [
+        "content changed",
+        "missing file",
+        "invalid image"
+      ]
+    },
+    "retry": {
+      "inputs": 3,
+      "succeeded": 2,
+      "failed": 1,
+      "successful_original_row_unchanged": true
+    },
+    "scope": "Real ONNX inference with synthetic input copies and an isolated disposable database."
+  },
+  "ledger_150k": {
+    "report": "reports/ledger-150k.json",
+    "scope": "Database input identity, index and lease-recovery test only; not 150,000 actual-image inference"
+  },
+  "standalone_inference": {
+    "report": "reports/standalone-inference.json",
+    "scope": "ORT classification without importing torch; CUDA DLLs supplied by the installed GPU environment"
+  },
+  "installer": {
+    "status": "passed_on_existing_environment",
+    "script": "scripts/setup.ps1",
+    "full_clean_machine_test": false
+  },
+  "model_packages": {
+    "checksums": "all three registered model packages revalidated",
+    "licenses": "Apache 2.0 text, pinned model card and weight provenance included"
+  },
+  "service_health": {
+    "status": "ok",
+    "version": "0.1.0",
+    "mode": "local",
+    "time": "2026-09-18T14:21:08.975353+00:00"
+  },
+  "known_limits": [
+    "Local single-user platform; no authentication or remote access.",
+    "No real-business accuracy or long-running real-image throughput acceptance.",
+    "Manual source groups; no perceptual near-duplicate detector.",
+    "No second-machine or independent no-torch-runtime installation acceptance.",
+    "Frontend bundle is 1.175 MB minified / 370 KB gzip; Vite size warning remains.",
+    "Manual review stores a label revision; original prediction status remains historical, with no separate completed-review queue yet.",
+    "Training interruption requires a new job; inference preserves committed batches.",
+    "Other Python packages use exact version locks without per-file hash locks."
+  ]
+}

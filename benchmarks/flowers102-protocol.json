@@ -1,0 +1,65 @@
+{
+  "version": "1.1",
+  "created_before_training": true,
+  "dataset": "Oxford Flowers102",
+  "split_policy": "Official identities retained; quarantine exact and visually confirmed cross-split duplicates from train/validation, always preserve test. Final counts: 1019 train, 1015 validation, 6149 test.",
+  "duplicate_policy": "SHA256 audit removed train image 7307 and validation image 8077. Pre-training visual review confirmed validation/test near-duplicate pairs 1835/1858, 1929/1959, 7015/7040, 7029/8080; validation members quarantined. No models completed before this amendment.",
+  "models": [
+    "resnet18",
+    "dinov2",
+    "mobilenetv4",
+    "repvit"
+  ],
+  "input_size": 224,
+  "training_budget_per_class": "10 except class 94 has 9 after exact-duplicate quarantine",
+  "baseline_head": {
+    "method": "adamw",
+    "epochs": 100,
+    "learning_rate": 0.03,
+    "weight_decay": 0.01,
+    "seeds": [
+      42,
+      43,
+      44
+    ]
+  },
+  "accuracy_candidate": {
+    "method": "logistic_cv",
+    "C_candidates": [
+      0.1,
+      1.0,
+      10.0,
+      100.0
+    ],
+    "selection": "validation log loss; ties favor smaller C",
+    "deterministic": true
+  },
+  "selection": "C/epoch selected by validation log loss; per-encoder recommendation uses highest validation macro F1, ties use validation accuracy; never use test for selection.",
+  "quality_metrics": [
+    "accuracy",
+    "macro_f1",
+    "per_class_precision",
+    "per_class_recall",
+    "top_confusions",
+    "coverage",
+    "accepted_precision",
+    "confidence_interval"
+  ],
+  "performance": {
+    "fixed_inputs": "First 1024 test IDs sorted by content SHA, selection is independent of predictions",
+    "batch_size": 32,
+    "device": "cuda",
+    "precision": "FP32, TF32 disabled",
+    "repetitions": 3,
+    "compare": [
+      "archived v0.1 worker",
+      "optimized worker"
+    ]
+  },
+  "limits": [
+    "Public fine-grained flower recognition is not document or industrial business acceptance.",
+    "Pretrained encoder exposure to public images cannot be ruled out.",
+    "No unknown-class claim; all test classes occur in training.",
+    "Three AdamW seeds measure initialization sensitivity on a fixed official split, not three independent datasets."
+  ]
+}

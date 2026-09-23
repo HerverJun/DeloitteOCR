@@ -1,0 +1,38 @@
+[
+  {
+    "key": "timm-release",
+    "url": "https://api.github.com/repos/huggingface/pytorch-image-models/releases/latest",
+    "retrieved_at": "2026-09-18T12:53:56.854535+00:00",
+    "http_status": 200,
+    "local_file": "sources/timm-release.txt",
+    "sha256": "08c689610f1c457c33ae182010c171adff2e4a2fcdc811c3341fd388169706d8",
+    "bytes": 6569
+  },
+  {
+    "key": "dinov2-model-card",
+    "url": "https://raw.githubusercontent.com/facebookresearch/dinov2/main/MODEL_CARD.md",
+    "retrieved_at": "2026-09-18T12:53:56.856039+00:00",
+    "http_status": 200,
+    "local_file": "sources/dinov2-model-card.txt",
+    "sha256": "70ca59606bee0a5fbb1baec80e7e29a93cd7cfbe26ca1910c52a852c4aab09d0",
+    "bytes": 9152
+  },
+  {
+    "key": "ort-cuda",
+    "url": "https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html",
+    "retrieved_at": "2026-09-18T12:53:56.856039+00:00",
+    "http_status": 200,
+    "local_file": "sources/ort-cuda.txt",
+    "sha256": "1b8e203439f2ff52a7bafd1fc3f5df24f6df1ddbf07dc6076d79a19cf72eceaa",
+    "bytes": 127792
+  },
+  {
+    "key": "lightly-license",
+    "url": "https://raw.githubusercontent.com/lightly-ai/lightly-train/main/LICENSE",
+    "retrieved_at": "2026-09-18T12:53:56.857042+00:00",
+    "http_status": 200,
+    "local_file": "sources/lightly-license.txt",
+    "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+    "bytes": 34523
+  }
+]

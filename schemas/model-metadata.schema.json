@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Validated FP32 single-label ONNX model metadata v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model_version_id",
+    "project_id",
+    "task_type",
+    "created_at",
+    "encoder",
+    "input",
+    "output",
+    "preprocessing",
+    "feature",
+    "labels",
+    "decision_policy",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "model_version_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_type": {
+      "const": "single_label"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "encoder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "model_name",
+        "weights_source",
+        "weights_sha256",
+        "weights_license"
+      ],
+      "properties": {
+        "adapter": {
+          "const": "timm"
+        },
+        "model_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weights_source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weights_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "weights_license": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dtype",
+        "layout",
+        "channels",
+        "height",
+        "width",
+        "dynamic_batch"
+      ],
+      "properties": {
+        "name": {
+          "const": "images"
+        },
+        "dtype": {
+          "const": "float32"
+        },
+        "layout": {
+          "const": "NCHW"
+        },
+        "channels": {
+          "const": 3
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dynamic_batch": {
+          "const": true
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dtype",
+        "kind",
+        "num_classes"
+      ],
+      "properties": {
+        "name": {
+          "const": "logits"
+        },
+        "dtype": {
+          "const": "float32"
+        },
+        "kind": {
+          "const": "logits"
+        },
+        "num_classes": {
+          "type": "integer",
+          "minimum": 2
+        }
+      }
+    },
+    "preprocessing": {
+      "$ref": "#/$defs/preprocessing"
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pooling",
+        "dimension",
+        "normalization",
+        "epsilon",
+        "included_in_onnx"
+      ],
+      "properties": {
+        "pooling": {
+          "enum": [
+            "cls_last",
+            "global_average"
+          ]
+        },
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "normalization": {
+          "const": "l2"
+        },
+        "epsilon": {
+          "const": 1e-12
+        },
+        "included_in_onnx": {
+          "const": true
+        }
+      }
+    },
+    "labels": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label_id",
+          "display_name",
+          "definition",
+          "class_index"
+        ],
+        "properties": {
+          "label_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "class_index": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "decision_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "score_transform",
+        "thresholds_by_label_id",
+        "comparison",
+        "tie_break",
+        "validation_dataset_version",
+        "status"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score_transform": {
+          "const": "stable_softmax"
+        },
+      "thresholds_by_label_id": {
+        "description": "Per-class softmax threshold. A value of 1 disables automatic acceptance when calibration has insufficient support; even a saturated score of 1 remains under review.",
+          "type": "object",
+          "minProperties": 2,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "comparison": {
+          "const": "greater_or_equal"
+        },
+        "tie_break": {
+          "const": "smallest_class_index"
+        },
+        "validation_dataset_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "validated"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_version_id",
+        "manifest_sha256",
+        "config_sha256",
+        "environment_lock_sha256",
+        "model_onnx_sha256",
+        "opset",
+        "export_validation_report_sha256"
+      ],
+      "properties": {
+        "dataset_version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "environment_lock_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "model_onnx_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "opset": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "export_validation_report_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "exif_transpose",
+        "color_mode",
+        "alpha_background",
+        "resize",
+        "interpolation",
+        "rounding",
+        "padding_alignment",
+        "rescale",
+        "mean",
+        "std",
+        "layout",
+        "max_decode_pixels",
+        "padding_color"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exif_transpose": {
+          "const": true
+        },
+        "color_mode": {
+          "const": "RGB"
+        },
+        "alpha_background": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        },
+        "resize": {
+          "const": "fit_long_edge_and_pad"
+        },
+        "interpolation": {
+          "const": "bicubic"
+        },
+        "rounding": {
+          "const": "floor_x_plus_half"
+        },
+        "padding_alignment": {
+          "const": "center_extra_right_bottom"
+        },
+        "rescale": {
+          "const": 0.00392156862745098
+        },
+        "mean": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "std": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "layout": {
+          "const": "NCHW"
+        },
+        "max_decode_pixels": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "padding_color": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Runtime semantic validation must check unique label IDs and contiguous indices, C equals label count, exact threshold key set, file hashes, graph IO, encoder input constraints, license records and inference parity. JSON Schema alone cannot establish these."
+}

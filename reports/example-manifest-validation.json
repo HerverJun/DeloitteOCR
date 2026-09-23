@@ -1,0 +1,56 @@
+{
+  "valid": true,
+  "rows": 13,
+  "split_counts": {
+    "train": 4,
+    "val": 4,
+    "test": 4,
+    "pool": 1
+  },
+  "class_counts": {
+    "test/contract": 1,
+    "test/invoice": 1,
+    "test/other": 1,
+    "test/payment_qr": 1,
+    "train/contract": 1,
+    "train/invoice": 1,
+    "train/other": 1,
+    "train/payment_qr": 1,
+    "val/contract": 1,
+    "val/invoice": 1,
+    "val/other": 1,
+    "val/payment_qr": 1
+  },
+  "independent_groups": {
+    "test/contract": 1,
+    "test/invoice": 1,
+    "test/other": 1,
+    "test/payment_qr": 1,
+    "train/contract": 1,
+    "train/invoice": 1,
+    "train/other": 1,
+    "train/payment_qr": 1,
+    "val/contract": 1,
+    "val/invoice": 1,
+    "val/other": 1,
+    "val/payment_qr": 1
+  },
+  "checked_files": false,
+  "verified_sha256": false,
+  "errors": [],
+  "warnings": [
+    "train/invoice: only 1 examples; insufficient evidence for low error rates",
+    "train/payment_qr: only 1 examples; insufficient evidence for low error rates",
+    "train/contract: only 1 examples; insufficient evidence for low error rates",
+    "train/other: only 1 examples; insufficient evidence for low error rates",
+    "val/invoice: only 1 examples; insufficient evidence for low error rates",
+    "val/payment_qr: only 1 examples; insufficient evidence for low error rates",
+    "val/contract: only 1 examples; insufficient evidence for low error rates",
+    "val/other: only 1 examples; insufficient evidence for low error rates",
+    "test/invoice: only 1 examples; insufficient evidence for low error rates",
+    "test/payment_qr: only 1 examples; insufficient evidence for low error rates",
+    "test/contract: only 1 examples; insufficient evidence for low error rates",
+    "test/other: only 1 examples; insufficient evidence for low error rates",
+    "No image decoding, perceptual deduplication or source-group discovery was performed."
+  ]
+}

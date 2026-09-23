@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0",
+  "readiness_status": "planned",
+  "project_id": "document-pilot",
+  "display_name": "文档截图分类试点",
+  "task_type": "single_label",
+  "data_root": "E:/image-platform-data/assets",
+  "labels": [
+    {
+      "label_id": "invoice",
+      "display_name": "发票",
+      "definition": "整图主体是发票；发票包含二维码仍归此类。"
+    },
+    {
+      "label_id": "payment_qr",
+      "display_name": "收款码截图",
+      "definition": "主要内容为用于收款的二维码页面；排除发票附带二维码。"
+    },
+    {
+      "label_id": "contract",
+      "display_name": "合同",
+      "definition": "整图主体为合同文档页面；边界样例须在导入前明确。"
+    },
+    {
+      "label_id": "other",
+      "display_name": "其他",
+      "definition": "上述三类之外的已确认图片，包括收据、订单、报销单及普通杂图。"
+    }
+  ],
+  "preprocessing": {
+    "version": "letterbox-rgb-v1",
+    "exif_transpose": true,
+    "color_mode": "RGB",
+    "alpha_background": [
+      255,
+      255,
+      255
+    ],
+    "resize": "fit_long_edge_and_pad",
+    "interpolation": "bicubic",
+    "rounding": "floor_x_plus_half",
+    "padding_alignment": "center_extra_right_bottom",
+    "rescale": 0.00392156862745098,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "layout": "NCHW",
+    "max_decode_pixels": 80000000,
+    "padding_color": [
+      255,
+      255,
+      255
+    ]
+  },
+  "model_candidates": [
+    {
+      "experiment_id": "B0",
+      "timm_name_candidate": "resnet18.a1_in1k",
+      "input_size": [
+        224,
+        224
+      ],
+      "pooling": "global_average",
+      "feature_normalization": "l2_eps_1e-12",
+      "weights_status": "not_downloaded",
+      "weights_sha256": null
+    },
+    {
+      "experiment_id": "B1",
+      "timm_name_candidate": "vit_small_patch14_dinov2.lvd142m",
+      "input_size": [
+        224,
+        224
+      ],
+      "pooling": "cls_last",
+      "feature_normalization": "l2_eps_1e-12",
+      "weights_status": "not_downloaded",
+      "weights_sha256": null
+    },
+    {
+      "experiment_id": "B2",
+      "timm_name_candidate": "vit_small_patch14_dinov2.lvd142m",
+      "input_size": [
+        336,
+        336
+      ],
+      "pooling": "cls_last",
+      "feature_normalization": "l2_eps_1e-12",
+      "weights_status": "not_downloaded",
+      "weights_sha256": null
+    }
+  ],
+  "training": {
+    "encoder_frozen": true,
+    "encoder_eval_mode": true,
+    "head": "linear_softmax",
+    "seed": 42,
+    "augmentation": "none",
+    "precision": "fp32",
+    "hyperparameter_policy": "small_search_on_train_val_only"
+  },
+  "split": {
+    "method": "group_stratified_best_effort",
+    "train": 0.6,
+    "val": 0.2,
+    "test": 0.2,
+    "test_locked": true
+  },
+  "review": {
+    "rounds": 3,
+    "budget_per_round": 40,
+    "boundary": 20,
+    "novel": 10,
+    "random": 10
+  },
+  "runtime": {
+    "device": "cuda:0",
+    "require_gpu": true,
+    "batch_candidates": [
+      16,
+      32,
+      64
+    ],
+    "max_concurrent_gpu_jobs": 1,
+    "input_queue_batches": 4,
+    "results_backend": "sqlite",
+    "output_formats": [
+      "csv",
+      "jsonl"
+    ]
+  },
+  "acceptance": {
+    "status": "business_targets_pending",
+    "class_thresholds": null,
+    "minimum_precision": null,
+    "minimum_recall": null,
+    "max_review_rate": null,
+    "batch_deadline_seconds": null
+  }
+}

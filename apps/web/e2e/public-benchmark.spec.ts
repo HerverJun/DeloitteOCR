@@ -1,0 +1,30 @@
+import { expect, test } from '@playwright/test';
+
+test('public dataset, light encoders and multiclass evaluation are usable', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem('prism-project', 'project_flowers102_official'));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: '公开基准 · Flowers102' })).toBeVisible();
+  await expect(page.locator('.class-distribution')).toHaveCSS('max-height', '460px');
+  await page.getByRole('menuitem', { name: '训练与实验' }).click();
+  await expect(page.getByText('外部固定划分').first()).toBeVisible();
+  await page.locator('.ant-select').filter({ has: page.getByRole('combobox', { name: '预训练编码器' }) }).locator('.ant-select-selector').click();
+  await expect(page.getByText('MobileNetV4 Conv-S · 小体积', { exact: true })).toBeVisible();
+  await page.getByText('RepViT M0.9 · 轻量视觉特征', { exact: true }).click();
+  await expect(page.locator('.ant-select-dropdown:visible')).toHaveCount(0);
+  await page.locator('.ant-select').filter({ has: page.getByRole('combobox', { name: '分类头方法' }) }).locator('.ant-select-selector').click();
+  await page.getByText('逻辑回归 · 验证集正则化搜索', { exact: true }).click();
+  await expect(page.getByRole('spinbutton', { name: '分类头训练轮数' })).toBeDisabled();
+  await page.getByRole('menuitem', { name: '模型库' }).click();
+  await expect(page.getByRole('columnheader', { name: '验证宏平均 F1' })).toBeVisible();
+  await page.getByRole('button', { name: '评估详情' }).first().click();
+  await expect(page.getByText('测试宏平均 F1', { exact: true })).toBeVisible();
+  await expect(page.getByText('自动接受覆盖率', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').locator('.ant-table-tbody').first().locator('> tr')).toHaveCount(10);
+  await expect(page.locator('.ant-modal')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.ant-modal')).toHaveCSS('transform', 'none');
+  await expect(page.getByRole('dialog').getByRole('button', { name: /^关\s*闭$/ })).toBeVisible();
+  await page.screenshot({ path: '../../reports/screenshots/flowers102-evaluation.png', fullPage: false });
+  expect(errors).toEqual([]);
+});

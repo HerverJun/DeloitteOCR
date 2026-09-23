@@ -1,0 +1,99 @@
+{
+  "checked_at": "2026-09-18T14:38:06.098430+00:00",
+  "precision": "FP32, TF32 disabled",
+  "runtime": "ONNX Runtime CUDA; ordinary session.run with NumPy input/output",
+  "warmup_runs": 5,
+  "measured_runs": 30,
+  "models": [
+    {
+      "model_id": "model_c93cfd87e5124a37",
+      "encoder": "dinov2",
+      "input_size": 224,
+      "onnx_bytes": 86656250,
+      "session_initialization_seconds": 1.1451961000002484,
+      "preprocess_60_p50_seconds": 0.6142712000000756,
+      "batches": [
+        {
+          "batch_size": 1,
+          "p50_batch_ms": 2.9042500000286964,
+          "p95_batch_ms": 5.013060000055701,
+          "aggregate_images_per_second": 308.9767000769531
+        },
+        {
+          "batch_size": 16,
+          "p50_batch_ms": 19.482100001368963,
+          "p95_batch_ms": 24.02640499913104,
+          "aggregate_images_per_second": 801.3845253294652
+        },
+        {
+          "batch_size": 32,
+          "p50_batch_ms": 38.51329999997688,
+          "p95_batch_ms": 46.73461499960467,
+          "aggregate_images_per_second": 812.1679681769544
+        }
+      ]
+    },
+    {
+      "model_id": "model_a86b8c894d304bdc",
+      "encoder": "dinov2",
+      "input_size": 336,
+      "onnx_bytes": 87147770,
+      "session_initialization_seconds": 0.9007656000012503,
+      "preprocess_60_p50_seconds": 0.6323326000001543,
+      "batches": [
+        {
+          "batch_size": 1,
+          "p50_batch_ms": 7.828999999219377,
+          "p95_batch_ms": 12.539035000463628,
+          "aggregate_images_per_second": 125.28371541221966
+        },
+        {
+          "batch_size": 16,
+          "p50_batch_ms": 54.06174999916402,
+          "p95_batch_ms": 62.41928000044936,
+          "aggregate_images_per_second": 291.90514201816904
+        },
+        {
+          "batch_size": 32,
+          "p50_batch_ms": 112.16764999971929,
+          "p95_batch_ms": 120.51884500087908,
+          "aggregate_images_per_second": 280.81924685927805
+        }
+      ]
+    },
+    {
+      "model_id": "model_fc64192b639d44cd",
+      "encoder": "resnet18",
+      "input_size": 224,
+      "onnx_bytes": 44704443,
+      "session_initialization_seconds": 0.7430218000008608,
+      "preprocess_60_p50_seconds": 0.5955567000000883,
+      "batches": [
+        {
+          "batch_size": 1,
+          "p50_batch_ms": 3.6709500000142725,
+          "p95_batch_ms": 7.966180000130407,
+          "aggregate_images_per_second": 234.9237672318812
+        },
+        {
+          "batch_size": 16,
+          "p50_batch_ms": 5.114399999001762,
+          "p95_batch_ms": 7.54349499957243,
+          "aggregate_images_per_second": 2961.2702862843985
+        },
+        {
+          "batch_size": 32,
+          "p50_batch_ms": 10.92005000100471,
+          "p95_batch_ms": 12.066349999895465,
+          "aggregate_images_per_second": 3025.464006864265
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Synthetic images only; warm OS file cache.",
+    "ORT run includes host/device copies but excludes decoding, database writes and queue wait.",
+    "Sequential experiment on one machine, not a comparison to downloaded competitor weights.",
+    "GPU memory and long-run latency have not been measured."
+  ]
+}

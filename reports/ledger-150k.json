@@ -1,0 +1,18 @@
+{
+  "checked_at": "2026-09-18T13:49:36.474605+00:00",
+  "status": "passed",
+  "input_count": 150000,
+  "committed_before_crash": 64,
+  "pending_after_recovery": 149936,
+  "creation_seconds": 3.355962100000397,
+  "query_64_items_mean_ms": 0.129560000004858,
+  "query_plan": [
+    {
+      "id": 5,
+      "parent": 0,
+      "notused": 0,
+      "detail": "SEARCH job_items USING INDEX job_items_pending (job_id=? AND state=?)"
+    }
+  ],
+  "scope": "Database input identity, committed-result recovery and pending-batch query only; no image decoding or model inference."
+}

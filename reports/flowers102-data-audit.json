@@ -1,0 +1,119 @@
+{
+  "checked_at": "2026-09-18T15:13:45.926570+00:00",
+  "original_counts": {
+    "train": 1020,
+    "val": 1020,
+    "test": 6149
+  },
+  "published_counts": {
+    "train": 1019,
+    "val": 1015,
+    "test": 6149
+  },
+  "exact_quarantine": [
+    {
+      "id": "asset_flowers102_07307",
+      "number": 7307,
+      "path": "E:\\image-platform-data\\public\\flowers102\\jpg\\image_07307.jpg",
+      "sha256": "1d7a5e41d23149382b3875fbeb3007e46960df51adda487a250f695ab778b663",
+      "name": "image_07307.jpg",
+      "width": 500,
+      "height": 607,
+      "phash": 9515949590381654499,
+      "label_id": "flower_094",
+      "split": "train",
+      "group_id": "1d7a5e41d23149382b3875fbeb3007e46960df51adda487a250f695ab778b663",
+      "reason": "exact content occurs in a more protected split"
+    },
+    {
+      "id": "asset_flowers102_08077",
+      "number": 8077,
+      "path": "E:\\image-platform-data\\public\\flowers102\\jpg\\image_08077.jpg",
+      "sha256": "701e79edd0fff3537af7b03a523d143a17e7ac076a54913a43f6bdda1cea6b84",
+      "name": "image_08077.jpg",
+      "width": 667,
+      "height": 500,
+      "phash": 7902722913638156993,
+      "label_id": "flower_031",
+      "split": "val",
+      "group_id": "701e79edd0fff3537af7b03a523d143a17e7ac076a54913a43f6bdda1cea6b84",
+      "reason": "exact content occurs in a more protected split"
+    }
+  ],
+  "cross_split_phash_candidates": [
+    {
+      "first": 1835,
+      "second": 1858,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    },
+    {
+      "first": 1929,
+      "second": 1959,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 2
+    },
+    {
+      "first": 7015,
+      "second": 7040,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    },
+    {
+      "first": 7029,
+      "second": 8080,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    }
+  ],
+  "visually_confirmed_pairs": [
+    {
+      "first": 1835,
+      "second": 1858,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    },
+    {
+      "first": 1929,
+      "second": 1959,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 2
+    },
+    {
+      "first": 7015,
+      "second": 7040,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    },
+    {
+      "first": 7029,
+      "second": 8080,
+      "first_split": "val",
+      "second_split": "test",
+      "same_label": true,
+      "phash_hamming": 0
+    }
+  ],
+  "near_duplicate_quarantine": [
+    1835,
+    1929,
+    7015,
+    7029
+  ],
+  "visual_review_evidence": "reports/flowers102-duplicate-candidates.png",
+  "visual_review_scope": "All 4 cross-split pHash <=2 candidates inspected. This is not a proof that all transformed or same-source duplicates are absent."
+}

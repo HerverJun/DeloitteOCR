@@ -1,0 +1,19 @@
+{
+  "protocol_sha256": "b97641b572fb1689276f5bf5200f14aa6d09f2b8ce97dbc55a71d0ee7b5cb742",
+  "runs": {
+    "train/resnet18/adamw/42": {
+      "job_id": "job_42c97741d3294290",
+      "params": {
+        "dataset_id": "dataset_52e0221d34684b27",
+        "encoder": "resnet18",
+        "head_method": "adamw",
+        "input_size": 224,
+        "device": "cuda",
+        "epochs": 100,
+        "batch_size": 32,
+        "seed": 42,
+        "minimum_precision": 0.95
+      }
+    }
+  }
+}

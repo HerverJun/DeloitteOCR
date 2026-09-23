@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-09-18T14:13:12.206189+00:00",
+  "python": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]",
+  "executable": "E:\\project\\image-classification-platform\\.venv\\Scripts\\python.exe",
+  "prefix": "E:\\project\\image-classification-platform\\.venv",
+  "base_prefix": "D:\\anaconda3",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "packages": {
+    "torch": "2.9.1+cu128",
+    "torchvision": "0.24.1+cu128",
+    "timm": "1.0.29",
+    "onnx": "1.21.0",
+    "onnxruntime-gpu": "1.26.0",
+    "fastapi": "0.124.4",
+    "uvicorn": "0.38.0",
+    "numpy": "2.2.6",
+    "pillow": "11.3.0",
+    "pytest": "8.4.2",
+    "ruff": "0.14.0"
+  },
+  "cuda_available": true,
+  "cuda_compiled": "12.8",
+  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+  "cuda_tensor_sum": 4.0,
+  "ort_available_providers": [
+    "TensorrtExecutionProvider",
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "data_dir": "E:\\project\\image-classification-platform\\.local-data",
+  "node": "v22.17.0",
+  "pnpm": "10.12.3"
+}

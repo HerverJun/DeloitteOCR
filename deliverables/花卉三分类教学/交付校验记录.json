@@ -1,0 +1,62 @@
+{
+  "backend_tests": {
+    "passed": 33,
+    "failed": 0
+  },
+  "browser_regression": {
+    "passed": 6,
+    "failed": 0
+  },
+  "fresh_project_workflow": "passed",
+  "asserted_business_checks": [
+    "new project initially has no assets or models",
+    "60 real photos imported; 59 auto-labelled and one unlabelled",
+    "manual annotation saved; all 3 classes have 20 labelled images",
+    "frozen 60-image snapshot split into 36 train / 12 validation / 12 test",
+    "new classifier trained from the frozen snapshot and exported to ONNX",
+    "model ZIP downloaded through UI",
+    "30 independent official-test images imported without labels after training",
+    "all 30 unseen images classified; original predictions compared with sealed ground truth",
+    "human review saved without altering original predictions or frozen snapshot",
+    "CSV and JSONL downloaded, each contains all 30 predictions and correct model ID",
+    "exports retain original prediction and include current annotation and effective label",
+    "project selection, completed jobs and all results persist after browser reload"
+  ],
+  "holdout_correct": 30,
+  "holdout_count": 30,
+  "frozen_preparation_and_holdout_sha256_overlap": 0,
+  "video": {
+    "duration_seconds": 398.2,
+    "resolution": [
+      1440,
+      1080
+    ],
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "chapters": 17,
+    "complete_decode": "passed",
+    "visual_check": "Key frames reviewed; Chinese captions occupy dedicated lower band."
+  },
+  "files": {
+    "Prism_从零开始图像分类教学.mp4": {
+      "bytes": 22056684,
+      "sha256": "c027bdfc0794b4f2e61c7cf1e93c92299508a974bdd4f02da1eec15020b71dec"
+    },
+    "公开教学数据_花卉三分类.zip": {
+      "bytes": 3518966,
+      "sha256": "faace6c35d15266ab62f30e8bf22310a7bdb2a6e423d1e95939c3c2e3bee261b"
+    },
+    "分类结果.csv": {
+      "bytes": 9281,
+      "sha256": "2d5135b6455eac8fa0ffe0c58f4355a3ad4b9a6cb0bac7cf182615a375d4e211"
+    },
+    "分类结果.jsonl": {
+      "bytes": 15366,
+      "sha256": "13e64d1cbefa33f08ffaee6f4091ee1e8a86fefe8d2b1edc07503c643e2da0cf"
+    },
+    "花卉分类模型.zip": {
+      "bytes": 88043350,
+      "sha256": "2afcb11e99ef4e6a9fd43eb8ec4d729bede324160ed0ab9bc7bde50f71668e4b"
+    }
+  }
+}
