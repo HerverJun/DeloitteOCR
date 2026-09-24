@@ -25,6 +25,7 @@ export function WorkspaceLayout({
   image,
   children,
   queue,
+  paneRequest,
 }: {
   projectName: string;
   sidebar: ReactNode;
@@ -32,6 +33,7 @@ export function WorkspaceLayout({
   image: ReactNode;
   children: ReactNode;
   queue: ReactNode;
+  paneRequest?: { pane: "image" | "result" } | null;
 }) {
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
@@ -56,6 +58,11 @@ export function WorkspaceLayout({
   const [mobilePane, setMobilePane] = useState("result");
   const grid = useRef<HTMLDivElement>(null);
   const narrow = width < 1000 || height < 680;
+  useEffect(() => {
+    if (!paneRequest) return;
+    setMobilePane(paneRequest.pane);
+    if (paneRequest.pane === "image") setExpanded(false);
+  }, [paneRequest]);
   useEffect(() => {
     let previousWidth = window.innerWidth;
     const resize = () => {

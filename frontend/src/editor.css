@@ -624,6 +624,11 @@ input::placeholder {
 .task-drawer > header {
   background: #f7f8f7;
 }
+.task-row:focus {
+  background: var(--editor-selected);
+  outline: 2px solid var(--brand-ink);
+  outline-offset: -2px;
+}
 .empty-panel h3,
 .canvas-empty h2 {
   color: var(--ink);

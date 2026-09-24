@@ -14,12 +14,15 @@ export type StructureProposal = {
   provider: string; can_apply: boolean; polygon: number[][] | null; token_pool_sha256?: string;
   model_versions?: string[]; text_source_result?: string; unassigned_tokens?: { id: string; raw_text: string }[];
   retained_values?: { manual: boolean }[]; unverified_empty_cells?: { row: number; column: number }[];
+  impact?: { rows: number[]; columns: number[]; amount_cells: number; cells: unknown[] };
 };
 type StructureView = { revision: number; adopted: boolean; candidates: { id: string; provider: string; tables: number }[]; proposals: StructureProposal[];
+  arbitrations?: {task_id:string; status:string; stale:boolean; revision:number; table:number; summary:string; response?:{decision:string; candidate_id:string|null; reason:string}}[];
+  financial_checks?: {checked_relations:number; issues:{kind:string; target:{kind:"cell";table:number;row:number;column:number}; original:string; message:string; status:string; difference?:string; expected_sum?:string}[]};
   table_tool?: {state:string;message:string;error?:string;retry_allowed:boolean} };
 const kinds: Record<string,string> = { replace_table: "整表候选", merge: "局部合并", split: "局部拆分", insert_rows: "补行", insert_columns: "补列", header: "表头修正", table_identity: "表身份核对", native_table: "原生文字建表", split_tables: "拆为多表", merge_tables: "合并同页表" };
 const states: Record<string,string> = { pending: "待复核", deferred: "已暂缓", accepted: "已接受", kept: "保留当前", rejected: "已拒绝" };
-const providerName = (provider: string) => provider.startsWith("pdfplumber/") ? `PDF 表格工具 · 区域 ${Number(provider.split(":").pop())+1}` : provider;
+const providerName = (provider: string) => provider.startsWith("pdfplumber/") ? `PDF 表格工具${provider.includes("without-shading") ? " · 底纹过滤实验" : ""} · 区域 ${Number(provider.split(":").pop())+1}` : provider;
 const reasons: Record<string,string> = { missing_rows: "候选增加行", extra_rows: "候选减少行", missing_columns: "候选增加列", extra_columns: "候选减少列", span: "合并跨度不同", cell_partition: "单元格划分不同", header: "表头关系不同", table_identity: "表格数量或身份待核对", unassigned_tokens: "文字尚未归属", rejected_source_tokens: "部分来源文字缺少可靠坐标", invalid_candidate: "候选结构不完整或处理超时", manual_value_unmapped: "人工修订没有唯一对应格", current_value_unmapped: "当前文字没有可靠对应格", table_identity_ambiguous: "表身份尚不可靠" };
 
 function TablePreview({ table, label }: { table: Table; label: string }) {
@@ -34,12 +37,12 @@ function TablePreview({ table, label }: { table: Table; label: string }) {
       {[...(rows.get(row) || []),...missing(row).map(column => ({row,column,row_span:1,column_span:1,text:'缺失格位',is_header:false,structure_source:undefined}))].sort((a,b) => a.column-b.column).map(cell => <td key={cell.column} rowSpan={cell.row_span} colSpan={cell.column_span}
         data-header={cell.is_header || undefined} data-empty={cell.structure_source?.text_state === "unverified_empty" || undefined}
         title={`第 ${cell.row+1} 行，第 ${cell.column+1} 列；跨 ${cell.row_span} 行、${cell.column_span} 列`}>
-        {cell.text || (cell.structure_source?.text_state === "unverified_empty" ? "待核对空值" : "（空）")}</td>)}
+        {cell.text || ((cell.structure_source?.empty_evidence as {state?:string}|undefined)?.state === "suspected_missing" ? "疑似漏字，请核对原图" : cell.structure_source?.text_state === "unverified_empty" ? "待核对空值" : "（空）")}</td>)}
     </tr>)}</tbody></table></div></div>;
 }
 
-export function StructureReview({ result, version, busy, refreshKey, focusId, onPrepare, onDecision, getPendingDecision, onUpdated, onLocate, onManual }:
-  { result: Result; version: Version; busy: boolean; refreshKey: number; focusId?: string;
+export function StructureReview({ result, version, busy, refreshKey, focusRequest, onPrepare, onDecision, getPendingDecision, onUpdated, onLocate, onManual }:
+  { result: Result; version: Version; busy: boolean; refreshKey: number; focusRequest?: { id: string } | null;
     onPrepare: () => Promise<Result>; onDecision: (id: string, body: Record<string,unknown>) => Promise<unknown>;
     getPendingDecision: () => { issueId: string; body: Record<string,unknown> } | null;
     onUpdated: () => void; onLocate: (location: Location) => void; onManual: (table: number, row: number, column: number) => void }) {
@@ -49,23 +52,36 @@ export function StructureReview({ result, version, busy, refreshKey, focusId, on
   const [error, setError] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
+  const [external, setExternal] = useState<{available:boolean;model_id:string;model:string;reason:string}|null>(null);
+  const [sendAcknowledged, setSendAcknowledged] = useState(false);
   const lock = useRef(false), clock = useRef(new ReviewClock());
+  const appliedFocus = useRef<typeof focusRequest>(null);
   const pending = getPendingDecision();
   const retry = pending?.body.decision_kind === "structure" ? pending : null;
   const proposals = (view?.proposals || []).filter(p => showResolved || ["pending","deferred"].includes(p.state));
   const active = proposals.find(p => p.id === selected) || proposals[0];
+  const focusedProposal = view?.proposals.find(p => p.id === focusRequest?.id);
+  const focusExists = !!focusedProposal;
+  const focusResolved = !!focusedProposal && !["pending", "deferred"].includes(focusedProposal.state);
   const ready = useCallback((value: boolean) => clock.current.setReady(value), []);
   const load = useCallback(async () => { const value = await api<StructureView>(`/results/${result.id}/structure`); setView(value); }, [result.id]);
+  useEffect(() => { let valid=true; api<typeof external>("/multimodal/external").then(v=>{if(valid)setExternal(v);}).catch(()=>{}); return ()=>{valid=false;}; }, [result.id,refreshKey]);
+  const arbitrationRunning=!!view?.arbitrations?.some(a=>["queued","running"].includes(a.status)&&!a.stale);
   useEffect(() => {
-    if (!['queued','running'].includes(view?.table_tool?.state || '')) return;
+    if (!arbitrationRunning && !['queued','running'].includes(view?.table_tool?.state || '')) return;
     let active = true;
     const timer = setInterval(() => { api<StructureView>(`/results/${result.id}/structure`).then(value => {
       if (active) setView(value);
     }).catch(e => { if (active) setError(String(e)); }); }, 1000);
     return () => { active = false; clearInterval(timer); };
-  }, [result.id, view?.table_tool?.state]);
-  useEffect(() => { let valid = true; api<StructureView>(`/results/${result.id}/structure`).then(v => { if (valid) setView(v); }).catch(e => { if (valid) setError(String(e)); }); return () => { valid = false; }; }, [result.id, result.revision, refreshKey]);
-  useEffect(() => { if (focusId) setSelected(focusId); }, [focusId]);
+  }, [result.id, view?.table_tool?.state, arbitrationRunning]);
+  useEffect(() => { let valid = true; api<StructureView>(`/results/${result.id}/structure`).then(v => { if (valid) setView(v); }).catch(e => { if (valid) setError(String(e)); }); return () => { valid = false; }; }, [result.id, result.revision, refreshKey, focusRequest?.id]);
+  useEffect(() => {
+    if (!focusRequest?.id || !focusExists || appliedFocus.current === focusRequest) return;
+    appliedFocus.current = focusRequest;
+    setSelected(focusRequest.id);
+    if (focusResolved) setShowResolved(true);
+  }, [focusRequest, focusExists, focusResolved]);
   useEffect(() => { setAcknowledged(false); clock.current.reset(); }, [active?.id]);
   useEffect(() => { clock.current.setWaiting(busy || working); }, [busy,working]);
   useEffect(() => {
@@ -120,7 +136,23 @@ export function StructureReview({ result, version, busy, refreshKey, focusId, on
       </option>)}</select>
       <div className="structure-actions"><Button size="small" onClick={() => onLocate(location)}>定位原图</Button><Button size="small" disabled={busy || working || !!pending} onClick={() => onManual(active.table_indices[0] || 0,active.differences[0]?.row || 0,active.differences[0]?.column || 0)}>在表格编辑器调整</Button></div>
       <div className="structure-comparison"><div>{active.current_tables.map((t,i) => <TablePreview key={i} table={t} label="当前结构" />)}</div><div>{active.proposed_tables.map((t,i) => <TablePreview key={i} table={t} label="候选结构" />)}</div></div>
+      {active.impact && <p className="structure-source">影响范围：第 {active.impact.rows.map(r=>r+1).join("、") || "—"} 行；第 {active.impact.columns.map(c=>c+1).join("、") || "—"} 列；含数字的变更格 {active.impact.amount_cells} 个。请特别核对金额与整列归属。</p>}
       <details className="structure-crop"><summary>展开局部原图</summary><RegionPreview version={version} location={location} tablePolygon={active.polygon} onReady={ready} /></details>
+      <details><summary>外部 API 结构仲裁（实验）</summary>
+        <p>将当前页图像、表结构候选及固定文字片段发送给已配置的外部视觉连接。模型只可选择已有候选或弃权，接受仍需手动操作。</p>
+        <p>{external?.available ? `当前连接：${external.model}` : "请在视觉审校中配置可用的外部连接。"}</p>
+        <label><input type="checkbox" checked={sendAcknowledged} onChange={e=>setSendAcknowledged(e.target.checked)} />确认发送本页与结构证据</label>
+        <Button disabled={!external?.available || !sendAcknowledged || busy || working || !!pending || arbitrationRunning || !view?.adopted || active.table_indices.length!==1 || !active.can_apply} onClick={()=>void run(async()=>{
+          const saved=await onPrepare();
+          if(saved.revision!==view?.revision) throw new Error("内容已保存，请重新检查结构候选后提交仲裁");
+          await api(`/results/${result.id}/multimodal`,"POST",{request_id:crypto.randomUUID(),model_id:external!.model_id,revision:saved.revision,version_id:version.id,scope:"table",review_kind:"structure",table:active.table_indices[0]});
+          setSendAcknowledged(false);await load();
+        })}>提交结构仲裁</Button>
+        {view?.arbitrations?.map(a=><div key={a.task_id} className="structure-source"><span>表 {a.table+1} · {a.stale ? "内容或候选已过期" : a.status==="succeeded" ? "已完成" : a.status==="running" ? "正在仲裁" : a.status==="queued" ? "等待仲裁" : a.status} · {a.summary}</span>
+          {a.response?.candidate_id && !a.stale && a.revision===result.revision && proposals.some(p=>p.id===a.response!.candidate_id) && <Button size="small" onClick={()=>setSelected(a.response!.candidate_id!)}>查看推荐候选</Button>}
+          {["queued","running"].includes(a.status) && <Button size="small" disabled={working} onClick={()=>void run(async()=>{await api(`/results/${result.id}/multimodal/tasks/${a.task_id}/cancel`,"POST",{});await load();})}>取消结构仲裁</Button>}
+        </div>)}
+      </details>
       <ul className="structure-differences">{active.differences.map((d,i) => <li key={i}>{d.row !== undefined ? `第 ${d.row+1} 行 ${d.column!+1} 列：` : ""}{reasons[d.kind] || d.kind}{typeof d.current === "number" ? ` ${d.current} → ${d.candidate}` : ""}</li>)}</ul>
       {!!active.conflicts.length && <div className="inline-warning"><strong>需先手工处理</strong><ul>{active.conflicts.map((c,i) => <li key={i}>{reasons[c.kind] || c.kind}{c.row !== undefined ? `（第 ${c.row+1} 行 ${c.column!+1} 列）` : ""}{c.text !== undefined ? `：${c.text || "人工清空"}` : ""}</li>)}</ul>
         {!!active.unassigned_tokens?.length && <p>未归属文字：{active.unassigned_tokens.map(t => t.raw_text).join("；")}</p>}</div>}
@@ -132,5 +164,9 @@ export function StructureReview({ result, version, busy, refreshKey, focusId, on
         <Button disabled={disabled || !["pending","deferred"].includes(active.state)} onClick={() => void decide("defer")}>暂缓</Button></div>
       <p className="structure-source">接受后可使用编辑器「撤销」。结构变化后请重新检查候选并核对定位。</p>
     </> : <p className="structure-empty">当前没有待处理的结构建议。请继续核对漏表、文字和空值。</p>}
+    <details><summary>财务一致性疑点 · {view?.financial_checks?.issues.length || 0} 项</summary>
+      <p>已核对明确关系 {view?.financial_checks?.checked_relations || 0} 项。未知单位、范围或空值保留为不确定；不会为凑平合计改写原值。</p>
+      {view?.financial_checks?.issues.map((issue,i)=><div className="structure-source" key={i}><Button size="small" onClick={()=>onManual(issue.target.table,issue.target.row,issue.target.column)}>表 {issue.target.table+1} · 第 {issue.target.row+1} 行 {issue.target.column+1} 列</Button> {issue.message} 原值：{issue.original || "（空）"}{issue.difference!==undefined ? `；差额：${issue.difference}；明细合计：${issue.expected_sum}` : ""}</div>)}
+    </details>
   </section>;
 }

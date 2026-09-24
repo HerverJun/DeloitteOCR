@@ -1,0 +1,35 @@
+.agent-launch { position: fixed; right: 24px; bottom: 18px; z-index: 30; }
+.agent-panel { position: fixed; z-index: 45; right: 16px; top: 76px; bottom: 16px; width: min(440px, calc(100vw - 32px)); display: flex; flex-direction: column; background: var(--colorNeutralBackground1, #fff); border: 1px solid var(--colorNeutralStroke1, #d1d1d1); border-radius: 8px; box-shadow: 0 8px 32px #0002; overflow: hidden; }
+.agent-panel header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid #ddd; }
+.agent-panel header > div { flex: 1; display: grid; gap: 3px; }
+.agent-panel small { color: #666; font-size: 12px; }
+.agent-session-row { display: flex; gap: 8px; padding: 12px 16px; }
+.agent-session-row > :first-child { flex: 1; min-width: 0; }
+.agent-transcript { flex: 1; overflow: auto; padding: 0 16px 16px; min-height: 80px; }
+.agent-message { padding: 14px 0; border-bottom: 1px solid #eee; }
+.agent-message p, .agent-tool p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; }
+.agent-user { padding-left: 12px; border-left: 3px solid #94bc62; }
+.agent-tool { padding: 12px 0; border-bottom: 1px solid #eee; }
+.agent-consent, .agent-decision { background: #f3f6ef; padding: 12px; margin: 0 16px 12px; border-radius: 4px; }
+.agent-consent p { margin: 0 0 8px; }
+.agent-consent code { display: block; overflow-wrap: anywhere; margin-bottom: 8px; font-size: 12px; }
+.agent-decision { margin: 12px 0; }
+.agent-decision button { margin: 4px 6px 0 0; }
+.agent-panel > p, .agent-error { margin: 8px 16px; }
+.agent-error { color: #a4262c; font-size: 13px; overflow-wrap: anywhere; }
+.agent-panel form { padding: 12px 16px; border-top: 1px solid #ddd; display: grid; gap: 10px; }
+.agent-panel form > button { justify-self: end; }
+.agent-run-state { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 16px; background: #f5f5f5; }
+.agent-footnote { padding: 0 16px 12px; }
+.agent-empty { color: #666; line-height: 1.7; }
+.agent-panel { overflow-y: auto; }
+.agent-panel > * { flex-shrink: 0; }
+.agent-transcript { flex: 1 0 160px; }
+.agent-session-settings, .agent-scope-settings { padding: 8px 16px; }
+.agent-session-settings button { margin: 8px 8px 0 0; }
+.agent-scope-settings > summary { cursor: pointer; }
+.agent-result-list { padding-left: 20px; margin: 8px 0; }
+.agent-result-list li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.agent-result-list code { display: block; font-size: 11px; }
+.agent-result-list button { display: block; margin-top: 6px; }
+@media (max-width: 640px) { .agent-panel { top: 8px; bottom: 8px; right: 8px; width: calc(100vw - 16px); } .agent-launch { right: 12px; bottom: 12px; } }

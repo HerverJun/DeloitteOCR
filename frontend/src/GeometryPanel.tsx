@@ -48,7 +48,7 @@ export function GeometryPanel({ result, version, target, tasks, refreshKey, disa
         <option value="paddle">Paddle（默认）</option><option value="tableformer-raw">TableFormer raw（实验）</option><option value="rapidtable">RapidTable（对照）</option>
       </Select></label>
       <label>对应方式 <Select size="small" value={algorithm} disabled={disabled || working} onChange={(_, data) => { setAlgorithm(data.value); setMessage(""); setTaskId(""); }}>
-        <option value="local-v2">现有局部对应</option><option value="local-v3">邻居锚点对应（实验）</option>
+        <option value="local-v2">现有局部对应</option><option value="local-v3">邻居锚点对应（实验）</option><option value="local-v4">复杂表格空间对应（实验）</option>
       </Select></label>
     </div>
     <div className="geometry-actions"><Button size="small" disabled={disabled || working} onClick={() => void compute(false)}>补充表格定位</Button>

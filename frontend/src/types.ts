@@ -113,6 +113,7 @@ export type Task = {
   kind?: string;
   result_version_id?: string | null;
   review_result_id?: string | null;
+  review_backend?: "local" | "external" | null;
 };
 export type DocumentRecord = { id: string; project_id: string; name: string; kind: "image" | "pdf" | "tiff"; page_count: number; status: string };
 export type DocumentPage = { id: string; document_id: string; page_number: number; image_id: string | null; active_version: string | null; status: string; stage_status: string | null; stage_error?: string | null; stage_phase?: string | null; render_dpi: number };
@@ -125,6 +126,7 @@ export type ProjectState = {
   versions: Version[];
   tasks: Task[];
   fusion_queue?: { healthy?: boolean; alive?: boolean; last_error?: string | { message: string } | null };
+  external_queue?: { healthy?: boolean; alive?: boolean; last_error?: string | { message: string } | null };
   queue: {
     task_id: string | null;
     engine: string | null;

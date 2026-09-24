@@ -12,6 +12,7 @@ import {
   type MultimodalRequest, type MultimodalView, type PendingMultimodalRequest,
 } from "./multimodalTypes";
 import "./multimodal.css";
+import { ExternalReviewConnection } from "./ExternalReviewConnection";
 
 type Props = {
   result: Result;
@@ -20,7 +21,7 @@ type Props = {
   adopted: boolean;
   target?: GeometryTarget | null;
   refreshKey: number;
-  focusId?: string;
+  focusRequest?: { id: string } | null;
   beforeSubmit: () => Promise<Result>;
   onResult: (result: Result) => Promise<void> | void;
   onDecision?: (proposalId: string, body: MultimodalDecision) => Promise<Result>;
@@ -37,12 +38,13 @@ const decisionNames = { keep: "建议保留", replace: "建议修改", uncertain
 const stateNames = { pending: "待人工处理", accepted: "已采用", rejected: "已拒绝", question: "人工存疑", stale: "建议已过期" };
 const contextKey = (resultId: string, versionId: string) => `${resultId}:${versionId}`;
 
-export function MultimodalReview({ result, version, busy, adopted, target, refreshKey, focusId, beforeSubmit, onResult, onDecision, getPendingDecision, onLocate, onQueued }: Props) {
+export function MultimodalReview({ result, version, busy, adopted, target, refreshKey, focusRequest, beforeSubmit, onResult, onDecision, getPendingDecision, onLocate, onQueued }: Props) {
   const context = contextKey(result.id, version.id);
   const latestContext = useRef(context);
   latestContext.current = context;
   const [catalog, setCatalog] = useState<MultimodalCatalog | null>(null);
   const [catalogError, setCatalogError] = useState("");
+  const [configureExternal, setConfigureExternal] = useState(false);
   const [modelId, setModelId] = usePreference("ocr-multimodal-model", "", (value): value is string => typeof value === "string" && value.length <= 200);
   const [snapshot, setSnapshot] = useState<{ context: string; value: MultimodalView } | null>(null);
   const [selected, setSelected] = useState("");
@@ -70,7 +72,7 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
   const proposals = (view?.proposals || []).filter(item =>
     filter === "all" || (filter === "pending" ? item.state === "pending" || item.state === "question" : item.decision === filter));
   const active = proposals.find(item => item.id === selected) || proposals[0];
-  const focusExists = !!focusId && !!view?.proposals.some(item => item.id === focusId);
+  const focusExists = !!focusRequest?.id && !!view?.proposals.some(item => item.id === focusRequest.id);
   const running = view?.requests.some(item => activeStatuses.has(item.status));
   const disabled = busy || working || !!recovery || !!editorPending;
   const canDecide = adopted && !disabled && active && ["pending", "question"].includes(active.state);
@@ -82,12 +84,12 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
     if (isCurrent(context) && sequence === loadSequence.current) setSnapshot({ context, value });
   }, [result.id, context, isCurrent]);
 
-  const loadModels = useCallback(async (signal?: AbortSignal) => {
+  const loadModels = useCallback(async (signal?: AbortSignal, preferred?: string | null) => {
     try {
       const value = await (await request("/multimodal/models", { signal })).json() as MultimodalCatalog;
       if (!mounted.current || signal?.aborted) return;
       setCatalog(value); setCatalogError("");
-      setModelId(current => value.models.some(item => item.id === current) ? current :
+      setModelId(current => preferred && value.models.some(item => item.id === preferred) ? preferred : value.models.some(item => item.id === current) ? current :
         value.models.find(item => item.id === value.default_model)?.id || value.models.find(item => item.available)?.id || value.models[0]?.id || "");
     } catch (e) { if (!signal?.aborted && mounted.current) setCatalogError(String(e)); }
   }, []);
@@ -106,13 +108,13 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
     controllers.current.clear();
   }, [context, result.id, version.id]);
 
-  useEffect(() => { if (focusId && focusExists) { setSelected(focusId); setFilter("all"); } }, [focusId, focusExists, context]);
+  useEffect(() => { if (focusRequest?.id && focusExists) { setSelected(focusRequest.id); setFilter("all"); } }, [focusRequest, focusExists, context]);
 
   useEffect(() => {
     const controller = new AbortController();
     void load(controller.signal).catch(e => { if (!controller.signal.aborted && isCurrent(context)) setError(String(e)); });
     return () => { controller.abort(); };
-  }, [load, result.revision, refreshKey, context, isCurrent]);
+  }, [load, result.revision, refreshKey, context, isCurrent, focusRequest?.id]);
 
   useEffect(() => {
     if (!running) return;
@@ -214,7 +216,17 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
         {catalog?.models.map(item => <option key={item.id} value={item.id} disabled={!item.available}>{item.label}{!item.available ? "（不可用）" : ""}</option>)}
       </Select>
       <Button size="small" appearance="subtle" icon={<RefreshCw size={14} />} disabled={working} onClick={() => void loadModels()}>刷新模型</Button>
+      <Button size="small" disabled={working} onClick={() => setConfigureExternal(true)}>配置外部 API</Button>
     </div>
+    {configureExternal && <ExternalReviewConnection onClose={() => setConfigureExternal(false)} onSaved={async id => {
+      await loadModels(undefined, id);
+      setMessage(id ? "外部 API 已通过图片测试并保存。" : "已清除外部连接。");
+    }} />}
+    {model?.backend === "external" && <p className="multimodal-external-notice">外部服务：{model.base_url}<br />
+      发起审校会发送页面上下文、目标裁剪图及对应文字；建议仍需人工采用。</p>}
+    {catalog?.policy?.external_queue_healthy === false && <Button size="small" disabled={working} onClick={() => void run(async () => {
+      await api("/multimodal/external/queue/recover", "POST", {}); await loadModels();
+    })}>恢复外部审校队列</Button>}
     {catalogError && <p className="inline-warning" role="alert">模型列表读取失败：{catalogError}</p>}
     {model && !model.available && <p className="multimodal-warning">{model.reason || "此模型当前不可用，请先完成模型服务配置。"}</p>}
     {catalog && !catalog.models.length && <p className="multimodal-warning">{catalog.reason || "尚未配置审校模型。配置兼容的视觉模型服务后，点击「刷新模型」。"}</p>}
@@ -235,7 +247,7 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
     {!!view?.requests.length && <details className="multimodal-tasks" open={!!running}>
       <summary>审校任务 · {view.requests.length} 次{running ? " · 处理中" : ""}</summary>
       <ul>{view.requests.slice().sort((a, b) => b.created.localeCompare(a.created)).map(task => <li key={task.task_id}>
-        <div><strong>{taskNames[task.status] || task.status}</strong><span>{task.scope === "page" ? "本页" : "选中内容"} · {catalog?.models.find(item => item.id === task.model_id)?.label || task.model_id}</span></div>
+        <div><strong>{taskNames[task.status] || task.status}</strong><span>{task.scope === "page" ? "本页" : "选中内容"} · {task.model_label || catalog?.models.find(item => item.id === task.model_id)?.label || task.model_id}</span></div>
         <p>{task.phase || "等待状态更新"}</p>{task.error && <p className="multimodal-warning">{task.error}</p>}
         {task.snapshot_current === false && <p>本次任务依据的内容已变化。需要再次审校时，请按当前内容重新发起。</p>}
         <div className="multimodal-actions">{["queued", "running"].includes(task.status) && <Button size="small" disabled={disabled} onClick={() => void taskAction(task, "cancel")}>取消审校</Button>}

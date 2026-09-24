@@ -3,6 +3,7 @@ import { Button } from "@fluentui/react-components";
 import type { Result, Version } from "./types";
 import { engineNames } from "./types";
 import { documentText, editableResult } from "./documentText";
+import { operationSummary } from "./operationSummary";
 import {
   alignedTextDiff,
   groupResults,
@@ -10,15 +11,9 @@ import {
   type ComparisonTask,
 } from "./comparisonOps";
 
-function describeOperations(value: string | undefined): string {
-  if (!value) return "未记录";
-  try {
-    const data = JSON.parse(value);
-    if (Array.isArray(data) && !data.length) return "无";
-    return JSON.stringify(data);
-  } catch {
-    return value;
-  }
+function OperationSummary({ value }: { value: string | undefined }) {
+  return <>{operationSummary(value)}{value && value !== "[]" &&
+    <details className="comparison-operation-detail"><summary>处理记录</summary><pre>{value}</pre></details>}</>;
 }
 
 function ResultDifference({
@@ -308,11 +303,11 @@ export function ResultComparison({
               </div>
               <div>
                 <dt>输入处理</dt>
-                <dd>{describeOperations(version?.operations)}</dd>
+                <dd><OperationSummary value={version?.operations} /></dd>
               </div>
               <div>
                 <dt>批次预处理</dt>
-                <dd>{describeOperations(task?.preprocess)}</dd>
+                <dd><OperationSummary value={task?.preprocess} /></dd>
               </div>
               <div>
                 <dt>模型包</dt>

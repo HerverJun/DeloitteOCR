@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Button, Spinner } from "@fluentui/react-components";
 import {
   Pause,
@@ -15,17 +15,35 @@ export function TaskQueue({
   onAction,
   onView,
   onClose,
+  focusRequest,
   recognitionDisabled = false,
 }: {
   project: ProjectState;
   onAction: (name: string, task?: Task) => void;
   onView: (task: Task) => void;
   onClose: () => void;
+  focusRequest?: { taskId: string } | null;
   recognitionDisabled?: boolean;
 }) {
   const [limit, setLimit] = useState(60);
+  const drawer = useRef<HTMLElement>(null);
+  const rows = useRef<HTMLDivElement>(null);
+  const focusedTask = useRef<HTMLDivElement>(null);
+  const orderedTasks = project.tasks.slice().reverse();
+  const visibleLimit = Math.max(limit, orderedTasks.findIndex(t => t.id === focusRequest?.taskId) + 1);
+  useLayoutEffect(() => {
+    if (!focusRequest) return;
+    const row = focusedTask.current;
+    if (row && rows.current) {
+      const bounds = row.getBoundingClientRect();
+      const viewport = rows.current.getBoundingClientRect();
+      // Scroll only the task list; outer workspace containers must stay put.
+      rows.current.scrollTop += bounds.top - viewport.top - Math.max(0, (viewport.height - bounds.height) / 2);
+    }
+    (row || drawer.current)?.focus({ preventScroll: true });
+  }, [focusRequest]);
   return (
-    <section className="task-drawer" aria-label="任务队列">
+    <section id="task-queue" ref={drawer} className="task-drawer" aria-label="任务队列" tabIndex={-1}>
       <header>
         <h3>
           任务队列 <span>{project.tasks.length || 0}</span>
@@ -46,7 +64,7 @@ export function TaskQueue({
           <Button
             size="small"
             icon={<Play size={14} />}
-            disabled={recognitionDisabled}
+            disabled={recognitionDisabled && !project.tasks.some(t => t.kind === "fusion" || t.review_backend === "external")}
             onClick={() => onAction("resume")}
           >
             继续
@@ -54,7 +72,7 @@ export function TaskQueue({
           <Button
             size="small"
             icon={<RefreshCw size={14} />}
-            disabled={recognitionDisabled}
+            disabled={recognitionDisabled && !project.tasks.some(t => t.kind === "fusion" || t.review_backend === "external")}
             onClick={() => onAction("retry")}
           >
             重试失败项
@@ -68,13 +86,16 @@ export function TaskQueue({
           />
         </div>
       </header>
-      <div className="task-rows">
-        {project.tasks
-          .slice()
-          .reverse()
-          .slice(0, limit)
+      {project.external_queue?.healthy === false && <div className="inline-warning" role="status">
+        外部审校队列当前不可用。
+        <Button size="small" onClick={() => onAction("recover_external")}>恢复外部审校队列</Button>
+      </div>}
+      <div className="task-rows" ref={rows}>
+        {orderedTasks
+          .slice(0, visibleLimit)
           .map((t) => (
-            <div className="task-row" key={t.id}>
+            <div className="task-row" key={t.id} data-task-id={t.id} tabIndex={-1}
+              ref={t.id === focusRequest?.taskId ? focusedTask : undefined}>
               <span className={"task-status " + t.status}>
                 {t.status === "succeeded" ? (
                   <CheckCircle2 size={15} />
@@ -101,11 +122,11 @@ export function TaskQueue({
                   </details>
                 )}
               </span>
-              <span>{engineNames[t.engine]}</span>
+              <span>{t.review_backend === "external" ? "外部 API 审校" : engineNames[t.engine]}</span>
               <div>
                 {t.kind === "multimodal" || t.engine === "reviewer" ? <>
                   <Button size="small" onClick={() => onView(t)}>查看审校</Button>
-                  {t.status !== "succeeded" && <Button size="small" onClick={() => onAction(
+                  {t.status !== "succeeded" && <Button size="small" disabled={recognitionDisabled && t.review_backend !== "external" && ["failed", "cancelled", "paused", "interrupted"].includes(t.status)} onClick={() => onAction(
                     ["failed", "cancelled"].includes(t.status) ? "retry" : ["paused", "interrupted"].includes(t.status) ? "resume" : "cancel", t)}>
                     {["failed", "cancelled"].includes(t.status) ? "重试" : ["paused", "interrupted"].includes(t.status) ? "继续" : "取消"}
                   </Button>}
@@ -143,9 +164,9 @@ export function TaskQueue({
               </div>
             </div>
           ))}
-        {project.tasks.length > limit && (
-          <button className="load-more" onClick={() => setLimit((n) => n + 60)}>
-            继续显示历史任务 ({limit}/{project.tasks.length})
+        {project.tasks.length > visibleLimit && (
+          <button className="load-more" onClick={() => setLimit(visibleLimit + 60)}>
+            继续显示历史任务 ({visibleLimit}/{project.tasks.length})
           </button>
         )}
         {!project.tasks.length && (

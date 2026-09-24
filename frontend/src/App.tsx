@@ -38,6 +38,8 @@ import { TaskQueue } from "./TaskQueue";
 import { RecognitionBar, modes } from "./RecognitionBar";
 import { BrandHeader } from "./BrandHeader";
 import { WorkspaceLayout } from "./WorkspaceLayout";
+import { AgentPanel } from "./AgentPanel";
+import { resolveAgentEvidence } from "./agentNavigation";
 import { PhotoList } from "./PhotoList";
 import { DocumentTree } from "./DocumentTree";
 import { documentReviewTab, type DocumentReviewTask } from "./DocumentReviewQueue";
@@ -55,6 +57,8 @@ import { api, request, download } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { DiagnosticsPanel } from "./DiagnosticsPanel";
+import type { DiagnosticsResponse } from "./diagnostics";
 import { QuickReview } from "./QuickReview";
 import { GeometryPanel, type GeometryTarget } from "./GeometryPanel";
 import type { Location } from "./RegionPreview";
@@ -96,6 +100,7 @@ export function App() {
   );
   const [preprocess, setPreprocess] = useState("none");
   const [tab, setTab] = useState("table");
+  const [paneRequest, setPaneRequest] = useState<{ pane: "image" | "result" } | null>(null);
   const resultTabs = useRef(new Map<string, string>());
   const explicitImageTabs = useRef(new Map<string, string>());
   const chooseTab = (value: string) => {
@@ -106,6 +111,7 @@ export function App() {
     if (active) explicitImageTabs.current.set(active, value);
     if (editor.result) resultTabs.current.set(editor.result.id, value);
     setTab(value);
+    setPaneRequest({ pane: "result" });
   };
   const [busy, setBusy] = useState(false);
   const activeActions = useRef(0);
@@ -116,6 +122,11 @@ export function App() {
   const [error, setError] = useState(false);
   const [modalError, setModalError] = useState("");
   const [showQueue, setShowQueue] = useState(false);
+  const [queueFocus, setQueueFocus] = useState<{ taskId: string } | null>(null);
+  const toggleQueue = () => {
+    setQueueFocus(null);
+    setShowQueue(open => !open);
+  };
   const [dragging, setDragging] = useState(false);
   const [highlight, setHighlight] = useState<number | null>(null);
   const [reviewLocation, setReviewLocation] = useState<{ resultId: string; issue: ReviewIssue } | null>(null);
@@ -140,7 +151,7 @@ export function App() {
   const projectLatest = useRef<ProjectState | null>(null);
   const loadRetries = useRef(0);
   const [exportAggregate, setExportAggregate] = useState(false);
-  const [diagnostics, setDiagnostics] = useState<any>(null);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsResponse | null>(null);
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchIndex, setSearchIndex] = useState(0);
@@ -160,15 +171,16 @@ export function App() {
   const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
   const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
   const [documentReviewTarget, setDocumentReviewTarget] = useState<DocumentReviewTask | null>(null);
-  const [structureFocus, setStructureFocus] = useState("");
-  const [multimodalFocus, setMultimodalFocus] = useState("");
+  const [structureFocus, setStructureFocus] = useState<{ id: string } | null>(null);
+  const [multimodalFocus, setMultimodalFocus] = useState<{ id: string } | null>(null);
   const [reviewEntry, setReviewEntry] = useState(0);
   useEffect(() => {
     if (!documentReviewTarget?.result_id || editor.result?.id !== documentReviewTarget.result_id) return;
     const task = documentReviewTarget;
     if (task.kind === "fusion") { setTab("review"); setReviewEntry(n => n+1); }
-    else if (documentReviewTab(task.kind) === "multimodal") { setTab("multimodal"); setMultimodalFocus(task.proposal_id || task.proposal_ids?.[0] || ""); }
-    else { setTab("structure"); setStructureFocus(task.proposal_ids?.[0] || ""); }
+    else if (documentReviewTab(task.kind) === "multimodal") { setTab("multimodal"); setMultimodalFocus({ id: task.proposal_id || task.proposal_ids?.[0] || "" }); }
+    else { setTab("structure"); setStructureFocus({ id: task.proposal_ids?.[0] || "" }); }
+    setPaneRequest({ pane: "result" });
     if (task.target.tables?.length) setReviewFocus({ tableIndex:task.target.tables[0], row:0, column:0, nonce:Date.now() });
     setDocumentReviewTarget(null);
   }, [documentReviewTarget, editor.result?.id]);
@@ -195,12 +207,14 @@ export function App() {
           (JSON.stringify(projectLatest.current.queue) !==
             JSON.stringify(value.queue) ||
             JSON.stringify(projectLatest.current.fusion_queue) !== JSON.stringify(value.fusion_queue) ||
+            JSON.stringify(projectLatest.current.external_queue) !== JSON.stringify(value.external_queue) ||
             projectLatest.current.disk?.low_space !== value.disk?.low_space)
         ) {
           projectLatest.current = {
             ...projectLatest.current,
             queue: value.queue,
             fusion_queue: value.fusion_queue,
+            external_queue: value.external_queue,
             disk: value.disk,
           };
           setProject(projectLatest.current);
@@ -215,6 +229,10 @@ export function App() {
   const chooseProject = useCallback(
     async (id: string) => {
       await editor.flush();
+      setQueueFocus(null);
+      setStructureFocus(null);
+      setMultimodalFocus(null);
+      setDocumentReviewTarget(null);
       ++projectGeneration.current;
       selectedProject.current = id;
       setProjectId(id);
@@ -542,8 +560,14 @@ export function App() {
     await refresh(projectId);
     notify("已创建融合任务，完成后可在结果列表中预览和采用。");
   };
-  const locateIssue = (issue: ReviewIssue, editPosition: boolean) => {
+  const locateOriginal = (location: Location) => {
+    if (!editor.result) return;
+    setGeometryLocation({ resultId: editor.result.id, location });
+    setPaneRequest({ pane: "image" });
+  };
+  const locateIssue = (issue: ReviewIssue, editPosition: boolean, reveal = false) => {
     if (editor.result) setReviewLocation({ resultId: editor.result.id, issue });
+    if (reveal) setPaneRequest({ pane: editPosition ? "result" : "image" });
     if (!editPosition) return;
     if (issue.target.table_id) {
       setReviewFocus({ tableId: issue.target.table_id, row: issue.target.row || 0, column: issue.target.column || 0, nonce: Date.now() });
@@ -577,10 +601,17 @@ export function App() {
     await refresh(projectId);
   };
   const queueAction = async (name: string, task?: Task) => {
+    if (name === "recover_external") {
+      await api("/multimodal/external/queue/recover", "POST", {});
+      await refresh(projectId);
+      return;
+    }
+    const allowed = !task && (reviewOnly || !queueHealthy) && ["retry", "resume"].includes(name)
+      ? project?.tasks.filter(t => t.kind === "fusion" || t.review_backend === "external").map(t => t.id) : undefined;
     await api(
       "/projects/" + projectId + "/queue/" + name,
       "POST",
-      task ? { task_ids: [task.id] } : {},
+      task ? { task_ids: [task.id] } : allowed ? { task_ids: allowed } : {},
     );
     await refresh(projectId);
   };
@@ -635,6 +666,14 @@ export function App() {
     project?.tasks.filter((t) => ["queued", "running"].includes(t.status))
       .length || 0;
   const latestTask = recognitionTasks.at(-1);
+  const viewTaskProgress = () => {
+    const task = recognitionTasks.find(t => t.status === "running") ||
+      recognitionTasks.find(t => t.status === "queued");
+    if (!task) return;
+    // A fresh request also reveals the task when the drawer is already open.
+    setQueueFocus({ taskId: task.id });
+    setShowQueue(true);
+  };
   const attention =
     project?.tasks.filter((t) =>
       ["failed", "paused", "interrupted"].includes(t.status),
@@ -642,8 +681,10 @@ export function App() {
   const queueHealthy = project?.queue.healthy !== false;
   const lastPending = useRef(0);
   useEffect(() => {
-    if (lastPending.current > 0 && pending === 0 && attention === 0)
+    if (lastPending.current > 0 && pending === 0 && attention === 0) {
+      setQueueFocus(null);
       setShowQueue(false);
+    }
     lastPending.current = pending;
   }, [pending, attention]);
   const targets = project
@@ -716,7 +757,7 @@ export function App() {
         )}
         <span className="offline-status">
           <span />
-          {reviewOnly ? "仅校对与导出模式" : "仅在本机处理"}
+          {reviewOnly ? "校对与导出 · 可配置 API 审校" : "本地 OCR · 可配置 API 审校"}
         </span>
         <Button
           appearance="subtle"
@@ -724,7 +765,8 @@ export function App() {
           onClick={() =>
             void action(async () => {
               setDiagnosticOpen(true);
-              setDiagnostics(await api("/diagnostics"));
+              setDiagnostics(null);
+              setDiagnostics(await api<DiagnosticsResponse>("/diagnostics"));
             })
           }
         >
@@ -732,6 +774,7 @@ export function App() {
         </Button>
       </BrandHeader>
       <WorkspaceLayout
+        paneRequest={paneRequest}
         projectName={project?.project.name || ""}
         sidebar={
           <>
@@ -899,7 +942,9 @@ export function App() {
             </Button>
             <button
               className={"queue-summary " + (showQueue ? "open" : "")}
-              onClick={() => setShowQueue(!showQueue)}
+              onClick={toggleQueue}
+              aria-expanded={showQueue}
+              aria-controls="task-queue"
             >
               <LayoutList size={18} />
               <span>
@@ -975,8 +1020,9 @@ export function App() {
               onStart={runFusion} />
             <button
               className="workspace-queue-toggle"
-              onClick={() => setShowQueue(!showQueue)}
+              onClick={toggleQueue}
               aria-expanded={showQueue}
+              aria-controls="task-queue"
             >
               任务队列 · {pending} 项处理中
               {attention
@@ -1015,9 +1061,11 @@ export function App() {
           showQueue &&
           project && (
             <TaskQueue
+              key={projectId}
               project={project!}
+              focusRequest={queueFocus}
               recognitionDisabled={reviewOnly || !queueHealthy}
-              onClose={() => setShowQueue(false)}
+              onClose={() => { setQueueFocus(null); setShowQueue(false); }}
               onAction={(name, task) =>
                 void action(() => queueAction(name, task))
               }
@@ -1032,14 +1080,17 @@ export function App() {
                     resultTabs.current.set(resultId, "multimodal");
                     explicitImageTabs.current.set(t.image_id, "multimodal");
                     setTab("multimodal");
+                    setPaneRequest({ pane: "result" });
                   } else if (t.result_id) {
                     await previewResult(t.result_id, t.image_id);
+                    setPaneRequest({ pane: "result" });
                   } else {
                     setActive(t.image_id);
                     await api("/images/" + t.image_id + "/version", "PUT", {
                       version_id: t.result_version_id,
                     });
                     await refresh(projectId);
+                    setPaneRequest({ pane: "image" });
                   }
                 })
               }
@@ -1322,7 +1373,7 @@ export function App() {
                 ) : recognitionTasks.some((t) =>
                     ["running", "queued"].includes(t.status),
                   ) ? (
-                  <Button onClick={() => setShowQueue(true)}>
+                  <Button onClick={viewTaskProgress} aria-expanded={showQueue} aria-controls="task-queue">
                     查看任务进度
                   </Button>
                 ) : (
@@ -1534,6 +1585,7 @@ export function App() {
                                 editor.result!.original.project_image_version!,
                               );
                             setHighlight(next.i);
+                            setPaneRequest({ pane: "image" });
                           } else
                             notify("没有带坐标的低分区域，可逐项查看原文。");
                         }}
@@ -1551,6 +1603,7 @@ export function App() {
                                 editor.result!.original.project_image_version!,
                               );
                             setHighlight(i);
+                            setPaneRequest({ pane: "image" });
                           }}
                         >
                           <span>{i + 1}</span>
@@ -1599,17 +1652,17 @@ export function App() {
                   }}
                   onConfirm={() => void action(() => setReview("confirmed"))} />}
                 {version && ["structure", "review"].includes(tab) && <StructureReview key={`structure-${editor.result.id}`} result={editor.result} version={version}
-                  busy={busy} refreshKey={geometryRefresh} focusId={structureFocus} getPendingDecision={editor.getPendingDecision}
+                  busy={busy} refreshKey={geometryRefresh} focusRequest={structureFocus} getPendingDecision={editor.getPendingDecision}
                   onPrepare={async () => { await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("请选择结果"); return r; }}
                   onDecision={async (id, body) => {
                     ++activeActions.current; setBusy(true);
                     try { await editor.decide(id,body); await refresh(projectId); } finally { setBusy(--activeActions.current > 0); }
                   }}
                   onUpdated={() => { setGeometryRefresh(n => n+1); void refresh(projectId); }}
-                  onLocate={location => setGeometryLocation({ resultId:editor.result!.id,location })}
+                  onLocate={locateOriginal}
                   onManual={(table,row,column) => { setReviewFocus({tableIndex:table,row,column,nonce:Date.now()}); chooseTab("table"); }} />}
                 {version && tab === "multimodal" && <MultimodalReview key={`multimodal-${editor.result.id}`} result={editor.result} version={version}
-                  busy={busy || !matchesVersion} adopted={currentAdopted === editor.result.id} refreshKey={geometryRefresh} focusId={multimodalFocus}
+                  busy={busy || !matchesVersion} adopted={currentAdopted === editor.result.id} refreshKey={geometryRefresh} focusRequest={multimodalFocus}
                   target={geometryTarget?.resultId === editor.result.id ? geometryTarget.target : null}
                   beforeSubmit={async () => { await editor.flush(); const current = editor.getCurrent(); if (!current) throw Error("请先选择识别结果"); return current; }}
                   getPendingDecision={editor.getPendingDecision}
@@ -1624,7 +1677,7 @@ export function App() {
                   }}
                   onResult={async () => { await refresh(projectId); notify("审校决定已保存"); }}
                   onQueued={async () => { await refresh(projectId); }}
-                  onLocate={location => setGeometryLocation({ resultId: editor.result!.id, location })} />}
+                  onLocate={locateOriginal} />}
                 {version && ["table", "text", "review", "structure"].includes(tab) && <GeometryPanel
                   key={`geometry-${editor.result.id}`} result={editor.result} version={version} tasks={tasks} refreshKey={geometryRefresh}
                   disabled={busy || reviewOnly || !queueHealthy}
@@ -1635,9 +1688,10 @@ export function App() {
                   onBind={target => void action(async () => {
                     await editor.flush(); const r = editor.getCurrent(); if (!r) return;
                     setManualBinding({ resultId: r.id, revision: r.revision, versionId: version.id, target, nonce: Date.now() });
-                    notify("请在左侧原图拖动框选文字范围，然后点击应用");
+                    setPaneRequest({ pane: "image" });
+                    notify("请在原图拖动框选文字范围，然后点击应用");
                   })} />}
-                {version && editor.result.original.origin === "document" && <DocumentConflicts result={editor.result} onLocate={polygon => setGeometryLocation({resultId:editor.result!.id,location:{level:"region",polygon,version_id:version.id,reason:"页面内容待核对"}})} beforeSave={async () => {
+                {version && editor.result.original.origin === "document" && <DocumentConflicts result={editor.result} onLocate={polygon => locateOriginal({level:"region",polygon,version_id:version.id,reason:"页面内容待核对"})} beforeSave={async () => {
                   await editor.flush(); const r = editor.getCurrent(); if (!r) throw Error("结果已切换"); return r;
                 }} />}
                 {tab === "compare" && (
@@ -1685,6 +1739,28 @@ export function App() {
           </footer>
         </section>
       </WorkspaceLayout>
+      <AgentPanel projectId={projectId} selectedImageIds={selected.length ? selected : active ? [active] : []}
+        documents={project?.documents || []}
+        engines={engine === "all" ? Object.keys(engines) : [engine]} onNavigate={async (reference, destination) => {
+        const target = await resolveAgentEvidence(reference, projectId);
+        await previewResult(target.reference.result_id, target.image_id);
+        const cell = target.reference.target_id?.match(/^table:(\d+):(\d+):(\d+)$/);
+        if (destination?.kind === "structure") {
+          setTab("structure"); setStructureFocus({ id: destination.id });
+        } else if (destination?.kind === "multimodal") {
+          setTab("multimodal"); setMultimodalFocus({ id: destination.id });
+        } else if (destination?.kind === "cell") {
+          setTab("table"); setReviewFocus({ tableIndex: destination.table, row: destination.row, column: destination.column, nonce: Date.now() });
+        } else if (cell) {
+          setTab("table");
+          setReviewFocus({ tableIndex: Number(cell[1]), row: Number(cell[2]), column: Number(cell[3]), nonce: Date.now() });
+        } else if (target.reference.table_id?.match(/^table:\d+$/)) {
+          setTab("table"); setReviewFocus({ tableIndex: Number(target.reference.table_id.split(":")[1]), row: 0, column: 0, nonce: Date.now() });
+        } else if (target.reference.target_id?.startsWith("visual-job:")) {
+          setTab("multimodal");
+        }
+        setPaneRequest({ pane: "result" });
+      }} />
       {message && (
         <div role="alert" className={"toast " + (error ? "error" : "")}>
           <span>
@@ -1905,11 +1981,8 @@ export function App() {
             <DialogContent>
               {modalError && <div className="inline-warning" role="alert">{modalError}</div>}
               {diagnostics ? (
-                <>
-                  <p>{diagnostics.passed ? "环境检查通过" : "发现环境问题"}</p>
-                  <pre className="diagnostics">{diagnostics.details}</pre>
-                </>
-              ) : (
+                <DiagnosticsPanel diagnostics={diagnostics} />
+              ) : !modalError && (
                 <Spinner label="正在检查驱动和离线模型" />
               )}
               <p className="dialog-description">

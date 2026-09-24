@@ -6,6 +6,10 @@ export type MultimodalModel = {
   label: string;
   available: boolean;
   reason?: string;
+  backend?: "local" | "external";
+  base_url?: string;
+  protocol?: "openai" | "anthropic";
+  model?: string;
 };
 export type MultimodalCatalog = {
   models: MultimodalModel[];
@@ -14,6 +18,7 @@ export type MultimodalCatalog = {
   policy?: Record<string, unknown>;
 };
 export type MultimodalRequest = {
+  model_label?: string;
   task_id: string;
   request_id?: string;
   status: string;

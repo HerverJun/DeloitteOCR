@@ -43,3 +43,9 @@
 .multimodal-reason > strong { color: var(--muted, #66706a); font-size: 12px; }
 .multimodal-export { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border, #e2e7df); }
 @media (max-width: 1050px) { .multimodal-comparison { grid-template-columns: minmax(0, 1fr); } }
+.external-review-fields { display: flex; flex-direction: column; gap: 12px; }
+.external-review-fields p { margin: 0; overflow-wrap: anywhere; }
+.external-review-fields [role="status"] { display: flex; align-items: center; gap: 8px; }
+.external-review-model-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.external-review-dialog { max-height: 90vh; overflow-y: auto; }
+.multimodal-external-notice { padding: 10px 12px; border-left: 3px solid var(--colorBrandStroke1); background: var(--colorNeutralBackground2); overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }

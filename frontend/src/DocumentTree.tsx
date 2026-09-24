@@ -172,7 +172,7 @@ export function DocumentTree({ documents, activeImage, activePage, reviewOnly, b
         })}>处理全文</Button>
       </div>
       <div className="document-actions">{[["pause", "暂停"], ["resume", "继续"], ["retry", "重试"], ["cancel", "取消"]].map(([key, label]) => <Button size="small" key={key} disabled={busy} onClick={() => void act(() => api(`/documents/${documentId}/queue/${key}`, "POST", {}))}>{label}</Button>)}</div>
-      <DocumentReviewQueue documentId={documentId} busy={busy} onCheck={beforeOpen} onError={onError} onOpen={async task => {
+      <DocumentReviewQueue key={documentId} documentId={documentId} busy={busy} onCheck={beforeOpen} onError={onError} onOpen={async task => {
         if (task.result_id && task.image_id) {
           beginNavigation(); pendingOpen.current = null; setSelection(null); setNotice("");
           setOffset(documentPageOffset(task.page_number)); setJump(String(task.page_number));

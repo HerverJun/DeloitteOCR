@@ -32,7 +32,7 @@ export function QuickReview({ result, versionId, version, geometryRefresh = 0, a
   result: Result; versionId: string; adopted: boolean; busy: boolean;
   version?: Version | null; geometryRefresh?: number;
   onDecision: (issueId: string, body: Record<string, unknown>) => Promise<void>;
-  onLocate: (issue: ReviewIssue, edit: boolean) => void;
+  onLocate: (issue: ReviewIssue, edit: boolean, reveal?: boolean) => void;
   onConfirm: () => void;
   onDraft: (draft: { issueId: string; value: string } | null) => void;
   getDraft: () => { issueId: string; value: string } | null;
@@ -159,7 +159,7 @@ export function QuickReview({ result, versionId, version, geometryRefresh = 0, a
     {activeIssue ? <>
       <div className="fusion-issue-heading"><strong>{categories[activeIssue.category]} · {states[activeIssue.state]}</strong><Button size="small" disabled={working || manualDirty || submitting} onClick={() => onLocate(activeIssue, true)}>在编辑器定位</Button></div>
       <p>{activeIssue.reason === "baseline_structure_invalid" ? "基准表格结构不完整。请核对原始来源、完整候选表与阅读位置；没有可靠骨架时仅保留原始文字。" : reasons[activeIssue.reason] || activeIssue.reason}</p>
-      <p className="fusion-location">定位：{activeIssue.location.level === "cell" ? "单元格" : activeIssue.location.level === "region" ? "整表 / 文字区域" : "全图"} · {activeIssue.location.reason} <Button size="small" onClick={() => onLocate(activeIssue, false)}>定位原图</Button></p>
+      <p className="fusion-location">定位：{activeIssue.location.level === "cell" ? "单元格" : activeIssue.location.level === "region" ? "整表 / 文字区域" : "全图"} · {activeIssue.location.reason} <Button size="small" onClick={() => onLocate(activeIssue, false, true)}>定位原图</Button></p>
       {version && <RegionPreview version={version} location={activeIssue.location} tablePolygon={activeIssue.location.table_polygon} onReady={ready} />}
       {activeIssue.context && <div className="review-context"><p>行标题：{activeIssue.context.row_header || "未确定"}</p><p>列标题：{activeIssue.context.column_header || "未确定"}</p><p className="neighbors">相邻内容：{activeIssue.context.neighbors.map(n => `第 ${n.row+1} 行 ${n.column+1} 列：${n.text || "空值"}`).join("；") || "无"}</p></div>}
       <div className="fusion-current"><small>当前已保存值</small><Value value={activeIssue.current_value} /></div>

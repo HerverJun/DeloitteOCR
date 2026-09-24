@@ -1150,6 +1150,10 @@ input::placeholder {
   margin: 0;
   overflow-wrap: anywhere;
 }
+.comparison-operation-detail { color: #626862; }
+.comparison-operation-detail summary { cursor: pointer; width: fit-content; }
+.comparison-operation-detail summary:focus-visible { outline: 2px solid #386a12; outline-offset: 2px; }
+.comparison-operation-detail pre { max-height: 160px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .aligned-diff {
   width: 100%;
   table-layout: fixed;
