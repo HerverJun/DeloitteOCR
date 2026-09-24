@@ -236,7 +236,7 @@ def complete_geometry(store, task, prediction, artifact, *, candidate_cache_hit=
         raw_path = artifact.parent / 'upstream.json'
         if not raw_path.is_file() or hashlib.sha256(raw_path.read_bytes()).hexdigest() != upstream.get('sha256'):
             raise ValueError('原始几何产物哈希不一致')
-    if algorithm in ('local-v2', 'local-v3'):
+    if algorithm in ('local-v2', 'local-v3', 'local-v4'):
         from ocr_workbench.table_matching import local_mapping
         mappings = local_mapping(snapshot['edited'], prediction, version['width'], version['height'],
             policy=snapshot['policy'], result_id=request['result_id'], revision=snapshot['revision'],
@@ -299,7 +299,7 @@ def complete_geometry(store, task, prediction, artifact, *, candidate_cache_hit=
                         source_result=prediction.get('ocr_source') or snapshot.get('ocr_source') or request['result_id'],
                         artifact=str(artifact.relative_to(store.root)))
                     preview_mappings = local_mapping(edit,prediction,version['width'],version['height'],policy=snapshot['policy'],
-                        result_id=result_key,revision=0,image_version=task['version_id'],ocr_blocks=prediction.get('ocr_blocks', snapshot.get('ocr_blocks',[]))) if algorithm in ('local-v2', 'local-v3') else conservative_mapping(edit,prediction,version['width'],version['height'])
+                        result_id=result_key,revision=0,image_version=task['version_id'],ocr_blocks=prediction.get('ocr_blocks', snapshot.get('ocr_blocks',[]))) if algorithm in ('local-v2', 'local-v3', 'local-v4') else conservative_mapping(edit,prediction,version['width'],version['height'])
                     for mapping in preview_mappings:
                         db.execute('INSERT INTO geometry_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
                             (uid(),result_key,task['version_id'],mapping.get('region_id'),version['sha256'],structure_fingerprint(edit),source_name,encoded(prediction['model_revisions']),encoded(mapping['target']),encoded(mapping['polygon']) if mapping['polygon'] else None,encoded(dict(mapping,artifact=str(artifact.relative_to(store.root)),contributes_to_votes=False,policy_sha256=snapshot.get('policy_sha256'),geometry_provider=provider,algorithm=algorithm)),'valid',now()))

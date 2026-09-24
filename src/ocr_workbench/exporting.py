@@ -10,7 +10,7 @@ from ocr_workbench.editing import validate_edit, export_markdown, export_text
 from ocr_workbench.tables import export_xlsx
 
 
-def build_export(store, keys, format, aggregate=False, confirmed_only=False):
+def build_export(store, keys, format, aggregate=False, confirmed_only=False, expected_results=None):
     if not isinstance(keys, list) or not keys or len(keys) > 1000:
         raise ValueError("请选择需要导出的结果（最多 1000 个）")
     if not all(isinstance(key, str) for key in keys):
@@ -45,6 +45,11 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False):
                     raise KeyError("识别结果不存在")
                 result = dict(row)
                 task = dict(db.execute("SELECT * FROM tasks WHERE id=?", (result['task_id'],)).fetchone())
+                if expected_results is not None:
+                    from ocr_workbench.store import Conflict
+                    expected = expected_results.get(key)
+                    if expected is None or (expected['revision'], expected['version_id']) != (result['revision'], task['version_id']):
+                        raise Conflict("导出快照版本已变化，请重新核对范围")
                 photo = dict(db.execute("SELECT * FROM images WHERE id=?", (task['image_id'],)).fetchone())
                 if confirmed_only:
                     from ocr_workbench.store import Conflict

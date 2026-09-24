@@ -59,7 +59,7 @@ def _rows(report):
         yield [item["id"], target_label(item["target"]), DECISIONS.get(item["decision"], item["decision"]),
             STATES.get(item["state"], item["state"]), item["before"], item["after"], item["current_value"],
             item["reason"], item["evidence"].get("reason", ""), item["evidence"].get("version_id", ""),
-            request.get("snapshot", {}).get("model_id", ""), item["task_id"], str(item["basis_revision"]), str(item["revision"])]
+            request.get('model_label') or request.get("snapshot", {}).get("model_id", ""), item["task_id"], str(item["basis_revision"]), str(item["revision"])]
 
 
 def _markdown(report):

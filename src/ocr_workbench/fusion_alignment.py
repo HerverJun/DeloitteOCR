@@ -88,7 +88,22 @@ def source_tables(source):
                 polygon = valid_polygon(block.get("polygon"), original.get("image", {}))
                 if polygon:
                     regions.append(polygon)
-        table["region_polygon"] = regions[0] if len(regions) == 1 else None
+        # Native previews consume the original word blocks when inserting HTML.
+        # Their region is saved on the immutable original table instead. Accept
+        # it only for a native preview whose cell evidence binds to this image;
+        # never recover a region from editable tables or a stale image.
+        native_region = None
+        version = original.get('project_image_version')
+        document = original.get('document', {})
+        if (not regions and version and document.get('structure_preview') is True
+                and document.get('structure_text_source') == 'pdf-native'
+                and table.get('cells') and all(
+                    c.get('native_content', {}).get('version') == 'native-adopted-fragments-v1'
+                    and c['native_content'].get('image_version') == version
+                    and c.get('structure_source', {}).get('image_version') == version
+                    for c in table['cells'])):
+            native_region = valid_polygon(table.get('region_polygon'), original.get('image', {}))
+        table["region_polygon"] = regions[0] if len(regions) == 1 else native_region
     return tables
 
 

@@ -23,6 +23,12 @@
     "license": "MIT"
   },
   {
+    "name": "certifi",
+    "version": "2026.7.22",
+    "requires": [],
+    "license": "MPL-2.0"
+  },
+  {
     "name": "click",
     "version": "8.5.0",
     "requires": [],
@@ -74,6 +80,38 @@
     "version": "0.16.0",
     "requires": [],
     "license": "MIT"
+  },
+  {
+    "name": "httpcore",
+    "version": "1.0.9",
+    "requires": [
+      "certifi",
+      "h11>=0.16",
+      "anyio<5.0,>=4.0; extra == 'asyncio'",
+      "h2<5,>=3; extra == 'http2'",
+      "socksio==1.*; extra == 'socks'",
+      "trio<1.0,>=0.22.0; extra == 'trio'"
+    ],
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "httpx",
+    "version": "0.28.1",
+    "requires": [
+      "anyio",
+      "certifi",
+      "httpcore==1.*",
+      "idna",
+      "brotli; (platform_python_implementation == 'CPython') and extra == 'brotli'",
+      "brotlicffi; (platform_python_implementation != 'CPython') and extra == 'brotli'",
+      "click==8.*; extra == 'cli'",
+      "pygments==2.*; extra == 'cli'",
+      "rich<14,>=10; extra == 'cli'",
+      "h2<5,>=3; extra == 'http2'",
+      "socksio==1.*; extra == 'socks'",
+      "zstandard>=0.18.0; extra == 'zstd'"
+    ],
+    "license": "BSD-3-Clause"
   },
   {
     "name": "idna",

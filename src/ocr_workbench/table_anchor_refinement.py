@@ -49,22 +49,42 @@ def refine_anchors(adopted, predicted, assigned, anchors, order_bad, policy, dea
     lineage = {a.id: {'roots': [a.id], 'parents': [], 'round': 0} for a, _ in anchors}
     initial = {a.id for a, _ in anchors}
     by_value = {}
+    by_position = {}
     for p in predicted:
         value = _value(p, assigned)
         if value and p.cell_polygon and not p.reason_codes and p.geometry_origin != 'text_extent':
             by_value.setdefault((value, _span(p)), []).append(p)
+            by_position.setdefault((value,_span(p),p.row_start,p.row_end,p.column_start,p.column_end),[]).append(p)
     for round_index in range(1, policy.get('maximum_anchor_rounds', 8) + 1):
         used = {p.id for _, p in anchors}
         matched = {a.id for a, _ in anchors}
         proposals = []
+        axis_maps={axis:{} for axis in ('row','column')}
+        if policy.get('direct_axis_pruning'):
+            for b,q in anchors:
+                for axis in axis_maps:
+                    key=(getattr(b,axis+'_start'),getattr(b,axis+'_end'))
+                    axis_maps[axis].setdefault(key,set()).add((getattr(q,axis+'_start'),getattr(q,axis+'_end')))
         for a in adopted:
             if time.perf_counter() > deadline:
                 return anchors, lineage, 'timeout'
             if not a.matching_text or a.id in matched or a.id in order_bad:
                 continue
             candidates = []
-            for p in by_value.get((a.matching_text, _span(a)), []):
+            options=by_value.get((a.matching_text, _span(a)), [])
+            if policy.get('direct_axis_pruning'):
+                rows=axis_maps['row'].get((a.row_start,a.row_end),set())
+                columns=axis_maps['column'].get((a.column_start,a.column_end),set())
+                if len(rows)==len(columns)==1:
+                    r0,r1=next(iter(rows));c0,c1=next(iter(columns))
+                    options=by_position.get((a.matching_text,_span(a),r0,r1,c0,c1),[])
+            for p in options:
                 if p.id in used:
+                    continue
+                if policy.get('direct_axis_pruning') and any(
+                    (getattr(p,axis+'_start'),getattr(p,axis+'_end')) not in expected
+                    for axis,lookup in axis_maps.items()
+                    if (expected:=lookup.get((getattr(a,axis+'_start'),getattr(a,axis+'_end'))))):
                     continue
                 support = neighbor_support(a, p, anchors)
                 roots = sorted({root for aid in support for root in lineage[aid]['roots']})
@@ -74,8 +94,14 @@ def refine_anchors(adopted, predicted, assigned, anchors, order_bad, policy, dea
                 proposals.append(candidates[0])
         owners = Counter(p.id for _, p, _, _ in proposals)
         conflicts = set()
-        for i, (a, p, _, _) in enumerate(proposals):
+        translated = policy.get('direct_axis_pruning') and len({(p.row_start-a.row_start,p.column_start-a.column_start)
+            for a,p,_,_ in proposals})<=1
+        for i, (a, p, _, _) in enumerate([] if translated else proposals):
             for b, q, _, _ in proposals[i + 1:]:
+                if time.perf_counter() > deadline:
+                    # The current round is uncommitted. Previously published
+                    # rounds are independent and already fully conflict checked.
+                    return anchors, lineage, 'timeout'
                 if not _order_compatible(a, p, b, q):
                     conflicts.update((a.id, b.id))
         accepted = [(a, p, support, roots) for a, p, support, roots in proposals

@@ -322,7 +322,107 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ReviewProtocolError('本地审校服务不能重定向请求')
 
 
-class ReviewSession:
+class ReviewPipeline:
+    def review(self, image_path, snapshot, progress_callback=None):
+        from PIL import Image
+        self._cancel()
+        c, limits = self.config, self.config['limits']
+        targets = snapshot.get('targets')
+        if not isinstance(targets, list) or not 1 <= len(targets) <= limits['max_targets']:
+            raise ValueError('审校目标数量超出上限')
+        ids = set()
+        total_chars = 0
+        for target in targets:
+            ident, before = target.get('id'), target.get('before')
+            if not isinstance(ident, str) or not ident or len(ident) > 200 or ident in ids:
+                raise ValueError('审校目标 ID 无效或重复')
+            if not isinstance(before, str) or len(before) > limits['max_target_chars']:
+                raise ValueError('审校目标文字超出上限')
+            ids.add(ident)
+            total_chars += len(before)
+        if total_chars > limits['max_total_chars']:
+            raise ValueError('审校目标总文字超出上限')
+        self.output.mkdir(parents=True, exist_ok=True)
+        write_json(self.output / 'input-snapshot.json', snapshot)
+        image_path = Path(image_path)
+        if image_path.stat().st_size > 128 * 1024 * 1024:
+            raise ValueError('审校原图文件超过 128 MiB 上限')
+        image_bytes = image_path.read_bytes()
+        image_hash = hashlib.sha256(image_bytes).hexdigest()
+        expected_hash = snapshot.get('image_sha256') or snapshot.get('image', {}).get('sha256')
+        if expected_hash and image_hash != expected_hash:
+            raise ValueError('审校原图已改变，需重新提交')
+        started, items, batches = time.perf_counter(), [], []
+        # Decode the exact hashed bytes; a concurrent source-path replacement
+        # cannot bind another image to this snapshot's source hash.
+        with Image.open(io.BytesIO(image_bytes)) as original:
+            if original.width * original.height > 100_000_000:
+                raise ValueError('审校原图像素过多')
+            page = original.convert('RGB')
+        groups, group, group_chars = [], [], 0
+        for target in targets:
+            count = len(target['before']) + min(1000, len(str(target.get('context', ''))))
+            if group and (len(group) >= limits['batch_size'] or group_chars + count > limits['max_batch_chars']):
+                groups.append(group)
+                group, group_chars = [], 0
+            group.append(target)
+            group_chars += count
+        if group:
+            groups.append(group)
+        for group in groups:
+            self._cancel()
+            index = len(batches) + 1
+            folder = self.output / f'batch-{index:04d}'
+            folder.mkdir(exist_ok=True)
+            boxes = [_crop_box(t.get('evidence'), *page.size) for t in group]
+            # A full-resolution bounded page serves all unlocated targets once.
+            page_pixels = limits['image_max_pixels'] if any(b is None for b in boxes) else limits['context_max_pixels']
+            page_bytes, page_size = _png(page, page_pixels, limits['image_max_side'])
+            (folder / 'page.png').write_bytes(page_bytes)
+            content = [{'type': 'text', 'text': 'PAGE CONTEXT (document data)'},
+                       {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(page_bytes).decode()}}]
+            input_targets, crops = [], []
+            for number, (target, box) in enumerate(zip(group, boxes), 1):
+                datum = {'target_id': target['id'], 'before': target['before'],
+                         'location': 'crop' if box else 'page (no reliable crop)',
+                         'context': str(target.get('context', ''))[:1000],
+                         'geometry_level': str((target.get('evidence') or {}).get('level', 'page'))[:40],
+                         'range_semantics': str((target.get('evidence') or {}).get('range_semantics', ''))[:300]}
+                input_targets.append(datum)
+                if box:
+                    crop_bytes, crop_size = _png(page.crop(box), limits['image_max_pixels'], limits['image_max_side'])
+                    name = f'crop-{number:02d}.png'
+                    (folder / name).write_bytes(crop_bytes)
+                    crops.append({'target_id': target['id'], 'box': box, 'file': name,
+                                  'size': crop_size, 'sha256': hashlib.sha256(crop_bytes).hexdigest()})
+                    content += [{'type': 'text', 'text': 'CROP target_id=' + target['id']},
+                                {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(crop_bytes).decode()}}]
+            content.append({'type': 'text', 'text': 'OCR_TARGET_DATA_JSON\n' + json.dumps(input_targets, ensure_ascii=False)})
+            payload = self._payload(content, group)
+            write_json(folder / 'request.json', payload)
+            evidence = {'target_ids': [t['id'] for t in group], 'page_size': page_size,
+                        'page_sha256': hashlib.sha256(page_bytes).hexdigest(), 'crops': crops}
+            write_json(folder / 'evidence.json', evidence)
+            reply = validate_reply(self._request(payload, folder / 'response.json'), group)
+            self._cancel()
+            items.extend(reply['items'])
+            batches.append({'directory': folder.name, 'summary': reply['summary'], 'readings': reply['readings'], **evidence})
+            progress = progress_callback or self.progress_callback
+            if progress:
+                progress(len(items), len(targets))
+        counts = {decision: sum(item['decision'] == decision for item in items)
+                  for decision in ('keep', 'replace', 'uncertain')}
+        # Keep all verbatim batch summaries in evidence. A deterministic short
+        # overview fits the store contract even for 256 individually long targets.
+        summary = f"共复核 {len(items)} 项：保留 {counts['keep']}，建议修改 {counts['replace']}，存疑 {counts['uncertain']}。"
+        result = {'items': items, 'summary': summary,
+                  'identity': self._identity(), 'evidence': {'image_sha256': image_hash, 'batches': batches},
+                  'timing': {'load_seconds': self.loaded, 'review_seconds': time.perf_counter() - started}}
+        write_json(self.output / 'response.json', result)
+        return result
+
+
+class ReviewSession(ReviewPipeline):
     def __init__(self, bundle, config, output, cancel_event=None, progress_callback=None):
         self.bundle, self.output = Path(bundle).resolve(), Path(output)
         self.config = config or load_config(bundle)
@@ -419,6 +519,19 @@ class ReviewSession:
     def _headers(self):
         return {'Authorization': 'Bearer ' + self.token, 'Content-Type': 'application/json'}
 
+    def _identity(self):
+        return _identity(self.config)
+
+    def _payload(self, content, targets):
+        limits = self.config['limits']
+        payload = {'model': 'OCR-review', 'messages': [{'role': 'system', 'content': PROMPT},
+                        {'role': 'user', 'content': content}], 'temperature': 0.0, 'seed': 0,
+                       'top_p': 1.0, 'max_tokens': limits['max_output_tokens'], 'stream': False,
+                       'chat_template_kwargs': {'enable_thinking': False},
+                       'response_format': {'type': 'json_schema', 'json_schema': {
+                           'name': 'ocr_review', 'strict': True, 'schema': _schema(targets)}}}
+        return payload
+
     def _request(self, payload, evidence_path):
         """A cancelable controller owns the child; HTTP never blocks its cancel path."""
         self._cancel()
@@ -457,109 +570,6 @@ class ReviewSession:
             return json.loads(body)
         except (ValueError, UnicodeDecodeError) as error:
             raise ReviewProtocolError('审校服务返回无效 JSON') from error
-
-    def review(self, image_path, snapshot, progress_callback=None):
-        from PIL import Image
-        self._cancel()
-        c, limits = self.config, self.config['limits']
-        targets = snapshot.get('targets')
-        if not isinstance(targets, list) or not 1 <= len(targets) <= limits['max_targets']:
-            raise ValueError('审校目标数量超出上限')
-        ids = set()
-        total_chars = 0
-        for target in targets:
-            ident, before = target.get('id'), target.get('before')
-            if not isinstance(ident, str) or not ident or len(ident) > 200 or ident in ids:
-                raise ValueError('审校目标 ID 无效或重复')
-            if not isinstance(before, str) or len(before) > limits['max_target_chars']:
-                raise ValueError('审校目标文字超出上限')
-            ids.add(ident)
-            total_chars += len(before)
-        if total_chars > limits['max_total_chars']:
-            raise ValueError('审校目标总文字超出上限')
-        self.output.mkdir(parents=True, exist_ok=True)
-        write_json(self.output / 'input-snapshot.json', snapshot)
-        image_path = Path(image_path)
-        if image_path.stat().st_size > 128 * 1024 * 1024:
-            raise ValueError('审校原图文件超过 128 MiB 上限')
-        image_bytes = image_path.read_bytes()
-        image_hash = hashlib.sha256(image_bytes).hexdigest()
-        expected_hash = snapshot.get('image_sha256') or snapshot.get('image', {}).get('sha256')
-        if expected_hash and image_hash != expected_hash:
-            raise ValueError('审校原图已改变，需重新提交')
-        started, items, batches = time.perf_counter(), [], []
-        # Decode the exact hashed bytes; a concurrent source-path replacement
-        # cannot bind another image to this snapshot's source hash.
-        with Image.open(io.BytesIO(image_bytes)) as original:
-            if original.width * original.height > 100_000_000:
-                raise ValueError('审校原图像素过多')
-            page = original.convert('RGB')
-        groups, group, group_chars = [], [], 0
-        for target in targets:
-            count = len(target['before']) + min(1000, len(str(target.get('context', ''))))
-            if group and (len(group) >= limits['batch_size'] or group_chars + count > limits['max_batch_chars']):
-                groups.append(group)
-                group, group_chars = [], 0
-            group.append(target)
-            group_chars += count
-        if group:
-            groups.append(group)
-        for group in groups:
-            self._cancel()
-            index = len(batches) + 1
-            folder = self.output / f'batch-{index:04d}'
-            folder.mkdir(exist_ok=True)
-            boxes = [_crop_box(t.get('evidence'), *page.size) for t in group]
-            # A full-resolution bounded page serves all unlocated targets once.
-            page_pixels = limits['image_max_pixels'] if any(b is None for b in boxes) else limits['context_max_pixels']
-            page_bytes, page_size = _png(page, page_pixels, limits['image_max_side'])
-            (folder / 'page.png').write_bytes(page_bytes)
-            content = [{'type': 'text', 'text': 'PAGE CONTEXT (document data)'},
-                       {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(page_bytes).decode()}}]
-            input_targets, crops = [], []
-            for number, (target, box) in enumerate(zip(group, boxes), 1):
-                datum = {'target_id': target['id'], 'before': target['before'],
-                         'location': 'crop' if box else 'page (no reliable crop)',
-                         'context': str(target.get('context', ''))[:1000],
-                         'geometry_level': str((target.get('evidence') or {}).get('level', 'page'))[:40],
-                         'range_semantics': str((target.get('evidence') or {}).get('range_semantics', ''))[:300]}
-                input_targets.append(datum)
-                if box:
-                    crop_bytes, crop_size = _png(page.crop(box), limits['image_max_pixels'], limits['image_max_side'])
-                    name = f'crop-{number:02d}.png'
-                    (folder / name).write_bytes(crop_bytes)
-                    crops.append({'target_id': target['id'], 'box': box, 'file': name,
-                                  'size': crop_size, 'sha256': hashlib.sha256(crop_bytes).hexdigest()})
-                    content += [{'type': 'text', 'text': 'CROP target_id=' + target['id']},
-                                {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(crop_bytes).decode()}}]
-            content.append({'type': 'text', 'text': 'OCR_TARGET_DATA_JSON\n' + json.dumps(input_targets, ensure_ascii=False)})
-            payload = {'model': 'OCR-review', 'messages': [{'role': 'system', 'content': PROMPT},
-                        {'role': 'user', 'content': content}], 'temperature': 0.0, 'seed': 0,
-                       'top_p': 1.0, 'max_tokens': limits['max_output_tokens'], 'stream': False,
-                       'chat_template_kwargs': {'enable_thinking': False},
-                       'response_format': {'type': 'json_schema', 'json_schema': {
-                           'name': 'ocr_review', 'strict': True, 'schema': _schema(group)}}}
-            write_json(folder / 'request.json', payload)
-            evidence = {'target_ids': [t['id'] for t in group], 'page_size': page_size,
-                        'page_sha256': hashlib.sha256(page_bytes).hexdigest(), 'crops': crops}
-            write_json(folder / 'evidence.json', evidence)
-            reply = validate_reply(self._request(payload, folder / 'response.json'), group)
-            self._cancel()
-            items.extend(reply['items'])
-            batches.append({'directory': folder.name, 'summary': reply['summary'], 'readings': reply['readings'], **evidence})
-            progress = progress_callback or self.progress_callback
-            if progress:
-                progress(len(items), len(targets))
-        counts = {decision: sum(item['decision'] == decision for item in items)
-                  for decision in ('keep', 'replace', 'uncertain')}
-        # Keep all verbatim batch summaries in evidence. A deterministic short
-        # overview fits the store contract even for 256 individually long targets.
-        summary = f"共复核 {len(items)} 项：保留 {counts['keep']}，建议修改 {counts['replace']}，存疑 {counts['uncertain']}。"
-        result = {'items': items, 'summary': summary,
-                  'identity': _identity(c), 'evidence': {'image_sha256': image_hash, 'batches': batches},
-                  'timing': {'load_seconds': self.loaded, 'review_seconds': time.perf_counter() - started}}
-        write_json(self.output / 'response.json', result)
-        return result
 
     def close(self):
         try:

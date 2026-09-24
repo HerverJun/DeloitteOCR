@@ -42,6 +42,8 @@ def migrate_v10(db):
 
 def record_candidates(db, result_id, version, prediction, blocks, *, source_result=None, artifact=None):
     from ocr_workbench.store import encoded, now
+    if prediction.get('image_sha256') not in (None,version['sha256']):
+        raise ValueError('结构候选图像哈希不匹配')
     payload = prepare_candidates(prediction, blocks, source_result=source_result or result_id,
         image_version=version["id"], width=version["width"], height=version["height"])
     prediction_hash = fingerprint(prediction)
@@ -172,141 +174,158 @@ def structure_snapshot(db, result):
             continue
         # Historical decisions remain visible after unrelated edits or tool
         # upgrades, but are never offered as fresh, actionable suggestions.
-        item['can_apply'] = bool(item['can_apply'] and pending and result['selected'] == result['id'])
+        item['can_apply'] = bool(item['can_apply'] and pending and result['selected'] == result['id']
+                                 and item.get('version') == VERSION)
         proposals.append(item)
     proposals.sort(key=lambda p: (p['priority'], p['table_indices'], p['kind'] != 'replace_table', p['id']))
     check = db.execute("""SELECT candidates_sha256 FROM structure_checks
         WHERE result_id=? AND revision=? AND version_id=?""",
         (result['id'], result['revision'], result['version_id'])).fetchone()
-    checked = bool(check and check['candidates_sha256'] == fingerprint([row['id'] for row in candidates])
+    checked = bool(check and not any(p['state'] in ('pending','deferred') and p.get('version') != VERSION for p in proposals)
+                   and check['candidates_sha256'] == fingerprint([row['id'] for row in candidates])
                    and tool['state'] in ('ready', 'empty', 'not_applicable'))
     return {'table_tool': tool, 'candidate_rows': candidates, 'proposals': proposals, 'checked': checked}
 
 
 def refresh_proposals(store, result_id, revision):
-    from ocr_workbench.store import Conflict, encoded, now
     with store.transaction() as db:
         db.execute("BEGIN IMMEDIATE")
-        result = context(db, result_id)
-        if result["revision"] != revision:
-            raise Conflict("修订已变化，请保存后重新检查结构")
-        version = db.execute("SELECT * FROM versions WHERE id=?", (result["version_id"],)).fetchone()
-        import_saved_candidates(store,db,result,version)
-        from ocr_workbench.table_tool import view as tool_view
-        tool = tool_view(db, result)
-        # Latest set from each provider, with an explicitly shared text pool.
-        sets = [(row, json.loads(row['payload'])) for row in current_candidates(db, result, tool)]
-        current, originals = _current_tables(db, result)
-        for row, payload in sets:
-            from ocr_workbench.structure_groups import group_suggestions
-            manual_tables = {json.loads(b['target']).get('table') for b in db.execute("SELECT target FROM geometry_evidence WHERE result_id=? AND source='manual' AND status='valid'",(result_id,))}
-            for group in group_suggestions(result['edited'],current,originals,payload['tables'],manual_tables):
-                targets = group['candidate_tables']
-                proposal = {'kind':group['kind'],'table_indices':group['table_indices'],
-                    'current_tables':[result['edited']['tables'][i] for i in group['table_indices']],
-                    'proposed_tables':[c['skeleton'] for c in targets],'proposed_edit':group['proposed_edit'],
-                    'differences':[{'kind':'table_identity','current':len(group['table_indices']),'candidate':len(targets)}],
-                    'conflicts':[],'candidate_set_id':row['id'],'candidate_table_ids':[c['id'] for c in targets],
-                    'provider':row['provider'],'polygon':targets[0]['polygon'] if len(targets)==1 else current[group['table_indices'][0]]['region_polygon'],
-                    'token_pool_sha256':payload['token_pool_sha256'],'image_sha256':version['sha256'],'can_apply':not payload['rejected_tokens'],
-                    'unverified_empty_cells':[{'table':ti,'row':c['row'],'column':c['column']} for ti,t in enumerate(targets)
-                        for c in t['skeleton']['cells'] if c['structure_source']['text_state']=='unverified_empty'],
-                    'priority':0,'reason':'independent_regions_and_exact_source_partition','version':VERSION}
-                _persist_proposal(db,result,proposal)
-            if not current and result['edited']['text'] == result['original']['text'] and result['original'].get('origin') == 'document':
-                from ocr_workbench.native_tables import native_table_preview
-                preview = native_table_preview(result['original'],payload['prediction'],version['width'],version['height'])
-                if preview:
-                    native_tables = deepcopy(preview['tables'])
-                    native_candidates = identify_tables(native_tables,payload['tables'])
-                    if all(native_candidates):
-                        for table_index,(table, match) in enumerate(zip(native_tables,native_candidates)):
-                            candidate = payload['tables'][match[1]]
-                            source_cells = {(c['row'],c['column']):c for c in candidate['skeleton']['cells']}
-                            for cell in table['cells']:
-                                source = source_cells.get((cell['row'],cell['column']))
-                                if source:
-                                    cell['structure_source'] = deepcopy(source['structure_source'])
-                                    units = preview['document']['table_native_cells'][f"{table_index}:{cell['row']}:{cell['column']}"]['units']
-                                    by_id = {t['id']:t for t in payload['tokens']}
-                                    ordered = []
-                                    for unit in units:
-                                        matches = [tid for tid in source['structure_source']['token_ids'] if tid not in ordered
-                                            and by_id[tid]['raw_text'] == unit['text'] and by_id[tid]['polygon'] == unit['polygon']]
-                                        if len(matches)==1:
-                                            ordered.append(matches[0])
-                                    if len(ordered)==len(units):
-                                        cell['structure_source']['token_ids'] = ordered
-                        proposal = {'kind':'native_table','table_indices':[], 'current_tables':[], 'proposed_tables':native_tables,
-                            'proposed_text':preview['text'], 'differences':[{'kind':'table_identity'}], 'conflicts':[],
-                            'candidate_set_id':row['id'], 'candidate_table_ids':[payload['tables'][m[1]]['id'] for m in native_candidates],
-                            'provider':row['provider'], 'token_pool_sha256':payload['token_pool_sha256'], 'text_source_result':result_id,
-                            'polygon':payload['tables'][native_candidates[0][1]]['polygon'] if len(native_candidates)==1 else None,
-                            'image_sha256':version['sha256'], 'can_apply':True, 'priority':0,
-                            'unverified_empty_cells':[{'table':ti,'row':c['row'],'column':c['column']} for ti,t in enumerate(native_tables)
-                                for c in t['cells'] if c.get('structure_source',{}).get('text_state')=='unverified_empty'],
-                            'reason':'native_text_structure','version':VERSION}
-                        _persist_proposal(db,result,proposal)
-                        continue
-            matches = identify_tables(current, payload["tables"])
-            matched = set()
-            for ti, match in enumerate(matches):
-                if not match:
-                    continue
-                ci, evidence = match[1], match[2]
-                matched.add(ci)
-                candidate = payload["tables"][ci]
-                proposed = candidate["skeleton"]
-                delta = differences(current[ti], proposed)
-                if not delta and not candidate["unassigned_token_ids"] and not candidate["reason_codes"]:
-                    continue
-                bindings = [{**dict(b), "target": json.loads(b["target"]), "polygon": json.loads(b["polygon"])} for b in db.execute(
-                    "SELECT * FROM geometry_evidence WHERE result_id=? AND version_id=? AND status='valid' AND source='manual' AND json_extract(target,'$.table')=?",
-                    (result_id, version["id"], ti)) if b["polygon"]]
-                original = originals[ti] if ti < len(originals) else None
-                variants = [{"kind": "replace_table", "range": None, "table": proposed}] + local_variants(current[ti], proposed)
-                for variant in variants:
-                    # Local variants retain untouched cells and their original metadata.
-                    table, conflicts, retained = preserve_values(current[ti], variant["table"], original, payload["tokens"], bindings)
-                    if candidate["unassigned_token_ids"]:
-                        conflicts.append({"kind": "unassigned_tokens", "token_ids": candidate["unassigned_token_ids"]})
-                    if payload["rejected_tokens"]:
-                        conflicts.append({"kind": "rejected_source_tokens", "tokens": payload["rejected_tokens"]})
-                    fatal = [c for c in candidate["reason_codes"] if c not in ("unverified_lineage", "boxes_slots_out_of_sync")]
-                    if fatal:
-                        conflicts.append({"kind": "invalid_candidate", "reasons": fatal})
-                    table["fusion_id"] = current[ti].get("fusion_id", fingerprint({"result": result_id, "table": ti})[:24])
-                    table["source"] = current[ti].get("source")
-                    proposal = {"kind": variant["kind"], "range": variant["range"], "table_indices": [ti],
-                        "current_tables": [result["edited"]["tables"][ti]], "proposed_tables": [table],
-                        "differences": differences(current[ti], variant["table"]), "conflicts": conflicts,
-                        "retained_values": retained, "candidate_set_id": row["id"], "candidate_table_ids": [candidate["id"]],
-                        "provider": row["provider"], "model_versions": sorted({c["model_version"] for c in candidate["original_cells"]}),
-                        "text_source_result": payload["tokens"][0]["source_result"] if payload["tokens"] else None,
-                        "token_pool_sha256": payload["token_pool_sha256"], "unassigned_tokens": [t for t in payload["tokens"] if t["id"] in candidate["unassigned_token_ids"]],
-                        "identity_evidence": evidence, "polygon": candidate["polygon"], "image_sha256": version["sha256"],
-                        "can_apply": not conflicts, "priority": 1,
-                        "unverified_empty_cells": [{"row": c["row"], "column": c["column"]} for c in table["cells"] if c.get("structure_source", {}).get("text_state") == "unverified_empty"],
-                        "reason": "structure_difference", "version": VERSION}
-                    _persist_proposal(db, result, proposal)
-            # Identity ambiguity is one page task, with all affected regions attached.
-            unmatched = [c for i, c in enumerate(payload["tables"]) if i not in matched]
-            if unmatched or any(m is None for m in matches):
-                proposal = {"kind": "table_identity", "table_indices": [i for i,m in enumerate(matches) if m is None],
-                    "current_tables": [result["edited"]["tables"][i] for i,m in enumerate(matches) if m is None],
-                    "proposed_tables": [c["skeleton"] for c in unmatched], "differences": [{"kind": "table_identity", "candidate_regions": [c["polygon"] for c in unmatched]}],
-                    "conflicts": [{"kind": "table_identity_ambiguous"}], "candidate_set_id": row["id"],
-                    "candidate_table_ids": [c["id"] for c in unmatched], "provider": row["provider"],
-                    "polygon": unmatched[0]["polygon"] if len(unmatched) == 1 else None,
-                    "image_sha256": version["sha256"], "can_apply": False, "priority": 0,
-                    "reason": "table_identity_ambiguous", "version": VERSION}
-                _persist_proposal(db, result, proposal)
-        db.execute("INSERT OR REPLACE INTO structure_checks VALUES(?,?,?,?,?)", (result_id,revision,version["id"],fingerprint([row["id"] for row,_ in sets]),now()))
+        refresh_proposals_in_transaction(store, db, result_id, revision)
     return structure_view(store, result_id)
+
+
+def refresh_proposals_in_transaction(store, db, result_id, revision, *, table_indices=None):
+    """Shared atomic entrypoint; an agent may restrict proposals to bound tables."""
+    from ocr_workbench.store import Conflict, encoded, now
+    def persist(proposal):
+        scope = set(proposal['table_indices'])
+        if table_indices is None or scope and scope <= set(table_indices):
+            _persist_proposal(db, result, proposal)
+    result = context(db, result_id)
+    if result["revision"] != revision:
+        raise Conflict("修订已变化，请保存后重新检查结构")
+    if table_indices is None:
+        db.execute("UPDATE structure_proposals SET state='stale',updated=? WHERE result_id=? AND state IN ('pending','deferred') AND (json_extract(payload,'$.version') IS NULL OR json_extract(payload,'$.version')!=?)",
+                   (now(), result_id, VERSION))
+    version = db.execute("SELECT * FROM versions WHERE id=?", (result["version_id"],)).fetchone()
+    import_saved_candidates(store,db,result,version)
+    from ocr_workbench.table_tool import view as tool_view
+    tool = tool_view(db, result)
+    # Latest set from each provider, with an explicitly shared text pool.
+    sets = [(row, json.loads(row['payload'])) for row in current_candidates(db, result, tool)]
+    current, originals = _current_tables(db, result)
+    for row, payload in sets:
+        from ocr_workbench.structure_groups import group_suggestions
+        manual_tables = {json.loads(b['target']).get('table') for b in db.execute("SELECT target FROM geometry_evidence WHERE result_id=? AND source='manual' AND status='valid'",(result_id,))}
+        for group in group_suggestions(result['edited'],current,originals,payload['tables'],manual_tables):
+            targets = group['candidate_tables']
+            proposal = {'kind':group['kind'],'table_indices':group['table_indices'],
+                'current_tables':[result['edited']['tables'][i] for i in group['table_indices']],
+                'proposed_tables':[c['skeleton'] for c in targets],'proposed_edit':group['proposed_edit'],
+                'differences':[{'kind':'table_identity','current':len(group['table_indices']),'candidate':len(targets)}],
+                'conflicts':[],'candidate_set_id':row['id'],'candidate_table_ids':[c['id'] for c in targets],
+                'provider':row['provider'],'polygon':targets[0]['polygon'] if len(targets)==1 else current[group['table_indices'][0]]['region_polygon'],
+                'token_pool_sha256':payload['token_pool_sha256'],'image_sha256':version['sha256'],'can_apply':not payload['rejected_tokens'],
+                'unverified_empty_cells':[{'table':ti,'row':c['row'],'column':c['column']} for ti,t in enumerate(targets)
+                    for c in t['skeleton']['cells'] if c['structure_source']['text_state']=='unverified_empty'],
+                'priority':0,'reason':'independent_regions_and_exact_source_partition','version':VERSION}
+            persist(proposal)
+        if not current and result['edited']['text'] == result['original']['text'] and result['original'].get('origin') == 'document':
+            from ocr_workbench.native_tables import native_table_preview
+            preview = native_table_preview(result['original'],payload['prediction'],version['width'],version['height'])
+            if preview:
+                native_tables = deepcopy(preview['tables'])
+                native_candidates = identify_tables(native_tables,payload['tables'])
+                if all(native_candidates):
+                    for table_index,(table, match) in enumerate(zip(native_tables,native_candidates)):
+                        candidate = payload['tables'][match[1]]
+                        source_cells = {(c['row'],c['column']):c for c in candidate['skeleton']['cells']}
+                        for cell in table['cells']:
+                            source = source_cells.get((cell['row'],cell['column']))
+                            if source:
+                                cell['structure_source'] = deepcopy(source['structure_source'])
+                                units = preview['document']['table_native_cells'][f"{table_index}:{cell['row']}:{cell['column']}"]['units']
+                                by_id = {t['id']:t for t in payload['tokens']}
+                                ordered = []
+                                for unit in units:
+                                    matches = [tid for tid in source['structure_source']['token_ids'] if tid not in ordered
+                                        and by_id[tid]['raw_text'] == unit['text'] and by_id[tid]['polygon'] == unit['polygon']]
+                                    if len(matches)==1:
+                                        ordered.append(matches[0])
+                                if len(ordered)==len(units):
+                                    cell['structure_source']['token_ids'] = ordered
+                    proposal = {'kind':'native_table','table_indices':[], 'current_tables':[], 'proposed_tables':native_tables,
+                        'proposed_text':preview['text'], 'differences':[{'kind':'table_identity'}], 'conflicts':[],
+                        'candidate_set_id':row['id'], 'candidate_table_ids':[payload['tables'][m[1]]['id'] for m in native_candidates],
+                        'provider':row['provider'], 'token_pool_sha256':payload['token_pool_sha256'], 'text_source_result':result_id,
+                        'polygon':payload['tables'][native_candidates[0][1]]['polygon'] if len(native_candidates)==1 else None,
+                        'image_sha256':version['sha256'], 'can_apply':True, 'priority':0,
+                        'unverified_empty_cells':[{'table':ti,'row':c['row'],'column':c['column']} for ti,t in enumerate(native_tables)
+                            for c in t['cells'] if c.get('structure_source',{}).get('text_state')=='unverified_empty'],
+                        'reason':'native_text_structure','version':VERSION}
+                    persist(proposal)
+                    continue
+        matches = identify_tables(current, payload["tables"])
+        matched = set()
+        for ti, match in enumerate(matches):
+            if not match:
+                continue
+            ci, evidence = match[1], match[2]
+            matched.add(ci)
+            candidate = payload["tables"][ci]
+            proposed = candidate["skeleton"]
+            delta = differences(current[ti], proposed)
+            if not delta and not candidate["unassigned_token_ids"] and not candidate["reason_codes"]:
+                continue
+            bindings = [{**dict(b), "target": json.loads(b["target"]), "polygon": json.loads(b["polygon"])} for b in db.execute(
+                "SELECT * FROM geometry_evidence WHERE result_id=? AND version_id=? AND status='valid' AND source='manual' AND json_extract(target,'$.table')=?",
+                (result_id, version["id"], ti)) if b["polygon"]]
+            original = originals[ti] if ti < len(originals) else None
+            variants = [{"kind": "replace_table", "range": None, "table": proposed}] + local_variants(current[ti], proposed)
+            for variant in variants:
+                # Local variants retain untouched cells and their original metadata.
+                table, conflicts, retained = preserve_values(current[ti], variant["table"], original, payload["tokens"], bindings)
+                if candidate["unassigned_token_ids"]:
+                    conflicts.append({"kind": "unassigned_tokens", "token_ids": candidate["unassigned_token_ids"]})
+                if payload["rejected_tokens"]:
+                    conflicts.append({"kind": "rejected_source_tokens", "tokens": payload["rejected_tokens"]})
+                fatal = [c for c in candidate["reason_codes"] if c not in ("unverified_lineage", "boxes_slots_out_of_sync")]
+                if fatal:
+                    conflicts.append({"kind": "invalid_candidate", "reasons": fatal})
+                table["fusion_id"] = current[ti].get("fusion_id", fingerprint({"result": result_id, "table": ti})[:24])
+                table["source"] = current[ti].get("source")
+                proposal = {"kind": variant["kind"], "range": variant["range"], "table_indices": [ti],
+                    "current_tables": [result["edited"]["tables"][ti]], "proposed_tables": [table],
+                    "differences": differences(current[ti], variant["table"]), "conflicts": conflicts,
+                    "retained_values": retained, "candidate_set_id": row["id"], "candidate_table_ids": [candidate["id"]],
+                    "provider": row["provider"], "model_versions": sorted({c["model_version"] for c in candidate["original_cells"]}),
+                    "text_source_result": payload["tokens"][0]["source_result"] if payload["tokens"] else None,
+                    "token_pool_sha256": payload["token_pool_sha256"], "unassigned_tokens": [t for t in payload["tokens"] if t["id"] in candidate["unassigned_token_ids"]],
+                    "identity_evidence": evidence, "polygon": candidate["polygon"], "image_sha256": version["sha256"],
+                    "can_apply": not conflicts, "priority": 1,
+                    "unverified_empty_cells": [{"row": c["row"], "column": c["column"]} for c in table["cells"] if c.get("structure_source", {}).get("text_state") == "unverified_empty"],
+                    "reason": "structure_difference", "version": VERSION}
+                persist(proposal)
+        # Identity ambiguity is one page task, with all affected regions attached.
+        unmatched = [c for i, c in enumerate(payload["tables"]) if i not in matched]
+        if unmatched or any(m is None for m in matches):
+            proposal = {"kind": "table_identity", "table_indices": [i for i,m in enumerate(matches) if m is None],
+                "current_tables": [result["edited"]["tables"][i] for i,m in enumerate(matches) if m is None],
+                "proposed_tables": [c["skeleton"] for c in unmatched], "differences": [{"kind": "table_identity", "candidate_regions": [c["polygon"] for c in unmatched]}],
+                "conflicts": [{"kind": "table_identity_ambiguous"}], "candidate_set_id": row["id"],
+                "candidate_table_ids": [c["id"] for c in unmatched], "provider": row["provider"],
+                "polygon": unmatched[0]["polygon"] if len(unmatched) == 1 else None,
+                "image_sha256": version["sha256"], "can_apply": False, "priority": 0,
+                "reason": "table_identity_ambiguous", "version": VERSION}
+            persist(proposal)
+    if table_indices is None:
+        db.execute("INSERT OR REPLACE INTO structure_checks VALUES(?,?,?,?,?)", (result_id,revision,version["id"],fingerprint([row["id"] for row,_ in sets]),now()))
 
 
 def _persist_proposal(db, result, proposal):
     from ocr_workbench.store import encoded, now
+    from ocr_workbench.complex_table_contract import impact
+    proposal['impact'] = impact(proposal.get('current_tables',[]), proposal.get('proposed_tables',[]))
     basis = fingerprint({"edit": result["edited"], "revision": result["revision"], "version": result["version_id"], "proposal": proposal})
     key = fingerprint({"result": result["id"], "basis": basis})
     # A resolved decision remains valid after an unrelated edit. Do not recreate it.
@@ -330,10 +349,13 @@ def structure_view(store, result_id):
         snapshot = structure_snapshot(db, result)
         candidates = [{"id": r["id"], "provider": r["provider"], "created": r["created"], "tables": len(json.loads(r["payload"])["tables"]),
                        "token_pool_sha256": json.loads(r["payload"])["token_pool_sha256"]} for r in snapshot['candidate_rows']]
+        from ocr_workbench.structure_arbitration import recommendations
+        from ocr_workbench.financial_checks import check_tables
         return {"result_id": result_id, "revision": result["revision"], "version_id": result["version_id"],
                 "adopted": result["selected"] == result_id, "experimental": True,
                 "automatic_adoption": False, "candidates": candidates, "proposals": snapshot['proposals'],
-                "table_tool": snapshot['table_tool']}
+                "table_tool": snapshot['table_tool'], 'arbitrations': recommendations(db,result_id),
+                'financial_checks': check_tables(result['edited']['tables'])}
 
 
 def decide_structure(store, result_id, proposal_id, body):
@@ -375,6 +397,8 @@ def decide_structure(store, result_id, proposal_id, body):
             raise Conflict("图像内容已变化，请重新生成建议")
         before, after = result["edited"], deepcopy(result["edited"])
         if action == "accept":
+            if proposal.get('version') != VERSION:
+                raise Conflict('结构保全规则已更新，请重新检查结构后复核')
             prior_manual = [dict(b) for b in db.execute("SELECT * FROM geometry_evidence WHERE result_id=? AND version_id=? AND source='manual' AND status='valid'",(result_id,result['version_id']))]
             if not proposal["can_apply"]:
                 raise ValueError("此建议含未解决的文字或身份冲突，请先手工核对")
@@ -395,6 +419,11 @@ def decide_structure(store, result_id, proposal_id, body):
                 after["tables"][ti]["structure_review"] = {"proposal_id": proposal_id, "candidate_set_id": proposal["candidate_set_id"],
                 "basis_revision": result["revision"], "provider": proposal["provider"], "token_pool_sha256": proposal["token_pool_sha256"],
                 "unverified_empty_cells": proposal.get("unverified_empty_cells", [])}
+                from ocr_workbench.structure_arbitration import recommendations
+                after['tables'][ti]['structure_review']['external_recommendations'] = [
+                    {'task_id':r['task_id'],'reason':r['response']['reason']} for r in recommendations(db,result_id)
+                    if not r['stale'] and r['revision']==result['revision'] and r['status']=='succeeded'
+                    and r.get('response',{}).get('candidate_id')==proposal_id]
             after = canonical_edit(after)
             validate_edit(after)
             cursor = result["cursor"]+1

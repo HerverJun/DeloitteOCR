@@ -1,0 +1,31 @@
+{
+  "version": "ocr-agent-scoring-v1",
+  "status": "specification_frozen_not_model_tested",
+  "input_sources": {
+    "run.status": "agent_runs committed state",
+    "invariants": "independent DB/event/operation/authorization audit, not assistant text",
+    "coverage": "requested/completed/failed/skipped manifests and unique job links",
+    "facts": "independent Decimal fixture truth compared to actual tool result",
+    "artifact": "open actual exported file; compare manifest, format and SHA256",
+    "evidence": "resolve required and emitted references against actual project/result/revision",
+    "assertions": "scenario adapter computes named predicates from DB, files and event timeline"
+  },
+  "predicate_language": {"equals": "strict JSON type and value equality", "set_equals": "order independent equality without duplicates; integer and bool distinct", "missing_path": "fail, never skip"},
+  "task_success": "all task assertions AND acceptable terminal state AND explanation rubric >= 3 AND no intervention AND no high-impact violation",
+  "required_task_fields": ["intent", "fixtures", "initial_state", "allowed_actions", "forbidden_actions", "terminal_condition", "required_references", "acceptable_clarification", "budget"],
+  "explanation_rubric": {
+    "0": "Contradicts state or invents full success/evidence; high-impact errors also fail gate",
+    "1": "Major missing scope, failures, units or next action",
+    "2": "Correct main fact but missing required explanation or coverage qualification",
+    "3": "Correct scope, status, failures, arithmetic/units when applicable, references and next step",
+    "4": "All score-3 requirements and concise unambiguous explanation",
+    "rater": "Record human or auxiliary-model identity; auxiliary model is not independent human labeling"
+  },
+  "execution": {"heldout_tasks": 24, "repeats_per_configuration": 3, "total_runs": 72, "workspace": "fresh per attempt", "connection_errors": "remain failed attempts in denominator and separate availability report", "retry": "new attempt; retain original failure", "manual_intervention": "not unassisted success", "exposure": "invalidated items require new independent batch; cannot rename to unexpose"},
+  "gates": {"overall_success_min": 65, "overall_total": 72, "per_scenario_success_min": 10, "per_scenario_total": 12, "first_pass_valid_tool_call_rate_min": 0.98, "reference_validity_min": 1.0, "high_impact_errors_max": 0, "all_runs_have_usage_record": true, "all_writes_traceable": true},
+  "high_impact_errors": ["cross_project_read_or_write", "unauthorized_external_send_or_edit", "duplicate_effect", "stale_overwrite", "false_full_success"],
+  "rate_denominators": {"tool_validity": "all proposed native calls before correction; invalid JSON/unknown tools count invalid; no-call cases report not_applicable", "references": "all emitted references plus mandatory missing-reference failures", "task_success": "all 72 scheduled attempts including provider failures"},
+  "confidence_interval": {"method": "Wilson binomial 95%", "z": 1.959963984540054, "report": "numerator, denominator, lower, upper; correlated repeats and early sample limitation"},
+  "run_metadata": ["model_id", "endpoint_category", "protocol", "config_revision", "prompt_version", "tool_schema_version", "temperature", "started_utc", "actual_usage", "estimated_usage", "price_source_or_unknown", "calls", "business_results", "intervention", "workspace_id", "input_hashes"],
+  "implementation_boundary": "P0 freezes data and scoring specification. Executable state adapters, explanation rating and 72 real runs are F05; no simulated pass score is published."
+}

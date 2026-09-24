@@ -67,7 +67,22 @@ def _page_targets(edit):
             yield {"kind": "cell", "table": ti, "row": cell["row"], "column": cell["column"]}
 
 
-def build_targets(edit, original, version, scope, target=None, geometry=()):
+def target_catalog(edit):
+    """List stable references without building or budgeting a review request.
+
+    Page enumeration parses table bindings once. A large page (or an oversized
+    cell elsewhere on it) must not prevent reading and choosing a small target.
+    The actual selected values are checked by build_targets before submission.
+    """
+    validate_edit(edit)
+    output = [{"id": "target-" + fingerprint(target)[:20], "target": target}
+              for target in _page_targets(edit)]
+    if not output:
+        raise ValueError("当前范围没有可审校的文字或单元格")
+    return output
+
+
+def build_targets(edit, original, version, scope, target=None, geometry=(), *, target_ids=None):
     """Exclude table markup and bind only actual evidence; absence stays explicit."""
     validate_edit(edit)
     if scope not in ("page", "target"):
@@ -75,10 +90,37 @@ def build_targets(edit, original, version, scope, target=None, geometry=()):
     if scope == "page" and target is not None:
         raise ValueError("整页审校不可同时指定局部目标")
     candidates = [validate_target(edit, target)] if scope == "target" else _page_targets(edit)
+    if target_ids is not None:
+        if (not isinstance(target_ids, list) or not target_ids
+                or any(not isinstance(key, str) for key in target_ids)
+                or len(set(target_ids)) != len(target_ids)):
+            raise ValueError("审校目标列表无效")
+        if len(target_ids) > MAX_TARGETS:
+            raise ValueError("本次审校超过 256 个目标，请缩小范围")
+        wanted = set(target_ids)
+        chosen = []
+        for proposed in candidates:
+            if "target-" + fingerprint(proposed)[:20] in wanted:
+                chosen.append(proposed)
+        if len(chosen) != len(wanted):
+            raise ValueError("审校目标不存在或版本已变化")
+        candidates = chosen
+    # Generated page targets already exclude markup and point at validated
+    # logical cells. Do not reparse every table for each text/cell target.
+    cell_values = {(ti, c["row"], c["column"]): c["text"]
+                   for ti, table in enumerate(edit["tables"]) for c in table["cells"]}
+    row_context = {}
+    for ti, table in enumerate(edit["tables"]):
+        for cell in table["cells"]:
+            neighbors = row_context.setdefault((ti, cell["row"]), [])
+            if len(neighbors) < 20:
+                neighbors.append({"column": cell["column"], "text": cell["text"][:160]})
     output, total = [], 0
     for proposed in candidates:
-        proposed = validate_target(edit, proposed)
-        before = target_value(edit, proposed)
+        before = (edit["text"][proposed["start"]:proposed["end"]] if proposed["kind"] == "text"
+                  else cell_values[(proposed["table"], proposed["row"], proposed["column"])])
+        if len(before) > MAX_TARGET_CHARS:
+            raise ValueError(f"单次片段最多 {MAX_TARGET_CHARS} 字符，请缩小审校范围")
         total += len(before)
         if len(output) >= MAX_TARGETS or total > MAX_TOTAL_CHARS:
             raise ValueError("本页超过审校预算（256 个目标 / 40000 字符），请选择局部范围")
@@ -116,8 +158,7 @@ def build_targets(edit, original, version, scope, target=None, geometry=()):
         else:
             table = edit["tables"][proposed["table"]]
             context = {"table_caption": table.get("caption", "")[:300], "row": proposed["row"], "column": proposed["column"],
-                       "row_cells": [{"column": c["column"], "text": c["text"][:160]} for c in table["cells"]
-                                     if c["row"] == proposed["row"]][:20]}
+                       "row_cells": deepcopy(row_context[(proposed["table"], proposed["row"])])}
         output.append({"id": "target-" + fingerprint(proposed)[:20], "target": proposed,
                        "before": before, "evidence": evidence, "context": context})
     if not output:

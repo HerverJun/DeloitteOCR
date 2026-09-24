@@ -9,6 +9,8 @@ import unittest
 class OfflineTests(unittest.TestCase):
     def test_external_network_blocked_loopback_allowed(self):
         code = '''
+import sys
+sys.path.insert(0, sys.argv[2])
 from ocr_workbench.offline import install_guard
 from pathlib import Path
 import socket,sys
@@ -28,7 +30,7 @@ with socket.socket() as server:
 '''
         with tempfile.TemporaryDirectory() as temp:
             log = Path(temp) / 'network.log'
-            result = subprocess.run([sys.executable, '-c', code, str(log)], capture_output=True, text=True, timeout=10)
+            result = subprocess.run([sys.executable, '-c', code, str(log), str(Path(__file__).resolve().parents[1] / 'src')], capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('BLOCKED socket.getaddrinfo example.com', log.read_text())
 

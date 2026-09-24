@@ -28,8 +28,8 @@ def default_policy():
 def policy_for_algorithm(algorithm=None):
     policy = default_policy()
     algorithm = algorithm or policy['algorithm']
-    if algorithm == 'local-v3':
-        path = Path(__file__).resolve().parents[2] / 'config/geometry-matching-policy-v3.json'
+    if algorithm in ('local-v3','local-v4'):
+        path = Path(__file__).resolve().parents[2] / ('config/geometry-matching-policy-'+algorithm.split('-')[1]+'.json')
         return json.loads(path.read_text('utf-8'))
     if algorithm not in ('local-v2', 'legacy'):
         raise ValueError('未知定位算法')
@@ -38,14 +38,14 @@ def policy_for_algorithm(algorithm=None):
 
 def matching_code_fingerprint():
     base=Path(__file__).resolve().parent
-    paths=[base/name for name in ('table_matching.py','table_anchor_refinement.py','geometry_contract.py','geometry_providers.py','geometry_diagnostics.py','coordinates.py','tables.py')]
+    paths=[base/name for name in ('table_matching.py','table_anchor_refinement.py','spatial_candidates.py','geometry_contract.py','geometry_providers.py','geometry_diagnostics.py','coordinates.py','tables.py')]
     paths += [base/'_vendor/tableformer'/name for name in ('tf_cell_matcher.py','otsl.py','settings.py')]
     return fingerprint({str(p.relative_to(base)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths})
 
 
 def policy_identity(policy):
     legacy=policy.get('algorithm')=='legacy'
-    return {'algorithm_version':'legacy-v1' if legacy else 'local-v3' if policy.get('algorithm') == 'local-v3' else ALGORITHM_VERSION,
+    return {'algorithm_version':'legacy-v1' if legacy else policy['algorithm'] if policy.get('algorithm') in ('local-v3','local-v4') else ALGORITHM_VERSION,
         'algorithm_sha256':hashlib.sha256(Path(__file__).with_name('geometry.py').read_bytes()).hexdigest() if legacy else matching_code_fingerprint(),
         'policy_version':policy['policy_version'],'policy_sha256':fingerprint(policy)}
 
@@ -55,21 +55,40 @@ def assign_tokens(tokens,cells,policy,*,deadline=None):
     from ocr_workbench._vendor.tableformer.tf_cell_matcher import CellMatcher
     ordered_cells=sorted([c for c in cells if c.cell_polygon],key=lambda c:c.id)
     ordered_tokens=sorted(tokens,key=lambda t:t.id)
-    if len(ordered_cells)*len(ordered_tokens)>policy['maximum_token_cell_pairs']:
+    indexed = policy.get('spatial_index', False)
+    if not indexed and len(ordered_cells)*len(ordered_tokens)>policy['maximum_token_cell_pairs']:
         return [],{},'candidate_budget_exceeded'
     if not ordered_tokens or not ordered_cells:return [],{},None
-    matcher=CellMatcher({'predict':{'pdf_cell_iou_thres':0}})
-    candidates,_=matcher._intersection_over_pdf_match(
-        [{'cell_id':c.id,'bbox':bounds(c.cell_polygon)} for c in ordered_cells],
-        [{'id':t.id,'bbox':bounds(t.polygon)} for t in ordered_tokens])
+    if indexed:
+        from ocr_workbench.spatial_candidates import BoxIndex, SpatialBudget
+        try:index=BoxIndex(ordered_cells,policy['maximum_token_cell_pairs'],deadline)
+        except SpatialBudget as error:return [],{},str(error)
+        candidates={}
+    else:
+        matcher=CellMatcher({'predict':{'pdf_cell_iou_thres':0}})
+        candidates,_=matcher._intersection_over_pdf_match(
+            [{'cell_id':c.id,'bbox':bounds(c.cell_polygon)} for c in ordered_cells],
+            [{'id':t.id,'bbox':bounds(t.polygon)} for t in ordered_tokens])
     by_id={c.id:c for c in ordered_cells};assigned=defaultdict(list);records=[]
+    examined=0
     for token in ordered_tokens:
         if deadline and time.perf_counter()>deadline:return records,dict(assigned),'timeout'
+        if indexed:
+            box=bounds(token.polygon)
+            choices=index.query(box)
+            examined+=len(choices)
+            if examined>policy['maximum_token_cell_pairs']:
+                return records,dict(assigned),'candidate_budget_exceeded'
+            candidates[token.id]=[{'table_cell_id':cell.id,'iopdf':
+                max(0,min(box[2],index.boxes[cell.id][2])-max(box[0],index.boxes[cell.id][0]))*
+                max(0,min(box[3],index.boxes[cell.id][3])-max(box[1],index.boxes[cell.id][1]))/
+                ((box[2]-box[0])*(box[3]-box[1]))} for cell in choices]
         options=[]
         for candidate in candidates.get(token.id,[]):
             cell=by_id[candidate['table_cell_id']]
             overlap=intersection_area(token.polygon,cell.cell_polygon)/abs(signed_area(token.polygon))
             if overlap>0:options.append({'cell_id':cell.id,'token_overlap':overlap,'upstream_bbox_overlap':float(candidate['iopdf'])})
+        if deadline and time.perf_counter()>deadline:return records,dict(assigned),'timeout'
         options.sort(key=lambda v:(-v['token_overlap'],v['cell_id']))
         chosen=None;conflicts=[]
         first=options[0]['token_overlap'] if options else 0
@@ -105,14 +124,20 @@ def _order_compatible(a,p,b,q):
     return True
 
 
-def _anchors(adopted,predicted,assigned):
+def _anchors(adopted,predicted,assigned,deadline=None):
     ac=Counter(c.matching_text for c in adopted if c.matching_text)
     pc=Counter(_value(c,assigned) for c in predicted if _value(c,assigned))
     by_text={_value(c,assigned):c for c in predicted if _value(c,assigned)}
     pairs=[(a,by_text[a.matching_text]) for a in adopted if a.matching_text and ac[a.matching_text]==pc[a.matching_text]==1
            and _span(a)==_span(by_text[a.matching_text])]
+    # A common translation of both interval endpoints preserves every pairwise
+    # ordering relation, including overlaps; this is a complete conflict proof.
+    offsets={(p.row_start-a.row_start,p.column_start-a.column_start) for a,p in pairs}
+    if len(offsets)<=1:return pairs,set()
     bad=set()
     for (a,p),(b,q) in combinations(pairs,2):
+        if deadline is not None and time.perf_counter()>deadline:
+            raise TimeoutError('anchor_conflict_check_timeout')
         if not _order_compatible(a,p,b,q):bad.update((a.id,b.id))
     return [(a,p) for a,p in pairs if a.id not in bad],bad
 
@@ -244,18 +269,26 @@ def local_mapping(edit,prediction,width,height,*,policy=None,result_id='snapshot
                 mappings.append(_fallback({'kind':'cell','table':ti,'row':cell['row'],'column':cell['column']},region,[reason],**common))
             continue
         started=time.perf_counter();deadline=started+max(0,policy['table_budget_ms']-state['token_ms'])/1000
-        predicted=chosen['cells'];assigned=state['assigned'];anchors,order_bad=_anchors(adopted,predicted,assigned)
-        anchor_lineage = {a.id: {'roots': [a.id], 'parents': [], 'round': 0} for a, _ in anchors}
+        predicted=chosen['cells'];assigned=state['assigned']
         refinement_error = None
-        if policy.get('neighbor_anchors'):
+        try:anchors,order_bad=_anchors(adopted,predicted,assigned,deadline)
+        except TimeoutError:
+            anchors,order_bad=[],set()
+            refinement_error='timeout'
+        anchor_lineage = {a.id: {'roots': [a.id], 'parents': [], 'round': 0} for a, _ in anchors}
+        if policy.get('neighbor_anchors') and not refinement_error:
             from ocr_workbench.table_anchor_refinement import refine_anchors
             anchors, anchor_lineage, refinement_error = refine_anchors(
                 adopted, predicted, assigned, anchors, order_bad, policy, deadline)
         exact_topology=sorted((c.row_start,c.row_end,c.column_start,c.column_end) for c in adopted)==sorted((c.row_start,c.row_end,c.column_start,c.column_end) for c in predicted)
         proposals={};errors={};by_anchor={a.id:p for a,p in anchors}
+        predicted_by_value=defaultdict(list)
+        for p in predicted:predicted_by_value[(_span(p),_value(p,assigned))].append(p)
         adopted_counts=Counter(a.matching_text for a in adopted if a.matching_text)
         for a in adopted:
-            if refinement_error:errors[a.id]=refinement_error;continue
+            if refinement_error and not (policy.get('preserve_validated_anchors') and a.id in by_anchor):errors[a.id]=refinement_error;continue
+            if policy.get('preserve_validated_anchors') and a.id in by_anchor:
+                proposals[a.id]=([by_anchor[a.id]],[a.id],'one_to_one');continue
             if time.perf_counter()>deadline:errors[a.id]='timeout';continue
             if len(adopted)>policy['maximum_cells']:errors[a.id]='candidate_budget_exceeded';continue
             if not policy['local_correspondence'] and not exact_topology:errors[a.id]='topology_mismatch';continue
@@ -263,7 +296,7 @@ def local_mapping(edit,prediction,width,height,*,policy=None,result_id='snapshot
             if a.id in by_anchor:proposals[a.id]=([by_anchor[a.id]],[a.id],'one_to_one');continue
             candidates=[]
             if policy['repeated_empty_cells']:
-                for p in predicted:
+                for p in predicted_by_value[(_span(a),a.matching_text)]:
                     if _span(a)==_span(p) and a.matching_text==_value(p,assigned):
                         support=_local_support(a,p,anchors)
                         if not support and policy.get('neighbor_anchors'):
@@ -283,6 +316,9 @@ def local_mapping(edit,prediction,width,height,*,policy=None,result_id='snapshot
         collision={aid for ids in owners.values() if len(ids)>1 for aid in ids}
         # All unique token previews are also one-to-one; no string splitting.
         token_values=Counter(t.matching_text for t in state['tokens'])
+        records_by_cell=defaultdict(list)
+        for r in state['records']:records_by_cell[r.adopted_cell_id].append(r)
+        anchor_by_id={a.id:(a,p) for a,p in anchors}
         for a in adopted:
             target={'kind':'cell','table':ti,'row':a.row_start,'column':a.column_start}
             content=[];cell_polys=[];origin=None;display=region;correspondence=None;reason=errors.get(a.id)
@@ -300,7 +336,7 @@ def local_mapping(edit,prediction,width,height,*,policy=None,result_id='snapshot
                 correspondence=as_json(CellCorrespondence(a.id,[p.id for p in group],relation,
                     [{'adopted_cell_id':b.id,'predicted_cell_id':q.id,'token_ids':[t.id for t in assigned.get(q.id,[])],
                       'dependency':'independent_exact_token_anchor' if anchor_lineage[b.id]['round'] == 0 else 'resolved_neighbor_anchor',
-                      'lineage':anchor_lineage[b.id]} for b,q in anchors if b.id in support],
+                      'lineage':anchor_lineage[b.id]} for b,q in (anchor_by_id[i] for i in support)],
                     {'text_exact':True,'span_compatible':True,'local_order_consistent':True,'exclusive':True},1.,[reason] if reason else []))
             if not cell_polys:
                 if not content and a.matching_text and adopted_counts[a.matching_text]==token_values[a.matching_text]==1 and reason not in ('order_conflict','prediction_cell_reused','timeout','candidate_budget_exceeded'):
@@ -313,7 +349,7 @@ def local_mapping(edit,prediction,width,height,*,policy=None,result_id='snapshot
                 cell_polygons=cell_polys,display_polygon=display,origin=origin,**diagnostic('accepted' if cell_polys else reason),
                 correspondence=correspondence,provider=chosen['provider'],prediction_table=chosen['id'],
                 predicted_cells=[as_json(p) for p in proposals[a.id][0]] if a.id in proposals else [],
-                token_assignments=[as_json(r) for r in state['records'] if r.adopted_cell_id in {p.id for p in proposals[a.id][0]}] if a.id in proposals else [],
+                token_assignments=[as_json(r) for p in proposals[a.id][0] for r in records_by_cell[p.id]] if a.id in proposals else [],
                 provider_reason_codes=chosen['reason_codes'],rejected_tokens=rejected,**common)
             mappings.append(mapping)
         elapsed=(time.perf_counter()-started)*1000

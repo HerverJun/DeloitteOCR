@@ -1,0 +1,43 @@
+{
+  "version": "ocr-agent-policy-v1",
+  "contract_version": "ocr-agent-v1",
+  "feature_flags": {"agent_enabled": false, "entry_visible_when_enabled": true, "startup_network_probe": false},
+  "limits": {
+    "model_requests_per_run": 12, "tool_calls_per_run": 40,
+    "pages_per_call": 100, "pages_per_run": 1000, "engine_jobs_per_run": 400,
+    "tool_result_utf8_bytes": 16384, "model_request_total_seconds": 180,
+    "model_connect_seconds": 10, "model_read_seconds": 60,
+    "tokens_per_run": 64000, "unknown_model_context_cap": 16384,
+    "reserved_output_tokens": 2048, "context_compaction_ratio": 0.7,
+    "argument_corrections": 2, "same_tool_error_limit": 2,
+    "no_job_progress_seconds": 1800, "artifact_retention_days": 30
+  },
+  "concurrency": {"active_runs_per_session": 1, "write_runs_per_project": 1, "model_http_global": 2, "read_tools_per_step": 3, "write_tools_per_step": 1},
+  "polling": {"job_initial_seconds": 1, "job_max_seconds": 5, "sse_heartbeat_seconds": 15, "events_page_size": 100, "events_max_page_size": 500, "sse_buffer_events": 100},
+  "tool_permissions": {
+    "get_workspace_context": "project_read", "search_document": "project_read", "read_page_result": "project_read",
+    "process_pages": "scoped_processing", "run_ocr": "scoped_processing",
+    "inspect_table": {"read_checks": "project_read", "generate_candidates": "scoped_check_job"},
+    "request_visual_review": "scoped_visual_review", "get_job_status": "linked_jobs_read",
+    "retry_failed_jobs": "scoped_failed_subset", "export_results": "scoped_new_artifact",
+    "navigate_to_evidence": "verified_navigation_suggestion", "ask_user": "clarification_only"
+  },
+  "server_injected_fields": ["project_id", "credential_ref", "absolute_path", "operation_key", "authorization", "generation", "config_revision"],
+  "authorization": {
+    "source": "user_request_and_bound_ui_scope_only",
+    "reuse_matching_grants": true,
+    "external_scope_binding": ["project_id", "role", "endpoint", "config_revision", "document_ids", "page_ids", "data_kinds"],
+    "decision_binding": ["payload_hash", "scope", "revision", "config_revision", "expires"],
+    "first_project_controller_content": "explicit_endpoint_and_data_scope",
+    "visual_images": "reuse_only_matching_visual_role_endpoint_scope",
+    "adopt_edit": "existing_UI_with_specific_diff_and_revision",
+    "untrusted_document_instructions": "data_only"
+  },
+  "result_selection": {"query_default": "adopted", "batch_export_default": "run_manifest", "reprocess_overwrites_selection": false, "first_result_selection": "inherit_store_complete_insert_or_ignore", "partial_default": "waiting_user", "confirmed_only": "current_adopted_review_revision_required"},
+  "recovery": {"startup": "local_reconcile_only", "resume": "explicit_user_then_recheck_jobs_versions_config_scope_budget", "generative_post_unknown_receipt": "no_automatic_retry", "stop_agent": "fence_new_calls_keep_submitted_jobs", "cancel_owned_jobs": "cancel_only_created_cancellable_jobs"},
+  "forbidden_capabilities": ["shell", "arbitrary_sql", "arbitrary_network", "arbitrary_file_read", "install_plugin", "delete_project", "save_result", "mark_human_confirmed", "automatic_adoption"],
+  "artifacts": {"root": "agent-artifacts/{project_id}/{artifact_id}", "publish": "staging_atomic_rename_then_ready_reconcile", "downloads": "lease_required", "pinned": "never_auto_delete"},
+  "network": {"protocols": ["openai_chat_completions", "anthropic_messages"], "controller_images": false, "credential_storage": "independent_DPAPI_reference", "free_text_command_fallback": false, "inherit_external_review_transport_rules": true},
+  "budget_accounting": {"precharge": "estimated_request_upper_bound", "reconcile": "actual_usage_when_available", "missing_price": "unknown_not_zero", "batching_bypasses_total": false},
+  "enforcement_status": "P0 frozen defaults; P1-P5 implement and verify enforcement"
+}

@@ -70,12 +70,22 @@ def prepare(manager, page, doc, version, native, mode, cancelled, *, force=False
 
 def record(db, result_id, version, prediction, blocks):
     from ocr_workbench.structure_store import record_candidates
+    from ocr_workbench.native_tables import native_source_blocks
+    blocks,source_result=native_source_blocks(blocks,version['id'])
     run_id = fingerprint(prediction)
     for table in prediction.get('pdfplumber_tables', []):
         record_candidates(db, result_id, version, dict(prediction, pdfplumber_tables=[table],
             table_tool_run_id=run_id, candidate_provider_key='pdfplumber/'+table['id'],
             image_version=version['id'], image_sha256=version['sha256']),
-            [b for b in blocks if b.get('source') == 'pdf-native'], source_result=result_id)
+            [b for b in blocks if b.get('source') == 'pdf-native'], source_result=source_result)
+    for variant in prediction.get('experimental_alternatives',[]):
+        for table in variant['pdfplumber_tables']:
+            alternative={k:v for k,v in prediction.items() if k!='experimental_alternatives'}
+            alternative.update(pdfplumber_tables=[table],table_tool_run_id=run_id,
+                candidate_variant=variant['variant'],candidate_provider_key='pdfplumber/'+variant['variant']+'/'+table['id'],
+                image_version=version['id'],image_sha256=version['sha256'])
+            record_candidates(db,result_id,version,alternative,
+                [b for b in blocks if b.get('source')=='pdf-native'],source_result=source_result)
 
 
 def view(db, result, current_tool=None):

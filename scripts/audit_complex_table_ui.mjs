@@ -1,0 +1,47 @@
+import {chromium,expect as originalExpect} from '../frontend/node_modules/@playwright/test/index.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+const out=path.resolve(process.argv[2]),expect=originalExpect.configure({timeout:15000});
+const seed=JSON.parse(await fs.readFile(path.join(out,'seed.json'),'utf8'));
+const checks=[],errors=[];
+const api=async(p,method='GET',body)=>{const r=await fetch(seed.base+'/api'+p,{method,headers:{Authorization:'Bearer '+seed.token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});if(!r.ok)throw Error(await r.text());return r.json();};
+const browser=await chromium.launch({channel:'msedge',headless:true,args:['--disable-gpu','--disable-gpu-compositing']});
+const page=await browser.newPage({viewport:{width:1366,height:900}});page.on('pageerror',e=>errors.push(String(e)));
+try {
+  await page.goto(seed.base+'/#token='+seed.token);
+  await expect(page.getByLabel('当前识别结果',{exact:true})).toHaveValue(seed.result);
+  await page.getByRole('tab',{name:'结构复核',exact:true}).click();
+  const review=page.locator('.structure-review');
+  await expect(review.getByLabel('结构建议',{exact:true})).toBeVisible();
+  expect((await api('/audit/complex-fixture')).requests).toBe(0);checks.push('Opening project sends no external requests');
+  await review.getByText('外部 API 结构仲裁（实验）',{exact:true}).click();
+  await expect(review.getByRole('button',{name:'提交结构仲裁',exact:true})).toBeDisabled();
+  await review.getByLabel('确认发送本页与结构证据').check();
+  await review.getByRole('button',{name:'提交结构仲裁',exact:true}).click();
+  await expect(review.getByRole('button',{name:'查看推荐候选',exact:true})).toBeVisible();
+  expect((await api(`/results/${seed.result}`)).edited.tables[0].rows).toBe(3);
+  checks.push('OpenAI queue delivers recommendation without changing table');
+  await review.getByRole('button',{name:'查看推荐候选',exact:true}).click();
+  await page.screenshot({path:path.join(out,'01-structure-recommendation.png'),animations:'disabled'});
+  await review.getByRole('button',{name:'接受结构建议',exact:true}).click();
+  await expect.poll(async()=>(await api(`/results/${seed.result}`)).edited.tables[0].rows).toBe(4);
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await expect.poll(async()=>(await api(`/results/${seed.result}`)).edited.tables[0].rows).toBe(3);
+  checks.push('Human adoption and undo preserve original table');
+  await review.getByRole('button',{name:'检查已有候选',exact:true}).click();
+  await review.getByText(/财务一致性疑点 ·/).click();
+  await expect(review.getByText(/不会为凑平合计改写原值/)).toBeVisible();
+  await review.getByText(/不会为凑平合计改写原值/).scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(out,'02-financial-checks.png'),animations:'disabled'});
+  checks.push('Financial uncertainty and scope visible');
+  const current=await api(`/results/${seed.result}`);
+  await api('/audit/complex-fixture','POST',{protocol:'anthropic'});
+  const remote=await api('/multimodal/external');
+  const submitted=await api(`/results/${seed.result}/multimodal`,'POST',{request_id:'anthropic-ui',model_id:remote.model_id,review_kind:'structure',scope:'table',table:0,revision:current.revision,version_id:current.original.project_image_version});
+  await expect.poll(async()=>(await api(`/results/${seed.result}/structure`)).arbitrations.find(a=>a.task_id===submitted.task_id)?.status).toBe('succeeded');
+  checks.push('Anthropic uses the same external queue and candidate contract');
+  expect(errors).toEqual([]);
+} finally {
+  await browser.close();
+  await fs.writeFile(path.join(out,'receipt.json'),JSON.stringify({checks,errors,passed:checks.length===5&&!errors.length,cloud_api_tested:false,human_efficiency_measured:false},null,2));
+}

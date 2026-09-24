@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import sqlite3
 import shutil
 import subprocess
 import sys
@@ -19,13 +20,13 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from ocr_workbench import __version__
 from ocr_workbench.store import Store, Conflict, uid, now, encoded
-from ocr_workbench.task_queue import TaskQueue, FusionQueue
+from ocr_workbench.task_queue import TaskQueue, FusionQueue, ExternalReviewQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
 from ocr_workbench.editing import present_result, export_text
 
 
-def create_app(bundle, data, token, *, start_queue=True, review_only=False):
+def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None):
     bundle = Path(bundle).resolve()
     store = Store(data)
     from ocr_workbench.engine_packages import EnginePackages
@@ -38,11 +39,17 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     registry = EnginePackages(bundle, store.root)
     queue = TaskQueue(store, bundle, registry=registry)
     fusion_queue = FusionQueue(store, bundle)
+    from ocr_workbench.external_review import ExternalConnection
+    external_connection = ExternalConnection(store)
+    external_queue = ExternalReviewQueue(store, bundle, external_connection)
     from ocr_workbench.maintenance import ProjectMaintenance
 
-    maintenance = ProjectMaintenance(store, queue, fusion_queue)
+    maintenance = ProjectMaintenance(store, queue, fusion_queue, external_queue)
     from ocr_workbench.documents import Documents
     documents = Documents(store, bundle, queue, review_only=review_only)
+    agent_policy_path = bundle / "config/agent-policy.json"
+    agent_policy = json.loads(agent_policy_path.read_text("utf-8")) if agent_policy_path.is_file() else {"feature_flags": {"agent_enabled": False}, "limits": {}}
+    enable_agent = bool(agent_policy.get("feature_flags", {}).get("agent_enabled", False)) if agent_enabled is None else agent_enabled
 
     def import_one(key, name, temporary):
         with maintenance.guard:
@@ -50,16 +57,28 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @asynccontextmanager
     async def lifespan(app):
+        if enable_agent:
+            try:
+                from ocr_workbench.agent.runtime import AgentRuntime
+                manager = AgentRuntime(services, policy=agent_policy, connection=app.state.agent_connection)
+                await manager.open()
+                app.state.agent_runtime = manager
+            except (ImportError, ValueError, sqlite3.DatabaseError):
+                app.state.agent_startup_error = "助手依赖或检查点不可用；请核对安装与诊断，普通工作台仍可使用"
         if start_queue and not review_only:
             queue.start()
         if start_queue:
             fusion_queue.start()
+            external_queue.start()
             documents.start()
         try:
             yield
         finally:
+            if app.state.agent_runtime is not None:
+                await app.state.agent_runtime.close()
             if start_queue:
                 documents.stop()
+                external_queue.stop()
             if start_queue and not review_only:
                 queue.stop()
             if start_queue:
@@ -75,6 +94,9 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     app.state.store = store
     app.state.queue = queue
     app.state.fusion_queue = fusion_queue
+    app.state.external_queue = external_queue
+    app.state.external_connection = external_connection
+    app.state.start_queue = start_queue
     app.state.documents = documents
     app.state.shutdown = lambda: None
     app.state.review_only = review_only
@@ -85,8 +107,15 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
         if start_queue and not queue.status().get("healthy", False):
             raise ValueError("队列正在恢复，请查看队列状态，恢复后再提交任务")
 
+    from ocr_workbench.application_services import ApplicationServices
+    services = ApplicationServices(store, documents, maintenance, queue=queue, fusion_queue=fusion_queue,
+                                   registry=registry, bundle=bundle, require_recognition=require_recognition,
+                                   external_connection=external_connection, external_queue=external_queue, queues_started=start_queue)
+    app.state.application_services = services
+    from ocr_workbench.agent.routes import register_agent_routes
+    register_agent_routes(app, services, enabled=enable_agent, policy=agent_policy)
     from ocr_workbench.document_routes import register_document_routes
-    register_document_routes(app, documents, maintenance)
+    register_document_routes(app, documents, maintenance, services)
     from ocr_workbench.structure_routes import register_structure_routes
     register_structure_routes(app, store)
     from ocr_workbench.multimodal_routes import register_multimodal_routes
@@ -140,8 +169,17 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     def health():
         status = queue.status()
         cpu_status = fusion_queue.status()
-        ready = (review_only or status.get("healthy", False)) and (not start_queue or cpu_status.get("healthy", False))
-        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status}
+        ready = (review_only or status.get("healthy", False)) and (not start_queue or
+            (cpu_status.get("healthy", False) and external_queue.status()['healthy']))
+        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status, "external_queue": external_queue.status()}
+
+    @app.post('/api/multimodal/external/queue/recover')
+    def recover_external_queue():
+        if not start_queue:
+            raise ValueError('此服务未启用外部审校队列')
+        if not external_queue.status()['alive']:
+            external_queue.start()
+        return external_queue.recover_worker()
 
     @app.post("/api/fusion/queue/recover")
     def recover_fusion_queue():
@@ -168,6 +206,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
             "engines": registry.engines(),
             "queue": queue.status(),
             "fusion_queue": fusion_queue.status(),
+            "external_queue": external_queue.status(),
             "document_queue": documents.status(),
             "data_directory": str(store.root),
             "review_only": review_only,
@@ -195,6 +234,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
         snapshot = store.project_snapshot(key, since_revision)
         snapshot["queue"] = queue.status()
         snapshot["fusion_queue"] = fusion_queue.status()
+        snapshot["external_queue"] = external_queue.status()
         snapshot["disk"] = maintenance.disk_status()
         return snapshot
 
@@ -211,8 +251,11 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
         return maintenance.usage(key)
 
     @app.delete("/api/projects/{key}")
-    def delete_project(key: str, body: dict):
-        return maintenance.delete(key, body.get("confirmation"))
+    async def delete_project(key: str, body: dict):
+        manager = app.state.agent_runtime
+        if manager is not None and not manager.closed:
+            return await manager.delete_project(key, body.get("confirmation"))
+        return await run_in_threadpool(maintenance.delete_without_runtime, key, body.get("confirmation"))
 
     @app.post("/api/projects/{key}/images")
     async def import_images(key: str, files: list[UploadFile] = File(...)):
@@ -281,22 +324,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @app.post("/api/projects/{key}/tasks")
     def create_tasks(key: str, body: dict):
-        require_recognition()
-        from ocr_workbench.fusion import load_policy
-        fusion = body.get("fusion")
-        policy = load_policy(bundle, fusion.get("content_type", "table"), fusion.get("mode", "conservative")) if isinstance(fusion, dict) else None
-        ids = store.enqueue(
-            key,
-            body.get("version_ids", []),
-            body.get("engines", []),
-            body.get("preprocess", []),
-            {name: spec["package_id"] for name, spec in registry.engines().items()},
-            fusion_policy=policy,
-            request_id=body.get("request_id"),
-        )
-        queue.wake.set()
-        fusion_queue.wake.set()
-        return {"task_ids": ids}
+        return services.submit_ocr(key, body)
 
     @app.get("/api/fusion/policies")
     def fusion_policies():
@@ -334,14 +362,15 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @app.post("/api/projects/{key}/queue/{action}")
     def queue_action(key: str, action: str, body: dict):
-        tasks = store.rows("SELECT id,kind FROM tasks WHERE project_id=?", (key,))
+        tasks = store.rows("SELECT t.id,t.kind,COALESCE(m.backend,'local') backend FROM tasks t LEFT JOIN multimodal_requests m ON m.task_id=t.id WHERE t.project_id=?", (key,))
         selected = body.get("task_ids")
         if selected is not None and not set(selected) <= {t["id"] for t in tasks}:
             raise ValueError("任务不属于该项目")
         tasks = [t for t in tasks if selected is None or t["id"] in selected]
-        if action in {"retry", "resume"} and (not tasks or any(t["kind"] != "fusion" for t in tasks)):
+        if action in {"retry", "resume"} and (not tasks or any(t['kind'] != 'fusion' and t['backend'] != 'external' for t in tasks)):
             require_recognition()
-        ids = queue.action(key, action, [t["id"] for t in tasks if t["kind"] != "fusion"])
+        ids = external_queue.action(key, action, [t['id'] for t in tasks if t['backend'] == 'external'])
+        ids.extend(queue.action(key, action, [t["id"] for t in tasks if t["kind"] != "fusion" and t['backend'] != 'external']))
         ids.extend(fusion_queue.action(key, action, [t["id"] for t in tasks if t["kind"] == "fusion"]))
         return {"task_ids": ids}
 
@@ -429,18 +458,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
 
     @app.post("/api/export")
     def export(body: dict):
-        with maintenance.guard:
-            if body.get('format') == 'pdf':
-                from ocr_workbench.pdf_export import build_pdf_export
-                target = build_pdf_export(store, documents, body)
-            else:
-                target = build_export(
-                store,
-                body.get("result_ids", []),
-                body.get("format"),
-                body.get("aggregate", False),
-                confirmed_only=body.get("confirmed_only", False),
-            )
+        target = services.export(body)
         return FileResponse(
             target,
             filename=target.name,
@@ -456,16 +474,21 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False):
     @app.get("/api/diagnostics")
     def diagnostics():
         runtime = bundle / "runtimes/control/python.exe"
-        check = subprocess.run(
-            [str(runtime), "-X", "utf8", "-I", "-m", "ocr_workbench.cli", "doctor"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
-        )
+        try:
+            check = subprocess.run(
+                [str(runtime), "-X", "utf8", "-I", "-m", "ocr_workbench.cli", "doctor"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            return {"passed": False, "details": "", "error": str(error),
+                    "free_bytes": shutil.disk_usage(store.root).free}
         return {
             "passed": check.returncode == 0,
             "details": check.stdout,
+            "error": check.stderr.strip() if check.returncode else "",
             "free_bytes": shutil.disk_usage(store.root).free,
         }
 

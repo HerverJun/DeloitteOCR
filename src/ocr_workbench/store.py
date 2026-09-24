@@ -12,7 +12,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 14
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -81,10 +81,16 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                     for target in range(version + 1, SCHEMA_VERSION + 1):
                         self._migrate(db, target)
                         db.execute(f"PRAGMA user_version={target}")
+                    if db.execute("PRAGMA foreign_key_check").fetchone():
+                        raise ValueError("数据库迁移外键检查失败，升级已回滚")
+                    if db.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise ValueError("数据库迁移完整性检查失败，升级已回滚")
                     db.commit()
                 except BaseException:
                     db.rollback()
                     raise
+
+        self.schema_version = SCHEMA_VERSION
 
     @staticmethod
     def _migrate(db, version):
@@ -195,6 +201,15 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         elif version == 11:
             from ocr_workbench.multimodal_store import migrate_v11
             migrate_v11(db)
+        elif version == 12:
+            db.execute("ALTER TABLE multimodal_requests ADD COLUMN backend TEXT NOT NULL DEFAULT 'local' CHECK(backend IN ('local','external'))")
+            db.execute("CREATE INDEX multimodal_requests_backend ON multimodal_requests(backend,task_id)")
+        elif version == 13:
+            from ocr_workbench.agent.migrations import migrate_v13
+            migrate_v13(db)
+        elif version == 14:
+            from ocr_workbench.agent.migrations import migrate_v14
+            migrate_v14(db)
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -262,7 +277,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 "tasks": [
                     dict(row)
                     for row in db.execute(
-                        """SELECT t.*, mr.result_id AS review_result_id FROM tasks t
+                        """SELECT t.*, mr.result_id AS review_result_id, mr.backend AS review_backend FROM tasks t
                         LEFT JOIN multimodal_requests mr ON mr.task_id=t.id
                         WHERE t.project_id=? ORDER BY t.created,t.id""",
                         (key,),
@@ -319,10 +334,18 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             )
         return self.one("projects", key)
 
-    def recover(self, fusion=None):
+    def queue_scope(self, fusion=False, external=False):
+        if self.schema_version < 12:
+            return '0' if external else "kind='fusion'" if fusion else "kind!='fusion'"
+        remote = "EXISTS (SELECT 1 FROM multimodal_requests m WHERE m.task_id=tasks.id AND m.backend='external')"
+        if external:
+            return remote
+        return "kind='fusion'" if fusion else "kind!='fusion' AND NOT " + remote
+
+    def recover(self, fusion=None, external=False):
         # Both queued and formerly running work require deliberate resume on launch.
         with self.transaction() as db:
-            scope = "" if fusion is None else (" AND kind='fusion'" if fusion else " AND kind!='fusion'")
+            scope = "" if fusion is None and not external else " AND " + self.queue_scope(fusion, external)
             db.execute(
                 "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成' WHERE status='running'" + scope
             )
@@ -333,10 +356,18 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
     def enqueue(
         self, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None
     ):
+        with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return self._enqueue(db, project_id, versions, engines, preprocess, engine_packages, fusion_policy, request_id)
+
+    def _enqueue(
+        self, db, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None
+    ):
         from ocr_workbench.imaging import validate_preset
 
         preprocess = validate_preset(preprocess or [])
-        self.one("projects", project_id)
+        if not db.execute("SELECT 1 FROM projects WHERE id=?", (project_id,)).fetchone():
+            raise KeyError("项目不存在")
         packages = engine_packages or {
             e: "builtin" for e in ["ppocr", "paddlevl", "glm", "hunyuan"]
         }
@@ -344,56 +375,67 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             raise ValueError("请选择图片与引擎；单次最多 1000 张")
         batch = now() + "-" + uid()
         tasks = []
-        with self.transaction() as db:
-            if fusion_policy is not None:
-                from ocr_workbench.fusion_alignment import fingerprint
-                if not isinstance(request_id, str) or not 8 <= len(request_id) <= 120:
-                    raise ValueError("融合批次缺少有效请求标识")
-                db.execute("BEGIN IMMEDIATE")
-                signature = fingerprint(
-                    {"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages, "policy": fusion_policy})
-                prior = self._fusion_submission(db, project_id, request_id, signature)
-                if prior is not None:
-                    return prior
-            for engine in dict.fromkeys(engines):
-                if engine not in packages:
-                    raise ValueError("未知识别引擎")
-                for version_id in dict.fromkeys(versions):
-                    version = db.execute(
-                        "SELECT v.*,i.project_id FROM versions v JOIN images i ON i.id=v.image_id WHERE v.id=?",
-                        (version_id,),
-                    ).fetchone()
-                    if not version or version["project_id"] != project_id:
-                        raise ValueError("图片版本不属于当前项目")
-                    key = uid()
-                    db.execute(
-                        "INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,preprocess,input_version_id,engine_package) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-                        (
-                            key,
-                            project_id,
-                            version["image_id"],
-                            version_id,
-                            engine,
-                            batch,
-                            "queued",
-                            "等待识别",
-                            now(),
-                            encoded(preprocess),
-                            version_id,
-                            packages[engine],
-                        ),
-                    )
-                    tasks.append(key)
-            if fusion_policy is not None:
-                tasks.extend(self.attach_batch_fusion(db, project_id, tasks, fusion_policy))
-                db.execute("INSERT INTO fusion_submissions VALUES(?,?,?,?,?)", (project_id, request_id, signature, encoded(tasks), now()))
+        if request_id is not None and fusion_policy is None:
+            if not isinstance(request_id, str) or not 8 <= len(request_id) <= 120:
+                raise ValueError("识别批次缺少有效请求标识")
+            from ocr_workbench.fusion_alignment import fingerprint
+            signature = fingerprint({"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages})
+            previous = db.execute("SELECT input_hash,task_ids FROM ocr_submissions WHERE project_id=? AND request_id=?", (project_id, request_id)).fetchone()
+            if previous:
+                if previous["input_hash"] != signature:
+                    raise Conflict("请求编号已用于其他识别参数")
+                return json.loads(previous["task_ids"])
+        if fusion_policy is not None:
+            from ocr_workbench.fusion_alignment import fingerprint
+            if not isinstance(request_id, str) or not 8 <= len(request_id) <= 120:
+                raise ValueError("融合批次缺少有效请求标识")
+            signature = fingerprint(
+                {"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages, "policy": fusion_policy})
+            prior = self._fusion_submission(db, project_id, request_id, signature)
+            if prior is not None:
+                return prior
+        for engine in dict.fromkeys(engines):
+            if engine not in packages:
+                raise ValueError("未知识别引擎")
+            for version_id in dict.fromkeys(versions):
+                version = db.execute(
+                    "SELECT v.*,i.project_id FROM versions v JOIN images i ON i.id=v.image_id WHERE v.id=?",
+                    (version_id,),
+                ).fetchone()
+                if not version or version["project_id"] != project_id:
+                    raise ValueError("图片版本不属于当前项目")
+                key = uid()
+                db.execute(
+                    "INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,preprocess,input_version_id,engine_package) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        key,
+                        project_id,
+                        version["image_id"],
+                        version_id,
+                        engine,
+                        batch,
+                        "queued",
+                        "等待识别",
+                        now(),
+                        encoded(preprocess),
+                        version_id,
+                        packages[engine],
+                    ),
+                )
+                tasks.append(key)
+        if fusion_policy is not None:
+            tasks.extend(self.attach_batch_fusion(db, project_id, tasks, fusion_policy))
+            db.execute("INSERT INTO fusion_submissions VALUES(?,?,?,?,?)", (project_id, request_id, signature, encoded(tasks), now()))
+        if request_id is not None and fusion_policy is None:
+            db.execute("INSERT INTO ocr_submissions VALUES(?,?,?,?,?)", (project_id, request_id, signature, encoded(tasks), now()))
         return tasks
 
-    def claim(self, fusion=False):
+    def claim(self, fusion=False, external=False):
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
-            scope = ("kind='fusion' AND NOT EXISTS (SELECT 1 FROM fusion_dependencies d JOIN tasks p ON p.id=d.parent_task_id WHERE d.task_id=tasks.id AND p.status NOT IN ('succeeded','failed','cancelled'))"
-                     if fusion else "kind!='fusion'")
+            scope = self.queue_scope(fusion, external)
+            if fusion:
+                scope += " AND NOT EXISTS (SELECT 1 FROM fusion_dependencies d JOIN tasks p ON p.id=d.parent_task_id WHERE d.task_id=tasks.id AND p.status NOT IN ('succeeded','failed','cancelled'))"
             task = db.execute(
                 "SELECT * FROM tasks WHERE status='queued' AND " + scope + " ORDER BY batch,engine,created,id LIMIT 1"
             ).fetchone()

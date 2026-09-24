@@ -51,6 +51,20 @@ class ServiceAuditTests(unittest.TestCase):
         self.assertEqual(response['status'], 'ready')
         self.assertTrue(response['review_only'])
 
+    def test_diagnostics_keeps_output_and_reports_launch_failure(self):
+        doctor = self.route('/api/diagnostics')
+        with patch('ocr_workbench.service.subprocess.run', return_value=type('Check', (), {
+                'returncode': 1, 'stdout': '{"gpu_exit": 1}', 'stderr': 'driver unavailable'})()):
+            result = doctor()
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['details'], '{"gpu_exit": 1}')
+        self.assertEqual(result['error'], 'driver unavailable')
+        with patch('ocr_workbench.service.subprocess.run', side_effect=FileNotFoundError('control python missing')):
+            result = doctor()
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['details'], '')
+        self.assertIn('control python missing', result['error'])
+
     def test_review_mode_rejects_recognition_and_activation_routes(self):
         app = create_app(self.bundle, self.root / 'review', 't' * 32,
                          start_queue=False, review_only=True)

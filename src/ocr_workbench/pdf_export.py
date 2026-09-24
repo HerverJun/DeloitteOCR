@@ -210,6 +210,10 @@ def capture_pdf(store, body, folder):
             if page.get('selected_result') and page['selected_result'] != adopted['result_id']:
                 raise Conflict('PDF 必须使用已采用结果，请先采用当前预览')
             result = dict(db.execute('SELECT * FROM results WHERE id=?', (adopted['result_id'],)).fetchone())
+            if body.get('expected_results') is not None:
+                expected = body['expected_results'].get(result['id'])
+                if expected is None or (expected['revision'], expected['version_id']) != (result['revision'], adopted['version_id']):
+                    raise Conflict('PDF 导出快照版本已变化，请重新核对范围')
             for field in ('original', 'edited'):
                 result[field] = json.loads(result[field])
             if body.get('confirmed_only'):

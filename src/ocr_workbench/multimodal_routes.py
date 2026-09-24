@@ -1,4 +1,4 @@
-"""Local multimodal review routes; inference shares the durable GPU queue."""
+"""Visual review routes with separate local GPU and external network queues."""
 import shutil
 
 from fastapi.responses import FileResponse
@@ -11,8 +11,26 @@ def register_multimodal_routes(app, store, bundle, queue, maintenance, require_r
     from ocr_workbench.multimodal_store import enqueue_review, view_review, decide_review, lookup_existing_review
     from ocr_workbench.multimodal_runtime import load_config, review_readiness
 
-    @app.get("/api/multimodal/models")
-    def models():
+    external = app.state.external_connection
+    external_queue = app.state.external_queue
+
+    @app.get("/api/multimodal/external")
+    def external_view():
+        return external.view()
+
+    @app.post("/api/multimodal/external/models")
+    def external_models(body: dict):
+        return external.models(body)
+
+    @app.put("/api/multimodal/external")
+    def external_save(body: dict):
+        return external.save(body)
+
+    @app.delete("/api/multimodal/external")
+    def external_clear():
+        return external.clear()
+
+    def local_models():
         try:
             config = load_config(bundle)
         except (ValueError, OSError, KeyError) as error:
@@ -42,26 +60,28 @@ def register_multimodal_routes(app, store, bundle, queue, maintenance, require_r
                 "policy": {"automatic_acceptance": False, "offline": True,
                            "prompt_version": config.get("prompt_version")}}
 
+    @app.get("/api/multimodal/models")
+    def models():
+        catalog = local_models()
+        for item in catalog['models']:
+            item['backend'] = 'local'
+        remote = external.view()
+        if remote['configured']:
+            queue_ready = not app.state.start_queue or external_queue.status()['healthy']
+            catalog['models'].append({'id': remote['model_id'], 'label': '外部 API · ' + remote['model'],
+                'available': remote['available'] and queue_ready, 'reason': remote['reason'] if queue_ready else '外部审校队列异常，请恢复队列', 'backend': 'external',
+                'base_url': remote['base_url'], 'protocol': remote['protocol'], 'model': remote['model']})
+            catalog['policy']['external_queue_healthy'] = queue_ready
+        catalog['policy']['offline'] = not remote['configured']
+        return catalog
+
     @app.get("/api/results/{key}/multimodal")
     def view(key: str):
         return view_review(store, key)
 
     @app.post("/api/results/{key}/multimodal")
     def enqueue(key: str, body: dict):
-        # Replaying a committed request only resolves its durable task identity.
-        # It starts no work, including in review-only mode or after model removal.
-        existing = lookup_existing_review(store, key, body)
-        if existing is not None:
-            return {"task_id": existing}
-        require_recognition()
-        config = load_config(bundle, body.get("model_id"))
-        ready = review_readiness(bundle, config)
-        if not ready["ready"]:
-            raise ValueError(ready.get("reason") or "审校模型资源尚未就绪")
-        with maintenance.guard:
-            task_id = enqueue_review(store, key, body, config)
-        queue.wake.set()
-        return {"task_id": task_id}
+        return app.state.application_services.submit_visual_review(key, body)
 
     @app.post("/api/results/{key}/multimodal/{proposal_id}/decision")
     def decide(key: str, proposal_id: str, body: dict):
@@ -71,17 +91,18 @@ def register_multimodal_routes(app, store, bundle, queue, maintenance, require_r
     def task_action(key: str, task_id: str, action: str, body: dict):
         if action not in {"cancel", "retry", "resume"}:
             raise ValueError("未知审校任务操作")
-        if action != "cancel":
-            require_recognition()
-        rows = store.rows("""SELECT t.project_id FROM multimodal_requests mr
+        rows = store.rows("""SELECT t.project_id,mr.backend FROM multimodal_requests mr
             JOIN tasks t ON t.id=mr.task_id WHERE mr.task_id=? AND mr.result_id=?""", (task_id, key))
         if not rows:
             raise ValueError("审校任务不属于当前结果")
+        target_queue = external_queue if rows[0]['backend'] == 'external' else queue
+        if action != 'cancel' and rows[0]['backend'] != 'external':
+            require_recognition()
         if action != "cancel":
             # Retry preserves its original snapshot. A new revision requires a new review.
             from ocr_workbench.multimodal_store import prepare_review
             prepare_review(store, task_id, require_running=False)
-        affected = queue.action(rows[0]["project_id"], action, [task_id])
+        affected = target_queue.action(rows[0]["project_id"], action, [task_id])
         return {"task_ids": affected}
 
     @app.get("/api/results/{key}/multimodal/report")

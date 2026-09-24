@@ -31,6 +31,7 @@ class TaskQueue:
         self.recovery_requested = threading.Event()
         self.retry_delays = (0.3, 0.6, 1.2, 2.4, 5.0)
         self.fusion_only = False
+        self.external_only = False
         self.review_factory = None
 
     def start(self):
@@ -38,7 +39,7 @@ class TaskQueue:
             if self.thread and self.thread.is_alive():
                 return
             self.unload()
-            self.store.recover(fusion=self.fusion_only)
+            self.store.recover(fusion=self.fusion_only, external=self.external_only)
             self.stopping.clear()
             self.recovery_requested.clear()
             self.consecutive_failures = 0
@@ -46,7 +47,7 @@ class TaskQueue:
             self.started = True
             self.state = "running"
             self.thread = threading.Thread(
-                target=self.run, name="Fusion CPU queue" if self.fusion_only else "OCR GPU queue", daemon=False
+                target=self.run, name="External review queue" if self.external_only else "Fusion CPU queue" if self.fusion_only else "OCR GPU queue", daemon=False
             )
             self.thread.start()
 
@@ -111,8 +112,8 @@ class TaskQueue:
                             # claimed task requires explicit resume after recovery.
                             with self.store.transaction() as db:
                                 db.execute(
-                                    "UPDATE tasks SET status='interrupted',phase='等待继续',error=?,finished=? WHERE status='running' AND (kind='fusion')=?",
-                                    ("队列存储异常中断，请检查后继续", now(), self.fusion_only),
+                                    "UPDATE tasks SET status='interrupted',phase='等待继续',error=?,finished=? WHERE status='running' AND " + self.store.queue_scope(self.fusion_only, self.external_only),
+                                    ("队列存储异常中断，请检查后继续", now()),
                                 )
                             self.recovery_task = None
                             self.needs_reconcile = False
@@ -178,7 +179,7 @@ class TaskQueue:
         return self.status()
 
     def step(self):
-        task = self.store.claim()
+        task = self.store.claim(external=True) if self.external_only else self.store.claim()
         if task is None:
             self.unload()
             return False
@@ -360,7 +361,7 @@ class TaskQueue:
         return True
 
     def _run_multimodal(self, task):
-        """Run an auxiliary review inside the queue's existing GPU ownership."""
+        """Run shared review logic under the selected worker's ownership."""
         from ocr_workbench.multimodal_store import prepare_review, complete_review
         from ocr_workbench.multimodal_runtime import ReviewSession, ReviewCancelled
         from ocr_workbench.atomic_files import write_json
@@ -382,9 +383,22 @@ class TaskQueue:
                 raise Cancelled()
 
         progress(0, len(snapshot["targets"]))
+        if snapshot.get('review_kind') == 'structure':
+            from ocr_workbench.structure_arbitration import begin_dispatch
+            begin_dispatch(self.store, task['id'])
         factory = self.review_factory or ReviewSession
+        if snapshot['config'].get('backend') == 'external':
+            from ocr_workbench.agent.visual import check_external_job_authorization
+            check_external_job_authorization(self.store, task['id'], snapshot)
         try:
             with factory(self.bundle, snapshot["config"], output, self.cancel_event) as session:
+                if snapshot['config'].get('backend') == 'external' and hasattr(session, 'check_connection'):
+                    original_check = session.check_connection
+                    def check_dispatch():
+                        if original_check:
+                            original_check()
+                        check_external_job_authorization(self.store, task['id'], snapshot)
+                    session.check_connection = check_dispatch
                 response = session.review(
                     self.store.file(snapshot["image_relative_path"]), snapshot,
                     progress_callback=progress,
@@ -410,7 +424,7 @@ class TaskQueue:
         target, sources = transitions[action]
         with self.store.transaction() as db:
             tasks = db.execute(
-                "SELECT id,status FROM tasks WHERE project_id=?", (project_id,)
+                "SELECT id,status FROM tasks WHERE project_id=? AND " + self.store.queue_scope(self.fusion_only, self.external_only), (project_id,)
             ).fetchall()
             owned = {t["id"] for t in tasks}
             if task_ids is not None and not set(task_ids) <= owned:
@@ -450,6 +464,31 @@ class TaskQueue:
             self.thread.join(timeout=35)
         if self.thread and self.thread.is_alive():
             raise RuntimeError("GPU 工作线程未能退出")
+
+
+class ExternalReviewQueue(TaskQueue):
+    """One network task at a time, with no engine process or GPU ownership."""
+    def __init__(self, store, bundle, connection):
+        super().__init__(store, bundle)
+        self.external_only = True
+        self.connection = connection
+        self.review_factory = connection.session
+
+    def unload(self):
+        return None
+
+    def action(self, project_id, action, task_ids=None):
+        if action in {'retry', 'resume'}:
+            from ocr_workbench.multimodal_store import prepare_review
+            rows = self.store.rows("SELECT t.id,t.status FROM tasks t JOIN multimodal_requests m ON m.task_id=t.id WHERE t.project_id=? AND m.backend='external'", (project_id,))
+            wanted = {'failed', 'cancelled'} if action == 'retry' else {'paused', 'interrupted'}
+            for row in rows:
+                if row['status'] in wanted and (task_ids is None or row['id'] in task_ids):
+                    snapshot = prepare_review(self.store, row['id'], require_running=False)
+                    config, _ = self.connection.resolve(snapshot['model_id'])
+                    if config != snapshot['config']:
+                        raise ValueError('外部审校配置已变化，请重新提交')
+        return super().action(project_id, action, task_ids)
 
 
 class FusionQueue(TaskQueue):

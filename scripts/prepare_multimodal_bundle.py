@@ -234,12 +234,24 @@ def final_manifest(bundle, workers):
 
 def finalize(args):
     source, delivery, bundle, state = ownership(args)
+    if state['phase'] == 'finalized' and args.refresh_finalized:
+        if digest(bundle / 'manifest.json') != state['manifest_sha256']:
+            raise ValueError('Cannot refresh a changed manifest')
+        previous = delivery / ('draft-manifest-' + state['manifest_sha256'] + '.json')
+        if not previous.exists():
+            shutil.copy2(bundle / 'manifest.json', previous)
+        state['previous_draft_manifest_sha256'] = state['manifest_sha256']
+        state['phase'] = 'finalizing'
     if state['phase'] not in ('assets-ready', 'finalizing'):
         raise ValueError('Assets must be complete and bundle must not already be finalized')
     if not (ROOT / 'frontend/dist/index.html').is_file():
         raise ValueError('Build frontend/dist before finalizing')
     state['phase'] = 'finalizing'
     publish(delivery / MARKER, state)
+    # The base bundle predates external API review. Install only verified wheels
+    # into this newly owned staging copy before producing its final manifest.
+    from prepare_external_review_runtime import prepare
+    prepare(bundle / 'runtimes/service', args.external_wheels, bundle=bundle)
     # The source bundle supplies entry points and unchanged audit metadata.
     # Its old manifest is never reused as the new bundle's integrity claim.
     for path in source.iterdir():
@@ -250,6 +262,12 @@ def finalize(args):
         overlay(ROOT / origin, bundle / destination, bundle)
     for name in ('README.md', 'LICENSE'):
         overlay(ROOT / name, bundle / name, bundle)
+    if args.delivery_info:
+        overlay(args.delivery_info, bundle / 'delivery-info', bundle)
+    if args.readme_first:
+        overlay(args.readme_first, bundle / '开始前请读.txt', bundle)
+    if args.source_archive:
+        overlay(args.source_archive, bundle / 'source-code.zip', bundle)
     (bundle / 'tools').mkdir(exist_ok=True)
     for path in (ROOT / 'scripts').glob('*.py'):
         overlay(path, bundle / 'tools' / path.name, bundle)
@@ -316,6 +334,11 @@ def main(argv=None):
     parser.add_argument('--review-models', type=Path, default=Path('D:/OCR-multimodal-models-20260917/models'))
     parser.add_argument('--profile', default='qwen35-4b-q4')
     parser.add_argument('--workers', type=int, default=6)
+    parser.add_argument('--external-wheels', type=Path, default=ROOT / 'build/external-api-review/wheelhouse')
+    parser.add_argument('--delivery-info', type=Path, help='Fresh release receipts to replace inherited delivery metadata')
+    parser.add_argument('--readme-first', type=Path, help='Version-specific first-run instructions')
+    parser.add_argument('--source-archive', type=Path, help='Source-only archive, excluding datasets and credentials')
+    parser.add_argument('--refresh-finalized', action='store_true', help='Refresh an unpublished staging bundle; retain its prior draft manifest')
     args = parser.parse_args(argv)
     if not 1 <= args.workers <= 8:
         parser.error('--workers must be 1..8')

@@ -121,6 +121,12 @@ def _verify_image(store, db, snapshot):
 
 
 def enqueue_review(store, result_id, body, config):
+    with store.transaction() as db:
+        db.execute("BEGIN IMMEDIATE")
+        return enqueue_review_in_transaction(store, db, result_id, body, config)
+
+
+def enqueue_review_in_transaction(store, db, result_id, body, config):
     from ocr_workbench.geometry import geometry_view
     from ocr_workbench.store import Conflict, encoded, history_encoded, now, uid
     if not isinstance(body, dict) or not isinstance(config, dict):
@@ -130,31 +136,46 @@ def enqueue_review(store, result_id, body, config):
     if not isinstance(model, str) or not 1 <= len(model) <= 200:
         raise ValueError("请选择已配置的视觉审校模型")
     signature = fingerprint(body)
-    with store.transaction() as db:
-        db.execute("BEGIN IMMEDIATE")
-        prior = db.execute("SELECT task_id,payload_hash FROM multimodal_requests WHERE result_id=? AND request_id=?", (result_id, request_id)).fetchone()
-        if prior:
-            if prior["payload_hash"] != signature:
-                raise Conflict("请求编号已用于另一项审校")
-            return prior["task_id"]
-        result = _context(db, result_id)
-        _assert_current(result, body.get("revision"), body.get("version_id"))
-        version = dict(db.execute("SELECT * FROM versions WHERE id=?", (result["version_id"],)).fetchone())
-        geometry = geometry_view(store, result_id, db=db)["evidence"]
-        targets = build_targets(result["edited"], result["original"], version, body.get("scope"), body.get("target"), geometry)
-        task_id = uid()
-        snapshot = {"contract_version": CONTRACT_VERSION, "task_id": task_id, "result_id": result_id,
-            "image_id": result["image_id"], "revision": result["revision"], "selected_result_id": result["selected"],
-            "edited_sha256": fingerprint(result["edited"]), "version_id": version["id"], "image_version": version["id"],
-            "image_relative_path": version["path"], "image_path": str(store.file(version["path"])),
-            "width": version["width"], "height": version["height"], "image_sha256": version["sha256"],
-            "model_id": model, "config": deepcopy(config), "scope": body["scope"], "targets": targets}
-        _verify_image(store, db, snapshot)
-        db.execute("""INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,kind,input_version_id,engine_package)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""", (task_id,result["project_id"],result["image_id"],version["id"],"reviewer",
-            now()+"-"+task_id,"queued","等待视觉审校",now(),"multimodal",version["id"],"builtin"))
-        db.execute("INSERT INTO multimodal_requests(task_id,result_id,request_id,payload_hash,snapshot,created) VALUES(?,?,?,?,?,?)",
-            (task_id,result_id,request_id,signature,history_encoded(snapshot),now()))
+    prior = db.execute("SELECT task_id,payload_hash FROM multimodal_requests WHERE result_id=? AND request_id=?", (result_id, request_id)).fetchone()
+    if prior:
+        if prior["payload_hash"] != signature:
+            raise Conflict("请求编号已用于另一项审校")
+        return prior["task_id"]
+    result = _context(db, result_id)
+    _assert_current(result, body.get("revision"), body.get("version_id"))
+    version = dict(db.execute("SELECT * FROM versions WHERE id=?", (result["version_id"],)).fetchone())
+    geometry = geometry_view(store, result_id, db=db)["evidence"]
+    review_kind = body.get('review_kind', 'text')
+    structure = None
+    if review_kind == 'structure':
+        if config.get('backend') != 'external':
+            raise ValueError('结构仲裁需要已配置的外部视觉连接')
+        from ocr_workbench.structure_arbitration import build_snapshot
+        structure = build_snapshot(db, result, body, version)
+        targets = [{'id': 'structure-table-'+str(body['table']), 'before': '', 'target': {'kind':'table','table':body['table']}}]
+    elif review_kind == 'text':
+        if 'target_ids' in body and body['target_ids'] is None:
+            raise ValueError('审校目标列表无效')
+        targets = build_targets(result["edited"], result["original"], version, body.get("scope"), body.get("target"), geometry,
+                                target_ids=body.get('target_ids'))
+    else:
+        raise ValueError('未知审校任务类型')
+    task_id = uid()
+    snapshot = {"contract_version": CONTRACT_VERSION, "task_id": task_id, "result_id": result_id,
+        "image_id": result["image_id"], "revision": result["revision"], "selected_result_id": result["selected"],
+        "edited_sha256": fingerprint(result["edited"]), "version_id": version["id"], "image_version": version["id"],
+        "image_relative_path": version["path"], "image_path": str(store.file(version["path"])),
+        "width": version["width"], "height": version["height"], "image_sha256": version["sha256"],
+        "model_id": model, "config": deepcopy(config), "scope": body["scope"], "targets": targets}
+    snapshot['review_kind'] = review_kind
+    if structure is not None:
+        snapshot['structure'] = structure
+    _verify_image(store, db, snapshot)
+    db.execute("""INSERT INTO tasks(id,project_id,image_id,version_id,engine,batch,status,phase,created,kind,input_version_id,engine_package)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""", (task_id,result["project_id"],result["image_id"],version["id"],"reviewer",
+        now()+"-"+task_id,"queued","等待视觉审校",now(),"multimodal",version["id"],"builtin"))
+    db.execute("INSERT INTO multimodal_requests(task_id,result_id,request_id,payload_hash,snapshot,created,backend) VALUES(?,?,?,?,?,?,?)",
+        (task_id,result_id,request_id,signature,history_encoded(snapshot),now(),config.get('backend', 'local')))
     return task_id
 
 
@@ -168,6 +189,9 @@ def _current_snapshot(store, db, row):
     if fingerprint(result["edited"]) != snapshot["edited_sha256"]:
         raise Conflict("校对内容已变化，请重新提交审校")
     _verify_image(store, db, snapshot)
+    if snapshot.get('review_kind') == 'structure':
+        from ocr_workbench.structure_arbitration import assert_current
+        assert_current(db, result, snapshot['structure'])
     return snapshot
 
 
@@ -197,6 +221,16 @@ def complete_review(store, task_id, response):
         except Conflict as error:
             db.execute("UPDATE tasks SET status='cancelled',phase='审校快照已过期',error=?,finished=? WHERE id=?", (str(error),now(),task_id))
             return False
+        if snapshot.get('review_kind') == 'structure':
+            from ocr_workbench.structure_arbitration import validate_response as validate_structure
+            checked = validate_structure(response.get('structure_response'), snapshot['structure'])
+            if len(json.dumps(response, ensure_ascii=False, allow_nan=False).encode('utf-8')) > 4*1024*1024:
+                raise ValueError('结构响应超过保存上限')
+            db.execute('UPDATE multimodal_requests SET summary=?,raw_response=? WHERE task_id=?',
+                       (checked['reason'],history_encoded(response),task_id))
+            db.execute("UPDATE tasks SET status='succeeded',phase='结构仲裁建议已生成',finished=?,error=NULL WHERE id=?",
+                       (now(),task_id))
+            return True
         checked = validate_response(response, snapshot["targets"])
         serialized = json.dumps(response, ensure_ascii=False, allow_nan=False)
         if len(serialized.encode("utf-8")) > 4 * 1024 * 1024:
@@ -239,6 +273,11 @@ def _request_view(row):
     value.pop("raw_response", None)
     value.update({k: snapshot[k] for k in ("model_id", "revision", "version_id", "scope", "image_sha256")})
     value["target_count"] = len(snapshot["targets"])
+    value['review_kind'] = snapshot.get('review_kind','text')
+    config = snapshot.get('config', {})
+    if config.get('backend') == 'external':
+        value['model_label'] = '外部 API · ' + config['model']
+        value['base_url'] = config['base_url']
     value["snapshot_current"] = not bool(value["obsolete"])
     return value
 

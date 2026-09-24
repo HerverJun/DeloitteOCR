@@ -135,7 +135,10 @@ def publish_page(manager, stage, data):
             record(db, result_id, version, prediction, data['blocks'])
         if manager.stopping.is_set():
             raise DocumentCancelled()
-    if manager.gpu is not None and not manager.review_only and not data['tables'] and sum(b.get('source') == 'pdf-native' for b in data.get('blocks', [])) >= 4:
+    agent_submitted = store.rows("SELECT 1 FROM agent_job_links WHERE job_kind='pdf_stage' AND job_id=? LIMIT 1", (stage['id'],))
+    # Agent processing grants cover the requested OCR/native work. Additional
+    # model-based structure analysis needs its own explicit review permission.
+    if not agent_submitted and manager.gpu is not None and not manager.review_only and not data['tables'] and sum(b.get('source') == 'pdf-native' for b in data.get('blocks', [])) >= 4:
         from ocr_workbench.geometry import enqueue_geometry
         enqueue_geometry(store,result_id,0)
         manager.gpu.wake.set()
@@ -181,7 +184,9 @@ def process_stage(manager, stage, cancelled):
     prior = store.rows('SELECT t.status FROM tasks t JOIN page_ocr_inputs i ON i.task_id=t.id WHERE i.stage_id=?', (stage['id'],))
     if prior:
         with store.transaction() as db:
-            db.execute("UPDATE tasks SET status='queued',phase='等待区域识别',error=NULL WHERE id IN (SELECT task_id FROM page_ocr_inputs WHERE stage_id=?) AND status IN ('paused','interrupted','failed','cancelled')", (stage['id'],))
+            agent_submitted = db.execute("SELECT 1 FROM agent_job_links WHERE job_kind='pdf_stage' AND job_id=? LIMIT 1", (stage['id'],)).fetchone()
+            if not agent_submitted:
+                db.execute("UPDATE tasks SET status='queued',phase='等待区域识别',error=NULL WHERE id IN (SELECT task_id FROM page_ocr_inputs WHERE stage_id=?) AND status IN ('paused','interrupted','failed','cancelled')", (stage['id'],))
             db.execute("UPDATE document_stages SET status='waiting_gpu',phase='等待区域识别' WHERE id=? AND status='running'", (stage['id'],))
         if manager.gpu:
             manager.gpu.wake.set()
@@ -204,6 +209,9 @@ def process_stage(manager, stage, cancelled):
         db.execute('BEGIN IMMEDIATE')
         current = db.execute('SELECT status FROM document_stages WHERE id=?', (stage['id'],)).fetchone()
         if current['status'] != 'running':
+            return
+        from ocr_workbench.agent.budgets import reserve_stage_children
+        if not reserve_stage_children(db, stage['id'], len(needed)):
             return
         for region in needed:
             box = bounds(region['polygon'])

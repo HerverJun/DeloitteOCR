@@ -212,6 +212,11 @@ class DocumentStoreMixin:
         return self.enqueue_document_stages([page_id], kind, parameters, force=force)[0]
 
     def enqueue_document_stages(self, page_ids, kind, parameters, *, force=False):
+        with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return self._enqueue_document_stages(db, page_ids, kind, parameters, force=force)
+
+    def _enqueue_document_stages(self, db, page_ids, kind, parameters, *, force=False):
         if kind not in ("render", "process", "table_structure"):
             raise ValueError("未知文档处理阶段")
         if type(force) is not bool:
@@ -219,12 +224,9 @@ class DocumentStoreMixin:
         # Secrets only live in the CPU manager's in-memory vault.
         if any("password" in str(key).lower() for key in parameters):
             raise ValueError("密码不能写入处理参数")
-        with self.transaction() as db:
-            db.execute("BEGIN IMMEDIATE")
-            # A conflict on any page rolls back all inserts and retries; workers
-            # cannot claim an earlier page before the whole request commits.
-            return [self._enqueue_document_stage(db, page_id, kind, parameters, force=force)
-                    for page_id in page_ids]
+        # Composes with operation/job linkage under the caller's transaction.
+        return [self._enqueue_document_stage(db, page_id, kind, parameters, force=force)
+                for page_id in page_ids]
 
     def _enqueue_document_stage(self, db, page_id, kind, parameters, *, force):
         from ocr_workbench.store import uid, now, encoded, Conflict

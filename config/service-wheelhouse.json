@@ -1,6 +1,6 @@
 {
   "python": "CPython 3.12.10 Windows AMD64 embedded",
-  "scope": "21 exact local wheels used to rebuild and verify the service runtime without a package index. Version constraints are also in runtime-locks/service.txt.",
+  "scope": "24 exact local wheels used to rebuild and verify the service runtime without a package index. Includes external visual-review HTTP dependencies; constraints are in runtime-locks/service.txt.",
   "files": [
     {
       "file": "annotated_doc-0.0.5-py3-none-any.whl",
@@ -13,6 +13,10 @@
     {
       "file": "anyio-4.15.1-py3-none-any.whl",
       "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"
+    },
+    {
+      "file": "certifi-2026.7.22-py3-none-any.whl",
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775"
     },
     {
       "file": "click-8.5.0-py3-none-any.whl",
@@ -29,6 +33,14 @@
     {
       "file": "h11-0.16.0-py3-none-any.whl",
       "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
+    },
+    {
+      "file": "httpcore-1.0.9-py3-none-any.whl",
+      "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"
+    },
+    {
+      "file": "httpx-0.28.1-py3-none-any.whl",
+      "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
     },
     {
       "file": "idna-3.19-py3-none-any.whl",

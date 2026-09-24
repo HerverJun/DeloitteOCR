@@ -3,7 +3,7 @@
 All skeletons use the same source tokens and the existing local-v3 ownership
 policy. Missing slots stay missing. Original IDs, geometry and numbering survive.
 """
-from collections import Counter
+from collections import Counter, defaultdict
 from copy import deepcopy
 import time
 
@@ -18,7 +18,7 @@ from ocr_workbench.geometry_providers import adapt_prediction
 from ocr_workbench.table_matching import assign_tokens, policy_for_algorithm
 
 
-VERSION = "structure-review-v1"
+VERSION = "structure-review-v3"
 
 
 def span(cell):
@@ -31,7 +31,9 @@ def table_value(table):
 
 
 def prepare_candidates(prediction, blocks, *, source_result, image_version, width, height):
-    policy = policy_for_algorithm("local-v3")
+    if prediction.get('image_version') not in (None,image_version):
+        raise ValueError('结构候选属于另一图像版本')
+    policy = {**policy_for_algorithm("local-v3"), 'spatial_index': True}
     tokens, rejected = tokens_from_blocks(blocks, source_result=source_result,
         image_version=image_version, width=width, height=height)
     tables = adapt_prediction(prediction, width, height)
@@ -51,18 +53,33 @@ def prepare_candidates(prediction, blocks, *, source_result, image_version, widt
         parsed = {(c["row"], c["column"]): c for c in (table.get("structure") or {}).get("cells", [])}
         skeleton = {"rows": max((c.row_end for c in cells), default=0),
                     "columns": max((c.column_end for c in cells), default=0), "cells": []}
+        unowned_by_cell = defaultdict(list)
+        for record in records:
+            for option in record.candidates:
+                if option['cell_id'] != record.adopted_cell_id:
+                    unowned_by_cell[option['cell_id']].append(record.token_id)
         for cell in cells:
             group = owned.get(cell.id, [])
             item = {"row": cell.row_start, "column": cell.column_start,
                 "row_span": cell.row_end-cell.row_start, "column_span": cell.column_end-cell.column_start,
                 "text": " ".join(t.raw_text for t in group), "confidence": None,
                 "structure_source": {"provider": cell.provider, "model_version": cell.model_version,
+                    "candidate_variant": prediction.get('candidate_variant','default'),
+                    "image_version": image_version, "range_semantics": "full_cell" if cell.geometry_origin != "text_extent" else "text_extent",
                     "candidate_cell_id": cell.id, "original_cell_id": cell.original_cell_id,
                     "token_ids": [t.id for t in group], "text_source_result": source_result,
                     "geometry_origin": cell.geometry_origin, "cell_polygon": cell.cell_polygon,
                     "original_polygon": cell.original_polygon, "transform": cell.transform,
                     "index_mapping": cell.index_mapping, "derivation": cell.derivation,
                     "text_state": "sourced" if group else "unverified_empty"}}
+            # An empty OCR value alone never establishes a genuinely blank cell.
+            nearby = unowned_by_cell[cell.id]
+            item['structure_source']['empty_evidence'] = {
+                'state': 'sourced' if group else 'suspected_missing' if nearby else 'unknown',
+                'overlapping_unowned_token_ids': nearby,
+                'image_pixels_checked': False,
+                'next_action': None if group else 'inspect_original_or_request_local_ocr',
+                'new_ocr_text_added': False}
             header = parsed.get((cell.row_start, cell.column_start), {}).get("is_header")
             if header is not None:
                 item["is_header"] = header
@@ -135,12 +152,11 @@ def differences(current, proposed):
 def preserve_values(current, proposed, original, tokens, manual_bindings=()):
     """Retain literal accepted/manual values only through exclusive source identity.
 
-    Changed spans may split/merge existing values only when the exact shared
-    tokens account for them. A manual edit without a unique destination blocks
-    application; the original value remains visible in the proposal conflicts.
+    A cell is an indivisible adopted literal. A token pool cannot establish the
+    adopted string's fragment boundaries or separators. Unsupported splits and
+    merges remain conflicts; a separate fragment-aware contract is required.
     """
     output = deepcopy(proposed)
-    by_id = {t["id"]: t for t in tokens}
     original_by_span = {span(c): c for c in (original or {}).get("cells", [])}
     topology_stable = original and topology(current) == topology(original)
     original_counts = Counter(matching_text(c["text"]) for c in (original or current)["cells"])
@@ -181,35 +197,9 @@ def preserve_values(current, proposed, original, tokens, manual_bindings=()):
             if changed:
                 conflicts.append({"kind": "manual_value_unmapped", "row": old["row"], "column": old["column"], "text": ""})
             continue
-        # Splitting/merging is allowed only with exact literal source coverage.
-        ids = token_ids
-        if not ids and original_cell and original_cell.get("structure_source"):
-            ids = set(original_cell["structure_source"].get("token_ids", []))
-        # Existing slots delimit a local merge/split; surrounding cells were
-        # independently used to identify the table. Never split a token itself.
-        if not ids and not changed and old["row_span"]*old["column_span"] > 1:
-            local = [c for c in output["cells"] if old["row"] <= c["row"] and
-                c["row"]+c["row_span"] <= old["row"]+old["row_span"] and old["column"] <= c["column"] and
-                c["column"]+c["column_span"] <= old["column"]+old["column_span"]]
-            literal = "".join(c["text"] for c in local)
-            ids_list = [t for c in local for t in c.get("structure_source", {}).get("token_ids", [])]
-            if len(local) > 1 and ids_list and len(ids_list) == len(set(ids_list)) and matching_text(literal) == matching_text(old["text"]):
-                ids = set(ids_list)
-        if ids and not changed:
-            represented = [t for c in output["cells"] for t in c.get("structure_source", {}).get("token_ids", []) if t in ids]
-            if Counter(represented) == Counter(ids) and matching_text("".join(by_id[t]["raw_text"] for t in represented if t in by_id)) == matching_text(old["text"]):
-                continue
-        # Several unmodified source cells may become one merged cell. Preserve
-        # each token once; a manual value cannot pass this source-text check.
-        if not changed:
-            joined = [c for c in output["cells"] if c["row"] <= old["row"] and old["row"]+old["row_span"] <= c["row"]+c["row_span"] and
-                c["column"] <= old["column"] and old["column"]+old["column_span"] <= c["column"]+c["column_span"]]
-            if len(joined) == 1:
-                merged = joined[0]
-                local = [c for c in current["cells"] if merged["row"] <= c["row"] and c["row"]+c["row_span"] <= merged["row"]+merged["row_span"] and
-                    merged["column"] <= c["column"] and c["column"]+c["column_span"] <= merged["column"]+merged["column_span"]]
-                if len(local) > 1 and merged.get("structure_source", {}).get("token_ids") and matching_text("".join(c["text"] for c in local)) == matching_text(merged["text"]):
-                    continue
+        # Never infer adopted fragment boundaries from another OCR pool or from
+        # normalized concatenation. Even equal visible words may have different
+        # whitespace, order, duplicate identities or manual-empty state.
         # Equal topology is a valid positional preservation of unmodified cells,
         # even when values repeat; it does not assert geometric cell identity.
         same = [i for i, c in enumerate(output["cells"]) if span(c) == span(old)]
@@ -221,6 +211,24 @@ def preserve_values(current, proposed, original, tokens, manual_bindings=()):
                 continue
         conflicts.append({"kind": "manual_value_unmapped" if changed else "current_value_unmapped",
                           "row": old["row"], "column": old["column"], "text": old["text"]})
+    # Carry adopted native fragments only when the complete literal and its
+    # source identity survive. Positional/text fallback cannot create provenance.
+    for cell in output['cells']:
+        source = cell.get('structure_source', {})
+        ids = set(source.get('token_ids', []))
+        matches = [old for old in current['cells']
+                   if old['text'] == cell['text']
+                   and (ids or span(old) == span(cell))
+                   and set(old.get('structure_source', {}).get('token_ids', [])) == ids
+                   and all(source.get(k) and source.get(k) == old.get('structure_source', {}).get(k)
+                           for k in ('image_version', 'text_source_result'))]
+        cell.pop('native_content', None)
+        if len(matches) == 1:
+            record = matches[0].get('native_content', {})
+            if (record.get('version') == 'native-adopted-fragments-v1'
+                    and record.get('literal') == cell['text']
+                    and all(record.get(k) == source.get(k) for k in ('image_version', 'text_source_result'))):
+                cell['native_content'] = deepcopy(record)
     return output, conflicts, retained
 
 

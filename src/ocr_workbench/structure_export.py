@@ -4,7 +4,6 @@ import json
 
 def native_structure_units(db, result, version):
     """Resolve immutable native tokens; editable provenance alone is insufficient."""
-    from ocr_workbench.geometry_contract import matching_text
     sources, used, output = {}, set(), {}
     for ti, table in enumerate(result['edited']['tables']):
         review = table.get('structure_review',{})
@@ -20,7 +19,7 @@ def native_structure_units(db, result, version):
             tokens = [sources[key].get(i) for i in ids]
             if (not ids or any(t is None or t['source_kind'] != 'native' for t in tokens) or
                 len(set(ids)) != len(ids) or used.intersection(ids) or
-                matching_text(''.join(t['raw_text'] for t in tokens)) != matching_text(cell['text'])):
+                cell['text'] not in (''.join(t['raw_text'] for t in tokens), ' '.join(t['raw_text'] for t in tokens))):
                 continue
             used.update(ids)
             output[(ti,cell['row'],cell['column'])] = [{'text':t['raw_text'],'polygon':t['polygon']} for t in tokens]

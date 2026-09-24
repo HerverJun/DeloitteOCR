@@ -291,6 +291,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                     "cv2",
                     "numpy",
                     "psutil",
+                    "httpx",
                 ],
                 "ppocr": ["paddle", "paddleocr", "paddlex"],
                 "paddlevl": ["paddle", "paddleocr", "paddlex"],

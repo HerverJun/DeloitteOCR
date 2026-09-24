@@ -78,6 +78,27 @@ class StructureDiagnosticsTests(unittest.TestCase):
         self.assertEqual(variants[0]["kind"],"merge")
         self.assertEqual(variants[0]["table"]["cells"][1:],[current["cells"][2],current["cells"][3]])
 
+    def test_native_original_regions_disambiguate_same_text_and_reject_stale_evidence(self):
+        from ocr_workbench.fusion_alignment import source_tables
+        current = table([["same", "heading"], ["1", "2"]])
+        for cell in current['cells']:
+            cell['native_content'] = {'version':'native-adopted-fragments-v1', 'image_version':'v'}
+            cell['structure_source'] = {'image_version':'v'}
+        second = deepcopy(current)
+        current['region_polygon'] = box_polygon([0, 0, 200, 80])
+        second['region_polygon'] = box_polygon([0, 100, 200, 180])
+        original = {'tables':[current, second], 'text':tables_html([current, second]),
+                    'blocks':[], 'image':{'width':200, 'height':200}, 'project_image_version':'v',
+                    'document':{'structure_preview':True, 'structure_text_source':'pdf-native'}}
+        candidates = [{'skeleton':t, 'polygon':t['region_polygon']} for t in original['tables']]
+        recovered = source_tables({'original':original})
+        self.assertEqual([m[1] for m in identify_tables(recovered, candidates)], [0, 1])
+        original['tables'][0]['native_content'] = {}  # Table-level metadata cannot authorize cells.
+        original['tables'][0]['cells'][0]['native_content']['image_version'] = 'stale'
+        self.assertIsNone(source_tables({'original':original})[0]['region_polygon'])
+        original['document']['structure_preview'] = False
+        self.assertTrue(all(t['region_polygon'] is None for t in source_tables({'original':original})))
+
     def test_headers_roundtrip(self):
         t = parse_tables('<table><tr><th colspan="2">2026</th></tr><tr><td>001</td><td>-0.10</td></tr></table>')[0]
         self.assertTrue(t["cells"][0]["is_header"])
@@ -135,6 +156,17 @@ class StructureStoreTests(unittest.TestCase):
         self.assertEqual(a,b)
         with self.assertRaises(Conflict):
             decide_structure(self.store,self.result_id,p["id"],self.body(p,action="keep"))
+
+    def test_old_preservation_policy_cannot_be_applied_from_cached_proposal(self):
+        p=self.proposal()
+        with self.store.transaction() as db:
+            payload=json.loads(db.execute('SELECT payload FROM structure_proposals WHERE id=?',(p['id'],)).fetchone()[0])
+            payload['version']='structure-review-v2'
+            db.execute('UPDATE structure_proposals SET payload=? WHERE id=?',(json.dumps(payload),p['id']))
+        cached=next(x for x in structure_view(self.store,self.result_id)['proposals'] if x['id']==p['id'])
+        self.assertFalse(cached['can_apply'])
+        with self.assertRaisesRegex(Conflict,'保全规则'):
+            decide_structure(self.store,self.result_id,p['id'],self.body(p))
 
     def test_stale_revision_and_image_cannot_apply(self):
         p = self.proposal()
@@ -379,7 +411,7 @@ class GroupTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             replace_group(split,[0,1],[original])
 
-    def test_local_insert_and_split_keep_each_token_once(self):
+    def test_local_insert_is_proposed_but_split_needs_adopted_fragments(self):
         before = table([['Account','Amount'],['Revenue','001.00']])
         pred,blocks = prediction([['Account','Amount'],['Revenue','001.00'],['Tax','-0.01']])
         after = prepare_candidates(pred,blocks,source_result='ocr',image_version='v',width=200,height=120)['tables'][0]['skeleton']
@@ -390,7 +422,7 @@ class GroupTests(unittest.TestCase):
         merged['cells'].pop(1)
         split,conflicts,_ = preserve_values(merged,{'rows':2,'columns':2,'cells':after['cells'][:4]},merged,
             prepare_candidates(pred,blocks,source_result='ocr',image_version='v',width=200,height=120)['tokens'])
-        self.assertEqual(conflicts,[])
+        self.assertTrue(any(c['kind']=='current_value_unmapped' for c in conflicts))
         self.assertEqual([c['text'] for c in split['cells'][:2]],['Account','Amount'])
 
 

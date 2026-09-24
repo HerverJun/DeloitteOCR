@@ -5,12 +5,29 @@ from ocr_workbench.editing import tables_html
 from ocr_workbench.tables import parse_tables
 
 
+def native_source_blocks(blocks, image_version):
+    """Give each native word a stable identity before candidate region filtering."""
+    from ocr_workbench.geometry_contract import fingerprint
+    blocks=deepcopy(blocks)
+    native=[b for b in blocks if b.get('source')=='pdf-native' and b.get('polygon') and b.get('text_range')]
+    source_result='pdf-native:'+fingerprint({'image_version':image_version,
+        'units':[{k:b.get(k) for k in ('text','polygon','text_range','native_index')} for b in native]})
+    for index,block in enumerate(native):block['id']=f'{source_result}:token:{index}'
+    return blocks,source_result
+
+
 def native_table_preview(raw, prediction, width, height):
     from ocr_workbench.pdf_worker import _intersect, _area
     from ocr_workbench.geometry_contract import tokens_from_blocks, as_json
     from ocr_workbench.geometry_providers import adapt_prediction
     from ocr_workbench.table_matching import assign_tokens, policy_for_algorithm
-    native = [b for b in raw.get('blocks', []) if b.get('source') == 'pdf-native' and b.get('polygon') and b.get('text_range')]
+    raw = deepcopy(raw)
+    image_version = raw.get('project_image_version', 'pdf-native')
+    # Namespace the complete source page before selecting any candidate region.
+    # Subset-relative indices would assign the same ID to different words in
+    # different candidate tables on one page.
+    raw['blocks'],source_result=native_source_blocks(raw.get('blocks', []),image_version)
+    native = [b for b in raw['blocks'] if b.get('source') == 'pdf-native' and b.get('polygon') and b.get('text_range')]
     proposals = []
     adapted = adapt_prediction(prediction,width,height)
     preview_tables = prediction.get('tables', [])
@@ -45,9 +62,10 @@ def native_table_preview(raw, prediction, width, height):
         structure = parsed[0]
         groups = [[] for _ in boxes]
         region = table['table_box']
+        structure['region_polygon']=box_polygon(region)
         contained = [b for b in native if _intersect(bounds(b['polygon']),region) >= .8*_area(bounds(b['polygon']))]
         if not contained: continue
-        tokens,rejected = tokens_from_blocks(contained,source_result='pdf-native-preview',image_version=raw.get('project_image_version','pdf-native'),width=width,height=height,engine='pdf-native')
+        tokens,rejected = tokens_from_blocks(contained,source_result=source_result,image_version=image_version,width=width,height=height,engine='pdf-native')
         candidate_cells = adapted[table_index]['cells']
         if len(candidate_cells) != len(boxes): continue
         assignments,owned,error = assign_tokens(tokens,candidate_cells,policy_for_algorithm('local-v3'))
@@ -57,10 +75,28 @@ def native_table_preview(raw, prediction, width, height):
             groups[i] = [by_token[t.id] for t in owned.get(candidate.id,[])]
         structure['_native_matching_v2'] = {'tokens':[as_json(t) for t in tokens], 'assignments':[as_json(a) for a in assignments],
             'original_cells':[as_json(c) for c in candidate_cells]}
-        for cell, group in zip(structure['cells'], groups):
+        for cell, group, candidate in zip(structure['cells'], groups, candidate_cells):
             group.sort(key=lambda b:b['text_range'][0])
             cell['text'] = ' '.join(b['text'] for b in group)
             cell['_native_units'] = deepcopy(group)
+            cell['structure_source'] = {'text_source_result': source_result, 'image_version': image_version,
+                'token_ids': [b['id'] for b in group], 'range_semantics': 'full_cell',
+                'cell_polygon': deepcopy(candidate.cell_polygon), 'geometry_origin': candidate.geometry_origin,
+                'text_state': 'sourced' if group else 'unverified_empty'}
+            # These offsets and separators are recorded while the adopted text
+            # is assembled. They are not inferred later from matching strings.
+            offset = 0
+            fragments = []
+            for index, block in enumerate(group):
+                separator = ' ' if index else ''
+                offset += len(separator)
+                fragments.append({'token_id': block['id'], 'text': block['text'],
+                    'start': offset, 'end': offset + len(block['text']), 'separator_before': separator,
+                    'polygon': deepcopy(block['polygon'])})
+                offset += len(block['text'])
+            cell['native_content'] = {'version': 'native-adopted-fragments-v1',
+                'text_source_result': source_result, 'image_version': image_version,
+                'literal': cell['text'], 'fragments': fragments}
             cell['confidence'] = None
             cell.pop('polygon',None)
         a, z = min(b['text_range'][0] for b in contained),max(b['text_range'][1] for b in contained)
@@ -85,6 +121,21 @@ def native_table_preview(raw, prediction, width, height):
     for a,z,replacement in sorted(replacements,reverse=True):
         text = text[:a]+replacement+text[z:]
     result['text'],result['tables'] = text,parse_tables(text)
+    # HTML parsing preserves display content but cannot carry source metadata.
+    # Reattach by the exact inserted HTML offset, not text equality or table order.
+    for a, z, structure, units in proposals:
+        rendered_start = a + sum(len(value) - (end-start) for start,end,value in replacements if end <= a)
+        matches = [t for t in result['tables'] if t.get('source', {}).get('start') == rendered_start]
+        if len(matches) != 1:
+            raise ValueError('Native table provenance cannot be attached to its exact text insertion')
+        matches[0]['region_polygon']=deepcopy(structure['region_polygon'])
+        original_cells = {(c['row'], c['column']): c for c in structure['cells']}
+        for cell in matches[0]['cells']:
+            source_cell = original_cells[(cell['row'], cell['column'])]
+            if any(cell[k] != source_cell[k] for k in ('text', 'row_span', 'column_span')):
+                raise ValueError('Native table literal or structure changed during serialization')
+            for key in ('structure_source', 'native_content'):
+                cell[key] = deepcopy(source_cell[key])
     result['document']['structure_preview'] = True
     result['document']['structure_text_source'] = 'pdf-native'
     result['document']['structure_contributes_votes'] = False

@@ -4,14 +4,16 @@ import json
 import re
 import shutil
 import os
+import time
 from pathlib import Path
 from ocr_workbench.store import uid, now
 from ocr_workbench.atomic_files import write_json
 
 
 class ProjectMaintenance:
-    def __init__(self, store, queue, fusion_queue=None):
+    def __init__(self, store, queue, fusion_queue=None, external_queue=None):
         self.fusion_queue = fusion_queue
+        self.external_queue = external_queue
         self.store, self.queue = store, queue
         self.guard = store.file_lock
         self.trash = store.root / "cleanup"
@@ -23,6 +25,7 @@ class ProjectMaintenance:
     def paths(self, key):
         self.store.one("projects", key)
         paths = [self.store.root / "projects" / key]
+        paths.append(self.store.root / "agent-artifacts" / key)
         paths.extend(
             self.store.root / "task-results" / row["id"]
             for row in self.store.rows(
@@ -43,6 +46,7 @@ class ProjectMaintenance:
         parts = Path(relative).parts
         valid = (
             (len(parts) == 2 and parts[0] == "projects" and parts[1] == key)
+            or (len(parts) == 2 and parts[0] == "agent-artifacts" and parts[1] == key)
             or (
                 len(parts) == 2
                 and parts[0] == "task-results"
@@ -103,19 +107,52 @@ class ProjectMaintenance:
             ):
                 expression = '+'.join(f'COALESCE(length(CAST(f.{column} AS BLOB)),0)' for column in columns)
                 document_bytes += self.store.rows(f'SELECT COALESCE(SUM({expression}),0) bytes FROM {table} f {joins} WHERE {owner}=?', (key,))[0]['bytes']
+            agent_tables = self.agent_usage(key)
+            agent_bytes = sum(item['bytes'] for item in agent_tables.values())
             return {
-                "bytes": total + result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes,
+                "bytes": total + result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes + agent_bytes,
                 "file_bytes": total,
-                "database_payload_bytes": result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes,
+                "database_payload_bytes": result_bytes + history_bytes["bytes"] + fusion_bytes + document_bytes + agent_bytes,
+                "agent_database_payload_bytes": agent_bytes,
+                "agent_sessions": agent_tables['agent_sessions']['rows'],
+                "agent_artifacts": agent_tables['agent_artifacts']['rows'],
+                "agent_tables": agent_tables,
                 "document_bytes": document_bytes,
                 "fusion_bytes": fusion_bytes,
                 "result_bytes": result_bytes,
                 "history_bytes": history_bytes["bytes"],
                 "history_entries": history_bytes["count"],
                 "files": files,
-                "scope": "项目文件、结果、融合与文档快照/证据/决策/计时及压缩撤销历史的逻辑字节数；共享数据库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
+                "scope": "项目文件、助手产物、结果、融合与文档快照/证据/决策/计时、压缩撤销历史及助手业务表的逻辑字节数；助手表按各字段的字节表示统计，共享凭据不计入项目；共享业务库与 checkpoint 库实际占用另列，含其他项目、索引和空闲页，不能按项目精确分摊；删除后数据库文件未必立即缩小",
                 **self.disk_status(),
             }
+
+    def agent_usage(self, key):
+        """Count project-owned business rows, never apportion the shared saver DB."""
+        owned = {
+            'agent_sessions': ('', 'f.project_id'),
+            'agent_operations': ('', 'f.project_id'),
+            'agent_grants': ('', 'f.project_id'),
+            'agent_artifacts': ('', 'f.project_id'),
+            'agent_selections': ('', 'f.project_id'),
+            'agent_checkpoint_cleanup': ('', 'f.project_id'),
+        }
+        for table in ('agent_runs', 'agent_events', 'agent_mutations'):
+            owned[table] = ('JOIN agent_sessions s ON s.id=f.session_id', 's.project_id')
+        for table in ('agent_model_requests', 'agent_calls', 'agent_decisions',
+                      'agent_resume_intents', 'agent_inbox', 'agent_evidence'):
+            owned[table] = ('JOIN agent_runs r ON r.id=f.run_id JOIN agent_sessions s ON s.id=r.session_id', 's.project_id')
+        owned['agent_job_links'] = ('JOIN agent_operations o ON o.id=f.operation_id', 'o.project_id')
+        owned['agent_artifact_leases'] = ('JOIN agent_artifacts a ON a.id=f.artifact_id', 'a.project_id')
+        result = {}
+        with self.store.transaction() as db:
+            for table, (joins, owner) in owned.items():
+                # Table names come from this fixed schema allowlist, not requests.
+                columns = [row['name'] for row in db.execute(f'PRAGMA table_info({table})')]
+                expression = '+'.join(f'COALESCE(length(CAST(f."{column}" AS BLOB)),0)' for column in columns)
+                row = db.execute(f'SELECT COUNT(*) rows,COALESCE(SUM({expression}),0) bytes FROM {table} f {joins} WHERE {owner}=?', (key,)).fetchone()
+                result[table] = dict(row)
+        return result
 
     def disk_status(self):
         disk = shutil.disk_usage(self.store.root)
@@ -133,6 +170,9 @@ class ProjectMaintenance:
                 self.store.root / "workbench.sqlite3",
                 self.store.root / "workbench.sqlite3-wal",
                 self.store.root / "workbench.sqlite3-shm",
+                self.store.root / "agent-checkpoints.sqlite3",
+                self.store.root / "agent-checkpoints.sqlite3-wal",
+                self.store.root / "agent-checkpoints.sqlite3-shm",
             )
         )
         backups = self.store.root / "database-backups"
@@ -221,6 +261,25 @@ class ProjectMaintenance:
                             "reason": "没有图片或版本记录引用",
                         }
                     )
+            artifacts = self.store.root / 'agent-artifacts'
+            known = {(row['project_id'], row['id']): row['status'] for row in self.store.rows(
+                'SELECT a.project_id,a.id,r.status FROM agent_artifacts a JOIN agent_runs r ON r.id=a.run_id')}
+            if artifacts.is_dir() and not artifacts.is_symlink() and not artifacts.is_junction():
+                for project in artifacts.iterdir():
+                    if not re.fullmatch('[a-f0-9]{32}', project.name) or not project.is_dir() or project.is_symlink() or project.is_junction():
+                        continue
+                    for folder in project.iterdir():
+                        match = re.fullmatch(r'([a-f0-9]{32})(\.staging-[a-f0-9]{32})?', folder.name)
+                        if not match or not folder.is_dir() or folder.is_symlink() or folder.is_junction():
+                            continue
+                        status = known.get((project.name, match[1]))
+                        # The artifact lifecycle owns published/known directories.
+                        # Preserve temporary work belonging to an unfinished run.
+                        if status is not None and (not match[2] or status not in {'completed', 'failed', 'cancelled'}):
+                            continue
+                        entries.append({'path': folder.relative_to(self.store.root).as_posix(),
+                                        'bytes': sum(p.stat().st_size for p in self._files(folder)),
+                                        'reason': '未完成的助手产物暂存' if match[2] else '没有助手产物记录引用'})
             return {
                 "files": entries,
                 "bytes": sum(entry["bytes"] for entry in entries),
@@ -302,7 +361,7 @@ class ProjectMaintenance:
                     "SELECT id FROM tasks WHERE project_id=?", (key,)
                 )
             }
-            if self.queue.status()["task_id"] in task_ids or (self.fusion_queue and self.fusion_queue.status()["task_id"] in task_ids):
+            if any(worker and worker.status()['task_id'] in task_ids for worker in (self.queue, self.fusion_queue, self.external_queue)):
                 raise ValueError("项目任务仍在运行，请先取消并等待引擎退出")
             paths = self.paths(key)
             usage = self.usage(key)
@@ -314,6 +373,12 @@ class ProjectMaintenance:
             )
             try:
                 with self.store.transaction() as db:
+                    if db.execute("""SELECT 1 FROM agent_runs r JOIN agent_sessions s ON s.id=r.session_id
+                        WHERE s.project_id=? AND r.status NOT IN ('completed','failed','cancelled')""", (key,)).fetchone():
+                        raise ValueError("请先停止该项目的助手运行，再删除项目")
+                    if db.execute("""SELECT 1 FROM agent_artifact_leases l JOIN agent_artifacts a ON a.id=l.artifact_id
+                        WHERE a.project_id=? AND l.expires>?""", (key, time.time())).fetchone():
+                        raise ValueError("项目导出产物正在下载，请等待下载结束")
                     if db.execute("SELECT 1 FROM document_stages s JOIN pages p ON p.id=s.page_id JOIN documents d ON d.id=p.document_id WHERE d.project_id=? AND s.status IN ('queued','running','waiting_gpu')", (key,)).fetchone():
                         raise ValueError("请先暂停或取消该项目的文档处理任务")
                     if db.execute(
@@ -346,3 +411,42 @@ class ProjectMaintenance:
                 "bytes": usage["bytes"],
                 "cleanup_pending": pending,
             }
+
+    def stop_agent_runs(self, key, confirmation):
+        """Fence one project's runs before cleanup, without cancelling OCR jobs.
+
+        A live runtime also cancels and drains its associated async tasks. The
+        same fencing remains available when the optional runtime is disabled.
+        """
+        from ocr_workbench.agent.store import AgentStore
+        agent = AgentStore(self.store)
+        with self.store.transaction() as db:
+            db.execute('BEGIN IMMEDIATE')
+            project = db.execute('SELECT name FROM projects WHERE id=?', (key,)).fetchone()
+            if not project:
+                raise KeyError('项目不存在')
+            if confirmation != project['name']:
+                raise ValueError('请输入完整项目名称以确认清理')
+            rows = db.execute('''SELECT r.*,s.graph_thread_id FROM agent_runs r
+                JOIN agent_sessions s ON s.id=r.session_id WHERE s.project_id=?''', (key,)).fetchall()
+            for row in rows:
+                if row['status'] in {'completed', 'failed', 'cancelled'}:
+                    continue
+                generation = row['generation'] + 1
+                db.execute("UPDATE agent_runs SET status='cancelled',generation=?,fencing_token=fencing_token+1,owner=NULL,lease_expires=NULL,updated=? WHERE id=?",
+                           (generation, now(), row['id']))
+                agent.discard_inbox(db, row['id'])
+                db.execute("UPDATE agent_model_requests SET state='unknown' WHERE run_id=? AND state='sent'", (row['id'],))
+                db.execute("UPDATE agent_resume_intents SET state='obsolete' WHERE run_id=? AND state IN ('pending','claimed')", (row['id'],))
+                db.execute("UPDATE agent_decisions SET status='obsolete' WHERE run_id=? AND status='pending'", (row['id'],))
+                agent._event(db, row['session_id'], row['id'], generation,
+                             f"{row['id']}:{generation}:project-cleanup", 'run_state',
+                             {'status': 'cancelled', 'mode': 'stop_agent', 'reason': 'project_cleanup'})
+            return [dict(row) for row in rows]
+
+    def delete_without_runtime(self, key, confirmation):
+        self.stop_agent_runs(key, confirmation)
+        result = self.delete(key, confirmation)
+        result['checkpoint_cleanup_pending'] = bool(self.store.rows(
+            'SELECT 1 FROM agent_checkpoint_cleanup WHERE project_id=? LIMIT 1', (key,)))
+        return result

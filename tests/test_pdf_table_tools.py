@@ -38,6 +38,55 @@ class RegionOutcomeTests(unittest.TestCase):
 
 
 class PdfToolAdapterTests(unittest.TestCase):
+    def test_native_preview_retains_exact_fragments_with_candidate_independent_ids(self):
+        from ocr_workbench.native_tables import native_table_preview
+        from test_structure_workflow import prediction
+        pred, _ = prediction([['A  B','001'],['C','002']])
+        text = ''; blocks = []
+        for value, box in [('A  B',[5,5,40,25]),('001',[105,5,140,25]),
+                           ('C',[5,45,40,65]),('002',[105,45,140,65])]:
+            start=len(text);text+=value+'\n'
+            blocks.append({'text':value,'text_range':[start,len(text)-1],
+                           'polygon':box_polygon(box),'source':'pdf-native'})
+        raw={'text':text,'tables':[],'blocks':blocks,'document':{},'project_image_version':'v'}
+        before=deepcopy(raw)
+        full=native_table_preview(raw,pred,200,80)
+        self.assertEqual(raw,before)
+        for cell in full['tables'][0]['cells']:
+            saved=cell['native_content']
+            self.assertEqual(saved['literal'],cell['text'])
+            self.assertEqual(''.join(f['separator_before']+f['text'] for f in saved['fragments']),cell['text'])
+            for f in saved['fragments']:
+                self.assertEqual(cell['text'][f['start']:f['end']],f['text'])
+            self.assertEqual(saved['image_version'],'v')
+            self.assertEqual(cell['structure_source']['range_semantics'],'full_cell')
+        self.assertEqual(full['tables'][0]['cells'][0]['text'],'A  B')
+        self.assertEqual(full['tables'][0]['region_polygon'],box_polygon([0,0,200,80]))
+        from ocr_workbench.native_tables import native_source_blocks
+        from ocr_workbench.structure_diagnostics import prepare_candidates
+        source_blocks,source=native_source_blocks(raw['blocks'],'v')
+        candidate=prepare_candidates(pred,source_blocks,source_result=source,image_version='v',width=200,height=80)
+        self.assertEqual([c['structure_source']['token_ids'] for c in full['tables'][0]['cells']],
+                         [c['structure_source']['token_ids'] for c in candidate['tables'][0]['skeleton']['cells']])
+        from ocr_workbench.structure_diagnostics import preserve_values
+        proposed=deepcopy(candidate['tables'][0]['skeleton'])
+        proposed['cells'][0]['is_header']=True
+        adopted,conflicts,_=preserve_values(full['tables'][0],proposed,full['tables'][0],candidate['tokens'])
+        self.assertEqual(conflicts,[])
+        self.assertEqual([c['native_content'] for c in adopted['cells']],
+                         [c['native_content'] for c in full['tables'][0]['cells']])
+        proposed['cells'][0]['structure_source']['image_version']='stale'
+        stale,_,_=preserve_values(full['tables'][0],proposed,full['tables'][0],candidate['tokens'])
+        self.assertNotIn('native_content',stale['cells'][0])
+        # A candidate covering only the second row retains its page-global IDs.
+        small={'component':'pdfplumber','tool_version':'test','settings_sha256':'test','pdfplumber_tables':[{'id':'bottom','rows':1,'columns':2,
+            'transform':[1,0,0,0,1,0,0,0,1], 'polygon':box_polygon([0,40,200,80]),'cells':[{'id':str(c),'row':0,'column':c,
+                'row_span':1,'column_span':1,'polygon':box_polygon([c*100,40,(c+1)*100,80]),
+                'original_box':[c*100,40,(c+1)*100,80],'text':''} for c in range(2)]}]}
+        partial=native_table_preview(raw,small,200,80)
+        self.assertEqual([c['structure_source']['token_ids'] for c in partial['tables'][0]['cells']],
+                         [c['structure_source']['token_ids'] for c in full['tables'][0]['cells'][2:]])
+
     def test_native_table_conversion_preserves_interleaved_ocr_and_conflict(self):
         from ocr_workbench.native_tables import native_table_preview
         from test_structure_workflow import prediction
