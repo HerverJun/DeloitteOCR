@@ -9,6 +9,17 @@ dist/
 node_modules/
 frontend/dist/
 *.tsbuildinfo
+.hypothesis/
+
+# Generated manuals and audit runs stay local. Commit curated evidence explicitly.
+/output/
+/audit/*/
+/audit/*.json
+/audit/*.log
+
+# Research reports and source indexes are authored; upstream mirrors are local.
+/research/*/sources/
+/research/ocr-agent-langgraph-20260921/libs/
 
 # Local model downloads and inference weights (keep config/model-lock.json tracked)
 models/
