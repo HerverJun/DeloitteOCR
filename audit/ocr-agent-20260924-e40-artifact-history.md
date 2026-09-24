@@ -1,0 +1,7 @@
+# E40 artifact history and repeat download: isolated source evidence
+
+The source-level scenario in `tests/test_agent_artifact_long_session.py` publishes a real Agent export and records its `tool_finished` artifact reference. It applies the runtime's history compaction and summary functions, completes the old run, opens a new run in the same session, and constructs a fresh application. The reopened session and event API still expose the old reference, and the project-bound download returns the original bytes. A foreign project receives 404. Expired, missing, and changed files return 400; missing and corrupt states are recorded without manufacturing a replacement artifact or retaining a download lease.
+
+Independent verification: the portable service Python ran `-B scripts/agent_eval/run_tests.py test_agent_artifact_long_session.LongSessionArtifactTests.test_old_reference_download_after_compaction_summary_and_session_reopen`: **1 test passed** in 1.198 seconds. The separate agent run also reported five adjacent tests passing. The source scenario uses temporary SQLite and a synthetic short history; it is not a genuine long-duration model conversation, target-machine run, or candidate-08 frozen-package test. Before maintenance, an expired row can still say `ready` in the database; the download denies it with a retention-period error and the frontend uses the expiry to disable download. E40 remains partial.
+
+No GPU, Edge, real controller, sealed question, P0 frozen file, or running candidate-08 formal receipt was used.
