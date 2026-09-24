@@ -1,0 +1,542 @@
+{
+  "schema_version": 1,
+  "plan_revision": 2,
+  "created": "2026-09-19",
+  "document": "docs/complex-table-todo-20260919.md",
+  "status": "planned_not_started",
+  "execution": {
+    "default_executor": "single_codex_agent",
+    "stage_approval_required": false,
+    "user_supplied_samples_required": false,
+    "user_annotation_required": false,
+    "real_api_credentials_block_engineering": false,
+    "dependencies_mean": "Required artifact and engineering contract readiness; not full formal data volume, production quality, or real-provider evidence.",
+    "priorities": "Follow dependency readiness; data expansion may interleave with B01/B02/B07 and later independent work. D01 recurs throughout.",
+    "state_values": [
+      "pending",
+      "running",
+      "done",
+      "done_with_gaps"
+    ],
+    "gap_semantics": "done_with_gaps requires reviewable scoped outputs and attempted fallback evidence; never means formal acceptance passed or broken code accepted.",
+    "independent_outcomes": [
+      "engineering",
+      "quality",
+      "real_service"
+    ],
+    "initial_collection_minutes": 90,
+    "subsequent_collection_batch_minutes": 30,
+    "maximum_distinct_attempts_per_source": 3,
+    "initial_hypothesis_variants_per_mechanism": 3,
+    "generate_api_requests_auto_retry": false,
+    "continue_after_checkpoint": true,
+    "resume_from": "audit/complex-tables-<run>/NEXT.md"
+  },
+  "paths": {
+    "build": "build/complex-tables-<run>",
+    "audit": "audit/complex-tables-<run>",
+    "evidence_file_note": "Logical relative file names. Raw data and full experiments belong in build; summaries, receipts and progress in audit. Runtime must record exact produced paths."
+  },
+  "tasks": [
+    {
+      "id": "A01",
+      "title": "盘点实现、运行时和历史曝光",
+      "status": "pending",
+      "priority": 1,
+      "depends_on": [],
+      "evidence_files": [
+        "inventory.json",
+        "exclusions.json"
+      ],
+      "done_when": "现有功能、资源、来源路径和历史曝光清单可核验。",
+      "on_missing_input_or_failed_attempt": "路径失效时从配置与磁盘现有回执重新定位；保留缺失项并推进契约。"
+    },
+    {
+      "id": "A02",
+      "title": "自主采集第一批公开数据",
+      "status": "pending",
+      "priority": 2,
+      "depends_on": [
+        "A01"
+      ],
+      "evidence_files": [
+        "sources.jsonl",
+        "acquisition-report.json"
+      ],
+      "done_when": "完成有界来源探索，保存可用输入或逐来源失败与缺口；后续扩充不阻塞工程。",
+      "on_missing_input_or_failed_attempt": "切换来源、官方镜像或类别；初轮最多 90 分钟，转已有样本和独立工程，新增来源再开采集批次。",
+      "incremental": true
+    },
+    {
+      "id": "A03",
+      "title": "分组、去重和隔离封存",
+      "status": "pending",
+      "priority": 3,
+      "depends_on": [
+        "A02",
+        "A04",
+        "A06"
+      ],
+      "evidence_files": [
+        "dataset/splits.json",
+        "dataset/duplicates.json",
+        "dataset/exposure.json"
+      ],
+      "done_when": "已有材料按文档与模板分组、排除历史曝光；不足的封存组明确为空或不合格。",
+      "on_missing_input_or_failed_attempt": "先对可用子集建管线；仅有历史样本时全部列入回归，不冒充新测试。"
+    },
+    {
+      "id": "A04",
+      "title": "冻结标签和坐标契约",
+      "status": "pending",
+      "priority": 4,
+      "depends_on": [
+        "A01"
+      ],
+      "evidence_files": [
+        "annotation-contract.json",
+        "annotation-contract-checks.json"
+      ],
+      "done_when": "定义槽位、跨度、字面值、空白、范围与变换；小型案例通过契约检查。",
+      "on_missing_input_or_failed_attempt": "利用既有参考与合成机制案例完成契约，不等整套新材料。"
+    },
+    {
+      "id": "A05",
+      "title": "Agent 核图与标签资格",
+      "status": "pending",
+      "priority": 5,
+      "depends_on": [
+        "A03"
+      ],
+      "evidence_files": [
+        "dataset/label-audit.json",
+        "dataset/qualified-manifest.json"
+      ],
+      "done_when": "逐项记录 official_verified、agent_audited、weak 或 unlabelled，确定可用评测轨。",
+      "on_missing_input_or_failed_attempt": "自主核图做探索轨；缺独立参考则正式轨保留缺口，不索要人工标注。"
+    },
+    {
+      "id": "A06",
+      "title": "冻结指标、规模目标和推进规则",
+      "status": "pending",
+      "priority": 6,
+      "depends_on": [
+        "A01"
+      ],
+      "evidence_files": [
+        "evaluation-protocol.json",
+        "qualification-rules.json"
+      ],
+      "done_when": "指标、分母、正式目标与探索资格有明确规则，并先于封存结果确定。",
+      "on_missing_input_or_failed_attempt": "沿用既有门槛并由 Agent 决定新增定义；数量不足只限制正式结论。"
+    },
+    {
+      "id": "A07",
+      "title": "运行同输入基线",
+      "status": "pending",
+      "priority": 7,
+      "depends_on": [
+        "A05",
+        "A06"
+      ],
+      "evidence_files": [
+        "baseline/run-lock.json",
+        "baseline/report.json"
+      ],
+      "done_when": "可用开发或回归输入上的实际主轨、控制轨和失败分母可复算；来源资格明确。",
+      "on_missing_input_or_failed_attempt": "无新合格样本时用明确标识的历史回归；缺模型时用锁定候选重放并标注不是新推理。"
+    },
+    {
+      "id": "A08",
+      "title": "失败归因和问题排序",
+      "status": "pending",
+      "priority": 8,
+      "depends_on": [
+        "A07"
+      ],
+      "evidence_files": [
+        "diagnosis.json",
+        "hypotheses.json"
+      ],
+      "done_when": "主要失败分类计数闭合，选定可实施机制、对照和下一操作。",
+      "on_missing_input_or_failed_attempt": "可从受限基线与历史冻结反例制定机制；标明不能据此证明新类别效果。"
+    },
+    {
+      "id": "B01",
+      "title": "统一有来源的结构候选",
+      "status": "pending",
+      "priority": 9,
+      "depends_on": [
+        "A01",
+        "A04"
+      ],
+      "evidence_files": [
+        "candidate-contract.json",
+        "candidate-checks.json"
+      ],
+      "done_when": "候选保留格 ID、文字 ID、跨度、几何、变换和提供方，适配验证通过。",
+      "on_missing_input_or_failed_attempt": "先接可用提供方与冻结产物；新增模型真实推理作为独立未测项。"
+    },
+    {
+      "id": "B02",
+      "title": "优化大表搜索成本",
+      "status": "pending",
+      "priority": 10,
+      "depends_on": [
+        "A01",
+        "A06"
+      ],
+      "evidence_files": [
+        "performance/report.json",
+        "performance/invariants.json"
+      ],
+      "done_when": "同输入记录时延与超时，预算内局部结果经完整约束校验，不破坏独立区域。",
+      "on_missing_input_or_failed_attempt": "GPU 忙时做 CPU 重放；变体无益则保留负结果和已通过版本，继续其他机制。"
+    },
+    {
+      "id": "B03",
+      "title": "增强合并和拆分候选",
+      "status": "pending",
+      "priority": 11,
+      "depends_on": [
+        "B01",
+        "A08"
+      ],
+      "evidence_files": [
+        "local/merged-report.json",
+        "local/merged-checks.json"
+      ],
+      "done_when": "存在证据的跨度建议可校验，文字保全、网格及人工修订冲突检查通过。",
+      "on_missing_input_or_failed_attempt": "候选不足则保留弃权与失败诊断；无收益变体隔离，不放宽证据要求。"
+    },
+    {
+      "id": "B04",
+      "title": "改进重复金额对应",
+      "status": "pending",
+      "priority": 12,
+      "depends_on": [
+        "B01",
+        "A08"
+      ],
+      "evidence_files": [
+        "local/repeated-report.json",
+        "local/repeated-checks.json"
+      ],
+      "done_when": "独立文字 ID、顺序与邻域约束可验证；没有重复归属，对称歧义保留。",
+      "on_missing_input_or_failed_attempt": "在开发或冻结反例验证机制；新测试证据不足则只报告探索效果。"
+    },
+    {
+      "id": "B05",
+      "title": "区分空白、缺失和不可辨",
+      "status": "pending",
+      "priority": 13,
+      "depends_on": [
+        "B01",
+        "A08"
+      ],
+      "evidence_files": [
+        "local/empty-report.json",
+        "local/empty-checks.json"
+      ],
+      "done_when": "状态可追溯；局部 OCR 取证单独计量，固定文字对照未混入新识别。",
+      "on_missing_input_or_failed_attempt": "图像证据不够就保留不确定；不等待所有空白样本得到确定答案。"
+    },
+    {
+      "id": "B06",
+      "title": "改善缺锚点和几何对应",
+      "status": "pending",
+      "priority": 14,
+      "depends_on": [
+        "B01",
+        "A08"
+      ],
+      "evidence_files": [
+        "local/geometry-report.json",
+        "local/geometry-checks.json"
+      ],
+      "done_when": "多表身份、坐标版本及范围语义检查通过；无证据区域明确降级。",
+      "on_missing_input_or_failed_attempt": "复用可靠子区域与历史坐标回归，未解区域继续弃权。"
+    },
+    {
+      "id": "B07",
+      "title": "增强结构复核界面",
+      "status": "pending",
+      "priority": 15,
+      "depends_on": [
+        "B01"
+      ],
+      "evidence_files": [
+        "ui/review-receipt.json",
+        "ui/screenshots.json"
+      ],
+      "done_when": "原图、前后结构、受影响行列及人工动作可验证，浏览器无新增错误。",
+      "on_missing_input_or_failed_attempt": "先用有明确真值的机制样例和模拟候选完成 UI，不依赖真实模型全部可用。"
+    },
+    {
+      "id": "B08",
+      "title": "保证采用、撤销和导出一致",
+      "status": "pending",
+      "priority": 16,
+      "depends_on": [
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07"
+      ],
+      "evidence_files": [
+        "integration/structure-checks.json",
+        "integration/export-roundtrip.json"
+      ],
+      "done_when": "图像版本、修订、缓存、撤销与导出保全检查通过。",
+      "on_missing_input_or_failed_attempt": "用最小反例修复；未通过的策略隔离禁用，继续验证可用路径，不绕过硬约束。"
+    },
+    {
+      "id": "B09",
+      "title": "完成消融和失分审计",
+      "status": "pending",
+      "priority": 17,
+      "depends_on": [
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "A07"
+      ],
+      "evidence_files": [
+        "ablations/report.json",
+        "ablations/selection.json"
+      ],
+      "done_when": "同输入记录净增、损失、新错位和耗时，选定版本或有依据地保留基线。",
+      "on_missing_input_or_failed_attempt": "每机制先做至多 3 个有假设的变体；无收益也输出完整负结果，不无限搜索。"
+    },
+    {
+      "id": "B10",
+      "title": "冻结本地验收与范围",
+      "status": "pending",
+      "priority": 18,
+      "depends_on": [
+        "B08",
+        "B09"
+      ],
+      "evidence_files": [
+        "local-seal.json",
+        "local-acceptance.json"
+      ],
+      "done_when": "冻结实现；合格封存数据有结果，不合格部分有明确未测/未达报告及实验范围。",
+      "on_missing_input_or_failed_attempt": "数据不足不改变门槛；保留正式资格缺口，继续 C 与 D。"
+    },
+    {
+      "id": "C01",
+      "title": "确定 API 结构触发和预算",
+      "status": "pending",
+      "priority": 19,
+      "depends_on": [
+        "B09"
+      ],
+      "evidence_files": [
+        "api/trigger-policy.json",
+        "api/trigger-checks.json"
+      ],
+      "done_when": "使用开发或历史诊断冻结触发和调用上限，不因打开项目自行外发。",
+      "on_missing_input_or_failed_attempt": "无真实连接也可按模拟调度验证触发与限额。"
+    },
+    {
+      "id": "C02",
+      "title": "定义结构仲裁契约",
+      "status": "pending",
+      "priority": 20,
+      "depends_on": [
+        "C01",
+        "B01"
+      ],
+      "evidence_files": [
+        "api/structure-contract.json",
+        "api/contract-checks.json"
+      ],
+      "done_when": "候选/文字 ID、有限修改和弃权契约可被严格验证，区别于文字纠错。",
+      "on_missing_input_or_failed_attempt": "用固定有效与非法载荷开发；不依赖真实供应商返回才能实现。"
+    },
+    {
+      "id": "C03",
+      "title": "构建正确图像证据",
+      "status": "pending",
+      "priority": 21,
+      "depends_on": [
+        "C02",
+        "B06"
+      ],
+      "evidence_files": [
+        "api/evidence-checks.json"
+      ],
+      "done_when": "页面、局部图、坐标、哈希及候选标识一致；无框目标未误绑邻格。",
+      "on_missing_input_or_failed_attempt": "无可靠框改用带说明的行带或整表，保留不确定，限制数据量。"
+    },
+    {
+      "id": "C04",
+      "title": "复用网络队列与凭据",
+      "status": "pending",
+      "priority": 22,
+      "depends_on": [
+        "C02"
+      ],
+      "evidence_files": [
+        "api/queue-checks.json"
+      ],
+      "done_when": "结构快照、配置版本、取消、超时、恢复和并发隔离通过。",
+      "on_missing_input_or_failed_attempt": "使用本地两协议模拟服务，保留真实连接未测，不等待 Key。"
+    },
+    {
+      "id": "C05",
+      "title": "接入结构校验和人工采用",
+      "status": "pending",
+      "priority": 23,
+      "depends_on": [
+        "C03",
+        "C04",
+        "B08"
+      ],
+      "evidence_files": [
+        "api/adoption-checks.json"
+      ],
+      "done_when": "结构硬校验和现有采用/拒绝/撤销完整，非法或过期输出无可采用修改。",
+      "on_missing_input_or_failed_attempt": "用模拟有效/无效输出完成产品链路；供应商失败不得改变已有结果。"
+    },
+    {
+      "id": "C06",
+      "title": "实现财务一致性疑点",
+      "status": "pending",
+      "priority": 24,
+      "depends_on": [
+        "B01",
+        "A06"
+      ],
+      "evidence_files": [
+        "finance/rules.json",
+        "finance/checks.json"
+      ],
+      "done_when": "明确关系的十进制核对、单位和符号处理可测试；只生成疑点不为凑平改值。",
+      "on_missing_input_or_failed_attempt": "无真实样本的规则先用明确真值机制例；未知单位/关系弃权，真实效果单列未测。"
+    },
+    {
+      "id": "C07",
+      "title": "协议和产品回归",
+      "status": "pending",
+      "priority": 25,
+      "depends_on": [
+        "C05",
+        "C06"
+      ],
+      "evidence_files": [
+        "api/protocol-receipt.json",
+        "api/ui-receipt.json",
+        "api/credential-checks.json"
+      ],
+      "done_when": "两协议图片送达、非法结构、取消/超时及人工采用导出通过，无凭据泄漏。",
+      "on_missing_input_or_failed_attempt": "真实服务不可达时完成本地模拟；工程失败必须修复或隔离。"
+    },
+    {
+      "id": "C08",
+      "title": "计量净收益与真实服务状态",
+      "status": "pending",
+      "priority": 26,
+      "depends_on": [
+        "C07"
+      ],
+      "evidence_files": [
+        "api/measurement-receipt.json",
+        "api/real-service-status.json"
+      ],
+      "done_when": "计量管线可用；已有授权连接则真实对照，否则明确真实净收益未测。",
+      "on_missing_input_or_failed_attempt": "无 Key 或调用授权不询问后停工；完成模拟管线并继续最终验收与交付。"
+    },
+    {
+      "id": "C09",
+      "title": "最终验收与独立性说明",
+      "status": "pending",
+      "priority": 27,
+      "depends_on": [
+        "C08",
+        "B10"
+      ],
+      "evidence_files": [
+        "final-seal.json",
+        "final-acceptance.json"
+      ],
+      "done_when": "最终候选冻结，独立组有证据或资格缺口；不能把已曝光材料算新测试。",
+      "on_missing_input_or_failed_attempt": "自动寻找下一合格组；有界探索仍不足就交付实验范围与可复现补验步骤。"
+    },
+    {
+      "id": "D01",
+      "title": "持续保存可复现证据",
+      "status": "pending",
+      "priority": 28,
+      "depends_on": [
+        "A01"
+      ],
+      "evidence_files": [
+        "progress.json",
+        "NEXT.md",
+        "decisions.md",
+        "gaps.json",
+        "artifact-index.json"
+      ],
+      "done_when": "每阶段及时更新；交付前汇总来源、锁和可复算结果，检查引用与状态真实。",
+      "on_missing_input_or_failed_attempt": "缺大文件时记录受限来源与恢复方式；不伪造不存在的产物。",
+      "recurring": true,
+      "dependency_ready_when": "Initial progress files and artifact index exist; D04 must not wait for its own future receipt through D01.",
+      "continuation": "Keep records current after every task and reconcile the final index after D04; these updates do not reset dependency readiness."
+    },
+    {
+      "id": "D02",
+      "title": "最终工程回归",
+      "status": "pending",
+      "priority": 29,
+      "depends_on": [
+        "B08",
+        "C07"
+      ],
+      "evidence_files": [
+        "regression/backend.json",
+        "regression/frontend.json",
+        "regression/build.json",
+        "regression/browser.json"
+      ],
+      "done_when": "相关及最终回归通过，未启用实验与外部证据缺口和代码失败分别报告。",
+      "on_missing_input_or_failed_attempt": "先修复受影响检查；仅因不可取得外部环境的检查列缺口，不掩盖工程失败。"
+    },
+    {
+      "id": "D03",
+      "title": "更新使用和范围说明",
+      "status": "pending",
+      "priority": 30,
+      "depends_on": [
+        "C09",
+        "D02"
+      ],
+      "evidence_files": [
+        "documentation-receipt.json"
+      ],
+      "done_when": "说明当前可用行为、实验范围、数据外发及真实服务/人工效率未测事项。",
+      "on_missing_input_or_failed_attempt": "效果不足仍写清可用工程范围与限制，不等待额外用户材料。"
+    },
+    {
+      "id": "D04",
+      "title": "生成独立本地交付包",
+      "status": "pending",
+      "priority": 31,
+      "depends_on": [
+        "D01",
+        "D02",
+        "D03"
+      ],
+      "evidence_files": [
+        "delivery-receipt.json",
+        "archive-checksums.json"
+      ],
+      "done_when": "独立新版包、完整清单和校验回执可核验，不覆盖旧包，不含个人凭据和原始研究项目。",
+      "on_missing_input_or_failed_attempt": "空间或资源不足先换可用暂存位置/隔离未就绪可选模块；不能以未生成 ZIP 声称交付完成。"
+    }
+  ]
+}

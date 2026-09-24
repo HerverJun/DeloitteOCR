@@ -1,0 +1,54 @@
+{
+  "pinned_revision": "ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+  "upstream_revision": "2e85a62840ccac27daa451df36c736c4636b8628",
+  "changed_files": [
+    {
+      "file": "README.md",
+      "before": {
+        "rfilename": "README.md",
+        "blobId": "2dcab5a6ed326dd7db202569c79c2244654ca028",
+        "size": 8277
+      },
+      "after": {
+        "rfilename": "README.md",
+        "blobId": "07c0fadf3f4469cb2505786481ff13fd53899fff",
+        "size": 6795
+      }
+    },
+    {
+      "file": "config.json",
+      "before": {
+        "rfilename": "config.json",
+        "blobId": "46fbd1c232b7d9d0fc261cf10361350ef3af02c3",
+        "size": 1570
+      },
+      "after": {
+        "rfilename": "config.json",
+        "blobId": "bdc21c05f82f7a5f3a4bd4caa74f4bf81365fdd7",
+        "size": 1737
+      }
+    },
+    {
+      "file": "processor_config.json",
+      "before": null,
+      "after": {
+        "rfilename": "processor_config.json",
+        "blobId": "58b03daf067d4e47aa5cd433029c303e032a92c2",
+        "size": 1334
+      }
+    },
+    {
+      "file": "tokenizer_config.json",
+      "before": {
+        "rfilename": "tokenizer_config.json",
+        "blobId": "18f2106a5124ac945ee5526ac60fa75e09e97e11",
+        "size": 1066
+      },
+      "after": {
+        "rfilename": "tokenizer_config.json",
+        "blobId": "04b9992511183247d5115f176a5b9f0360a36a1c",
+        "size": 1138
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "README.md",
+    "sha": "ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph/contents/README.md?ref=ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "bytes": 6395,
+    "saved": "research\\ocr-agent-langgraph-20260921\\README.md"
+  },
+  {
+    "path": "libs/langgraph/langgraph/types.py",
+    "sha": "ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph/contents/libs/langgraph/langgraph/types.py?ref=ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "bytes": 37147,
+    "saved": "research\\ocr-agent-langgraph-20260921\\libs\\langgraph\\langgraph\\types.py"
+  },
+  {
+    "path": "libs/prebuilt/langgraph/prebuilt/tool_node.py",
+    "sha": "ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph/contents/libs/prebuilt/langgraph/prebuilt/tool_node.py?ref=ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "bytes": 79179,
+    "saved": "research\\ocr-agent-langgraph-20260921\\libs\\prebuilt\\langgraph\\prebuilt\\tool_node.py"
+  },
+  {
+    "path": "libs/checkpoint-sqlite/langgraph/checkpoint/sqlite/aio.py",
+    "sha": "ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph/contents/libs/checkpoint-sqlite/langgraph/checkpoint/sqlite/aio.py?ref=ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "bytes": 29318,
+    "saved": "research\\ocr-agent-langgraph-20260921\\libs\\checkpoint-sqlite\\langgraph\\checkpoint\\sqlite\\aio.py"
+  },
+  {
+    "path": "libs/langgraph/pyproject.toml",
+    "sha": "ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph/contents/libs/langgraph/pyproject.toml?ref=ed384f3a124660db6dccd6c53eaad48e1457e0b5",
+    "bytes": 4466,
+    "saved": "research\\ocr-agent-langgraph-20260921\\libs\\langgraph\\pyproject.toml"
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "README.zh.md",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/README.zh.md",
+    "bytes": 3385,
+    "sha256": "8037f870a6eac6eee29dbdf139cd04a2307f3d2f049f98b29085142bc8ffcff3",
+    "saved": "sources/deepseek-ai__deepseek-harness/README.zh.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "LICENSE",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/LICENSE",
+    "bytes": 1065,
+    "sha256": "ebb4f09972aee8608be255debaf78451a68e95c290f55c240dec2ecfa16ea6be",
+    "saved": "sources/deepseek-ai__deepseek-harness/LICENSE",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "package.json",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/package.json",
+    "bytes": 15762,
+    "sha256": "a9cc164c4d922d74571e09c04be4e0f85a318685d410bb1c56072258a19a6f1d",
+    "saved": "sources/deepseek-ai__deepseek-harness/package.json",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "docs/architecture.zh.md",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/architecture.zh.md",
+    "bytes": 18269,
+    "sha256": "38100980ac6a824e46d7c31fcd800de1635f772d11ae9ee3a1d3e0e00c0982dc",
+    "saved": "sources/deepseek-ai__deepseek-harness/docs/architecture.zh.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/core/agent-loop/src/agent.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/core/agent-loop/src/agent.ts",
+    "bytes": 25001,
+    "sha256": "2b238998e1b63ac7ceffa20190caaaa4806a9ae275112807424d176244dfd014",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/core/agent-loop/src/agent.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/core/agent-loop/src/tool-calls.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/core/agent-loop/src/tool-calls.ts",
+    "bytes": 11488,
+    "sha256": "1f8984127d4245b6a08c1e4b0c8b9d8fa7ce30ffcf08184187f16dc1bf57ae6d",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/core/agent-loop/src/tool-calls.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/core/tools/src/index.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/core/tools/src/index.ts",
+    "bytes": 88889,
+    "sha256": "e040cf44c7a4c1b74650cc32f67503b8881cc1d5b1f47f1cb38cf0167a9bb3da",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/core/tools/src/index.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/core/session/src/index.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/core/session/src/index.ts",
+    "bytes": 59861,
+    "sha256": "c6ded93fde2c64e87a313f27877bbf37390e280ff90c3012ef575181e553e1fe",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/core/session/src/index.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/sdk/server/src/index.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/sdk/server/src/index.ts",
+    "bytes": 4443,
+    "sha256": "8ce9469392abfb957e1c01f9e0d213852c28a2efd09ea6077e62d04e4722f028",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/sdk/server/src/index.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/compaction/compaction/src/tool-pairing.ts",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/compaction/compaction/src/tool-pairing.ts",
+    "bytes": 5194,
+    "sha256": "30916d32b421553a7753aa56f5e5890bdfa2bf41b0ce3c8f42bd529fd2da4b9a",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/compaction/compaction/src/tool-pairing.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "docs/user/guide/python-sdk.zh.md",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/user/guide/python-sdk.zh.md",
+    "bytes": 7827,
+    "sha256": "a79100b2cb770524bb8cdf040a0d259771d9a05a869073eb352c24331dc8f1f6",
+    "saved": "sources/deepseek-ai__deepseek-harness/docs/user/guide/python-sdk.zh.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "docs/tool-execution-pipeline.zh.md",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/docs/tool-execution-pipeline.zh.md",
+    "bytes": 4472,
+    "sha256": "f4d6806d9cd985132c68e28851e3dffb5d63177f461fac4263c2b0986ef1eebf",
+    "saved": "sources/deepseek-ai__deepseek-harness/docs/tool-execution-pipeline.zh.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "path": "packages/bundle/sdk-minimal/README.zh.md",
+    "commit": "ddefc45fbc7f8e46dd73185e68295696d1297887",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/ddefc45fbc7f8e46dd73185e68295696d1297887/packages/bundle/sdk-minimal/README.zh.md",
+    "bytes": 5366,
+    "sha256": "384b06b22d99da7a99527b082c6c35f4f89163ac57b839a98b530a3a34d22249",
+    "saved": "sources/deepseek-ai__deepseek-harness/packages/bundle/sdk-minimal/README.zh.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "README.md",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/README.md",
+    "bytes": 5402,
+    "sha256": "400890a3082e225c440561825270a911cd7df90a9f64f85166aed330201e50ba",
+    "saved": "sources/anomalyco__opencode/README.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "LICENSE",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/LICENSE",
+    "bytes": 1065,
+    "sha256": "625f0f619133f89bbbb2abe37369613dfa1885eba1e50d02170deb62bb42cb6b",
+    "saved": "sources/anomalyco__opencode/LICENSE",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "package.json",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/package.json",
+    "bytes": 6030,
+    "sha256": "b1aa48ddbe8074072e308daf98e30eba2596fd2ad479bbbe061d04504b7a757e",
+    "saved": "sources/anomalyco__opencode/package.json",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/session/prompt.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/session/prompt.ts",
+    "bytes": 93,
+    "sha256": "f617d889d032bd762f4c8f57f0839d81d320e223139c24c4838f7992cbe1679b",
+    "saved": "sources/anomalyco__opencode/packages/core/src/session/prompt.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/session/execution.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/session/execution.ts",
+    "bytes": 1461,
+    "sha256": "c6e75839aeddfd0fd387e045a346b1ea159b3c84bf15ceefd33c528eb3dab7d1",
+    "saved": "sources/anomalyco__opencode/packages/core/src/session/execution.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/session/compaction.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/session/compaction.ts",
+    "bytes": 10185,
+    "sha256": "35bc2da1578b6bb80a3c39c1d6c51f234f34ce6586dd4f9d230e2a31b257138d",
+    "saved": "sources/anomalyco__opencode/packages/core/src/session/compaction.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/tool/registry.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/tool/registry.ts",
+    "bytes": 6301,
+    "sha256": "cf2f73a4c6ed6ede7ba1cac30dac9bdf004142461d5bbcc8d55421cb2def7254",
+    "saved": "sources/anomalyco__opencode/packages/core/src/tool/registry.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/tool/tool.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/tool/tool.ts",
+    "bytes": 5986,
+    "sha256": "e533238dfd3ccf5ccbbda3b8998ed1e0f502b634f6b282ad2dc901638b13f426",
+    "saved": "sources/anomalyco__opencode/packages/core/src/tool/tool.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/core/src/permission.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/core/src/permission.ts",
+    "bytes": 11753,
+    "sha256": "f5d5b295452f2ddf17c475a24e77e302bb2b4b65d8a9e02a0f7bc5ef5504a0ba",
+    "saved": "sources/anomalyco__opencode/packages/core/src/permission.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/server/src/handlers/event.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/server/src/handlers/event.ts",
+    "bytes": 1895,
+    "sha256": "c79596317dfb8427c5daa2cfd69e542bf3e02f50ae45f7fc0e6c7a48359c18cf",
+    "saved": "sources/anomalyco__opencode/packages/server/src/handlers/event.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "path": "packages/server/src/handlers/session.ts",
+    "commit": "ebb7b76eca82342642c78645109e865614533827",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/ebb7b76eca82342642c78645109e865614533827/packages/server/src/handlers/session.ts",
+    "bytes": 13200,
+    "sha256": "16350299687e565528cabd69b821bc46378dc0ccb947c1845628c27153323b88",
+    "saved": "sources/anomalyco__opencode/packages/server/src/handlers/session.ts",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "README.md",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/README.md",
+    "bytes": 6984,
+    "sha256": "569c79f865abd0d677a71e83ba5c3b971318146a4421e3851a0e25ee2d3b1146",
+    "saved": "sources/langchain-ai__deepagents/README.md",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "LICENSE",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/LICENSE",
+    "bytes": 1067,
+    "sha256": "4ec67e4ca6e6721dba849b2ca82261597c86a61ee214bbf21416006b7b2d0478",
+    "saved": "sources/langchain-ai__deepagents/LICENSE",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "libs/deepagents/pyproject.toml",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/libs/deepagents/pyproject.toml",
+    "bytes": 6427,
+    "sha256": "27c4cef77917280da9c94a00cc14e418b171826864ec617e4b15394081a2fc91",
+    "saved": "sources/langchain-ai__deepagents/libs/deepagents/pyproject.toml",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "libs/deepagents/deepagents/graph.py",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/libs/deepagents/deepagents/graph.py",
+    "bytes": 47610,
+    "sha256": "e6c57390b37a9fb54e9388e5b9d439d335eebd5fb69e271e10eef1b96defe57d",
+    "saved": "sources/langchain-ai__deepagents/libs/deepagents/deepagents/graph.py",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "libs/deepagents/deepagents/middleware/permissions.py",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/libs/deepagents/deepagents/middleware/permissions.py",
+    "bytes": 211,
+    "sha256": "dd44d44bcf08c382a9b63106dfb16bcff7298fbd54e49174ff65cecb09ff1ca9",
+    "saved": "sources/langchain-ai__deepagents/libs/deepagents/deepagents/middleware/permissions.py",
+    "retrieval": "local snapshot from pinned fetch"
+  },
+  {
+    "repo": "langchain-ai/deepagents",
+    "path": "libs/deepagents/deepagents/middleware/summarization.py",
+    "commit": "bc3c2935650f8e8a0862d51226d986d842bd3824",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/bc3c2935650f8e8a0862d51226d986d842bd3824/libs/deepagents/deepagents/middleware/summarization.py",
+    "bytes": 95820,
+    "sha256": "54d93bd17a417180174c1810aca9720efefaf68a8b43fbd607ea5eb8ef081882",
+    "saved": "sources/langchain-ai__deepagents/libs/deepagents/deepagents/middleware/summarization.py",
+    "retrieval": "local snapshot from pinned fetch"
+  }
+]

@@ -1,0 +1,1182 @@
+[
+  {
+    "name": "hunyuan-models",
+    "url": "https://huggingface.co/api/models?author=tencent&search=HunyuanOCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=tencent&search=HunyuanOCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.020704+00:00",
+    "sha256": "ab149f2f724de96f067f3436aceaad95c0935102f7da38f2e879edd02187007f",
+    "ok": true,
+    "detail": [
+      {
+        "id": "tencent/HunyuanOCR",
+        "sha": "47644ecc4fc854efa4f505155158831f36773ee4",
+        "lastModified": "2026-08-28T16:20:03.000Z",
+        "createdAt": "2025-11-18T04:08:56.000Z"
+      }
+    ]
+  },
+  {
+    "name": "glm-models",
+    "url": "https://huggingface.co/api/models?author=zai-org&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=zai-org&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.029262+00:00",
+    "sha256": "fca6b32cc4f1c874cb40ea5eb11a479472c694ca8fcd0cca9d9d14f0313c9da5",
+    "ok": true,
+    "detail": [
+      {
+        "id": "zai-org/GLM-OCR",
+        "sha": "2e85a62840ccac27daa451df36c736c4636b8628",
+        "lastModified": "2026-09-11T11:59:14.000Z",
+        "createdAt": "2026-01-30T04:24:21.000Z"
+      }
+    ]
+  },
+  {
+    "name": "dots-models",
+    "url": "https://huggingface.co/api/models?author=rednote-hilab&search=dots&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=rednote-hilab&search=dots&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.029262+00:00",
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "deepseek-models",
+    "url": "https://huggingface.co/api/models?author=deepseek-ai&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=deepseek-ai&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.029262+00:00",
+    "sha256": "ecbed6237448157e78affd8ef6a27788b1795c709c5d0c5ccbfb7e13e8e840a2",
+    "ok": true,
+    "detail": [
+      {
+        "id": "deepseek-ai/DeepSeek-OCR-2",
+        "sha": "aaa02f3811945a91062062994c5c4a3f4c0af2b0",
+        "lastModified": "2026-02-03T00:33:19.000Z",
+        "createdAt": "2026-01-27T02:56:54.000Z"
+      },
+      {
+        "id": "deepseek-ai/DeepSeek-OCR",
+        "sha": "9f30c71f441d010e5429c532364a86705536c53a",
+        "lastModified": "2025-11-04T02:36:12.000Z",
+        "createdAt": "2025-10-17T06:22:05.000Z"
+      }
+    ]
+  },
+  {
+    "name": "mineru-models",
+    "url": "https://huggingface.co/api/models?author=opendatalab&search=MinerU&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=opendatalab&search=MinerU&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.214349+00:00",
+    "sha256": "1abf7efd7b8d4c36d6f6ea836b06bfeb26e00251495546cf5b704cd4ae911b71",
+    "ok": true,
+    "detail": [
+      {
+        "id": "opendatalab/MinerU-4_models_onnx",
+        "sha": "358310b4f64b95f9fefc372ad899356e4111f376",
+        "lastModified": "2026-09-10T16:38:36.000Z",
+        "createdAt": "2026-09-10T12:13:30.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU-4_models_torch",
+        "sha": "2b3afb86f4d23fa623f6b2f4b2279ed4ef93a89d",
+        "lastModified": "2026-09-10T12:11:29.000Z",
+        "createdAt": "2026-09-10T11:35:28.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU2.5-Pro-2605-1.2B",
+        "sha": "bff20d4ae2bf202df9f45284b4d43681555a97ed",
+        "lastModified": "2026-06-16T05:59:05.000Z",
+        "createdAt": "2026-05-20T11:00:43.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU2.5-Pro-2604-1.2B",
+        "sha": "d3f5e08d073c21466bbabe21c71bb1e9c2e595da",
+        "lastModified": "2026-04-14T08:38:33.000Z",
+        "createdAt": "2026-04-02T14:11:50.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU2.5-2509-1.2B",
+        "sha": "1aa090b41282e64fadd79c10572221f91ec21924",
+        "lastModified": "2026-04-09T08:29:15.000Z",
+        "createdAt": "2025-09-17T02:42:29.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU-HTML",
+        "sha": "baa1ca47ff92f1b8316bf952b9837aded85b6f10",
+        "lastModified": "2026-04-09T08:26:14.000Z",
+        "createdAt": "2025-11-26T08:17:22.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU-Diffusion-V1-0320-2.5B",
+        "sha": "c1a5a0c17288bb0623b00d6bbfed17428e597acd",
+        "lastModified": "2026-03-25T05:13:57.000Z",
+        "createdAt": "2026-03-23T05:39:27.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU-HTML-v1.1-hunyuan0.5B-compact",
+        "sha": "63dc2543cd273bf23af1e156174477cdf5888476",
+        "lastModified": "2026-03-13T07:18:19.000Z",
+        "createdAt": "2026-03-13T05:11:02.000Z"
+      },
+      {
+        "id": "opendatalab/MinerU2.0-2505-0.9B",
+        "sha": "87f4c8d332ae96a48b0ac734092e74b51baa0a6b",
+        "lastModified": "2025-06-12T14:01:39.000Z",
+        "createdAt": "2025-06-05T03:51:23.000Z"
+      }
+    ]
+  },
+  {
+    "name": "paddle-models",
+    "url": "https://huggingface.co/api/models?author=PaddlePaddle&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=PaddlePaddle&search=OCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.344235+00:00",
+    "sha256": "68918f99b1523feddd46799549903ba0bf5bd14fa71221becdc6f5e9b3fabd70",
+    "ok": true,
+    "detail": [
+      {
+        "id": "PaddlePaddle/korean_PP-OCRv5_mobile_rec",
+        "sha": "c02ecaf1f22bfd1c618cce154fd19185b47e663a",
+        "lastModified": "2026-07-22T11:40:15.000Z",
+        "createdAt": "2025-07-02T12:39:23.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_rec_onnx",
+        "sha": "2612ab37152ae0a677521bae4e1e3d4fb4cf7c30",
+        "lastModified": "2026-06-18T11:09:58.000Z",
+        "createdAt": "2026-06-09T07:04:56.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_rec_onnx",
+        "sha": "b8f84f0b80c529de40b4fbb3544b84fa7233a513",
+        "lastModified": "2026-06-18T11:08:57.000Z",
+        "createdAt": "2026-06-09T07:04:09.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_rec_onnx",
+        "sha": "50c7eacafc52fa7bcf4194e8cd08e46f8558504b",
+        "lastModified": "2026-06-18T11:07:56.000Z",
+        "createdAt": "2026-06-09T06:59:55.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_det_onnx",
+        "sha": "2ba1506c0380b8f0b03dd142459aac66d4421f6c",
+        "lastModified": "2026-06-18T10:59:06.000Z",
+        "createdAt": "2026-06-09T04:11:29.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_det_onnx",
+        "sha": "28fe5895c24fd108c19eb3e8479f4ab385fbfc62",
+        "lastModified": "2026-06-18T10:57:07.000Z",
+        "createdAt": "2026-06-09T04:11:42.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_det_onnx",
+        "sha": "61323801669c338b7891481ec7bac61ce31b576a",
+        "lastModified": "2026-06-18T10:55:30.000Z",
+        "createdAt": "2026-06-09T04:11:56.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_rec",
+        "sha": "0736086f72f666350ebcdc0c3a504eeac89cdfad",
+        "lastModified": "2026-06-12T10:08:33.000Z",
+        "createdAt": "2026-06-11T03:47:53.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_rec",
+        "sha": "bd619643acac4b9650c040234da8d944476ee3f1",
+        "lastModified": "2026-06-12T10:07:59.000Z",
+        "createdAt": "2026-06-10T13:39:11.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_rec",
+        "sha": "e5a92bcbc5cc1b494628e458d267778f0704fd7c",
+        "lastModified": "2026-06-12T10:07:33.000Z",
+        "createdAt": "2026-06-10T13:37:18.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_rec_safetensors",
+        "sha": "6f2d2d51b4b4226d7a2329a02f416f4994106f3a",
+        "lastModified": "2026-06-12T10:06:52.000Z",
+        "createdAt": "2026-06-08T10:03:01.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_rec_safetensors",
+        "sha": "fe049fb103f57443fe8840c54ed06b702f3c1de5",
+        "lastModified": "2026-06-12T10:06:13.000Z",
+        "createdAt": "2026-06-08T09:59:21.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_rec_safetensors",
+        "sha": "024cad6a831de75c2c3c26e711ba8c4a82ccd24b",
+        "lastModified": "2026-06-12T10:05:49.000Z",
+        "createdAt": "2026-06-08T10:30:48.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_det_safetensors",
+        "sha": "4236c2b61741a259c091fd879dcc4edc339e916c",
+        "lastModified": "2026-06-12T03:10:52.000Z",
+        "createdAt": "2026-06-09T04:03:30.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_det_safetensors",
+        "sha": "eae2ee920a39fb3087637d3dbb58df1896ec1f24",
+        "lastModified": "2026-06-12T03:10:49.000Z",
+        "createdAt": "2026-06-09T04:06:41.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_det_safetensors",
+        "sha": "07595f982703daf0d4e120a12a01da8073542f3a",
+        "lastModified": "2026-06-12T03:10:47.000Z",
+        "createdAt": "2026-06-09T04:07:38.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_medium_det",
+        "sha": "8e0f56fb2ef86b461d99cfc7ac5c137738985f61",
+        "lastModified": "2026-06-12T03:10:45.000Z",
+        "createdAt": "2026-06-10T13:20:44.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_small_det",
+        "sha": "106c97591b235f607453300d9fc8c1cad1b25488",
+        "lastModified": "2026-06-12T03:10:43.000Z",
+        "createdAt": "2026-06-10T13:31:43.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv6_tiny_det",
+        "sha": "d3177d4e5551463292a61e27cfca2b53e7c3fe9d",
+        "lastModified": "2026-06-12T03:10:41.000Z",
+        "createdAt": "2026-06-10T13:34:28.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_rec_onnx",
+        "sha": "ed152b8b495f84de93cda5709d768548a9127622",
+        "lastModified": "2026-06-10T07:50:47.000Z",
+        "createdAt": "2026-05-26T07:59:45.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_rec_onnx",
+        "sha": "b70df217f4fd99d14f970bad092cebe7d74cc4d1",
+        "lastModified": "2026-06-10T07:50:45.000Z",
+        "createdAt": "2026-05-26T07:59:34.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_det_onnx",
+        "sha": "e6f4fa85f00e168c862bc462aebca69eef9b3d3d",
+        "lastModified": "2026-06-10T07:49:02.000Z",
+        "createdAt": "2026-05-26T07:59:21.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_det_onnx",
+        "sha": "dcf248c4dcc064c6d030db241255f9e8fbc6733a",
+        "lastModified": "2026-06-10T07:49:00.000Z",
+        "createdAt": "2026-05-26T07:59:06.000Z"
+      },
+      {
+        "id": "PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_onnx",
+        "sha": "2cef88145434beb8afa9dd82d77d799eb1ad7b29",
+        "lastModified": "2026-05-26T11:01:07.000Z",
+        "createdAt": "2026-05-26T08:40:24.000Z"
+      },
+      {
+        "id": "PaddlePaddle/devanagari_PP-OCRv5_mobile_rec_onnx",
+        "sha": "251aec19e36739540d35e2cc943f6aa7503b98e5",
+        "lastModified": "2026-05-26T11:00:57.000Z",
+        "createdAt": "2026-05-26T08:40:41.000Z"
+      },
+      {
+        "id": "PaddlePaddle/ta_PP-OCRv5_mobile_rec_onnx",
+        "sha": "0db89798af0d5218fad9ea7ace0557526e9077f1",
+        "lastModified": "2026-05-26T11:00:47.000Z",
+        "createdAt": "2026-05-26T08:41:44.000Z"
+      },
+      {
+        "id": "PaddlePaddle/te_PP-OCRv5_mobile_rec_onnx",
+        "sha": "f1197c83430241c58c64b0952b3a80366d04eeba",
+        "lastModified": "2026-05-26T11:00:32.000Z",
+        "createdAt": "2026-05-26T08:41:55.000Z"
+      },
+      {
+        "id": "PaddlePaddle/arabic_PP-OCRv5_mobile_rec_onnx",
+        "sha": "14aaedcd75825982689ecf5cd64ab33ee083215a",
+        "lastModified": "2026-05-26T11:00:22.000Z",
+        "createdAt": "2026-05-26T08:39:51.000Z"
+      },
+      {
+        "id": "PaddlePaddle/el_PP-OCRv5_mobile_rec_onnx",
+        "sha": "8152b89d2ee0e1d4c92decab75fe75e5e3d836b6",
+        "lastModified": "2026-05-26T11:00:11.000Z",
+        "createdAt": "2026-05-26T08:40:52.000Z"
+      },
+      {
+        "id": "PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx",
+        "sha": "1d4adbbafb1034a2fd6618498575b81ea7b69f69",
+        "lastModified": "2026-05-26T10:59:59.000Z",
+        "createdAt": "2026-05-26T08:42:05.000Z"
+      },
+      {
+        "id": "PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx",
+        "sha": "3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b",
+        "lastModified": "2026-05-26T10:58:55.000Z",
+        "createdAt": "2026-05-26T08:41:04.000Z"
+      },
+      {
+        "id": "PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx",
+        "sha": "89d3a50e2c27e2e7cceeab0e944c25c807d5db4f",
+        "lastModified": "2026-05-26T10:58:45.000Z",
+        "createdAt": "2026-05-26T08:41:35.000Z"
+      },
+      {
+        "id": "PaddlePaddle/korean_PP-OCRv5_mobile_rec_onnx",
+        "sha": "5c6f574b8e2230adf4287b33e736d71b9fabd28e",
+        "lastModified": "2026-05-26T10:56:53.000Z",
+        "createdAt": "2026-05-26T08:41:25.000Z"
+      },
+      {
+        "id": "PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx",
+        "sha": "9a32171fc5718746875e1a261818884517975013",
+        "lastModified": "2026-05-26T10:54:01.000Z",
+        "createdAt": "2026-05-26T08:41:14.000Z"
+      },
+      {
+        "id": "PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "365e51a40970de46b7f2cba9cfc2fe529d2575cc",
+        "lastModified": "2026-04-22T09:39:45.000Z",
+        "createdAt": "2026-04-22T08:49:43.000Z"
+      },
+      {
+        "id": "PaddlePaddle/devanagari_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "4b1f19893a36d00408b1151460aa1e45afec8903",
+        "lastModified": "2026-04-22T09:38:21.000Z",
+        "createdAt": "2026-04-22T08:50:00.000Z"
+      },
+      {
+        "id": "PaddlePaddle/ta_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "d1a8d42f3938fc52e2c88b7ca1b8cb62856820d1",
+        "lastModified": "2026-04-22T09:37:30.000Z",
+        "createdAt": "2026-04-22T08:50:21.000Z"
+      },
+      {
+        "id": "PaddlePaddle/te_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "1949a6f874f1d73559900d0f531847eb7a7b947a",
+        "lastModified": "2026-04-22T09:36:22.000Z",
+        "createdAt": "2026-04-22T08:50:11.000Z"
+      },
+      {
+        "id": "PaddlePaddle/el_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "0d7a6ed5020d57efffb993b7979328481bb04c3b",
+        "lastModified": "2026-04-22T09:34:37.000Z",
+        "createdAt": "2026-04-22T08:49:10.000Z"
+      },
+      {
+        "id": "PaddlePaddle/th_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "4cc4c996b8690bd623683e8d2be06eaf5919584b",
+        "lastModified": "2026-04-22T09:31:42.000Z",
+        "createdAt": "2026-04-22T08:48:53.000Z"
+      },
+      {
+        "id": "PaddlePaddle/en_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "e4abce2bbd335f6c3eda0507b7f8e8abd5af3419",
+        "lastModified": "2026-04-22T09:30:55.000Z",
+        "createdAt": "2026-04-22T08:50:34.000Z"
+      },
+      {
+        "id": "PaddlePaddle/latin_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "47901138f5f32dad06282fa88d2c672fa816d450",
+        "lastModified": "2026-04-22T09:30:00.000Z",
+        "createdAt": "2026-04-22T08:48:18.000Z"
+      },
+      {
+        "id": "PaddlePaddle/korean_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "6ef525a357645ce46495c7ed1fef622c4e009e7a",
+        "lastModified": "2026-04-22T09:29:04.000Z",
+        "createdAt": "2026-04-22T08:47:34.000Z"
+      },
+      {
+        "id": "PaddlePaddle/eslav_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "feb3757f69257ed5320044604217032a7b90b789",
+        "lastModified": "2026-04-22T09:28:05.000Z",
+        "createdAt": "2026-04-22T08:48:40.000Z"
+      },
+      {
+        "id": "PaddlePaddle/arabic_PP-OCRv5_mobile_rec_safetensors",
+        "sha": "4941f944a2d298f4cefa46c894e7ef129ba84c39",
+        "lastModified": "2026-04-22T09:27:18.000Z",
+        "createdAt": "2026-04-22T08:49:28.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_rec_safetensors",
+        "sha": "485a9a9781535ad477de3b1eea5f96a2e7300d8d",
+        "lastModified": "2026-04-03T02:54:52.000Z",
+        "createdAt": "2026-03-18T15:43:01.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_det_safetensors",
+        "sha": "c5041d225cf951ff06900ab81a3c7d543c45e2ad",
+        "lastModified": "2026-04-03T02:53:14.000Z",
+        "createdAt": "2026-01-15T07:42:47.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_det_safetensors",
+        "sha": "cbea9f3c3254c6ff7b0016cfbf90549e1ad4c5bb",
+        "lastModified": "2026-04-03T02:50:55.000Z",
+        "createdAt": "2026-01-16T03:36:28.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_rec_safetensors",
+        "sha": "542979d7cc3791732bb12af35313a6840952d79f",
+        "lastModified": "2026-04-03T02:45:19.000Z",
+        "createdAt": "2026-03-17T12:33:28.000Z"
+      },
+      {
+        "id": "PaddlePaddle/devanagari_PP-OCRv5_mobile_rec",
+        "sha": "99dcce6d196bd4aaf268c7a5c72c3cc9f3ea4932",
+        "lastModified": "2025-10-16T09:17:47.000Z",
+        "createdAt": "2025-10-16T05:15:04.000Z"
+      },
+      {
+        "id": "PaddlePaddle/latin_PP-OCRv5_mobile_rec",
+        "sha": "ab2cd5cc5fa6309be2e5acdfe66eca2c2c127d57",
+        "lastModified": "2025-10-16T09:01:34.000Z",
+        "createdAt": "2025-07-02T12:39:10.000Z"
+      },
+      {
+        "id": "PaddlePaddle/ta_PP-OCRv5_mobile_rec",
+        "sha": "1bb164dad1d8eb23c7f7a382827e5305b37868d4",
+        "lastModified": "2025-10-16T08:47:42.000Z",
+        "createdAt": "2025-10-16T05:14:19.000Z"
+      },
+      {
+        "id": "PaddlePaddle/te_PP-OCRv5_mobile_rec",
+        "sha": "151ab3b1c2f2a058f07a944416b92e9eaec6bf36",
+        "lastModified": "2025-10-16T05:19:18.000Z",
+        "createdAt": "2025-10-16T05:14:01.000Z"
+      },
+      {
+        "id": "PaddlePaddle/el_PP-OCRv5_mobile_rec",
+        "sha": "b15bcf2467a03a0c079baa4b0347da51e89aaaba",
+        "lastModified": "2025-10-16T05:19:13.000Z",
+        "createdAt": "2025-08-21T09:37:16.000Z"
+      },
+      {
+        "id": "PaddlePaddle/cyrillic_PP-OCRv5_mobile_rec",
+        "sha": "712d2d65556ccc1ea7b5d2bb232b018838b6a3ab",
+        "lastModified": "2025-10-16T05:19:07.000Z",
+        "createdAt": "2025-10-16T05:14:38.000Z"
+      },
+      {
+        "id": "PaddlePaddle/arabic_PP-OCRv5_mobile_rec",
+        "sha": "33d91636a65dca87f5562cc48860332ae367ee1b",
+        "lastModified": "2025-10-16T05:19:05.000Z",
+        "createdAt": "2025-10-16T05:14:49.000Z"
+      },
+      {
+        "id": "PaddlePaddle/th_PP-OCRv5_mobile_rec",
+        "sha": "9e25080455925d3943f5db885fddc79db6a07ca3",
+        "lastModified": "2025-08-29T06:39:26.000Z",
+        "createdAt": "2025-08-21T09:38:15.000Z"
+      },
+      {
+        "id": "PaddlePaddle/en_PP-OCRv5_mobile_rec",
+        "sha": "267c36e24c331595590fe7bd72bde2436fd286f2",
+        "lastModified": "2025-08-29T06:39:03.000Z",
+        "createdAt": "2025-08-21T09:37:45.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv3_server_det",
+        "sha": "e4609c6b58e8a8761b804bcdf3911fd3d338e0b8",
+        "lastModified": "2025-07-23T06:44:50.000Z",
+        "createdAt": "2025-06-06T06:00:35.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv3_mobile_det",
+        "sha": "58f4e5b132e34e516486fb0d0266c662feb48ca1",
+        "lastModified": "2025-07-23T06:43:48.000Z",
+        "createdAt": "2025-06-05T13:26:18.000Z"
+      },
+      {
+        "id": "PaddlePaddle/eslav_PP-OCRv5_mobile_rec",
+        "sha": "7553801264d3379d8d2e854971989e5e26c22e03",
+        "lastModified": "2025-07-22T10:04:25.000Z",
+        "createdAt": "2025-07-02T12:39:37.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_rec",
+        "sha": "682f20538d8c086cb2128e5cfac775e6c4904e85",
+        "lastModified": "2025-07-22T10:04:13.000Z",
+        "createdAt": "2025-06-04T12:29:43.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_rec",
+        "sha": "b26c3587fda8da3c8ec0ce357214b4d661ff1558",
+        "lastModified": "2025-07-22T10:04:11.000Z",
+        "createdAt": "2025-06-04T12:29:23.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_server_rec_doc",
+        "sha": "c810daf80801417895f51421f16b925c3eb4bef8",
+        "lastModified": "2025-07-22T10:04:09.000Z",
+        "createdAt": "2025-06-06T03:55:07.000Z"
+      },
+      {
+        "id": "PaddlePaddle/en_PP-OCRv4_mobile_rec",
+        "sha": "f97b62fdc0eb71c689393a19a4b21baa1795c9ab",
+        "lastModified": "2025-07-22T10:04:06.000Z",
+        "createdAt": "2025-06-06T05:55:10.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_server_rec",
+        "sha": "a806024c010cbb4b762d7ddf3c1ed743e23c022d",
+        "lastModified": "2025-07-22T10:04:04.000Z",
+        "createdAt": "2025-06-06T05:55:21.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_mobile_rec",
+        "sha": "a2deb05cb05813be2da3365672881aa496d1452b",
+        "lastModified": "2025-07-22T10:04:02.000Z",
+        "createdAt": "2025-06-06T03:52:38.000Z"
+      },
+      {
+        "id": "PaddlePaddle/devanagari_PP-OCRv3_mobile_rec",
+        "sha": "491e1a74ea1ac85937f0bc3c3f8e17a1e1e5508d",
+        "lastModified": "2025-07-22T10:03:58.000Z",
+        "createdAt": "2025-06-06T05:57:33.000Z"
+      },
+      {
+        "id": "PaddlePaddle/chinese_cht_PP-OCRv3_mobile_rec",
+        "sha": "ab3009d849dea4d7296aabce47acff1ab124ebff",
+        "lastModified": "2025-07-22T10:03:55.000Z",
+        "createdAt": "2025-06-06T05:57:20.000Z"
+      },
+      {
+        "id": "PaddlePaddle/ta_PP-OCRv3_mobile_rec",
+        "sha": "ce23b57838495dd791dcf913f793c5a44f18efdd",
+        "lastModified": "2025-07-22T10:03:52.000Z",
+        "createdAt": "2025-06-06T05:55:04.000Z"
+      },
+      {
+        "id": "PaddlePaddle/korean_PP-OCRv3_mobile_rec",
+        "sha": "02b8bcc0041d794ecc5cf3cd8aa40fc23626ec87",
+        "lastModified": "2025-07-22T10:03:48.000Z",
+        "createdAt": "2025-06-06T04:09:53.000Z"
+      },
+      {
+        "id": "PaddlePaddle/te_PP-OCRv3_mobile_rec",
+        "sha": "f5b62d6aac99e90e16484d7da23ca5b506ab58d5",
+        "lastModified": "2025-07-22T10:03:45.000Z",
+        "createdAt": "2025-06-06T03:55:47.000Z"
+      },
+      {
+        "id": "PaddlePaddle/japan_PP-OCRv3_mobile_rec",
+        "sha": "199d71fd22b19f6964075e6164a4cf8ca23d0178",
+        "lastModified": "2025-07-22T10:03:42.000Z",
+        "createdAt": "2025-06-06T03:55:40.000Z"
+      },
+      {
+        "id": "PaddlePaddle/latin_PP-OCRv3_mobile_rec",
+        "sha": "d90a4c51cd2c2a4cf1237426c220330bbe698198",
+        "lastModified": "2025-07-22T10:03:40.000Z",
+        "createdAt": "2025-06-06T03:50:32.000Z"
+      },
+      {
+        "id": "PaddlePaddle/arabic_PP-OCRv3_mobile_rec",
+        "sha": "2feba5ee71822bb7ee0bbecf134e62f8ec9f368a",
+        "lastModified": "2025-07-22T10:03:36.000Z",
+        "createdAt": "2025-06-06T03:27:32.000Z"
+      },
+      {
+        "id": "PaddlePaddle/en_PP-OCRv3_mobile_rec",
+        "sha": "321b476529616da79d896969cbd251198fb7a75b",
+        "lastModified": "2025-07-22T10:03:31.000Z",
+        "createdAt": "2025-06-06T03:27:02.000Z"
+      },
+      {
+        "id": "PaddlePaddle/ka_PP-OCRv3_mobile_rec",
+        "sha": "fd08732bad5fb532cf883cb42a75ed139a72ab18",
+        "lastModified": "2025-07-22T10:03:28.000Z",
+        "createdAt": "2025-06-06T03:24:01.000Z"
+      },
+      {
+        "id": "PaddlePaddle/cyrillic_PP-OCRv3_mobile_rec",
+        "sha": "e5b3249015e50836e3a7a54301a314b9d7fc7059",
+        "lastModified": "2025-07-22T10:03:25.000Z",
+        "createdAt": "2025-06-06T03:53:04.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv3_mobile_rec",
+        "sha": "7d3b06e5f2c67dacda3f90a9339b9841e967f5d5",
+        "lastModified": "2025-07-22T10:03:22.000Z",
+        "createdAt": "2025-06-06T03:55:54.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_server_det",
+        "sha": "ca867c897ecbca8873081573a802ad70d499cb94",
+        "lastModified": "2025-07-22T10:03:07.000Z",
+        "createdAt": "2025-06-04T12:28:02.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv5_mobile_det",
+        "sha": "0d63e78e2b680928f6b1747d76a08db6e645efb7",
+        "lastModified": "2025-07-22T10:03:05.000Z",
+        "createdAt": "2025-06-04T12:29:01.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_server_det",
+        "sha": "50dd9a19217e48ef97f93d6b67e29225c2561cb7",
+        "lastModified": "2025-07-22T10:03:03.000Z",
+        "createdAt": "2025-06-06T03:26:38.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_mobile_det",
+        "sha": "3cc09f3a5b424e8e010abc7a4271aea12999c2f7",
+        "lastModified": "2025-07-22T10:03:01.000Z",
+        "createdAt": "2025-06-06T03:50:26.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_mobile_seal_det",
+        "sha": "22ecaa81550a4c159bf3779293aa15d4b4797346",
+        "lastModified": "2025-07-22T10:00:15.000Z",
+        "createdAt": "2025-06-06T03:53:15.000Z"
+      },
+      {
+        "id": "PaddlePaddle/PP-OCRv4_server_seal_det",
+        "sha": "a66e4245e02aeccedf63d6bc6ef2dab4726e3956",
+        "lastModified": "2025-07-22T10:00:12.000Z",
+        "createdAt": "2025-06-05T14:55:55.000Z"
+      },
+      {
+        "id": "PaddlePaddle/LaTeX_OCR_rec",
+        "sha": "563fb029dfdf5fc847d0677f3870039960e3a801",
+        "lastModified": "2025-07-22T09:58:56.000Z",
+        "createdAt": "2025-06-06T05:56:13.000Z"
+      }
+    ]
+  },
+  {
+    "name": "granite-models",
+    "url": "https://huggingface.co/api/models?author=ibm-granite&search=docling&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=ibm-granite&search=docling&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.737228+00:00",
+    "sha256": "ba2ffd756004984cc9101245da20ce3266908801932968276fe5f1ad63ad9394",
+    "ok": true,
+    "detail": [
+      {
+        "id": "ibm-granite/granite-docling-258M-GGUF",
+        "sha": "e1e344cb19bae46a1d5edb4f04a27ebe0c268f72",
+        "lastModified": "2025-11-07T22:29:04.000Z",
+        "createdAt": "2025-10-23T15:23:06.000Z"
+      },
+      {
+        "id": "ibm-granite/granite-docling-258M",
+        "sha": "982fe3b40f2fa73c365bdb1bcacf6c81b7184bfe",
+        "lastModified": "2025-09-23T08:52:16.000Z",
+        "createdAt": "2025-05-19T19:53:11.000Z"
+      },
+      {
+        "id": "ibm-granite/granite-docling-258M-mlx",
+        "sha": "e9939db25d2f296c8678d0491c4609a8c596c50a",
+        "lastModified": "2025-09-17T11:35:46.000Z",
+        "createdAt": "2025-07-08T18:38:25.000Z"
+      }
+    ]
+  },
+  {
+    "name": "qwen36-models",
+    "url": "https://huggingface.co/api/models?author=Qwen&search=Qwen3.6&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=Qwen&search=Qwen3.6&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.762065+00:00",
+    "sha256": "c7af0b7becfef046bfa89fbbd8b02c497ae2c5c52e40eedbcd6811546a87e503",
+    "ok": true,
+    "detail": [
+      {
+        "id": "Qwen/Qwen3.6-35B-A3B",
+        "sha": "995ad96eacd98c81ed38be0c5b274b04031597b0",
+        "lastModified": "2026-04-24T02:53:42.000Z",
+        "createdAt": "2026-04-15T05:59:19.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+        "sha": "95a723d08a9490559dae23d0cff1d9466213d989",
+        "lastModified": "2026-04-24T02:39:23.000Z",
+        "createdAt": "2026-04-15T06:05:13.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.6-27B-FP8",
+        "sha": "e89b16ebf1988b3d6befa7de50abc2d76f26eb09",
+        "lastModified": "2026-04-24T02:39:18.000Z",
+        "createdAt": "2026-04-21T07:51:33.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.6-27B",
+        "sha": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+        "lastModified": "2026-04-24T02:39:16.000Z",
+        "createdAt": "2026-04-21T07:50:43.000Z"
+      }
+    ]
+  },
+  {
+    "name": "chandra-models",
+    "url": "https://huggingface.co/api/models?author=datalab-to&search=chandra&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=datalab-to&search=chandra&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.818534+00:00",
+    "sha256": "1fe792e5c2f99e29db994d400c1771e667639cc4fbdb50bd2e53b3d674552f4e",
+    "ok": true,
+    "detail": [
+      {
+        "id": "datalab-to/chandra-ocr-2",
+        "sha": "af93b47dba1b47b6640c86ccf487ed2260ab9a09",
+        "lastModified": "2026-06-26T10:30:43.000Z",
+        "createdAt": "2026-03-16T20:47:07.000Z"
+      },
+      {
+        "id": "datalab-to/chandra",
+        "sha": "bd40c21576564d31ba99f204e28ccd5c4c1751fa",
+        "lastModified": "2026-03-26T15:55:54.000Z",
+        "createdAt": "2025-10-21T00:35:41.000Z"
+      }
+    ]
+  },
+  {
+    "name": "olmocr-models",
+    "url": "https://huggingface.co/api/models?author=allenai&search=olmOCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=allenai&search=olmOCR&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:23.996039+00:00",
+    "sha256": "921f78f75ae64fb5c52548ad67c98d1539f2be2b8b1b3b02ecaa400e5e672d25",
+    "ok": true,
+    "detail": [
+      {
+        "id": "allenai/olmOCR-2-7B-1025-FP8",
+        "sha": "40bd7202494b8264ee17ada08b401b5aab7a9ce1",
+        "lastModified": "2026-02-19T17:30:13.000Z",
+        "createdAt": "2025-10-06T22:03:48.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-2-7B-1025",
+        "sha": "e52d6f090b7a9007afffbbd6ce510876222fea93",
+        "lastModified": "2025-10-22T15:31:06.000Z",
+        "createdAt": "2025-10-06T21:16:59.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0225-preview-FP8",
+        "sha": "6889c39bb6d0e03c02e7da36b56dc883e95e29f9",
+        "lastModified": "2025-10-22T15:28:15.000Z",
+        "createdAt": "2025-06-17T21:15:43.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0825-FP8",
+        "sha": "772177833fc165927c3c5350553847b69e0346a4",
+        "lastModified": "2025-10-22T15:27:44.000Z",
+        "createdAt": "2025-08-13T20:55:44.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0825",
+        "sha": "f1463418cd4cc4af00a1db889378f72b53ebcaa6",
+        "lastModified": "2025-10-22T15:27:24.000Z",
+        "createdAt": "2025-08-13T20:54:32.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0725",
+        "sha": "827f1746abc5375c530620c03aa4758fd4fa5674",
+        "lastModified": "2025-08-26T16:24:56.000Z",
+        "createdAt": "2025-07-22T22:24:26.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0725-FP8",
+        "sha": "30da7d29223d5a3b55e20e1aa8ca0179ba3e508e",
+        "lastModified": "2025-08-19T15:31:53.000Z",
+        "createdAt": "2025-07-22T22:26:21.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0225-preview",
+        "sha": "6f102f3807c44450e4ea1ec3eae775e9e68927cb",
+        "lastModified": "2025-08-19T15:31:31.000Z",
+        "createdAt": "2025-01-15T21:14:47.000Z"
+      },
+      {
+        "id": "allenai/olmOCR-7B-0225-preview-GGUF",
+        "sha": "aeac079438766668c4cef71fd324271ecd785a0b",
+        "lastModified": "2025-02-26T22:47:43.000Z",
+        "createdAt": "2025-02-26T20:29:23.000Z"
+      }
+    ]
+  },
+  {
+    "name": "qwen35-models",
+    "url": "https://huggingface.co/api/models?author=Qwen&search=Qwen3.5&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=Qwen&search=Qwen3.5&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:24.062521+00:00",
+    "sha256": "bb2ac6df5a6972618d5e0773b873a8c5a90595b69492be8e51fa0bc6d0c90450",
+    "ok": true,
+    "detail": [
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-9B-Base-W64K-L0_50",
+        "sha": "7bb2370d360e566b2d8acb8b3d15a0b2b88f52a8",
+        "lastModified": "2026-05-13T12:19:20.000Z",
+        "createdAt": "2026-04-27T03:39:40.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-9B-Base-W64K-L0_100",
+        "sha": "82761c1ce15887d3da629340cb9c1826bc71dc21",
+        "lastModified": "2026-05-13T12:19:17.000Z",
+        "createdAt": "2026-04-27T03:39:41.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-35B-A3B-Base-W32K-L0_50",
+        "sha": "6af81a5a1b16ac821e5a9267fb461493ccfe2770",
+        "lastModified": "2026-05-13T12:19:14.000Z",
+        "createdAt": "2026-04-27T03:39:46.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-2B-Base-W32K-L0_50",
+        "sha": "132ea3697b591df9ee46d738aa1d528e3c6082f7",
+        "lastModified": "2026-05-13T12:19:08.000Z",
+        "createdAt": "2026-04-27T03:39:39.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-2B-Base-W32K-L0_100",
+        "sha": "027267657257a8d490296286e8fab41e1c1a1a3d",
+        "lastModified": "2026-05-13T12:19:05.000Z",
+        "createdAt": "2026-04-27T03:39:40.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50",
+        "sha": "13d4221569f7ca5d3c1e605e3e3dc95117e4807c",
+        "lastModified": "2026-05-13T12:19:02.000Z",
+        "createdAt": "2026-04-27T03:39:42.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_100",
+        "sha": "82852e98c9b33d02194e92dd514b12fafd09ed25",
+        "lastModified": "2026-05-13T09:44:26.000Z",
+        "createdAt": "2026-04-27T03:39:43.000Z"
+      },
+      {
+        "id": "Qwen/SAE-Res-Qwen3.5-35B-A3B-Base-W128K-L0_100",
+        "sha": "c960d05effbd7e5e5839886ddbe221a6144e8d86",
+        "lastModified": "2026-05-13T09:43:12.000Z",
+        "createdAt": "2026-04-27T03:39:47.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-122B-A10B-GPTQ-Int4",
+        "sha": "30cd92cba9707a9aba09d1e490ed4b66b78e9606",
+        "lastModified": "2026-04-24T05:56:30.000Z",
+        "createdAt": "2026-03-03T06:08:00.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-122B-A10B-FP8",
+        "sha": "a099dee70ccfcd8d5dda56aaa0b60cb8ecadabc9",
+        "lastModified": "2026-04-24T05:56:01.000Z",
+        "createdAt": "2026-02-25T13:01:23.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-397B-A17B-GPTQ-Int4",
+        "sha": "df333de344e06b492063d1ca04e2d4ee878f7595",
+        "lastModified": "2026-04-24T05:52:53.000Z",
+        "createdAt": "2026-03-03T06:25:36.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-397B-A17B",
+        "sha": "8472618112abcbd45acbcdc58436aff4233c23f7",
+        "lastModified": "2026-04-24T05:51:23.000Z",
+        "createdAt": "2026-02-16T04:55:12.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-397B-A17B-FP8",
+        "sha": "ea5b4f81096f3901c91dea97f81324302495781d",
+        "lastModified": "2026-04-24T05:50:39.000Z",
+        "createdAt": "2026-02-18T13:01:57.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-122B-A10B",
+        "sha": "dc4d348443bc740c68e2d77492492c11606384d5",
+        "lastModified": "2026-04-24T03:55:23.000Z",
+        "createdAt": "2026-02-24T09:43:37.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-27B",
+        "sha": "fc05daec18b0a78c049392ed2e771dde82bdf654",
+        "lastModified": "2026-04-24T02:54:49.000Z",
+        "createdAt": "2026-02-24T09:41:56.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4",
+        "sha": "3af5ca2972faf6de1fd6f4efc4d8d319ca751e8b",
+        "lastModified": "2026-04-24T02:38:59.000Z",
+        "createdAt": "2026-03-03T07:18:32.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-27B-GPTQ-Int4",
+        "sha": "8f0c09f227ae570e79617c6d9172b59df9c16081",
+        "lastModified": "2026-04-24T02:38:57.000Z",
+        "createdAt": "2026-03-03T07:08:41.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-35B-A3B-FP8",
+        "sha": "9d1823d2dee688a6b25e77009dc727688c44936e",
+        "lastModified": "2026-04-24T02:38:49.000Z",
+        "createdAt": "2026-02-25T13:34:21.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-27B-FP8",
+        "sha": "97f5941bf617e31c5e237364a8602ce3f03a551a",
+        "lastModified": "2026-04-24T02:38:46.000Z",
+        "createdAt": "2026-02-25T13:20:07.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-35B-A3B",
+        "sha": "59d61f3ce65a6d9863b86d2e96597125219dc754",
+        "lastModified": "2026-04-24T02:38:38.000Z",
+        "createdAt": "2026-02-24T09:39:25.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-9B-Base",
+        "sha": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "lastModified": "2026-04-23T12:04:39.000Z",
+        "createdAt": "2026-02-26T16:20:10.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-35B-A3B-Base",
+        "sha": "0f0813072d2358973511097385626f21fcb6d422",
+        "lastModified": "2026-04-23T11:21:45.000Z",
+        "createdAt": "2026-02-24T09:42:42.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-0.8B-Base",
+        "sha": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "lastModified": "2026-04-23T11:14:09.000Z",
+        "createdAt": "2026-02-28T23:57:45.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-2B-Base",
+        "sha": "b1485b2fa6dfa1287294f269f5fb618e03d52d7c",
+        "lastModified": "2026-04-23T11:13:46.000Z",
+        "createdAt": "2026-02-28T23:57:23.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-4B-Base",
+        "sha": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "lastModified": "2026-04-23T11:13:30.000Z",
+        "createdAt": "2026-02-27T13:20:09.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-0.8B",
+        "sha": "2fc06364715b967f1860aea9cf38778875588b17",
+        "lastModified": "2026-03-02T11:26:58.000Z",
+        "createdAt": "2026-02-28T23:57:01.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-2B",
+        "sha": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "lastModified": "2026-03-02T11:26:29.000Z",
+        "createdAt": "2026-02-28T23:56:16.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-4B",
+        "sha": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "lastModified": "2026-03-02T00:52:52.000Z",
+        "createdAt": "2026-02-27T14:45:03.000Z"
+      },
+      {
+        "id": "Qwen/Qwen3.5-9B",
+        "sha": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "lastModified": "2026-03-02T00:51:43.000Z",
+        "createdAt": "2026-02-27T12:58:26.000Z"
+      }
+    ]
+  },
+  {
+    "name": "surya-models",
+    "url": "https://huggingface.co/api/models?author=datalab-to&search=surya&limit=100&sort=lastModified&direction=-1&full=true",
+    "resolved_url": "https://huggingface.co/api/models?author=datalab-to&search=surya&limit=100&sort=lastModified&direction=-1&full=true",
+    "retrieved_utc": "2026-09-18T13:32:24.247943+00:00",
+    "sha256": "b82f8fe7c6505cccecc401444d810e27025f0cc3cc5a1e8e7b5253dbe4e3671d",
+    "ok": true,
+    "detail": [
+      {
+        "id": "datalab-to/surya_layout2",
+        "sha": "0aee81d5fd9275c0582e545bf3a56944b1e75679",
+        "lastModified": "2026-07-08T17:02:21.000Z",
+        "createdAt": "2026-07-08T13:50:04.000Z"
+      },
+      {
+        "id": "datalab-to/surya-ocr-2",
+        "sha": "3b3d4cdf88d6928b0acdc75181b13206ea67c4a3",
+        "lastModified": "2026-05-27T20:33:29.000Z",
+        "createdAt": "2026-05-14T21:01:33.000Z"
+      },
+      {
+        "id": "datalab-to/surya-ocr-2-gguf",
+        "sha": "6a3a4c30e5e74446d4f8b6afd05b2f2da970f470",
+        "lastModified": "2026-05-27T13:10:05.000Z",
+        "createdAt": "2026-05-14T03:26:00.000Z"
+      },
+      {
+        "id": "datalab-to/surya-alpha",
+        "sha": "1c1d05ee7949fdd4442f2cf69ae9668b33a822ad",
+        "lastModified": "2025-04-25T18:32:48.000Z",
+        "createdAt": "2025-04-08T13:58:59.000Z"
+      },
+      {
+        "id": "datalab-to/surya_tablerec",
+        "sha": "7327dac38c300b2f6cd0501ebc2347dd3ef7fcf2",
+        "lastModified": "2025-01-22T01:55:32.000Z",
+        "createdAt": "2025-01-07T21:40:50.000Z"
+      },
+      {
+        "id": "datalab-to/surya_layout",
+        "sha": "7ac8e390226ee5fa2125dd303d827f79d31d1a1f",
+        "lastModified": "2024-12-20T19:44:09.000Z",
+        "createdAt": "2024-12-20T19:24:08.000Z"
+      },
+      {
+        "id": "datalab-to/surya_layout0",
+        "sha": "421ac206a400227ea714d47a405e53ce74374957",
+        "lastModified": "2024-11-26T21:25:58.000Z",
+        "createdAt": "2024-11-26T21:21:34.000Z"
+      }
+    ]
+  },
+  {
+    "name": "glm-readme",
+    "url": "https://api.github.com/repos/zai-org/GLM-OCR/readme",
+    "resolved_url": "https://api.github.com/repos/zai-org/GLM-OCR/readme",
+    "retrieved_utc": "2026-09-18T13:32:24.838692+00:00",
+    "sha256": "4a7c282fc8d28defb0a6e438c6b8740833c26f44486fc3562240a6b719d04e3a",
+    "ok": true,
+    "detail": {
+      "bytes": 12267,
+      "url": "https://github.com/zai-org/GLM-OCR/blob/main/README.md",
+      "git_blob_sha": "5bb397cf280e1da344bab557b7c27609fe299ba5"
+    }
+  },
+  {
+    "name": "paddle-readme",
+    "url": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/readme",
+    "resolved_url": "https://api.github.com/repos/PaddlePaddle/PaddleOCR/readme",
+    "retrieved_utc": "2026-09-18T13:32:24.840990+00:00",
+    "sha256": "f962d0434e78786721b36d66b71eb5e804642ae8177afbb29e67461a7008cdf1",
+    "ok": true,
+    "detail": {
+      "bytes": 25918,
+      "url": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/README.md",
+      "git_blob_sha": "d3a9c16b6b5672a872d6ad7473ff52aceb7712bb"
+    }
+  },
+  {
+    "name": "deepseek-readme",
+    "url": "https://api.github.com/repos/deepseek-ai/DeepSeek-OCR-2/readme",
+    "resolved_url": "https://api.github.com/repos/deepseek-ai/DeepSeek-OCR-2/readme",
+    "retrieved_utc": "2026-09-18T13:32:25.293856+00:00",
+    "sha256": "7a5b9b23d4f39681659a1fc99d1f9162b18cb337bb019cc1bded1c2eb4a3c516",
+    "ok": true,
+    "detail": {
+      "bytes": 5060,
+      "url": "https://github.com/deepseek-ai/DeepSeek-OCR-2/blob/main/README.md",
+      "git_blob_sha": "14d2e15e76e83d9ebd0008bbe5be879bbc6b24ac"
+    }
+  },
+  {
+    "name": "mineru-readme",
+    "url": "https://api.github.com/repos/opendatalab/MinerU/readme",
+    "resolved_url": "https://api.github.com/repos/opendatalab/MinerU/readme",
+    "retrieved_utc": "2026-09-18T13:32:25.540232+00:00",
+    "sha256": "a4eca1c96874fcbc88de5082c70caea8abfb095009a8c3ddd85687b1f2d98f42",
+    "ok": true,
+    "detail": {
+      "bytes": 55739,
+      "url": "https://github.com/opendatalab/MinerU/blob/master/README.md",
+      "git_blob_sha": "80569ad6e017c31e8f16caa014a30bf95b4aee6d"
+    }
+  },
+  {
+    "name": "hunyuan-readme",
+    "url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/readme",
+    "resolved_url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/readme",
+    "retrieved_utc": "2026-09-18T13:32:25.608733+00:00",
+    "sha256": "b9f9c6ea413dca5ada87473c14df9ea50ab9f4060463e3e715dd38a76083d5b7",
+    "ok": true,
+    "detail": {
+      "bytes": 20502,
+      "url": "https://github.com/Tencent-Hunyuan/HunyuanOCR/blob/main/README.md",
+      "git_blob_sha": "aa980696bd0d3d2edee4b5ede911152ef3b1856a"
+    }
+  },
+  {
+    "name": "omnidocbench-readme",
+    "url": "https://api.github.com/repos/opendatalab/OmniDocBench/readme",
+    "resolved_url": "https://api.github.com/repos/opendatalab/OmniDocBench/readme",
+    "retrieved_utc": "2026-09-18T13:32:25.874598+00:00",
+    "sha256": "47bb29907fc249fd56b8fdd919e6894b9d5deaa4f5aec3ef82153af735c2015c",
+    "ok": true,
+    "detail": {
+      "bytes": 96525,
+      "url": "https://github.com/opendatalab/OmniDocBench/blob/main/README.md",
+      "git_blob_sha": "a9817657490b88aa593f1c0b4e4795ae6c2cc5f1"
+    }
+  },
+  {
+    "name": "olmocr-readme",
+    "url": "https://api.github.com/repos/allenai/olmocr/readme",
+    "resolved_url": "https://api.github.com/repos/allenai/olmocr/readme",
+    "retrieved_utc": "2026-09-18T13:32:26.509799+00:00",
+    "sha256": "05ffda9808522214e82de39cfef3ad6ce67ae2c99ecb04608e6c6f000154f5c4",
+    "ok": true,
+    "detail": {
+      "bytes": 22320,
+      "url": "https://github.com/allenai/olmocr/blob/main/README.md",
+      "git_blob_sha": "40d2354d5c4f3827a8f95d717ed4015a47f54b0b"
+    }
+  },
+  {
+    "name": "chandra-readme",
+    "url": "https://api.github.com/repos/datalab-to/chandra/readme",
+    "resolved_url": "https://api.github.com/repos/datalab-to/chandra/readme",
+    "retrieved_utc": "2026-09-18T13:32:26.623031+00:00",
+    "sha256": "0ffd86723103b4b12bfa7b2d3e35dba0d54a9eb765692cc954541692b2412144",
+    "ok": true,
+    "detail": {
+      "bytes": 15445,
+      "url": "https://github.com/datalab-to/chandra/blob/master/README.md",
+      "git_blob_sha": "470ce598fed114d7c6d7c61fec8a78323d12d0f3"
+    }
+  },
+  {
+    "name": "dots-readme",
+    "url": "https://api.github.com/repos/rednote-hilab/dots.ocr/readme",
+    "resolved_url": "https://api.github.com/repositories/1028989499/readme",
+    "retrieved_utc": "2026-09-18T13:32:26.721525+00:00",
+    "sha256": "c36c6a8866f1ab99ef06a99ff3510c58d6670307fa3ac0341eb257a791d10161",
+    "ok": true,
+    "detail": {
+      "bytes": 24801,
+      "url": "https://github.com/studio-dots-ai/dots.ocr/blob/master/README.md",
+      "git_blob_sha": "b5b4915dc228f79e52cf9d83840b247f6f2d17d0"
+    }
+  },
+  {
+    "name": "surya-readme",
+    "url": "https://api.github.com/repos/datalab-to/surya/readme",
+    "resolved_url": "https://api.github.com/repos/datalab-to/surya/readme",
+    "retrieved_utc": "2026-09-18T13:32:27.082259+00:00",
+    "sha256": "a2fcb76366ad2b3d17b2ffecd420800b1316c902cc00b631c5802ac2cd1caa5f",
+    "ok": true,
+    "detail": {
+      "bytes": 25977,
+      "url": "https://github.com/datalab-to/surya/blob/master/README.md",
+      "git_blob_sha": "5f145d2c076c7d797d642be97e1787ab055d6635"
+    }
+  },
+  {
+    "name": "qwen36-readme",
+    "url": "https://api.github.com/repos/QwenLM/Qwen3.6/readme",
+    "resolved_url": "https://api.github.com/repositories/1054623307/readme",
+    "retrieved_utc": "2026-09-18T13:32:27.612838+00:00",
+    "sha256": "c4410fc4a758aff8818535e4c96ce97df9b9ba04d198dcc27c93924a9067ebfd",
+    "ok": true,
+    "detail": {
+      "bytes": 14334,
+      "url": "https://github.com/QwenLM/Qwen3.8/blob/main/README.md",
+      "git_blob_sha": "a7896ca771e13546c9eb62b67d6e65c3dba680bf"
+    }
+  }
+]

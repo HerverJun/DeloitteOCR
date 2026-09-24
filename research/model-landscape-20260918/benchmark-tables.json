@@ -1,0 +1,1274 @@
+[
+  [
+    [
+      "Model Type",
+      "Methods",
+      "Size",
+      "Overall↑",
+      "TextEdit↓",
+      "FormulaCDM↑",
+      "TableTEDS↑",
+      "TableTEDS-S↑",
+      "Read OrderEdit↓"
+    ],
+    [
+      "TeleOCR",
+      "Specialized VLMs",
+      "1.2B",
+      "96.91",
+      "0.0267",
+      "96.5895",
+      "96.8183",
+      "98.1806",
+      "0.1184"
+    ],
+    [
+      "OvisOCR2",
+      "Specialized VLMs",
+      "0.8B",
+      "96.47",
+      "0.0265",
+      "97.4854",
+      "94.5842",
+      "96.9768",
+      "0.1120"
+    ],
+    [
+      "PaddleOCR-VL-1.6",
+      "Specialized VLMs",
+      "0.9B",
+      "96.34",
+      "0.0326",
+      "97.5304",
+      "94.7619",
+      "97.1002",
+      "0.1278"
+    ],
+    [
+      "MinerU2.5-Pro",
+      "Specialized VLMs",
+      "1.2B",
+      "95.75",
+      "0.036",
+      "97.45",
+      "93.42",
+      "95.92",
+      "0.120"
+    ],
+    [
+      "GLM-OCR",
+      "Specialized VLMs",
+      "0.9B",
+      "95.22",
+      "0.044",
+      "97.18",
+      "92.83",
+      "95.39",
+      "0.133"
+    ],
+    [
+      "PaddleOCR-VL-1.5",
+      "Specialized VLMs",
+      "0.9B",
+      "94.93",
+      "0.038",
+      "96.89",
+      "91.67",
+      "94.37",
+      "0.130"
+    ],
+    [
+      "PaddleOCR-VL",
+      "Specialized VLMs",
+      "0.9B",
+      "94.18",
+      "0.040",
+      "95.91",
+      "90.65",
+      "93.74",
+      "0.135"
+    ],
+    [
+      "Unlimited-OCR",
+      "Specialized VLMs",
+      "3B",
+      "94.00",
+      "0.0394",
+      "95.7234",
+      "90.21",
+      "93.3565",
+      "0.1281"
+    ],
+    [
+      "Youtu-Parsing",
+      "Specialized VLMs",
+      "2.5B",
+      "93.74",
+      "0.044",
+      "93.63",
+      "92.02",
+      "95.00",
+      "0.116"
+    ],
+    [
+      "Qianfan-OCR",
+      "Specialized VLMs",
+      "4B",
+      "93.90",
+      "0.04",
+      "95.08",
+      "90.53",
+      "93.31",
+      "0.13"
+    ],
+    [
+      "Ovis2.6-30B-A3B",
+      "General VLMs",
+      "30B",
+      "93.70",
+      "0.035",
+      "95.17",
+      "89.44",
+      "92.40",
+      "0.135"
+    ],
+    [
+      "Logics-Parsing-v2",
+      "Specialized VLMs",
+      "4B",
+      "93.33",
+      "0.041",
+      "95.65",
+      "88.42",
+      "91.98",
+      "0.137"
+    ],
+    [
+      "ABot-OCR",
+      "Specialized VLMs",
+      "2B",
+      "93.30",
+      "0.037",
+      "94.86",
+      "88.69",
+      "91.87",
+      "0.137"
+    ],
+    [
+      "FireRed-OCR",
+      "Specialized VLMs",
+      "2B",
+      "93.26",
+      "0.037",
+      "95.44",
+      "88.04",
+      "91.06",
+      "0.131"
+    ],
+    [
+      "MinerU-2.5",
+      "Specialized VLMs",
+      "1.2B",
+      "93.04",
+      "0.045",
+      "95.77",
+      "87.88",
+      "91.47",
+      "0.130"
+    ],
+    [
+      "Gemini 3 Pro",
+      "General VLMs",
+      "-",
+      "92.91",
+      "0.064",
+      "95.99",
+      "89.15",
+      "92.96",
+      "0.165"
+    ],
+    [
+      "Gemini 3 Flash",
+      "General VLMs",
+      "-",
+      "92.62",
+      "0.066",
+      "95.16",
+      "89.29",
+      "93.51",
+      "0.172"
+    ],
+    [
+      "dots.ocr",
+      "Specialized VLMs",
+      "3B",
+      "90.77",
+      "0.048",
+      "89.95",
+      "87.18",
+      "90.58",
+      "0.138"
+    ],
+    [
+      "OpenDoc-0.1B",
+      "Specialized VLMs",
+      "0.1B",
+      "90.67",
+      "0.049",
+      "93.02",
+      "83.88",
+      "87.45",
+      "0.140"
+    ],
+    [
+      "DeepSeek-OCR 2",
+      "Specialized VLMs",
+      "3B",
+      "90.25",
+      "0.050",
+      "91.84",
+      "83.89",
+      "87.75",
+      "0.144"
+    ],
+    [
+      "HunyuanOCR",
+      "Specialized VLMs",
+      "1B",
+      "89.95",
+      "0.088",
+      "87.68",
+      "91.01",
+      "93.23",
+      "0.171"
+    ],
+    [
+      "Qwen3-VL-235B",
+      "General VLMs",
+      "235B",
+      "89.78",
+      "0.063",
+      "92.55",
+      "83.07",
+      "86.75",
+      "0.166"
+    ],
+    [
+      "Dolphin-v2",
+      "Specialized VLMs",
+      "3B",
+      "89.50",
+      "0.069",
+      "91.01",
+      "84.40",
+      "87.44",
+      "0.150"
+    ],
+    [
+      "OCRVerse",
+      "Specialized VLMs",
+      "4B",
+      "88.60",
+      "0.063",
+      "89.61",
+      "82.44",
+      "86.27",
+      "0.163"
+    ],
+    [
+      "MonkeyOCR-pro-3B",
+      "Specialized VLMs",
+      "3B",
+      "88.57",
+      "0.074",
+      "88.74",
+      "84.35",
+      "88.62",
+      "0.189"
+    ],
+    [
+      "GPT-5.2",
+      "General VLMs",
+      "-",
+      "86.59",
+      "0.114",
+      "88.21",
+      "82.95",
+      "87.93",
+      "0.193"
+    ],
+    [
+      "Dolphin-1.5",
+      "Specialized VLMs",
+      "0.3B",
+      "86.52",
+      "0.094",
+      "87.49",
+      "81.43",
+      "84.82",
+      "0.167"
+    ],
+    [
+      "MinerU-Pipeline",
+      "Pipeline Tools",
+      "-",
+      "86.47",
+      "0.055",
+      "83.07",
+      "81.88",
+      "88.68",
+      "0.153"
+    ],
+    [
+      "olmOCR",
+      "Specialized VLMs",
+      "7B",
+      "85.74",
+      "0.139",
+      "88.10",
+      "83.00",
+      "87.17",
+      "0.216"
+    ],
+    [
+      "Mistral OCR",
+      "Specialized VLMs",
+      "-",
+      "85.66",
+      "0.097",
+      "89.91",
+      "76.78",
+      "80.93",
+      "0.171"
+    ],
+    [
+      "Kimi K2.5",
+      "General VLMs",
+      "1T",
+      "84.53",
+      "0.107",
+      "83.50",
+      "80.76",
+      "84.00",
+      "0.211"
+    ],
+    [
+      "InternVL3.5-241B",
+      "General VLMs",
+      "241B",
+      "83.76",
+      "0.130",
+      "89.95",
+      "74.35",
+      "79.78",
+      "0.215"
+    ],
+    [
+      "Nanonets-OCR-s",
+      "Specialized VLMs",
+      "3B",
+      "83.61",
+      "0.108",
+      "81.46",
+      "80.18",
+      "84.51",
+      "0.213"
+    ],
+    [
+      "POINTS-Reader",
+      "Specialized VLMs",
+      "3B",
+      "83.37",
+      "0.096",
+      "85.72",
+      "73.98",
+      "77.40",
+      "0.198"
+    ],
+    [
+      "Marker",
+      "Pipeline Tools",
+      "-",
+      "78.44",
+      "0.157",
+      "85.24",
+      "65.77",
+      "73.24",
+      "0.243"
+    ]
+  ],
+  [
+    [
+      "Models",
+      "CDM",
+      "ExpRate@CDM",
+      "BLEU",
+      "Norm Edit"
+    ],
+    [
+      "GOT-OCR",
+      "74.1",
+      "28.0",
+      "55.07",
+      "0.290"
+    ],
+    [
+      "Mathpix",
+      "86.6",
+      "2.8",
+      "66.56",
+      "0.322"
+    ],
+    [
+      "Pix2Tex",
+      "73.9",
+      "39.5",
+      "46.00",
+      "0.337"
+    ],
+    [
+      "UniMERNet-B",
+      "85.0",
+      "60.2",
+      "60.84",
+      "0.238"
+    ],
+    [
+      "GPT4o",
+      "86.8",
+      "65.5",
+      "45.17",
+      "0.282"
+    ],
+    [
+      "InternVL2-Llama3-76B",
+      "67.4",
+      "54.5",
+      "47.63",
+      "0.308"
+    ],
+    [
+      "Qwen2-VL-72B",
+      "83.8",
+      "55.4",
+      "53.71",
+      "0.285"
+    ]
+  ],
+  [
+    [
+      "Model Type",
+      "Model",
+      "Language",
+      "Text background",
+      "Text Rotate"
+    ],
+    [
+      "EN",
+      "ZH",
+      "Mixed",
+      "White",
+      "Single",
+      "Multi",
+      "Normal",
+      "Rotate90",
+      "Rotate270",
+      "Horizontal"
+    ],
+    [
+      "Pipeline Tools&Expert VisionModels",
+      "PaddleOCR",
+      "0.071",
+      "0.055",
+      "0.118",
+      "0.060",
+      "0.038",
+      "0.085",
+      "0.060",
+      "0.015",
+      "0.285",
+      "0.021"
+    ],
+    [
+      "OpenOCR",
+      "0.07",
+      "0.068",
+      "0.106",
+      "0.069",
+      "0.058",
+      "0.081",
+      "0.069",
+      "0.038",
+      "0.891",
+      "0.025"
+    ],
+    [
+      "Tesseract-OCR",
+      "0.096",
+      "0.551",
+      "0.250",
+      "0.439",
+      "0.328",
+      "0.331",
+      "0.426",
+      "0.117",
+      "0.969",
+      "0.984"
+    ],
+    [
+      "EasyOCR",
+      "0.26",
+      "0.398",
+      "0.445",
+      "0.366",
+      "0.287",
+      "0.388",
+      "0.36",
+      "0.97",
+      "0.997",
+      "0.926"
+    ],
+    [
+      "Surya",
+      "0.057",
+      "0.123",
+      "0.164",
+      "0.093",
+      "0.186",
+      "0.235",
+      "0.104",
+      "0.634",
+      "0.767",
+      "0.255"
+    ],
+    [
+      "Mathpix",
+      "0.033",
+      "0.240",
+      "0.261",
+      "0.185",
+      "0.121",
+      "0.166",
+      "0.180",
+      "0.038",
+      "0.185",
+      "0.638"
+    ],
+    [
+      "GOT-OCR",
+      "0.041",
+      "0.112",
+      "0.135",
+      "0.092",
+      "0.052",
+      "0.155",
+      "0.091",
+      "0.562",
+      "0.966",
+      "0.097"
+    ],
+    [
+      "Vision LanguageModels",
+      "Qwen2-VL-72B",
+      "0.072",
+      "0.274",
+      "0.286",
+      "0.234",
+      "0.155",
+      "0.148",
+      "0.223",
+      "0.273",
+      "0.721",
+      "0.067"
+    ],
+    [
+      "InternVL2-76B",
+      "0.074",
+      "0.155",
+      "0.242",
+      "0.113",
+      "0.352",
+      "0.269",
+      "0.132",
+      "0.610",
+      "0.907",
+      "0.595"
+    ],
+    [
+      "GPT4o",
+      "0.020",
+      "0.224",
+      "0.125",
+      "0.167",
+      "0.140",
+      "0.220",
+      "0.168",
+      "0.115",
+      "0.718",
+      "0.132"
+    ]
+  ],
+  [
+    [
+      "Model Type",
+      "Model",
+      "Language",
+      "Table Frame Type",
+      "Special Situation",
+      "Overall"
+    ],
+    [
+      "EN",
+      "ZH",
+      "Mixed",
+      "Full",
+      "Omission",
+      "Three",
+      "Zero",
+      "Merge Cell(+/-)",
+      "Formula(+/-)",
+      "Colorful(+/-)",
+      "Rotate(+/-)"
+    ],
+    [
+      "OCR-based Models",
+      "PaddleOCR",
+      "76.8",
+      "71.8",
+      "80.1",
+      "67.9",
+      "74.3",
+      "81.1",
+      "74.5",
+      "70.6/75.2",
+      "71.3/74.1",
+      "72.7/74.0",
+      "23.3/74.6",
+      "73.6"
+    ],
+    [
+      "RapidTable",
+      "80.0",
+      "83.2",
+      "91.2",
+      "83.0",
+      "79.7",
+      "83.4",
+      "78.4",
+      "77.1/85.4",
+      "76.7/83.9",
+      "77.6/84.9",
+      "25.2/83.7",
+      "82.5"
+    ],
+    [
+      "Expert VLMs",
+      "StructEqTable",
+      "72.8",
+      "75.9",
+      "83.4",
+      "72.9",
+      "76.2",
+      "76.9",
+      "88",
+      "64.5/81",
+      "69.2/76.6",
+      "72.8/76.4",
+      "30.5/76.2",
+      "75.8"
+    ],
+    [
+      "GOT-OCR",
+      "72.2",
+      "75.5",
+      "85.4",
+      "73.1",
+      "72.7",
+      "78.2",
+      "75.7",
+      "65.0/80.2",
+      "64.3/77.3",
+      "70.8/76.9",
+      "8.5/76.3",
+      "74.9"
+    ],
+    [
+      "General VLMs",
+      "Qwen2-VL-7B",
+      "70.2",
+      "70.7",
+      "82.4",
+      "70.2",
+      "62.8",
+      "74.5",
+      "80.3",
+      "60.8/76.5",
+      "63.8/72.6",
+      "71.4/70.8",
+      "20.0/72.1",
+      "71.0"
+    ],
+    [
+      "InternVL2-8B",
+      "70.9",
+      "71.5",
+      "77.4",
+      "69.5",
+      "69.2",
+      "74.8",
+      "75.8",
+      "58.7/78.4",
+      "62.4/73.6",
+      "68.2/73.1",
+      "20.4/72.6",
+      "71.5"
+    ]
+  ],
+  [
+    [
+      "Model",
+      "Backbone",
+      "Params",
+      "Book",
+      "Slides",
+      "ResearchReport",
+      "Textbook",
+      "ExamPaper",
+      "Magazine",
+      "AcademicLiterature",
+      "Notes",
+      "Newspaper",
+      "Average"
+    ],
+    [
+      "DiT-L",
+      "ViT-L",
+      "361.6M",
+      "43.44",
+      "13.72",
+      "45.85",
+      "15.45",
+      "3.40",
+      "29.23",
+      "66.13",
+      "0.21",
+      "23.65",
+      "26.90"
+    ],
+    [
+      "LayoutLMv3",
+      "RoBERTa-B",
+      "138.4M",
+      "42.12",
+      "13.63",
+      "43.22",
+      "21.00",
+      "5.48",
+      "31.81",
+      "64.66",
+      "0.80",
+      "30.84",
+      "28.84"
+    ],
+    [
+      "DocLayout-YOLO",
+      "v10m",
+      "19.6M",
+      "43.71",
+      "48.71",
+      "72.83",
+      "42.67",
+      "35.40",
+      "51.44",
+      "64.64",
+      "9.54",
+      "57.54",
+      "47.38"
+    ],
+    [
+      "SwinDocSegmenter",
+      "Swin-L",
+      "223M",
+      "42.91",
+      "28.20",
+      "47.29",
+      "32.44",
+      "20.81",
+      "52.35",
+      "48.54",
+      "12.38",
+      "38.06",
+      "35.89"
+    ],
+    [
+      "GraphKD",
+      "R101",
+      "44.5M",
+      "39.03",
+      "16.18",
+      "39.92",
+      "22.82",
+      "14.31",
+      "37.61",
+      "44.43",
+      "5.71",
+      "23.86",
+      "27.10"
+    ],
+    [
+      "DOCX-Chain",
+      "-",
+      "-",
+      "30.86",
+      "11.71",
+      "39.62",
+      "19.23",
+      "10.67",
+      "23.00",
+      "41.60",
+      "1.80",
+      "16.96",
+      "21.27"
+    ]
+  ],
+  [
+    [
+      "Model Name",
+      "Official Website",
+      "Evaluation Version/Model Weights"
+    ],
+    [
+      "MinerU-Pipeline",
+      "MinerU",
+      "3.4.0"
+    ],
+    [
+      "MinerU2-VLM",
+      "MinerU",
+      "HuggingFace MinerU2.0-2505-0.9B"
+    ],
+    [
+      "MinerU2.5",
+      "MinerU",
+      "HuggingFace MinerU2.5-2509-1.2B"
+    ],
+    [
+      "MinerU2.5-Pro",
+      "MinerU",
+      "HuggingFace MinerU2.5-Pro-2605-1.2B"
+    ],
+    [
+      "ABot-OCR",
+      "ABot-OCR",
+      "HuggingFace ABot-OCR"
+    ],
+    [
+      "GLM-OCR",
+      "GLM-OCR",
+      "HuggingFace GLM-OCR"
+    ],
+    [
+      "Youtu-Parsing",
+      "Youtu-Parsing",
+      "HuggingFace Youtu-Parsing"
+    ],
+    [
+      "FireRed-OCR",
+      "FireRed-OCR",
+      "HuggingFace FireRed-OCR"
+    ],
+    [
+      "Qianfan-OCR",
+      "Qianfan-OCR",
+      "HuggingFace Qianfan-OCR"
+    ],
+    [
+      "TeleOCR",
+      "TeleOCR",
+      "HuggingFace TeleOCR"
+    ],
+    [
+      "OvisOCR2",
+      "OvisOCR2",
+      "HuggingFace OvisOCR2"
+    ],
+    [
+      "Unlimited-OCR",
+      "Unlimited-OCR",
+      "HuggingFace Unlimited-OCR"
+    ],
+    [
+      "dots.ocr",
+      "dots.ocr",
+      "HuggingFace dots.ocr"
+    ],
+    [
+      "Logics-Parsing-v2",
+      "Logics-Parsing",
+      "HuggingFace Logics-Parsing-v2"
+    ],
+    [
+      "Ovis2.6-30B-A3B",
+      "Ovis",
+      "HuggingFace Ovis2.6-30B-A3B"
+    ],
+    [
+      "HunyuanOCR",
+      "HunyuanOCR",
+      "HuggingFace HunyuanOCR"
+    ],
+    [
+      "POINTS-Reader",
+      "POINTS-Reader",
+      "HuggingFace POINTS-Reader"
+    ],
+    [
+      "Marker",
+      "Marker",
+      "1.8.2"
+    ],
+    [
+      "Mathpix",
+      "Mathpix",
+      "-"
+    ],
+    [
+      "PaddleOCR PP-StructureV3",
+      "PaddleOCR",
+      "PP-StructureV3"
+    ],
+    [
+      "PaddleOCR-VL",
+      "PaddleOCR",
+      "Hugging Face PaddleOCR-VL"
+    ],
+    [
+      "PaddleOCR-VL-1.5",
+      "PaddleOCR",
+      "Hugging Face PaddleOCR-VL-1.5"
+    ],
+    [
+      "FD-RL",
+      "FD-RL",
+      "Hugging Face FD-RL"
+    ],
+    [
+      "Docling",
+      "Docling",
+      "Hugging Face docling-layout-heron"
+    ],
+    [
+      "OpenDoc-0.1B",
+      "OpenDoc",
+      "Hugging Face OpenDoc-0.1B"
+    ],
+    [
+      "Pix2Text",
+      "Pix2Text",
+      "1.1.2.3"
+    ],
+    [
+      "Unstructured",
+      "Unstructured",
+      "0.16.23"
+    ],
+    [
+      "OpenParse",
+      "OpenParse",
+      "0.7.0"
+    ],
+    [
+      "MonkeyOCR-pro-1.2B",
+      "MonkeyOCR",
+      "HuggingFace MonkeyOCR-pro-1.2B"
+    ],
+    [
+      "MonkeyOCR-pro-3B",
+      "MonkeyOCR",
+      "HuggingFace MonkeyOCR-pro-3B"
+    ],
+    [
+      "MonkeyOCR-3B",
+      "MonkeyOCR",
+      "HuggingFace MonkeyOCR-3B"
+    ],
+    [
+      "Dolphin",
+      "Dolphin",
+      "HuggingFace Dolphin"
+    ],
+    [
+      "Dolphin-1.5",
+      "Dolphin",
+      "Hugging Face Dolphin-1.5"
+    ],
+    [
+      "Dolphin-v2",
+      "Dolphin",
+      "Hugging Face Dolphin-v2"
+    ],
+    [
+      "Nanonets-OCR-s",
+      "Nanonets-OCR-s",
+      "HuggingFace Nanonets-OCR-s"
+    ],
+    [
+      "OCRFlux",
+      "OCRFlux",
+      "HuggingFace OCRFlux-3B"
+    ],
+    [
+      "Mistral OCR",
+      "Mistral OCR",
+      "2503"
+    ],
+    [
+      "GOT-OCR",
+      "GOT-OCR",
+      "Hugging Face GOT-OCR2_0"
+    ],
+    [
+      "Nougat",
+      "Nougat",
+      "Hugging Face Nougat base"
+    ],
+    [
+      "olmOCR",
+      "olmOCR",
+      "Sglang"
+    ],
+    [
+      "SmolDocling",
+      "SmolDocling-256M-Preview-transformer",
+      "256M-Preview-transformer"
+    ],
+    [
+      "GPT-4o",
+      "OpenAI GPT-4o",
+      "2024-08-06"
+    ],
+    [
+      "GPT-5.2",
+      "OpenAI GPT-5.2",
+      "2025-12-11"
+    ],
+    [
+      "Gemini-2.0 Flash",
+      "Gemini-2.0 Flash",
+      "-"
+    ],
+    [
+      "Gemini-3.0 Flash",
+      "Gemini-3.0 Flash",
+      "-"
+    ],
+    [
+      "Gemini-2.5 Pro",
+      "Gemini-2.5 Pro",
+      "-"
+    ],
+    [
+      "Gemini-3 Pro",
+      "Gemini-3 Pro",
+      "-"
+    ],
+    [
+      "Qwen2.5-VL-7B",
+      "Qwen2.5-VL",
+      "Hugging Face Qwen2.5-VL-7B-Instruct"
+    ],
+    [
+      "Qwen2.5-VL-72B",
+      "Qwen2.5-VL",
+      "Hugging Face Qwen2.5-VL-72B-Instruct"
+    ],
+    [
+      "Qwen3-VL-235B-A22B-Instruct",
+      "Qwen3-VL",
+      "Hugging Face Qwen3-VL-235B-A22B-Instruct"
+    ],
+    [
+      "InternVL2-Llama3-76B",
+      "InternVL",
+      "Hugging Face InternVL2-Llama3-76B"
+    ],
+    [
+      "InternVL3-78B",
+      "InternVL",
+      "Hugging Face InternVL3-78B"
+    ],
+    [
+      "InternVL3_5-241B-A28B",
+      "InternVL",
+      "Hugging Face InternVL3_5-241B-A28B"
+    ],
+    [
+      "DeepSeek-OCR",
+      "DeepSeek-OCR",
+      "Hugging Face DeepSeek-OCR"
+    ],
+    [
+      "DeepSeek-OCR-2",
+      "DeepSeek-OCR",
+      "Hugging Face DeepSeek-OCR-2"
+    ],
+    [
+      "Kimi K2.5",
+      "Kimi K2.5",
+      "-"
+    ],
+    [
+      "OCRVerse",
+      "OCRVerse",
+      "Hugging Face OCRVerse-text"
+    ]
+  ],
+  [
+    [
+      "Model Name",
+      "Official Website",
+      "Evaluation Version/Model Weights"
+    ],
+    [
+      "PaddleOCR",
+      "PaddlePaddle OCR",
+      "2.9.1"
+    ],
+    [
+      "Tesseract",
+      "Tesseract OCR",
+      "5.5"
+    ],
+    [
+      "OpenOCR",
+      "OpenOCR GitHub",
+      "0.0.6"
+    ],
+    [
+      "EasyOCR",
+      "EasyOCR",
+      "1.7.2"
+    ],
+    [
+      "Surya",
+      "Surya GitHub",
+      "0.5.0"
+    ]
+  ],
+  [
+    [
+      "Model Name",
+      "Official Website",
+      "Evaluation Version/Model Weights"
+    ],
+    [
+      "DiT-L",
+      "DiT-L",
+      "Hugging Face DiT"
+    ],
+    [
+      "LayoutMv3",
+      "LayoutMv3",
+      "Hugging Face LayoutMv3"
+    ],
+    [
+      "DOCX-Chain",
+      "DOCX-Chain",
+      "DocXLayout_231012.pth"
+    ],
+    [
+      "DocLayout-YOLO",
+      "DocLayout-YOLO",
+      "Hugging Face DocLayout-YOLO"
+    ],
+    [
+      "SwinDocSegmenter",
+      "SwinDocSegmenter",
+      "model weights"
+    ],
+    [
+      "GraphKD",
+      "GraphKD",
+      "model weights"
+    ]
+  ],
+  [
+    [
+      "Model Name",
+      "Official Website",
+      "Evaluation Version/Model Weights"
+    ],
+    [
+      "GOT_OCR",
+      "GOT_OCR",
+      "Hugging Face GOT-OCR2_0"
+    ],
+    [
+      "Mathpix",
+      "Mathpix",
+      "———"
+    ],
+    [
+      "Pix2Tex",
+      "Pix2Tex",
+      "0.1.2"
+    ],
+    [
+      "UniMERNet-B",
+      "UniMERNet-B",
+      "Hugging Face UniMERNet-B"
+    ],
+    [
+      "GPT4o",
+      "GPT4o",
+      "2024-08-06"
+    ],
+    [
+      "InternVL2-Llama3-76B",
+      "InternVL2-Llama3-76B",
+      "Huggingface Face InternVL2-Llama3-76B"
+    ],
+    [
+      "Qwen2-VL-72B",
+      "Qwen2-VL-72B",
+      "Hugging Face Qwen2-VL-72B-Instruct"
+    ]
+  ],
+  [
+    [
+      "Model Name",
+      "Official Website",
+      "Evaluation Version/Model Weights"
+    ],
+    [
+      "PaddleOCR",
+      "PaddleOCR",
+      "PaddleOCR"
+    ],
+    [
+      "RapidTable",
+      "RapidTable",
+      "ModelScope RapidTable"
+    ],
+    [
+      "StructEqTable",
+      "StructEqTable",
+      "Hugging Face StructEqTable"
+    ],
+    [
+      "GOT-OCR",
+      "GOT-OCR",
+      "Hugging Face GOT-OCR"
+    ],
+    [
+      "Qwen2-VL-7B",
+      "Qwen2-VL-7B",
+      "Hugging Face Qwen2-VL-7B-Instruct"
+    ],
+    [
+      "InternVL2-8B",
+      "InternVL2-8B",
+      "Hugging Face InternVL2-8B"
+    ]
+  ]
+]

@@ -1,0 +1,227 @@
+[
+  {
+    "name": "paddlevl16-metadata",
+    "url": "https://huggingface.co/api/models/PaddlePaddle/PaddleOCR-VL-1.6?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/PaddlePaddle/PaddleOCR-VL-1.6?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:07.277577+00:00",
+    "ok": true,
+    "bytes": 6381,
+    "sha256": "cb0c49683e8b7649ad349bb114e3616f8066c381d39fb6388349fe92078c04d2",
+    "detail": {
+      "id": "PaddlePaddle/PaddleOCR-VL-1.6",
+      "sha": "c5630abae1d940eafe0697512a0325494b02ab42",
+      "lastModified": "2026-08-08T14:32:21.000Z"
+    }
+  },
+  {
+    "name": "teleocr-metadata",
+    "url": "https://huggingface.co/api/models/StarDoc-AI/TeleOCR?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/StarDoc-AI/TeleOCR?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:07.457358+00:00",
+    "ok": true,
+    "bytes": 6035,
+    "sha256": "6d9bbe71de9e5527f84e2c5d13044258bdb296b41c50249340abc99b5eae7d5f",
+    "detail": {
+      "id": "StarDoc-AI/TeleOCR",
+      "sha": "8706730e41382f4a8f2562616d47225fee8e2f7a",
+      "lastModified": "2026-09-17T08:55:16.000Z"
+    }
+  },
+  {
+    "name": "ovisocr2-card",
+    "url": "https://huggingface.co/ATH-MaaS/OvisOCR2/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/ATH-MaaS/OvisOCR2/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:07.507432+00:00",
+    "ok": true,
+    "bytes": 7915,
+    "sha256": "03c876522bb7be5e8410eed758854dbb933204935afa898758d929c10725945d",
+    "detail": {}
+  },
+  {
+    "name": "paddlevl16-card",
+    "url": "https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:08.528271+00:00",
+    "ok": true,
+    "bytes": 21424,
+    "sha256": "d6c5b77a660577f6e18021defccd835bdc93a8c6538f5a479d597f3e94288abf",
+    "detail": {}
+  },
+  {
+    "name": "ovisocr2-metadata",
+    "url": "https://huggingface.co/api/models/ATH-MaaS/OvisOCR2?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/ATH-MaaS/OvisOCR2?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:08.587860+00:00",
+    "ok": true,
+    "bytes": 20156,
+    "sha256": "68bd3b760b325915eb309f30e3d3aa735bd251f86c886d2f34efb74e4bdb5400",
+    "detail": {
+      "id": "ATH-MaaS/OvisOCR2",
+      "sha": "1fc9221b7823a371d6e97f92d527cc847e24e107",
+      "lastModified": "2026-08-28T08:46:00.000Z"
+    }
+  },
+  {
+    "name": "teleocr-card",
+    "url": "https://huggingface.co/StarDoc-AI/TeleOCR/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/StarDoc-AI/TeleOCR/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:08.852207+00:00",
+    "ok": true,
+    "bytes": 25045,
+    "sha256": "648a65dd241522d59ae2bd19a4909fcf6c01eb3f57acfa6917d3d814643537cc",
+    "detail": {}
+  },
+  {
+    "name": "qwen35-9b-metadata",
+    "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-9B?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/Qwen/Qwen3.5-9B?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:09.914977+00:00",
+    "ok": true,
+    "bytes": 22805,
+    "sha256": "0a3ab812af8cb81df80d24df80eadf5fa2bcc26cc3514fc8b3f592987786bac1",
+    "detail": {
+      "id": "Qwen/Qwen3.5-9B",
+      "sha": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "lastModified": "2026-03-02T00:51:43.000Z"
+    }
+  },
+  {
+    "name": "unlimited-metadata",
+    "url": "https://huggingface.co/api/models/baidu/Unlimited-OCR?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/baidu/Unlimited-OCR?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:09.915634+00:00",
+    "ok": true,
+    "bytes": 6095,
+    "sha256": "3f54a35be46aa7877db476b251bc48f728293f0ec6e3e32d19628baf09792b6f",
+    "detail": {
+      "id": "baidu/Unlimited-OCR",
+      "sha": "07dea832e22aefee32ad281d4b80551282e1c168",
+      "lastModified": "2026-07-29T04:34:16.000Z"
+    }
+  },
+  {
+    "name": "unlimited-card",
+    "url": "https://huggingface.co/baidu/Unlimited-OCR/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/baidu/Unlimited-OCR/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:11.025282+00:00",
+    "ok": true,
+    "bytes": 11108,
+    "sha256": "4f573db255db5262bfe2ea92e459bfc11635a456f210e3a96289bb9605077a55",
+    "detail": {}
+  },
+  {
+    "name": "qwen38-27b-metadata",
+    "url": "https://huggingface.co/api/models/Qwen/Qwen3.8-27B?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/Qwen/Qwen3.8-27B?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:11.050396+00:00",
+    "ok": true,
+    "bytes": 28682,
+    "sha256": "dc466189643264e6722108e39b065c6603ab677384eeaf18a1fa168a040d4f91",
+    "detail": {
+      "id": "Qwen/Qwen3.8-27B",
+      "sha": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "lastModified": "2026-08-14T15:00:01.000Z"
+    }
+  },
+  {
+    "name": "glm-current",
+    "url": "https://huggingface.co/api/models/zai-org/GLM-OCR/revision/2e85a62840ccac27daa451df36c736c4636b8628?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/zai-org/GLM-OCR/revision/2e85a62840ccac27daa451df36c736c4636b8628?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:11.245818+00:00",
+    "ok": true,
+    "bytes": 9897,
+    "sha256": "8a2291785c064c35269d54261a29c968a45c0ea1975a3875974fa6afeeb4bff9",
+    "detail": {
+      "id": "zai-org/GLM-OCR",
+      "sha": "2e85a62840ccac27daa451df36c736c4636b8628",
+      "lastModified": "2026-09-11T11:59:14.000Z"
+    }
+  },
+  {
+    "name": "glm-pinned",
+    "url": "https://huggingface.co/api/models/zai-org/GLM-OCR/revision/ca5d8b3e287e52589e37c28385d9655ee4372f9d?blobs=true",
+    "resolved_url": "https://huggingface.co/api/models/zai-org/GLM-OCR/revision/ca5d8b3e287e52589e37c28385d9655ee4372f9d?blobs=true",
+    "retrieved_utc": "2026-09-18T13:39:12.008922+00:00",
+    "ok": true,
+    "bytes": 9727,
+    "sha256": "e9231cf62a21147ccae6d71610e46d0eb00bd608dabe33746374d65354b6ba31",
+    "detail": {
+      "id": "zai-org/GLM-OCR",
+      "sha": "ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+      "lastModified": "2026-05-19T12:28:43.000Z"
+    }
+  },
+  {
+    "name": "hunyuan-llamacpp",
+    "url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/contents/docs/llama_cpp.md",
+    "resolved_url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/contents/docs/llama_cpp.md",
+    "retrieved_utc": "2026-09-18T13:39:12.341628+00:00",
+    "ok": true,
+    "bytes": 9857,
+    "sha256": "45c070d6f842e052da902c46d09080e5db1fab5120775d8b313efbeac553931b",
+    "detail": {
+      "url": "https://github.com/Tencent-Hunyuan/HunyuanOCR/blob/main/docs/llama_cpp.md",
+      "git_blob_sha": "fbf275134630b6a8cd1f7adf923f3a43138e2fc4"
+    }
+  },
+  {
+    "name": "qwen38-27b-card",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:12.591183+00:00",
+    "ok": true,
+    "bytes": 65012,
+    "sha256": "57e4bdb258ee1a7d2635c5174ebd4e56abe392505cdb5f8bbb356b0dc4293641",
+    "detail": {}
+  },
+  {
+    "name": "hunyuan-inference",
+    "url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/contents/docs/inference/inference.md",
+    "resolved_url": "https://api.github.com/repos/Tencent-Hunyuan/HunyuanOCR/contents/docs/inference/inference.md",
+    "retrieved_utc": "2026-09-18T13:39:13.103772+00:00",
+    "ok": true,
+    "bytes": 6847,
+    "sha256": "f4a5c41f9a25e95092012b46898ae72d89c9629362494ba720ef931fe86be23f",
+    "detail": {
+      "url": "https://github.com/Tencent-Hunyuan/HunyuanOCR/blob/main/docs/inference/inference.md",
+      "git_blob_sha": "7db8047fdeaeee39ebdce3e88c280973fb43d2bf"
+    }
+  },
+  {
+    "name": "qwen35-9b-card",
+    "url": "https://huggingface.co/Qwen/Qwen3.5-9B/raw/main/README.md",
+    "resolved_url": "https://huggingface.co/Qwen/Qwen3.5-9B/raw/main/README.md",
+    "retrieved_utc": "2026-09-18T13:39:13.143884+00:00",
+    "ok": true,
+    "bytes": 77643,
+    "sha256": "c5f5a8c2dddab69cfbf05279235aa5fddb137939a06539c4c7637aa900fef6d0",
+    "detail": {}
+  },
+  {
+    "name": "qwen38-config",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/config.json",
+    "resolved_url": "https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/config.json",
+    "retrieved_utc": "2026-09-18T13:39:13.431312+00:00",
+    "ok": true,
+    "bytes": 4312,
+    "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab",
+    "detail": {
+      "architectures": [
+        "Qwen3_5ForConditionalGeneration"
+      ]
+    }
+  },
+  {
+    "name": "teleocr-readme",
+    "url": "https://api.github.com/repos/caipeng328/NaviDC-OCR/contents/README.md",
+    "resolved_url": "https://api.github.com/repositories/1332869703/contents/README.md",
+    "retrieved_utc": "2026-09-18T13:39:14.883083+00:00",
+    "ok": true,
+    "bytes": 33589,
+    "sha256": "fdb8a8fc6e5c7adb23a11ac0be05fa3f55f44ed6d602f808c511ed78edabad64",
+    "detail": {
+      "url": "https://github.com/caipeng328/TeleOCR/blob/main/README.md",
+      "git_blob_sha": "df9b545ef4dfa480d620162f96c67845a71156e2"
+    }
+  }
+]

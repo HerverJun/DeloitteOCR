@@ -1,0 +1,44 @@
+[
+  {
+    "name": "glm-old-config.json",
+    "url": "https://huggingface.co/zai-org/GLM-OCR/raw/ca5d8b3e287e52589e37c28385d9655ee4372f9d/config.json",
+    "ok": true,
+    "sha256": "4e1daf0d8a3f63e58960ac14bcb58b7be96758cad231fb7a1e5fec60f42dcd8c",
+    "retrieved_utc": "2026-09-18T13:41:24.244622+00:00"
+  },
+  {
+    "name": "glm-old-tokenizer_config.json",
+    "url": "https://huggingface.co/zai-org/GLM-OCR/raw/ca5d8b3e287e52589e37c28385d9655ee4372f9d/tokenizer_config.json",
+    "ok": true,
+    "sha256": "23404f517abeb2893f1c175c6d7c539f733f6fca287414a2ce9ab569d99a1c06",
+    "retrieved_utc": "2026-09-18T13:41:24.101121+00:00"
+  },
+  {
+    "name": "glm-new-config.json",
+    "url": "https://huggingface.co/zai-org/GLM-OCR/raw/2e85a62840ccac27daa451df36c736c4636b8628/config.json",
+    "ok": true,
+    "sha256": "ad537817b2becde827cbb23569a1dd83a352ee64cc34ce751a4ef000ecce4b5f",
+    "retrieved_utc": "2026-09-18T13:41:23.974027+00:00"
+  },
+  {
+    "name": "glm-new-tokenizer_config.json",
+    "url": "https://huggingface.co/zai-org/GLM-OCR/raw/2e85a62840ccac27daa451df36c736c4636b8628/tokenizer_config.json",
+    "ok": true,
+    "sha256": "95abd49942be9cdc6e2653528aed7b4c1cb9e180828421d3488ab38da3057016",
+    "retrieved_utc": "2026-09-18T13:41:23.732794+00:00"
+  },
+  {
+    "name": "glm-new-processor_config.json",
+    "url": "https://huggingface.co/zai-org/GLM-OCR/raw/2e85a62840ccac27daa451df36c736c4636b8628/processor_config.json",
+    "ok": true,
+    "sha256": "a56fbd559186fefd6c22a3acc6a393a18a9fe52c264692a122a143d24042112b",
+    "retrieved_utc": "2026-09-18T13:41:24.049523+00:00"
+  },
+  {
+    "name": "mineru-license.json",
+    "url": "https://api.github.com/repos/opendatalab/MinerU/contents/LICENSE.md",
+    "ok": true,
+    "sha256": "680952a22fa10603486513dc0b2607da13b789a30b05920fdf313715ebfb7a3c",
+    "retrieved_utc": "2026-09-18T13:41:24.101121+00:00"
+  }
+]

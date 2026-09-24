@@ -1,0 +1,1163 @@
+{
+  "schema_version": 1,
+  "plan_revision": 2,
+  "created": "2026-09-20",
+  "status": "p0_completed_langgraph_revision_planned",
+  "document": "docs/ocr-agent-development-plan-20260920.md",
+  "acceptance_document": "docs/ocr-agent-acceptance-plan-20260920.md",
+  "baseline": {
+    "application_version": "0.13.0rc1",
+    "database_schema": 12,
+    "planned_next_schema": 13,
+    "note": "实施时重新冻结当前工作区与实际迁移号；不覆盖其他专项改动。"
+  },
+  "execution": {
+    "start_condition": "本轮只调整计划；后续开始实施从 B00 继续，P0 不重复执行。",
+    "default_executor": "single_agent_or_developer",
+    "subagents_required": false,
+    "stage_approval_required": false,
+    "private_user_samples_required": false,
+    "real_api_credentials_block_independent_engineering": false,
+    "state_values": [
+      "pending",
+      "running",
+      "done",
+      "blocked",
+      "failed"
+    ],
+    "runtime_state_location": "audit/ocr-agent-<run>/task-state.json",
+    "dependencies_mean": "所需工程契约/产物就绪；评测任务可产出 not_tested 报告，但不得视为产品验收通过。",
+    "completion_rule": "具体 done_when 与证据文件均满足；测试失败不标 done，评估报告的完成与发布资格分开。",
+    "request_retry_policy": "生成式 POST 接收状态不明时不自动重发；业务重投依赖幂等记录。",
+    "browser_evidence": "优先外部 Playwright/Chromium --disable-gpu --disable-gpu-compositing；内置浏览器遵守全局 AGENTS.md。",
+    "completed_baseline_reference": "audit/ocr-agent-20260920-p0/task-state.json",
+    "resume_from": "docs/ocr-agent-next-20260921.md",
+    "framework": "LangGraph StateGraph embedded in FastAPI",
+    "checkpoint_policy": "Official saver in separate local database; reconcile business operation IDs; no cross-database atomicity claim."
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "name": "基线与契约",
+      "estimated_person_days": [
+        1,
+        2
+      ],
+      "completion_reference": "docs/ocr-agent-p0-results-20260920.md",
+      "excluded_from_remaining_estimate": true
+    },
+    {
+      "id": "P1",
+      "name": "LangGraph 框架与基础设施",
+      "estimated_person_days": [
+        4,
+        6
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "只读助手",
+      "estimated_person_days": [
+        3,
+        5
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "执行闭环",
+      "estimated_person_days": [
+        5,
+        8
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "审校和完整体验",
+      "estimated_person_days": [
+        4,
+        6
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "加固与评测",
+      "estimated_person_days": [
+        5,
+        8
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "文档和交付",
+      "estimated_person_days": [
+        3,
+        5
+      ]
+    }
+  ],
+  "paths": {
+    "audit": "audit/ocr-agent-<run>",
+    "build": "build/ocr-agent-<run>",
+    "source": "src/ocr_workbench/agent",
+    "notes": "本文件路径是计划目标，任务执行时记录真实文件和哈希；不代表目标文件已实现。"
+  },
+  "release_invariants": [
+    "零越项目操作",
+    "零未授权外发或修订",
+    "故障注入中零重复业务效果",
+    "零过期版本覆盖",
+    "零虚构完整成功",
+    "零凭据泄露"
+  ],
+  "task_count": 35,
+  "tasks": [
+    {
+      "id": "A01",
+      "phase": "P0",
+      "title": "冻结工作区、运行时与既有行为基线",
+      "status": "pending",
+      "depends_on": [],
+      "target_files": [
+        "src/ocr_workbench",
+        "frontend",
+        "config/runtime-locks",
+        "tests"
+      ],
+      "outputs": [
+        "baseline.json",
+        "existing-regressions.json",
+        "workspace-preservation.md"
+      ],
+      "done_when": "记录未提交改动和关键源码哈希、schema、包与运行时位置；识别既有失败及六场景对应入口，不覆盖现有成果。",
+      "validation_ids": [],
+      "on_blocked": "缺少完整模型包时记录路径与未测项；继续源码、协议、存储和 UI 设计。",
+      "completion_reference": "audit/ocr-agent-20260920-p0/task-state.json#A01",
+      "execution_note": "P0 已完成，状态从历史回执解析；此处 pending 是任务模板初始值，不要求重跑。"
+    },
+    {
+      "id": "A02",
+      "phase": "P0",
+      "title": "冻结架构、工具、API、状态与授权契约",
+      "status": "pending",
+      "depends_on": [
+        "A01"
+      ],
+      "target_files": [
+        "docs/ocr-agent-development-plan-20260920.md",
+        "src/ocr_workbench/agent/contracts.py",
+        "config/agent-policy.json"
+      ],
+      "outputs": [
+        "architecture-decisions.md",
+        "contracts.json",
+        "policy-defaults.json"
+      ],
+      "done_when": "12 个工具、会话/run/operation 边界、配对协议、结果选择、预算、错误分类、SSE 和功能开关形成可验证契约；默认值有版本。",
+      "validation_ids": [],
+      "on_blocked": "遇到业务前置条件冲突先保留原保护，明确受限工具和替代交互，不扩大权限。",
+      "completion_reference": "audit/ocr-agent-20260920-p0/task-state.json#A02",
+      "execution_note": "P0 已完成，状态从历史回执解析；此处 pending 是任务模板初始值，不要求重跑。"
+    },
+    {
+      "id": "A03",
+      "phase": "P0",
+      "title": "准备夹具、真实模型任务集和评分器规格",
+      "status": "pending",
+      "depends_on": [
+        "A01",
+        "A02"
+      ],
+      "target_files": [
+        "tests/agent_fixtures",
+        "scripts/agent_eval"
+      ],
+      "outputs": [
+        "fixtures-manifest.json",
+        "evaluation-split.json",
+        "scoring-contract.json"
+      ],
+      "done_when": "生成 FX01—FX08 和 60 条中文任务定义、真值与哈希；36 开发/24 封存按模板和文档组分离，记录曝光；执行状态仍未测。",
+      "validation_ids": [],
+      "on_blocked": "公开数据不足使用合成/已有回归材料完成工程集；真实内容质量数据缺口单独记录，不要求用户先提供文档。",
+      "completion_reference": "audit/ocr-agent-20260920-p0/task-state.json#A03",
+      "execution_note": "P0 已完成，状态从历史回执解析；此处 pending 是任务模板初始值，不要求重跑。"
+    },
+    {
+      "id": "B00",
+      "phase": "P1",
+      "title": "验证 LangGraph 离线运行、checkpoint 与业务恢复边界",
+      "status": "pending",
+      "depends_on": [
+        "A01",
+        "A02"
+      ],
+      "target_files": [
+        "build/ocr-agent-<run>/langgraph-probe",
+        "docs/ocr-agent-langgraph-adr-20260921.md"
+      ],
+      "outputs": [
+        "langgraph-compatibility.json",
+        "langgraph-replay-probe.json",
+        "framework-lock-candidate.json"
+      ],
+      "done_when": "隔离 Windows Python 3.12 运行时通过官方发行版离线导入、图工具循环、interrupt 节点重入、双库副作用对账、早完成/重复恢复与无 tracing；记录 wheel/hash/license、saver 限制和图版本。不接生产、不用真实凭据；通过才推进相关图实现。",
+      "validation_ids": [
+        "E65",
+        "E66",
+        "E67",
+        "E68",
+        "E71"
+      ],
+      "on_blocked": "最多两套有依据的官方兼容组合；仍失败写阻碍与 ADR，继续 B02/业务工具等独立工作，不暗改为自研框架或引入云数据库。"
+    },
+    {
+      "id": "B01",
+      "phase": "P1",
+      "title": "实现业务存储与 LangGraph checkpoint 分治",
+      "status": "pending",
+      "depends_on": [
+        "A02",
+        "B00"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/store.py",
+        "src/ocr_workbench/agent/migrations.py",
+        "src/ocr_workbench/store.py"
+      ],
+      "outputs": [
+        "migration-receipt.json",
+        "store-contract-results.json",
+        "checkpoint-ownership.json"
+      ],
+      "done_when": "业务迁移、线程映射、模型发送日志、run 投影和应用事件事务通过；不新建重复 messages/summaries 表。独立官方 saver 库、两库备份/恢复/删除协议明确，未来版本拒绝；两库不宣称原子事务。",
+      "validation_ids": [
+        "E09",
+        "E41",
+        "E48",
+        "E68",
+        "E69",
+        "E72"
+      ],
+      "on_blocked": "其他专项占用 schema 时顺延迁移号；有存储不变量失败先修复，不开放写工具。"
+    },
+    {
+      "id": "B02",
+      "phase": "P1",
+      "title": "提取最小共享业务服务",
+      "status": "pending",
+      "depends_on": [
+        "A01",
+        "A02"
+      ],
+      "target_files": [
+        "src/ocr_workbench/application_services.py",
+        "src/ocr_workbench/service.py",
+        "src/ocr_workbench/document_routes.py",
+        "src/ocr_workbench/multimodal_routes.py",
+        "src/ocr_workbench/structure_routes.py"
+      ],
+      "outputs": [
+        "service-parity-results.json",
+        "lock-order.md"
+      ],
+      "done_when": "只提取需复用的提交/查询/导出入口；原 UI 行为、review-only、维护锁、健康检查和版本限制回归通过；事务 helper 可组合。",
+      "validation_ids": [
+        "E24",
+        "E57"
+      ],
+      "on_blocked": "先以已有接口建立等价测试；无法一次提取的入口按工具分批改造，不绕过校验直接访问底层。"
+    },
+    {
+      "id": "B03",
+      "phase": "P1",
+      "title": "实现工具注册、作用域和授权策略",
+      "status": "pending",
+      "depends_on": [
+        "A02",
+        "B01"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/registry.py",
+        "src/ocr_workbench/agent/policy.py",
+        "src/ocr_workbench/agent/contracts.py"
+      ],
+      "outputs": [
+        "tool-catalog.json",
+        "scope-policy-results.json"
+      ],
+      "done_when": "严格 schema、工具白名单、资源项目归属、端点/数据范围授权和 decision hash 落在服务端；已授权动作不重复询问，拒绝任意执行能力。",
+      "validation_ids": [
+        "E31",
+        "E32",
+        "E52",
+        "E53"
+      ],
+      "on_blocked": "未知能力默认不可用并返回原因；不通过放宽 project/版本验证解除阻塞。"
+    },
+    {
+      "id": "B04",
+      "phase": "P1",
+      "title": "实现两种主控协议适配器",
+      "status": "pending",
+      "depends_on": [
+        "A02",
+        "B00"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/providers.py",
+        "src/ocr_workbench/external_review.py"
+      ],
+      "outputs": [
+        "provider-contract-results.json",
+        "provider-capabilities.json"
+      ],
+      "done_when": "两协议经现有 httpx 基础输出规范可序列化模型消息，支持原生工具配对/opaque 续接/usage/取消/错误；图节点重放复用已保存响应，sent 无回包暂停，不配置盲目生成重试；旧审校协议回归通过。",
+      "validation_ids": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E70"
+      ],
+      "on_blocked": "无真实凭据时继续本地协议模拟；不自动从自由文本提取命令执行。"
+    },
+    {
+      "id": "B05",
+      "phase": "P1",
+      "title": "实现独立主控连接和工具能力探针",
+      "status": "pending",
+      "depends_on": [
+        "B01",
+        "B04"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/connection.py",
+        "src/ocr_workbench/agent/routes.py",
+        "frontend/src/AgentConnection.tsx"
+      ],
+      "outputs": [
+        "connection-probe-results.json",
+        "credential-redaction-results.json"
+      ],
+      "done_when": "无业务数据的两回合探针可验证工具与结果消费；DPAPI 凭据隔离、测试失败不替换旧配置、配置变更与删除规则通过。 有已授权配置时立即执行真实双回合探针并单列结果；没有配置时记录 not_tested。",
+      "validation_ids": [
+        "E06",
+        "E07",
+        "E08"
+      ],
+      "on_blocked": "服务不列模型可手填再测试；未通过原生工具探针的模型显示不可用，继续其余工程。"
+    },
+    {
+      "id": "C01",
+      "phase": "P2",
+      "title": "实现 StateGraph 工具循环、预算与薄运行适配器",
+      "status": "pending",
+      "depends_on": [
+        "B00",
+        "B01",
+        "B03",
+        "B04"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/graph.py",
+        "src/ocr_workbench/agent/state.py",
+        "src/ocr_workbench/agent/runtime.py"
+      ],
+      "outputs": [
+        "runtime-state-results.json",
+        "budget-results.json"
+      ],
+      "done_when": "StateGraph model/validate/execute/wait/collect/finalize 可动态选工具；保留 P0 全批验证、写串行与有界读并发。thread 单执行、inbox、generation、预算/reducer 去重通过；recursion_limit 与模型调用预算分开；不另写步骤调度器。",
+      "validation_ids": [
+        "E03",
+        "E10",
+        "E14",
+        "E56",
+        "E65",
+        "E66",
+        "E70"
+      ],
+      "on_blocked": "复杂提供方暂以模拟适配器推进状态机；不以无限重试提高成功率。"
+    },
+    {
+      "id": "C02",
+      "phase": "P2",
+      "title": "实现上下文、检索、读页和证据工具",
+      "status": "pending",
+      "depends_on": [
+        "B02",
+        "B03",
+        "A03"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/context.py",
+        "src/ocr_workbench/agent/tools.py",
+        "frontend/src/agentNavigation.ts"
+      ],
+      "outputs": [
+        "read-tools-results.json",
+        "evidence-reference-results.json"
+      ],
+      "done_when": "get_workspace_context/search_document/read_page_result/navigate_to_evidence 实现分页、采用/本轮来源区分、版本和项目验证；缺页/含糊目标可澄清。",
+      "validation_ids": [
+        "E16",
+        "E29",
+        "E35"
+      ],
+      "on_blocked": "无可靠坐标仅提供页级证据；未识别页报告未覆盖，不生成虚构引用。"
+    },
+    {
+      "id": "C03",
+      "phase": "P2",
+      "title": "实现会话 HTTP API、决策回复和可重放 SSE",
+      "status": "pending",
+      "depends_on": [
+        "C01",
+        "C02",
+        "B05"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/routes.py",
+        "src/ocr_workbench/agent/events.py",
+        "frontend/src/agentApi.ts"
+      ],
+      "outputs": [
+        "api-contract-results.json",
+        "event-replay-results.json"
+      ],
+      "done_when": "应用 API 与 fetch Bearer SSE 保留 v1 契约；graph 流经 adapter 映射为稳定应用事件，checkpoint 与业务投影不同时提交时可对账；应用 seq 去重/补读，decision 回复绑定合法 interrupt，客户端无任意 Command 权限。",
+      "validation_ids": [
+        "E09",
+        "E10",
+        "E11",
+        "E12",
+        "E53",
+        "E68",
+        "E69"
+      ],
+      "on_blocked": "SSE 适配遇阻可先使用相同 seq 契约短轮询验证 UI，但正式 SSE 验收仍保留待完成。"
+    },
+    {
+      "id": "C04",
+      "phase": "P2",
+      "title": "实现只读助手面板和基本会话交互",
+      "status": "pending",
+      "depends_on": [
+        "C03"
+      ],
+      "target_files": [
+        "frontend/src/AgentPanel.tsx",
+        "frontend/src/agentTypes.ts",
+        "frontend/src/App.tsx",
+        "frontend/src/WorkspaceLayout.tsx"
+      ],
+      "outputs": [
+        "readonly-ui-results.json",
+        "readonly-ui-evidence.json",
+        "early-controller-smoke.json"
+      ],
+      "done_when": "项目绑定、选择 token、历史会话、查询结果、证据卡、澄清和配置入口可用；断流/刷新恢复，Markdown 不执行不可信内容。 有已授权主控时用 3—5 条开发任务执行早期真实烟测；无条件明确记录缺口，不作为封存成绩。",
+      "validation_ids": [
+        "E11",
+        "E15",
+        "E16",
+        "E49",
+        "E55"
+      ],
+      "on_blocked": "无真实服务时使用本地协议服务完成交互证据，显式标为模拟。"
+    },
+    {
+      "id": "C05",
+      "phase": "P2",
+      "title": "接入官方 checkpoint saver 与有界上下文",
+      "status": "pending",
+      "depends_on": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/checkpoints.py",
+        "src/ocr_workbench/agent/state.py",
+        "src/ocr_workbench/agent/context.py"
+      ],
+      "outputs": [
+        "context-compaction-results.json",
+        "checkpoint-results.json",
+        "graph-version-recovery.json"
+      ],
+      "done_when": "官方 saver 管理消息/摘要/执行位置；state 只存序列化数据和引用，服务/Key 不落盘、不用不可信 pickle 回退。配对/reducer 去重、图/state/serializer 版本检查及旧中断迁移通过；不维护第二份可驱动执行的消息历史。",
+      "validation_ids": [
+        "E13",
+        "E14",
+        "E65",
+        "E69",
+        "E70",
+        "E72"
+      ],
+      "on_blocked": "模型摘要不可用时采用确定性裁剪和引用保留；上下文不足明确暂停，不丢未完成操作。"
+    },
+    {
+      "id": "D01",
+      "phase": "P3",
+      "title": "为写操作补齐幂等和原子业务关联",
+      "status": "pending",
+      "depends_on": [
+        "B01",
+        "B02",
+        "B03"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/operations.py",
+        "src/ocr_workbench/store.py",
+        "src/ocr_workbench/document_store.py",
+        "src/ocr_workbench/multimodal_store.py"
+      ],
+      "outputs": [
+        "operation-idempotency-results.json",
+        "transaction-fault-results.json"
+      ],
+      "done_when": "普通 OCR、融合、文档 force 与审校提交有 operation→job 原子关联；重复 key 同参复用/异参冲突；协议 call ID 不充当唯一业务去重依据。",
+      "validation_ids": [
+        "E17",
+        "E18",
+        "E19",
+        "E42"
+      ],
+      "on_blocked": "若现有事务嵌套冲突，提取 db helper 并保留旧 wrapper；禁止以提交后补写链接作为最终方案。"
+    },
+    {
+      "id": "D02",
+      "phase": "P3",
+      "title": "实现队列桥接、interrupt 等待与唯一恢复",
+      "status": "pending",
+      "depends_on": [
+        "D01",
+        "C01"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/jobs.py",
+        "src/ocr_workbench/agent/runtime.py"
+      ],
+      "outputs": [
+        "job-bridge-results.json",
+        "wake-deduplication-results.json"
+      ],
+      "done_when": "提交节点与 await_jobs 分开；等待不占栈/GPU、不请求模型；job link/持久 resume intent 和检查点挂起对账防早完成漏唤醒；后端核验合法 thread/interrupt/generation，以 Command 恢复并重查真实任务，重复通知无额外步骤。",
+      "validation_ids": [
+        "E20",
+        "E21",
+        "E24",
+        "E66",
+        "E67",
+        "E68"
+      ],
+      "on_blocked": "无法立即加队列事件时使用有界 ID 轮询，保持相同持久游标与去重语义。"
+    },
+    {
+      "id": "D03",
+      "phase": "P3",
+      "title": "接入页面处理、多引擎 OCR 和失败子集重试",
+      "status": "pending",
+      "depends_on": [
+        "D01",
+        "D02",
+        "C02"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/tools.py",
+        "src/ocr_workbench/application_services.py"
+      ],
+      "outputs": [
+        "processing-tools-results.json",
+        "result-selection-results.json"
+      ],
+      "done_when": "process_pages/run_ocr/get_job_status/retry_failed_jobs 完成；明确页集/版本/引擎包，继承选择规则，失败重跑不包含成功页，PP-OCR 不伪称结构表。",
+      "validation_ids": [
+        "E17",
+        "E22",
+        "E29",
+        "E36"
+      ],
+      "on_blocked": "缺 GPU 时完成冻结结果编排与 CPU 原生轨，真实 OCR 留待资源就绪并单列未测。"
+    },
+    {
+      "id": "D04",
+      "phase": "P3",
+      "title": "实现持久导出产物与维护集成",
+      "status": "pending",
+      "depends_on": [
+        "D01",
+        "D03",
+        "C03",
+        "B02"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/artifacts.py",
+        "src/ocr_workbench/agent/tools.py",
+        "src/ocr_workbench/exporting.py",
+        "src/ocr_workbench/pdf_export.py",
+        "src/ocr_workbench/maintenance.py"
+      ],
+      "outputs": [
+        "artifact-lifecycle-results.json",
+        "export-coverage-results.json"
+      ],
+      "done_when": "独立 agent-artifacts、快照 manifest、部分结果策略、原子发布、下载鉴权/租约、哈希核验、30 天保留/固定保留和维护统计通过；旧 exports 清理不影响产物。",
+      "validation_ids": [
+        "E36",
+        "E37",
+        "E38",
+        "E39",
+        "E40",
+        "E43",
+        "E44",
+        "E45",
+        "E46"
+      ],
+      "on_blocked": "部分格式受现有定位要求限制时返回 preflight 缺口，完成其他格式；不得伪造成功链接。"
+    },
+    {
+      "id": "D05",
+      "phase": "P3",
+      "title": "实现 LangGraph 取消、重放核对与显式恢复",
+      "status": "pending",
+      "depends_on": [
+        "D02",
+        "D03",
+        "C05"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/runtime.py",
+        "src/ocr_workbench/agent/jobs.py",
+        "src/ocr_workbench/agent/routes.py"
+      ],
+      "outputs": [
+        "cancel-recovery-results.json",
+        "crash-window-results.json"
+      ],
+      "done_when": "停止两模式与 created/reused 语义通过；取消当前 graph 调用且旧 checkpoint 不得绕 generation。正常 waiting_jobs 自动唤醒、waiting_user 对应用户回复、重启 interrupted 显式继续；所有恢复先查业务副作用，checkpoint 丢失/损坏明确停止自动续跑。",
+      "validation_ids": [
+        "E19",
+        "E21",
+        "E23",
+        "E25",
+        "E26",
+        "E27",
+        "E66",
+        "E67",
+        "E68",
+        "E69"
+      ],
+      "on_blocked": "某任务无法立即终止时展示取消请求与真实状态，阻止后续动作，不硬杀无关进程。"
+    },
+    {
+      "id": "D06",
+      "phase": "P3",
+      "title": "实现管理器生命周期、竞争控制与项目维护协调",
+      "status": "pending",
+      "depends_on": [
+        "D04",
+        "D05",
+        "B03"
+      ],
+      "target_files": [
+        "src/ocr_workbench/service.py",
+        "src/ocr_workbench/agent/runtime.py",
+        "src/ocr_workbench/maintenance.py"
+      ],
+      "outputs": [
+        "lifecycle-concurrency-results.json",
+        "maintenance-results.json"
+      ],
+      "done_when": "单项目写 run、generation fencing、短事务/锁顺序、正常停机和项目删除协调通过；无跨网络持锁或无界线程。 增加 saver 生命周期、同 thread 并发互斥、项目 checkpoint 清理、两库静止点备份与取消后图重入核对。",
+      "validation_ids": [
+        "E24",
+        "E27",
+        "E47",
+        "E61",
+        "E69",
+        "E72"
+      ],
+      "on_blocked": "出现资源竞争先收紧并发和定位锁，不取消既有手工任务或绕过 maintenance。"
+    },
+    {
+      "id": "E01",
+      "phase": "P4",
+      "title": "接入财务、结构检查和准确证据解释",
+      "status": "pending",
+      "depends_on": [
+        "D03",
+        "C02"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/tools.py",
+        "src/ocr_workbench/financial_checks.py",
+        "src/ocr_workbench/structure_store.py"
+      ],
+      "outputs": [
+        "inspection-tools-results.json",
+        "financial-groundtruth-results.json"
+      ],
+      "done_when": "inspect_table 明确只读/生成候选动作；Decimal 金额事实、单位和容差与真值一致；结构来源和实验属性保留。",
+      "validation_ids": [
+        "E33",
+        "E34",
+        "E35"
+      ],
+      "on_blocked": "现有结构功能缺定位/候选时报告证据不足，继续财务/文字检查，不自动补造结构。"
+    },
+    {
+      "id": "E02",
+      "phase": "P4",
+      "title": "接入现有视觉审校队列",
+      "status": "pending",
+      "depends_on": [
+        "E01",
+        "D02",
+        "B05",
+        "B03"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/tools.py",
+        "src/ocr_workbench/application_services.py",
+        "src/ocr_workbench/multimodal_routes.py"
+      ],
+      "outputs": [
+        "visual-review-tools-results.json",
+        "outbound-scope-results.json"
+      ],
+      "done_when": "request_visual_review 固定目标和版本，沿用本地/外部队列与快照检查；主控/视觉连接独立；图像外发有范围依据且不自动采用。",
+      "validation_ids": [
+        "E07",
+        "E18",
+        "E34",
+        "E52",
+        "E57"
+      ],
+      "on_blocked": "无真实视觉连接时复用现有模拟服务验证契约；真实质量未测不阻塞 UI/恢复工程。"
+    },
+    {
+      "id": "E03",
+      "phase": "P4",
+      "title": "接入采用、版本冲突与撤销",
+      "status": "pending",
+      "depends_on": [
+        "E02",
+        "B01",
+        "C03"
+      ],
+      "target_files": [
+        "frontend/src/MultimodalReview.tsx",
+        "frontend/src/StructureReview.tsx",
+        "src/ocr_workbench/agent/context.py",
+        "src/ocr_workbench/application_services.py"
+      ],
+      "outputs": [
+        "revision-adoption-results.json",
+        "undo-provenance-results.json"
+      ],
+      "done_when": "具体建议在现有 UI 决定；采用/重复/拒绝/撤销可追溯，stale revision 拒绝；重识别不替换已有人工作业，未采用结果依赖条件清楚。",
+      "validation_ids": [
+        "E28",
+        "E29",
+        "E30"
+      ],
+      "on_blocked": "新结果不满足现有采用前提时导航到既有采用入口，不修改底层断言强行放行。"
+    },
+    {
+      "id": "E04",
+      "phase": "P4",
+      "title": "完成任务、决策、产物和证据富交互",
+      "status": "pending",
+      "depends_on": [
+        "C04",
+        "D04",
+        "D05",
+        "E03"
+      ],
+      "target_files": [
+        "frontend/src/AgentPanel.tsx",
+        "frontend/src/agent",
+        "frontend/src/WorkspaceLayout.tsx"
+      ],
+      "outputs": [
+        "agent-ui-results.json",
+        "agent-ui-screenshots.json"
+      ],
+      "done_when": "六场景 UI 完整；覆盖清单、预算增加、部分导出、停止两模式、具体建议和历史下载可用；窄屏/键盘/无障碍及防注入通过。",
+      "validation_ids": [
+        "E14",
+        "E35",
+        "E37",
+        "E50",
+        "E51",
+        "E52",
+        "E56",
+        "E16",
+        "E36"
+      ],
+      "on_blocked": "使用本地模拟服务稳定复现交互；截图遵守 AGENTS，优先外部禁 GPU Chromium。"
+    },
+    {
+      "id": "E05",
+      "phase": "P4",
+      "title": "实现连接模式、review-only 与离线降级",
+      "status": "pending",
+      "depends_on": [
+        "B05",
+        "D06",
+        "E02"
+      ],
+      "target_files": [
+        "src/ocr_workbench/agent/connection.py",
+        "src/ocr_workbench/agent/policy.py",
+        "config/agent-policy.json",
+        "frontend/src/AgentConnection.tsx"
+      ],
+      "outputs": [
+        "mode-compatibility-results.json",
+        "local-controller-assessment.json"
+      ],
+      "done_when": "网络/内网/候选本地主控角色和能力边界清楚；启动无探活，review-only 保留既有允许能力，断网不影响普通 OCR；本地主控是否通过有单独结论。",
+      "validation_ids": [
+        "E49",
+        "E57",
+        "E58",
+        "E59"
+      ],
+      "on_blocked": "没有可靠本地主控时将该配置标 unsupported/not_tested，继续已验证 API 路线，不承诺全离线 agent。"
+    },
+    {
+      "id": "F01",
+      "phase": "P5",
+      "title": "验证图执行、模型协议与上下文回归",
+      "status": "pending",
+      "depends_on": [
+        "B04",
+        "B05",
+        "C01",
+        "C05"
+      ],
+      "target_files": [
+        "tests/test_agent_provider.py",
+        "tests/test_agent_graph.py",
+        "tests/test_agent_context.py"
+      ],
+      "outputs": [
+        "protocol-runtime-checks.json"
+      ],
+      "done_when": "E01—E07、E13 及预算相关确定性用例全部有断言并通过；审校旧协议回归通过。 增加真实框架图（模拟模型）中断重入、GraphInterrupt 传播、消息 reducer/预算去重、模型请求未知状态与图步数上限验证。",
+      "validation_ids": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "E13",
+        "E14",
+        "E65",
+        "E66",
+        "E70"
+      ],
+      "on_blocked": "修复实际失败后只重跑受影响检查，再执行阶段回归；外部不稳定不替代本地可复现协议测试。"
+    },
+    {
+      "id": "F02",
+      "phase": "P5",
+      "title": "完成事务、故障窗口、取消与产物恢复验证",
+      "status": "pending",
+      "depends_on": [
+        "D01",
+        "D04",
+        "D05",
+        "D06",
+        "E03",
+        "B01"
+      ],
+      "target_files": [
+        "tests/test_agent_operations.py",
+        "tests/test_agent_recovery.py",
+        "tests/test_agent_artifacts.py"
+      ],
+      "outputs": [
+        "fault-injection-checks.json"
+      ],
+      "done_when": "所有设计的提交/回包/唤醒/文件发布崩溃窗口、取消竞争和重复投递通过；零重复效果/过期覆盖/伪 ready。 必测业务提交后 checkpoint 落后、graph 前进但应用事件未写、任务完成早于挂起、resume 消费与图提交间崩溃、checkpoint 损坏和版本不兼容。",
+      "validation_ids": [
+        "E18",
+        "E19",
+        "E21",
+        "E22",
+        "E25",
+        "E26",
+        "E27",
+        "E38",
+        "E40",
+        "E41",
+        "E42",
+        "E43",
+        "E45",
+        "E66",
+        "E67",
+        "E68",
+        "E69",
+        "E72"
+      ],
+      "on_blocked": "发现一致性缺陷先阻止受影响写工具发布，保留最小复现，不标为可接受缺口。"
+    },
+    {
+      "id": "F03",
+      "phase": "P5",
+      "title": "完成项目边界、数据注入、内容与模式验证",
+      "status": "pending",
+      "depends_on": [
+        "B03",
+        "E01",
+        "E02",
+        "E03",
+        "E05"
+      ],
+      "target_files": [
+        "tests/test_agent_policy.py",
+        "tests/test_agent_scope.py",
+        "tests/test_agent_tools.py"
+      ],
+      "outputs": [
+        "boundary-content-checks.json"
+      ],
+      "done_when": "资源类型归属、授权范围、数据注入、金额事实、路径边界、stale 决策、review-only 全通过；未经授权副作用为零。 拒绝伪造 graph thread/checkpoint/interrupt 与任意 Command，检查 state 和 tracing 不泄露 Key/业务内容。",
+      "validation_ids": [
+        "E07",
+        "E28",
+        "E31",
+        "E32",
+        "E33",
+        "E46",
+        "E52",
+        "E53",
+        "E54",
+        "E56",
+        "E57",
+        "E69",
+        "E71"
+      ],
+      "on_blocked": "内容真值不足时分离工程事实与识别质量；权限/版本/副作用失败必须修复，不能降低门槛。"
+    },
+    {
+      "id": "F04",
+      "phase": "P5",
+      "title": "完成完整 UI 和既有工作流回归",
+      "status": "pending",
+      "depends_on": [
+        "E04",
+        "D05",
+        "C03"
+      ],
+      "target_files": [
+        "frontend/src/agent",
+        "frontend/scripts/agent-workflows.mjs",
+        "tests/test_agent_integration.py"
+      ],
+      "outputs": [
+        "ui-integration-checks.json",
+        "existing-workflow-regression.json"
+      ],
+      "done_when": "S01—S06 在受控后端完成，事件断流/双窗口/停止/版本冲突/导出/跳转/窄屏覆盖；原手工识别、校对和导出不回归。",
+      "validation_ids": [
+        "E11",
+        "E12",
+        "E15",
+        "E30",
+        "E35",
+        "E37",
+        "E39",
+        "E50",
+        "E51",
+        "E55"
+      ],
+      "on_blocked": "某 UI 场景失败先保存 DOM/日志/截图最小证据，修复后重复该场景，不通过大量无目标截图代替断言。"
+    },
+    {
+      "id": "F05",
+      "phase": "P5",
+      "title": "执行真实主控封存评测并给出配置资格",
+      "status": "pending",
+      "depends_on": [
+        "A03",
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "E05"
+      ],
+      "target_files": [
+        "scripts/agent_eval",
+        "audit/ocr-agent-<run>/model-evaluation.json"
+      ],
+      "outputs": [
+        "model-evaluation.json",
+        "supported-configurations.json"
+      ],
+      "done_when": "对可用已授权配置完成 24×3 封存运行和评分，记录实际 usage/失败/介入；若无条件则输出明确 not_tested 及原因，任务报告完成不代表模型通过。",
+      "validation_ids": [
+        "E59"
+      ],
+      "on_blocked": "缺调用授权或凭据不读取并挪用其他连接；保留真实效果缺口，继续性能、文档和包工程。"
+    },
+    {
+      "id": "F06",
+      "phase": "P5",
+      "title": "执行规模、资源和稳定性评测",
+      "status": "pending",
+      "depends_on": [
+        "D06",
+        "C05",
+        "E04",
+        "A03"
+      ],
+      "target_files": [
+        "scripts/agent_eval",
+        "tests/test_agent_load.py"
+      ],
+      "outputs": [
+        "performance.json",
+        "stability.json"
+      ],
+      "done_when": "本机演示先记录短时服务/UI 烟测和基本资源、安全边界，不要求生产性能资格。100/1000 页、10 万事件、50 次会话循环、调度/进度/取消指标及相对 OCR 基线归后续生产资格评估，未测环境明确；单列 SQLite saver 写入延迟/锁竞争/checkpoint 体积及长会话清理成本。用户已取消新四小时混合长轨，不再安排，历史 failed/not_qualified 不改判，长期稳定资格另议证据标准。",
+      "validation_ids": [
+        "E20",
+        "E60",
+        "E61",
+        "E72",
+        "E24"
+      ],
+      "on_blocked": "GPU 不可用先完成合成队列和事件压力，保留真实吞吐未测；不外推成真实 GPU 性能结论。"
+    },
+    {
+      "id": "G01",
+      "phase": "P6",
+      "title": "编写用户手册、诊断和开发维护说明",
+      "status": "pending",
+      "depends_on": [
+        "E04",
+        "E05",
+        "C05"
+      ],
+      "target_files": [
+        "docs/ocr-agent-usage.md",
+        "docs/ocr-agent-operations.md",
+        "docs/ocr-agent-development-notes.md"
+      ],
+      "outputs": [
+        "documentation-review.json"
+      ],
+      "done_when": "覆盖配置/数据范围/六场景/停止恢复/预算/采用/产物保留/离线/迁移/回退和诊断，明确真实支持名单引用方式。 文档说明 LangGraph 与业务记录分工、图版本升级和 checkpoint 恢复，不指导用户用任意 thread 重放。",
+      "validation_ids": [],
+      "on_blocked": "真实成绩尚未生成时引用机器可读资格状态并注明未测，文档不预填成功。"
+    },
+    {
+      "id": "G02",
+      "phase": "P6",
+      "title": "构建冻结候选便携包并验证一致性",
+      "status": "pending",
+      "depends_on": [
+        "G01",
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F06"
+      ],
+      "target_files": [
+        "scripts/prepare_agent_bundle.py",
+        "scripts/sync_bundle.py",
+        "config/runtime-locks",
+        "licenses"
+      ],
+      "outputs": [
+        "bundle-manifest.json",
+        "bundle-validation.json",
+        "archive-receipt.json"
+      ],
+      "done_when": "源码/前端/依赖锁/许可证/迁移/配置/文档入新候选包，完整清单与归档哈希通过；用户凭据/会话不入包，历史交付不覆盖。 锁定 LangGraph/saver 所有传递 wheel 和许可，禁止隐式 LangSmith tracing；生产包不携带开发 checkpoint。",
+      "validation_ids": [
+        "E62",
+        "E71"
+      ],
+      "on_blocked": "缺真实模型成绩可构建标注实验状态的包；依赖或包校验失败必须修复后才能称候选可交付。"
+    },
+    {
+      "id": "G03",
+      "phase": "P6",
+      "title": "执行包内、迁移、离线和干净 Windows 检查",
+      "status": "pending",
+      "depends_on": [
+        "G02"
+      ],
+      "target_files": [
+        "scripts/audit_agent_bundle.py",
+        "scripts/target_machine_acceptance.py"
+      ],
+      "outputs": [
+        "target-environment-results.json",
+        "upgrade-rollback-results.json"
+      ],
+      "done_when": "运行可用环境的搬迁/断网/升级/DPAPI/异常恢复/维护检查；干净机有证据则给结论，无条件明确 not_tested，不冒称全通过。 增加实际包图挂起升级、双库备份还原、checkpoint 项目删除及离线 saver 测试。",
+      "validation_ids": [
+        "E08",
+        "E23",
+        "E44",
+        "E47",
+        "E48",
+        "E58",
+        "E62",
+        "E63",
+        "E65",
+        "E71",
+        "E72"
+      ],
+      "on_blocked": "无干净机完成同机包内、中文路径搬迁和可复现目标机脚本，保留环境资格缺口。"
+    },
+    {
+      "id": "G04",
+      "phase": "P6",
+      "title": "汇总证据并作出发布级别判定",
+      "status": "pending",
+      "depends_on": [
+        "G03",
+        "F05",
+        "F06",
+        "G01"
+      ],
+      "target_files": [
+        "docs/ocr-agent-release-results.md",
+        "audit/ocr-agent-<run>/release-status.json"
+      ],
+      "outputs": [
+        "release-status.json",
+        "delivery-index.md",
+        "NEXT.md"
+      ],
+      "done_when": "35 项任务输出与 72 工程检查、真实模型评测和包哈希可追溯；P0 历史成绩与 v2 框架新成绩分开；按实际结果判开发闭环/实验包/已验证配置，缺口不伪称通过，列出包与双库回退位置。",
+      "validation_ids": [
+        "E64"
+      ],
+      "on_blocked": "关键不变量失败不发布受影响功能；缺真实配置或目标机证据只给相应受限资格，报告完成不等于产品全通过。"
+    }
+  ],
+  "updated": "2026-09-21",
+  "architecture_decision": "docs/ocr-agent-langgraph-adr-20260921.md",
+  "next_steps": "docs/ocr-agent-next-20260921.md",
+  "estimate": {
+    "scope": "Remaining P1-P6; P0 already completed",
+    "person_days": [
+      24,
+      38
+    ],
+    "calibrate_after": "B00"
+  }
+}
