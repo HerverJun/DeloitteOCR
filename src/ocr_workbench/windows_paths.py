@@ -18,8 +18,11 @@ def ascii_model_directory(models):
     if str(models).isascii():
         yield models
         return
-    candidates=[Path(tempfile.gettempdir()),Path(os.environ['SystemRoot'])/'Temp',
-                Path(os.environ['ProgramData'])/'OfflineOCR'/'Temp']
+    candidates=[Path(tempfile.gettempdir())]
+    if os.environ.get('SystemRoot'):
+        candidates.append(Path(os.environ['SystemRoot'])/'Temp')
+    if os.environ.get('ProgramData'):
+        candidates.append(Path(os.environ['ProgramData'])/'OfflineOCR'/'Temp')
     temporary=None
     for parent in candidates:
         if not str(parent).isascii():continue
