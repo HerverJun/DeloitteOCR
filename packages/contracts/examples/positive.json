@@ -1,0 +1,222 @@
+{
+  "AppManifest": {
+    "adapter_version": "1.0.0",
+    "app_id": "ocr",
+    "app_version": "1.0.0",
+    "capabilities": [
+      "cancel",
+      "import"
+    ],
+    "data_schema_version": "1",
+    "display_name": "OCR",
+    "entry_mode": "standalone_page",
+    "input_types": [
+      "image/png"
+    ],
+    "license_refs": [
+      "LICENSE"
+    ],
+    "min_platform_version": "1.0.0",
+    "output_types": [
+      "application/json"
+    ],
+    "resources": [
+      "cpu"
+    ],
+    "schema_version": "1.0"
+  },
+  "Artifact": {
+    "application_version": "1.0.0",
+    "artifact_id": "artifactA",
+    "availability": "available",
+    "blob_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "created_at": "2026-09-25T01:00:00Z",
+    "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "job_ref": {
+      "app_id": "ocr",
+      "capabilities": [
+        "cancel"
+      ],
+      "counts": {
+        "cancelled": 0,
+        "failed": 0,
+        "pending": 2,
+        "schema_version": "1.0",
+        "succeeded": 1,
+        "total": 3
+      },
+      "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "instance_id": "instanceA",
+      "last_event_seq": 4,
+      "native_job_id": "nativeA",
+      "native_status": "working",
+      "operation_id": "operationA",
+      "platform_job_id": "jobA",
+      "schema_version": "1.0",
+      "stage": "extracting",
+      "status": "running",
+      "updated_at": "2026-09-25T01:00:00Z"
+    },
+    "media_type": "application/json",
+    "revision": 1,
+    "rule_or_model_version": "rules-1",
+    "schema_version": "1.0",
+    "size_bytes": 100,
+    "source_refs": [
+      {
+        "asset_id": "assetA",
+        "asset_revision": 1,
+        "blob_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "page",
+        "page_number": 1,
+        "precision": "page_only",
+        "schema_version": "1.0"
+      }
+    ],
+    "workspace_id": "workspaceA"
+  },
+  "Asset": {
+    "asset_id": "assetA",
+    "blob_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": "2026-09-25T01:00:00Z",
+    "media_type": "application/pdf",
+    "original_name": "sample.pdf",
+    "revision": 1,
+    "schema_version": "1.0",
+    "size_bytes": 2000000000,
+    "source_id": "sourceA",
+    "storage_mode": "managed",
+    "workspace_id": "workspaceA"
+  },
+  "AssetSet": {
+    "asset_set_id": "setA",
+    "items": [
+      {
+        "asset_id": "assetA",
+        "asset_revision": 1,
+        "blob_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "item_id": "itemA",
+        "schema_version": "1.0",
+        "source_locator": {
+          "asset_id": "assetA",
+          "asset_revision": 1,
+          "blob_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "kind": "page",
+          "page_number": 1,
+          "precision": "page_only",
+          "schema_version": "1.0"
+        }
+      }
+    ],
+    "manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "revision": 2,
+    "schema_version": "1.0"
+  },
+  "DecimalValue": {
+    "currency": "USD",
+    "schema_version": "1.0",
+    "value": "123456789012.123456"
+  },
+  "Error": {
+    "code": "INPUT_CHANGED",
+    "details": {},
+    "message": "Input has changed",
+    "request_id": "requestA",
+    "retryable": false,
+    "schema_version": "1.0"
+  },
+  "HandoffRequest": {
+    "asset_set_id": "setA",
+    "asset_set_revision": 2,
+    "import_options": {
+      "duplicate_policy": "skip",
+      "mode": "copy",
+      "schema_version": "1.0"
+    },
+    "manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "request_id": "requestA",
+    "schema_version": "1.0",
+    "target_link_id": "linkA"
+  },
+  "HandoffStatus": {
+    "items": [
+      {
+        "item_id": "itemA",
+        "schema_version": "1.0",
+        "status": "imported",
+        "target_asset_id": "assetB"
+      },
+      {
+        "error_code": "INPUT_MISSING",
+        "item_id": "itemB",
+        "schema_version": "1.0",
+        "status": "failed"
+      }
+    ],
+    "operation_id": "operationA",
+    "request_id": "requestA",
+    "schema_version": "1.0",
+    "state": "partial"
+  },
+  "JobRef": {
+    "app_id": "ocr",
+    "capabilities": [
+      "cancel"
+    ],
+    "counts": {
+      "cancelled": 0,
+      "failed": 0,
+      "pending": 2,
+      "schema_version": "1.0",
+      "succeeded": 1,
+      "total": 3
+    },
+    "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "instance_id": "instanceA",
+    "last_event_seq": 4,
+    "native_job_id": "nativeA",
+    "native_status": "working",
+    "operation_id": "operationA",
+    "platform_job_id": "jobA",
+    "schema_version": "1.0",
+    "stage": "extracting",
+    "status": "running",
+    "updated_at": "2026-09-25T01:00:00Z"
+  },
+  "OpenContext": {
+    "app_id": "ocr",
+    "asset_set_id": "setA",
+    "expires_at": "2026-09-25T02:00:00Z",
+    "instance_id": "instanceA",
+    "link_id": "linkA",
+    "nonce": "nonceA",
+    "return_route": "/workspaces/demo/assets",
+    "schema_version": "1.0"
+  },
+  "PageQuery": {
+    "cursor": "cursorA",
+    "limit": 100,
+    "schema_version": "1.0",
+    "snapshot_revision": 2
+  },
+  "ResourceGrant": {
+    "generation": 2,
+    "granted_at": "2026-09-25T01:00:00Z",
+    "heartbeat_at": "2026-09-25T01:01:00Z",
+    "job_id": "jobA",
+    "lease_until": "2026-09-25T01:02:00Z",
+    "managed_process_identity": "processA",
+    "owner_instance_id": "instanceA",
+    "resource_id": "gpuA",
+    "schema_version": "1.0"
+  },
+  "SourceLocator": {
+    "asset_id": "assetA",
+    "asset_revision": 1,
+    "blob_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "kind": "page",
+    "page_number": 1,
+    "precision": "page_only",
+    "schema_version": "1.0"
+  }
+}

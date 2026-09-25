@@ -1,0 +1,195 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "asset_revision": {
+      "minimum": 1,
+      "title": "Asset Revision",
+      "type": "integer"
+    },
+    "blob_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Blob Hash",
+      "type": "string"
+    },
+    "box": {
+      "anyOf": [
+        {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Box"
+    },
+    "column_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Column Number"
+    },
+    "coordinate_space": {
+      "anyOf": [
+        {
+          "enum": [
+            "image_pixels",
+            "normalized"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Coordinate Space"
+    },
+    "image_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Image Version Id"
+    },
+    "kind": {
+      "enum": [
+        "file",
+        "page",
+        "table",
+        "cell",
+        "row",
+        "region"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "page_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Page Number"
+    },
+    "precision": {
+      "enum": [
+        "exact",
+        "approximate",
+        "page_only",
+        "unknown"
+      ],
+      "title": "Precision",
+      "type": "string"
+    },
+    "row_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Row Number"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sheet_name": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sheet Name"
+    },
+    "table_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Table Number"
+    },
+    "transform_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Transform Revision"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "asset_id",
+    "asset_revision",
+    "blob_hash",
+    "precision"
+  ],
+  "title": "SourceLocator",
+  "type": "object"
+}

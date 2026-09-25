@@ -1,0 +1,2385 @@
+{
+  "components": {
+    "schemas": {
+      "AppHealth": {
+        "additionalProperties": false,
+        "properties": {
+          "cpu": {
+            "$ref": "#/components/schemas/Health"
+          },
+          "gpu": {
+            "$ref": "#/components/schemas/Health"
+          },
+          "models": {
+            "$ref": "#/components/schemas/Health"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "service": {
+            "$ref": "#/components/schemas/Health"
+          },
+          "ui": {
+            "$ref": "#/components/schemas/Health"
+          }
+        },
+        "required": [
+          "schema_version",
+          "service",
+          "ui",
+          "cpu",
+          "gpu",
+          "models"
+        ],
+        "title": "AppHealth",
+        "type": "object"
+      },
+      "AppManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "app_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "App Version",
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "cancel",
+                "pause",
+                "resume",
+                "retry_failed",
+                "import",
+                "export",
+                "gpu"
+              ],
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "data_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Data Schema Version",
+            "type": "string"
+          },
+          "display_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "entry_mode": {
+            "const": "standalone_page",
+            "title": "Entry Mode",
+            "type": "string"
+          },
+          "input_types": {
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Input Types",
+            "type": "array"
+          },
+          "license_refs": {
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "License Refs",
+            "type": "array"
+          },
+          "min_platform_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Min Platform Version",
+            "type": "string"
+          },
+          "output_types": {
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Output Types",
+            "type": "array"
+          },
+          "resources": {
+            "items": {
+              "enum": [
+                "cpu",
+                "gpu",
+                "network"
+              ],
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Resources",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "app_id",
+          "display_name",
+          "app_version",
+          "adapter_version",
+          "min_platform_version",
+          "data_schema_version",
+          "entry_mode",
+          "capabilities",
+          "input_types",
+          "output_types",
+          "resources",
+          "license_refs"
+        ],
+        "title": "AppManifest",
+        "type": "object"
+      },
+      "AppManifestPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AppManifest"
+            },
+            "maxItems": 200,
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "pattern": "^[A-Za-z0-9_-]{1,256}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "minimum": 1,
+            "title": "Snapshot Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "next_cursor",
+          "snapshot_revision",
+          "items"
+        ],
+        "title": "AppManifestPage",
+        "type": "object"
+      },
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "application_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Application Version",
+            "type": "string"
+          },
+          "artifact_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "expired",
+              "missing",
+              "corrupt"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "blob_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Blob Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Created At",
+            "type": "string"
+          },
+          "input_manifest_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Manifest Hash",
+            "type": "string"
+          },
+          "job_ref": {
+            "$ref": "#/components/schemas/JobRef"
+          },
+          "media_type": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Media Type",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "rule_or_model_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Rule Or Model Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "size_bytes": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "source_refs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocator"
+            },
+            "maxItems": 10000,
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "artifact_id",
+          "workspace_id",
+          "job_ref",
+          "revision",
+          "media_type",
+          "blob_hash",
+          "size_bytes",
+          "input_manifest_hash",
+          "application_version",
+          "rule_or_model_version",
+          "created_at",
+          "availability",
+          "source_refs"
+        ],
+        "title": "Artifact",
+        "type": "object"
+      },
+      "Asset": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "blob_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Blob Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Created At",
+            "type": "string"
+          },
+          "media_type": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Media Type",
+            "type": "string"
+          },
+          "original_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Original Name",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "size_bytes": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "source_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "storage_mode": {
+            "enum": [
+              "managed",
+              "referenced"
+            ],
+            "title": "Storage Mode",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "asset_id",
+          "workspace_id",
+          "source_id",
+          "original_name",
+          "media_type",
+          "storage_mode",
+          "blob_hash",
+          "size_bytes",
+          "revision",
+          "created_at"
+        ],
+        "title": "Asset",
+        "type": "object"
+      },
+      "AssetPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Asset"
+            },
+            "maxItems": 200,
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "pattern": "^[A-Za-z0-9_-]{1,256}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "minimum": 1,
+            "title": "Snapshot Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "next_cursor",
+          "snapshot_revision",
+          "items"
+        ],
+        "title": "AssetPage",
+        "type": "object"
+      },
+      "AssetSet": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_set_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Set Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssetSetItem"
+            },
+            "maxItems": 10000,
+            "title": "Items",
+            "type": "array"
+          },
+          "manifest_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Manifest Hash",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "asset_set_id",
+          "revision",
+          "manifest_hash",
+          "items"
+        ],
+        "title": "AssetSet",
+        "type": "object"
+      },
+      "AssetSetItem": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "asset_revision": {
+            "minimum": 1,
+            "title": "Asset Revision",
+            "type": "integer"
+          },
+          "blob_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Blob Hash",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_locator": {
+            "$ref": "#/components/schemas/SourceLocator"
+          }
+        },
+        "required": [
+          "schema_version",
+          "item_id",
+          "asset_id",
+          "asset_revision",
+          "blob_hash",
+          "source_locator"
+        ],
+        "title": "AssetSetItem",
+        "type": "object"
+      },
+      "ContextIssueRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Id"
+          },
+          "asset_set_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Asset Set Id"
+          },
+          "instance_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Instance Id",
+            "type": "string"
+          },
+          "link_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "return_route": {
+            "maxLength": 257,
+            "pattern": "^/[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$",
+            "title": "Return Route",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "app_id",
+          "instance_id",
+          "link_id",
+          "return_route"
+        ],
+        "title": "ContextIssueRequest",
+        "type": "object"
+      },
+      "Counts": {
+        "additionalProperties": false,
+        "properties": {
+          "cancelled": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "failed": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Failed",
+            "type": "integer"
+          },
+          "pending": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Pending",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "succeeded": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Succeeded",
+            "type": "integer"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "maximum": 1000000000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "required": [
+          "schema_version",
+          "total",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "pending"
+        ],
+        "title": "Counts",
+        "type": "object"
+      },
+      "DecimalValue": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 26,
+            "pattern": "^-?(?:0|[1-9][0-9]{0,17})(?:\\.[0-9]{1,6})?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "value",
+          "currency"
+        ],
+        "title": "DecimalValue",
+        "type": "object"
+      },
+      "Error": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "APP_UNAVAILABLE",
+              "AUTH_EXPIRED",
+              "CONTEXT_EXPIRED",
+              "REVISION_CONFLICT",
+              "INPUT_CHANGED",
+              "INPUT_MISSING",
+              "ARTIFACT_MISSING",
+              "IDEMPOTENCY_CONFLICT",
+              "RESOURCE_BUSY",
+              "SUBMISSION_UNKNOWN",
+              "CAPABILITY_UNSUPPORTED",
+              "CANCEL_REQUESTED",
+              "OUTPUT_INCOMPLETE",
+              "INTEGRITY_MISMATCH",
+              "VALIDATION_FAILED",
+              "NOT_FOUND",
+              "SNAPSHOT_EXPIRED"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "maxProperties": 16,
+            "patternProperties": {
+              "^[A-Za-z][A-Za-z0-9_-]{0,63}$": {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "propertyNames": {
+              "maxLength": 64
+            },
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "code",
+          "message",
+          "retryable",
+          "request_id",
+          "details"
+        ],
+        "title": "Error",
+        "type": "object"
+      },
+      "HandoffItem": {
+        "additionalProperties": false,
+        "properties": {
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "INPUT_CHANGED",
+                  "INPUT_MISSING",
+                  "VALIDATION_FAILED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error Code"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "imported",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_asset_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Asset Id"
+          }
+        },
+        "required": [
+          "schema_version",
+          "item_id",
+          "status"
+        ],
+        "title": "HandoffItem",
+        "type": "object"
+      },
+      "HandoffRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_set_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Set Id",
+            "type": "string"
+          },
+          "asset_set_revision": {
+            "minimum": 1,
+            "title": "Asset Set Revision",
+            "type": "integer"
+          },
+          "import_options": {
+            "$ref": "#/components/schemas/ImportOptions"
+          },
+          "manifest_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Manifest Hash",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "target_link_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Target Link Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "target_link_id",
+          "asset_set_id",
+          "asset_set_revision",
+          "manifest_hash",
+          "import_options"
+        ],
+        "title": "HandoffRequest",
+        "type": "object"
+      },
+      "HandoffStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HandoffItem"
+            },
+            "maxItems": 10000,
+            "title": "Items",
+            "type": "array"
+          },
+          "operation_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "submitting",
+              "accepted",
+              "reconciling",
+              "completed",
+              "partial",
+              "failed",
+              "unknown"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "operation_id",
+          "state",
+          "items"
+        ],
+        "title": "HandoffStatus",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 512,
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "unavailable",
+              "disabled",
+              "unknown"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "state",
+          "reason"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "ImportOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "duplicate_policy": {
+            "enum": [
+              "skip",
+              "keep_separate"
+            ],
+            "title": "Duplicate Policy",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "copy",
+              "reference"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mode",
+          "duplicate_policy"
+        ],
+        "title": "ImportOptions",
+        "type": "object"
+      },
+      "JobControlRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_event_seq": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Expected Event Seq",
+            "type": "integer"
+          },
+          "operation": {
+            "enum": [
+              "cancel",
+              "pause",
+              "resume",
+              "retry_failed"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "operation",
+          "expected_event_seq"
+        ],
+        "title": "JobControlRequest",
+        "type": "object"
+      },
+      "JobPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobRef"
+            },
+            "maxItems": 200,
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "pattern": "^[A-Za-z0-9_-]{1,256}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "minimum": 1,
+            "title": "Snapshot Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "next_cursor",
+          "snapshot_revision",
+          "items"
+        ],
+        "title": "JobPage",
+        "type": "object"
+      },
+      "JobRef": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "cancel",
+                "pause",
+                "resume",
+                "retry_failed"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/Counts"
+          },
+          "input_manifest_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Manifest Hash",
+            "type": "string"
+          },
+          "instance_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Instance Id",
+            "type": "string"
+          },
+          "last_event_seq": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Last Event Seq",
+            "type": "integer"
+          },
+          "native_job_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Native Job Id",
+            "type": "string"
+          },
+          "native_status": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Native Status",
+            "type": "string"
+          },
+          "operation_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "platform_job_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Platform Job Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "stage": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Stage",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "waiting_resource",
+              "running",
+              "pausing",
+              "paused",
+              "cancelling",
+              "cancelled",
+              "succeeded",
+              "partial",
+              "failed",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "platform_job_id",
+          "app_id",
+          "instance_id",
+          "native_job_id",
+          "operation_id",
+          "input_manifest_hash",
+          "native_status",
+          "status",
+          "stage",
+          "counts",
+          "capabilities",
+          "last_event_seq",
+          "updated_at"
+        ],
+        "title": "JobRef",
+        "type": "object"
+      },
+      "LaunchReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "base_url": {
+            "maxLength": 40,
+            "pattern": "^http://127\\.0\\.0\\.1:[0-9]{1,5}/?$",
+            "title": "Base Url",
+            "type": "string"
+          },
+          "creation_time": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Creation Time",
+            "type": "string"
+          },
+          "handshake_nonce": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Handshake Nonce",
+            "type": "string"
+          },
+          "instance_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Instance Id",
+            "type": "string"
+          },
+          "launch_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Launch Id",
+            "type": "string"
+          },
+          "ownership": {
+            "enum": [
+              "owned",
+              "discovered"
+            ],
+            "title": "Ownership",
+            "type": "string"
+          },
+          "pid": {
+            "exclusiveMinimum": 0,
+            "title": "Pid",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "launch_id",
+          "app_id",
+          "instance_id",
+          "pid",
+          "creation_time",
+          "base_url",
+          "handshake_nonce",
+          "ownership",
+          "version"
+        ],
+        "title": "LaunchReceipt",
+        "type": "object"
+      },
+      "ModuleProjectLink": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "link_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "module_project_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Module Project Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_id",
+          "app_id",
+          "module_project_id",
+          "link_id",
+          "role",
+          "revision"
+        ],
+        "title": "ModuleProjectLink",
+        "type": "object"
+      },
+      "OpenContext": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Id"
+          },
+          "asset_set_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Asset Set Id"
+          },
+          "expires_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "instance_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Instance Id",
+            "type": "string"
+          },
+          "link_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "nonce": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Nonce",
+            "type": "string"
+          },
+          "return_route": {
+            "maxLength": 257,
+            "pattern": "^/[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$",
+            "title": "Return Route",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "app_id",
+          "instance_id",
+          "link_id",
+          "nonce",
+          "expires_at",
+          "return_route"
+        ],
+        "title": "OpenContext",
+        "type": "object"
+      },
+      "PageBase": {
+        "additionalProperties": false,
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "pattern": "^[A-Za-z0-9_-]{1,256}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "minimum": 1,
+            "title": "Snapshot Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "next_cursor",
+          "snapshot_revision"
+        ],
+        "title": "PageBase",
+        "type": "object"
+      },
+      "PageQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "pattern": "^[A-Za-z0-9_-]{1,256}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cursor"
+          },
+          "limit": {
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Revision"
+          }
+        },
+        "required": [
+          "schema_version",
+          "limit"
+        ],
+        "title": "PageQuery",
+        "type": "object"
+      },
+      "ResourceGrant": {
+        "additionalProperties": false,
+        "properties": {
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "granted_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Granted At",
+            "type": "string"
+          },
+          "heartbeat_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Heartbeat At",
+            "type": "string"
+          },
+          "job_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "lease_until": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Lease Until",
+            "type": "string"
+          },
+          "managed_process_identity": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Managed Process Identity",
+            "type": "string"
+          },
+          "owner_instance_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Owner Instance Id",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "resource_id",
+          "owner_instance_id",
+          "job_id",
+          "generation",
+          "granted_at",
+          "heartbeat_at",
+          "lease_until",
+          "managed_process_identity"
+        ],
+        "title": "ResourceGrant",
+        "type": "object"
+      },
+      "SourceLocator": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "asset_revision": {
+            "minimum": 1,
+            "title": "Asset Revision",
+            "type": "integer"
+          },
+          "blob_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Blob Hash",
+            "type": "string"
+          },
+          "box": {
+            "anyOf": [
+              {
+                "maxItems": 4,
+                "minItems": 4,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Box"
+          },
+          "column_number": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Column Number"
+          },
+          "coordinate_space": {
+            "anyOf": [
+              {
+                "enum": [
+                  "image_pixels",
+                  "normalized"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Coordinate Space"
+          },
+          "image_version_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Image Version Id"
+          },
+          "kind": {
+            "enum": [
+              "file",
+              "page",
+              "table",
+              "cell",
+              "row",
+              "region"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "page_number": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Page Number"
+          },
+          "precision": {
+            "enum": [
+              "exact",
+              "approximate",
+              "page_only",
+              "unknown"
+            ],
+            "title": "Precision",
+            "type": "string"
+          },
+          "row_number": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Row Number"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sheet_name": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sheet Name"
+          },
+          "table_number": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Table Number"
+          },
+          "transform_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Transform Revision"
+          }
+        },
+        "required": [
+          "schema_version",
+          "kind",
+          "asset_id",
+          "asset_revision",
+          "blob_hash",
+          "precision"
+        ],
+        "title": "SourceLocator",
+        "type": "object"
+      },
+      "Workspace": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Created At",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "updated_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_id",
+          "name",
+          "revision",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Workspace",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Workbench adapter protocol",
+    "version": "1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/platform/v1/apps": {
+      "get": {
+        "operationId": "listAppManifests",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_-]{1,256}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "snapshot_revision",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppManifestPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Snapshot expired"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/apps/{app_id}": {
+      "get": {
+        "operationId": "getAppManifest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppManifest"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/apps/{app_id}/health": {
+      "get": {
+        "operationId": "getAppHealth",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "app_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppHealth"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/artifacts/{artifact_id}": {
+      "get": {
+        "operationId": "getArtifact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Artifact"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/asset-sets/{asset_set_id}": {
+      "get": {
+        "operationId": "getAssetSet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_set_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetSet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/assets": {
+      "get": {
+        "operationId": "listAssets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_-]{1,256}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "snapshot_revision",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Snapshot expired"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/handoffs": {
+      "post": {
+        "operationId": "submitHandoff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency or input conflict"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/handoffs/{request_id}": {
+      "get": {
+        "operationId": "getHandoffStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/jobs": {
+      "get": {
+        "operationId": "listJobs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_-]{1,256}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "snapshot_revision",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Snapshot expired"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/jobs/{platform_job_id}": {
+      "get": {
+        "operationId": "getJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform_job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/jobs/{platform_job_id}/control": {
+      "post": {
+        "operationId": "controlJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform_job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Revision conflict or unsupported capability"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/open-contexts": {
+      "post": {
+        "operationId": "issueOpenContext",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextIssueRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenContext"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid or inaccessible context"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/resource-grants/{resource_id}": {
+      "get": {
+        "operationId": "getResourceGrant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceGrant"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    }
+  }
+}

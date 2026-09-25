@@ -1,0 +1,179 @@
+{
+  "$defs": {
+    "Counts": {
+      "additionalProperties": false,
+      "properties": {
+        "cancelled": {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Cancelled",
+          "type": "integer"
+        },
+        "failed": {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "pending": {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Pending",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "succeeded": {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Succeeded",
+          "type": "integer"
+        },
+        "total": {
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Total"
+        }
+      },
+      "required": [
+        "schema_version",
+        "total",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "pending"
+      ],
+      "title": "Counts",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "app_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "App Id",
+      "type": "string"
+    },
+    "capabilities": {
+      "items": {
+        "enum": [
+          "cancel",
+          "pause",
+          "resume",
+          "retry_failed"
+        ],
+        "type": "string"
+      },
+      "maxItems": 4,
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "counts": {
+      "$ref": "#/$defs/Counts"
+    },
+    "input_manifest_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Manifest Hash",
+      "type": "string"
+    },
+    "instance_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "last_event_seq": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Last Event Seq",
+      "type": "integer"
+    },
+    "native_job_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Native Job Id",
+      "type": "string"
+    },
+    "native_status": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Native Status",
+      "type": "string"
+    },
+    "operation_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Operation Id",
+      "type": "string"
+    },
+    "platform_job_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Platform Job Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Stage",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "waiting_resource",
+        "running",
+        "pausing",
+        "paused",
+        "cancelling",
+        "cancelled",
+        "succeeded",
+        "partial",
+        "failed",
+        "unknown"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "updated_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Updated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "platform_job_id",
+    "app_id",
+    "instance_id",
+    "native_job_id",
+    "operation_id",
+    "input_manifest_hash",
+    "native_status",
+    "status",
+    "stage",
+    "counts",
+    "capabilities",
+    "last_event_seq",
+    "updated_at"
+  ],
+  "title": "JobRef",
+  "type": "object"
+}

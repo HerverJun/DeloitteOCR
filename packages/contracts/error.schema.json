@@ -1,0 +1,74 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "enum": [
+        "APP_UNAVAILABLE",
+        "AUTH_EXPIRED",
+        "CONTEXT_EXPIRED",
+        "REVISION_CONFLICT",
+        "INPUT_CHANGED",
+        "INPUT_MISSING",
+        "ARTIFACT_MISSING",
+        "IDEMPOTENCY_CONFLICT",
+        "RESOURCE_BUSY",
+        "SUBMISSION_UNKNOWN",
+        "CAPABILITY_UNSUPPORTED",
+        "CANCEL_REQUESTED",
+        "OUTPUT_INCOMPLETE",
+        "INTEGRITY_MISMATCH",
+        "VALIDATION_FAILED",
+        "NOT_FOUND",
+        "SNAPSHOT_EXPIRED"
+      ],
+      "title": "Code",
+      "type": "string"
+    },
+    "details": {
+      "maxProperties": 16,
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_-]{0,63}$": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 64
+      },
+      "title": "Details",
+      "type": "object"
+    },
+    "message": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Message",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "code",
+    "message",
+    "retryable",
+    "request_id",
+    "details"
+  ],
+  "title": "Error",
+  "type": "object"
+}

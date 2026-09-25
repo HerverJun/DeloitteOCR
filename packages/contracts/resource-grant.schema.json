@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "generation": {
+      "minimum": 1,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "granted_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Granted At",
+      "type": "string"
+    },
+    "heartbeat_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Heartbeat At",
+      "type": "string"
+    },
+    "job_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Job Id",
+      "type": "string"
+    },
+    "lease_until": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Lease Until",
+      "type": "string"
+    },
+    "managed_process_identity": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Managed Process Identity",
+      "type": "string"
+    },
+    "owner_instance_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Owner Instance Id",
+      "type": "string"
+    },
+    "resource_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Resource Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "resource_id",
+    "owner_instance_id",
+    "job_id",
+    "generation",
+    "granted_at",
+    "heartbeat_at",
+    "lease_until",
+    "managed_process_identity"
+  ],
+  "title": "ResourceGrant",
+  "type": "object"
+}
