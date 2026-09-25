@@ -20,6 +20,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--planner", type=Path, required=True)
     parser.add_argument("--evidence-root", type=Path, required=True)
+    parser.add_argument("--pytest-check", action="store_true", help="Run the actual harness suite for each check")
     args = parser.parse_args()
     root = args.evidence_root.resolve()
     root.mkdir(parents=True, exist_ok=False)
@@ -31,10 +32,12 @@ def main():
     repository.mkdir()
     (repository / "input.txt").write_text("first\n", encoding="utf-8")
     (repository / "result.txt").write_text("artifact\n", encoding="utf-8")
+    test_args = (["-m", "pytest", str(HERE.parent / "tests/harness"), "-q"] if args.pytest_check
+                 else ["-c", "print('1 passed')"])
     definitions = [{"id": name, "producer_task": "TX", "kind": "command", "scope": "platform",
                     "evidence_kind": "native_cpu", "timeout_seconds": 15, "requires_test_counts": True,
                     "command": {"runtime": "platform_python", "cwd": "platform",
-                                "args": ["-c", "print('1 passed')"]}} for name in ("first", "second")]
+                                "args": test_args}} for name in ("first", "second")]
     plan = {"schema_version": 1, "plan_id": "real-cli-smoke", "repositories": {"platform": {"default_root": str(repository)}},
             "resources": {"source": {}}, "phases": [{"id": "phase"}],
             "execution": {"maximum_active_tasks": 1},

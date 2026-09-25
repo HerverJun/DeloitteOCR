@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -141,10 +142,15 @@ def test_minimal_profile_environment_blocks_inherited_injection(tmp_path, monkey
     monkeypatch.setenv("USERPROFILE", "C:/private")
     check = {"scope": "platform", "id": "fake"}
     state = {"runtimes": {"node": {"executable": sys.executable}}, "repositories": {}}
-    env = environment(tmp_path, tmp_path / "check", check, state)
+    check_dir = tmp_path / "含 空格" / "check"
+    env = environment(tmp_path, check_dir, check, state)
     assert "OPENAI_API_KEY" not in env and "NODE_OPTIONS" not in env and "PYTHONPATH" not in env
     assert env["USERPROFILE"].startswith(str(tmp_path)) and env["APPDATA"].startswith(str(tmp_path))
     assert "malicious" not in env["PYTEST_ADDOPTS"]
+    assert shlex.split(env["PYTEST_ADDOPTS"]) == [
+        f"--basetemp={(check_dir / 'temp/pytest').as_posix()}",
+        f"--junitxml={(check_dir / 'pytest.xml').as_posix()}",
+    ]
 
 
 def test_atomic_revision_has_one_winner_and_preserves_snapshot(tmp_path):

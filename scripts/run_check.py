@@ -143,7 +143,10 @@ def environment(run_root, check_dir, check, state):
               "LOCALAPPDATA": str(local), "npm_config_cache": str(root / "cache/npm"),
               "NPM_CONFIG_USERCONFIG": str(check_dir / "empty-npmrc"),
               "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1",
-              "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTEST_ADDOPTS": f"--basetemp={temp / 'pytest'} --junitxml={check_dir / 'pytest.xml'}"}
+              "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+              # pytest uses POSIX shlex for this variable even on Windows.
+              "PYTEST_ADDOPTS": f'--basetemp="{(temp / "pytest").as_posix()}" '
+                                f'--junitxml="{(check_dir / "pytest.xml").as_posix()}"'}
     (check_dir / "empty-npmrc").touch(exist_ok=False)
     if check["scope"] == "ocr":
         result["PYTHONPATH"] = str(Path(state["repositories"]["ocr"]) / "src")
@@ -171,8 +174,11 @@ def process_creation_identity(process):
 
 
 def git_head(root):
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
-                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    try:
+        result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    except FileNotFoundError:
+        return None  # Isolated nested checks intentionally omit Git from PATH.
     return result.stdout.strip() if result.returncode == 0 else None
 
 
