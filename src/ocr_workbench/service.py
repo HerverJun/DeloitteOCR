@@ -142,7 +142,9 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         if origin and origin != f"{request.url.scheme}://{request.url.netloc}":
             return JSONResponse({"message": "不允许跨站请求"}, status_code=403)
         issue_path = request.url.path == "/api/platform/navigation/issue" and navigation is not None
-        if request.url.path.startswith("/api/") and request.url.path != "/api/health" and not issue_path:
+        identity_path = request.url.path == "/api/platform/v1/identity" and navigation is not None
+        if (request.url.path.startswith("/api/") and request.url.path != "/api/health"
+                and not issue_path and not identity_path):
             supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
             if not secrets.compare_digest(supplied, token):
                 return JSONResponse(
@@ -177,6 +179,13 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         return JSONResponse(
             {"message": "操作未完成，请重试或在托盘查看日志"}, status_code=500
         )
+
+    @app.get("/api/platform/v1/identity")
+    def platform_identity():
+        if navigation is None or not os.environ.get("WORKBENCH_LAUNCH_ID"):
+            raise HTTPException(status_code=404, detail="Platform identity unavailable")
+        return {"app_id": "ocr", "instance_id": platform_instance,
+                "nonce": platform_nonce, "version": __version__}
 
     @app.get("/api/health")
     def health():
@@ -608,7 +617,7 @@ def main():
     p.add_argument(
         "--data",
         type=Path,
-        default=Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/Workspace",
+        default=None,
     )
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--token-file", type=Path, required=True)
@@ -620,6 +629,11 @@ def main():
     p.add_argument("--startup-check", choices=("auto", "full"), help="Reuse verified installation receipts, or force complete verification")
     p.add_argument("--review-only", action="store_true", help="Open existing projects for review and export without GPU inference")
     args = p.parse_args()
+    if args.data is None:
+        local = os.environ.get("LOCALAPPDATA")
+        if not local:
+            raise ValueError("Standalone OCR data directory is unavailable; pass --data")
+        args.data = Path(local) / "OfflineOCR/Workspace"
     token = args.token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
         raise ValueError("Session token is too short")
@@ -645,6 +659,13 @@ def main():
                 raise SystemExit(2)
         app = create_app(args.bundle, args.data, token, review_only=args.review_only)
         # A reset loopback socket must not hold shutdown forever (observed under WFP).
+        platform_port = os.environ.get("WORKBENCH_PORT") == "0"
+        listener = None
+        if platform_port:
+            import socket
+            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen(128)
         server = uvicorn.Server(
             uvicorn.Config(
                 app,
@@ -656,7 +677,11 @@ def main():
             )
         )
         app.state.shutdown = lambda: setattr(server, "should_exit", True)
-        server.run()
+        if listener is not None:
+            print(f"READY {listener.getsockname()[1]}", flush=True)
+            server.run(sockets=[listener])
+        else:
+            server.run()
 
 
 if __name__ == "__main__":
