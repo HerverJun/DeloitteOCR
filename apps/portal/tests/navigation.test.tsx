@@ -73,8 +73,14 @@ test('failed catalog request offers a working retry', async () => {
   let attempts = 0
   vi.stubGlobal('fetch', vi.fn(async (input: string) => {
     if (input.includes('/workspaces')) return { ok: true, json: async () => page([]) }
-    if (++attempts === 1) return { ok: false, status: 503 }
-    return { ok: true, json: async () => page([app('ocr')]) }
+    if (input.includes('/apps?')) {
+      if (++attempts === 1) return { ok: false, status: 503 }
+      return { ok: true, json: async () => page([app('ocr')]) }
+    }
+    if (input.includes('/launches/current')) return { ok: false, status: 404 }
+    if (input.includes('/installation')) return { ok: true, json: async () => ({ schema_version: '1.0', app_id: 'ocr', installed: false, launch_ready: false, state: 'not_registered' }) }
+    if (input.includes('/health')) return { ok: true, json: async () => ({ service: { state: 'unavailable', reason: 'Not registered' } }) }
+    return { ok: true, json: async () => page([]) }
   }))
   mount('/apps')
   expect(await screen.findByText('暂时无法取得服务数据')).toBeInTheDocument()

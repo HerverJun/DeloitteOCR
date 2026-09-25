@@ -330,6 +330,26 @@
       "transform_revision": 1
     }
   },
+  "installation_inconsistent": {
+    "model": "AppInstallation",
+    "payload": {
+      "app_id": "ocr",
+      "installed": true,
+      "launch_ready": false,
+      "schema_version": "1.0",
+      "state": "not_registered"
+    }
+  },
+  "installation_storage_inconsistent": {
+    "model": "AppInstallation",
+    "payload": {
+      "app_id": "ocr",
+      "installed": true,
+      "launch_ready": true,
+      "schema_version": "1.0",
+      "state": "storage_unavailable"
+    }
+  },
   "invalid_calendar_date": {
     "model": "OpenContext",
     "payload": {
@@ -717,6 +737,33 @@
       "request_id": "requestA",
       "schema_version": "1.0",
       "state": "partial"
+    }
+  },
+  "recent_launch_fake_project": {
+    "model": "RecentWork",
+    "payload": {
+      "app_id": "ocr",
+      "instance_id": "instanceA",
+      "launch_id": "launchA",
+      "module_project_id": "projectA",
+      "opened_at": "2026-09-25T01:00:00Z",
+      "recent_id": "recentA",
+      "schema_version": "1.0",
+      "source": "platform_launch"
+    }
+  },
+  "recent_native_missing_link": {
+    "model": "RecentWork",
+    "payload": {
+      "app_id": "ocr",
+      "instance_id": "instanceA",
+      "launch_id": "launchA",
+      "module_project_id": "projectA",
+      "opened_at": "2026-09-25T01:00:00Z",
+      "recent_id": "recentA",
+      "schema_version": "1.0",
+      "source": "native_project_open",
+      "workspace_id": "workspaceA"
     }
   },
   "unknown_control_field": {

@@ -114,6 +114,30 @@ def test_context_access_and_expiry_are_state_checks():
     assert exc.value.code == "CONTEXT_EXPIRED"
 
 
+def test_recent_work_source_identity_and_formal_route_paths():
+    from packages.contracts.models import RecentWork, RecentWorkPage
+    from packages.contracts.generate import components, openapi
+    direct = RecentWork.model_validate(POSITIVE["RecentWork"])
+    RecentWorkPage.model_validate(POSITIVE["RecentWorkPage"])
+    assert direct.workspace_id is None and direct.module_project_id is None
+    native = direct.model_copy(update={"source": "native_project_open", "workspace_id": "workspaceA",
+                                       "link_id": "linkA", "module_project_id": "projectA"})
+    assert RecentWork.model_validate(native.model_dump()).module_project_id == "projectA"
+    with pytest.raises(ValidationError):
+        RecentWork.model_validate(direct.model_dump() | {"module_project_id": "projectA"})
+    paths = openapi(components())["paths"]
+    assert "/api/platform/v1/workspaces/{workspace_id}/open-contexts" in paths
+    assert "/api/platform/v1/open-contexts" not in paths
+    assert paths["/api/platform/v1/apps/{app_id}/launches/{launch_id}"]["post"]["responses"]["201"]
+    launch_id = paths["/api/platform/v1/apps/{app_id}/launches/{launch_id}"]["post"]["parameters"][1]
+    assert launch_id["name"] == "launch_id" and "(?!current$)" in launch_id["schema"]["pattern"]
+    assert paths["/api/platform/v1/recent-work"]["get"]["responses"]["200"]
+    recent_params = paths["/api/platform/v1/recent-work"]["get"]["parameters"]
+    assert {item["name"] for item in recent_params} == {"limit", "cursor", "snapshot_revision", "workspace_id"}
+    assert next(item for item in recent_params if item["name"] == "limit")["required"]
+    assert paths["/api/platform/v1/apps/{app_id}/installation"]["get"]["responses"]["200"]
+
+
 def test_revision_manifest_and_capability_checks():
     handoff = HandoffRequest.model_validate(POSITIVE["HandoffRequest"])
     asset_set = AssetSet.model_validate(POSITIVE["AssetSet"])

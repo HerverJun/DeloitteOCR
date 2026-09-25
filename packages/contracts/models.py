@@ -34,7 +34,7 @@ class Wire(BaseModel):
 
 
 class Timestamped(Wire):
-    @field_validator("created_at", "updated_at", "expires_at", "granted_at", "heartbeat_at", "lease_until", "creation_time", check_fields=False)
+    @field_validator("created_at", "updated_at", "expires_at", "granted_at", "heartbeat_at", "lease_until", "creation_time", "opened_at", check_fields=False)
     @classmethod
     def utc_timestamp(cls, value: str) -> str:
         try:
@@ -74,6 +74,23 @@ class AppHealth(Wire):
     models: Health
 
 
+class AppInstallation(Wire):
+    app_id: Id
+    installed: bool
+    launch_ready: bool
+    state: Literal["registered", "not_registered", "storage_unavailable"]
+
+    @model_validator(mode="after")
+    def consistent(self) -> AppInstallation:
+        if (self.installed, self.launch_ready) != {
+                "registered": (True, True),
+                "not_registered": (False, False),
+                "storage_unavailable": (True, False),
+        }[self.state]:
+            raise ValueError("installation state differs")
+        return self
+
+
 class LaunchReceipt(Timestamped):
     launch_id: Id
     app_id: Id
@@ -105,6 +122,26 @@ class ModuleProjectLink(Wire):
     link_id: Id
     role: Literal["owner", "editor", "viewer"]
     revision: Revision
+
+
+class RecentWork(Timestamped):
+    recent_id: Id
+    source: Literal["platform_launch", "native_project_open"]
+    app_id: Id
+    workspace_id: Id | None = None
+    link_id: Id | None = None
+    module_project_id: NativeId | None = None
+    launch_id: Id
+    instance_id: Id
+    opened_at: Utc
+
+    @model_validator(mode="after")
+    def source_identity(self) -> RecentWork:
+        identities = (self.workspace_id, self.link_id, self.module_project_id)
+        if (self.source == "platform_launch" and any(value is not None for value in identities)) or (
+                self.source == "native_project_open" and any(value is None for value in identities)):
+            raise ValueError("recent source identity is incomplete")
+        return self
 
 
 class OpenContext(Timestamped):
@@ -229,6 +266,11 @@ class PageBase(Wire):
 class WorkspacePage(PageBase):
     snapshot_revision: SafeRevision
     items: list[Workspace] = Field(max_length=200)
+
+
+class RecentWorkPage(PageBase):
+    snapshot_revision: SafeRevision
+    items: list[RecentWork] = Field(max_length=200)
 
 
 class AppManifestPage(PageBase):
@@ -403,7 +445,7 @@ class DecimalValue(Wire):
         return value
 
 
-MODELS = (AppManifest, Health, AppHealth, LaunchReceipt, Workspace, WorkspaceCreate, WorkspacePage, ModuleProjectLink, OpenContext, ContextIssueRequest,
+MODELS = (AppManifest, Health, AppHealth, AppInstallation, LaunchReceipt, Workspace, WorkspaceCreate, WorkspacePage, ModuleProjectLink, RecentWork, RecentWorkPage, OpenContext, ContextIssueRequest,
           Asset, SourceLocator, AssetSetItem, AssetSet, PageQuery, PageBase, AppManifestPage, AssetPage,
           Counts, JobRef, JobPage, Artifact, ImportOptions,
           JobControlRequest, HandoffRequest, HandoffItem, HandoffStatus, ResourceGrant, Error, DecimalValue)

@@ -18,6 +18,7 @@ NAMES = {
     "SourceLocator": "source-locator", "JobRef": "job", "Artifact": "artifact",
     "HandoffRequest": "handoff", "ResourceGrant": "resource-grant", "Error": "error",
     "WorkspacePage": "workspace-page", "WorkspaceCreate": "workspace-create",
+    "RecentWork": "recent-work", "RecentWorkPage": "recent-work-page",
 }
 
 
@@ -112,7 +113,9 @@ def openapi(definitions: dict[str, dict]) -> dict:
 
     def parameter(name):
         return {"name": name, "in": "path", "required": True,
-                "schema": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$", "maxLength": 64}}
+                "schema": {"type": "string", "pattern": ("^(?!current$)[A-Za-z][A-Za-z0-9_-]{0,63}$"
+                                                          if name == "launch_id" else "^[A-Za-z][A-Za-z0-9_-]{0,63}$"),
+                           "maxLength": 64}}
 
     def get(operation, parameter_name, result):
         return {"get": {"operationId": operation, "parameters": [parameter(parameter_name)],
@@ -146,8 +149,31 @@ def openapi(definitions: dict[str, dict]) -> dict:
         "/api/platform/v1/apps": listing("listAppManifests", "AppManifestPage"),
         "/api/platform/v1/apps/{app_id}": get("getAppManifest", "app_id", "AppManifest"),
         "/api/platform/v1/apps/{app_id}/health": get("getAppHealth", "app_id", "AppHealth"),
-        "/api/platform/v1/open-contexts": {"post": {"operationId": "issueOpenContext", "requestBody": body("ContextIssueRequest"),
-                                                  "responses": {"201": response("OpenContext"), "400": response("Error", "Invalid or inaccessible context")}}},
+        "/api/platform/v1/apps/{app_id}/installation": get("getAppInstallation", "app_id", "AppInstallation"),
+        "/api/platform/v1/apps/{app_id}/launches/{launch_id}": {
+            "post": {"operationId": "startApplication", "parameters": [parameter("app_id"), parameter("launch_id")],
+                     "responses": {"201": response("LaunchReceipt"), "200": response("LaunchReceipt"),
+                                   "409": response("Error", "Live instance or launch ID conflict"),
+                                   "503": response("Error", "Bundle missing or launch unavailable")}},
+            "get": {"operationId": "getApplicationLaunch", "parameters": [parameter("app_id"), parameter("launch_id")],
+                    "responses": {"200": response("LaunchReceipt"), "404": response("Error", "Unknown launch"),
+                                  "410": response("Error", "Historical instance has exited")}}},
+        "/api/platform/v1/apps/{app_id}/launches/current": {
+            "get": {"operationId": "getCurrentApplicationLaunch", "parameters": [parameter("app_id")],
+                    "responses": {"200": response("LaunchReceipt"), "404": response("Error", "No live instance")}}},
+        "/api/platform/v1/recent-work": {
+            "get": {**listing("listRecentWork", "RecentWorkPage", safe_revision=True)["get"],
+                    "parameters": listing("listRecentWork", "RecentWorkPage", safe_revision=True)["get"]["parameters"] +
+                                  [{"name": "workspace_id", "in": "query", "required": False,
+                                    "schema": parameter("workspace_id")["schema"]}],
+                    "responses": {"200": response("RecentWorkPage"), "409": response("Error", "Snapshot expired"),
+                                  "503": response("Error", "Recent store unavailable")}}},
+        "/api/platform/v1/workspaces/{workspace_id}/open-contexts": {
+            "post": {"operationId": "issueOpenContext", "parameters": [parameter("workspace_id")],
+                     "requestBody": body("ContextIssueRequest"),
+                     "responses": {"201": response("OpenContext"), "400": response("Error", "Invalid or inaccessible context"),
+                                   "403": response("Error", "Origin not permitted"),
+                                   "503": response("Error", "Instance or store unavailable")}}},
         "/api/platform/v1/asset-sets/{asset_set_id}": get("getAssetSet", "asset_set_id", "AssetSet"),
         "/api/platform/v1/assets": listing("listAssets", "AssetPage"),
         "/api/platform/v1/jobs": listing("listJobs", "JobPage"),

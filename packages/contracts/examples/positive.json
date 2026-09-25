@@ -1,4 +1,11 @@
 {
+  "AppInstallation": {
+    "app_id": "ocr",
+    "installed": false,
+    "launch_ready": false,
+    "schema_version": "1.0",
+    "state": "not_registered"
+  },
   "AppManifest": {
     "adapter_version": "1.0.0",
     "app_id": "ocr",
@@ -207,6 +214,31 @@
     "limit": 100,
     "schema_version": "1.0",
     "snapshot_revision": 2
+  },
+  "RecentWork": {
+    "app_id": "ocr",
+    "instance_id": "instanceA",
+    "launch_id": "launchA",
+    "opened_at": "2026-09-25T01:00:00Z",
+    "recent_id": "recentA",
+    "schema_version": "1.0",
+    "source": "platform_launch"
+  },
+  "RecentWorkPage": {
+    "items": [
+      {
+        "app_id": "ocr",
+        "instance_id": "instanceA",
+        "launch_id": "launchA",
+        "opened_at": "2026-09-25T01:00:00Z",
+        "recent_id": "recentA",
+        "schema_version": "1.0",
+        "source": "platform_launch"
+      }
+    ],
+    "next_cursor": "1",
+    "schema_version": "1.0",
+    "snapshot_revision": 1
   },
   "ResourceGrant": {
     "generation": 2,

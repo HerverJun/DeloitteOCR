@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Empty, Form, Input, Layout, Menu, Modal, Select, Skeleton, Space, Tag, Typography } from 'antd'
 import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppManifest, AppManifestPage, Workspace, WorkspacePage } from '../../../packages/contracts/types.generated'
+import { ApplicationCard, ApplicationCards, RecentWorks } from './features/catalog/ApplicationCards'
 
 const { Header, Sider, Content } = Layout
 const { Title, Text, Paragraph } = Typography
@@ -138,13 +139,11 @@ export function Workspaces() {
 }
 
 export function Applications() {
-  const apps = useApps(useWorkspaceId())
+  const workspaceId = useWorkspaceId(), apps = useApps(workspaceId)
   return <><PageHeading eyebrow="APPLICATIONS" title="应用" description="选择工具查看安装与服务状态。无需先建立工作空间。" />
     <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()} empty={apps.data?.length === 0}>
-      <div className="app-grid">{apps.data?.map(app => <Card key={app.app_id} title={app.display_name} extra={<Tag>{app.app_id}</Tag>}>
-        <Paragraph type="secondary">支持 {app.input_types.length ? app.input_types.join('、') : '由工具定义的输入'}；输出 {app.output_types.length ? app.output_types.join('、') : '由工具定义'}。</Paragraph>
-        <ScopeLink to={`/apps/${app.app_id}`}>查看状态 →</ScopeLink></Card>)}</div>
-    </QueryState></>
+      <ApplicationCards apps={apps.data || []} workspaceId={workspaceId} />
+    </QueryState><RecentWorks workspaceId={workspaceId} /></>
 }
 
 export function Application() {
@@ -154,7 +153,7 @@ export function Application() {
   const info = useQuery({ queryKey: ['app', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppManifest>(`/api/platform/v1/apps/${safeId}`, signal) })
   const health = useQuery({ queryKey: ['app-health', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal) })
   if (!validId) return <Missing />
-  return <><PageHeading eyebrow="APPLICATION / STATUS" title={info.data?.display_name || '应用状态'} description="安装和运行状态由本机平台读取；打开工具的入口将在接入阶段提供。" />
+  return <><PageHeading eyebrow="APPLICATION / STATUS" title={info.data?.display_name || '应用状态'} description="核实本机实例后打开工具。无需先建立工作空间。" />
     <QueryState pending={info.isPending || health.isPending} error={info.isError || health.isError}
       retry={() => { void info.refetch(); void health.refetch() }}>
       <div className="panel"><div className="section-head"><Title level={3}>{info.data?.display_name}</Title><Tag>{info.data?.app_version}</Tag></div>
@@ -162,6 +161,7 @@ export function Application() {
           <Text>{({ service: '服务', ui: '界面', cpu: 'CPU', gpu: 'GPU', models: '模型' })[key]}</Text>
           <Tag color={health.data?.[key].state === 'ready' ? 'success' : 'default'}>{health.data?.[key].state || 'unknown'}</Tag>
           <Text type="secondary">{health.data?.[key].reason}</Text></div>)}</div></div>
+      {info.data && <ApplicationCard key={info.data.app_id} app={info.data} workspaceId={workspaceId} />}
     </QueryState><div className="back-link"><ScopeLink to="/apps">← 返回应用目录</ScopeLink></div></>
 }
 
