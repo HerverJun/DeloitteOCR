@@ -93,6 +93,9 @@ def validate_package(directory):
 
 
 def session_for(model_path, require_gpu=True, profiling=False):
+    if require_gpu:
+        from .platform_resources import require_gpu_context
+        require_gpu_context()
     import onnxruntime as ort
 
     # ORT locates CUDA/cuDNN DLLs supplied by the selected GPU runtime environment.

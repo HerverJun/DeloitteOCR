@@ -232,13 +232,70 @@ def run_job(store, job):
         thread.join(timeout=6)
 
 
+def run_cuda_job(store, job):
+    """Keep the native lease alive while queued; never reuse a GPU session in this worker."""
+    from .platform_resources import run_isolated
+
+    stop = threading.Event()
+    lost = threading.Event()
+
+    def heartbeat():
+        while not stop.wait(5):
+            try:
+                if not store.heartbeat(job["id"], job["lease_token"]):
+                    lost.set()
+                    return
+            except Exception:
+                # A transient store error is retried; the next control check
+                # still verifies the exact lease and its expiry.
+                try:
+                    check_control(store, job)
+                except Exception:
+                    lost.set()
+                    return
+
+    thread = threading.Thread(target=heartbeat, name="Classification native lease", daemon=True)
+    thread.start()
+    try:
+        def control():
+            if lost.is_set():
+                raise RuntimeError("原生任务租约失联")
+            check_control(store, job)
+
+        result = run_isolated({"mode": "job", "data_dir": str(store.settings.data_dir),
+                               "job_id": job["id"], "lease_token": job["lease_token"]},
+                              cancelled=lost, control=control)
+        if result.returncode:
+            raise RuntimeError("分类 GPU 子进程失败: " + result.stderr.decode("utf-8", errors="replace")[-2500:])
+        # run_job commits its own terminal state. A zero exit without that
+        # commit is not a successful job (e.g. a failed child bootstrap).
+        if store.job(job["id"])["state"] in {"running", "pausing", "cancelling"}:
+            raise RuntimeError("分类 GPU 子进程未提交任务终态")
+    except Paused:
+        store.finish(job["id"], job["lease_token"], "paused")
+    except Cancelled:
+        store.finish(job["id"], job["lease_token"], "cancelled")
+    except Exception as exc:
+        try:
+            store.finish(job["id"], job["lease_token"], "failed", error=str(exc)[:3000])
+        except Exception:
+            # Do not overwrite a replacement owner's state after lease loss.
+            pass
+    finally:
+        stop.set()
+        thread.join(timeout=6)
+
+
 def serve_worker(settings=None, once=False):
     store = Store(settings or Settings.from_env())
     owner = f"worker-{os.getpid()}"
     while True:
         job = store.claim(owner)
         if job:
-            run_job(store, job)
+            if job["kind"] in {"train", "inference"} and job["params"].get("device", "cuda") == "cuda":
+                run_cuda_job(store, job)
+            else:
+                run_job(store, job)
         elif once:
             return
         else:

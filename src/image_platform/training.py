@@ -60,6 +60,9 @@ def fit_thresholds(logits, target, label_ids, minimum_precision):
 
 
 def train(store, job, control, log):
+    if job["params"].get("device", "cuda") == "cuda":
+        from .platform_resources import require_gpu_context
+        require_gpu_context()
     import onnx
     import timm
     import torch

@@ -34,23 +34,27 @@ def main():
         from .demo import create_demo
         print(json.dumps(create_demo(settings, args.per_class), ensure_ascii=False, indent=2))
     elif args.command == "doctor":
-        import onnxruntime as ort
-        import torch
-        if hasattr(ort, "preload_dlls"):
-            ort.preload_dlls()
-        result = {"torch": torch.__version__, "cuda_available": torch.cuda.is_available(),
-                  "compiled_cuda": torch.version.cuda, "ort": ort.__version__, "providers": ort.get_available_providers()}
-        if torch.cuda.is_available():
-            result.update(gpu=torch.cuda.get_device_name(0), tensor_check=float(torch.ones(4, device="cuda").sum().item()))
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        from .platform_resources import run_isolated
+        result = run_isolated({"mode": "doctor"})
+        if result.returncode:
+            raise RuntimeError(result.stderr.decode("utf-8", errors="replace")[-3000:])
+        print(result.stdout.decode("utf-8"), end="")
     elif args.command == "predict":
-        from .predict import predict_images
         from pathlib import Path
-        result = predict_images(args.package, args.images, args.device, args.auto_accept)
-        rendered = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)
-        if args.output:
-            Path(args.output).write_text(rendered + "\n", encoding="utf-8")
-        print(rendered)
+        if args.device == "cuda":
+            from .platform_resources import run_isolated
+            result = run_isolated({"mode": "predict", "package": args.package, "images": args.images,
+                                   "auto_accept": args.auto_accept, "output": args.output})
+            if result.returncode:
+                raise RuntimeError(result.stderr.decode("utf-8", errors="replace")[-3000:])
+            print(result.stdout.decode("utf-8"), end="")
+        else:
+            from .predict import predict_images
+            result = predict_images(args.package, args.images, "cpu", args.auto_accept)
+            rendered = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False)
+            if args.output:
+                Path(args.output).write_text(rendered + "\n", encoding="utf-8")
+            print(rendered)
 
 
 if __name__ == "__main__":
