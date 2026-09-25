@@ -62,6 +62,7 @@ def _role(value: str) -> str:
 
 
 ID_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+NATIVE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
 
 def _text(value: str, label: str) -> str:
@@ -72,6 +73,12 @@ def _text(value: str, label: str) -> str:
 
 def _id(value: str, label: str) -> str:
     if not isinstance(value, str) or ID_PATTERN.fullmatch(value) is None:
+        raise ValueError(f"Invalid {label}")
+    return value
+
+
+def _native_id(value: str, label: str) -> str:
+    if not isinstance(value, str) or NATIVE_ID_PATTERN.fullmatch(value) is None:
         raise ValueError(f"Invalid {label}")
     return value
 
@@ -123,9 +130,9 @@ def _upgrade_v1_to_v2(connection: sqlite3.Connection) -> None:
         _text(name, "legacy workspace name")
     for row in connection.execute("SELECT id, workspace_id, module_id, native_project_id "
                                   "FROM module_project_link"):
-        for value, label in zip(row, ("legacy link id", "legacy workspace id", "legacy app id",
-                                      "legacy module project id")):
+        for value, label in zip(row[:3], ("legacy link id", "legacy workspace id", "legacy app id")):
             _id(value, label)
+        _native_id(row[3], "legacy module project id")
     stamp = _utc()  # First known platform registration time, not claimed legacy creation time.
     connection.execute("ALTER TABLE workspace RENAME COLUMN id TO workspace_id")
     connection.execute("ALTER TABLE workspace ADD COLUMN revision INTEGER NOT NULL DEFAULT 1 "
@@ -133,13 +140,21 @@ def _upgrade_v1_to_v2(connection: sqlite3.Connection) -> None:
     connection.execute("ALTER TABLE workspace ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")
     connection.execute("ALTER TABLE workspace ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''")
     connection.execute("UPDATE workspace SET created_at=?, updated_at=?", (stamp, stamp))
-    connection.execute("ALTER TABLE module_project_link RENAME COLUMN id TO link_id")
-    connection.execute("ALTER TABLE module_project_link RENAME COLUMN module_id TO app_id")
-    connection.execute("ALTER TABLE module_project_link RENAME COLUMN native_project_id TO module_project_id")
-    connection.execute("ALTER TABLE module_project_link ADD COLUMN role TEXT NOT NULL DEFAULT 'owner' "
-                       "CHECK (role IN ('owner','editor','viewer'))")
-    connection.execute("ALTER TABLE module_project_link ADD COLUMN revision INTEGER NOT NULL DEFAULT 1 "
-                       "CHECK (revision >= 1)")
+    # Rebuild rather than ALTER in place: v1's display_name NOT NULL has no
+    # wire meaning and would reject every subsequent v2 insert. The immutable
+    # pre-migration backup retains the original display_name values.
+    connection.execute("CREATE TABLE module_project_link_v2 ("
+                       "link_id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL "
+                       "REFERENCES workspace(workspace_id) ON DELETE CASCADE, "
+                       "app_id TEXT NOT NULL, module_project_id TEXT NOT NULL, "
+                       "role TEXT NOT NULL CHECK (role IN ('owner','editor','viewer')), "
+                       "revision INTEGER NOT NULL CHECK (revision >= 1))")
+    connection.execute("INSERT INTO module_project_link_v2 "
+                       "(link_id, workspace_id, app_id, module_project_id, role, revision) "
+                       "SELECT id, workspace_id, module_id, native_project_id, 'owner', 1 "
+                       "FROM module_project_link")
+    connection.execute("DROP TABLE module_project_link")
+    connection.execute("ALTER TABLE module_project_link_v2 RENAME TO module_project_link")
     # Ambiguous legacy duplicate identities are not merged or guessed. The
     # unique index fails and the entire migration rolls back for review.
     connection.execute("CREATE UNIQUE INDEX link_native_identity ON module_project_link "
@@ -271,7 +286,7 @@ class WorkspaceStore:
     def add_link(self, workspace_id: str, app_id: str, module_project_id: str,
                  *, role: str, expected_revision: int, link_id: str | None = None) -> ModuleProjectLink:
         link = ModuleProjectLink(_id(workspace_id, "workspace id"), _id(app_id, "app id"),
-                                 _id(module_project_id, "module project id"),
+                                 _native_id(module_project_id, "module project id"),
                                  _id("l" + uuid.uuid4().hex if link_id is None else link_id, "link id"),
                                  _role(role), 1)
         self._mutate(link.workspace_id, expected_revision, lambda db: db.execute(

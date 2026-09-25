@@ -31,6 +31,23 @@ def link(store, workspace_id, app_id, project_id, expected_revision, role="owner
                           expected_revision=expected_revision)
 
 
+def exercise_post_migration_writes(store):
+    assert store.get_workspace("ws").revision == 1
+    renamed = store.rename_workspace("ws", "After migration", expected_revision=1)
+    assert renamed.revision == 2 and WireWorkspace.model_validate(asdict(renamed))
+    actual_ocr_id = "9" + "a" * 31
+    added = link(store, "ws", "ocr", actual_ocr_id, 2)
+    assert WireLink.model_validate(asdict(added)).module_project_id == actual_ocr_id
+    changed = store.update_link_role("ws", added.link_id, "viewer",
+                                     expected_revision=3, expected_link_revision=1)
+    assert changed.revision == 2 and changed.role == "viewer"
+    store.remove_link("ws", added.link_id, expected_revision=4)
+    assert store.get_workspace("ws").revision == 5
+    fresh = store.create_workspace("Fresh", workspace_id="fresh")
+    assert fresh.revision == 1
+    assert link(store, "fresh", "classification", "native_a", 1).revision == 1
+
+
 def test_contract_fields_utc_and_same_name_distinct_projects_survive_restart(tmp_path):
     path = tmp_path / "workspace.sqlite3"
     store = WorkspaceStore(path)
@@ -56,6 +73,9 @@ def test_contract_fields_utc_and_same_name_distinct_projects_survive_restart(tmp
     assert reopened.get_workspace("one").revision == 4
     assert WireWorkspace.model_validate(asdict(store.create_workspace("Auto"))).workspace_id.startswith("w")
     assert WireLink.model_validate(asdict(link(store, "two", "ocr", "p", 1))).link_id.startswith("l")
+    assert WireLink.model_validate(asdict(link(store, "two", "ocr", "9" + "a" * 31, 2))).module_project_id[0] == "9"
+    with pytest.raises(ValueError, match="module project id"):
+        link(store, "two", "ocr", "../private", 3)
 
 
 def test_revision_conflict_and_concurrent_writers(tmp_path):
@@ -120,24 +140,31 @@ def test_failed_second_statement_rolls_back_link_and_workspace_revision(tmp_path
 def test_legacy_wal_backup_preserves_rows_and_restores_contract_shape(tmp_path):
     path = tmp_path / "legacy.sqlite3"
     writer = legacy_connection(path)
+    original_native_id = "9" + "a" * 31
     try:
         writer.execute("INSERT INTO workspace(id, name) VALUES ('ws', 'legacy')")
-        writer.execute("INSERT INTO module_project_link VALUES ('link', 'ws', 'classification', 'native', 'P')")
+        writer.execute("INSERT INTO module_project_link VALUES (?, ?, ?, ?, ?)",
+                       ("link", "ws", "ocr", original_native_id, "P"))
         assert (tmp_path / "legacy.sqlite3-wal").stat().st_size > 0
         migrated = WorkspaceStore(path)
         assert migrated.migration_backup and migrated.migration_backup.is_file()
         assert WireWorkspace.model_validate(asdict(migrated.get_workspace("ws"))).revision == 1
-        assert WireLink.model_validate(asdict(migrated.list_links("ws")[0])).module_project_id == "native"
+        assert WireLink.model_validate(asdict(migrated.list_links("ws")[0])).module_project_id == original_native_id
         backup = migrated.migration_backup
         with sqlite3.connect(backup) as db:
             assert db.execute("PRAGMA user_version").fetchone()[0] == 1
             assert db.execute("SELECT id FROM module_project_link").fetchone()[0] == "link"
+            assert db.execute("SELECT display_name FROM module_project_link").fetchone()[0] == "P"
             assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        with sqlite3.connect(path) as db:
+            assert "display_name" not in [row[1] for row in db.execute("PRAGMA table_info(module_project_link)")]
+        exercise_post_migration_writes(migrated)
         restored_path = tmp_path / "restored.sqlite3"
         shutil.copy2(backup, restored_path)
         restored = WorkspaceStore(restored_path)
         assert restored.get_workspace("ws").name == "legacy"
-        assert restored.list_links("ws")[0].module_project_id == "native"
+        assert restored.list_links("ws")[0].module_project_id == original_native_id
+        exercise_post_migration_writes(restored)
     finally:
         writer.close()
 
