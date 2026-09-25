@@ -150,6 +150,13 @@ def create_app(settings=None):
     def health():
         return {"status": "ok", "version": "0.2.0", "mode": "local", "time": now()}
 
+    @app.get("/api/platform/v1/identity")
+    def platform_identity():
+        if navigation is None or not os.environ.get("WORKBENCH_LAUNCH_ID"):
+            raise HTTPException(status_code=404, detail="Platform identity unavailable")
+        return {"app_id": "classification", "instance_id": platform_instance,
+                "nonce": platform_nonce, "version": "0.2.0"}
+
     @app.post("/api/v1/platform/navigation/issue", status_code=201)
     async def issue_platform_navigation(request: Request):
         if navigation is None or not secrets.compare_digest(

@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 
 from .settings import Settings
 
@@ -26,7 +27,16 @@ def main():
     if args.command == "serve":
         import uvicorn
         from .api import create_app
-        uvicorn.run(create_app(settings), host="127.0.0.1", port=args.port)
+        app = create_app(settings)
+        if os.environ.get("WORKBENCH_PORT") == "0":
+            import socket
+            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen(128)
+            print(f"READY {listener.getsockname()[1]}", flush=True)
+            uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", log_level="info")).run(sockets=[listener])
+        else:
+            uvicorn.run(app, host="127.0.0.1", port=args.port)
     elif args.command == "worker":
         from .worker import serve_worker
         serve_worker(settings, once=args.once)
