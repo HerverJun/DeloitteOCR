@@ -254,6 +254,7 @@ async function main() {
       throw new Error(record.error)
     }
   }
+  console.log('1 passed')
 }
 
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1 })
