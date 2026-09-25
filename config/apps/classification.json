@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "app_id": "classification",
+  "display_name": "Image Classification",
+  "app_version": "0.2.0",
+  "adapter_version": "0.1.0",
+  "min_platform_version": "0.1.0",
+  "data_schema_version": "unverified",
+  "entry_mode": "standalone_page",
+  "capabilities": ["gpu"],
+  "input_types": ["image/png"],
+  "output_types": ["application/json"],
+  "resources": ["cpu", "gpu"],
+  "license_refs": []
+}
