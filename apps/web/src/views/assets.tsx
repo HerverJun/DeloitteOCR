@@ -7,7 +7,7 @@ import { useCommand, QueryError, type PanelProps } from '../workbench';
 
 const { Title, Text, Paragraph } = Typography;
 
-export function AssetsPanel({ project, navigate }: PanelProps) {
+export function AssetsPanel({ project, navigate, focusAssetId }: PanelProps & { focusAssetId?: string | null }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -19,6 +19,8 @@ export function AssetsPanel({ project, navigate }: PanelProps) {
   const uploadRef = useRef<HTMLInputElement>(null);
   const command = useCommand();
   const query = useQuery({ queryKey: ['assets', project.id, page, filter, search], queryFn: () => api<{ items: Asset[]; total: number }>(`/projects/${project.id}/assets?limit=24&offset=${(page - 1) * 24}&search=${encodeURIComponent(search)}${filter === 'all' ? '' : `&label=${filter}`}`), refetchInterval: 5000 });
+  const focus = useQuery({ queryKey: ['platform-asset', project.id, focusAssetId],
+    queryFn: () => api<Asset>(`/projects/${project.id}/assets/${focusAssetId}`), enabled: !!focusAssetId, retry: false });
   const labels = project.labels.map(label => ({ label: label.display_name, value: label.label_id }));
 
   async function importDirectory(values: { path: string; infer_labels: boolean; source_id: string }) {
@@ -44,6 +46,12 @@ export function AssetsPanel({ project, navigate }: PanelProps) {
 
   return <>
     <div className="page-heading"><div><div className="eyebrow">DATA WORKSPACE</div><Title level={2}>图像与标注</Title><Paragraph type="secondary">整理类别、检查样本，为下一次训练准备可靠的数据。</Paragraph></div><Space><Button icon={<UploadOutlined />} loading={command.busy} onClick={() => uploadRef.current?.click()}>上传图片</Button><Button type="primary" icon={<FolderOpenOutlined />} onClick={() => setImportOpen(true)}>导入文件夹</Button></Space></div>
+    {focusAssetId && <Alert type={focus.error ? 'warning' : 'info'} showIcon
+      message={focus.data ? `平台定位图片：${focus.data.name}` : focus.error ? '平台定位的图片已不可用' : '正在定位平台图片'}
+      description={focus.data ? <Space align="center" wrap>
+        <img src={`${base}/assets/${focus.data.id}/thumbnail`} alt={focus.data.name} width={72} height={72} style={{ objectFit: 'contain' }} />
+        <span>当前人工标签：{project.labels.find(label => label.label_id === focus.data?.label_id)?.display_name || '未标注'}。仅定位，不会自动选择、修改标签或接受预测。</span>
+      </Space> : '仅显示定位信息，不会自动选择图片、修改人工标签或接受预测结果。'} />}
     <input ref={uploadRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.bmp" className="visually-hidden" aria-label="上传图片文件" onChange={event => void upload(event.target.files)} />
     <div className="data-toolbar"><Space wrap><Select aria-label="筛选类别" value={filter} options={[{ label: '全部类别', value: 'all' }, { label: '未标注', value: 'unlabeled' }, ...labels]} style={{ width: 160 }} onChange={value => { setFilter(value); setPage(1); setSelected([]); }} /><Input.Search allowClear placeholder="搜索图片名称" aria-label="搜索图片" style={{ width: 250 }} onSearch={value => { setSearch(value); setPage(1); }} /><Text type="secondary">{query.data?.total ?? 0} 张图片</Text></Space><Button icon={<ExperimentOutlined />} onClick={() => navigate('train')}>准备训练</Button></div>
     <QueryError error={query.error} />

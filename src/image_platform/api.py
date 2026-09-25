@@ -3,7 +3,9 @@ import csv
 from importlib import metadata as package_metadata
 import io
 import json
+import os
 from pathlib import Path
+import secrets
 import shutil
 import subprocess
 import sys
@@ -21,6 +23,7 @@ from .datasets import load_dataset, publish_dataset, register_asset
 from .images import SUPPORTED, file_sha, thumbnail
 from .runtime import validate_package
 from .settings import REPO, Settings
+from .platform_navigation import NavigationTickets
 from .store import Store, dump, now, uid
 
 
@@ -108,6 +111,12 @@ def create_app(settings=None):
 
     app = FastAPI(title="图像分类工作台", version="0.2.0", lifespan=lifespan)
     app.state.store = store
+    platform_instance = os.environ.get("WORKBENCH_INSTANCE_ID", "")
+    platform_nonce = os.environ.get("WORKBENCH_NONCE", "")
+    navigation = (NavigationTickets(instance_id=platform_instance, store=store)
+                  if os.environ.get("WORKBENCH_APP_ID") == "classification" and platform_instance
+                  and len(platform_nonce) >= 32 else None)
+    app.state.platform_navigation = navigation
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
     origins = [f"http://{host}:{port}" for host in ("127.0.0.1", "localhost") for port in (8765, 5173)]
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PUT", "PATCH"],
@@ -124,6 +133,9 @@ def create_app(settings=None):
                 return JSONResponse({"detail": "缺少 X-Platform-Request 请求头"}, status_code=403)
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
+        if request.url.path.startswith("/api/v1/platform/navigation/"):
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Referrer-Policy"] = "no-referrer"
         return response
 
     @app.exception_handler(LookupError)
@@ -137,6 +149,44 @@ def create_app(settings=None):
     @app.get("/api/v1/health")
     def health():
         return {"status": "ok", "version": "0.2.0", "mode": "local", "time": now()}
+
+    @app.post("/api/v1/platform/navigation/issue", status_code=201)
+    async def issue_platform_navigation(request: Request):
+        if navigation is None or not secrets.compare_digest(
+                request.headers.get("x-workbench-launch-nonce", ""), platform_nonce):
+            raise HTTPException(status_code=403, detail="Navigation unavailable")
+        if request.headers.get("content-type", "").split(";", 1)[0].lower().strip() != "application/json":
+            raise HTTPException(status_code=400, detail="JSON required")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 2048:
+                raise HTTPException(status_code=400, detail="Invalid navigation context")
+        try:
+            def unique(pairs):
+                result = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise ValueError("Duplicate field")
+                    result[key] = value
+                return result
+            ticket = navigation.issue(json.loads(body, object_pairs_hook=unique))
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid navigation context") from None
+        return {"ticket": ticket}
+
+    @app.get("/api/v1/platform/navigation/tickets/{ticket}")
+    def consume_platform_navigation(ticket: str):
+        if navigation is None:
+            raise HTTPException(status_code=404, detail="Navigation unavailable")
+        try:
+            target = navigation.consume(ticket)
+        except (KeyError, LookupError):
+            raise HTTPException(status_code=404, detail="Navigation unavailable") from None
+        return {"app_id": target.app_id, "instance_id": target.instance_id,
+                "workspace_id": target.workspace_id, "link_id": target.link_id,
+                "module_project_id": target.module_project_id, "asset_id": target.asset_id,
+                "return_url": target.return_url}
 
     @app.get("/api/v1/runtime")
     def runtime():
@@ -249,6 +299,15 @@ def create_app(settings=None):
         total = store.one(f"SELECT COUNT(*) count FROM assets WHERE {where}", params)["count"]
         rows = store.rows(f"SELECT * FROM assets WHERE {where} ORDER BY created_at DESC,id LIMIT ? OFFSET ?", (*params, limit, offset))
         return {"items": rows, "total": total}
+
+    @app.get("/api/v1/projects/{project_id}/assets/{asset_id}")
+    def project_asset(project_id: str, asset_id: str):
+        store.project(project_id)
+        asset = store.one("SELECT * FROM assets WHERE id=? AND project_id=? AND archived=0",
+                          (asset_id, project_id))
+        if asset is None:
+            raise LookupError("图片不存在或不属于当前项目")
+        return asset
 
     @app.get("/api/v1/assets/{asset_id}/thumbnail")
     def asset_thumbnail(asset_id: str):

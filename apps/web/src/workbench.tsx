@@ -8,9 +8,12 @@ import {
   AppstoreOutlined, ArrowRightOutlined, CheckCircleOutlined, DatabaseOutlined,
   FolderOpenOutlined, PictureOutlined, PlusOutlined, ExperimentOutlined, DeploymentUnitOutlined,
   SettingOutlined, ThunderboltOutlined, ApartmentOutlined, GithubOutlined,
+  ExportOutlined,
 } from '@ant-design/icons';
 import { api, post, type Project, type Runtime } from './api';
 import { AssetsPanel, TrainPanel, ModelsPanel, JobsPanel, RuntimePanel } from './panels';
+import { navigationFromLaunch, safeReturnUrl, savedPlatformNavigation, savePlatformNavigation,
+  type PlatformNavigation } from './platformNavigation';
 
 const { Title, Text, Paragraph } = Typography;
 export type Page = 'overview' | 'assets' | 'train' | 'models' | 'jobs' | 'runtime';
@@ -48,17 +51,46 @@ const menu = [
 ];
 
 export function Workbench() {
-  const [page, setPage] = useState<Page>('overview');
+  const [page, setPage] = useState<Page>(() => sessionStorage.getItem('prism-platform-page') === 'assets' && savedPlatformNavigation() ? 'assets' : 'overview');
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem('prism-project') || '');
+  const [navigation, setNavigation] = useState<PlatformNavigation | null>(null);
+  const [navigationApplied, setNavigationApplied] = useState(false);
+  const [navigationError, setNavigationError] = useState('');
+  const [launchReady, setLaunchReady] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm();
   const command = useCommand();
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects'), refetchInterval: 5000 });
-  const projectId = projects.data?.some(p => p.id === selectedId) ? selectedId : projects.data?.[0]?.id;
+  const nativeProject = navigation && projects.data?.some(p => p.id === navigation.module_project_id)
+    ? navigation.module_project_id : null;
+  const projectId = (!navigationApplied && nativeProject) || (projects.data?.some(p => p.id === selectedId) ? selectedId : projects.data?.[0]?.id);
   const detail = useQuery({ queryKey: ['project', projectId], queryFn: () => api<Project>(`/projects/${projectId}`), enabled: !!projectId, refetchInterval: 4000 });
   const runtime = useQuery({ queryKey: ['runtime'], queryFn: () => api<Runtime>('/runtime'), refetchInterval: 20000 });
   const project = detail.data;
 
+  useEffect(() => {
+    let active = true;
+    const launch = navigationFromLaunch();
+    if (!launch) { setNavigation(savedPlatformNavigation()); setLaunchReady(true); return; }
+    launch.then(value => {
+      if (!active) return;
+      savePlatformNavigation(value);
+      setNavigation(value);
+      setPage(value.asset_id ? 'assets' : 'overview');
+      setLaunchReady(true);
+    }).catch(() => { if (active) { setNavigationError('平台入口已失效，请从平台重新打开分类应用。'); setLaunchReady(true); } });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    if (!navigation || !projects.data || navigationApplied) return;
+    if (projects.data.some(p => p.id === navigation.module_project_id)) setSelectedId(navigation.module_project_id);
+    else setNavigationError('平台关联的分类项目不存在；未切换原生项目。');
+    setNavigationApplied(true);
+  }, [navigation, projects.data, navigationApplied]);
+  useEffect(() => {
+    if (!navigation) return;
+    try { sessionStorage.setItem('prism-platform-page', page); } catch { /* no storage */ }
+  }, [navigation, page]);
   useEffect(() => { if (projectId) localStorage.setItem('prism-project', projectId); }, [projectId]);
 
   async function create(values: { name: string; description: string; labels: string }) {
@@ -88,14 +120,15 @@ export function Workbench() {
       </div>
     </Layout.Sider>
     <Layout>
-      <header className="topbar"><div><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text></div><Space size={16}><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top"><span className={`status-dot ${runtime.data?.gpu ? '' : 'muted'}`} />{runtime.data?.gpu ? 'GPU 已连接' : 'CPU 模式'}</span><a href="/docs" target="_blank" rel="noreferrer" className="api-link"><GithubOutlined /> API 文档</a><div className="avatar">本地</div></Space></header>
+      <header className="topbar"><div><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text></div><Space size={16}><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top"><span className={`status-dot ${runtime.data?.gpu ? '' : 'muted'}`} />{runtime.data?.gpu ? 'GPU 已连接' : 'CPU 模式'}</span>{navigation && safeReturnUrl(navigation) && <a href={safeReturnUrl(navigation)!} target="_blank" rel="noopener noreferrer" className="api-link"><ExportOutlined /> 返回平台</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link"><GithubOutlined /> API 文档</a><div className="avatar">本地</div></Space></header>
       <main className="main-content">
+        {navigationError && <Alert type="warning" showIcon message={navigationError} closable onClose={() => setNavigationError('')} />}
         <QueryError error={projects.error || detail.error} />
-        {page === 'runtime' ? <RuntimePanel /> : projects.isPending || (projectId && detail.isPending) ? <div className="center-loading"><Spin size="large" /></div> : !project ?
+        {!launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading"><Spin size="large" /></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
           <section className="welcome"><span className="welcome-icon"><PictureOutlined /></span><Text type="secondary">从你的第一组图片开始</Text><Title level={1}>让图像各归其类</Title><Paragraph>创建一个分类项目，导入少量样本，训练属于你业务的模型。<br />图片、模型和结果均保留在本机。</Paragraph><Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建第一个项目</Button><div className="welcome-steps"><span>01 定义类别</span><span>02 导入样本</span><span>03 训练与分类</span></div></section> :
           <>
             {page === 'overview' && <Overview project={project} navigate={setPage} />}
-            {page === 'assets' && <AssetsPanel key={`assets-${project.id}`} project={project} navigate={setPage} />}
+            {page === 'assets' && <AssetsPanel key={`assets-${project.id}`} project={project} navigate={setPage} focusAssetId={navigation?.module_project_id === project.id ? navigation.asset_id : null} />}
             {page === 'train' && <TrainPanel key={`train-${project.id}`} project={project} navigate={setPage} />}
             {page === 'models' && <ModelsPanel key={`models-${project.id}`} project={project} navigate={setPage} />}
             {page === 'jobs' && <JobsPanel key={`jobs-${project.id}`} project={project} navigate={setPage} />}
