@@ -93,6 +93,8 @@ async function main() {
     await json(`${base}/api/platform/v1/health`)
     browser = await chromium.launch({ executablePath: CHROME, headless: true,
       args: ['--disable-gpu', '--disable-gpu-compositing', '--no-first-run'] })
+    record.browser = { engine: 'Chromium', version: browser.version(), executable: CHROME,
+      flags: ['--disable-gpu', '--disable-gpu-compositing'] }
     const context = await browser.newContext({ acceptDownloads: true, viewport: { width: 1280, height: 820 } })
     context.setDefaultTimeout(12000)
     context.setDefaultNavigationTimeout(15000)
