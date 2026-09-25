@@ -35,7 +35,7 @@ def exercise_post_migration_writes(store):
     assert store.get_workspace("ws").revision == 1
     renamed = store.rename_workspace("ws", "After migration", expected_revision=1)
     assert renamed.revision == 2 and WireWorkspace.model_validate(asdict(renamed))
-    actual_ocr_id = "9" + "a" * 31
+    actual_ocr_id = "8" + "b" * 31
     added = link(store, "ws", "ocr", actual_ocr_id, 2)
     assert WireLink.model_validate(asdict(added)).module_project_id == actual_ocr_id
     changed = store.update_link_role("ws", added.link_id, "viewer",
