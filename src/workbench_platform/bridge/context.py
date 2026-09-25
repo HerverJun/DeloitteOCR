@@ -117,8 +117,10 @@ class ContextBridge:
                         raise BridgeDenied("APP_UNAVAILABLE")
                     if _identity(port, app_id, instance_id, receipt.handshake_nonce) != receipt.version:
                         raise BridgeDenied("APP_UNAVAILABLE")
-                except (LaunchFailure, OSError, ValueError) as error:
-                    raise BridgeDenied("APP_UNAVAILABLE") from error
+                except (LaunchFailure, OSError, TimeoutError, http.client.HTTPException,
+                        UnicodeError, ValueError):
+                    # Handshake transport errors may quote native response text.
+                    raise BridgeDenied("APP_UNAVAILABLE") from None
                 return receipt
         raise BridgeDenied("APP_UNAVAILABLE")
 

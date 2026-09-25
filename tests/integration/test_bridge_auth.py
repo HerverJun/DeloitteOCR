@@ -224,6 +224,13 @@ def test_listener_ownership_and_handshake_are_rechecked(channel, monkeypatch):
         patch.setattr(module, "_identity", lambda *args: "wrong-version")
         with pytest.raises(BridgeDenied):
             bridge.issue(request(receipt, link), workspace_id=workspace)
+    with monkeypatch.context() as patch:
+        def malformed(*args):
+            raise http.client.BadStatusLine("private-handshake-sentinel")
+        patch.setattr(module, "_identity", malformed)
+        with pytest.raises(BridgeDenied) as error:
+            bridge.issue(request(receipt, link), workspace_id=workspace)
+        assert "private-handshake-sentinel" not in "".join(traceback.format_exception(error.value))
     assert bridge.consume(context, workspace_id=workspace)
 
 
