@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.egg-info/
+apps/portal/node_modules/
+apps/portal/dist/
+apps/portal/*.tsbuildinfo
+.env
+.env.*
+!.env.example
