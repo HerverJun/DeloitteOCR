@@ -111,6 +111,11 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     def require_recognition():
         if review_only:
             raise ValueError("当前为仅校对与导出模式，请在完整模式下使用识别与引擎启用功能")
+        from ocr_workbench.platform_resources import platform_mode, ResourceUnavailable
+        try:
+            platform_mode()
+        except ResourceUnavailable:
+            raise ValueError("平台 GPU 协调器不可用，暂不能提交识别任务") from None
         if start_queue and not queue.status().get("healthy", False):
             raise ValueError("队列正在恢复，请查看队列状态，恢复后再提交任务")
 
@@ -175,11 +180,20 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
 
     @app.get("/api/health")
     def health():
+        from ocr_workbench.platform_resources import platform_mode, ResourceUnavailable
+        try:
+            resource_mode = "platform_shared" if platform_mode() else "legacy_single_app"
+        except ResourceUnavailable:
+            resource_mode = "unavailable"
         status = queue.status()
         cpu_status = fusion_queue.status()
         ready = (review_only or status.get("healthy", False)) and (not start_queue or
             (cpu_status.get("healthy", False) and external_queue.status()['healthy']))
-        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status, "external_queue": external_queue.status()}
+        ready = ready and (review_only or resource_mode != "unavailable")
+        return {"status": "ready" if ready else "degraded", "version": __version__,
+                "review_only": review_only, "gpu_resource_mode": resource_mode,
+                "queue": status, "fusion_queue": cpu_status,
+                "external_queue": external_queue.status()}
 
     @app.post("/api/platform/navigation/issue", status_code=201)
     async def issue_platform_navigation(request: Request):

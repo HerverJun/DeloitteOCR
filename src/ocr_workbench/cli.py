@@ -18,7 +18,7 @@ def bundle_root():
     return Path(__file__).resolve().parents[2]
 
 
-def run_engine(root, engine, image, output, timeout=900):
+def run_engine(root, engine, image, output, timeout=900, *, reservation=None):
     from ocr_workbench.processes import ProcessJob
     if not image.is_file():
         raise FileNotFoundError(image)
@@ -40,12 +40,15 @@ def run_engine(root, engine, image, output, timeout=900):
         proc = subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT,
                                 creationflags=subprocess.CREATE_NO_WINDOW)
         job.assign(proc)
+        if reservation:
+            reservation.track(proc, job)
         try:
             code = proc.wait(timeout=timeout)
         except (subprocess.TimeoutExpired, KeyboardInterrupt):
-            job.close()
-            proc.wait(timeout=15)
             raise
+        finally:
+            job.drain()
+            proc.wait(timeout=15)
     if code != 0:
         raise RuntimeError(f'{engine} failed ({code}); see {output / "worker.log"}')
     result_path = output / 'result.json'
@@ -108,29 +111,34 @@ def main():
         print(json.dumps({'status': 'failed' if errors else 'success', 'errors': errors}, ensure_ascii=False, indent=2))
         return bool(errors)
     import msvcrt
+    from ocr_workbench.platform_resources import reserve
+    reservation = reserve('cli-recognize')
     # A per-user lock also serializes separate relocated copies of the kit.
     lock_path = Path(os.environ.get('LOCALAPPDATA', str(root))) / 'OfflineOCR' / 'gpu.lock'
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open('a+b') as lock:
-        if lock.tell() == 0:
-            lock.write(b'0')
-            lock.flush()
-        lock.seek(0)
-        try:
-            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError:
-            raise RuntimeError('Another OfflineOCR process owns the GPU; wait for it to exit')
-        failures = []
-        for engine in ENGINES if args.engine == 'all' else [args.engine]:
-            dest = args.output / engine if args.engine == 'all' else args.output
+    try:
+        with lock_path.open('a+b') as lock:
+            if lock.tell() == 0:
+                lock.write(b'0')
+                lock.flush()
+            lock.seek(0)
             try:
-                result = run_engine(root, engine, args.image, dest, args.timeout)
-                print(json.dumps({'engine': engine, 'status': 'success', 'seconds': result['elapsed_seconds'],
-                                  'blocks': len(result['blocks']), 'tables': len(result['tables'])}), flush=True)
-            except Exception as error:
-                failures.append(engine)
-                print(json.dumps({'engine': engine, 'status': 'failed', 'message': str(error)}), flush=True)
-        return bool(failures)
+                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError:
+                raise RuntimeError('Another OfflineOCR process owns the GPU; wait for it to exit')
+            failures = []
+            for engine in ENGINES if args.engine == 'all' else [args.engine]:
+                dest = args.output / engine if args.engine == 'all' else args.output
+                try:
+                    result = run_engine(root, engine, args.image, dest, args.timeout, reservation=reservation)
+                    print(json.dumps({'engine': engine, 'status': 'success', 'seconds': result['elapsed_seconds'],
+                                      'blocks': len(result['blocks']), 'tables': len(result['tables'])}), flush=True)
+                except Exception as error:
+                    failures.append(engine)
+                    print(json.dumps({'engine': engine, 'status': 'failed', 'message': str(error)}), flush=True)
+            return bool(failures)
+    finally:
+        reservation.close()
 
 
 if __name__ == '__main__':

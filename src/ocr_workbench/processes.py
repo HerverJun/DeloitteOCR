@@ -1,6 +1,7 @@
 """Windows job object: kill worker and native descendants when owner exits."""
 import ctypes
 from ctypes import wintypes
+import time
 
 
 class BasicLimits(ctypes.Structure):
@@ -23,6 +24,13 @@ class ExtendedLimits(ctypes.Structure):
                 ('PeakProcessMemoryUsed', ctypes.c_size_t), ('PeakJobMemoryUsed', ctypes.c_size_t)]
 
 
+class BasicAccounting(ctypes.Structure):
+    _fields_ = [('TotalUserTime', ctypes.c_int64), ('TotalKernelTime', ctypes.c_int64),
+                ('ThisPeriodTotalUserTime', ctypes.c_int64), ('ThisPeriodTotalKernelTime', ctypes.c_int64),
+                ('TotalPageFaultCount', wintypes.DWORD), ('TotalProcesses', wintypes.DWORD),
+                ('ActiveProcesses', wintypes.DWORD), ('TotalTerminatedProcesses', wintypes.DWORD)]
+
+
 class ProcessJob:
     def __init__(self):
         self.api = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -30,7 +38,11 @@ class ProcessJob:
         self.api.CreateJobObjectW.restype = wintypes.HANDLE
         self.api.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
         self.api.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+        self.api.QueryInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                                                       wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+        self.api.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
         self.api.CloseHandle.argtypes = [wintypes.HANDLE]
+        self.drained = False
         self.handle = self.api.CreateJobObjectW(None, None)
         if not self.handle:
             raise ctypes.WinError(ctypes.get_last_error())
@@ -45,6 +57,28 @@ class ProcessJob:
             process.kill()
             process.wait()
             raise ctypes.WinError(ctypes.get_last_error())
+
+    def active_processes(self):
+        if not self.handle:
+            raise RuntimeError('Job handle is closed')
+        record, size = BasicAccounting(), wintypes.DWORD()
+        if not self.api.QueryInformationJobObject(self.handle, 1, ctypes.byref(record),
+                                                  ctypes.sizeof(record), ctypes.byref(size)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        return record.ActiveProcesses
+
+    def drain(self, timeout=15):
+        """Terminate only this owned Job, then prove all its descendants exited."""
+        if not self.handle:
+            raise RuntimeError('Job handle is closed')
+        if self.active_processes() and not self.api.TerminateJobObject(self.handle, 1):
+            raise ctypes.WinError(ctypes.get_last_error())
+        deadline = time.monotonic() + timeout
+        while self.active_processes():
+            if time.monotonic() >= deadline:
+                raise TimeoutError('Owned Job descendants did not exit')
+            time.sleep(.05)
+        self.drained = True
 
     def close(self):
         if self.handle:
