@@ -187,7 +187,9 @@ class ContextBridge:
         """Use a server-registered route and credentials over direct loopback.
 
         A response is bounded and redirects are returned as data, never followed.
-        This is an adapter primitive; it is not a user-supplied proxy endpoint.
+        This is an adapter primitive, not a user-supplied proxy endpoint. An
+        adapter must construct/validate project and asset identities in body
+        from ResolvedContext before calling this method.
         """
         adapter = self.adapters.get(context.app_id)
         if adapter is None or route_name not in adapter.routes or type(body) is not bytes or len(body) > 1_048_576:
@@ -221,7 +223,9 @@ class ContextBridge:
             if len(payload) > 1_048_576:
                 raise BridgeDenied("APP_UNAVAILABLE")
             return NativeResponse(response.status, response.getheader("Content-Type", ""), payload)
-        except (OSError, TimeoutError, http.client.HTTPException) as error:
-            raise BridgeDenied("APP_UNAVAILABLE") from error
+        except (OSError, TimeoutError, http.client.HTTPException, UnicodeError, ValueError):
+            # Native response/status text and invalid credential encodings can
+            # contain secrets. Suppress the original exception chain entirely.
+            raise BridgeDenied("APP_UNAVAILABLE") from None
         finally:
             connection.close()

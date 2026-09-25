@@ -7,6 +7,7 @@ import shutil
 import socket
 import sys
 import threading
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -39,6 +40,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(302)
             self.send_header('Location', 'http://example.invalid/escape')
             self.end_headers()
+            return
+        elif self.path == '/native/bad':
+            self.wfile.write(b'private-transport-sentinel\\r\\n')
+            self.wfile.flush()
+            self.close_connection = True
             return
         else:
             self.send_error(404)
@@ -103,6 +109,7 @@ def channel(tmp_path):
         receipt = supervisor.start("ocr", "launchOne")
         adapter = NativeAdapter({"echo": NativeRoute("GET", "/native/echo"),
                                  "write": NativeRoute("POST", "/native/write"),
+                                 "bad": NativeRoute("GET", "/native/bad"),
                                  "redirect": NativeRoute("GET", "/native/redirect")},
                                 lambda resolved: {"Authorization": "Bearer private-test-token",
                                                   "Origin": resolved.base_url.rstrip("/")})
@@ -249,6 +256,18 @@ def test_native_write_role_and_callback_failure(channel):
     with pytest.raises(BridgeDenied) as error:
         bridge.forward(issued(channel), workspace_id=workspace, route_name="echo")
     assert "private-test-token" not in str(error.value)
+
+
+def test_native_transport_and_header_encoding_do_not_expose_text(channel):
+    _, _, _, bridge, workspace, _, _, _ = channel
+    with pytest.raises(BridgeDenied) as error:
+        bridge.forward(issued(channel), workspace_id=workspace, route_name="bad")
+    assert "private-transport-sentinel" not in "".join(traceback.format_exception(error.value))
+    bridge.adapters["ocr"] = NativeAdapter({"echo": NativeRoute("GET", "/native/echo")},
+                                            lambda _: {"Authorization": "Bearer private-encoding-🙂"})
+    with pytest.raises(BridgeDenied) as error:
+        bridge.forward(issued(channel), workspace_id=workspace, route_name="echo")
+    assert "private-encoding" not in "".join(traceback.format_exception(error.value))
 
 
 @pytest.fixture
