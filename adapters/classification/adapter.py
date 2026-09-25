@@ -1,0 +1,261 @@
+"""Server-side classification adapter; predictions never become human labels."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import http.client
+import json
+import re
+from typing import Callable
+from urllib.parse import urlsplit
+
+from workbench_platform.bridge.context import ResolvedContext
+
+ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
+KEY = re.compile(r"[A-Za-z0-9_-]{8,120}\Z")
+MAX_JSON = 8 * 1024 * 1024
+STATES = frozenset({"queued", "running", "pausing", "paused", "cancelling", "cancelled",
+                    "succeeded", "completed_with_errors", "failed"})
+KINDS = frozenset({"import", "train", "inference"})
+
+
+class ClassificationUnavailable(ValueError):
+    def __init__(self):
+        super().__init__("Classification adapter is unavailable")
+
+
+@dataclass(frozen=True)
+class JobStatus:
+    native_job_id: str
+    kind: str
+    state: str
+    stage: str
+    total: int
+    done: int
+    failed: int
+    actions: tuple[str, ...]
+    interrupted_training_requires_new_job: bool
+
+
+@dataclass(frozen=True)
+class ReviewItem:
+    native_item_id: str
+    asset_id: str | None
+    state: str
+    prediction_label_id: str | None
+    prediction_status: str | None
+    prediction_score: float | None
+    human_label_id: str | None
+    error: str | None
+
+
+def _id(value: object) -> bool:
+    return isinstance(value, str) and ID.fullmatch(value) is not None
+
+
+def _port(base_url: str) -> int:
+    try:
+        parsed = urlsplit(base_url)
+        port = parsed.port
+        if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or port is None
+                or not 1 <= port <= 65535 or parsed.netloc != f"127.0.0.1:{port}"
+                or parsed.path not in ("", "/") or parsed.query or parsed.fragment or parsed.username):
+            raise ValueError()
+        return port
+    except (TypeError, ValueError):
+        raise ClassificationUnavailable() from None
+
+
+def _actions(kind: str, state: str) -> tuple[str, ...]:
+    allowed = []
+    if kind == "inference" and state in {"queued", "running", "pausing"}:
+        allowed.append("pause")
+    if kind == "inference" and state == "paused":
+        allowed.append("resume")
+    if state in {"queued", "running", "pausing", "paused", "cancelling"}:
+        allowed.append("cancel")
+    if kind == "inference" and state in {"failed", "completed_with_errors", "cancelled"}:
+        allowed.append("retry_failed")
+    return tuple(allowed)
+
+
+class ClassificationAdapter:
+    def __init__(self, context: ResolvedContext, *, live: Callable[[ResolvedContext], bool],
+                 timeout: float = 3.0):
+        if (not isinstance(context, ResolvedContext) or context.app_id != "classification"
+                or not all(_id(value) for value in (context.workspace_id, context.link_id,
+                                                     context.instance_id, context.module_project_id))
+                or context.role not in {"owner", "editor", "viewer"} or not callable(live)
+                or not isinstance(timeout, (int, float)) or not 0 < timeout <= 10):
+            raise ClassificationUnavailable()
+        self.context, self.live, self.timeout = context, live, timeout
+        self.port = _port(context.base_url)
+
+    def _request(self, method: str, path: str, body: dict | None = None,
+                 *, key: str | None = None) -> dict | list:
+        try:
+            if not self.live(self.context):
+                raise ClassificationUnavailable()
+        except Exception:
+            raise ClassificationUnavailable() from None
+        payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
+        if payload is not None and len(payload) > 8192:
+            raise ClassificationUnavailable()
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
+        try:
+            connection.request(method, path, body=payload,
+                               headers={"Accept": "application/json", "X-Platform-Request": "1",
+                                        **({"Content-Type": "application/json"} if payload is not None else {}),
+                                        **({"Idempotency-Key": key} if key else {})})
+            response = connection.getresponse()
+            if response.status not in {200, 201, 202} or int(response.getheader("Content-Length", "0")) > MAX_JSON:
+                raise ClassificationUnavailable()
+            raw = response.read(MAX_JSON + 1)
+            if len(raw) > MAX_JSON:
+                raise ClassificationUnavailable()
+            result = json.loads(raw)
+            if not isinstance(result, (dict, list)):
+                raise ClassificationUnavailable()
+            return result
+        except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
+                http.client.HTTPException):
+            raise ClassificationUnavailable() from None
+        finally:
+            connection.close()
+
+    @property
+    def project_id(self) -> str:
+        return self.context.module_project_id
+
+    def project(self) -> dict:
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}")
+        if not isinstance(result, dict) or result.get("id") != self.project_id or not isinstance(result.get("labels"), list):
+            raise ClassificationUnavailable()
+        return result
+
+    def assets(self, *, limit: int = 48, offset: int = 0) -> tuple[dict, ...]:
+        if not 1 <= limit <= 200 or not 0 <= offset <= 1_000_000:
+            raise ClassificationUnavailable()
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}/assets?limit={limit}&offset={offset}")
+        if (not isinstance(result, dict) or not isinstance(result.get("items"), list)
+                or any(not isinstance(row, dict) or row.get("project_id") != self.project_id
+                       or not _id(row.get("id")) for row in result["items"])):
+            raise ClassificationUnavailable()
+        return tuple(result["items"])
+
+    def annotate(self, asset_ids: list[str], label_id: str | None, *, group_id: str | None = None) -> int:
+        if (self.context.role == "viewer" or not isinstance(asset_ids, list) or not 1 <= len(asset_ids) <= 500
+                or any(not _id(item) for item in asset_ids) or len(set(asset_ids)) != len(asset_ids)
+                or (group_id is not None and (not isinstance(group_id, str) or not 1 <= len(group_id) <= 200))):
+            raise ClassificationUnavailable()
+        project = self.project()
+        labels = {item.get("label_id") for item in project["labels"] if isinstance(item, dict)}
+        if label_id is not None and (not _id(label_id) or label_id not in labels):
+            raise ClassificationUnavailable()
+        for asset_id in asset_ids:
+            asset = self._request("GET", f"/api/v1/projects/{self.project_id}/assets/{asset_id}")
+            if not isinstance(asset, dict) or asset.get("id") != asset_id or asset.get("project_id") != self.project_id:
+                raise ClassificationUnavailable()
+        result = self._request("POST", f"/api/v1/projects/{self.project_id}/annotations",
+                               {"asset_ids": asset_ids, "label_id": label_id, "group_id": group_id})
+        if not isinstance(result, dict) or result.get("updated") != len(asset_ids):
+            raise ClassificationUnavailable()
+        return len(asset_ids)
+
+    def dataset_versions(self) -> tuple[dict, ...]:
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}/dataset-versions")
+        if not isinstance(result, list) or any(not isinstance(item, dict) or not _id(item.get("id")) for item in result):
+            raise ClassificationUnavailable()
+        return tuple(result)
+
+    def models(self) -> tuple[dict, ...]:
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}/models")
+        if (not isinstance(result, list) or any(not isinstance(item, dict) or not _id(item.get("id"))
+                                               or item.get("project_id") != self.project_id for item in result)):
+            raise ClassificationUnavailable()
+        return tuple(result)
+
+    def train(self, dataset_id: str, *, key: str, epochs: int = 1, device: str = "cpu") -> str:
+        if (self.context.role == "viewer" or not _id(dataset_id) or not isinstance(key, str)
+                or not KEY.fullmatch(key) or type(epochs) is not int or not 1 <= epochs <= 500
+                or device not in {"cpu", "cuda"}
+                or dataset_id not in {row["id"] for row in self.dataset_versions()}):
+            raise ClassificationUnavailable()
+        result = self._request("POST", f"/api/v1/projects/{self.project_id}/experiments",
+                               {"dataset_id": dataset_id, "epochs": epochs, "device": device}, key=key)
+        if not isinstance(result, dict) or not _id(result.get("job_id")):
+            raise ClassificationUnavailable()
+        return result["job_id"]
+
+    def infer(self, model_id: str, asset_ids: list[str], *, key: str, device: str = "cpu") -> str:
+        if (self.context.role == "viewer" or not _id(model_id) or not isinstance(key, str)
+                or not KEY.fullmatch(key) or device not in {"cpu", "cuda"}
+                or not isinstance(asset_ids, list) or not 1 <= len(asset_ids) <= 5000
+                or any(not _id(item) for item in asset_ids) or len(set(asset_ids)) != len(asset_ids)
+                or model_id not in {row["id"] for row in self.models()}):
+            raise ClassificationUnavailable()
+        result = self._request("POST", f"/api/v1/projects/{self.project_id}/batch-jobs",
+                               {"model_id": model_id, "asset_ids": asset_ids, "device": device,
+                                "auto_accept": False}, key=key)
+        if not isinstance(result, dict) or not _id(result.get("job_id")):
+            raise ClassificationUnavailable()
+        return result["job_id"]
+
+    def job(self, job_id: str) -> JobStatus:
+        if not _id(job_id):
+            raise ClassificationUnavailable()
+        result = self._request("GET", f"/api/v1/jobs/{job_id}")
+        if (not isinstance(result, dict) or result.get("id") != job_id
+                or result.get("project_id") != self.project_id or result.get("kind") not in KINDS
+                or result.get("state") not in STATES or not isinstance(result.get("stage"), str)
+                or any(type(result.get(name)) is not int or result[name] < 0
+                       for name in ("total", "done", "failed"))):
+            raise ClassificationUnavailable()
+        kind, state = result["kind"], result["state"]
+        if result["done"] + result["failed"] > result["total"] and kind == "inference":
+            raise ClassificationUnavailable()
+        return JobStatus(job_id, kind, state, result["stage"], result["total"], result["done"],
+                         result["failed"], _actions(kind, state),
+                         kind == "train" and state in {"paused", "failed", "cancelled"})
+
+    def action(self, job_id: str, action: str) -> JobStatus | str:
+        if self.context.role == "viewer":
+            raise ClassificationUnavailable()
+        before = self.job(job_id)
+        if action not in before.actions:
+            raise ClassificationUnavailable()
+        result = self._request("POST", f"/api/v1/jobs/{job_id}/actions", {"action": action})
+        if action == "retry_failed":
+            if not isinstance(result, dict) or not _id(result.get("job_id")) or result["job_id"] == job_id:
+                raise ClassificationUnavailable()
+            return result["job_id"]  # A new inference job, never a resumed training run.
+        return self.job(job_id)
+
+    def results(self, job_id: str, *, limit: int = 48, offset: int = 0) -> tuple[ReviewItem, ...]:
+        before = self.job(job_id)
+        if before.kind != "inference" or not 1 <= limit <= 200 or not 0 <= offset <= 1_000_000:
+            raise ClassificationUnavailable()
+        result = self._request("GET", f"/api/v1/jobs/{job_id}/results?limit={limit}&offset={offset}")
+        if not isinstance(result, dict) or not isinstance(result.get("items"), list):
+            raise ClassificationUnavailable()
+        items = []
+        for row in result["items"]:
+            if (not isinstance(row, dict) or row.get("job_id") != job_id or not _id(row.get("id"))
+                    or (row.get("asset_id") is not None and not _id(row["asset_id"]))):
+                raise ClassificationUnavailable()
+            prediction = row.get("prediction")
+            if prediction is not None and not isinstance(prediction, dict):
+                raise ClassificationUnavailable()
+            label = prediction.get("label_id") if prediction else None
+            status = prediction.get("status") if prediction else None
+            score = prediction.get("score") if prediction else None
+            human = row.get("confirmed_label")
+            if ((label is not None and not _id(label)) or (human is not None and not _id(human))
+                    or (status is not None and status not in {"accepted", "needs_review"})
+                    or (score is not None and (not isinstance(score, (int, float)) or type(score) is bool
+                                               or not 0 <= score <= 1))):
+                raise ClassificationUnavailable()
+            items.append(ReviewItem(row["id"], row.get("asset_id"), str(row.get("state", "")),
+                                    label, status, float(score) if score is not None else None,
+                                    human, row.get("error") if isinstance(row.get("error"), str) else None))
+        return tuple(items)
