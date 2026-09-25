@@ -803,7 +803,7 @@
             "anyOf": [
               {
                 "maxLength": 64,
-                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
                 "type": "string"
               },
               {
@@ -1114,7 +1114,7 @@
           },
           "native_job_id": {
             "maxLength": 64,
-            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
             "title": "Native Job Id",
             "type": "string"
           },
@@ -1284,7 +1284,7 @@
           },
           "module_project_id": {
             "maxLength": 64,
-            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
             "title": "Module Project Id",
             "type": "string"
           },

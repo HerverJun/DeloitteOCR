@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from packages.contracts.examples import H, H2, POSITIVE
+from packages.contracts.examples import H, H2, OCR_NATIVE_ID, POSITIVE
 from packages.contracts.generate import NAMES, artifacts, components, openapi, render_types, ts_type
 from packages.contracts.models import MODELS, AssetSet, HandoffRequest, JobRef, OpenContext, PageQuery
 from packages.contracts.semantics import (
@@ -32,6 +32,23 @@ def test_public_negative_wire_examples(name):
     example = json.loads((ROOT / "examples" / "negative.json").read_text(encoding="utf-8"))[name]
     with pytest.raises(ValidationError):
         BY_NAME[example["model"]].model_validate_json(json.dumps(example["payload"]))
+
+
+def test_native_ids_accept_actual_ocr_uuid_format_only_in_native_fields():
+    from packages.contracts.models import HandoffStatus, ModuleProjectLink, Workspace
+    assert OCR_NATIVE_ID[0].isdigit() and len(OCR_NATIVE_ID) == 32
+    assert ModuleProjectLink.model_validate(POSITIVE["ModuleProjectLink"]).module_project_id == OCR_NATIVE_ID
+    assert JobRef.model_validate(POSITIVE["JobRef"]).native_job_id == OCR_NATIVE_ID
+    assert HandoffStatus.model_validate(POSITIVE["HandoffStatus"]).items[0].target_asset_id == OCR_NATIVE_ID
+    # Platform-created identities retain their stricter first-letter rule.
+    for model, payload, field in ((ModuleProjectLink, POSITIVE["ModuleProjectLink"], "link_id"),
+                                  (JobRef, POSITIVE["JobRef"], "platform_job_id"),
+                                  (Workspace, {"schema_version": "1.0", "workspace_id": "workspaceA",
+                                               "name": "Case", "revision": 1,
+                                               "created_at": "2026-09-25T01:00:00Z",
+                                               "updated_at": "2026-09-25T01:00:00Z"}, "workspace_id")):
+        with pytest.raises(ValidationError):
+            model.model_validate(payload | {field: OCR_NATIVE_ID})
 
 
 def test_generated_artifacts_are_exact_and_all_refs_resolve():

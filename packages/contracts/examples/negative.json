@@ -24,7 +24,7 @@
         "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "instance_id": "instanceA",
         "last_event_seq": 4,
-        "native_job_id": "nativeA",
+        "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "native_status": "working",
         "operation_id": "operationA",
         "platform_job_id": "jobA",
@@ -70,7 +70,7 @@
       "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "instance_id": "instanceA",
       "last_event_seq": true,
-      "native_job_id": "nativeA",
+      "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "native_status": "working",
       "operation_id": "operationA",
       "platform_job_id": "jobA",
@@ -245,7 +245,7 @@
           "item_id": "itemA",
           "schema_version": "1.0",
           "status": "imported",
-          "target_asset_id": "assetB"
+          "target_asset_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         {
           "error_code": "INPUT_MISSING",
@@ -299,7 +299,7 @@
       "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "instance_id": "instanceA",
       "last_event_seq": 4,
-      "native_job_id": "nativeA",
+      "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "native_status": "working",
       "operation_id": "operationA",
       "platform_job_id": "jobA",
@@ -368,6 +368,126 @@
       "manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "revision": 2,
       "schema_version": "1.0"
+    }
+  },
+  "native_job_empty": {
+    "model": "JobRef",
+    "payload": {
+      "app_id": "ocr",
+      "capabilities": [
+        "cancel"
+      ],
+      "counts": {
+        "cancelled": 0,
+        "failed": 0,
+        "pending": 2,
+        "schema_version": "1.0",
+        "succeeded": 1,
+        "total": 3
+      },
+      "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "instance_id": "instanceA",
+      "last_event_seq": 4,
+      "native_job_id": "",
+      "native_status": "working",
+      "operation_id": "operationA",
+      "platform_job_id": "jobA",
+      "schema_version": "1.0",
+      "stage": "extracting",
+      "status": "running",
+      "updated_at": "2026-09-25T01:00:00Z"
+    }
+  },
+  "native_job_overlong": {
+    "model": "JobRef",
+    "payload": {
+      "app_id": "ocr",
+      "capabilities": [
+        "cancel"
+      ],
+      "counts": {
+        "cancelled": 0,
+        "failed": 0,
+        "pending": 2,
+        "schema_version": "1.0",
+        "succeeded": 1,
+        "total": 3
+      },
+      "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "instance_id": "instanceA",
+      "last_event_seq": 4,
+      "native_job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "native_status": "working",
+      "operation_id": "operationA",
+      "platform_job_id": "jobA",
+      "schema_version": "1.0",
+      "stage": "extracting",
+      "status": "running",
+      "updated_at": "2026-09-25T01:00:00Z"
+    }
+  },
+  "native_job_path": {
+    "model": "JobRef",
+    "payload": {
+      "app_id": "ocr",
+      "capabilities": [
+        "cancel"
+      ],
+      "counts": {
+        "cancelled": 0,
+        "failed": 0,
+        "pending": 2,
+        "schema_version": "1.0",
+        "succeeded": 1,
+        "total": 3
+      },
+      "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "instance_id": "instanceA",
+      "last_event_seq": 4,
+      "native_job_id": "C:/jobs/private",
+      "native_status": "working",
+      "operation_id": "operationA",
+      "platform_job_id": "jobA",
+      "schema_version": "1.0",
+      "stage": "extracting",
+      "status": "running",
+      "updated_at": "2026-09-25T01:00:00Z"
+    }
+  },
+  "native_project_empty": {
+    "model": "ModuleProjectLink",
+    "payload": {
+      "app_id": "ocr",
+      "link_id": "linkA",
+      "module_project_id": "",
+      "revision": 1,
+      "role": "owner",
+      "schema_version": "1.0",
+      "workspace_id": "workspaceA"
+    }
+  },
+  "native_project_overlong": {
+    "model": "ModuleProjectLink",
+    "payload": {
+      "app_id": "ocr",
+      "link_id": "linkA",
+      "module_project_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "revision": 1,
+      "role": "owner",
+      "schema_version": "1.0",
+      "workspace_id": "workspaceA"
+    }
+  },
+  "native_project_path": {
+    "model": "ModuleProjectLink",
+    "payload": {
+      "app_id": "ocr",
+      "link_id": "linkA",
+      "module_project_id": "../secret",
+      "revision": 1,
+      "role": "owner",
+      "schema_version": "1.0",
+      "workspace_id": "workspaceA"
     }
   },
   "overlong_capabilities": {
@@ -467,7 +587,7 @@
       "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "instance_id": "instanceA",
       "last_event_seq": 4,
-      "native_job_id": "nativeA",
+      "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "native_status": "working",
       "operation_id": "operationA",
       "platform_job_id": "jobA",
@@ -495,7 +615,7 @@
       "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "instance_id": "instanceA",
       "last_event_seq": 4,
-      "native_job_id": "nativeA",
+      "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "native_status": "working",
       "operation_id": "operationA",
       "platform_job_id": "jobA",
@@ -528,6 +648,75 @@
       "page_number": 1,
       "precision": "page_only",
       "schema_version": "1.0"
+    }
+  },
+  "receiver_asset_empty": {
+    "model": "HandoffStatus",
+    "payload": {
+      "items": [
+        {
+          "item_id": "itemA",
+          "schema_version": "1.0",
+          "status": "imported",
+          "target_asset_id": ""
+        },
+        {
+          "error_code": "INPUT_MISSING",
+          "item_id": "itemB",
+          "schema_version": "1.0",
+          "status": "failed"
+        }
+      ],
+      "operation_id": "operationA",
+      "request_id": "requestA",
+      "schema_version": "1.0",
+      "state": "partial"
+    }
+  },
+  "receiver_asset_overlong": {
+    "model": "HandoffStatus",
+    "payload": {
+      "items": [
+        {
+          "item_id": "itemA",
+          "schema_version": "1.0",
+          "status": "imported",
+          "target_asset_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "error_code": "INPUT_MISSING",
+          "item_id": "itemB",
+          "schema_version": "1.0",
+          "status": "failed"
+        }
+      ],
+      "operation_id": "operationA",
+      "request_id": "requestA",
+      "schema_version": "1.0",
+      "state": "partial"
+    }
+  },
+  "receiver_asset_path": {
+    "model": "HandoffStatus",
+    "payload": {
+      "items": [
+        {
+          "item_id": "itemA",
+          "schema_version": "1.0",
+          "status": "imported",
+          "target_asset_id": "../private"
+        },
+        {
+          "error_code": "INPUT_MISSING",
+          "item_id": "itemB",
+          "schema_version": "1.0",
+          "status": "failed"
+        }
+      ],
+      "operation_id": "operationA",
+      "request_id": "requestA",
+      "schema_version": "1.0",
+      "state": "partial"
     }
   },
   "unknown_control_field": {

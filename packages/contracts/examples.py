@@ -11,12 +11,16 @@ V = {"schema_version": "1.0"}
 LOCATOR = {**V, "kind": "page", "asset_id": "assetA", "asset_revision": 1,
            "blob_hash": H, "page_number": 1, "precision": "page_only"}
 COUNTS = {**V, "total": 3, "succeeded": 1, "failed": 0, "cancelled": 0, "pending": 2}
+OCR_NATIVE_ID = "9" + "a" * 31  # OCR's uuid4().hex may start with a digit.
 JOB = {**V, "platform_job_id": "jobA", "app_id": "ocr", "instance_id": "instanceA",
-       "native_job_id": "nativeA", "operation_id": "operationA", "input_manifest_hash": H,
+       "native_job_id": OCR_NATIVE_ID, "operation_id": "operationA", "input_manifest_hash": H,
        "native_status": "working", "status": "running", "stage": "extracting", "counts": COUNTS,
        "capabilities": ["cancel"], "last_event_seq": 4, "updated_at": T}
 
 POSITIVE = {
+    "ModuleProjectLink": {**V, "workspace_id": "workspaceA", "app_id": "ocr",
+                          "module_project_id": OCR_NATIVE_ID, "link_id": "linkA",
+                          "role": "owner", "revision": 1},
     "AppManifest": {**V, "app_id": "ocr", "display_name": "OCR", "app_version": "1.0.0",
                     "adapter_version": "1.0.0", "min_platform_version": "1.0.0",
                     "data_schema_version": "1", "entry_mode": "standalone_page",
@@ -92,7 +96,7 @@ NEGATIVE = {
                                                          "state": "completed", "items": [{**V, "item_id": "itemA", "status": "imported"}]}),
     "handoff_partial_pending": ("HandoffStatus", {**V, "request_id": "requestA", "operation_id": "operationA",
                                                   "state": "partial", "items": [
-                                                      {**V, "item_id": "itemA", "status": "imported", "target_asset_id": "assetB"},
+                                                      {**V, "item_id": "itemA", "status": "imported", "target_asset_id": OCR_NATIVE_ID},
                                                       {**V, "item_id": "itemB", "status": "failed", "error_code": "INPUT_MISSING"},
                                                       {**V, "item_id": "itemC", "status": "pending"}]}),
     "page_limit_exceeded": ("PageQuery", {**V, "limit": 201}),
@@ -103,10 +107,22 @@ NEGATIVE = {
 }
 
 POSITIVE["HandoffStatus"] = {**V, "request_id": "requestA", "operation_id": "operationA", "state": "partial",
-                             "items": [{**V, "item_id": "itemA", "status": "imported", "target_asset_id": "assetB"},
+                             "items": [{**V, "item_id": "itemA", "status": "imported", "target_asset_id": OCR_NATIVE_ID},
                                        {**V, "item_id": "itemB", "status": "failed", "error_code": "INPUT_MISSING"}]}
 POSITIVE["PageQuery"] = {**V, "limit": 100, "cursor": "cursorA", "snapshot_revision": 2}
 POSITIVE["Asset"] = {**V, "asset_id": "assetA", "workspace_id": "workspaceA", "source_id": "sourceA",
                      "original_name": "sample.pdf", "media_type": "application/pdf", "storage_mode": "managed",
                      "blob_hash": H, "size_bytes": 2_000_000_000, "revision": 1, "created_at": T}
 POSITIVE["DecimalValue"] = {**V, "value": "123456789012.123456", "currency": "USD"}
+
+NEGATIVE.update({
+    "native_project_path": ("ModuleProjectLink", invalid("ModuleProjectLink", ("module_project_id",), "../secret")),
+    "native_project_empty": ("ModuleProjectLink", invalid("ModuleProjectLink", ("module_project_id",), "")),
+    "native_project_overlong": ("ModuleProjectLink", invalid("ModuleProjectLink", ("module_project_id",), "a" * 65)),
+    "native_job_path": ("JobRef", invalid("JobRef", ("native_job_id",), "C:/jobs/private")),
+    "native_job_empty": ("JobRef", invalid("JobRef", ("native_job_id",), "")),
+    "native_job_overlong": ("JobRef", invalid("JobRef", ("native_job_id",), "a" * 65)),
+    "receiver_asset_path": ("HandoffStatus", invalid("HandoffStatus", ("items", 0, "target_asset_id"), "../private")),
+    "receiver_asset_empty": ("HandoffStatus", invalid("HandoffStatus", ("items", 0, "target_asset_id"), "")),
+    "receiver_asset_overlong": ("HandoffStatus", invalid("HandoffStatus", ("items", 0, "target_asset_id"), "a" * 65)),
+})

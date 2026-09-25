@@ -48,7 +48,7 @@
       "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "instance_id": "instanceA",
       "last_event_seq": 4,
-      "native_job_id": "nativeA",
+      "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "native_status": "working",
       "operation_id": "operationA",
       "platform_job_id": "jobA",
@@ -144,7 +144,7 @@
         "item_id": "itemA",
         "schema_version": "1.0",
         "status": "imported",
-        "target_asset_id": "assetB"
+        "target_asset_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
       {
         "error_code": "INPUT_MISSING",
@@ -174,7 +174,7 @@
     "input_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "instance_id": "instanceA",
     "last_event_seq": 4,
-    "native_job_id": "nativeA",
+    "native_job_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "native_status": "working",
     "operation_id": "operationA",
     "platform_job_id": "jobA",
@@ -182,6 +182,15 @@
     "stage": "extracting",
     "status": "running",
     "updated_at": "2026-09-25T01:00:00Z"
+  },
+  "ModuleProjectLink": {
+    "app_id": "ocr",
+    "link_id": "linkA",
+    "module_project_id": "9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "revision": 1,
+    "role": "owner",
+    "schema_version": "1.0",
+    "workspace_id": "workspaceA"
   },
   "OpenContext": {
     "app_id": "ocr",

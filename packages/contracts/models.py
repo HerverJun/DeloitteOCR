@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 VERSION = "1.0"
 Id = Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$", max_length=64)]
+NativeId = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$", max_length=64)]
 Hash = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
 ShortText = Annotated[str, Field(min_length=1, max_length=256)]
 Utc = Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")]
@@ -95,7 +96,7 @@ class Workspace(Timestamped):
 class ModuleProjectLink(Wire):
     workspace_id: Id
     app_id: Id
-    module_project_id: Id
+    module_project_id: NativeId
     link_id: Id
     role: Literal["owner", "editor", "viewer"]
     revision: Revision
@@ -246,7 +247,7 @@ class JobRef(Timestamped):
     platform_job_id: Id
     app_id: Id
     instance_id: Id
-    native_job_id: Id
+    native_job_id: NativeId
     operation_id: Id
     input_manifest_hash: Hash
     native_status: ShortText
@@ -316,7 +317,7 @@ class HandoffRequest(Wire):
 class HandoffItem(Wire):
     item_id: Id
     status: Literal["pending", "imported", "failed"]
-    target_asset_id: Id | None = None
+    target_asset_id: NativeId | None = None
     error_code: Literal["INPUT_CHANGED", "INPUT_MISSING", "VALIDATION_FAILED"] | None = None
 
     @model_validator(mode="after")
