@@ -18,6 +18,10 @@ JOB = {**V, "platform_job_id": "jobA", "app_id": "ocr", "instance_id": "instance
        "capabilities": ["cancel"], "last_event_seq": 4, "updated_at": T}
 
 POSITIVE = {
+    "WorkspaceCreate": {**V, "name": "客户资料核对"},
+    "WorkspacePage": {**V, "items": [{**V, "workspace_id": "workspaceA", "name": "客户资料核对",
+                                    "revision": 1, "created_at": T, "updated_at": T}],
+                      "next_cursor": "1", "snapshot_revision": 2},
     "ModuleProjectLink": {**V, "workspace_id": "workspaceA", "app_id": "ocr",
                           "module_project_id": OCR_NATIVE_ID, "link_id": "linkA",
                           "role": "owner", "revision": 1},
@@ -61,6 +65,10 @@ def invalid(model: str, path: tuple[str | int, ...], value) -> dict:
 
 
 NEGATIVE = {
+    "workspace_create_blank": ("WorkspaceCreate", {**V, "name": ""}),
+    "workspace_create_extra": ("WorkspaceCreate", {**V, "name": "Case", "path": "C:/private"}),
+    "workspace_page_zero_snapshot": ("WorkspacePage", {**POSITIVE["WorkspacePage"], "snapshot_revision": 0}),
+    "workspace_page_unsafe_snapshot": ("WorkspacePage", {**POSITIVE["WorkspacePage"], "snapshot_revision": 9_007_199_254_740_992}),
     "unknown_control_field": ("AppManifest", invalid("AppManifest", ("executable",), "C:/evil.exe")),
     "unsupported_entry_mode": ("AppManifest", invalid("AppManifest", ("entry_mode",), "embedded")),
     "unsupported_schema_version": ("AppManifest", invalid("AppManifest", ("schema_version",), "2.0")),

@@ -15,6 +15,7 @@ Hash = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
 ShortText = Annotated[str, Field(min_length=1, max_length=256)]
 Utc = Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")]
 Revision = Annotated[int, Field(strict=True, ge=1)]
+SafeRevision = Annotated[int, Field(strict=True, ge=1, le=9_007_199_254_740_991)]
 Count = Annotated[int, Field(strict=True, ge=0, le=1_000_000_000)]
 Bytes = Annotated[int, Field(strict=True, ge=0, le=9_007_199_254_740_991)]
 Cursor = Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]{1,256}$", max_length=256)]
@@ -91,6 +92,10 @@ class Workspace(Timestamped):
     revision: Revision
     created_at: Utc
     updated_at: Utc
+
+
+class WorkspaceCreate(Wire):
+    name: ShortText
 
 
 class ModuleProjectLink(Wire):
@@ -219,6 +224,11 @@ class PageQuery(Wire):
 class PageBase(Wire):
     next_cursor: Cursor | None
     snapshot_revision: Revision
+
+
+class WorkspacePage(PageBase):
+    snapshot_revision: SafeRevision
+    items: list[Workspace] = Field(max_length=200)
 
 
 class AppManifestPage(PageBase):
@@ -393,7 +403,7 @@ class DecimalValue(Wire):
         return value
 
 
-MODELS = (AppManifest, Health, AppHealth, LaunchReceipt, Workspace, ModuleProjectLink, OpenContext, ContextIssueRequest,
+MODELS = (AppManifest, Health, AppHealth, LaunchReceipt, Workspace, WorkspaceCreate, WorkspacePage, ModuleProjectLink, OpenContext, ContextIssueRequest,
           Asset, SourceLocator, AssetSetItem, AssetSet, PageQuery, PageBase, AppManifestPage, AssetPage,
           Counts, JobRef, JobPage, Artifact, ImportOptions,
           JobControlRequest, HandoffRequest, HandoffItem, HandoffStatus, ResourceGrant, Error, DecimalValue)

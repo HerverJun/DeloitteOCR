@@ -17,6 +17,7 @@ NAMES = {
     "AppManifest": "app-manifest", "OpenContext": "context", "AssetSet": "asset-set",
     "SourceLocator": "source-locator", "JobRef": "job", "Artifact": "artifact",
     "HandoffRequest": "handoff", "ResourceGrant": "resource-grant", "Error": "error",
+    "WorkspacePage": "workspace-page", "WorkspaceCreate": "workspace-create",
 }
 
 
@@ -117,7 +118,7 @@ def openapi(definitions: dict[str, dict]) -> dict:
         return {"get": {"operationId": operation, "parameters": [parameter(parameter_name)],
                         "responses": {"200": response(result), "404": response("Error", "Not found")}}}
 
-    def listing(operation, result):
+    def listing(operation, result, *, safe_revision=False):
         properties = PageQuery.model_json_schema()["properties"]
 
         def query_parameter(name):
@@ -126,6 +127,8 @@ def openapi(definitions: dict[str, dict]) -> dict:
             schema.pop("title", None)
             if "anyOf" in schema:
                 schema = next(part for part in schema["anyOf"] if part.get("type") != "null")
+            if safe_revision and name == "snapshot_revision":
+                schema["maximum"] = 9_007_199_254_740_991
             return {"name": name, "in": "query", "required": name == "limit", "schema": schema}
 
         return {"get": {"operationId": operation,
@@ -133,6 +136,13 @@ def openapi(definitions: dict[str, dict]) -> dict:
                         "responses": {"200": response(result), "409": response("Error", "Snapshot expired")}}}
 
     paths = {
+        "/api/platform/v1/workspaces": {
+            **listing("listWorkspaces", "WorkspacePage", safe_revision=True),
+            "post": {"operationId": "createWorkspace", "requestBody": body("WorkspaceCreate"),
+                     "responses": {"201": response("Workspace"), "400": response("Error", "Invalid request"),
+                                   "403": response("Error", "Origin not permitted"),
+                                   "503": response("Error", "Workspace store unavailable")}}},
+        "/api/platform/v1/workspaces/{workspace_id}": get("getWorkspace", "workspace_id", "Workspace"),
         "/api/platform/v1/apps": listing("listAppManifests", "AppManifestPage"),
         "/api/platform/v1/apps/{app_id}": get("getAppManifest", "app_id", "AppManifest"),
         "/api/platform/v1/apps/{app_id}/health": get("getAppHealth", "app_id", "AppHealth"),

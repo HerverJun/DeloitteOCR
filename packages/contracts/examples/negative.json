@@ -820,6 +820,57 @@
       "schema_version": "1.0"
     }
   },
+  "workspace_create_blank": {
+    "model": "WorkspaceCreate",
+    "payload": {
+      "name": "",
+      "schema_version": "1.0"
+    }
+  },
+  "workspace_create_extra": {
+    "model": "WorkspaceCreate",
+    "payload": {
+      "name": "Case",
+      "path": "C:/private",
+      "schema_version": "1.0"
+    }
+  },
+  "workspace_page_unsafe_snapshot": {
+    "model": "WorkspacePage",
+    "payload": {
+      "items": [
+        {
+          "created_at": "2026-09-25T01:00:00Z",
+          "name": "客户资料核对",
+          "revision": 1,
+          "schema_version": "1.0",
+          "updated_at": "2026-09-25T01:00:00Z",
+          "workspace_id": "workspaceA"
+        }
+      ],
+      "next_cursor": "1",
+      "schema_version": "1.0",
+      "snapshot_revision": 9007199254740992
+    }
+  },
+  "workspace_page_zero_snapshot": {
+    "model": "WorkspacePage",
+    "payload": {
+      "items": [
+        {
+          "created_at": "2026-09-25T01:00:00Z",
+          "name": "客户资料核对",
+          "revision": 1,
+          "schema_version": "1.0",
+          "updated_at": "2026-09-25T01:00:00Z",
+          "workspace_id": "workspaceA"
+        }
+      ],
+      "next_cursor": "1",
+      "schema_version": "1.0",
+      "snapshot_revision": 0
+    }
+  },
   "zero_page": {
     "model": "SourceLocator",
     "payload": {

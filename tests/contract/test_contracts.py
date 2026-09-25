@@ -57,6 +57,10 @@ def test_generated_artifacts_are_exact_and_all_refs_resolve():
     defs = components()
     spec = json.loads((ROOT / "adapter.openapi.json").read_text(encoding="utf-8"))
     assert spec == openapi(defs)
+    workspace_paths = spec["paths"]
+    assert workspace_paths["/api/platform/v1/workspaces"]["post"]["requestBody"]["content"]["application/json"]["schema"]["$ref"].endswith("/WorkspaceCreate")
+    assert workspace_paths["/api/platform/v1/workspaces"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/WorkspacePage")
+    assert next(p for p in workspace_paths["/api/platform/v1/workspaces"]["get"]["parameters"] if p["name"] == "snapshot_revision")["schema"]["maximum"] == 9_007_199_254_740_991
     assert all(name in defs for name in NAMES)
     assert (ROOT / "types.generated.ts").read_text(encoding="utf-8") == render_types(defs)
     query_schema = PageQuery.model_json_schema()["properties"]

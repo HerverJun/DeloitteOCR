@@ -26,4 +26,8 @@ pnpm run build
 
 开发预览使用 `pnpm run dev`，只绑定本机 `127.0.0.1`，将 `/api` 转发到已由本次运行明确启动的 8766 服务。不要连接或停止未知同端口进程。生产构建仅证明静态文件能生成；真实浏览器导航和旧应用接入属于后续任务。
 
-平台当前仅提供 `GET /api/platform/v1/health`。其中 `service=ready` 表示本服务处理了请求，`ui/cpu/gpu/models=unknown`，不会以文件存在推断旧模块或 GPU 状态。无凭据、业务样本和真实外部 API 配置被写入工程。
+平台健康接口 `GET /api/platform/v1/health` 的 `service=ready` 表示本服务处理了请求，`ui/cpu/gpu/models=unknown`，不会以文件存在推断旧模块或 GPU 状态。应用目录及本机工作空间接口另有各自路由。无凭据、业务样本和真实外部 API 配置被写入工程。
+
+工作空间接口使用受信进程环境 `WORKBENCH_DATA_DIR`（指向预先建立的本机数据目录），启动时在该目录打开或创建 `workspaces.sqlite3`。例如在启动 uvicorn 前设置 `$env:WORKBENCH_DATA_DIR = 'E:/platform-data'`；此值不能由 HTTP 请求指定。未配置时 GET/POST 返回 503，而不是伪造空列表。数据目录无效会使服务启动失败，以免误用其它位置。工作空间 GET 仅接受 loopback Host；创建 POST 还要求严格 JSON 与匹配该 Host 的 HTTP Origin。通过 Vite 本机代理开发时，浏览器同源 Origin 与转发 Host 必须保持一致。
+
+门户现在用 React Router、TanStack Query 和 Ant Design 6 单一主题；`pnpm run test` 是一次性完成的 Vitest/jsdom 行为测试。七个主导航入口可直接访问；资料、任务、成果、设置在服务能力接入前显示真实未开放状态。工作空间以 URL 查询参数 `workspace` 传递，应用状态查询按工作空间和应用身份隔离。工具的实际打开与旧应用浏览器联动属于后续接入任务。

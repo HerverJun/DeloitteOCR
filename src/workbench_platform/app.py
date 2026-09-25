@@ -1,12 +1,23 @@
 """Minimum platform health endpoint; module capabilities are not assumed."""
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
 from .catalog.routes import contract_error, router as catalog_router
+from .workspaces.routes import configure_workspace_store, router as workspace_router
 
-app = FastAPI(title="Workbench Platform", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    configure_workspace_store(app)
+    yield
+
+
+app = FastAPI(title="Workbench Platform", version="0.1.0", lifespan=lifespan)
 app.include_router(catalog_router)
+app.include_router(workspace_router)
 
 
 @app.exception_handler(RequestValidationError)
