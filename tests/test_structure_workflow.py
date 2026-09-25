@@ -314,9 +314,16 @@ class StructureStoreTests(unittest.TestCase):
                 if authenticated:headers['Authorization']='Bearer structure-test-token'
                 request=urllib.request.Request(url,data=json.dumps({'revision':revision}).encode(),headers=headers)
                 opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
-                try:
-                    with opener.open(request,timeout=10) as response:return response.status,json.load(response)
-                except urllib.error.HTTPError as error:return error.code,None
+                # Uvicorn's started flag can precede the first accepted Windows
+                # loopback request under heavy full-suite load. Retry only a
+                # transport abort, never an HTTP assertion or server response.
+                for attempt in range(4):
+                    try:
+                        with opener.open(request,timeout=10) as response:return response.status,json.load(response)
+                    except urllib.error.HTTPError as error:return error.code,None
+                    except (ConnectionAbortedError, ConnectionResetError):
+                        if attempt == 3:raise
+                        time.sleep(.05)
             self.assertEqual(post(0,False)[0],401)
             self.assertEqual(post(99)[0],409)
             status,value=post(0)

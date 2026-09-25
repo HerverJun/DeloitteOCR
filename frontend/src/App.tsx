@@ -54,6 +54,7 @@ import {
   validEngine,
 } from "./workspacePreferences";
 import { api, request, download } from "./api";
+import { navigationFromLaunch, safeReturnUrl, type PlatformNavigation } from "./platformNavigation";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
@@ -168,6 +169,17 @@ export function App() {
   }, []);
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
+  const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
+  useEffect(() => {
+    let active = true;
+    const pending = navigationFromLaunch();
+    if (pending) void pending.then(value => {
+      if (active) setPlatformNavigation(value);
+    }).catch(() => {
+      if (active) onError("平台入口已失效；当前工作台仍可独立使用。");
+    });
+    return () => { active = false; };
+  }, [onError]);
   const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
   const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
   const [documentReviewTarget, setDocumentReviewTarget] = useState<DocumentReviewTask | null>(null);
@@ -745,6 +757,12 @@ export function App() {
         <Button onClick={() => setConnectionAttempt(n => n + 1)}>重新连接</Button>
       </div>}
       <BrandHeader>
+        {platformNavigation && safeReturnUrl(platformNavigation) && (
+          <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
+            target="_blank" rel="noopener noreferrer" aria-label="在新标签页返回平台">
+            返回平台 ↗
+          </a>
+        )}
         {!reviewOnly && (
           <EnginePackages
             onError={onError}

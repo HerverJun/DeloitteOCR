@@ -24,6 +24,7 @@ from ocr_workbench.task_queue import TaskQueue, FusionQueue, ExternalReviewQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
 from ocr_workbench.editing import present_result, export_text
+from ocr_workbench.platform_navigation import NavigationTickets
 
 
 def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None):
@@ -100,6 +101,12 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     app.state.documents = documents
     app.state.shutdown = lambda: None
     app.state.review_only = review_only
+    platform_instance = os.environ.get("WORKBENCH_INSTANCE_ID", "")
+    platform_nonce = os.environ.get("WORKBENCH_NONCE", "")
+    navigation = (NavigationTickets(instance_id=platform_instance)
+                  if os.environ.get("WORKBENCH_APP_ID") == "ocr" and platform_instance
+                  and len(platform_nonce) >= 32 else None)
+    app.state.platform_navigation = navigation
 
     def require_recognition():
         if review_only:
@@ -129,7 +136,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         origin = request.headers.get("origin")
         if origin and origin != f"{request.url.scheme}://{request.url.netloc}":
             return JSONResponse({"message": "不允许跨站请求"}, status_code=403)
-        if request.url.path.startswith("/api/") and request.url.path != "/api/health":
+        issue_path = request.url.path == "/api/platform/navigation/issue" and navigation is not None
+        if request.url.path.startswith("/api/") and request.url.path != "/api/health" and not issue_path:
             supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
             if not secrets.compare_digest(supplied, token):
                 return JSONResponse(
@@ -172,6 +180,43 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         ready = (review_only or status.get("healthy", False)) and (not start_queue or
             (cpu_status.get("healthy", False) and external_queue.status()['healthy']))
         return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status, "external_queue": external_queue.status()}
+
+    @app.post("/api/platform/navigation/issue", status_code=201)
+    async def issue_platform_navigation(request: Request):
+        if navigation is None or not secrets.compare_digest(
+                request.headers.get("x-workbench-launch-nonce", ""), platform_nonce):
+            raise HTTPException(status_code=403, detail="Navigation unavailable")
+        if request.headers.get("content-type", "").split(";", 1)[0].lower().strip() != "application/json":
+            raise HTTPException(status_code=400, detail="JSON required")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 2048:
+                raise HTTPException(status_code=400, detail="Invalid navigation context")
+        try:
+            def unique(pairs):
+                result = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise ValueError("Duplicate field")
+                    result[key] = value
+                return result
+            ticket = navigation.issue(json.loads(body, object_pairs_hook=unique))
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid navigation context") from None
+        return {"ticket": ticket}
+
+    @app.get("/api/platform/navigation/tickets/{ticket}")
+    def consume_platform_navigation(ticket: str):
+        if navigation is None:
+            raise HTTPException(status_code=404, detail="Navigation unavailable")
+        try:
+            target = navigation.consume(ticket)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Navigation unavailable") from None
+        return {"app_id": target.app_id, "instance_id": target.instance_id,
+                "link_id": target.link_id, "workspace_id": target.workspace_id,
+                "return_url": target.return_url}
 
     @app.post('/api/multimodal/external/queue/recover')
     def recover_external_queue():
