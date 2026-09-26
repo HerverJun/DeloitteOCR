@@ -178,7 +178,8 @@ def digest(path):
 
 
 @bounded_image_work
-def add_image(store, project_id, name, temporary, *, page_id=None, pdf_to_pixel=None, page_payload=None):
+def add_image(store, project_id, name, temporary, *, page_id=None, pdf_to_pixel=None,
+              page_payload=None, on_accept=None):
     store.one("projects", project_id)
     suffix = Path(name).suffix.lower()
     if suffix not in SUPPORTED:
@@ -246,6 +247,11 @@ def add_image(store, project_id, name, temporary, *, page_id=None, pdf_to_pixel=
                 for order, unit in enumerate(native['units']):
                     store.add_region(page_id, version, 'native-word', unit['polygon'], 'pdf-native',
                                      reading_order=order, metadata=unit, db=db)
+            if on_accept is not None:
+                # The platform import mapping commits in the same SQLite
+                # transaction as the native image and version. A lost HTTP
+                # response can then be reconciled by request/item identity.
+                on_accept(db, key, version)
             publication.publish()
     try:
         temporary.unlink(missing_ok=True)

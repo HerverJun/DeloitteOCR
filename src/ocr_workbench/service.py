@@ -52,9 +52,9 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     agent_policy = json.loads(agent_policy_path.read_text("utf-8")) if agent_policy_path.is_file() else {"feature_flags": {"agent_enabled": False}, "limits": {}}
     enable_agent = bool(agent_policy.get("feature_flags", {}).get("agent_enabled", False)) if agent_enabled is None else agent_enabled
 
-    def import_one(key, name, temporary):
+    def import_one(key, name, temporary, *, on_accept=None):
         with maintenance.guard:
-            return add_image(store, key, name, temporary)
+            return add_image(store, key, name, temporary, on_accept=on_accept)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -132,6 +132,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     register_structure_routes(app, store)
     from ocr_workbench.multimodal_routes import register_multimodal_routes
     register_multimodal_routes(app, store, bundle, queue, maintenance, require_recognition)
+    from ocr_workbench.platform_imports import register_platform_import_routes
+    register_platform_import_routes(app, store, import_one)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):
