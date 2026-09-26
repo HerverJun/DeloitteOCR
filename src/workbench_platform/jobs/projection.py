@@ -114,8 +114,12 @@ def _classification(value: ClassificationStatus, items: Iterable[ReviewItem] | N
         # Training's done/total are changing stage units (images, epochs,
         # export steps), never the immutable item coverage of a JobRef.
         counts = Counts(None, 0, 0, 0, 0)
-    status = {"completed_with_errors": "partial", "pausing": "pausing",
-              "cancelling": "cancelling"}.get(value.state, value.state)
+    if value.state == "completed_with_errors":
+        # The native worker uses this state whenever any item fails, including
+        # a batch in which *every* item failed. Partial requires a real success.
+        status = "partial" if counts.succeeded else "failed" if value.failed else "unknown"
+    else:
+        status = value.state
     if status == "succeeded" and (counts.pending or counts.failed or counts.cancelled):
         raise ProjectionConflict("Native success contradicts item ledger")
     if status == "partial" and not (counts.succeeded and (counts.failed or counts.cancelled)):

@@ -83,6 +83,37 @@ def test_classification_failed_retains_real_native_pending_items(tmp_path):
     assert reopened.events_since("otherWorkspace", 0) == ()
 
 
+def test_classification_all_failed_is_not_partial(tmp_path):
+    native = ClassificationStore(Settings(tmp_path / "classification"))
+    with native.connect(write=True) as db:
+        db.execute("INSERT INTO projects(id,name,labels,created_at) VALUES(?,?,?,?)",
+                   ("projectA", "Project", "[]", "2026-01-01T00:00:00+00:00"))
+    job_id = native.submit("projectA", "inference", {"device": "cpu"},
+                           ({"id": f"asset{number}", "path": f"input{number}",
+                             "sha256": "a" * 64} for number in range(2)))
+    owned = native.claim("test-worker")
+    with native.connect(write=True) as db:
+        db.execute("UPDATE job_items SET state='failed',error='injected' WHERE job_id=?", (job_id,))
+        db.execute("UPDATE jobs SET failed=2 WHERE id=?", (job_id,))
+    native.finish(job_id, owned["lease_token"], "completed_with_errors")
+    job = native.job(job_id)
+    rows = native.rows("SELECT id,state FROM job_items WHERE job_id=? ORDER BY id", (job_id,))
+    assert job["state"] == "completed_with_errors" and job["failed"] == 2
+
+    ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
+    ctx = context()
+    register(ledger, ctx, [job_id])
+    projected = ledger.observe(ctx, "platformJobA", generation=7, expected_event_seq=0,
+                               native=classification_status(job_id, job["state"],
+                                                            total=job["total"], done=job["done"],
+                                                            failed=job["failed"]),
+                               items=[item(row["id"], row["state"]) for row in rows])
+    assert projected["native_status"] == "completed_with_errors"
+    assert projected["status"] == "failed"
+    assert projected["counts"] == {"total": 2, "succeeded": 0, "failed": 2,
+                                   "cancelled": 0, "pending": 0}
+
+
 def test_ocr_recovery_is_projected_as_paused_then_cancelled(tmp_path):
     native = OcrStore(tmp_path / "ocr")
     project_id = native.project("Project")["id"]
