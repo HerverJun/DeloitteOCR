@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "python": ">=3.12,<3.13",
+  "dependencies": {
+    "duckdb": "1.5.5",
+    "openpyxl": "3.1.5",
+    "defusedxml": "0.7.1",
+    "et-xmlfile": "2.0.0"
+  },
+  "execution": "isolated subprocess per job; caller supplies its dedicated Python runtime",
+  "limits": {
+    "input_bytes": 67108864,
+    "memory": "256MB",
+    "temp_directory": "256MB",
+    "threads": 2,
+    "seconds": 60
+  }
+}
