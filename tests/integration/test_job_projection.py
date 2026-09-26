@@ -2,15 +2,21 @@
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from adapters.classification.adapter import JobStatus, ReviewItem
-from adapters.ocr.adapter import OcrAdapter
+from adapters.ocr.adapter import BatchStatus, OcrAdapter, TaskStatus
 from workbench_platform.bridge.context import ResolvedContext
 from workbench_platform.jobs.projection import (
     JobProjectionStore, ProjectionConflict, ProjectionUnavailable,
 )
+from workbench_platform.jobs.routes import JobService, router as jobs_router
+from workbench_platform.jobs.native_classification import ClassificationUnavailable
+from workbench_platform.store import WorkspaceStore
 
 CLASSIFICATION_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/classification/src")
 OCR_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/ocr/src")
@@ -219,3 +225,132 @@ def test_training_progress_is_not_misreported_as_item_coverage(tmp_path):
                                expected_event_seq=0, native=native)
     assert projected["counts"]["total"] is None
     assert projected["progress_done"] == 3 and projected["progress_total"] == 10
+
+
+def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp_path, monkeypatch):
+    workspaces = WorkspaceStore(tmp_path / "workspaces.sqlite")
+    workspaces.create_workspace("Workspace", workspace_id="workspaceA")
+    workspaces.add_link("workspaceA", "classification", "projectA", role="editor",
+                        expected_revision=1, link_id="linkA")
+    ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
+    receipt = SimpleNamespace(instance_id="instanceA", base_url="http://127.0.0.1:8765/")
+    launches = SimpleNamespace(current=lambda app_id: receipt)
+    service = JobService(ledger, workspaces, launches, ocr_token_file=None)
+    native = {"state": "running", "item_state": "pending", "error": None}
+
+    class Native:
+        def job(self, job_id):
+            assert job_id == "jobA"
+            actions = ("cancel",) if native["state"] == "running" else ()
+            return JobStatus(job_id, "inference", native["state"], "native GPU wait", 1, 0, 0,
+                             actions, False)
+
+        def results(self, job_id, *, limit, offset):
+            assert (job_id, limit, offset) == ("jobA", 1, 0)
+            return (ReviewItem("itemA", "assetA", native["item_state"], None, None, None,
+                               None, native["error"]),)
+
+        def action(self, job_id, action):
+            assert (job_id, action) == ("jobA", "cancel")
+            # Native worker is still running when it acknowledges cancellation.
+            return self.job(job_id)
+
+    monkeypatch.setattr(service, "_adapter", lambda context: Native())
+    app = FastAPI()
+    app.state.job_service = service
+    app.include_router(jobs_router)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    base = "/api/platform/v1/workspaces/workspaceA/jobs"
+    origin = {"Origin": "http://127.0.0.1"}
+
+    links = client.get(base + "/links")
+    assert links.status_code == 200 and links.json()["items"][0]["link_id"] == "linkA"
+    assert client.post(base, json={"link_id": "linkA", "app_id": "classification",
+                                    "native_job_ids": ["jobA"], "token": "browser-secret"},
+                       headers=origin).status_code == 400
+    created = client.post(base, json={"link_id": "linkA", "app_id": "classification",
+                                      "native_job_ids": ["jobA"]}, headers=origin)
+    assert created.status_code == 201
+    job_id = created.json()["platform_job_id"]
+    assert created.json()["status"] == "running" and created.json()["capabilities"] == ["cancel"]
+    assert client.get(base).json()["items"][0]["platform_job_id"] == job_id
+    assert client.get(base.replace("workspaceA", "otherWorkspace")).status_code == 404
+    assert client.post(base + f"/{job_id}/actions/cancel").status_code == 403
+    sent = client.post(base + f"/{job_id}/actions/cancel", headers=origin)
+    assert sent.status_code == 202 and sent.json()["request_state"] == "sent"
+    assert sent.json()["job"]["status"] == "running"
+    assert ledger.get("workspaceA", job_id)["status"] == "running"
+
+    native.update(state="cancelled", item_state="cancelled", error="native cancellation detail")
+    refreshed = client.get(base + f"/{job_id}")
+    assert refreshed.status_code == 200 and refreshed.json()["status"] == "cancelled"
+    assert refreshed.json()["counts"]["cancelled"] == 1
+    assert refreshed.json()["native_errors"] == [{"native_item_id": "itemA",
+                                                    "message": "native cancellation detail"}]
+    assert client.get(base).json()["items"][0]["native_errors"] == refreshed.json()["native_errors"]
+    assert client.post(base + f"/{job_id}/actions/cancel", headers=origin).status_code == 409
+
+
+def test_ocr_cancel_acknowledgement_does_not_prove_worker_stopped(tmp_path, monkeypatch):
+    workspaces = WorkspaceStore(tmp_path / "workspaces.sqlite")
+    workspaces.create_workspace("Workspace", workspace_id="workspaceA")
+    workspaces.add_link("workspaceA", "ocr", "projectA", role="editor",
+                        expected_revision=1, link_id="linkA")
+    ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
+    launches = SimpleNamespace(current=lambda app_id: SimpleNamespace(
+        instance_id="instanceA", base_url="http://127.0.0.1:8765/"))
+    token_file = tmp_path / "trusted-token.txt"
+    token_file.write_text("trusted-server-token-with-at-least-thirty-two-characters", encoding="utf-8")
+    service = JobService(ledger, workspaces, launches, ocr_token_file=str(token_file))
+    assert service._token() == token_file.read_text(encoding="utf-8")
+    native = {"state": "running", "error": None}
+
+    class Native:
+        def batch(self, task_ids):
+            assert task_ids == ["taskA"]
+            task = TaskStatus("taskA", native["state"], "GPU queue", None, "imageA", "versionA", native["error"])
+            pending = int(native["state"] == "running")
+            cancelled = int(native["state"] == "cancelled")
+            return BatchStatus((task,), 0, 0, cancelled, pending, native["state"],
+                               ("taskA",) if pending else ())
+
+        def cancel(self, task_ids):
+            assert task_ids == ["taskA"]
+            return ("taskA",)
+
+    monkeypatch.setattr(service, "_adapter", lambda context: Native())
+    created = service.register("workspaceA", "linkA", "ocr", ["taskA"])
+    assert created["status"] == "running" and created["counts"]["pending"] == 1
+    sent = service.action("workspaceA", created["platform_job_id"], "cancel")
+    assert sent["request_state"] == "sent" and sent["job"]["status"] == "running"
+    assert ledger.get("workspaceA", created["platform_job_id"])["counts"]["pending"] == 1
+    native.update(state="cancelled", error="native cancellation")
+    refreshed = service.refresh("workspaceA", ledger.get("workspaceA", created["platform_job_id"]))
+    assert refreshed["status"] == "cancelled" and refreshed["native_errors"][0]["message"] == "native cancellation"
+
+
+def test_unknown_native_action_response_does_not_claim_completion(tmp_path, monkeypatch):
+    workspaces = WorkspaceStore(tmp_path / "workspaces.sqlite")
+    workspaces.create_workspace("Workspace", workspace_id="workspaceA")
+    workspaces.add_link("workspaceA", "classification", "projectA", role="editor",
+                        expected_revision=1, link_id="linkA")
+    ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
+    launches = SimpleNamespace(current=lambda app_id: SimpleNamespace(
+        instance_id="instanceA", base_url="http://127.0.0.1:8765/"))
+    service = JobService(ledger, workspaces, launches, ocr_token_file=None)
+
+    class Native:
+        def job(self, job_id):
+            return JobStatus(job_id, "inference", "running", "working", 1, 0, 0, ("cancel",), False)
+
+        def results(self, job_id, *, limit, offset):
+            return (item("itemA", "pending"),)
+
+        def action(self, job_id, action):
+            raise ClassificationUnavailable()
+
+    monkeypatch.setattr(service, "_adapter", lambda context: Native())
+    created = service.register("workspaceA", "linkA", "classification", ["jobA"])
+    response = service.action("workspaceA", created["platform_job_id"], "cancel")
+    assert response["request_state"] == "unknown" and response["job"]["status"] == "unknown"
+    assert ledger.get("workspaceA", created["platform_job_id"])["status"] == "running"

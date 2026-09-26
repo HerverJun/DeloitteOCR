@@ -94,6 +94,7 @@ def _classification(value: ClassificationStatus, items: Iterable[ReviewItem] | N
             or any(action not in {"cancel", "pause", "resume", "retry_failed"}
                    for action in value.actions)):
         raise ProjectionConflict("Invalid classification observation")
+    errors = []
     if value.kind == "inference":
         if items is None:
             raise ProjectionConflict("Inference requires a complete native item snapshot")
@@ -108,6 +109,8 @@ def _classification(value: ClassificationStatus, items: Iterable[ReviewItem] | N
         # us how many items were cancelled or left unprocessed on failure.
         if counts.succeeded != value.done or counts.failed != value.failed:
             raise ProjectionConflict("Native job and item counters disagree")
+        errors = [{"native_item_id": row.native_item_id, "message": row.error[:256]}
+                  for row in rows if isinstance(getattr(row, "error", None), str) and row.error][:20]
     else:
         if items is not None or value.kind not in {"train", "import"}:
             raise ProjectionConflict("Unexpected classification items")
@@ -129,7 +132,8 @@ def _classification(value: ClassificationStatus, items: Iterable[ReviewItem] | N
         raise ProjectionConflict("Unknown classification state")
     return {"status": status, "native_status": value.state, "stage": value.stage[:256],
             "counts": asdict(counts), "progress_done": value.done,
-            "progress_total": value.total, "capabilities": list(value.actions)}
+            "progress_total": value.total, "capabilities": list(value.actions),
+            "native_errors": errors}
 
 
 def _ocr(value: OcrBatchStatus, native_ids: tuple[str, ...]) -> dict:
@@ -153,11 +157,14 @@ def _ocr(value: OcrBatchStatus, native_ids: tuple[str, ...]) -> dict:
     else:
         status = ("succeeded" if counts.succeeded == counts.total else "partial"
                   if counts.succeeded else "failed" if counts.failed else "cancelled")
+    errors = [{"native_item_id": row.native_task_id, "message": row.error[:256]}
+              for row in value.tasks if isinstance(getattr(row, "error", None), str) and row.error][:20]
+    phases = {row.phase[:256] for row in value.tasks if isinstance(getattr(row, "phase", None), str) and row.phase}
     return {"status": status, "native_status": ",".join(sorted(statuses)),
-            "stage": "OCR batch", "counts": asdict(counts),
+            "stage": next(iter(phases)) if len(phases) == 1 else "OCR batch", "counts": asdict(counts),
             "progress_done": counts.succeeded + counts.failed + counts.cancelled,
             "progress_total": counts.total,
-            "capabilities": ["cancel"] if counts.pending else []}
+            "capabilities": ["cancel"] if counts.pending else [], "native_errors": errors}
 
 
 class JobProjectionStore:
@@ -235,7 +242,7 @@ class JobProjectionStore:
                    "counts": asdict(Counts(len(ids) if context.app_id == "ocr" else None,
                                             0, 0, 0, len(ids) if context.app_id == "ocr" else 0)),
                    "progress_done": None, "progress_total": None,
-                   "capabilities": [], "availability": "not_ready", "updated_at": _utc()}
+                   "capabilities": [], "native_errors": [], "availability": "not_ready", "updated_at": _utc()}
         immutable = (context.workspace_id, context.link_id, context.app_id,
                      context.module_project_id, context.instance_id, generation,
                      operation_id, input_manifest_hash, json.dumps(ids))
@@ -279,6 +286,16 @@ class JobProjectionStore:
         if row is None:
             raise ProjectionUnavailable("Projection does not exist")
         return self._view(row)
+
+    def list(self, workspace_id: str, *, limit: int = 50, offset: int = 0) -> tuple[dict, ...]:
+        if (not _valid_id(workspace_id) or type(limit) is not int or not 1 <= limit <= 51
+                or type(offset) is not int or not 0 <= offset <= 1_000_000):
+            raise ProjectionUnavailable("Invalid projection list")
+        with closing(self._connect()) as db:
+            rows = db.execute("SELECT * FROM projected_jobs WHERE workspace_id=? "
+                              "ORDER BY platform_job_id LIMIT ? OFFSET ?",
+                              (workspace_id, limit, offset)).fetchall()
+        return tuple(self._view(row) for row in rows)
 
     def observe(self, context: ResolvedContext, platform_job_id: str, *,
                 generation: int, expected_event_seq: int,

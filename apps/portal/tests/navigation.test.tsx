@@ -31,12 +31,14 @@ function mount(url: string) {
 
 test('deep links, context-aware navigation and history reach distinct pages', async () => {
   vi.stubGlobal('fetch', vi.fn(async (input: string) => ({ ok: true, json: async () =>
-    input.includes('/workspaces') ? page([{ workspace_id: 'a', name: '甲' }, { workspace_id: 'b', name: '乙' }]) :
+    input.includes('/jobs/links') ? { items: [] } :
+    input.includes('/jobs?') ? { items: [], next_offset: null } :
+    input.includes('/workspaces?') ? page([{ workspace_id: 'a', name: '甲' }, { workspace_id: 'b', name: '乙' }]) :
     input.includes('/apps') ? page([app('ocr')]) : { service: 'ready' } })))
   const { router } = mount('/assets?workspace=a')
   expect(await screen.findByText('资料功能尚未开放')).toBeInTheDocument()
   fireEvent.click(screen.getByText('任务', { selector: '.ant-menu-title-content' }))
-  expect(await screen.findByText('任务功能尚未开放')).toBeInTheDocument()
+  expect(await screen.findByText('此工作空间还没有已跟踪任务')).toBeInTheDocument()
   expect(router.state.location.search).toBe('?workspace=a')
   await router.navigate(-1)
   expect(await screen.findByText('资料功能尚未开放')).toBeInTheDocument()

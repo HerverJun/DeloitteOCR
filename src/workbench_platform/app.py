@@ -12,6 +12,7 @@ from .catalog.routes import get_registry
 from .catalog.launch import LaunchService, router as launch_router
 from .catalog.recent import RecentWorkStore
 from .bridge import ContextBridge, bridge_router
+from .jobs.routes import configure_jobs, router as jobs_router
 from .supervisor import Supervisor
 from .workspaces.routes import configure_workspace_store, router as workspace_router
 
@@ -27,8 +28,10 @@ async def lifespan(app: FastAPI):
         app.state.launch_service = LaunchService(supervisor, app.state.recent_store)
         app.state.context_bridge = (ContextBridge(app.state.workspace_store, supervisor)
                                     if app.state.workspace_store is not None else None)
+        configure_jobs(app)
         yield
     finally:
+        app.state.job_service = None
         app.state.context_bridge = None
         app.state.launch_service = None
         app.state.supervisor = None
@@ -40,6 +43,7 @@ app.include_router(catalog_router)
 app.include_router(workspace_router)
 app.include_router(launch_router)
 app.include_router(bridge_router(lambda request: getattr(request.app.state, "context_bridge", None)))
+app.include_router(jobs_router)
 
 
 @app.exception_handler(RequestValidationError)
