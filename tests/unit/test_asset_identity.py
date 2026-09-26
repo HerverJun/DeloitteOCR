@@ -1,6 +1,7 @@
 """Source identity, content integrity and confined file access."""
 
 import hashlib
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -147,3 +148,18 @@ def test_managed_blob_corruption_is_not_served(space):
     with pytest.raises(AssetChanged):
         registry.register("workspaceA", "inputs", "input.txt",
                           media_type="text/plain", storage_mode="managed")
+
+
+def test_invalid_metadata_is_rejected_before_persistence(space):
+    inputs, _, registry = space
+    (inputs / "input.txt").write_bytes(b"valid")
+    for root_id, mode, media_type in (
+        ("inputs", "referenced", "text/" + "x" * 300),
+        ([], "referenced", "text/plain"),
+        ("inputs", [], "text/plain"),
+    ):
+        with pytest.raises(AssetUnavailable):
+            registry.register("workspaceA", root_id, "input.txt",
+                              media_type=media_type, storage_mode=mode)
+    with sqlite3.connect(registry.db_path) as db:
+        assert db.execute("SELECT COUNT(*) FROM registered_asset").fetchone()[0] == 0

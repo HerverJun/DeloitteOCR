@@ -135,7 +135,8 @@ class AssetRegistry:
         return db
 
     def _source(self, root_id: str, relative_path: str) -> tuple[Path, str]:
-        if (root_id not in self.roots or not isinstance(relative_path, str)
+        if (not _id(root_id) or root_id not in self.roots
+                or not isinstance(relative_path, str)
                 or not relative_path or len(relative_path) > 1024
                 or "\\" in relative_path or "\x00" in relative_path
                 or PureWindowsPath(relative_path).is_absolute()
@@ -192,10 +193,14 @@ class AssetRegistry:
 
     def register(self, workspace_id: str, root_id: str, relative_path: str, *,
                  media_type: str, storage_mode: str) -> Asset:
-        if (not _id(workspace_id) or storage_mode not in {"managed", "referenced"}
-                or not isinstance(media_type, str) or _MEDIA.fullmatch(media_type) is None):
+        if (not _id(workspace_id) or not isinstance(storage_mode, str)
+                or storage_mode not in {"managed", "referenced"}
+                or not isinstance(media_type, str) or len(media_type) > 256
+                or _MEDIA.fullmatch(media_type) is None):
             raise AssetUnavailable("Invalid asset registration")
         source, canonical = self._source(root_id, relative_path)
+        if len(source.name) > 256:
+            raise AssetUnavailable("Source name is too long")
         source_id = "s" + hashlib.sha256(f"{root_id}\0{canonical}".encode("utf-8")).hexdigest()[:32]
         temp = None
         try:
@@ -204,9 +209,13 @@ class AssetRegistry:
                                                  suffix=".tmp", delete=False) as stream:
                     temp = Path(stream.name)
                 digest, size = _copy_snapshot(source, temp)
+                if size > 9_007_199_254_740_991:
+                    raise AssetUnavailable("Source is too large")
                 self._install_blob(temp, digest, size)
             else:
                 digest, size = _digest(source)
+                if size > 9_007_199_254_740_991:
+                    raise AssetUnavailable("Source is too large")
             with closing(self._connect()) as db:
                 db.execute("BEGIN IMMEDIATE")
                 try:
