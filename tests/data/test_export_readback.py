@@ -148,3 +148,15 @@ def test_xlsx_locator_and_formula_readback_guard(tmp_path: Path):
     rows, _ = export_module._rows(result, left[1], right[1], left[2], right[2])
     with pytest.raises(ExportError, match="formula"):
         export_module._readback(bundle.files, headers, rows)
+
+
+def test_source_descriptor_and_csv_formula_prefix_validation():
+    for sheet in ("", 7, [], "Sheet"):
+        with pytest.raises(ExportError):
+            SourceDescriptor("assetA", 1, "a" * 64, "csv", sheet)
+    for sheet in (None, "", 7, []):
+        with pytest.raises(ExportError):
+            SourceDescriptor("assetA", 1, "a" * 64, "xlsx", sheet)
+    for dangerous in ("=1+1", " +1+1", "\ufeff=1+1", "\t=1+1", "\r=1+1"):
+        assert export_module._safe_csv(dangerous) == "'" + dangerous
+    assert export_module._safe_csv("ordinary") == "ordinary"

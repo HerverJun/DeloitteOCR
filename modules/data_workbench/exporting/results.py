@@ -51,8 +51,10 @@ class SourceDescriptor:
                 or type(self.asset_revision) is not int or self.asset_revision < 1
                 or not isinstance(self.blob_hash, str) or not _HASH.fullmatch(self.blob_hash)
                 or not isinstance(self.format, str) or self.format not in {"csv", "xlsx"}
-                or (self.format == "xlsx") != (isinstance(self.sheet_name, str) and bool(self.sheet_name))
-                or self.sheet_name is not None and len(self.sheet_name) > 256):
+                or self.format == "csv" and self.sheet_name is not None
+                or self.format == "xlsx" and (
+                    not isinstance(self.sheet_name, str) or not self.sheet_name
+                    or len(self.sheet_name) > 256)):
             raise ExportError("Invalid source descriptor")
 
     def locator(self) -> SourceLocator:
@@ -80,7 +82,11 @@ def _canonical(value: object) -> bytes:
 
 
 def _digest(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def _validated_result(result: ComparisonResult, left: dict, right: dict) -> None:
@@ -168,7 +174,9 @@ def _rows(result: ComparisonResult, left: dict, right: dict,
 
 
 def _safe_csv(value: str) -> str:
-    return "'" + value if value.startswith(_FORMULA_PREFIX) else value
+    examined = value.lstrip(" \t\r\n\ufeff")
+    unsafe = value.startswith(_FORMULA_PREFIX) or examined.startswith(("=", "+", "-", "@"))
+    return "'" + value if unsafe else value
 
 
 def _csv(path: Path, headers: list[str], rows: list[list[str]]) -> None:
