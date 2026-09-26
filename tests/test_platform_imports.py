@@ -7,9 +7,14 @@ from contextlib import closing
 from pathlib import Path
 
 from ocr_workbench.store import Store
+from ocr_workbench.imaging import SUPPORTED as IMAGE_SUPPORTED
+from ocr_workbench.platform_imports import SUPPORTED as IMPORT_SUPPORTED
 
 
 class PlatformImportMigrationTests(unittest.TestCase):
+    def test_import_extensions_match_native_decoder(self):
+        self.assertEqual(IMPORT_SUPPORTED, IMAGE_SUPPORTED)
+
     def test_upgrade_from_prior_schema_preserves_project_and_creates_backup(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

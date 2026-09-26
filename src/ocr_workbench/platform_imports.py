@@ -15,7 +15,6 @@ from pathlib import Path
 from fastapi import Request
 from starlette.concurrency import run_in_threadpool
 
-from ocr_workbench.imaging import SUPPORTED
 from ocr_workbench.store import Conflict, now, uid
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
@@ -23,6 +22,10 @@ _REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{7,119}\Z")
 _HASH = re.compile(r"[0-9a-f]{64}\Z")
 MAX_ITEM_BYTES = 128 * 1024 * 1024
 MAX_MANIFEST_BYTES = 1_048_576
+# Keep schema migration importable by the platform's lightweight environment.
+# Image decoding (Pillow and HEIF) is loaded by the service only when needed.
+SUPPORTED = frozenset({".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff",
+                       ".webp", ".heic", ".heif"})
 
 
 class ImportConflict(Conflict):
