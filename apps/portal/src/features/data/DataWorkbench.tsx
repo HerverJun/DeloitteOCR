@@ -25,6 +25,9 @@ type DataRow = { ordinal: number; row_id: string; source_row: number; cells: Cel
 type Preview = { total: number; rows: DataRow[]; metadata: { event: { errors_total: number; error_sample: { code: string; raw: string; row_id: string }[] }; duplicate_groups: number } }
 type ResultPage = { total: number; rows: (Record<string, string> & { ordinal: number })[]; metadata: { coverage: Record<string, number>; left: InputTable; right: InputTable } }
 type Run = (action: string, payload: Record<string, unknown>) => Promise<void>
+type AssetSelection = { asset_set_id: string; revision: number;
+  items: { item_id: string; asset_id: string }[];
+  members: { asset_id: string; original_name: string }[] }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(API + path, init)
@@ -206,9 +209,29 @@ function ComparePanel({ session, busy, run }: { session: Session; busy: boolean;
   </section>
 }
 
-function Results({ session, busy, run }: { session: Session; busy: boolean; run: Run }) {
+function Results({ session, busy, run, workspaceId }: { session: Session; busy: boolean; run: Run; workspaceId: string | null }) {
   const [category, setCategory] = useState(''), [page, setPage] = useState(1)
   const [selected, setSelected] = useState<string | null>(session.state.result_id)
+  const [publishing, setPublishing] = useState<string | null>(null)
+  const [publishError, setPublishError] = useState('')
+  const [published, setPublished] = useState<Record<string, { workspace: string; bundle: string }>>({})
+  const publish = async (exportId: string) => {
+    if (!workspaceId) return
+    setPublishing(exportId); setPublishError('')
+    try {
+      const response = await fetch(`/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/artifacts/data-exports`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: session.id, export_id: exportId }),
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(typeof body.detail === 'string' ? body.detail : `归集失败（${response.status}）`)
+      }
+      const bundle = await response.json() as { bundle_id: string }
+      setPublished(old => ({ ...old, [exportId]: { workspace: workspaceId, bundle: bundle.bundle_id } }))
+    } catch (failure) { setPublishError((failure as Error).message) }
+    finally { setPublishing(null) }
+  }
   useEffect(() => { setSelected(session.state.result_id); setPage(1) }, [session.state.result_id])
   const query = useQuery({ queryKey: ['data-result', session.id, selected, category, page], enabled: !!selected,
     queryFn: () => request<ResultPage>(`/sessions/${session.id}/results/${selected}?offset=${(page - 1) * 30}&limit=30${category ? '&category=' + category : ''}`) })
@@ -230,8 +253,13 @@ function Results({ session, busy, run }: { session: Session; busy: boolean; run:
         pagination={{ current: page, pageSize: 30, total: query.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
     </>}
     {session.state.exports.length > 0 && <div className="data-downloads"><Title level={4}>已生成的固定版本文件</Title>
+      {publishError && <Alert type="error" title={publishError} closable onClose={() => setPublishError('')} />}
       {session.state.exports.map((item, index) => <div className="data-download-row" key={item.id}><Text type="secondary">第 {session.state.exports.length - index} 次导出</Text>
-        <Space wrap>{item.files.map(file => <a key={file.name} href={`${API}/sessions/${session.id}/exports/${item.id}/${file.name}`} download>{file.name} <small>({Math.ceil(file.bytes / 1024)} KB)</small></a>)}</Space></div>)}
+        <Space wrap>{item.files.map(file => <a key={file.name} href={`${API}/sessions/${session.id}/exports/${item.id}/${file.name}`} download>{file.name} <small>({Math.ceil(file.bytes / 1024)} KB)</small></a>)}</Space>
+        {workspaceId && (published[item.id]?.workspace === workspaceId
+          ? <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(published[item.id].bundle)}`}>查看成果</Link>
+          : <Button size="small" loading={publishing === item.id} disabled={publishing !== null}
+              onClick={() => void publish(item.id)}>归集到成果中心</Button>)}</div>)}
       <Text type="secondary">CSV 对可能被表格软件执行的文本添加安全前缀；原始值和左右来源保存在配套清单中。</Text></div>}
   </section>
 }
@@ -239,8 +267,23 @@ function Results({ session, busy, run }: { session: Session; busy: boolean; run:
 export function DataWorkbench() {
   const [params, setParams] = useSearchParams()
   const sessionId = params.get('session')
+  const workspaceId = params.get('workspace')
+  const assetSetId = params.get('asset_set')
   const client = useQueryClient()
   const [name, setName] = useState('新建表格比对'), [error, setError] = useState(''), [sending, setSending] = useState(false)
+  const [leftItem, setLeftItem] = useState<string>(), [rightItem, setRightItem] = useState<string>()
+  const assetSet = useQuery({ queryKey: ['data-asset-set', workspaceId, assetSetId], enabled: !!workspaceId && !!assetSetId,
+    queryFn: async ({ signal }) => {
+      const response = await fetch(`/api/platform/v1/workspaces/${encodeURIComponent(workspaceId || '')}/assets/sets/${encodeURIComponent(assetSetId || '')}`, { signal })
+      if (!response.ok) throw new Error(`资料集读取失败（${response.status}）`)
+      return response.json() as Promise<AssetSelection>
+    } })
+  const tableItems = assetSet.data?.items.flatMap((item, index) => {
+    const member = assetSet.data.members[index]
+    return member && /\.(csv|xlsx|parquet)$/i.test(member.original_name)
+      ? [{ value: item.item_id, label: member.original_name }] : []
+  }) || []
+  useEffect(() => { setLeftItem(tableItems[0]?.value); setRightItem(tableItems[1]?.value) }, [assetSet.data?.asset_set_id])
   const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean; message: string | null }>('/health') })
   const list = useQuery({ queryKey: ['data-sessions'], queryFn: () => request<{ items: { id: string; name: string }[] }>('/sessions') })
   const session = useQuery({ queryKey: ['data-session', sessionId], enabled: !!sessionId,
@@ -255,6 +298,39 @@ export function DataWorkbench() {
     setSending(true); setError('')
     try { const result = await post<Session>('/sessions', { name }); await client.invalidateQueries({ queryKey: ['data-sessions'] }); choose(result.id) }
     catch (failure) { setError((failure as Error).message) } finally { setSending(false) }
+  }
+  const importSelection = async () => {
+    if (!workspaceId || !assetSet.data || !leftItem || !rightItem || leftItem === rightItem) return
+    setSending(true); setError('')
+    try {
+      let work = await post<Session>('/sessions', { name: '资料库表格比对' })
+      choose(work.id)
+      for (const [side, itemId] of ([['left', leftItem], ['right', rightItem]] as const)) {
+        const upload = await post<{ id: string }>(`/sessions/${work.id}/asset-uploads`, {
+          workspace_id: workspaceId, asset_set_id: assetSet.data.asset_set_id,
+          asset_set_revision: assetSet.data.revision, item_id: itemId,
+        })
+        const job = await post<Job>(`/sessions/${work.id}/actions`, {
+          action: 'import', version: work.version,
+          payload: { side, upload_id: upload.id, options: { header_row: 1 } },
+        })
+        let finished = false
+        for (let attempt = 0; attempt < 450; attempt++) {
+          const status = await request<Job>(`/sessions/${work.id}/jobs/${job.id}`)
+          if (!active.includes(status.status)) {
+            if (status.status !== 'succeeded') throw new Error(status.error || '资料导入未完成')
+            finished = true
+            break
+          }
+          await new Promise(resolve => window.setTimeout(resolve, 200))
+        }
+        if (!finished) throw new Error('资料导入等待超时，请在当前作业检查状态')
+        work = await request<Session>(`/sessions/${work.id}`)
+      }
+      await client.invalidateQueries({ queryKey: ['data-session', work.id] })
+      void client.invalidateQueries({ queryKey: ['data-sessions'] })
+    } catch (failure) { setError((failure as Error).message) }
+    finally { setSending(false) }
   }
   const run: Run = async (action, payload) => {
     if (!current) return
@@ -280,6 +356,14 @@ export function DataWorkbench() {
     {(!health.data?.ready || health.isError) && !health.isPending && <Alert type="warning" title={health.data?.message || '无法连接数据服务'} action={<Button onClick={() => void health.refetch()}>重试</Button>} />}
     <div className="data-session-bar"><Select aria-label="数据作业" placeholder="继续已有作业" value={sessionId || undefined} onChange={choose} loading={list.isPending} options={list.data?.items.map(item => ({ value: item.id, label: item.name }))} />
       <Space.Compact><Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} /><Button disabled={sending || !health.data?.ready} onClick={() => void create()}>新建作业</Button></Space.Compact></div>
+    {workspaceId && assetSetId && <section className="panel data-asset-selection"><div className="section-head"><Title level={3}>从资料库导入</Title>
+      <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(assetSetId)}`}>返回资料库</Link></div>
+      {assetSet.isError && <Alert type="error" title={assetSet.error.message} action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}
+      <Space wrap><Select aria-label="左侧资料" placeholder="左侧资料" value={leftItem} onChange={setLeftItem} style={{ minWidth: 180 }} options={tableItems} />
+        <Select aria-label="右侧资料" placeholder="右侧资料" value={rightItem} onChange={setRightItem} style={{ minWidth: 180 }} options={tableItems} />
+        <Button type="primary" loading={sending} disabled={!health.data?.ready || !leftItem || !rightItem || leftItem === rightItem}
+          onClick={() => void importSelection()}>新建作业并导入</Button></Space>
+    </section>}
     {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
     {session.isError && <Alert type="error" title="无法读取作业" action={<Button onClick={() => void session.refetch()}>重试</Button>} />}
     {job && <Alert type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
@@ -287,7 +371,7 @@ export function DataWorkbench() {
     {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
     {current ? <><div className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
       <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
-      <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} /></> :
+      <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></> :
       <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '新建一个作业，或继续已有表格比对。无需先创建平台工作空间。'} /></div>}
   </div>
 }

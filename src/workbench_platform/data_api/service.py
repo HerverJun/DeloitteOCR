@@ -61,6 +61,11 @@ class DataWorkbenchService:
                     status TEXT,error TEXT,result TEXT,created TEXT,updated TEXT);
                 CREATE INDEX IF NOT EXISTS session_jobs ON jobs(session_id,created);
             ''')
+            columns = {row[1] for row in db.execute('PRAGMA table_info(uploads)')}
+            for name, kind in (('source_workspace_id', 'TEXT'), ('source_asset_id', 'TEXT'),
+                               ('source_asset_revision', 'INTEGER'), ('source_blob_hash', 'TEXT')):
+                if name not in columns:
+                    db.execute(f'ALTER TABLE uploads ADD COLUMN {name} {kind}')
             db.execute("UPDATE jobs SET status='interrupted',error=?,updated=? "
                        "WHERE status IN ('queued','running','cancelling')",
                        ('上次运行被中断，已保留最后成功版本。可重新发起操作。', now()))
@@ -110,12 +115,17 @@ class DataWorkbenchService:
                 'SELECT id,name,format,sha256,size FROM uploads WHERE session_id=?', (session_id,))]
             return value
 
-    def upload(self, session_id, upload_id, name, suffix, path, sha256, size):
+    def upload(self, session_id, upload_id, name, suffix, path, sha256, size, *, source_asset=None):
         self.get(session_id)
+        source_asset = source_asset or {}
         with closing(self.db()) as db, db:
-            db.execute('INSERT INTO uploads VALUES (?,?,?,?,?,?,?)',
+            db.execute('INSERT INTO uploads (id,session_id,name,format,relative,sha256,size,'
+                       'source_workspace_id,source_asset_id,source_asset_revision,source_blob_hash) '
+                       'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                        (upload_id, session_id, name, suffix.lstrip('.'),
-                        path.relative_to(self.session_dir(session_id)).as_posix(), sha256, size))
+                        path.relative_to(self.session_dir(session_id)).as_posix(), sha256, size,
+                        source_asset.get('workspace_id'), source_asset.get('asset_id'),
+                        source_asset.get('revision'), source_asset.get('blob_hash')))
         return {'id': upload_id, 'name': name, 'format': suffix.lstrip('.'), 'sha256': sha256, 'size': size}
 
     def submit(self, session_id, action, payload, version):
@@ -272,6 +282,43 @@ class DataWorkbenchService:
                             raise DataError('成果内容已改变，无法下载', 409)
                         return path
         raise DataError('成果不存在', 404)
+
+    def export_info(self, session_id, export_id):
+        session = self.get(session_id)
+        identity(export_id)
+        export = next((item for item in session['state']['exports'] if item['id'] == export_id), None)
+        if export is None:
+            raise DataError('成果不存在', 404)
+        if self.job(session_id, export_id)['status'] != 'succeeded':
+            raise DataError('成果作业尚未成功完成', 409)
+        expected = ({'results.csv', 'results.xlsx', 'results.parquet', 'summary.json', 'provenance.json'}
+                    if export['result_id'] else
+                    {'cleaned.csv', 'cleaned.xlsx', 'cleaned.parquet', 'summary.json', 'provenance.json'})
+        if {item['name'] for item in export['files']} != expected or len(export['files']) != 5:
+            raise DataError('成果文件不完整', 409)
+        return export
+
+    def upload_source(self, session_id, upload_id):
+        self.get(session_id)
+        identity(upload_id)
+        with closing(self.db()) as db:
+            row = db.execute('SELECT * FROM uploads WHERE id=? AND session_id=?',
+                             (upload_id, session_id)).fetchone()
+        if row is None:
+            raise DataError('原始输入不存在', 409)
+        item = dict(row)
+        root = self.session_dir(session_id)
+        source = root / item['relative']
+        path = source.resolve()
+        if (source.is_symlink() or not path.is_relative_to(root / 'uploads')
+                or not path.is_file() or path.stat().st_size != item['size']):
+            raise DataError('原始输入不可用', 409)
+        with path.open('rb') as stream:
+            digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        if digest != item['sha256']:
+            raise DataError('原始输入已变化', 409)
+        item['registry_path'] = f"sessions/{session_id}/{item['relative']}"
+        return item
 
     def close(self):
         self.closing.set()

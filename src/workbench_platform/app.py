@@ -18,11 +18,16 @@ from .supervisor import Supervisor
 from .workspaces.routes import configure_workspace_store, router as workspace_router
 from .data_api.routes import configure_data, router as data_router
 from .data_api.service import DataError
+from .assets.routes import configure_assets, router as assets_router
+from .artifacts.routes import configure_artifacts, router as artifacts_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_workspace_store(app)
+    configure_data(app)
+    configure_assets(app)
+    configure_artifacts(app)
     supervisor = Supervisor(get_registry())
     try:
         configured = os.environ.get("WORKBENCH_DATA_DIR")
@@ -32,13 +37,14 @@ async def lifespan(app: FastAPI):
         app.state.context_bridge = (ContextBridge(app.state.workspace_store, supervisor)
                                     if app.state.workspace_store is not None else None)
         configure_jobs(app)
-        configure_data(app)
         yield
     finally:
         data_service = getattr(app.state, 'data_workbench', None)
         if data_service is not None:
             data_service.close()
         app.state.job_service = None
+        app.state.asset_library = None
+        app.state.artifact_center = None
         app.state.context_bridge = None
         app.state.launch_service = None
         app.state.supervisor = None
@@ -52,6 +58,8 @@ app.include_router(launch_router)
 app.include_router(bridge_router(lambda request: getattr(request.app.state, "context_bridge", None)))
 app.include_router(jobs_router)
 app.include_router(data_router)
+app.include_router(assets_router)
+app.include_router(artifacts_router)
 
 
 @app.exception_handler(DataError)

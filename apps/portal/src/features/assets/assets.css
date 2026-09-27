@@ -1,0 +1,14 @@
+.asset-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; border-bottom: 1px solid #d9e2de; padding-bottom: 28px; margin-bottom: 26px; }
+.asset-heading h1 { margin: 8px 0 0; font-size: 36px; }
+.asset-upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.asset-upload input { max-width: 260px; }
+.asset-filters { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(140px, 220px) minmax(140px, 200px); gap: 12px; margin-bottom: 28px; }
+.asset-table-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.asset-table-head h3 { margin: 0; font-size: 18px; }
+.asset-alert { margin: 12px 0; }
+.asset-fixed { margin-top: 30px; border-top: 2px solid #395c50; padding-top: 20px; }
+.asset-fixed ul { padding-left: 20px; }
+.asset-source { display: grid; grid-template-columns: 95px 1fr; gap: 12px; margin-bottom: 0; overflow-wrap: anywhere; }
+.asset-source dt { color: #61766e; }
+.asset-source dd { margin: 0; }
+@media (max-width: 760px) { .asset-heading { align-items: start; flex-direction: column; } .asset-filters { grid-template-columns: 1fr; } .asset-upload { width: 100%; } .asset-table-head { flex-wrap: wrap; } }

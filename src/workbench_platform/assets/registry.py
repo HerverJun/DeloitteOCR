@@ -125,6 +125,10 @@ class AssetRegistry:
                     ON registered_asset(workspace_id, asset_id);
                 CREATE INDEX IF NOT EXISTS registered_asset_content
                     ON registered_asset(blob_hash);
+                CREATE TABLE IF NOT EXISTS asset_tag (
+                    asset_id TEXT NOT NULL, tag TEXT NOT NULL,
+                    PRIMARY KEY(asset_id, tag),
+                    FOREIGN KEY(asset_id) REFERENCES registered_asset(asset_id));
             """)
 
     def _connect(self) -> sqlite3.Connection:
@@ -192,14 +196,17 @@ class AssetRegistry:
                      created_at=row["created_at"])
 
     def register(self, workspace_id: str, root_id: str, relative_path: str, *,
-                 media_type: str, storage_mode: str) -> Asset:
+                 media_type: str, storage_mode: str,
+                 original_name: str | None = None) -> Asset:
         if (not _id(workspace_id) or not isinstance(storage_mode, str)
                 or storage_mode not in {"managed", "referenced"}
                 or not isinstance(media_type, str) or len(media_type) > 256
                 or _MEDIA.fullmatch(media_type) is None):
             raise AssetUnavailable("Invalid asset registration")
         source, canonical = self._source(root_id, relative_path)
-        if len(source.name) > 256:
+        display_name = source.name if original_name is None else original_name
+        if (not isinstance(display_name, str) or not display_name.strip()
+                or len(display_name) > 256 or any(ord(char) < 32 for char in display_name)):
             raise AssetUnavailable("Source name is too long")
         source_id = "s" + hashlib.sha256(f"{root_id}\0{canonical}".encode("utf-8")).hexdigest()[:32]
         temp = None
@@ -225,12 +232,13 @@ class AssetRegistry:
                         asset_id = "a" + uuid.uuid4().hex
                         db.execute("INSERT INTO registered_asset VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                                    (asset_id, workspace_id, source_id, root_id, relative_path,
-                                    source.name, media_type, storage_mode, digest, size, 1, _utc()))
+                                    display_name, media_type, storage_mode, digest, size, 1, _utc()))
                     elif (row["blob_hash"], row["size_bytes"], row["media_type"],
-                          row["storage_mode"]) != (digest, size, media_type, storage_mode):
+                          row["storage_mode"], row["original_name"]) != (
+                              digest, size, media_type, storage_mode, display_name):
                         db.execute("UPDATE registered_asset SET original_name=?,media_type=?,"
                                    "storage_mode=?,blob_hash=?,size_bytes=?,revision=revision+1 "
-                                   "WHERE asset_id=?", (source.name, media_type, storage_mode,
+                                   "WHERE asset_id=?", (display_name, media_type, storage_mode,
                                                         digest, size, row["asset_id"]))
                         asset_id = row["asset_id"]
                     else:
@@ -257,6 +265,86 @@ class AssetRegistry:
 
     def get(self, workspace_id: str, asset_id: str) -> Asset:
         return self._asset(self._record(workspace_id, asset_id))
+
+    def source(self, workspace_id: str, asset_id: str) -> dict[str, str]:
+        row = self._record(workspace_id, asset_id)
+        return {"root_id": row["root_id"], "relative_path": row["relative_path"]}
+
+    def describe(self, workspace_id: str, asset_id: str) -> dict:
+        row = self._record(workspace_id, asset_id)
+        with closing(self._connect()) as db:
+            tags = [item["tag"] for item in db.execute(
+                "SELECT tag FROM asset_tag WHERE asset_id=? ORDER BY tag", (asset_id,))]
+        return {**self._asset(row).model_dump(mode="json"), "tags": tags,
+                "source": {"root_id": row["root_id"],
+                           "relative_path": row["relative_path"]}}
+
+    def list(self, workspace_id: str, *, keyword: str = "", media_type: str = "",
+             tag: str = "", offset: int = 0, limit: int = 30) -> tuple[list[dict], int]:
+        if (not _id(workspace_id) or not isinstance(keyword, str) or len(keyword) > 100
+                or not isinstance(media_type, str) or len(media_type) > 256
+                or not isinstance(tag, str) or len(tag) > 40
+                or type(offset) is not int or offset < 0
+                or type(limit) is not int or not 1 <= limit <= 200):
+            raise AssetUnavailable("Invalid asset query")
+        with closing(self._connect()) as db:
+            rows = db.execute("SELECT * FROM registered_asset WHERE workspace_id=? "
+                              "ORDER BY created_at DESC, asset_id DESC", (workspace_id,)).fetchall()
+            tags = db.execute("SELECT t.asset_id,t.tag FROM asset_tag t JOIN registered_asset a "
+                              "ON a.asset_id=t.asset_id WHERE a.workspace_id=? ORDER BY t.tag",
+                              (workspace_id,)).fetchall()
+        by_asset: dict[str, list[str]] = {}
+        for item in tags:
+            by_asset.setdefault(item["asset_id"], []).append(item["tag"])
+        needle = keyword.strip().casefold()
+        results = []
+        for row in rows:
+            labels = by_asset.get(row["asset_id"], [])
+            if media_type and row["media_type"] != media_type:
+                continue
+            if tag and tag.casefold() not in {label.casefold() for label in labels}:
+                continue
+            if needle and needle not in " ".join((row["original_name"], row["relative_path"],
+                                                  *labels)).casefold():
+                continue
+            results.append({**self._asset(row).model_dump(mode="json"), "tags": labels,
+                            "source": {"root_id": row["root_id"],
+                                       "relative_path": row["relative_path"]}})
+        return results[offset:offset + limit], len(results)
+
+    def set_tags(self, workspace_id: str, asset_id: str, tags: list[str]) -> list[str]:
+        if (not isinstance(tags, list) or len(tags) > 16
+                or any(not isinstance(tag, str) or not tag.strip() or len(tag) > 40
+                       or any(ord(char) < 32 for char in tag) for tag in tags)):
+            raise AssetUnavailable("Invalid asset tags")
+        normalized = list(dict.fromkeys(tag.strip() for tag in tags))
+        if len({tag.casefold() for tag in normalized}) != len(normalized):
+            raise AssetUnavailable("Duplicate asset tag")
+        self._record(workspace_id, asset_id)
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                db.execute("DELETE FROM asset_tag WHERE asset_id=?", (asset_id,))
+                db.executemany("INSERT INTO asset_tag(asset_id,tag) VALUES(?,?)",
+                               [(asset_id, tag) for tag in normalized])
+                db.execute("COMMIT")
+            except BaseException:
+                db.execute("ROLLBACK")
+                raise
+        return normalized
+
+    def facets(self, workspace_id: str) -> dict[str, list[str]]:
+        if not _id(workspace_id):
+            raise AssetUnavailable("Invalid workspace")
+        with closing(self._connect()) as db:
+            media = [row[0] for row in db.execute(
+                "SELECT DISTINCT media_type FROM registered_asset WHERE workspace_id=? "
+                "ORDER BY media_type", (workspace_id,))]
+            tags = [row[0] for row in db.execute(
+                "SELECT DISTINCT t.tag FROM asset_tag t JOIN registered_asset a "
+                "ON a.asset_id=t.asset_id WHERE a.workspace_id=? ORDER BY t.tag",
+                (workspace_id,))]
+        return {"media_types": media, "tags": tags}
 
     @contextmanager
     def stage_verified(self, workspace_id: str, asset_id: str, *,

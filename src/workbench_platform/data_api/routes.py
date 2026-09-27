@@ -9,6 +9,9 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 
 from workbench_platform.workspaces.routes import _loopback_host, _same_loopback_origin
+from workbench_platform.assets.registry import AssetUnavailable
+from workbench_platform.assets.routes import library
+from workbench_platform.assets.sets import AssetSetConflict, AssetSetMissing
 from .service import DataWorkbenchService, DataError
 
 
@@ -100,6 +103,60 @@ async def upload(session_id: str, request: Request, name: str = Query(..., min_l
     except BaseException:
         path.unlink(missing_ok=True)
         raise
+
+
+@router.post('/sessions/{session_id}/asset-uploads', status_code=201)
+async def upload_from_asset_set(session_id: str, request: Request):
+    value = service(request, True)
+    value.get(session_id)
+    payload = await body(request)
+    workspace_id = payload.get('workspace_id')
+    set_id = payload.get('asset_set_id')
+    revision = payload.get('asset_set_revision')
+    item_id = payload.get('item_id')
+    if (not all(isinstance(item, str) for item in (workspace_id, set_id, item_id))
+            or type(revision) is not int or revision < 1
+            or set(payload) != {'workspace_id', 'asset_set_id', 'asset_set_revision', 'item_id'}):
+        raise HTTPException(400, '资料集选择无效')
+    registry, sets, _ = library(request, workspace_id, write=True)
+    try:
+        asset_set = sets.get(workspace_id, set_id, revision)
+        item = next((member for member in asset_set.items if member.item_id == item_id), None)
+        if item is None:
+            raise AssetSetMissing('Member not found')
+        asset = registry.get(workspace_id, item.asset_id)
+        suffix = Path(asset.original_name).suffix.lower()
+        if suffix not in {'.csv', '.xlsx', '.parquet'}:
+            raise HTTPException(400, '请选择 CSV、XLSX 或 Parquet 资料')
+        if asset.size_bytes > 64 * 1024 * 1024:
+            raise HTTPException(413, '资料超过数据工作台的 64 MB 限制')
+        key = 'u' + uuid.uuid4().hex
+        path = value.session_dir(session_id) / 'uploads' / (key + suffix)
+        complete = False
+        try:
+            digest, size = hashlib.sha256(), 0
+            with registry.stage_verified(workspace_id, item.asset_id,
+                                         revision=item.asset_revision, blob_hash=item.blob_hash) as source:
+                with source.open('rb') as original, path.open('xb') as target:
+                    while chunk := original.read(1024 * 1024):
+                        size += len(chunk)
+                        digest.update(chunk)
+                        target.write(chunk)
+                    target.flush()
+                    os.fsync(target.fileno())
+            if (digest.hexdigest(), size) != (item.blob_hash, asset.size_bytes):
+                raise AssetUnavailable('Asset bytes changed during staging')
+            result = value.upload(session_id, key, asset.original_name, suffix, path,
+                                  item.blob_hash, size, source_asset={
+                                      'workspace_id': workspace_id, 'asset_id': asset.asset_id,
+                                      'revision': asset.revision, 'blob_hash': asset.blob_hash})
+            complete = True
+            return result
+        finally:
+            if not complete:
+                path.unlink(missing_ok=True)
+    except (AssetUnavailable, AssetSetConflict, AssetSetMissing):
+        raise HTTPException(409, '资料集版本已变化或原件不可用') from None
 
 
 @router.post('/sessions/{session_id}/actions', status_code=202)
