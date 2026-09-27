@@ -133,7 +133,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     from ocr_workbench.multimodal_routes import register_multimodal_routes
     register_multimodal_routes(app, store, bundle, queue, maintenance, require_recognition)
     from ocr_workbench.platform_imports import register_platform_import_routes
-    register_platform_import_routes(app, store, import_one)
+    register_platform_import_routes(app, store, import_one, documents.import_document)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):

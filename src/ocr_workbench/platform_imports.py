@@ -25,7 +25,7 @@ MAX_MANIFEST_BYTES = 1_048_576
 # Keep schema migration importable by the platform's lightweight environment.
 # Image decoding (Pillow and HEIF) is loaded by the service only when needed.
 SUPPORTED = frozenset({".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff",
-                       ".webp", ".heic", ".heif"})
+                       ".webp", ".heic", ".heif", ".pdf"})
 
 
 class ImportConflict(Conflict):
@@ -55,6 +55,16 @@ def migrate_v15(db) -> None:
         FOREIGN KEY(project_id, request_id) REFERENCES platform_import_requests(project_id, request_id)
           ON DELETE CASCADE)""")
     db.execute("CREATE INDEX IF NOT EXISTS platform_import_target ON platform_import_items(target_image_id)")
+    _document_map(db)
+
+
+def _document_map(db) -> None:
+    db.execute("""CREATE TABLE IF NOT EXISTS platform_import_documents (
+        project_id TEXT NOT NULL, request_id TEXT NOT NULL, item_id TEXT NOT NULL,
+        document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+        PRIMARY KEY(project_id, request_id, item_id),
+        FOREIGN KEY(project_id, request_id, item_id)
+          REFERENCES platform_import_items(project_id, request_id, item_id) ON DELETE CASCADE)""")
 
 
 def _canonical(value: dict) -> str:
@@ -109,8 +119,10 @@ def _manifest(value: object) -> dict:
 
 
 class PlatformImports:
-    def __init__(self, store, import_one):
-        self.store, self.import_one = store, import_one
+    def __init__(self, store, import_one, import_document=None):
+        self.store, self.import_one, self.import_document = store, import_one, import_document
+        with store.transaction() as db:
+            _document_map(db)
 
     def begin(self, project_id: str, request_id: str, payload: object) -> dict:
         _identity(project_id, request_id)
@@ -144,20 +156,36 @@ class PlatformImports:
             if row is None:
                 raise KeyError("导入请求不存在")
             records = db.execute("SELECT i.*, m.project_id AS actual_project, "
-                                 "v.image_id AS actual_version_image FROM platform_import_items i "
+                                 "v.image_id AS actual_version_image, d.document_id, "
+                                 "doc.project_id AS actual_document_project, doc.page_count "
+                                 "FROM platform_import_items i "
                                  "LEFT JOIN images m ON m.id=i.target_image_id "
                                  "LEFT JOIN versions v ON v.id=i.target_version_id "
+                                 "LEFT JOIN platform_import_documents d ON d.project_id=i.project_id "
+                                 "AND d.request_id=i.request_id AND d.item_id=i.item_id "
+                                 "LEFT JOIN documents doc ON doc.id=d.document_id "
                                  "WHERE i.project_id=? AND i.request_id=? ORDER BY i.ordinal",
                                  (project_id, request_id)).fetchall()
             items = []
             for record in records:
-                accepted = (record["status"] == "imported" and
-                            record["actual_project"] == project_id and
-                            record["actual_version_image"] == record["target_image_id"])
+                image_accepted = (record["status"] == "imported" and
+                                  record["actual_project"] == project_id and
+                                  record["actual_version_image"] == record["target_image_id"])
+                document_accepted = (record["status"] == "imported" and
+                                     record["actual_document_project"] == project_id)
+                accepted = image_accepted or document_accepted
+                pages = ([row[0] for row in db.execute(
+                    "SELECT page_number FROM pages WHERE document_id=? ORDER BY page_number",
+                    (record["document_id"],))] if document_accepted else None)
+                if document_accepted and len(pages) != record["page_count"]:
+                    accepted = False
                 items.append({"item_id": record["item_id"], "status": (
                     "imported" if accepted else "missing" if record["status"] == "imported" else "pending"),
-                    "target_asset_id": record["target_image_id"] if accepted else None,
-                    "target_version_id": record["target_version_id"] if accepted else None})
+                    "target_asset_id": record["target_image_id"] if image_accepted and accepted else None,
+                    "target_version_id": record["target_version_id"] if image_accepted and accepted else None,
+                    "target_document_id": record["document_id"] if document_accepted and accepted else None,
+                    "page_count": record["page_count"] if document_accepted and accepted else None,
+                    "page_numbers": pages if document_accepted and accepted else None})
         statuses = {item["status"] for item in items}
         state = ("unknown" if "missing" in statuses else "completed" if statuses == {"imported"}
                  else "accepted" if "imported" in statuses else "prepared")
@@ -189,15 +217,30 @@ class PlatformImports:
             if changed != 1:
                 raise AlreadyAccepted()
 
+        def on_accept_document(db, document_id):
+            changed = db.execute("UPDATE platform_import_items SET status='imported',accepted=? "
+                                 "WHERE project_id=? AND request_id=? AND item_id=? AND status='pending'",
+                                 (now(), project_id, request_id, item_id)).rowcount
+            if changed != 1:
+                raise AlreadyAccepted()
+            db.execute("INSERT INTO platform_import_documents VALUES(?,?,?,?)",
+                       (project_id, request_id, item_id, document_id))
+
         try:
-            self.import_one(project_id, expected["name"], temporary, on_accept=on_accept)
+            if Path(expected["name"]).suffix.lower() == ".pdf":
+                if self.import_document is None:
+                    raise ValueError("Document import is unavailable")
+                self.import_document(project_id, expected["name"], temporary,
+                                     on_accept=on_accept_document)
+            else:
+                self.import_one(project_id, expected["name"], temporary, on_accept=on_accept)
         except AlreadyAccepted:
             pass
         return self.status(project_id, request_id)
 
 
-def register_platform_import_routes(app, store, import_one) -> None:
-    imports = PlatformImports(store, import_one)
+def register_platform_import_routes(app, store, import_one, import_document=None) -> None:
+    imports = PlatformImports(store, import_one, import_document)
     app.state.platform_imports = imports
 
     @app.post("/api/platform/imports/{project_id}/{request_id}")

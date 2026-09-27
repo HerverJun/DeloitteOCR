@@ -12,8 +12,8 @@ from ocr_workbench.platform_imports import SUPPORTED as IMPORT_SUPPORTED
 
 
 class PlatformImportMigrationTests(unittest.TestCase):
-    def test_import_extensions_match_native_decoder(self):
-        self.assertEqual(IMPORT_SUPPORTED, IMAGE_SUPPORTED)
+    def test_import_extensions_match_native_decoder_plus_pdf_document(self):
+        self.assertEqual(IMPORT_SUPPORTED, IMAGE_SUPPORTED | {'.pdf'})
 
     def test_upgrade_from_prior_schema_preserves_project_and_creates_backup(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -23,6 +23,7 @@ class PlatformImportMigrationTests(unittest.TestCase):
             database = root / "workbench.sqlite3"
             with closing(sqlite3.connect(database)) as connection:
                 with connection:
+                    connection.execute("DROP TABLE platform_import_documents")
                     connection.execute("DROP TABLE platform_import_items")
                     connection.execute("DROP TABLE platform_import_requests")
                     connection.execute("PRAGMA user_version=14")
@@ -32,6 +33,9 @@ class PlatformImportMigrationTests(unittest.TestCase):
             with reopened.transaction() as connection:
                 self.assertIsNotNone(connection.execute(
                     "SELECT 1 FROM sqlite_master WHERE name='platform_import_items'"
+                ).fetchone())
+                self.assertIsNotNone(connection.execute(
+                    "SELECT 1 FROM sqlite_master WHERE name='platform_import_documents'"
                 ).fetchone())
                 self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
             self.assertTrue(reopened.migration_backup.is_file())
