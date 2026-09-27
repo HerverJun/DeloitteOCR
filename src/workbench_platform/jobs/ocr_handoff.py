@@ -23,7 +23,7 @@ from workbench_platform.workspaces.routes import ID, _loopback_host, _same_loopb
 
 router = APIRouter(prefix="/api/platform/v1/workspaces/{workspace_id}/ocr/handoffs", tags=["ocr-handoff"])
 IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff",
-                              ".webp", ".heic", ".heif"})
+                              ".webp", ".heic", ".heif", ".pdf"})
 
 
 def _utc() -> str:
@@ -109,7 +109,10 @@ class OcrHandoff:
             items.append({"item_id": source["item_id"], "asset_id": source["asset_id"],
                           "name": source["name"], "status": native.get("status", "unknown"),
                           "target_asset_id": native.get("target_asset_id"),
-                          "target_version_id": native.get("target_version_id")})
+                          "target_version_id": native.get("target_version_id"),
+                          "target_document_id": native.get("target_document_id"),
+                          "page_count": native.get("page_count"),
+                          "page_numbers": native.get("page_numbers")})
         with closing(self._connect()) as db:
             processing = db.execute("SELECT engines_json,platform_job_id,native_task_ids_json "
                                     "FROM ocr_submission WHERE handoff_id=?",
@@ -220,6 +223,9 @@ class OcrHandoff:
 
     def capabilities(self, workspace_id: str, handoff_id: str):
         row = self._row(workspace_id, handoff_id)
+        if any(Path(item["name"]).suffix.lower() == ".pdf"
+               for item in json.loads(row["manifest_json"])["items"]):
+            return {"recognition": False, "reason": "native_document_flow", "engines": []}
         adapter = self._adapter(self._context(workspace_id, row["link_id"]))
         available = adapter.capabilities()
         state = adapter._request("GET", "/api/state")
@@ -240,6 +246,9 @@ class OcrHandoff:
         normalized = sorted(engines)
         with self.lock:
             row = self._row(workspace_id, handoff_id)
+            if any(Path(item["name"]).suffix.lower() == ".pdf"
+                   for item in json.loads(row["manifest_json"])["items"]):
+                raise AssetSetConflict("PDF uses the native document workflow")
             context = self._context(workspace_id, row["link_id"])
             adapter = self._adapter(context)
             if not adapter.capabilities().recognition:

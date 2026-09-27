@@ -171,11 +171,22 @@ class OcrAdapter:
                     or item.get("status") not in {"pending", "imported", "missing"}):
                 raise OcrUnavailable()
             ids.add(item["item_id"])
-            if item["status"] == "imported" and (not _is_native_id(item.get("target_asset_id"))
-                                                   or not _is_native_id(item.get("target_version_id"))):
-                raise OcrUnavailable()
-            if item["status"] != "imported" and (item.get("target_asset_id") is not None
-                                                  or item.get("target_version_id") is not None):
+            image = (_is_native_id(item.get("target_asset_id"))
+                     and _is_native_id(item.get("target_version_id")))
+            document = _is_native_id(item.get("target_document_id"))
+            if item["status"] == "imported":
+                if image == document:
+                    raise OcrUnavailable()
+                if document:
+                    count, pages = item.get("page_count"), item.get("page_numbers")
+                    if (type(count) is not int or count < 0 or not isinstance(pages, list)
+                            or pages != list(range(1, count + 1))):
+                        raise OcrUnavailable()
+                elif item.get("page_count") is not None or item.get("page_numbers") is not None:
+                    raise OcrUnavailable()
+            elif any(item.get(key) is not None for key in (
+                    "target_asset_id", "target_version_id", "target_document_id",
+                    "page_count", "page_numbers")):
                 raise OcrUnavailable()
         states = {item["status"] for item in result["items"]}
         expected = ("unknown" if "missing" in states else "completed" if states == {"imported"}

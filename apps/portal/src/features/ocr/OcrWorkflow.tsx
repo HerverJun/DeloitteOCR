@@ -8,7 +8,7 @@ const { Title, Text } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null }
 type AssetSet = { asset_set_id: string; revision: number; members: { asset_id: string; original_name: string }[] }
 type Handoff = { handoff_id: string; link_id: string; state: string; availability: string;
-  items: { item_id: string; name: string; status: string }[];
+  items: { item_id: string; name: string; status: string; page_count: number | null }[];
   processing: { engines: string[]; platform_job_id: string | null; request_state: string } | null }
 type OcrCapabilities = { recognition: boolean; reason: string | null; engines: { id: string; name: string }[] }
 
@@ -58,7 +58,7 @@ export function OcrWorkflow() {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }),
   }), onSuccess: result => { setNewName(''); chooseProject(result.project_id); void client.invalidateQueries({ queryKey: ['ocr-projects', workspaceId] }) } })
   const chosen = projects.data?.items.find(item => item.project_id === projectId)
-  const unsupported = assetSet.data?.members.filter(item => !/\.(jpe?g|png|bmp|tiff?|webp|heic|heif)$/i.test(item.original_name)) || []
+  const unsupported = assetSet.data?.members.filter(item => !/\.(jpe?g|png|bmp|tiff?|webp|heic|heif|pdf)$/i.test(item.original_name)) || []
   const begin = useMutation({ mutationFn: () => json<Handoff>(handoffBase, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ link_id: chosen?.link_id, asset_set_id: assetSet.data?.asset_set_id,
@@ -119,7 +119,7 @@ export function OcrWorkflow() {
       </section>
       {assetSet.data && <section className="panel"><div className="section-head"><Title level={3}>资料交接</Title>
         <Text type="secondary">{assetSet.data.members.length} 份资料</Text></div>
-        {unsupported.length > 0 && <Alert type="warning" title="当前导入入口只接收图片"
+        {unsupported.length > 0 && <Alert type="warning" title="当前导入入口只接收图片或 PDF"
           description={`需另行处理：${unsupported.map(item => item.original_name).join('、')}`} className="ocr-notice" />}
         <Button type="primary" disabled={!chosen?.link_id || unsupported.length > 0 || !!handoffId}
           loading={begin.isPending} onClick={() => begin.mutate()}>导入到当前项目</Button>
@@ -128,12 +128,13 @@ export function OcrWorkflow() {
         {handoff.data && chosen?.link_id && handoff.data.link_id === chosen.link_id && <div className="ocr-handoff-state">
           <Text strong>{handoff.data.state === 'completed' ? '导入完成' : handoff.data.availability === 'unreachable' ? '状态待核实' : '部分资料待导入'}</Text>
           <ul>{handoff.data.items.map(item => <li key={item.item_id}><span>{item.name}</span>
-            <Text type="secondary">{item.status === 'imported' ? '已导入' : item.status === 'pending' ? '待导入' : '待核实'}</Text></li>)}</ul>
+            <Text type="secondary">{item.status === 'imported' ? item.page_count === null ? '已导入' : `${item.page_count} 页已登记` : item.status === 'pending' ? '待导入' : '待核实'}</Text></li>)}</ul>
           {handoff.data.state !== 'completed' && <Button loading={resume.isPending} onClick={() => resume.mutate()}>核实并继续</Button>}
           {resume.isError && <Alert type="error" title={resume.error.message} className="ocr-notice" />}
           {handoff.data.state === 'completed' && <div className="ocr-processing">
             {capabilities.isError && <Alert type="warning" title="识别能力暂不可读取" action={<Button onClick={() => void capabilities.refetch()}>重试</Button>} />}
-            {capabilities.data && !capabilities.data.recognition && <Text type="secondary">当前 OCR 实例仅提供审阅与导出。</Text>}
+            {capabilities.data && !capabilities.data.recognition && <Text type="secondary">
+              {capabilities.data.reason === 'native_document_flow' ? 'PDF 已进入原生文档，请在原生 OCR 按页处理。' : '当前 OCR 实例仅提供审阅与导出。'}</Text>}
             {capabilities.data?.recognition && <Space wrap><Select mode="multiple" aria-label="识别引擎" placeholder="选择识别引擎"
               value={handoff.data.processing?.engines || engines} onChange={setEngines}
               disabled={!!handoff.data.processing} style={{ minWidth: 220 }}
