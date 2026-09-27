@@ -11,6 +11,7 @@ from urllib.parse import urlencode, urlsplit
 
 
 ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,63}\Z")
+NATIVE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 ROUTE = re.compile(r"/[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*\Z")
 TICKET = re.compile(r"[A-Za-z0-9_-]{32,128}\Z")
 
@@ -36,16 +37,20 @@ class Navigation:
     instance_id: str
     link_id: str
     workspace_id: str
+    project_id: str
     return_url: str
 
     @classmethod
     def from_trusted_launch(cls, value: dict, *, instance_id: str) -> Navigation:
         if not isinstance(value, dict) or set(value) != {
-                "app_id", "instance_id", "link_id", "workspace_id", "return_route", "platform_origin"}:
+                "app_id", "instance_id", "link_id", "workspace_id", "project_id",
+                "return_route", "platform_origin"}:
             raise ValueError("Invalid navigation context")
         for key in ("app_id", "instance_id", "link_id", "workspace_id"):
             if not isinstance(value[key], str) or not ID.fullmatch(value[key]):
                 raise ValueError("Invalid navigation identity")
+        if not isinstance(value["project_id"], str) or not NATIVE_ID.fullmatch(value["project_id"]):
+            raise ValueError("Invalid native project identity")
         route = value["return_route"]
         if (value["app_id"] != "ocr" or value["instance_id"] != instance_id
                 or not isinstance(route, str) or len(route) > 257 or not ROUTE.fullmatch(route)):
@@ -53,7 +58,8 @@ class Navigation:
         # Workspace selection is a distinct, trusted identity, never part of
         # OpenContext.return_route. No user-supplied query or URL is forwarded.
         target = platform_origin(value["platform_origin"]) + route + "?" + urlencode({"workspace": value["workspace_id"]})
-        return cls(value["app_id"], instance_id, value["link_id"], value["workspace_id"], target)
+        return cls(value["app_id"], instance_id, value["link_id"],
+                   value["workspace_id"], value["project_id"], target)
 
 
 class NavigationTickets:

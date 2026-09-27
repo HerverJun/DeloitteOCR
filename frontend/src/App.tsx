@@ -272,8 +272,9 @@ export function App() {
   }, []);
   useEffect(() => {
     let cancelled = false;
-    api("/state")
-      .then((value) => {
+    Promise.resolve(navigationFromLaunch()).catch(() => null)
+      .then(async (launch) => ({ value: await api("/state"), launch }))
+      .then(({ value, launch }) => {
         if (cancelled) return;
         setSessionExpired(false);
         setMessage("");
@@ -281,9 +282,10 @@ export function App() {
         setEngines(value.engines);
         setReviewOnly(value.review_only === true);
         const saved = localStorage.getItem("ocr-project");
-        const id =
-          value.projects.find((p: Project) => p.id === saved)?.id ||
-          value.projects[0]?.id;
+        const id = launch
+          ? value.projects.find((p: Project) => p.id === launch.project_id)?.id
+          : value.projects.find((p: Project) => p.id === saved)?.id || value.projects[0]?.id;
+        if (launch && !id) { onError("平台关联的 OCR 项目已不存在，请返回平台重新选择。"); return; }
         if (id) void (selectedProject.current === id ? refresh(id) : chooseProject(id)).catch(onError);
       })
       .catch(onError)

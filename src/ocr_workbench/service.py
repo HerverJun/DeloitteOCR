@@ -144,9 +144,11 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         if origin and origin != f"{request.url.scheme}://{request.url.netloc}":
             return JSONResponse({"message": "不允许跨站请求"}, status_code=403)
         issue_path = request.url.path == "/api/platform/navigation/issue" and navigation is not None
+        ticket_path = (request.url.path.startswith("/api/platform/navigation/tickets/")
+                       and navigation is not None)
         identity_path = request.url.path == "/api/platform/v1/identity" and navigation is not None
         if (request.url.path.startswith("/api/") and request.url.path != "/api/health"
-                and not issue_path and not identity_path):
+                and not issue_path and not ticket_path and not identity_path):
             supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
             if not secrets.compare_digest(supplied, token):
                 return JSONResponse(
@@ -241,6 +243,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
             raise HTTPException(status_code=404, detail="Navigation unavailable") from None
         return {"app_id": target.app_id, "instance_id": target.instance_id,
                 "link_id": target.link_id, "workspace_id": target.workspace_id,
+                "project_id": target.project_id,
+                "session_token": token,
                 "return_url": target.return_url}
 
     @app.post('/api/multimodal/external/queue/recover')

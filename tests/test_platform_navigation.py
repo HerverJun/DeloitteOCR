@@ -29,21 +29,23 @@ class PlatformNavigationTests(unittest.TestCase):
         self.client = TestClient(self.app)
         self.addCleanup(self.client.close)
         self.value = {"app_id": "ocr", "instance_id": "instanceA", "link_id": "linkA",
-                      "workspace_id": "workspaceA", "return_route": "/apps/ocr",
+                      "workspace_id": "workspaceA", "project_id": "projectA",
+                      "return_route": "/apps/ocr",
                       "platform_origin": "http://127.0.0.1:8765"}
         self.headers = {"X-Workbench-Launch-Nonce": "n" + "a" * 32}
 
-    def test_issued_ticket_requires_native_session_and_is_one_use(self):
+    def test_issued_ticket_establishes_native_session_and_is_one_use(self):
         issue = self.client.post("/api/platform/navigation/issue", json=self.value, headers=self.headers)
         self.assertEqual(issue.status_code, 201)
         ticket = issue.json()["ticket"]
         path = f"/api/platform/navigation/tickets/{ticket}"
-        self.assertEqual(self.client.get(path).status_code, 401)
-        response = self.client.get(path, headers={"Authorization": "Bearer " + "t" * 32})
+        response = self.client.get(path)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["return_url"], "http://127.0.0.1:8765/apps/ocr?workspace=workspaceA")
+        self.assertEqual(response.json()["project_id"], "projectA")
+        self.assertEqual(response.json()["session_token"], "t" * 32)
         self.assertEqual(response.headers["Content-Security-Policy"].split("frame-ancestors ")[1], "'none'")
-        self.assertEqual(self.client.get(path, headers={"Authorization": "Bearer " + "t" * 32}).status_code, 404)
+        self.assertEqual(self.client.get(path).status_code, 404)
 
     def test_untrusted_or_malformed_handoff_is_rejected(self):
         self.assertEqual(self.client.post("/api/platform/navigation/issue", json=self.value).status_code, 403)
@@ -54,6 +56,7 @@ class PlatformNavigationTests(unittest.TestCase):
             {**self.value, "return_route": "/apps/ocr?workspace=other"},
             {**self.value, "instance_id": "instanceB"},
             {**self.value, "workspace_id": "../other"},
+            {**self.value, "project_id": "../other"},
             {**self.value, "credential": "secret"},
         ]
         for value in invalid:
