@@ -4,6 +4,7 @@ import { Alert, Button, Card, Empty, Form, Input, Layout, Menu, Modal, Select, S
 import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppManifest, AppManifestPage, Workspace, WorkspacePage } from '../../../packages/contracts/types.generated'
 import { ApplicationCard, ApplicationCards, RecentWorks } from './features/catalog/ApplicationCards'
+import { DataApplicationCard } from './features/data/DataWorkbench'
 
 const { Header, Sider, Content } = Layout
 const { Title, Text, Paragraph } = Typography
@@ -101,7 +102,7 @@ export function Home() {
       </QueryState></section>
       <section className="panel"><div className="section-head"><Title level={3}>可用应用</Title><ScopeLink to="/apps">查看目录 →</ScopeLink></div>
         <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()} empty={apps.data?.length === 0}>
-          <div className="plain-list">{apps.data?.map(app => <div key={app.app_id}><ScopeLink to={`/apps/${app.app_id}`}>{app.display_name}</ScopeLink><Text type="secondary">{app.app_id}</Text></div>)}</div>
+          <div className="plain-list"><div><ScopeLink to="/apps/data">数据清洗与比对</ScopeLink><Text type="secondary">Excel / CSV / Parquet</Text></div>{apps.data?.map(app => <div key={app.app_id}><ScopeLink to={`/apps/${app.app_id}`}>{app.display_name}</ScopeLink><Text type="secondary">{app.app_id}</Text></div>)}</div>
         </QueryState></section></div></>
 }
 
@@ -141,6 +142,7 @@ export function Workspaces() {
 export function Applications() {
   const workspaceId = useWorkspaceId(), apps = useApps(workspaceId)
   return <><PageHeading eyebrow="APPLICATIONS" title="应用" description="选择工具查看安装与服务状态。无需先建立工作空间。" />
+    <div className="app-grid" style={{ marginBottom: 16 }}><DataApplicationCard /></div>
     <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()} empty={apps.data?.length === 0}>
       <ApplicationCards apps={apps.data || []} workspaceId={workspaceId} />
     </QueryState><RecentWorks workspaceId={workspaceId} /></>

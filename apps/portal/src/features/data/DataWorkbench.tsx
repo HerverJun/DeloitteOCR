@@ -1,0 +1,293 @@
+import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Alert, Button, Card, Checkbox, Empty, Input, InputNumber, Modal, Select, Space, Spin, Table, Tag, Typography } from 'antd'
+import { Link, useSearchParams } from 'react-router-dom'
+import './data.css'
+
+const { Title, Text, Paragraph } = Typography
+const API = '/api/platform/v1/data'
+const active = ['queued', 'running', 'cancelling']
+const operatorNames: Record<string, string> = { source: '原始输入', trim: '去除首尾空白', rename: '列改名', map: '值映射', cast: '类型转换', filter: '筛选', duplicates: '识别重复' }
+const categoryNames: Record<string, string> = { same: '相同', different: '差异', only_left: '仅左', only_right: '仅右', ambiguous_left: '重复键·左', ambiguous_right: '重复键·右' }
+const jobNames: Record<string, string> = { import: '导入', step: '清洗', undo: '撤销', select_revision: '切换版本', save_recipe: '保存配方', replay: '应用配方', compare: '比对', export: '导出', export_table: '导出当前表' }
+type Side = 'left' | 'right'
+type Column = { column_id: string; header: string | null }
+type Cell = { kind: string; value: string | boolean | null; raw: string | null; warning?: string | null }
+type Revision = { revision: string; step: { operator: string; parameters: Record<string, unknown> } | null; input_rows: number; output_rows: number; errors_total: number }
+type InputTable = { revision: string; name: string; rows: number; columns: Column[]; upload_id: string; format: string; sheets: string[]; warnings: string[]; options: ImportOptions; history: Revision[]; versions?: Revision[] }
+type ImportOptions = { sheet_name?: string; header_row?: number | null; encoding?: string; delimiter?: string }
+type Recipe = { id: string; name: string; steps: unknown[]; columns: Column[] }
+type Export = { id: string; result_id: string | null; files: { name: string; bytes: number; sha256: string }[] }
+type Job = { id: string; action: string; status: string; error?: string | null }
+type Policy = { key_pairs: string[][]; compare_pairs: string[][]; amount_pairs: string[][]; type_policy: string; null_policy: string; amount_tolerance: string; trim_text: boolean; casefold_text: boolean }
+type Session = { id: string; name: string; version: number; updated: string; jobs: Job[]; state: { tables: Partial<Record<Side, InputTable>>; recipes: Recipe[]; result_id: string | null; comparison?: { left_revision: string; right_revision: string; spec: Policy }; comparisons: { id: string; left_name: string; right_name: string; coverage: Record<string, number> }[]; exports: Export[] } }
+type DataRow = { ordinal: number; row_id: string; source_row: number; cells: Cell[] }
+type Preview = { total: number; rows: DataRow[]; metadata: { event: { errors_total: number; error_sample: { code: string; raw: string; row_id: string }[] }; duplicate_groups: number } }
+type ResultPage = { total: number; rows: (Record<string, string> & { ordinal: number })[]; metadata: { coverage: Record<string, number>; left: InputTable; right: InputTable } }
+type Run = (action: string, payload: Record<string, unknown>) => Promise<void>
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(API + path, init)
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(typeof body.detail === 'string' ? body.detail : `操作未完成（${response.status}）`)
+  }
+  return response.json()
+}
+function post<T>(path: string, value: unknown) { return request<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }) }
+function label(column: Column) { return column.header || column.column_id }
+function options(columns: Column[]) { return columns.map(column => ({ value: column.column_id, label: label(column) })) }
+
+export function DataApplicationCard() {
+  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health') })
+  return <Card className="application-card" title="数据清洗与比对">
+    <Paragraph>导入 Excel、CSV 或 Parquet，清洗数据，比较差异并导出来源清单。</Paragraph>
+    <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">独立数据工具 · 无需 OCR</Text></div>
+    <Link to="/apps/data"><Button type="primary">打开数据工作台</Button></Link>
+  </Card>
+}
+
+function RecipeControls({ table, side, recipes, busy, run }: { table: InputTable; side: Side; recipes: Recipe[]; busy: boolean; run: Run }) {
+  const [name, setName] = useState('我的清洗配方')
+  const [chosen, setChosen] = useState<string>()
+  const [open, setOpen] = useState(false)
+  const [mapping, setMapping] = useState<Record<string, string>>({})
+  const recipe = recipes.find(item => item.id === chosen)
+  const show = () => {
+    if (!recipe) return
+    setMapping(Object.fromEntries(recipe.columns.map(column => [column.column_id, table.columns.find(target => target.header === column.header)?.column_id || ''])))
+    setOpen(true)
+  }
+  return <div className="data-recipe">
+    <Space.Compact><Input aria-label={`${side}配方名称`} value={name} onChange={event => setName(event.target.value)} maxLength={100} />
+      <Button disabled={busy || table.history.length < 2} onClick={() => void run('save_recipe', { side, name })}>保存配方</Button></Space.Compact>
+    {recipes.length > 0 && <Space.Compact><Select aria-label={`${side}已保存配方`} placeholder="选择已保存配方" value={chosen} style={{ minWidth: 180 }} onChange={setChosen} options={recipes.map(item => ({ value: item.id, label: `${item.name} · ${item.steps.length} 步` }))} />
+      <Button disabled={busy || !chosen} onClick={show}>应用到当前表</Button></Space.Compact>}
+    <Modal title="确认配方列映射" open={open} okText="应用配方" cancelText="取消" onCancel={() => setOpen(false)}
+      okButtonProps={{ disabled: busy || !recipe || recipe.columns.some(column => !mapping[column.column_id]) }}
+      onOk={() => { if (recipe) void run('replay', { side, recipe_id: recipe.id, mapping }).then(() => setOpen(false)) }}>
+      <Paragraph>将保存配方中的列对应到当前文件。原有版本会保留。</Paragraph>
+      {recipe?.columns.map(column => <div className="data-mapping-row" key={column.column_id}><Text>{label(column)}</Text>
+        <Select aria-label={`配方映射${column.column_id}`} value={mapping[column.column_id] || undefined} options={options(table.columns)} onChange={value => setMapping(old => ({ ...old, [column.column_id]: value }))} /></div>)}
+    </Modal>
+  </div>
+}
+
+function InputPanel({ session, side, busy, run, upload }: { session: Session; side: Side; busy: boolean; run: Run; upload: (side: Side, file: File, settings: ImportOptions) => Promise<void> }) {
+  const table = session.state.tables[side]
+  const [settings, setSettings] = useState<ImportOptions>({ header_row: 1, encoding: 'utf-8-sig', delimiter: ',' })
+  const [operator, setOperator] = useState('trim')
+  const [column, setColumn] = useState<string>()
+  const [text, setText] = useState('')
+  const [replacement, setReplacement] = useState('')
+  const [target, setTarget] = useState('decimal')
+  const [predicate, setPredicate] = useState('equals')
+  const [duplicates, setDuplicates] = useState<string[]>([])
+  const [includeNull, setIncludeNull] = useState(false)
+  const [page, setPage] = useState(1)
+  useEffect(() => { setPage(1); if (table) { setSettings(table.options); setColumn(table.columns[0]?.column_id); setDuplicates([table.columns[0]?.column_id].filter(Boolean)) } }, [table?.revision])
+  const preview = useQuery({ queryKey: ['data-preview', session.id, table?.revision, page], enabled: !!table,
+    queryFn: () => request<Preview>(`/sessions/${session.id}/tables/${table!.revision}?offset=${(page - 1) * 20}&limit=20`) })
+  const apply = () => {
+    let parameters: Record<string, unknown> = { column }
+    if (operator === 'rename') parameters.header = text
+    if (operator === 'map') parameters.values = { [text]: replacement }
+    if (operator === 'cast') parameters.target = target
+    if (operator === 'filter') { parameters.predicate = predicate; if (!['is_null', 'not_null'].includes(predicate)) parameters.value = text }
+    if (operator === 'duplicates') parameters = { columns: duplicates, include_null: includeNull }
+    void run('step', { side, operator, parameters })
+  }
+  return <section className="data-input panel">
+    <div className="section-head"><Title level={3}>{side === 'left' ? '左表' : '右表'} <Text type="secondary">{table ? `${table.rows.toLocaleString()} 行` : '选择输入文件'}</Text></Title>
+      <label className={`data-upload ${busy ? 'disabled' : ''}`}><input type="file" accept=".csv,.xlsx,.parquet" disabled={busy}
+        aria-label={side === 'left' ? '上传左表' : '上传右表'} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(side, file, settings) }} />{table ? '更换文件' : '上传文件'}</label>
+    </div>
+    {table && <Paragraph ellipsis={{ rows: 1 }} title={table.name}><strong>{table.name}</strong> <Tag>{table.format.toUpperCase()}</Tag></Paragraph>}
+    <div className="data-import-settings">
+      {table?.format === 'xlsx' && <Select aria-label={`${side}工作表`} value={settings.sheet_name} options={table.sheets.map(name => ({ value: name, label: name }))} onChange={sheet_name => setSettings(old => ({ ...old, sheet_name }))} />}
+      {(!table || table.format === 'csv') && <><Select aria-label={`${side}编码`} value={settings.encoding || 'utf-8-sig'} onChange={encoding => setSettings(old => ({ ...old, encoding }))}
+        options={['utf-8-sig', 'utf-8', 'gb18030', 'utf-16'].map(value => ({ value, label: value }))} />
+        <Select aria-label={`${side}分隔符`} value={settings.delimiter || ','} options={[{ value: ',', label: '逗号' }, { value: '\t', label: '制表符' }, { value: ';', label: '分号' }, { value: '|', label: '竖线' }]} onChange={delimiter => setSettings(old => ({ ...old, delimiter }))} /></>}
+      {table?.format !== 'parquet' && <label>表头行 <InputNumber aria-label={`${side}表头行`} min={0} max={1000} value={settings.header_row ?? 0} onChange={value => setSettings(old => ({ ...old, header_row: value === 0 ? null : value ?? 1 }))} /></label>}
+      {table && <Button disabled={busy} onClick={() => void run('import', { side, upload_id: table.upload_id, options: settings })}>按设置重新导入</Button>}
+    </div>
+    {!table ? <Empty description="CSV / XLSX / Parquet · 单文件最多 64 MB；表头行 0 表示无表头" /> : <>
+      {table.warnings.length > 0 && <Alert type="warning" title="源文件提示" description={table.warnings.join('；')} />}
+      <div className="data-step-controls">
+        <Select aria-label={`${side}清洗操作`} value={operator} onChange={setOperator} options={Object.entries(operatorNames).filter(([key]) => key !== 'source').map(([value, label]) => ({ value, label }))} />
+        {operator !== 'duplicates' ? <Select aria-label={`${side}清洗列`} value={column} onChange={setColumn} options={options(table.columns)} /> :
+          <Select aria-label={`${side}重复识别列`} mode="multiple" value={duplicates} onChange={setDuplicates} options={options(table.columns)} placeholder="选择字段" />}
+        {operator === 'cast' && <Select aria-label={`${side}目标类型`} value={target} onChange={setTarget} options={[{ value: 'decimal', label: '金额/十进制' }, { value: 'integer', label: '整数' }, { value: 'date', label: '日期 YYYY-MM-DD' }, { value: 'boolean', label: '真假值' }]} />}
+        {operator === 'filter' && <Select aria-label={`${side}筛选条件`} value={predicate} onChange={setPredicate} options={[{ value: 'equals', label: '等于' }, { value: 'not_equals', label: '不等于' }, { value: 'is_null', label: '为空值' }, { value: 'not_null', label: '非空值' }]} />}
+        {(operator === 'rename' || operator === 'map' || operator === 'filter' && !['is_null', 'not_null'].includes(predicate)) && <Input aria-label={`${side}操作值`} placeholder={operator === 'rename' ? '新列名' : operator === 'map' ? '原值' : '比较值'} value={text} onChange={event => setText(event.target.value)} />}
+        {operator === 'map' && <Input aria-label={`${side}映射新值`} placeholder="新值" value={replacement} onChange={event => setReplacement(event.target.value)} />}
+        {operator === 'duplicates' && <Checkbox checked={includeNull} onChange={event => setIncludeNull(event.target.checked)}>包含空值</Checkbox>}
+        <Button type="primary" disabled={busy || !column} onClick={apply}>应用步骤</Button>
+      </div>
+      <Space className="data-history" wrap><Select aria-label={`${side}历史版本`} value={table.revision} style={{ minWidth: 235 }} disabled={busy}
+        onChange={revision => void run('select_revision', { side, revision })} options={(table.versions || table.history).map((entry, index) => ({ value: entry.revision,
+          label: `${index + 1}. ${operatorNames[entry.step?.operator || 'source']} · ${entry.output_rows} 行` }))} />
+        <Button disabled={busy || table.history.length < 2} onClick={() => void run('undo', { side })}>撤销一步</Button>
+        <Button disabled={busy} onClick={() => void run('export_table', { side })}>导出当前表</Button></Space>
+      {preview.isError && <Alert type="error" title="预览加载失败" action={<Button onClick={() => void preview.refetch()}>重试</Button>} />}
+      {preview.data && (preview.data.metadata.event.errors_total > 0 || preview.data.metadata.duplicate_groups > 0) && <Alert type="warning"
+        title={`转换异常 ${preview.data.metadata.event.errors_total} 条 · 重复分组 ${preview.data.metadata.duplicate_groups} 组`}
+        description={preview.data.metadata.event.error_sample.slice(0, 3).map(item => `${item.raw} (${item.code})`).join('；')} />}
+      <Table<DataRow> size="small" className="data-preview" loading={preview.isPending} dataSource={preview.data?.rows || []} rowKey="row_id" scroll={{ x: 'max-content' }}
+        columns={[{ title: '原行', dataIndex: 'source_row', width: 65, fixed: 'left' }, ...table.columns.map((item, index) => ({ title: label(item), key: item.column_id, width: 150,
+          render: (_: unknown, row: DataRow) => { const cell = row.cells[index]; return <span title={`类型：${cell.kind}\n原值：${cell.raw ?? 'NULL'}${cell.warning ? '\n' + cell.warning : ''}`}>{cell.value === null ? <Text type="secondary">{cell.kind === 'unknown_formula' ? '公式结果未知' : 'NULL'}</Text> : cell.value === '' ? <Text type="secondary">空字符串</Text> : String(cell.value)}</span> } }))]}
+        pagination={{ current: page, pageSize: 20, total: preview.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
+      <RecipeControls table={table} side={side} recipes={session.state.recipes} busy={busy} run={run} />
+    </>}
+  </section>
+}
+
+type Pair = { left: string; right: string; mode: 'key' | 'compare' | 'ignore'; amount: boolean }
+function ComparePanel({ session, busy, run }: { session: Session; busy: boolean; run: Run }) {
+  const left = session.state.tables.left, right = session.state.tables.right
+  const [pairs, setPairs] = useState<Pair[]>([])
+  const [typePolicy, setTypePolicy] = useState('strict'), [nullPolicy, setNullPolicy] = useState('never_match')
+  const [tolerance, setTolerance] = useState('0'), [trim, setTrim] = useState(false), [fold, setFold] = useState(false)
+  const draftKey = left && right ? `data-compare:${session.id}:${left.revision}:${right.revision}` : null
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
+  useEffect(() => {
+    if (!left || !right || !draftKey) return
+    try {
+      const raw = localStorage.getItem(draftKey)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        setPairs(saved.pairs); setTypePolicy(saved.typePolicy); setNullPolicy(saved.nullPolicy)
+        setTolerance(saved.tolerance); setTrim(saved.trim); setFold(saved.fold); setLoadedKey(draftKey)
+        return
+      }
+    } catch { /* A unavailable browser draft does not prevent a new comparison. */ }
+    const previous = session.state.comparison
+    const policy = previous?.left_revision === left.revision && previous?.right_revision === right.revision ? previous.spec : null
+    setPairs(left.columns.map((column, index) => ({ left: column.column_id,
+      right: right.columns.find(item => item.header === column.header)?.column_id || right.columns[index]?.column_id || '',
+      mode: index === 0 ? 'key' : 'compare', amount: false })))
+    if (policy) {
+      setPairs(left.columns.map(column => {
+        const key = policy.key_pairs.find(pair => pair[0] === column.column_id)
+        const compared = policy.compare_pairs.find(pair => pair[0] === column.column_id)
+        return { left: column.column_id, right: key?.[1] || compared?.[1] || '', mode: key ? 'key' : compared ? 'compare' : 'ignore',
+          amount: policy.amount_pairs.some(pair => pair[0] === column.column_id) }
+      }))
+      setTypePolicy(policy.type_policy); setNullPolicy(policy.null_policy); setTolerance(policy.amount_tolerance)
+      setTrim(policy.trim_text); setFold(policy.casefold_text)
+    }
+    setLoadedKey(draftKey)
+  }, [draftKey])
+  useEffect(() => {
+    if (draftKey && loadedKey === draftKey) {
+      try { localStorage.setItem(draftKey, JSON.stringify({ pairs, typePolicy, nullPolicy, tolerance, trim, fold })) } catch { /* Optional unsent draft. */ }
+    }
+  }, [draftKey, loadedKey, pairs, typePolicy, nullPolicy, tolerance, trim, fold])
+  if (!left || !right) return <section className="panel"><Title level={3}>比对设置</Title><Empty description="导入左右两份表格后设置匹配关系" /></section>
+  const change = (index: number, value: Partial<Pair>) => setPairs(old => old.map((pair, i) => i === index ? { ...pair, ...value } : pair))
+  const compare = () => void run('compare', { spec: {
+    key_pairs: pairs.filter(pair => pair.mode === 'key').map(pair => [pair.left, pair.right]),
+    compare_pairs: pairs.filter(pair => pair.mode === 'compare').map(pair => [pair.left, pair.right]),
+    amount_pairs: pairs.filter(pair => pair.mode === 'compare' && pair.amount).map(pair => [pair.left, pair.right]),
+    type_policy: typePolicy, null_policy: nullPolicy, amount_tolerance: tolerance, trim_text: trim, casefold_text: fold,
+  } })
+  return <section className="panel"><div className="section-head"><Title level={3}>匹配键与比对列</Title>
+    <Button type="primary" disabled={busy || !pairs.some(pair => pair.mode === 'key') || pairs.some(pair => pair.mode !== 'ignore' && !pair.right)} onClick={compare}>开始比对</Button></div>
+    <Paragraph type="secondary">明确选择匹配键和需要比较的列。重复键会单独列出，不自动配对。</Paragraph>
+    <div className="data-pairs">{pairs.map((pair, index) => <div className="data-pair" key={pair.left}><Text>{label(left.columns[index])}</Text><span>→</span>
+      <Select aria-label={`右侧映射${pair.left}`} value={pair.right || undefined} onChange={right => change(index, { right })} options={options(right.columns)} />
+      <Select aria-label={`列用途${pair.left}`} value={pair.mode} onChange={mode => change(index, { mode })} options={[{ value: 'key', label: '匹配键' }, { value: 'compare', label: '比对值' }, { value: 'ignore', label: '忽略' }]} />
+      <Checkbox disabled={pair.mode !== 'compare'} checked={pair.amount} onChange={event => change(index, { amount: event.target.checked })}>金额</Checkbox></div>)}</div>
+    <Space wrap className="data-policies"><Select aria-label="类型策略" value={typePolicy} onChange={setTypePolicy} options={[{ value: 'strict', label: '区分列类型' }, { value: 'text', label: '按文本比较' }]} />
+      <Select aria-label="空值策略" value={nullPolicy} onChange={setNullPolicy} options={[{ value: 'never_match', label: '空值不匹配' }, { value: 'equal', label: '空值视为相同' }]} />
+      <label>金额容差 <Input aria-label="金额容差" style={{ width: 100 }} value={tolerance} onChange={event => setTolerance(event.target.value)} /></label>
+      <Checkbox checked={trim} onChange={event => setTrim(event.target.checked)}>比较时去首尾空白</Checkbox>
+      <Checkbox checked={fold} onChange={event => setFold(event.target.checked)}>忽略大小写</Checkbox></Space>
+  </section>
+}
+
+function Results({ session, busy, run }: { session: Session; busy: boolean; run: Run }) {
+  const [category, setCategory] = useState(''), [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<string | null>(session.state.result_id)
+  useEffect(() => { setSelected(session.state.result_id); setPage(1) }, [session.state.result_id])
+  const query = useQuery({ queryKey: ['data-result', session.id, selected, category, page], enabled: !!selected,
+    queryFn: () => request<ResultPage>(`/sessions/${session.id}/results/${selected}?offset=${(page - 1) * 30}&limit=30${category ? '&category=' + category : ''}`) })
+  const metadata = query.data?.metadata
+  return <section className="panel"><div className="section-head"><Title level={3}>差异结果</Title><Space wrap>
+    <Select aria-label="历史比对" placeholder="选择一次比对" value={selected || undefined} style={{ minWidth: 220 }} onChange={value => { setSelected(value); setPage(1) }}
+      options={session.state.comparisons.map((item, i) => ({ value: item.id, label: `${i + 1}. ${item.left_name} / ${item.right_name}` }))} />
+    <Button disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button></Space></div>
+    {!selected ? <Empty description="完成比对后，这里显示固定版本的结果" /> : <>
+      {metadata && <div className="data-counts">{[['相同', 'same_pairs'], ['差异', 'different_pairs'], ['仅左', 'only_left'], ['仅右', 'only_right'], ['重复键', 'ambiguous_keys']].map(([title, key]) =>
+        <div key={key}><Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></div>)}</div>}
+      <Select aria-label="结果分类" value={category} style={{ width: 160, marginBottom: 16 }} onChange={value => { setCategory(value); setPage(1) }} options={[{ value: '', label: '全部结果' }, ...Object.entries(categoryNames).map(([value, label]) => ({ value, label }))]} />
+      {query.isError && <Alert type="error" title="结果加载失败" action={<Button onClick={() => void query.refetch()}>重试</Button>} />}
+      <Table size="small" loading={query.isPending} dataSource={query.data?.rows || []} rowKey="ordinal" scroll={{ x: 'max-content' }}
+        columns={[{ title: '分类', dataIndex: 'category', width: 100, fixed: 'left', render: value => <Tag color={value === 'different' ? 'orange' : value === 'same' ? 'green' : 'default'}>{categoryNames[value] || value}</Tag> },
+          { title: '左原行', dataIndex: 'left_source_row', width: 75 }, { title: '右原行', dataIndex: 'right_source_row', width: 75 },
+          ...(metadata ? (['left', 'right'] as const).flatMap(side => metadata[side].columns.map(column => ({ title: `${side === 'left' ? '左' : '右'} · ${label(column)}`,
+            dataIndex: `${side === 'left' ? 'L' : 'R'}_${column.column_id}_value`, width: 145 }))) : [])]}
+        pagination={{ current: page, pageSize: 30, total: query.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
+    </>}
+    {session.state.exports.length > 0 && <div className="data-downloads"><Title level={4}>已生成的固定版本文件</Title>
+      {session.state.exports.map((item, index) => <div className="data-download-row" key={item.id}><Text type="secondary">第 {session.state.exports.length - index} 次导出</Text>
+        <Space wrap>{item.files.map(file => <a key={file.name} href={`${API}/sessions/${session.id}/exports/${item.id}/${file.name}`} download>{file.name} <small>({Math.ceil(file.bytes / 1024)} KB)</small></a>)}</Space></div>)}
+      <Text type="secondary">CSV 对可能被表格软件执行的文本添加安全前缀；原始值和左右来源保存在配套清单中。</Text></div>}
+  </section>
+}
+
+export function DataWorkbench() {
+  const [params, setParams] = useSearchParams()
+  const sessionId = params.get('session')
+  const client = useQueryClient()
+  const [name, setName] = useState('新建表格比对'), [error, setError] = useState(''), [sending, setSending] = useState(false)
+  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean; message: string | null }>('/health') })
+  const list = useQuery({ queryKey: ['data-sessions'], queryFn: () => request<{ items: { id: string; name: string }[] }>('/sessions') })
+  const session = useQuery({ queryKey: ['data-session', sessionId], enabled: !!sessionId,
+    queryFn: () => request<Session>(`/sessions/${sessionId}`),
+    refetchInterval: query => query.state.data?.jobs.some(job => active.includes(job.status)) ? 750 : false })
+  const current = session.data
+  const job = current?.jobs.find(item => active.includes(item.status))
+  const busy = sending || !!job || !health.data?.ready
+  const refresh = async () => { await client.invalidateQueries({ queryKey: ['data-session', sessionId] }); void client.invalidateQueries({ queryKey: ['data-sessions'] }) }
+  const choose = (id: string) => { const next = new URLSearchParams(params); next.set('session', id); setParams(next); setError('') }
+  const create = async () => {
+    setSending(true); setError('')
+    try { const result = await post<Session>('/sessions', { name }); await client.invalidateQueries({ queryKey: ['data-sessions'] }); choose(result.id) }
+    catch (failure) { setError((failure as Error).message) } finally { setSending(false) }
+  }
+  const run: Run = async (action, payload) => {
+    if (!current) return
+    setSending(true); setError('')
+    try {
+      const result = await post<Job>(`/sessions/${current.id}/actions`, { action, payload, version: current.version })
+      client.setQueryData<Session>(['data-session', current.id], old => old ? { ...old, jobs: [result, ...old.jobs] } : old)
+      await refresh()
+    } catch (failure) { setError((failure as Error).message); await refresh() } finally { setSending(false) }
+  }
+  const upload = async (side: Side, file: File, settings: ImportOptions) => {
+    if (!current) return
+    setSending(true); setError('')
+    try {
+      const source = await request<{ id: string }>(`/sessions/${current.id}/uploads?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file })
+      const result = await post<Job>(`/sessions/${current.id}/actions`, { action: 'import', version: current.version, payload: { side, upload_id: source.id, options: { ...settings, sheet_name: undefined } } })
+      client.setQueryData<Session>(['data-session', current.id], old => old ? { ...old, jobs: [result, ...old.jobs] } : old)
+      await refresh()
+    } catch (failure) { setError((failure as Error).message); await refresh() } finally { setSending(false) }
+  }
+  return <div className="data-workbench"><div className="page-heading"><Text className="eyebrow">DATA WORKBENCH</Text><Title level={1}>数据清洗与比对</Title>
+    <Paragraph>从两份表格得到可复核的差异。每一步保留原始值和版本，随时继续上次工作。</Paragraph></div>
+    {(!health.data?.ready || health.isError) && !health.isPending && <Alert type="warning" title={health.data?.message || '无法连接数据服务'} action={<Button onClick={() => void health.refetch()}>重试</Button>} />}
+    <div className="data-session-bar"><Select aria-label="数据作业" placeholder="继续已有作业" value={sessionId || undefined} onChange={choose} loading={list.isPending} options={list.data?.items.map(item => ({ value: item.id, label: item.name }))} />
+      <Space.Compact><Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} /><Button disabled={sending || !health.data?.ready} onClick={() => void create()}>新建作业</Button></Space.Compact></div>
+    {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
+    {session.isError && <Alert type="error" title="无法读取作业" action={<Button onClick={() => void session.refetch()}>重试</Button>} />}
+    {job && <Alert type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
+      action={<Button disabled={job.status === 'cancelling'} onClick={() => void post(`/sessions/${current!.id}/jobs/${job.id}/cancel`, {}).then(refresh).catch(failure => setError(failure.message))}>取消</Button>} />}
+    {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
+    {current ? <><div className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
+      <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
+      <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} /></> :
+      <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '新建一个作业，或继续已有表格比对。无需先创建平台工作空间。'} /></div>}
+  </div>
+}

@@ -21,8 +21,6 @@ import duckdb
 from openpyxl import Workbook, load_workbook
 
 from modules.data_workbench.comparison.exact import ComparisonResult, ComparisonSpec, compare_exact
-from packages.contracts.models import JobRef, SourceLocator
-from workbench_platform.artifacts import ArtifactStore
 
 
 _ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,63}\Z")
@@ -43,21 +41,22 @@ class SourceDescriptor:
     asset_id: str
     asset_revision: int
     blob_hash: str
-    format: str  # csv or xlsx
+    format: str  # csv, xlsx or parquet
     sheet_name: str | None = None
 
     def __post_init__(self):
         if (not isinstance(self.asset_id, str) or not _ID.fullmatch(self.asset_id)
                 or type(self.asset_revision) is not int or self.asset_revision < 1
                 or not isinstance(self.blob_hash, str) or not _HASH.fullmatch(self.blob_hash)
-                or not isinstance(self.format, str) or self.format not in {"csv", "xlsx"}
-                or self.format == "csv" and self.sheet_name is not None
+                or not isinstance(self.format, str) or self.format not in {"csv", "xlsx", "parquet"}
+                or self.format in {"csv", "parquet"} and self.sheet_name is not None
                 or self.format == "xlsx" and (
                     not isinstance(self.sheet_name, str) or not self.sheet_name
                     or len(self.sheet_name) > 256)):
             raise ExportError("Invalid source descriptor")
 
     def locator(self) -> SourceLocator:
+        from packages.contracts.models import SourceLocator
         if self.format == "xlsx":
             return SourceLocator(schema_version="1.0", kind="table", asset_id=self.asset_id,
                                  asset_revision=self.asset_revision, blob_hash=self.blob_hash,
@@ -205,7 +204,7 @@ def _parquet(path: Path, headers: list[str], rows: list[list[str]]) -> None:
                                         "allow_community_extensions": "false",
                                         "memory_limit": "256MB", "threads": "2"})
     try:
-        columns = ",".join(f'"{header}" VARCHAR' for header in headers)
+        columns = ",".join('"' + header.replace('"', '""') + '" VARCHAR' for header in headers)
         connection.execute(f"CREATE TABLE export_rows ({columns})")
         if rows:
             markers = ",".join("?" for _ in headers)
@@ -244,6 +243,8 @@ def export_and_publish(result: ComparisonResult, left_snapshot: dict, right_snap
                        output_root: str | Path, artifact_store: ArtifactStore,
                        workspace_id: str, job_ref: JobRef,
                        application_version: str, rule_version: str) -> ExportedBundle:
+    from packages.contracts.models import JobRef
+    from workbench_platform.artifacts import ArtifactStore
     if (not isinstance(left_source, SourceDescriptor) or not isinstance(right_source, SourceDescriptor)
             or not isinstance(artifact_store, ArtifactStore)
             or not isinstance(workspace_id, str) or not _ID.fullmatch(workspace_id)

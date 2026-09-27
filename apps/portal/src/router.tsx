@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import type { ThemeConfig } from 'antd'
 import { App, Home, Workspaces, Applications, Application, Placeholder, Missing } from './App'
 import { TaskCenter } from './features/jobs/TaskCenter'
+import { DataWorkbench } from './features/data/DataWorkbench'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: '#236759', colorText: '#172522', colorBgBase: '#f7f9f8',
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [{
     { index: true, element: <Home /> },
     { path: 'workspaces', element: <Workspaces /> },
     { path: 'apps', element: <Applications /> },
+    { path: 'apps/data', element: <DataWorkbench /> },
     { path: 'apps/:appId', element: <Application /> },
     { path: 'assets', element: <Placeholder title="资料" description="资料汇集与跨工具引用尚未开放。原有工具中的资料仍由各工具管理。" /> },
     { path: 'jobs', element: <TaskCenter /> },
