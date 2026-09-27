@@ -8,6 +8,7 @@
 .asset-alert { margin: 12px 0; }
 .asset-fixed { margin-top: 30px; border-top: 2px solid #395c50; padding-top: 20px; }
 .asset-fixed ul { padding-left: 20px; }
+.asset-app-link { margin-left: 18px; }
 .asset-source { display: grid; grid-template-columns: 95px 1fr; gap: 12px; margin-bottom: 0; overflow-wrap: anywhere; }
 .asset-source dt { color: #61766e; }
 .asset-source dd { margin: 0; }

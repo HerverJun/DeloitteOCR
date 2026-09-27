@@ -9,8 +9,10 @@ Mirrors adapters/ocr/adapter.py until the shared adapter package is distributed.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import http.client
 import json
+from pathlib import Path
 import re
 from typing import Callable
 from urllib.parse import urlsplit
@@ -19,7 +21,10 @@ from workbench_platform.bridge.context import ResolvedContext
 
 NATIVE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 REQUEST_ID = re.compile(r"[A-Za-z0-9_-]{8,120}\Z")
+IMPORT_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{7,119}\Z")
 MAX_JSON = 8 * 1024 * 1024
+MAX_IMPORT_MANIFEST = 1_048_576
+MAX_IMPORT_ITEM = 128 * 1024 * 1024
 TERMINAL = frozenset({"succeeded", "failed", "cancelled"})
 KNOWN_STATES = frozenset({"queued", "running", "paused", "interrupted", *TERMINAL})
 
@@ -27,6 +32,10 @@ KNOWN_STATES = frozenset({"queued", "running", "paused", "interrupted", *TERMINA
 class OcrUnavailable(ValueError):
     def __init__(self):
         super().__init__("OCR adapter is unavailable")
+
+
+class OcrImportConflict(OcrUnavailable):
+    """The native request ID belongs to a different immutable manifest."""
 
 
 @dataclass(frozen=True)
@@ -97,7 +106,7 @@ class OcrAdapter:
         self.context, self.token, self.live, self.timeout = context, token, live, timeout
         self.port = _port(context.base_url)
 
-    def _request(self, method: str, path: str, body: dict | None = None) -> dict:
+    def _credential(self) -> str:
         try:
             if not self.live(self.context):
                 raise OcrUnavailable()
@@ -107,8 +116,13 @@ class OcrAdapter:
         if (not isinstance(credential, str) or len(credential) < 32 or len(credential) > 512
                 or not re.fullmatch(r"[A-Za-z0-9_-]+", credential)):
             raise OcrUnavailable()
+        return credential
+
+    def _request(self, method: str, path: str, body: dict | None = None,
+                 *, max_body: int = 8192, import_conflict: bool = False) -> dict:
+        credential = self._credential()
         payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
-        if payload is not None and len(payload) > 8192:
+        if payload is not None and len(payload) > max_body:
             raise OcrUnavailable()
         connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
         try:
@@ -117,6 +131,8 @@ class OcrAdapter:
                                         "Accept": "application/json",
                                         **({"Content-Type": "application/json"} if payload is not None else {})})
             response = connection.getresponse()
+            if import_conflict and response.status == 409:
+                raise OcrImportConflict()
             if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
                 raise OcrUnavailable()
             raw = response.read(MAX_JSON + 1)
@@ -126,6 +142,105 @@ class OcrAdapter:
             if not isinstance(value, dict):
                 raise OcrUnavailable()
             return value
+        except OcrImportConflict:
+            raise
+        except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
+                http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
+
+    def _import_path(self, request_id: str) -> str:
+        if not isinstance(request_id, str) or not IMPORT_REQUEST_ID.fullmatch(request_id):
+            raise OcrUnavailable()
+        return f"/api/platform/imports/{self.context.module_project_id}/{request_id}"
+
+    @staticmethod
+    def _import_status(result: dict, request_id: str) -> dict:
+        if (not isinstance(result, dict) or result.get("request_id") != request_id
+                or result.get("state") not in {"prepared", "accepted", "completed", "unknown"}
+                or not isinstance(result.get("payload_hash"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", result["payload_hash"])
+                or not isinstance(result.get("items"), list)
+                or not 1 <= len(result["items"]) <= 1000):
+            raise OcrUnavailable()
+        ids = set()
+        for item in result["items"]:
+            if (not isinstance(item, dict) or not _is_native_id(item.get("item_id"))
+                    or item["item_id"] in ids
+                    or item.get("status") not in {"pending", "imported", "missing"}):
+                raise OcrUnavailable()
+            ids.add(item["item_id"])
+            if item["status"] == "imported" and (not _is_native_id(item.get("target_asset_id"))
+                                                   or not _is_native_id(item.get("target_version_id"))):
+                raise OcrUnavailable()
+            if item["status"] != "imported" and (item.get("target_asset_id") is not None
+                                                  or item.get("target_version_id") is not None):
+                raise OcrUnavailable()
+        states = {item["status"] for item in result["items"]}
+        expected = ("unknown" if "missing" in states else "completed" if states == {"imported"}
+                    else "accepted" if "imported" in states else "prepared")
+        if result["state"] != expected:
+            raise OcrUnavailable()
+        return result
+
+    def begin_import(self, request_id: str, manifest: dict) -> dict:
+        if (self.context.role == "viewer" or not isinstance(request_id, str)
+                or not IMPORT_REQUEST_ID.fullmatch(request_id) or not isinstance(manifest, dict)):
+            raise OcrUnavailable()
+        result = self._request("POST", self._import_path(request_id), manifest,
+                               max_body=MAX_IMPORT_MANIFEST, import_conflict=True)
+        status = self._import_status(result, request_id)
+        canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":"), allow_nan=False).encode("utf-8")
+        if (status["payload_hash"] != hashlib.sha256(canonical).hexdigest()
+                or [item["item_id"] for item in status["items"]]
+                != [item.get("item_id") for item in manifest.get("items", [])]):
+            raise OcrUnavailable()
+        return status
+
+    def import_status(self, request_id: str) -> dict:
+        return self._import_status(self._request("GET", self._import_path(request_id)), request_id)
+
+    def import_item(self, request_id: str, item_id: str, source: Path,
+                    *, blob_hash: str, size_bytes: int) -> dict:
+        if (self.context.role == "viewer" or not _is_native_id(item_id)
+                or not isinstance(source, Path) or not re.fullmatch(r"[0-9a-f]{64}", blob_hash)
+                or type(size_bytes) is not int or not 1 <= size_bytes <= MAX_IMPORT_ITEM):
+            raise OcrUnavailable()
+        try:
+            path = source.resolve(strict=True)
+        except OSError:
+            raise OcrUnavailable() from None
+        if not path.is_file() or path.stat().st_size != size_bytes:
+            raise OcrUnavailable()
+        with path.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != blob_hash:
+                raise OcrUnavailable()
+        credential = self._credential()
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
+        try:
+            connection.putrequest("PUT", self._import_path(request_id) + "/items/" + item_id)
+            connection.putheader("Authorization", "Bearer " + credential)
+            connection.putheader("Accept", "application/json")
+            connection.putheader("Content-Type", "application/octet-stream")
+            connection.putheader("Content-Length", str(size_bytes))
+            connection.endheaders()
+            with path.open("rb") as stream:
+                remaining = size_bytes
+                while remaining:
+                    chunk = stream.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        raise OcrUnavailable()
+                    connection.send(chunk)
+                    remaining -= len(chunk)
+            response = connection.getresponse()
+            if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
+                raise OcrUnavailable()
+            raw = response.read(MAX_JSON + 1)
+            if len(raw) > MAX_JSON:
+                raise OcrUnavailable()
+            return self._import_status(json.loads(raw), request_id)
         except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
                 http.client.HTTPException):
             raise OcrUnavailable() from None

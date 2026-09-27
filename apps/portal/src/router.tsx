@@ -6,6 +6,7 @@ import { TaskCenter } from './features/jobs/TaskCenter'
 import { DataWorkbench } from './features/data/DataWorkbench'
 import { AssetLibrary } from './features/assets/AssetLibrary'
 import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
+import { OcrWorkflow } from './features/ocr/OcrWorkflow'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: '#236759', colorText: '#172522', colorBgBase: '#f7f9f8',
@@ -24,6 +25,7 @@ export const routes: RouteObject[] = [{
     { path: 'workspaces', element: <Workspaces /> },
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
+    { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },
     { path: 'apps/:appId', element: <Application /> },
     { path: 'assets', element: <AssetLibrary /> },
     { path: 'jobs', element: <TaskCenter /> },

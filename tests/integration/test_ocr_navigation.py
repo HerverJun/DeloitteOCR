@@ -64,7 +64,8 @@ def test_trusted_context_issues_native_ticket_without_credential_in_url(native):
     assert path == "/api/platform/navigation/issue"
     assert headers["X-Workbench-Launch-Nonce"] == "n" + "a" * 32
     assert json.loads(raw) == {"app_id": "ocr", "instance_id": "instanceA", "link_id": "linkA",
-                               "workspace_id": "workspaceA", "return_route": "/apps/ocr",
+                               "workspace_id": "workspaceA", "project_id": "nativeProjectA",
+                               "return_route": "/apps/ocr",
                                "platform_origin": "http://127.0.0.1:8765"}
     assert "nativeProjectA" not in entry and "workspaceA" not in entry and "n" + "a" * 32 not in entry
 

@@ -120,6 +120,8 @@ export function AssetLibrary() {
           <ul>{fixed.data.members.map(item => <li key={item.asset_id}>{item.original_name}</li>)}</ul>
           {fixed.data.members.filter(item => /\.(csv|xlsx|parquet)$/i.test(item.original_name)).length >= 2 &&
             <a href={`/apps/data?workspace=${encodeURIComponent(workspaceId)}&asset_set=${encodeURIComponent(setId)}`}>在数据工作台使用</a>}
+          {fixed.data.members.some(item => /\.(png|jpe?g|bmp|tiff?|webp|heic|heif|pdf)$/i.test(item.original_name)) &&
+            <a className="asset-app-link" href={`/apps/ocr/workflow?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(setId)}`}>在 OCR 中使用</a>}
         </>}
       </section>}
     </>}
