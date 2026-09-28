@@ -182,6 +182,30 @@ def test_late_generation_stale_cursor_and_terminal_reversal_are_rejected(tmp_pat
     assert len(ledger.events_since("workspaceA")) == 2
 
 
+def test_verified_native_restart_rebinds_same_job_and_preserves_old_events(tmp_path):
+    ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
+    old = context(instance_id="instanceA")
+    register(ledger, old, ["jobA"])
+    running = classification_status("jobA", "running", total=1, done=0, failed=0)
+    first = ledger.observe(old, "platformJobA", generation=7, expected_event_seq=0,
+                           native=running, items=[item("itemA", "pending")])
+    current = context(instance_id="instanceB")
+    queued = classification_status("jobA", "queued", total=1, done=0, failed=0)
+    restored = ledger.rebind(current, "platformJobA", expected_generation=7,
+                             expected_event_seq=first["last_event_seq"], native=queued,
+                             items=[item("itemA", "pending")])
+    assert restored["platform_job_id"] == first["platform_job_id"]
+    assert restored["generation"] == 8 and restored["instance_id"] == "instanceB"
+    assert restored["status"] == "queued" and restored["availability"] == "ready"
+    assert ledger.find_native(current, ["jobA"])["platform_job_id"] == "platformJobA"
+    with pytest.raises(ProjectionConflict):
+        ledger.observe(old, "platformJobA", generation=7, expected_event_seq=2,
+                       native=running, items=[item("itemA", "pending")])
+    events = ledger.events_since("workspaceA")
+    assert [(event["instance_id"], event["generation"]) for event in events] == [
+        ("instanceA", 7), ("instanceA", 7), ("instanceB", 8)]
+
+
 def test_transport_failure_is_unknown_and_never_invents_completion(tmp_path):
     ledger = JobProjectionStore(tmp_path / "jobs.sqlite")
     ctx = context()
@@ -236,11 +260,14 @@ def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp
     receipt = SimpleNamespace(instance_id="instanceA", base_url="http://127.0.0.1:8765/")
     launches = SimpleNamespace(current=lambda app_id: receipt)
     service = JobService(ledger, workspaces, launches, ocr_token_file=None)
-    native = {"state": "running", "item_state": "pending", "error": None}
+    native = {"state": "running", "item_state": "pending", "error": None,
+              "unreachable": False}
 
     class Native:
         def job(self, job_id):
             assert job_id == "jobA"
+            if native["unreachable"]:
+                raise ClassificationUnavailable()
             actions = ("cancel",) if native["state"] == "running" else ()
             return JobStatus(job_id, "inference", native["state"], "native GPU wait", 1, 0, 0,
                              actions, False)
@@ -274,9 +301,11 @@ def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp
     job_id = created.json()["platform_job_id"]
     assert created.json()["status"] == "running" and created.json()["capabilities"] == ["cancel"]
     receipt.instance_id = "instanceB"
+    native["unreachable"] = True
     interrupted = service.refresh("workspaceA", ledger.get("workspaceA", job_id))
     assert interrupted["status"] == "unknown" and interrupted["availability"] == "not_ready"
     receipt.instance_id = "instanceA"
+    native["unreachable"] = False
     assert client.get(base).json()["items"][0]["platform_job_id"] == job_id
     assert client.get(base.replace("workspaceA", "otherWorkspace")).status_code == 404
     assert client.post(base + f"/{job_id}/actions/cancel").status_code == 403
@@ -295,8 +324,9 @@ def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp
     receipt.instance_id = "instanceB"
     completed_after_restart = service.refresh("workspaceA", ledger.get("workspaceA", job_id))
     assert completed_after_restart["status"] == "cancelled"
-    assert completed_after_restart["availability"] == "not_ready"
-    receipt.instance_id = "instanceA"
+    assert completed_after_restart["availability"] == "ready"
+    assert completed_after_restart["generation"] == 2
+    assert service.register("workspaceA", "linkA", "classification", ["jobA"])["platform_job_id"] == job_id
     assert client.post(base + f"/{job_id}/actions/cancel", headers=origin).status_code == 409
 
 

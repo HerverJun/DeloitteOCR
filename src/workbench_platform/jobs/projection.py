@@ -189,10 +189,21 @@ class JobProjectionStore:
                     cursor INTEGER PRIMARY KEY AUTOINCREMENT,
                     platform_job_id TEXT NOT NULL REFERENCES projected_jobs(platform_job_id),
                     workspace_id TEXT NOT NULL, event_seq INTEGER NOT NULL,
+                    instance_id TEXT NOT NULL, generation INTEGER NOT NULL,
                     payload TEXT NOT NULL, UNIQUE(platform_job_id, event_seq));
                 CREATE INDEX IF NOT EXISTS projection_events_workspace
                     ON projection_events(workspace_id, cursor);
             """)
+            columns = {row[1] for row in db.execute("PRAGMA table_info(projection_events)")}
+            if "instance_id" not in columns:
+                db.execute("ALTER TABLE projection_events ADD COLUMN instance_id TEXT")
+            if "generation" not in columns:
+                db.execute("ALTER TABLE projection_events ADD COLUMN generation INTEGER")
+            db.execute("UPDATE projection_events SET instance_id=(SELECT instance_id FROM projected_jobs "
+                       "WHERE projected_jobs.platform_job_id=projection_events.platform_job_id),"
+                       "generation=(SELECT generation FROM projected_jobs "
+                       "WHERE projected_jobs.platform_job_id=projection_events.platform_job_id) "
+                       "WHERE instance_id IS NULL OR generation IS NULL")
 
     def _connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.path, timeout=5, isolation_level=None)
@@ -266,8 +277,9 @@ class JobProjectionStore:
                                 json.dumps(initial, separators=(",", ":"))))
                 except sqlite3.IntegrityError:
                     raise ProjectionConflict("Job operation identity is already registered") from None
-                db.execute("INSERT INTO projection_events(platform_job_id,workspace_id,event_seq,payload) "
-                           "VALUES(?,?,?,?)", (platform_job_id, context.workspace_id, 0,
+                db.execute("INSERT INTO projection_events(platform_job_id,workspace_id,event_seq,"
+                           "instance_id,generation,payload) VALUES(?,?,?,?,?,?)",
+                           (platform_job_id, context.workspace_id, 0, context.instance_id, generation,
                                                 json.dumps(initial, separators=(",", ":"))))
                 row = db.execute("SELECT * FROM projected_jobs WHERE platform_job_id=?",
                                  (platform_job_id,)).fetchone()
@@ -296,6 +308,76 @@ class JobProjectionStore:
                               "ORDER BY platform_job_id LIMIT ? OFFSET ?",
                               (workspace_id, limit, offset)).fetchall()
         return tuple(self._view(row) for row in rows)
+
+    def find_native(self, context: ResolvedContext, native_job_ids: Iterable[str]) -> dict | None:
+        self._context(context)
+        ids = tuple(native_job_ids)
+        if not ids or any(not _valid_id(item) for item in ids):
+            raise ProjectionConflict("Invalid native task identity")
+        with closing(self._connect()) as db:
+            rows = db.execute("SELECT * FROM projected_jobs WHERE workspace_id=? AND link_id=? "
+                              "AND app_id=? AND module_project_id=? AND native_ids=?",
+                              (context.workspace_id, context.link_id, context.app_id,
+                               context.module_project_id, json.dumps(ids))).fetchall()
+        if len(rows) > 1:
+            raise ProjectionConflict("Native task has multiple platform projections")
+        return self._view(rows[0]) if rows else None
+
+    def rebind(self, context: ResolvedContext, platform_job_id: str, *,
+               expected_generation: int, expected_event_seq: int,
+               native: ClassificationStatus | OcrBatchStatus,
+               items: Iterable[ReviewItem] | None = None) -> dict:
+        self._context(context)
+        if (not _valid_id(platform_job_id) or type(expected_generation) is not int
+                or expected_generation < 1 or type(expected_event_seq) is not int
+                or expected_event_seq < 0):
+            raise ProjectionConflict("Invalid rebind request")
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                row = db.execute("SELECT * FROM projected_jobs WHERE platform_job_id=?",
+                                 (platform_job_id,)).fetchone()
+                if (row is None or any(row[key] != value for key, value in (
+                        ("workspace_id", context.workspace_id), ("link_id", context.link_id),
+                        ("app_id", context.app_id),
+                        ("module_project_id", context.module_project_id)))
+                        or row["instance_id"] == context.instance_id
+                        or row["generation"] != expected_generation
+                        or row["event_seq"] != expected_event_seq):
+                    raise ProjectionConflict("Native generation changed during rebind")
+                ids = tuple(json.loads(row["native_ids"]))
+                if context.app_id == "classification":
+                    if not isinstance(native, ClassificationStatus) or native.native_job_id != ids[0]:
+                        raise ProjectionConflict("Classification native identity changed")
+                    projected = _classification(native, items)
+                else:
+                    if not isinstance(native, OcrBatchStatus) or items is not None:
+                        raise ProjectionConflict("Invalid OCR native snapshot")
+                    projected = _ocr(native, ids)
+                previous = json.loads(row["payload"])
+                if previous["status"] in _TERMINAL and projected["status"] != previous["status"]:
+                    raise ProjectionConflict("Native terminal state changed after restart")
+                projected["capabilities"] = (projected["capabilities"]
+                                             if context.role in {"owner", "editor"} else [])
+                projected["availability"] = "ready"
+                projected["updated_at"] = _utc()
+                encoded = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
+                generation = expected_generation + 1
+                sequence = expected_event_seq + 1
+                db.execute("UPDATE projected_jobs SET instance_id=?,generation=?,event_seq=?,"
+                           "payload=? WHERE platform_job_id=?",
+                           (context.instance_id, generation, sequence, encoded, platform_job_id))
+                db.execute("INSERT INTO projection_events(platform_job_id,workspace_id,event_seq,"
+                           "instance_id,generation,payload) VALUES(?,?,?,?,?,?)",
+                           (platform_job_id, context.workspace_id, sequence,
+                            context.instance_id, generation, encoded))
+                updated = db.execute("SELECT * FROM projected_jobs WHERE platform_job_id=?",
+                                     (platform_job_id,)).fetchone()
+                db.execute("COMMIT")
+            except BaseException:
+                db.execute("ROLLBACK")
+                raise
+        return self._view(updated)
 
     def observe(self, context: ResolvedContext, platform_job_id: str, *,
                 generation: int, expected_event_seq: int,
@@ -346,8 +428,10 @@ class JobProjectionStore:
                 next_seq = expected_event_seq + 1
                 db.execute("UPDATE projected_jobs SET event_seq=?,payload=? WHERE platform_job_id=?",
                            (next_seq, encoded, platform_job_id))
-                db.execute("INSERT INTO projection_events(platform_job_id,workspace_id,event_seq,payload) "
-                           "VALUES(?,?,?,?)", (platform_job_id, context.workspace_id, next_seq, encoded))
+                db.execute("INSERT INTO projection_events(platform_job_id,workspace_id,event_seq,"
+                           "instance_id,generation,payload) VALUES(?,?,?,?,?,?)",
+                           (platform_job_id, context.workspace_id, next_seq,
+                            context.instance_id, generation, encoded))
                 row = db.execute("SELECT * FROM projected_jobs WHERE platform_job_id=?",
                                  (platform_job_id,)).fetchone()
                 db.execute("COMMIT")
@@ -362,7 +446,7 @@ class JobProjectionStore:
             raise ProjectionUnavailable("Invalid event query")
         with closing(self._connect()) as db:
             rows = db.execute("SELECT e.cursor,e.event_seq,e.payload,j.platform_job_id,j.app_id,"
-                              "j.instance_id,j.generation FROM projection_events e "
+                              "e.instance_id,e.generation FROM projection_events e "
                               "JOIN projected_jobs j ON j.platform_job_id=e.platform_job_id "
                               "WHERE e.workspace_id=? AND e.cursor>? ORDER BY e.cursor LIMIT ?",
                               (workspace_id, cursor, limit)).fetchall()

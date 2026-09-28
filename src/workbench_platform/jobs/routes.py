@@ -94,6 +94,9 @@ class JobService:
         if context.role == "viewer":
             raise PermissionError()
         native, items = self._snapshot(context, native_ids)
+        existing = self.ledger.find_native(context, native_ids)
+        if existing is not None:
+            return self.refresh(workspace_id, existing)
         ref = self._record(context, native_ids)
         if ref["last_event_seq"] == 0:
             return self.ledger.observe(context, ref["platform_job_id"], generation=1,
@@ -112,6 +115,23 @@ class JobService:
         try:
             context = self._context(workspace_id, ref["app_id"], ref["link_id"], ref["instance_id"])
         except (ProjectionUnavailable, LaunchStatus, ValueError):
+            try:
+                current = self._context(workspace_id, ref["app_id"], ref["link_id"])
+                if current.instance_id != ref["instance_id"]:
+                    native, items = self._snapshot(current, ref["native_job_ids"])
+                    try:
+                        return self.ledger.rebind(
+                            current, ref["platform_job_id"],
+                            expected_generation=ref["generation"],
+                            expected_event_seq=ref["last_event_seq"], native=native, items=items)
+                    except ProjectionConflict:
+                        latest = self.ledger.get(workspace_id, ref["platform_job_id"])
+                        if latest["instance_id"] == current.instance_id:
+                            return latest
+                        raise
+            except (ProjectionUnavailable, ProjectionConflict, LaunchStatus,
+                    ClassificationUnavailable, OcrUnavailable, ValueError):
+                pass
             terminal = ref["status"] in {"succeeded", "partial", "failed", "cancelled"}
             return {**ref, "status": ref["status"] if terminal else "unknown",
                     "availability": "not_ready", "capabilities": []}
@@ -127,16 +147,17 @@ class JobService:
 
     def action(self, workspace_id: str, platform_job_id: str, action: str) -> dict:
         ref = self.ledger.get(workspace_id, platform_job_id)
-        context = self._context(workspace_id, ref["app_id"], ref["link_id"], ref["instance_id"])
+        current = self.refresh(workspace_id, ref)
+        context = self._context(workspace_id, current["app_id"], current["link_id"],
+                                current["instance_id"])
         if context.role == "viewer":
             raise PermissionError()
-        current = self.refresh(workspace_id, ref)
         if action not in current["capabilities"] or current["availability"] != "ready":
             raise ProjectionConflict("Action is unavailable")
         try:
             adapter = self._adapter(context)
             if context.app_id == "classification":
-                result = adapter.action(ref["native_job_ids"][0], action)
+                result = adapter.action(current["native_job_ids"][0], action)
                 if action == "retry_failed":
                     # The acknowledgement contains a new native ID. It may
                     # not be queryable immediately, so persist an unknown
@@ -146,7 +167,7 @@ class JobService:
             else:
                 if action != "cancel":
                     raise ProjectionConflict("Action is unavailable")
-                affected = adapter.cancel(ref["native_job_ids"])
+                affected = adapter.cancel(current["native_job_ids"])
                 if not affected:
                     return {"request_state": "unknown", "job": {**current, "status": "unknown",
                                                                 "availability": "not_ready", "capabilities": []}}
