@@ -1,11 +1,15 @@
 """OCR result bundles keep edited versions and verified source links."""
 
+import hashlib
+import io
 import json
+import zipfile
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
 from workbench_platform.app import app
-from workbench_platform.jobs.native_ocr import OcrResultConflict
+from workbench_platform.jobs.native_ocr import OcrResultConflict, OcrUnavailable, ResultArtifact
 
 LOCAL = {"host": "127.0.0.1:8766", "origin": "http://127.0.0.1:8766"}
 
@@ -70,3 +74,98 @@ def test_ocr_bundle_replay_revision_and_workspace_scope(tmp_path, monkeypatch):
         assert client.get(path).content == old.content
         listing = client.get(base).json()
         assert listing["total"] == 2
+
+
+def test_pdf_pages_keep_document_page_source_and_require_full_coverage(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKBENCH_DATA_DIR", str(tmp_path))
+    native = {"import": None, "second_page": False}
+
+    class FakeAdapter:
+        def import_status(self, _request_id):
+            if native["import"] is None:
+                raise OcrUnavailable()
+            return native["import"]
+
+        def begin_import(self, request_id, manifest):
+            digest = hashlib.sha256(json.dumps(manifest, ensure_ascii=False, sort_keys=True,
+                                               separators=(",", ":")).encode()).hexdigest()
+            native["import"] = {"request_id": request_id, "payload_hash": digest,
+                                "state": "prepared", "items": [{"item_id": manifest["items"][0]["item_id"],
+                                                                   "status": "pending"}]}
+            return native["import"]
+
+        def import_item(self, *_args, **_kwargs):
+            native["import"]["items"][0].update(
+                status="imported", target_document_id="docA", page_count=2, page_numbers=[1, 2])
+            native["import"]["state"] = "completed"
+            return native["import"]
+
+        def snapshot(self):
+            images = [{"id": f"image{page}", "document_id": "docA",
+                       "page_number": page,
+                       "selected_result": f"result{page}" if page == 1 or native["second_page"] else None}
+                      for page in (1, 2)]
+            tasks = [{"id": f"task{page}", "kind": "document", "status": "succeeded",
+                      "result_id": f"result{page}", "image_id": f"image{page}",
+                      "version_id": f"version{page}", "engine": "pdf-native"}
+                     for page in (1, 2)]
+            return {"project": {"name": "文档项目"},
+                    "documents": [{"id": "docA", "page_count": 2}],
+                    "images": images, "tasks": tasks}
+
+        def results(self, task_ids):
+            return tuple(ResultArtifact(f"result{page}", f"task{page}",
+                                        f"image{page}", f"version{page}", True,
+                                        {"document_id": "docA", "page_number": page})
+                         for page in (1, 2) if f"task{page}" in task_ids)
+
+        def result_revision(self, _result):
+            return 0
+
+        def export_results(self, pinned):
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w") as archive:
+                for page, _ in enumerate(pinned, 1):
+                    archive.writestr(f"{page:04d}.json",
+                                     json.dumps({"id": f"result{page}", "revision": 0}))
+            return buffer.getvalue(), "application/zip"
+
+    with TestClient(app, base_url="http://127.0.0.1:8766") as client:
+        workspace = client.post("/api/platform/v1/workspaces", headers=LOCAL,
+                                json={"schema_version": "1.0", "name": "PDF"}).json()["workspace_id"]
+        asset_base = f"/api/platform/v1/workspaces/{workspace}/assets"
+        asset = client.post(asset_base + "/uploads?name=双页.pdf", headers=LOCAL,
+                            content=b"%PDF-1.7 fixture").json()
+        fixed = client.post(asset_base + "/sets", headers=LOCAL,
+                            json={"asset_ids": [asset["asset_id"]]}).json()
+        handoff = app.state.ocr_handoff
+        monkeypatch.setattr(handoff, "_context", lambda *_: SimpleNamespace(
+            role="owner", module_project_id="projectA"))
+        monkeypatch.setattr(handoff, "_adapter", lambda _: FakeAdapter())
+        route = f"/api/platform/v1/workspaces/{workspace}/ocr/handoffs"
+        transfer = client.post(route, headers=LOCAL,
+                               json={"link_id": "linkA", "asset_set_id": fixed["asset_set_id"],
+                                     "asset_set_revision": fixed["revision"]})
+        assert transfer.status_code == 201 and transfer.json()["state"] == "completed"
+        projection = {"platform_job_id": "platformPdfJob", "instance_id": "instanceA",
+                      "operation_id": "operationA", "input_manifest_hash": "a" * 64,
+                      "native_status": "succeeded", "status": "succeeded",
+                      "stage": "PDF completed", "counts": {"total": 2, "succeeded": 2,
+                      "failed": 0, "cancelled": 0, "pending": 0},
+                      "last_event_seq": 1, "updated_at": "2026-09-28T00:00:00Z"}
+        monkeypatch.setattr(app.state.job_service, "register", lambda *_: projection)
+        base = f"/api/platform/v1/workspaces/{workspace}/artifacts"
+        payload = {"handoff_id": transfer.json()["handoff_id"]}
+        assert client.post(base + "/ocr-exports", headers=LOCAL, json=payload).status_code == 409
+        native["second_page"] = True
+        created = client.post(base + "/ocr-exports", headers=LOCAL, json=payload)
+        assert created.status_code == 201, created.text
+        bundle = created.json()
+        assert [item["page_number"] for item in bundle["items"]] == [1, 2]
+        assert client.post(base + "/ocr-exports", headers=LOCAL,
+                           json=payload).json()["bundle_id"] == bundle["bundle_id"]
+        provenance = client.get(base + f"/{bundle['bundle_id']}/files/provenance.json").json()
+        assert provenance["results"][1]["source_locator"]["page_number"] == 2
+        archive = client.get(base + f"/{bundle['bundle_id']}/files/ocr-results.zip")
+        with zipfile.ZipFile(io.BytesIO(archive.content)) as exported:
+            assert exported.namelist() == ["0001.json", "0002.json"]

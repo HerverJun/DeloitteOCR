@@ -141,7 +141,9 @@ class OcrResults:
             if row["status"] == "ready":
                 return self.display(row)
             job_ref = self._job(snapshot)
-            locators = [item["source_locator"] for item in snapshot["inputs"]]
+            locators = ([item["source_locator"] for item in snapshot["inputs"]]
+                        + [item["source_locator"] for item in snapshot["items"]
+                           if "source_locator" in item])
             mapping = json.loads(row["files_json"])
             for name, (data, media_type) in payloads.items():
                 if name in mapping:

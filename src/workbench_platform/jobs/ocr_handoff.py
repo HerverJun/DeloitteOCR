@@ -288,6 +288,11 @@ class OcrHandoff:
 
     def result_snapshot(self, workspace_id: str, handoff_id: str):
         row = self._row(workspace_id, handoff_id)
+        manifest = json.loads(row["manifest_json"])
+        if any(Path(item["name"]).suffix.lower() == ".pdf" for item in manifest["items"]):
+            if any(Path(item["name"]).suffix.lower() != ".pdf" for item in manifest["items"]):
+                raise AssetSetConflict("Mixed OCR image and PDF export is unsupported")
+            return self._document_result_snapshot(workspace_id, row, manifest)
         with closing(self._connect()) as db:
             submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
                                     (handoff_id,)).fetchone()
@@ -300,7 +305,6 @@ class OcrHandoff:
         batch = adapter.batch(task_ids)
         if batch.pending or not batch.succeeded:
             raise AssetSetConflict("OCR result is not final or has no successful items")
-        manifest = json.loads(row["manifest_json"])
         imported = adapter.import_status(row["request_id"])
         asset_set = self.sets.get(workspace_id, row["asset_set_id"], row["asset_set_revision"])
         if (imported["state"] != "completed"
@@ -364,6 +368,108 @@ class OcrHandoff:
                 "project_id": context.module_project_id, "project_name": project["name"],
                 "platform_job_id": submission["platform_job_id"],
                 "native_task_ids": task_ids, "engines": json.loads(submission["engines_json"]),
+                "input_set_id": asset_set.asset_set_id, "input_set_revision": asset_set.revision,
+                "input_manifest_hash": asset_set.manifest_hash, "inputs": inputs,
+                "items": items, "platform_job": projection,
+                "export": exported, "media_type": media_type}
+
+    def _document_result_snapshot(self, workspace_id, row, manifest):
+        context = self._context(workspace_id, row["link_id"])
+        adapter = self._adapter(context)
+        imported = adapter.import_status(row["request_id"])
+        asset_set = self.sets.get(workspace_id, row["asset_set_id"], row["asset_set_revision"])
+        if (imported["state"] != "completed"
+                or imported["payload_hash"] != hashlib.sha256(_json(manifest).encode()).hexdigest()
+                or len(imported["items"]) != len(asset_set.items)):
+            raise AssetSetConflict("OCR document mapping is incomplete")
+        snapshot = adapter.snapshot()
+        documents = {item["id"]: item for item in snapshot["documents"]}
+        images = snapshot["images"]
+        tasks = snapshot["tasks"]
+        sources, inputs = {}, []
+        for member, source, native in zip(asset_set.items, manifest["items"], imported["items"]):
+            document_id = native.get("target_document_id")
+            count = native.get("page_count")
+            if (member.item_id != source["item_id"] or member.item_id != native["item_id"]
+                    or native["status"] != "imported" or not document_id
+                    or native.get("target_asset_id") or document_id in sources
+                    or type(count) is not int or not 1 <= count <= 1000
+                    or native.get("page_numbers") != list(range(1, count + 1))
+                    or document_id not in documents or documents[document_id].get("page_count") != count):
+                raise AssetSetConflict("OCR document source identity changed")
+            asset = self.registry.get(workspace_id, member.asset_id)
+            if asset.revision != member.asset_revision or asset.blob_hash != member.blob_hash:
+                raise AssetSetConflict("OCR document source version changed")
+            with self.registry.stage_verified(workspace_id, asset.asset_id,
+                                              revision=member.asset_revision, blob_hash=member.blob_hash):
+                pass
+            sources[document_id] = (asset, count)
+            inputs.append({"role": "document", "name": asset.original_name,
+                           "asset_id": asset.asset_id, "revision": asset.revision,
+                           "blob_hash": asset.blob_hash,
+                           "source_locator": member.source_locator.model_dump(mode="json")})
+        selected = {}
+        for image in images:
+            document_id = image.get("document_id")
+            if document_id not in sources:
+                continue
+            page = image.get("page_number")
+            result_id = image.get("selected_result")
+            if (type(page) is not int or not 1 <= page <= sources[document_id][1]
+                    or (document_id, page) in selected or not result_id):
+                raise AssetSetConflict("OCR document page result is missing or repeated")
+            selected[(document_id, page)] = image
+        expected = {(document_id, page) for document_id, (_, count) in sources.items()
+                    for page in range(1, count + 1)}
+        if set(selected) != expected:
+            raise AssetSetConflict("OCR document pages are not fully processed")
+        native_tasks, items = [], []
+        for (document_id, page), image in sorted(selected.items()):
+            matches = [task for task in tasks if task.get("result_id") == image["selected_result"]]
+            if (len(matches) != 1 or matches[0].get("kind") != "document"
+                    or matches[0].get("status") != "succeeded"
+                    or matches[0].get("image_id") != image["id"]):
+                raise AssetSetConflict("OCR document result belongs to another page")
+            task = matches[0]
+            asset, _ = sources[document_id]
+            native_tasks.append(task)
+            items.append({"native_result_id": task["result_id"],
+                          "native_task_id": task["id"], "native_asset_id": image["id"],
+                          "native_version_id": task["version_id"],
+                          "native_document_id": document_id, "page_number": page,
+                          "asset_id": asset.asset_id, "revision": None, "selected": True,
+                          "source_locator": {"schema_version": "1.0", "kind": "page",
+                                             "asset_id": asset.asset_id,
+                                             "asset_revision": asset.revision,
+                                             "blob_hash": asset.blob_hash,
+                                             "page_number": page, "precision": "page_only"}})
+        task_ids = [task["id"] for task in native_tasks]
+        result_rows = adapter.results(task_ids)
+        if len(result_rows) != len(native_tasks):
+            raise AssetSetConflict("OCR document result coverage is incomplete")
+        pinned = []
+        for task, result, item in zip(native_tasks, result_rows, items):
+            if (result.native_result_id != task["result_id"]
+                    or result.image_id != task["image_id"]
+                    or result.version_id != task["version_id"]
+                    or result.locator.get("document_id") != item["native_document_id"]
+                    or result.locator.get("page_number") != item["page_number"]):
+                raise AssetSetConflict("OCR document result location changed")
+            revision = adapter.result_revision(result)
+            item["revision"] = revision
+            pinned.append((result, revision))
+        projection = self.jobs.register(workspace_id, row["link_id"], "ocr", task_ids)
+        if projection["status"] != "succeeded":
+            raise AssetSetConflict("Platform OCR document task is not final")
+        exported, media_type = adapter.export_results(pinned)
+        project = snapshot["project"]
+        if not isinstance(project.get("name"), str):
+            raise OcrUnavailable()
+        return {"workspace_id": workspace_id, "handoff_id": row["handoff_id"],
+                "project_id": context.module_project_id, "project_name": project["name"],
+                "platform_job_id": projection["platform_job_id"],
+                "native_task_ids": task_ids,
+                "engines": sorted({task["engine"] for task in native_tasks}),
                 "input_set_id": asset_set.asset_set_id, "input_set_revision": asset_set.revision,
                 "input_manifest_hash": asset_set.manifest_hash, "inputs": inputs,
                 "items": items, "platform_job": projection,

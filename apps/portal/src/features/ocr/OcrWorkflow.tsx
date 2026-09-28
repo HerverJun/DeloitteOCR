@@ -140,6 +140,10 @@ export function OcrWorkflow() {
             {capabilities.isError && <Alert type="warning" title="识别能力暂不可读取" action={<Button onClick={() => void capabilities.refetch()}>重试</Button>} />}
             {capabilities.data && !capabilities.data.recognition && <Text type="secondary">
               {capabilities.data.reason === 'native_document_flow' ? 'PDF 已进入原生文档，请在原生 OCR 按页处理。' : '当前 OCR 实例仅提供审阅与导出。'}</Text>}
+            {capabilities.data?.reason === 'native_document_flow' && <div className="ocr-notice">
+              <Button loading={publish.isPending} onClick={() => publish.mutate()}>归集已处理的文档成果</Button>
+              {publish.data && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(publish.data.bundle_id)}`}>查看成果</Link>}
+            </div>}
             {capabilities.data?.recognition && <Space wrap><Select mode="multiple" aria-label="识别引擎" placeholder="选择识别引擎"
               value={handoff.data.processing?.engines || engines} onChange={setEngines}
               disabled={!!handoff.data.processing} style={{ minWidth: 220 }}
