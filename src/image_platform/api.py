@@ -24,6 +24,7 @@ from .images import SUPPORTED, file_sha, thumbnail
 from .runtime import validate_package
 from .settings import REPO, Settings
 from .platform_navigation import NavigationTickets
+from .platform_imports import register_platform_import_routes
 from .store import Store, dump, now, uid
 
 
@@ -111,6 +112,7 @@ def create_app(settings=None):
 
     app = FastAPI(title="图像分类工作台", version="0.2.0", lifespan=lifespan)
     app.state.store = store
+    register_platform_import_routes(app, store)
     platform_instance = os.environ.get("WORKBENCH_INSTANCE_ID", "")
     platform_nonce = os.environ.get("WORKBENCH_NONCE", "")
     navigation = (NavigationTickets(instance_id=platform_instance, store=store)

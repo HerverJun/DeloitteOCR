@@ -9,7 +9,8 @@ from .images import decode, file_sha
 from .store import dump, now, uid
 
 
-def register_asset(store, project_id, path, label_id=None, source_id="upload", group_id=None, job=None):
+def register_asset(store, project_id, path, label_id=None, source_id="upload", group_id=None,
+                   job=None, on_accept=None):
     path = Path(path).resolve(strict=True)
     project = store.project(project_id)
     if label_id and label_id not in {x["label_id"] for x in project["labels"]}:
@@ -27,6 +28,8 @@ def register_asset(store, project_id, path, label_id=None, source_id="upload", g
                     (asset_id, project_id, str(path), path.name, digest, image.width, image.height, label_id, group_id or digest, source_id, now()))
         if label_id:
             con.execute("INSERT INTO annotations VALUES(?,?,NULL,?,'import',?)", (uid("annotation"), asset_id, label_id, now()))
+        if on_accept is not None:
+            on_accept(con, asset_id)
     return store.one("SELECT * FROM assets WHERE id=?", (asset_id,)), True
 
 

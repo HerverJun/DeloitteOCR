@@ -81,6 +81,26 @@ CREATE INDEX job_items_pending ON job_items(job_id,state,id);
 PRAGMA user_version=2;
 """
 
+MIGRATION_3 = """
+CREATE TABLE platform_import_requests (
+ project_id TEXT NOT NULL REFERENCES projects(id), request_id TEXT NOT NULL,
+ payload_hash TEXT NOT NULL, manifest TEXT NOT NULL, created_at TEXT NOT NULL,
+ PRIMARY KEY(project_id,request_id)
+);
+CREATE TABLE platform_import_items (
+ project_id TEXT NOT NULL, request_id TEXT NOT NULL, item_id TEXT NOT NULL,
+ ordinal INTEGER NOT NULL, platform_asset_id TEXT NOT NULL,
+ blob_hash TEXT NOT NULL, size_bytes INTEGER NOT NULL, name TEXT NOT NULL,
+ label_id TEXT, status TEXT NOT NULL CHECK(status IN ('pending','imported')),
+ target_asset_id TEXT REFERENCES assets(id), accepted_at TEXT,
+ PRIMARY KEY(project_id,request_id,item_id),
+ UNIQUE(project_id,request_id,ordinal),
+ FOREIGN KEY(project_id,request_id) REFERENCES platform_import_requests(project_id,request_id)
+);
+CREATE INDEX platform_import_target ON platform_import_items(target_asset_id);
+PRAGMA user_version=3;
+"""
+
 
 class Store:
     def __init__(self, settings: Settings):
@@ -99,7 +119,12 @@ class Store:
                 for statement in MIGRATION_2.split(";"):
                     if statement.strip():
                         con.execute(statement)
-            elif version != 2:
+                version = 2
+            if version == 2:
+                for statement in MIGRATION_3.split(";"):
+                    if statement.strip():
+                        con.execute(statement)
+            elif version != 3:
                 raise RuntimeError(f"Unsupported database version {version}")
 
     @contextmanager
