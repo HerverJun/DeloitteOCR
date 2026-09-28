@@ -9,16 +9,23 @@ written as text, preserving identifiers and Decimal strings exactly.
 from __future__ import annotations
 
 import csv
+from contextlib import closing
 import hashlib
 import io
+from itertools import chain, zip_longest
 import json
 import re
+import tempfile
 import uuid
+from zipfile import BadZipFile, ZipFile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import duckdb
-from openpyxl import Workbook, load_workbook
+from defusedxml.ElementTree import iterparse
+from openpyxl import Workbook
+from openpyxl.cell import WriteOnlyCell
+from openpyxl.utils.cell import column_index_from_string, coordinate_from_string
 
 from modules.data_workbench.comparison.exact import ComparisonResult, ComparisonSpec, compare_exact
 
@@ -186,56 +193,112 @@ def _csv(path: Path, headers: list[str], rows: list[list[str]]) -> None:
 
 
 def _xlsx(path: Path, headers: list[str], rows: list[list[str]]) -> None:
-    workbook = Workbook(write_only=False)
-    sheet = workbook.active
-    sheet.title = "Comparison"
-    for row_index, values in enumerate([headers, *rows], start=1):
-        for column_index, value in enumerate(values, start=1):
-            cell = sheet.cell(row_index, column_index, value=value)
-            cell.data_type = "s"  # Explicit text even for a leading '='.
-            cell.number_format = "@"
+    workbook = Workbook(write_only=True)
+    sheet = workbook.create_sheet("Comparison")
+    for values in chain((headers,), rows):
+        cells = []
+        for value in values:
+            if value.startswith("="):
+                cell = WriteOnlyCell(sheet, value=value)
+                cell.data_type = "s"
+                cell.number_format = "@"
+                cells.append(cell)
+            else:
+                cells.append(value)
+        sheet.append(cells)
     workbook.save(path)
     workbook.close()
 
 
 def _parquet(path: Path, headers: list[str], rows: list[list[str]]) -> None:
-    connection = duckdb.connect(config={"autoinstall_known_extensions": "false",
-                                        "autoload_known_extensions": "false",
-                                        "allow_community_extensions": "false",
-                                        "memory_limit": "256MB", "threads": "2"})
+    if len(set(headers)) != len(headers):
+        raise ExportError("Parquet columns are not unique")
+    staged = None
     try:
-        columns = ",".join('"' + header.replace('"', '""') + '" VARCHAR' for header in headers)
-        connection.execute(f"CREATE TABLE export_rows ({columns})")
-        if rows:
-            markers = ",".join("?" for _ in headers)
-            connection.executemany(f"INSERT INTO export_rows VALUES ({markers})", rows)
-        connection.execute("COPY export_rows TO ? (FORMAT PARQUET)", [str(path)])
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n",
+                                         dir=path.parent, prefix=".parquet-source-",
+                                         suffix=".jsonl", delete=False) as stream:
+            staged = Path(stream.name)
+            for row in rows:
+                if len(row) != len(headers):
+                    raise ExportError("Parquet row width differs")
+                stream.write(json.dumps(dict(zip(headers, row)), ensure_ascii=False,
+                                        separators=(",", ":"), allow_nan=False) + "\n")
+        connection = duckdb.connect(config={"autoinstall_known_extensions": "false",
+                                            "autoload_known_extensions": "false",
+                                            "allow_community_extensions": "false",
+                                            "memory_limit": "256MB", "threads": "2"})
+        try:
+            connection.execute("CREATE TABLE export_rows AS SELECT * FROM read_json(?, columns=?)",
+                               [str(staged), {header: "VARCHAR" for header in headers}])
+            connection.execute("COPY export_rows TO ? (FORMAT PARQUET)", [str(path)])
+        finally:
+            connection.close()
     finally:
-        connection.close()
+        if staged is not None:
+            staged.unlink(missing_ok=True)
+
+
+def _same_rows(actual, expected, kind: str) -> None:
+    missing = object()
+    for position, (found, wanted) in enumerate(zip_longest(actual, expected, fillvalue=missing), start=1):
+        if found is missing or wanted is missing or found != wanted:
+            raise ExportError(f"{kind} readback differs at row {position}")
+
+
+def _xlsx_rows(path: Path, width: int):
+    namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    try:
+        with ZipFile(path) as archive, archive.open("xl/worksheets/sheet1.xml") as stream:
+            row_number = 0
+            for _, element in iterparse(stream, events=("end",)):
+                if element.tag != namespace + "row":
+                    continue
+                row_number += 1
+                if element.get("r") != str(row_number):
+                    raise ExportError("XLSX row order changed")
+                values = [""] * width
+                used = set()
+                for cell in element.findall(namespace + "c"):
+                    if cell.find(namespace + "f") is not None:
+                        raise ExportError("XLSX contains a formula")
+                    if cell.get("t") != "inlineStr":
+                        raise ExportError("XLSX contains a non-text cell")
+                    column, observed_row = coordinate_from_string(cell.get("r", ""))
+                    offset = column_index_from_string(column) - 1
+                    if observed_row != row_number or not 0 <= offset < width or offset in used:
+                        raise ExportError("XLSX cell position changed")
+                    used.add(offset)
+                    inline = cell.find(namespace + "is")
+                    if inline is not None:
+                        values[offset] = "".join(node.text or "" for node in inline.iter(namespace + "t"))
+                yield values
+                element.clear()
+    except ExportError:
+        raise
+    except (BadZipFile, KeyError, ValueError):
+        raise ExportError("XLSX readback is invalid") from None
 
 
 def _readback(files: dict[str, Path], headers: list[str], rows: list[list[str]]) -> None:
     with files["results.csv"].open("r", encoding="utf-8-sig", newline="") as stream:
-        csv_rows = list(csv.reader(stream))
-    if csv_rows != [headers, *[[_safe_csv(value) for value in row] for row in rows]]:
-        raise ExportError("CSV readback differs")
-    workbook = load_workbook(files["results.xlsx"], read_only=True, data_only=False, keep_links=False)
-    try:
-        xlsx_rows = []
-        for row in workbook.active.iter_rows():
-            if any(cell.data_type == "f" for cell in row):
-                raise ExportError("XLSX contains a formula")
-            xlsx_rows.append(["" if cell.value is None else str(cell.value) for cell in row])
-    finally:
-        workbook.close()
-    if xlsx_rows != [headers, *rows]:
-        raise ExportError("XLSX readback differs")
+        _same_rows(csv.reader(stream),
+                   chain((headers,), ([_safe_csv(value) for value in row] for row in rows)), "CSV")
+    with closing(_xlsx_rows(files["results.xlsx"], len(headers))) as xlsx_rows:
+        _same_rows(xlsx_rows, chain((headers,), rows), "XLSX")
     with duckdb.connect(config={"autoinstall_known_extensions": "false",
                                 "autoload_known_extensions": "false"}) as connection:
-        parquet_rows = connection.execute("SELECT * FROM read_parquet(?)", [str(files["results.parquet"])]).fetchall()
-        parquet_headers = [column[0] for column in connection.description]
-    if parquet_headers != headers or [list(row) for row in parquet_rows] != rows:
-        raise ExportError("Parquet readback differs")
+        cursor = connection.execute("SELECT * FROM read_parquet(?)", [str(files["results.parquet"])])
+        if [column[0] for column in cursor.description] != headers:
+            raise ExportError("Parquet column names differ")
+        position = 0
+        while batch := cursor.fetchmany(2048):
+            for row in batch:
+                if position >= len(rows) or list(row) != rows[position]:
+                    raise ExportError(f"Parquet readback differs at row {position + 1}")
+                position += 1
+        if position != len(rows):
+            raise ExportError("Parquet readback row count differs")
 
 
 def export_and_publish(result: ComparisonResult, left_snapshot: dict, right_snapshot: dict, *,
