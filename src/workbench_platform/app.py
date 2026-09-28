@@ -23,6 +23,7 @@ from .artifacts.routes import configure_artifacts, router as artifacts_router
 from .jobs.ocr_projects import router as ocr_projects_router
 from .jobs.ocr_handoff import configure_ocr_handoff, router as ocr_handoff_router
 from .jobs.classification_projects import router as classification_projects_router
+from .jobs.classification_handoff import configure_classification_handoff, router as classification_handoff_router
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ async def lifespan(app: FastAPI):
                                     if app.state.workspace_store is not None else None)
         configure_jobs(app)
         configure_ocr_handoff(app)
+        configure_classification_handoff(app)
         yield
     finally:
         data_service = getattr(app.state, 'data_workbench', None)
@@ -48,6 +50,7 @@ async def lifespan(app: FastAPI):
             data_service.close()
         app.state.job_service = None
         app.state.ocr_handoff = None
+        app.state.classification_handoff = None
         app.state.asset_library = None
         app.state.artifact_center = None
         app.state.context_bridge = None
@@ -68,6 +71,7 @@ app.include_router(artifacts_router)
 app.include_router(ocr_projects_router)
 app.include_router(ocr_handoff_router)
 app.include_router(classification_projects_router)
+app.include_router(classification_handoff_router)
 
 
 @app.exception_handler(DataError)

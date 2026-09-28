@@ -10,9 +10,19 @@
 .classification-category-list > div { display: flex; gap: 10px; margin-bottom: 10px; }
 .classification-category-list .ant-input { width: min(420px, 100%); }
 .classification-notice { margin-top: 14px; }
+.classification-open { margin-top: 14px; }
+.classification-import-list { max-width: 650px; margin: 8px 0 18px; }
+.classification-import-list > div { display: grid; grid-template-columns: minmax(180px, 1fr) 200px; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid #d9e2de; }
+.classification-handoff-state { margin-top: 18px; }
+.classification-handoff-state ul { list-style: none; padding: 0; max-width: 650px; }
+.classification-handoff-state li { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid #d9e2de; }
+.classification-inference { margin-top: 22px; }
+.classification-inference .classification-notice { display: flex; gap: 16px; align-items: center; }
 @media (max-width: 600px) {
   .classification-project-controls { align-items: stretch; flex-direction: column; }
   .classification-project-controls .ant-select, .classification-project-controls .ant-btn { width: 100%; }
   .classification-labels { align-items: flex-start; flex-direction: column; gap: 7px; }
   .classification-create, .classification-create > .ant-input { width: 100%; }
+  .classification-import-list > div { grid-template-columns: 1fr; gap: 6px; }
+  .classification-import-list .ant-select { width: 100%; }
 }

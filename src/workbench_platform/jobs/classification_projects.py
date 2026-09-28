@@ -6,6 +6,7 @@ import http.client
 import json
 import re
 import sqlite3
+from dataclasses import replace
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Request
@@ -13,6 +14,7 @@ from starlette.concurrency import run_in_threadpool
 
 from workbench_platform.catalog.launch import LaunchStatus
 from workbench_platform.jobs.native_classification import ClassificationUnavailable
+from workbench_platform.jobs.classification_navigation import NavigationUnavailable, issue_navigation
 from workbench_platform.store.workspaces import RevisionConflict
 from workbench_platform.workspaces.routes import ID, _loopback_host, _same_loopback_origin
 
@@ -125,6 +127,17 @@ class ClassificationProjects:
             raise ClassificationUnavailable()
         return self.link(workspace_id, native["id"])
 
+    def open(self, workspace_id: str, link_id: str, platform_origin: str) -> dict:
+        context = replace(self.jobs._context(workspace_id, "classification", link_id),
+                          return_route="/apps/classification/workflow")
+        if not any(item["project_id"] == context.module_project_id
+                   for item in self.projects(workspace_id)["items"]):
+            raise KeyError("Linked native project no longer exists")
+        receipt = self.jobs.launches.current("classification")
+        address = issue_navigation(context, platform_origin=platform_origin,
+                                   launch_nonce=receipt.handshake_nonce)
+        return {"url": address}
+
 
 def _service(request: Request, workspace_id: str, *, write: bool = False):
     if not (_same_loopback_origin(request) if write else _loopback_host(request)):
@@ -166,7 +179,7 @@ async def _body(request: Request):
 def _failed(error: Exception):
     if isinstance(error, KeyError):
         raise HTTPException(404, "项目或工作空间不存在") from None
-    if isinstance(error, (ClassificationUnavailable, LaunchStatus)):
+    if isinstance(error, (ClassificationUnavailable, LaunchStatus, NavigationUnavailable)):
         raise HTTPException(503, "分类应用尚未就绪") from None
     if isinstance(error, (RevisionConflict, sqlite3.IntegrityError)):
         raise HTTPException(409, "项目关联已变化，请刷新后重试") from None
@@ -206,4 +219,20 @@ async def create_project(workspace_id: str, request: Request):
                                        payload["name"], payload["categories"])
     except (KeyError, ClassificationUnavailable, LaunchStatus, RevisionConflict,
             sqlite3.IntegrityError, ValueError) as error:
+        _failed(error)
+
+
+@router.post("/links/{link_id}/navigation")
+async def open_project(workspace_id: str, link_id: str, request: Request):
+    service = _service(request, workspace_id, write=True)
+    if not ID.fullmatch(link_id):
+        raise HTTPException(400, "项目关联无效")
+    async for chunk in request.stream():
+        if chunk:
+            raise HTTPException(400, "打开项目不接受参数")
+    try:
+        origin = "http://" + request.headers["host"]
+        return await run_in_threadpool(service.open, workspace_id, link_id, origin)
+    except (KeyError, ClassificationUnavailable, NavigationUnavailable, LaunchStatus,
+            ValueError) as error:
         _failed(error)

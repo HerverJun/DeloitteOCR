@@ -7,8 +7,10 @@ distributed with the platform. Keep behavior and tests synchronized.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import http.client
 import json
+from pathlib import Path
 import re
 from typing import Callable
 from urllib.parse import urlsplit
@@ -17,7 +19,10 @@ from workbench_platform.bridge.context import ResolvedContext
 
 ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 KEY = re.compile(r"[A-Za-z0-9_-]{8,120}\Z")
+IMPORT_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{7,119}\Z")
 MAX_JSON = 8 * 1024 * 1024
+MAX_IMPORT_MANIFEST = 1_048_576
+MAX_IMPORT_ITEM = 100 * 1024 * 1024
 STATES = frozenset({"queued", "running", "pausing", "paused", "cancelling", "cancelled",
                     "succeeded", "completed_with_errors", "failed"})
 KINDS = frozenset({"import", "train", "inference"})
@@ -26,6 +31,10 @@ KINDS = frozenset({"import", "train", "inference"})
 class ClassificationUnavailable(ValueError):
     def __init__(self):
         super().__init__("Classification adapter is unavailable")
+
+
+class ClassificationImportConflict(ClassificationUnavailable):
+    """The native request ID belongs to a different import manifest."""
 
 
 @dataclass(frozen=True)
@@ -96,14 +105,15 @@ class ClassificationAdapter:
         self.port = _port(context.base_url)
 
     def _request(self, method: str, path: str, body: dict | None = None,
-                 *, key: str | None = None) -> dict | list:
+                 *, key: str | None = None, max_body: int = 8192,
+                 import_conflict: bool = False) -> dict | list:
         try:
             if not self.live(self.context):
                 raise ClassificationUnavailable()
         except Exception:
             raise ClassificationUnavailable() from None
         payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
-        if payload is not None and len(payload) > 8192:
+        if payload is not None and len(payload) > max_body:
             raise ClassificationUnavailable()
         connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
         try:
@@ -112,6 +122,8 @@ class ClassificationAdapter:
                                         **({"Content-Type": "application/json"} if payload is not None else {}),
                                         **({"Idempotency-Key": key} if key else {})})
             response = connection.getresponse()
+            if import_conflict and response.status == 409:
+                raise ClassificationImportConflict()
             if response.status not in {200, 201, 202} or int(response.getheader("Content-Length", "0")) > MAX_JSON:
                 raise ClassificationUnavailable()
             raw = response.read(MAX_JSON + 1)
@@ -121,6 +133,103 @@ class ClassificationAdapter:
             if not isinstance(result, (dict, list)):
                 raise ClassificationUnavailable()
             return result
+        except ClassificationImportConflict:
+            raise
+        except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
+                http.client.HTTPException):
+            raise ClassificationUnavailable() from None
+        finally:
+            connection.close()
+
+    def _import_path(self, request_id: str) -> str:
+        if not isinstance(request_id, str) or not IMPORT_REQUEST_ID.fullmatch(request_id):
+            raise ClassificationUnavailable()
+        return f"/api/v1/platform/imports/{self.context.module_project_id}/{request_id}"
+
+    @staticmethod
+    def _import_status(result, request_id: str) -> dict:
+        if (not isinstance(result, dict) or result.get("request_id") != request_id
+                or result.get("state") not in {"prepared", "accepted", "completed", "unknown"}
+                or not isinstance(result.get("payload_hash"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", result["payload_hash"])
+                or not isinstance(result.get("items"), list)
+                or not 1 <= len(result["items"]) <= 1000):
+            raise ClassificationUnavailable()
+        seen = set()
+        for item in result["items"]:
+            if (not isinstance(item, dict) or not _id(item.get("item_id"))
+                    or item["item_id"] in seen
+                    or item.get("status") not in {"pending", "imported", "missing"}):
+                raise ClassificationUnavailable()
+            seen.add(item["item_id"])
+            if item["status"] == "imported":
+                if not _id(item.get("target_asset_id")):
+                    raise ClassificationUnavailable()
+            elif item.get("target_asset_id") is not None:
+                raise ClassificationUnavailable()
+        states = {item["status"] for item in result["items"]}
+        expected = ("unknown" if "missing" in states else "completed" if states == {"imported"}
+                    else "accepted" if "imported" in states else "prepared")
+        if result["state"] != expected:
+            raise ClassificationUnavailable()
+        return result
+
+    def begin_import(self, request_id: str, manifest: dict) -> dict:
+        if (self.context.role == "viewer" or not isinstance(request_id, str)
+                or not IMPORT_REQUEST_ID.fullmatch(request_id) or not isinstance(manifest, dict)):
+            raise ClassificationUnavailable()
+        result = self._request("POST", self._import_path(request_id), manifest,
+                               max_body=MAX_IMPORT_MANIFEST, import_conflict=True)
+        status = self._import_status(result, request_id)
+        canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":"), allow_nan=False).encode("utf-8")
+        if (status["payload_hash"] != hashlib.sha256(canonical).hexdigest()
+                or [item["item_id"] for item in status["items"]]
+                != [item.get("item_id") for item in manifest.get("items", [])]):
+            raise ClassificationUnavailable()
+        return status
+
+    def import_status(self, request_id: str) -> dict:
+        return self._import_status(self._request("GET", self._import_path(request_id)), request_id)
+
+    def import_item(self, request_id: str, item_id: str, source: Path,
+                    *, blob_hash: str, size_bytes: int) -> dict:
+        if (self.context.role == "viewer" or not _id(item_id) or not isinstance(source, Path)
+                or not isinstance(blob_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", blob_hash)
+                or type(size_bytes) is not int or not 1 <= size_bytes <= MAX_IMPORT_ITEM):
+            raise ClassificationUnavailable()
+        try:
+            path = source.resolve(strict=True)
+            if not self.live(self.context) or not path.is_file() or path.stat().st_size != size_bytes:
+                raise ClassificationUnavailable()
+            with path.open("rb") as stream:
+                if hashlib.file_digest(stream, "sha256").hexdigest() != blob_hash:
+                    raise ClassificationUnavailable()
+        except (OSError, ValueError):
+            raise ClassificationUnavailable() from None
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
+        try:
+            connection.putrequest("PUT", self._import_path(request_id) + "/items/" + item_id)
+            connection.putheader("Accept", "application/json")
+            connection.putheader("X-Platform-Request", "1")
+            connection.putheader("Content-Type", "application/octet-stream")
+            connection.putheader("Content-Length", str(size_bytes))
+            connection.endheaders()
+            with path.open("rb") as stream:
+                remaining = size_bytes
+                while remaining:
+                    chunk = stream.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        raise ClassificationUnavailable()
+                    connection.send(chunk)
+                    remaining -= len(chunk)
+            response = connection.getresponse()
+            if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
+                raise ClassificationUnavailable()
+            raw = response.read(MAX_JSON + 1)
+            if len(raw) > MAX_JSON:
+                raise ClassificationUnavailable()
+            return self._import_status(json.loads(raw), request_id)
         except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
                 http.client.HTTPException):
             raise ClassificationUnavailable() from None
