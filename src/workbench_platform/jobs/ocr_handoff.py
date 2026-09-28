@@ -286,6 +286,89 @@ class OcrHandoff:
                            (job["platform_job_id"], handoff_id))
             return {"handoff": self.status(workspace_id, handoff_id), "job": job}
 
+    def result_snapshot(self, workspace_id: str, handoff_id: str):
+        row = self._row(workspace_id, handoff_id)
+        with closing(self._connect()) as db:
+            submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
+                                    (handoff_id,)).fetchone()
+        if (submission is None or not submission["native_task_ids_json"]
+                or not submission["platform_job_id"]):
+            raise AssetSetConflict("OCR task is not registered")
+        context = self._context(workspace_id, row["link_id"])
+        adapter = self._adapter(context)
+        task_ids = json.loads(submission["native_task_ids_json"])
+        batch = adapter.batch(task_ids)
+        if batch.pending or not batch.succeeded:
+            raise AssetSetConflict("OCR result is not final or has no successful items")
+        manifest = json.loads(row["manifest_json"])
+        imported = adapter.import_status(row["request_id"])
+        asset_set = self.sets.get(workspace_id, row["asset_set_id"], row["asset_set_revision"])
+        if (imported["state"] != "completed"
+                or imported["payload_hash"] != hashlib.sha256(_json(manifest).encode()).hexdigest()
+                or len(imported["items"]) != len(asset_set.items)):
+            raise AssetSetConflict("OCR input mapping is incomplete")
+        sources, inputs = {}, []
+        for member, source, native in zip(asset_set.items, manifest["items"], imported["items"]):
+            if (member.item_id != source["item_id"] or member.item_id != native["item_id"]
+                    or native["status"] != "imported" or not native.get("target_asset_id")
+                    or native.get("target_document_id") or
+                    Path(source["name"]).suffix.lower() == ".pdf"):
+                raise AssetSetConflict("OCR image mapping changed")
+            asset = self.registry.get(workspace_id, member.asset_id)
+            if (asset.revision != member.asset_revision or asset.blob_hash != member.blob_hash):
+                raise AssetSetConflict("OCR source version changed")
+            with self.registry.stage_verified(workspace_id, asset.asset_id,
+                                              revision=member.asset_revision, blob_hash=member.blob_hash):
+                pass
+            key = (native["target_asset_id"], native["target_version_id"])
+            if key in sources:
+                raise AssetSetConflict("Native OCR source identity repeated")
+            sources[key] = asset
+            inputs.append({"role": "image", "name": asset.original_name,
+                           "asset_id": asset.asset_id, "revision": asset.revision,
+                           "blob_hash": asset.blob_hash,
+                           "source_locator": member.source_locator.model_dump(mode="json")})
+        results = adapter.results(task_ids)
+        succeeded = {task.native_task_id: task for task in batch.tasks
+                     if task.native_status == "succeeded"}
+        if len(results) != len(succeeded):
+            raise AssetSetConflict("OCR result coverage is incomplete")
+        pinned, items = [], []
+        for result in results:
+            task = succeeded.pop(result.native_task_id, None)
+            key = (result.image_id, result.version_id)
+            if (task is None or task.result_id != result.native_result_id
+                    or key not in sources or result.image_id != task.image_id
+                    or result.version_id != task.version_id):
+                raise AssetSetConflict("OCR result refers to another input")
+            revision = adapter.result_revision(result)
+            asset = sources[key]
+            pinned.append((result, revision))
+            items.append({"native_result_id": result.native_result_id,
+                          "native_task_id": result.native_task_id,
+                          "native_asset_id": result.image_id,
+                          "native_version_id": result.version_id,
+                          "asset_id": asset.asset_id, "revision": revision,
+                          "selected": result.selected})
+        if succeeded:
+            raise AssetSetConflict("OCR result coverage is incomplete")
+        projection = self.jobs.refresh(workspace_id, self.jobs.ledger.get(
+            workspace_id, submission["platform_job_id"]))
+        if projection["status"] not in {"succeeded", "partial"}:
+            raise AssetSetConflict("Platform OCR task is not final")
+        exported, media_type = adapter.export_results(pinned)
+        project = adapter.snapshot()["project"]
+        if not isinstance(project.get("name"), str):
+            raise OcrUnavailable()
+        return {"workspace_id": workspace_id, "handoff_id": handoff_id,
+                "project_id": context.module_project_id, "project_name": project["name"],
+                "platform_job_id": submission["platform_job_id"],
+                "native_task_ids": task_ids, "engines": json.loads(submission["engines_json"]),
+                "input_set_id": asset_set.asset_set_id, "input_set_revision": asset_set.revision,
+                "input_manifest_hash": asset_set.manifest_hash, "inputs": inputs,
+                "items": items, "platform_job": projection,
+                "export": exported, "media_type": media_type}
+
 
 def configure_ocr_handoff(app):
     root = os.environ.get("WORKBENCH_DATA_DIR")

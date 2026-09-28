@@ -5,17 +5,20 @@ import json
 import sqlite3
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
 from workbench_platform.app import app
-from workbench_platform.jobs.native_ocr import OcrUnavailable
+from workbench_platform.assets.sets import AssetSetConflict
+from workbench_platform.jobs.native_ocr import OcrUnavailable, ResultArtifact
 
 LOCAL = {"host": "127.0.0.1:8766", "origin": "http://127.0.0.1:8766"}
 
 
 def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKBENCH_DATA_DIR", str(tmp_path))
-    native = {"status": None, "items_sent": 0, "submissions": 0}
+    native = {"status": None, "items_sent": 0, "submissions": 0,
+              "result_image": "imageA"}
 
     class FakeAdapter:
         def import_status(self, request_id):
@@ -53,6 +56,26 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
             native["submissions"] += 1
             return ("taskA",)
 
+        def batch(self, task_ids):
+            assert task_ids == ["taskA"]
+            return SimpleNamespace(pending=0, succeeded=1, tasks=(SimpleNamespace(
+                native_task_id="taskA", native_status="succeeded", result_id="resultA",
+                image_id="imageA", version_id="versionA"),))
+
+        def results(self, task_ids):
+            return (ResultArtifact("resultA", "taskA", native["result_image"],
+                                   "versionA", True, {"kind": "image"}),)
+
+        def result_revision(self, result):
+            return 0
+
+        def export_results(self, pinned):
+            assert pinned[0][1] == 0
+            return b'{"id":"resultA","revision":0}', "application/json"
+
+        def snapshot(self):
+            return {"project": {"name": "OCR project"}}
+
     with TestClient(app, base_url="http://127.0.0.1:8766") as client:
         workspace = client.post("/api/platform/v1/workspaces", headers=LOCAL,
                                 json={"schema_version": "1.0", "name": "OCR"}).json()["workspace_id"]
@@ -62,7 +85,8 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
         fixed = client.post(base + "/sets", headers=LOCAL,
                             json={"asset_ids": [asset["asset_id"]]}).json()
         handoff = app.state.ocr_handoff
-        monkeypatch.setattr(handoff, "_context", lambda *_: SimpleNamespace(role="owner"))
+        monkeypatch.setattr(handoff, "_context", lambda *_: SimpleNamespace(
+            role="owner", module_project_id="projectA"))
         monkeypatch.setattr(handoff, "_adapter", lambda _: FakeAdapter())
         route = f"/api/platform/v1/workspaces/{workspace}/ocr/handoffs"
         payload = {"link_id": "linkA", "asset_set_id": fixed["asset_set_id"],
@@ -90,3 +114,13 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
         with sqlite3.connect(tmp_path / "ocr-handoffs.sqlite3") as db:
             assert db.execute("SELECT COUNT(*) FROM ocr_handoff").fetchone()[0] == 1
             assert db.execute("SELECT COUNT(*) FROM ocr_submission").fetchone()[0] == 1
+        jobs = app.state.job_service
+        monkeypatch.setattr(jobs.ledger, "get", lambda *_: {"platform_job_id": "jobA"})
+        monkeypatch.setattr(jobs, "refresh", lambda *_: {"status": "succeeded"})
+        native["result_image"] = "different-image"
+        with pytest.raises(AssetSetConflict, match="another input"):
+            handoff.result_snapshot(workspace, first.json()["handoff_id"])
+        native["result_image"] = "imageA"
+        snapshot = handoff.result_snapshot(workspace, first.json()["handoff_id"])
+        assert snapshot["items"][0]["asset_id"] == asset["asset_id"]
+        assert snapshot["items"][0]["revision"] == 0

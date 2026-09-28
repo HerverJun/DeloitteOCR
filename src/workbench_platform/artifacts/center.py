@@ -15,6 +15,7 @@ from pathlib import Path
 from packages.contracts.models import AssetSetItem, Counts, JobRef, SourceLocator
 from workbench_platform.artifacts.store import ArtifactStore, ArtifactUnavailable
 from workbench_platform.artifacts.classification_results import ClassificationResults
+from workbench_platform.artifacts.ocr_results import OcrResults
 from workbench_platform.assets.registry import AssetRegistry, AssetUnavailable
 from workbench_platform.assets.sets import AssetSetStore
 from workbench_platform.data_api.service import DataError, DataWorkbenchService
@@ -30,7 +31,8 @@ def _json(value) -> str:
 
 class ArtifactCenter:
     def __init__(self, root: Path, registry: AssetRegistry, sets: AssetSetStore,
-                 data: DataWorkbenchService | None, classification_handoff=None):
+                 data: DataWorkbenchService | None, classification_handoff=None,
+                 ocr_handoff=None):
         root.mkdir(exist_ok=True)
         blobs = root / "blobs"
         blobs.mkdir(exist_ok=True)
@@ -40,6 +42,7 @@ class ArtifactCenter:
         self.data = data
         self.classification = (ClassificationResults(self.store, classification_handoff)
                                if classification_handoff is not None else None)
+        self.ocr = OcrResults(self.store, ocr_handoff) if ocr_handoff is not None else None
         self.lock = threading.RLock()
         with closing(self._connect()) as db:
             db.executescript("""
@@ -90,48 +93,63 @@ class ArtifactCenter:
                 "inputs": json.loads(row["input_json"]), "files": files}
 
     def list(self, workspace_id: str, offset: int, limit: int):
+        parts = ["SELECT 'data' kind,bundle_id,created_at FROM data_artifact_bundle "
+                 "WHERE workspace_id=? AND status='ready'"]
         if self.classification is not None:
-            with closing(self._connect()) as db:
-                total = db.execute("SELECT (SELECT COUNT(*) FROM data_artifact_bundle "
-                                   "WHERE workspace_id=? AND status='ready') + "
-                                   "(SELECT COUNT(*) FROM classification_artifact_bundle "
-                                   "WHERE workspace_id=? AND status='ready')",
-                                   (workspace_id, workspace_id)).fetchone()[0]
-                keys = db.execute("SELECT 'data' kind,bundle_id,created_at "
-                                  "FROM data_artifact_bundle WHERE workspace_id=? AND status='ready' "
-                                  "UNION ALL SELECT 'classification' kind,bundle_id,created_at "
-                                  "FROM classification_artifact_bundle WHERE workspace_id=? AND status='ready' "
-                                  "ORDER BY created_at DESC,bundle_id DESC LIMIT ? OFFSET ?",
-                                  (workspace_id, workspace_id, limit, offset)).fetchall()
-            items = [(self._display(self._row(workspace_id, row["bundle_id"]))
-                      if row["kind"] == "data" else
-                      self.classification.get(workspace_id, row["bundle_id"])) for row in keys]
-            return {"items": items, "total": total,
-                    "next_offset": offset + limit if offset + limit < total else None}
+            parts.append("SELECT 'classification' kind,bundle_id,created_at "
+                         "FROM classification_artifact_bundle WHERE workspace_id=? AND status='ready'")
+        if self.ocr is not None:
+            parts.append("SELECT 'ocr' kind,bundle_id,created_at FROM ocr_artifact_bundle "
+                         "WHERE workspace_id=? AND status='ready'")
+        union = " UNION ALL ".join(parts)
+        params = (workspace_id,) * len(parts)
         with closing(self._connect()) as db:
-            total = db.execute("SELECT COUNT(*) FROM data_artifact_bundle WHERE workspace_id=? "
-                               "AND status='ready'", (workspace_id,)).fetchone()[0]
-            rows = db.execute("SELECT * FROM data_artifact_bundle WHERE workspace_id=? "
-                              "AND status='ready' ORDER BY created_at DESC,bundle_id DESC "
-                              "LIMIT ? OFFSET ?", (workspace_id, limit, offset)).fetchall()
-        return {"items": [self._display(row) for row in rows], "total": total,
+            total = db.execute(f"SELECT COUNT(*) FROM ({union})", params).fetchone()[0]
+            keys = db.execute(f"{union} ORDER BY created_at DESC,bundle_id DESC LIMIT ? OFFSET ?",
+                              (*params, limit, offset)).fetchall()
+        items = []
+        for row in keys:
+            bundle_id = row["bundle_id"]
+            if row["kind"] == "classification":
+                items.append(self.classification.get(workspace_id, bundle_id))
+            elif row["kind"] == "ocr":
+                items.append(self.ocr.get(workspace_id, bundle_id))
+            else:
+                items.append(self._display(self._row(workspace_id, bundle_id)))
+        return {"items": items, "total": total,
                 "next_offset": offset + limit if offset + limit < total else None}
 
     def get(self, workspace_id: str, bundle_id: str):
         try:
             return self._display(self._row(workspace_id, bundle_id))
         except ArtifactUnavailable as error:
-            if error.code != "NOT_FOUND" or self.classification is None:
+            if error.code != "NOT_FOUND":
                 raise
-            return self.classification.get(workspace_id, bundle_id)
+        if self.classification is not None:
+            try:
+                return self.classification.get(workspace_id, bundle_id)
+            except ArtifactUnavailable as error:
+                if error.code != "NOT_FOUND":
+                    raise
+        if self.ocr is not None:
+            return self.ocr.get(workspace_id, bundle_id)
+        raise ArtifactUnavailable("NOT_FOUND")
 
     def file(self, workspace_id: str, bundle_id: str, name: str):
         try:
             row = self._row(workspace_id, bundle_id)
         except ArtifactUnavailable as error:
-            if error.code != "NOT_FOUND" or self.classification is None:
+            if error.code != "NOT_FOUND":
                 raise
-            return self.classification.file(workspace_id, bundle_id, name)
+            if self.classification is not None:
+                try:
+                    return self.classification.file(workspace_id, bundle_id, name)
+                except ArtifactUnavailable as native_error:
+                    if native_error.code != "NOT_FOUND":
+                        raise
+            if self.ocr is not None:
+                return self.ocr.file(workspace_id, bundle_id, name)
+            raise ArtifactUnavailable("NOT_FOUND") from None
         artifact_id = json.loads(row["files_json"]).get(name)
         if artifact_id is None:
             raise ArtifactUnavailable("NOT_FOUND")
@@ -141,6 +159,11 @@ class ArtifactCenter:
         if self.classification is None:
             raise ArtifactUnavailable("SOURCE_UNAVAILABLE")
         return self.classification.publish(workspace_id, handoff_id)
+
+    def publish_ocr_result(self, workspace_id: str, handoff_id: str):
+        if self.ocr is None:
+            raise ArtifactUnavailable("SOURCE_UNAVAILABLE")
+        return self.ocr.publish(workspace_id, handoff_id)
 
     def _inputs(self, workspace_id: str, export: dict, summary: dict, session_id: str):
         if export["result_id"]:

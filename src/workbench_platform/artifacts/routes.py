@@ -18,6 +18,7 @@ from workbench_platform.artifacts.center import ArtifactCenter
 from workbench_platform.artifacts.store import ArtifactUnavailable
 from workbench_platform.catalog.launch import LaunchStatus
 from workbench_platform.jobs.native_classification import ClassificationUnavailable
+from workbench_platform.jobs.native_ocr import OcrResultConflict, OcrUnavailable
 from workbench_platform.jobs.projection import ProjectionConflict, ProjectionUnavailable
 
 router = APIRouter(prefix="/api/platform/v1/workspaces/{workspace_id}/artifacts", tags=["artifacts"])
@@ -29,7 +30,8 @@ def configure_artifacts(app) -> None:
     app.state.artifact_center = (
         ArtifactCenter(Path(configured).resolve() / "artifact-center", assets[0], assets[1],
                        getattr(app.state, "data_workbench", None),
-                       getattr(app.state, "classification_handoff", None))
+                       getattr(app.state, "classification_handoff", None),
+                       getattr(app.state, "ocr_handoff", None))
         if configured and assets else None)
 
 
@@ -78,6 +80,27 @@ async def publish_classification_export(workspace_id: str, request: Request):
     except (AssetUnavailable, AssetSetConflict, ArtifactUnavailable,
             ProjectionConflict, ProjectionUnavailable, ValueError):
         raise HTTPException(409, "分类结果或来源版本不可用") from None
+
+
+@router.post("/ocr-exports", status_code=201)
+async def publish_ocr_export(workspace_id: str, request: Request):
+    value = center(request, workspace_id, write=True)
+    payload = await json_body(request)
+    if (not isinstance(payload, dict) or set(payload) != {"handoff_id"}
+            or not isinstance(payload["handoff_id"], str)):
+        raise HTTPException(400, "请选择已完成的 OCR 交接")
+    try:
+        return await run_in_threadpool(value.publish_ocr_result,
+                                       workspace_id, payload["handoff_id"])
+    except KeyError:
+        raise HTTPException(404, "OCR 交接不存在") from None
+    except OcrResultConflict:
+        raise HTTPException(409, "OCR 结果版本已变化，请刷新后重试") from None
+    except (OcrUnavailable, LaunchStatus):
+        raise HTTPException(503, "原生 OCR 服务暂不可用") from None
+    except (AssetUnavailable, AssetSetConflict, ArtifactUnavailable,
+            ProjectionConflict, ProjectionUnavailable, ValueError):
+        raise HTTPException(409, "OCR 结果或来源版本不可用") from None
 
 
 @router.get("/{bundle_id}")

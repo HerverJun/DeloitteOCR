@@ -75,6 +75,11 @@ export function OcrWorkflow() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ engines: handoff.data?.processing?.engines || engines }),
   }), onSuccess: result => client.setQueryData(['ocr-handoff', workspaceId, result.handoff.handoff_id], result.handoff) })
+  const publish = useMutation({ mutationFn: () => json<{ bundle_id: string }>(
+    `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId || '')}/artifacts/ocr-exports`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handoff_id: handoffId }),
+    }) })
   const openNative = async () => {
     if (!chosen?.link_id) return
     const popup = window.open('', '_blank')
@@ -143,7 +148,10 @@ export function OcrWorkflow() {
                 loading={submit.isPending} onClick={() => submit.mutate()}>
                 {handoff.data.processing ? '核实原处理请求' : '提交识别'}</Button></Space>}
             {handoff.data.processing?.platform_job_id && <div className="ocr-notice"><Text>任务已登记</Text>
-              <Link to={`/jobs?workspace=${encodeURIComponent(workspaceId)}`}>查看任务中心</Link></div>}
+              <Link to={`/jobs?workspace=${encodeURIComponent(workspaceId)}`}>查看任务中心</Link>
+              <Button loading={publish.isPending} onClick={() => publish.mutate()}>归集识别成果</Button>
+              {publish.data && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(publish.data.bundle_id)}`}>查看成果</Link>}</div>}
+            {publish.isError && <Alert type="error" title={publish.error.message} className="ocr-notice" />}
             {submit.isError && <Alert type="error" title={submit.error.message} className="ocr-notice" />}
           </div>}
         </div>}

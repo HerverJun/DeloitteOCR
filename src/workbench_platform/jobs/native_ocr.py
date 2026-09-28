@@ -11,11 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import http.client
+import io
 import json
 from pathlib import Path
 import re
 from typing import Callable
 from urllib.parse import urlsplit
+import zipfile
 
 from workbench_platform.bridge.context import ResolvedContext
 
@@ -25,6 +27,7 @@ IMPORT_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{7,119}\Z")
 MAX_JSON = 8 * 1024 * 1024
 MAX_IMPORT_MANIFEST = 1_048_576
 MAX_IMPORT_ITEM = 128 * 1024 * 1024
+MAX_EXPORT = 128 * 1024 * 1024
 TERMINAL = frozenset({"succeeded", "failed", "cancelled"})
 KNOWN_STATES = frozenset({"queued", "running", "paused", "interrupted", *TERMINAL})
 
@@ -36,6 +39,10 @@ class OcrUnavailable(ValueError):
 
 class OcrImportConflict(OcrUnavailable):
     """The native request ID belongs to a different immutable manifest."""
+
+
+class OcrResultConflict(OcrUnavailable):
+    """The native result revision changed during a pinned export."""
 
 
 @dataclass(frozen=True)
@@ -379,6 +386,72 @@ class OcrAdapter:
                                             task.version_id, image.get("selected_result") == task.result_id,
                                             locator))
         return tuple(artifacts)
+
+    def result_revision(self, result: ResultArtifact) -> int:
+        value = self._request("GET", f"/api/results/{result.native_result_id}")
+        revision = value.get("revision")
+        if (value.get("id") != result.native_result_id
+                or value.get("task_id") != result.native_task_id
+                or type(revision) is not int or revision < 0):
+            raise OcrUnavailable()
+        return revision
+
+    def export_results(self, results: list[tuple[ResultArtifact, int]]) -> tuple[bytes, str]:
+        if (not results or len(results) > 1000
+                or len({item.native_result_id for item, _ in results}) != len(results)
+                or any(type(revision) is not int or revision < 0 for _, revision in results)):
+            raise OcrUnavailable()
+        body = {"result_ids": [item.native_result_id for item, _ in results],
+                "format": "json", "expected_results": {
+                    item.native_result_id: {"revision": revision, "version_id": item.version_id}
+                    for item, revision in results}}
+        credential = self._credential()
+        payload = json.dumps(body, separators=(",", ":")).encode("utf-8")
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
+        try:
+            connection.request("POST", "/api/export", body=payload,
+                               headers={"Authorization": "Bearer " + credential,
+                                        "Content-Type": "application/json", "Accept": "application/octet-stream"})
+            response = connection.getresponse()
+            if response.status == 409:
+                raise OcrResultConflict()
+            if response.status != 200:
+                raise OcrUnavailable()
+            length = response.getheader("Content-Length")
+            if length is not None and (not length.isdecimal() or int(length) > MAX_EXPORT):
+                raise OcrUnavailable()
+            data = response.read(MAX_EXPORT + 1)
+            if not data or len(data) > MAX_EXPORT:
+                raise OcrUnavailable()
+            names = (["OCR-result.json"] if len(results) == 1 else
+                     [f"{index:04d}.json" for index in range(1, len(results) + 1)])
+            if zipfile.is_zipfile(io.BytesIO(data)):
+                with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                    entries = archive.infolist()
+                    if (len(entries) > 10_000 or len({entry.filename for entry in entries}) != len(entries)
+                            or sum(entry.file_size for entry in entries) > MAX_EXPORT):
+                        raise OcrUnavailable()
+                    for name, (item, revision) in zip(names, results):
+                        if name not in archive.namelist() or archive.getinfo(name).file_size > MAX_JSON:
+                            raise OcrUnavailable()
+                        value = json.loads(archive.read(name))
+                        if (value.get("id"), value.get("revision")) != (item.native_result_id, revision):
+                            raise OcrUnavailable()
+                return data, "application/zip"
+            if len(results) != 1 or len(data) > MAX_JSON:
+                raise OcrUnavailable()
+            value = json.loads(data)
+            if (value.get("id"), value.get("revision")) != (
+                    results[0][0].native_result_id, results[0][1]):
+                raise OcrUnavailable()
+            return data, "application/json"
+        except OcrResultConflict:
+            raise
+        except (OSError, TimeoutError, ValueError, TypeError, KeyError,
+                json.JSONDecodeError, zipfile.BadZipFile, http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
 
 
 def _is_native_id(value: object) -> bool:
