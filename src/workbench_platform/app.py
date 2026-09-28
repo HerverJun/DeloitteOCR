@@ -31,7 +31,6 @@ async def lifespan(app: FastAPI):
     configure_workspace_store(app)
     configure_data(app)
     configure_assets(app)
-    configure_artifacts(app)
     supervisor = Supervisor(get_registry())
     try:
         configured = os.environ.get("WORKBENCH_DATA_DIR")
@@ -43,6 +42,7 @@ async def lifespan(app: FastAPI):
         configure_jobs(app)
         configure_ocr_handoff(app)
         configure_classification_handoff(app)
+        configure_artifacts(app)
         yield
     finally:
         data_service = getattr(app.state, 'data_workbench', None)

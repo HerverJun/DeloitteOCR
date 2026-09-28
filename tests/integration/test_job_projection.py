@@ -273,6 +273,10 @@ def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp
     assert created.status_code == 201
     job_id = created.json()["platform_job_id"]
     assert created.json()["status"] == "running" and created.json()["capabilities"] == ["cancel"]
+    receipt.instance_id = "instanceB"
+    interrupted = service.refresh("workspaceA", ledger.get("workspaceA", job_id))
+    assert interrupted["status"] == "unknown" and interrupted["availability"] == "not_ready"
+    receipt.instance_id = "instanceA"
     assert client.get(base).json()["items"][0]["platform_job_id"] == job_id
     assert client.get(base.replace("workspaceA", "otherWorkspace")).status_code == 404
     assert client.post(base + f"/{job_id}/actions/cancel").status_code == 403
@@ -288,6 +292,11 @@ def test_task_api_tracks_native_acknowledgement_and_refreshes_terminal_state(tmp
     assert refreshed.json()["native_errors"] == [{"native_item_id": "itemA",
                                                     "message": "native cancellation detail"}]
     assert client.get(base).json()["items"][0]["native_errors"] == refreshed.json()["native_errors"]
+    receipt.instance_id = "instanceB"
+    completed_after_restart = service.refresh("workspaceA", ledger.get("workspaceA", job_id))
+    assert completed_after_restart["status"] == "cancelled"
+    assert completed_after_restart["availability"] == "not_ready"
+    receipt.instance_id = "instanceA"
     assert client.post(base + f"/{job_id}/actions/cancel", headers=origin).status_code == 409
 
 

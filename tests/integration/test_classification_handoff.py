@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from workbench_platform.app import app
 from workbench_platform.jobs.native_classification import ClassificationUnavailable
+from workbench_platform.jobs.native_classification import JobStatus, ReviewItem
 
 LOCAL = {"host": "127.0.0.1:8766", "origin": "http://127.0.0.1:8766"}
 
@@ -18,7 +19,7 @@ def test_lost_import_reply_replays_one_item_and_one_inference(tmp_path, monkeypa
 
     class FakeAdapter:
         def project(self):
-            return {"labels": [{"label_id": "a", "display_name": "发票"}]}
+            return {"name": "分类项目", "labels": [{"label_id": "a", "display_name": "发票"}]}
 
         def import_status(self, request_id):
             if native["status"] is None:
@@ -49,6 +50,14 @@ def test_lost_import_reply_replays_one_item_and_one_inference(tmp_path, monkeypa
             native["inferences"] += 1
             return "nativeJobA"
 
+        def job(self, job_id):
+            return JobStatus(job_id, "inference", "succeeded", "分类完成", 1, 1, 0, (), False)
+
+        def results(self, job_id, *, limit, offset):
+            assert (job_id, offset) == ("nativeJobA", 0)
+            return (ReviewItem("itemNativeA", "nativeAssetA", "succeeded",
+                               "a", "needs_review", 0.7, "a", None),)
+
     with TestClient(app, base_url="http://127.0.0.1:8766") as client:
         workspace = client.post("/api/platform/v1/workspaces", headers=LOCAL,
                                 json={"schema_version": "1.0", "name": "分类"}).json()["workspace_id"]
@@ -58,7 +67,8 @@ def test_lost_import_reply_replays_one_item_and_one_inference(tmp_path, monkeypa
         fixed = client.post(asset_base + "/sets", headers=LOCAL,
                             json={"asset_ids": [asset["asset_id"]]}).json()
         handoff = app.state.classification_handoff
-        monkeypatch.setattr(handoff, "_context", lambda *_: SimpleNamespace(role="owner"))
+        monkeypatch.setattr(handoff, "_context", lambda *_: SimpleNamespace(
+            role="owner", module_project_id="nativeProjectA"))
         monkeypatch.setattr(handoff, "_adapter", lambda _: FakeAdapter())
         base = f"/api/platform/v1/workspaces/{workspace}/classification/handoffs"
         payload = {"link_id": "linkA", "asset_set_id": fixed["asset_set_id"],
@@ -81,6 +91,13 @@ def test_lost_import_reply_replays_one_item_and_one_inference(tmp_path, monkeypa
                            json={"model_id": "modelA", "device": "cpu"}).status_code == 201
         assert native["inferences"] == 1
         assert client.get(handoff_path).json()["processing"]["platform_job_id"] == "platformJobA"
+        monkeypatch.setattr(app.state.job_service.ledger, "get", lambda *_: {"platform_job_id": "platformJobA"})
+        monkeypatch.setattr(app.state.job_service, "refresh", lambda *_: {"status": "succeeded"})
+        snapshot = handoff.result_snapshot(workspace, first.json()["handoff_id"])
+        assert snapshot["items"][0]["asset_id"] == asset["asset_id"]
+        assert snapshot["items"][0]["prediction_label_id"] == "a"
+        assert snapshot["items"][0]["human_label_id"] == "a"
+        assert snapshot["items"][0]["prediction_status"] == "needs_review"
         with sqlite3.connect(tmp_path / "classification-handoffs.sqlite3") as db:
             assert db.execute("SELECT COUNT(*) FROM classification_handoff").fetchone()[0] == 1
             assert db.execute("SELECT COUNT(*) FROM classification_submission").fetchone()[0] == 1

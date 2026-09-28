@@ -112,7 +112,9 @@ class JobService:
         try:
             context = self._context(workspace_id, ref["app_id"], ref["link_id"], ref["instance_id"])
         except (ProjectionUnavailable, LaunchStatus, ValueError):
-            return {**ref, "status": "unknown", "availability": "not_ready", "capabilities": []}
+            terminal = ref["status"] in {"succeeded", "partial", "failed", "cancelled"}
+            return {**ref, "status": ref["status"] if terminal else "unknown",
+                    "availability": "not_ready", "capabilities": []}
         try:
             native, items = self._snapshot(context, ref["native_job_ids"])
         except (ClassificationUnavailable, OcrUnavailable):

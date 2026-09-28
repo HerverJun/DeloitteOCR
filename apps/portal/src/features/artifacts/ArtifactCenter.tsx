@@ -7,8 +7,10 @@ import './artifacts.css'
 const { Title, Text } = Typography
 type Input = { role: string; name: string; asset_id: string; revision: number }
 type File = { name: string; artifact_id: string; revision: number; size_bytes: number; availability: string }
-type Bundle = { bundle_id: string; session_id: string; session_name: string; export_id: string;
-  result_id: string | null; created_at: string; input_set_id: string; input_set_revision: number;
+type Bundle = { bundle_id: string; kind: string; title: string;
+  session_id?: string; session_name?: string; export_id?: string;
+  project_id?: string; handoff_id?: string; platform_job_id?: string;
+  result_id?: string | null; created_at: string; input_set_id: string; input_set_revision: number;
   inputs: Input[]; files: File[] }
 type BundlePage = { items: Bundle[]; total: number; next_offset: number | null }
 
@@ -23,17 +25,25 @@ function size(value: number) {
     ? `${(value / 1024).toFixed(1)} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`
 }
 
+function kindName(bundle: Bundle) {
+  return bundle.kind === 'classification_result' ? '分类结果' : bundle.result_id ? '差异结果' : '清洗表'
+}
+
 function BundleDetails({ bundle, workspaceId, base }: { bundle: Bundle; workspaceId: string; base: string }) {
   const scope = encodeURIComponent(workspaceId)
+  const classification = bundle.kind === 'classification_result'
   return <section className="artifact-detail">
-    <div className="artifact-detail-head"><div><Tag>{bundle.result_id ? '差异结果' : '清洗表'}</Tag>
-      <Title level={2}>{bundle.session_name}</Title><Text type="secondary">生成于 {new Date(bundle.created_at).toLocaleString('zh-CN')}</Text></div>
-      <Link to={`/apps/data?workspace=${scope}&session=${encodeURIComponent(bundle.session_id)}`}>返回数据作业</Link></div>
+    <div className="artifact-detail-head"><div><Tag>{kindName(bundle)}</Tag>
+      <Title level={2}>{bundle.title}</Title><Text type="secondary">生成于 {new Date(bundle.created_at).toLocaleString('zh-CN')}</Text></div>
+      {classification
+        ? <Space><Link to={`/apps/classification/workflow?workspace=${scope}&set=${encodeURIComponent(bundle.input_set_id)}&project=${encodeURIComponent(bundle.project_id || '')}&handoff=${encodeURIComponent(bundle.handoff_id || '')}`}>返回分类项目</Link>
+            <Link to={`/jobs?workspace=${scope}`}>查看任务</Link></Space>
+        : <Link to={`/apps/data?workspace=${scope}&session=${encodeURIComponent(bundle.session_id || '')}`}>返回数据作业</Link>}</div>
     <div className="artifact-meta"><div><Text type="secondary">输入集合</Text><strong>版本 {bundle.input_set_revision}</strong></div>
       <div><Text type="secondary">成果文件</Text><strong>{bundle.files.length} 件</strong></div>
-      <div><Text type="secondary">作业类型</Text><strong>{bundle.result_id ? '表格比对' : '表格清洗'}</strong></div></div>
+      <div><Text type="secondary">作业类型</Text><strong>{classification ? '图像分类' : bundle.result_id ? '表格比对' : '表格清洗'}</strong></div></div>
     <div className="artifact-section"><Title level={3}>输入资料</Title>
-      <ul>{bundle.inputs.map(input => <li key={`${input.role}-${input.asset_id}`}><span>{input.name}</span>
+      <ul>{bundle.inputs.map((input, index) => <li key={`${input.role}-${input.asset_id}-${index}`}><span>{input.name}</span>
         <Text type="secondary">版本 {input.revision}</Text>
         <Link to={`/assets?workspace=${scope}&asset=${encodeURIComponent(input.asset_id)}`}>查看来源</Link></li>)}</ul></div>
     <div className="artifact-section"><Title level={3}>成果文件</Title>
@@ -69,7 +79,7 @@ export function ArtifactCenter() {
       {list.isPending && <Text>正在读取成果…</Text>}
       {list.data?.total === 0 && <Empty description="当前工作空间暂无成果" />}
       <div className="artifact-list">{list.data?.items.map(bundle => <article key={bundle.bundle_id}>
-        <div><Tag>{bundle.result_id ? '差异结果' : '清洗表'}</Tag><Title level={3}>{bundle.session_name}</Title>
+        <div><Tag>{kindName(bundle)}</Tag><Title level={3}>{bundle.title}</Title>
           <Text type="secondary">{new Date(bundle.created_at).toLocaleString('zh-CN')}</Text></div>
         <div className="artifact-list-input"><Text type="secondary">输入</Text><span>{bundle.inputs.map(item => item.name).join(' · ')}</span></div>
         <Space><Text type="secondary">{bundle.files.length} 件文件</Text>

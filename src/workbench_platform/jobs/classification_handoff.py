@@ -233,6 +233,76 @@ class ClassificationHandoff:
         return {"items": [{"model_id": item["id"], "name": item.get("name") or item["id"]}
                           for item in adapter.models()]}
 
+    def result_snapshot(self, workspace_id, handoff_id):
+        row = self._row(workspace_id, handoff_id)
+        with closing(self._connect()) as db:
+            submission = db.execute("SELECT * FROM classification_submission WHERE handoff_id=?",
+                                    (handoff_id,)).fetchone()
+        if submission is None or not submission["native_job_id"] or not submission["platform_job_id"]:
+            raise AssetSetConflict("Classification task is not registered")
+        context = self._context(workspace_id, row["link_id"])
+        adapter = self._adapter(context)
+        job = adapter.job(submission["native_job_id"])
+        if (job.kind != "inference" or job.state not in {
+                "succeeded", "completed_with_errors", "failed", "cancelled"}
+                or job.total > 5000):
+            raise AssetSetConflict("Classification result is not final")
+        imported = adapter.import_status(row["request_id"])
+        asset_set = self.sets.get(workspace_id, row["asset_set_id"], row["asset_set_revision"])
+        if imported["state"] != "completed" or len(imported["items"]) != len(asset_set.items):
+            raise AssetSetConflict("Classification input mapping is incomplete")
+        sources = {}
+        inputs = []
+        for member, native in zip(asset_set.items, imported["items"]):
+            if member.item_id != native["item_id"] or native["status"] != "imported":
+                raise AssetSetConflict("Classification input mapping changed")
+            asset = self.registry.get(workspace_id, member.asset_id)
+            if (asset.revision != member.asset_revision or asset.blob_hash != member.blob_hash):
+                raise AssetSetConflict("Classification source version changed")
+            with self.registry.stage_verified(workspace_id, asset.asset_id,
+                                              revision=member.asset_revision, blob_hash=member.blob_hash):
+                pass
+            native_asset_id = native["target_asset_id"]
+            if native_asset_id in sources:
+                raise AssetSetConflict("Native source identity was repeated")
+            sources[native_asset_id] = (asset, member)
+            inputs.append({"role": "image", "name": asset.original_name,
+                           "asset_id": asset.asset_id, "revision": asset.revision,
+                           "blob_hash": asset.blob_hash,
+                           "source_locator": member.source_locator.model_dump(mode="json")})
+        results = []
+        for offset in range(0, job.total, 200):
+            results.extend(adapter.results(job.native_job_id,
+                                           limit=min(200, job.total - offset), offset=offset))
+        if len(results) != job.total or len({item.native_item_id for item in results}) != len(results):
+            raise AssetSetConflict("Classification result coverage is incomplete")
+        items = []
+        for result in results:
+            if result.asset_id not in sources:
+                raise AssetSetConflict("Result refers to another input")
+            asset, _ = sources[result.asset_id]
+            items.append({"native_item_id": result.native_item_id,
+                          "native_asset_id": result.asset_id, "asset_id": asset.asset_id,
+                          "source_name": asset.original_name, "state": result.state,
+                          "prediction_label_id": result.prediction_label_id,
+                          "prediction_status": result.prediction_status,
+                          "prediction_score": result.prediction_score,
+                          "human_label_id": result.human_label_id,
+                          "error": result.error})
+        projection = self.jobs.refresh(workspace_id, self.jobs.ledger.get(
+            workspace_id, submission["platform_job_id"]))
+        if projection["status"] not in {"succeeded", "partial", "failed", "cancelled"}:
+            raise AssetSetConflict("Platform task is not final")
+        project = adapter.project()
+        return {"workspace_id": workspace_id, "handoff_id": handoff_id,
+                "project_id": context.module_project_id, "project_name": project["name"],
+                "platform_job_id": submission["platform_job_id"],
+                "native_job_id": submission["native_job_id"],
+                "model_id": submission["model_id"], "input_set_id": asset_set.asset_set_id,
+                "input_set_revision": asset_set.revision, "input_manifest_hash": asset_set.manifest_hash,
+                "inputs": inputs, "items": items, "native_state": job.state,
+                "platform_job": projection}
+
     def submit(self, workspace_id, handoff_id, model_id, device):
         if (not isinstance(model_id, str) or not ID.fullmatch(model_id)
                 or device not in {"cpu", "cuda"}):

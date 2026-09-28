@@ -14,6 +14,7 @@ from pathlib import Path
 
 from packages.contracts.models import AssetSetItem, Counts, JobRef, SourceLocator
 from workbench_platform.artifacts.store import ArtifactStore, ArtifactUnavailable
+from workbench_platform.artifacts.classification_results import ClassificationResults
 from workbench_platform.assets.registry import AssetRegistry, AssetUnavailable
 from workbench_platform.assets.sets import AssetSetStore
 from workbench_platform.data_api.service import DataError, DataWorkbenchService
@@ -29,7 +30,7 @@ def _json(value) -> str:
 
 class ArtifactCenter:
     def __init__(self, root: Path, registry: AssetRegistry, sets: AssetSetStore,
-                 data: DataWorkbenchService | None):
+                 data: DataWorkbenchService | None, classification_handoff=None):
         root.mkdir(exist_ok=True)
         blobs = root / "blobs"
         blobs.mkdir(exist_ok=True)
@@ -37,6 +38,8 @@ class ArtifactCenter:
         self.registry = registry
         self.sets = sets
         self.data = data
+        self.classification = (ClassificationResults(self.store, classification_handoff)
+                               if classification_handoff is not None else None)
         self.lock = threading.RLock()
         with closing(self._connect()) as db:
             db.executescript("""
@@ -77,6 +80,8 @@ class ArtifactCenter:
                           "revision": artifact.revision, "media_type": artifact.media_type,
                           "size_bytes": artifact.size_bytes, "availability": artifact.availability})
         return {"bundle_id": row["bundle_id"], "workspace_id": row["workspace_id"],
+                "kind": "data_comparison" if row["result_id"] else "data_cleaned",
+                "title": row["session_name"],
                 "session_id": row["session_id"], "session_name": row["session_name"],
                 "export_id": row["export_id"],
                 "result_id": row["result_id"], "created_at": row["created_at"],
@@ -85,6 +90,24 @@ class ArtifactCenter:
                 "inputs": json.loads(row["input_json"]), "files": files}
 
     def list(self, workspace_id: str, offset: int, limit: int):
+        if self.classification is not None:
+            with closing(self._connect()) as db:
+                total = db.execute("SELECT (SELECT COUNT(*) FROM data_artifact_bundle "
+                                   "WHERE workspace_id=? AND status='ready') + "
+                                   "(SELECT COUNT(*) FROM classification_artifact_bundle "
+                                   "WHERE workspace_id=? AND status='ready')",
+                                   (workspace_id, workspace_id)).fetchone()[0]
+                keys = db.execute("SELECT 'data' kind,bundle_id,created_at "
+                                  "FROM data_artifact_bundle WHERE workspace_id=? AND status='ready' "
+                                  "UNION ALL SELECT 'classification' kind,bundle_id,created_at "
+                                  "FROM classification_artifact_bundle WHERE workspace_id=? AND status='ready' "
+                                  "ORDER BY created_at DESC,bundle_id DESC LIMIT ? OFFSET ?",
+                                  (workspace_id, workspace_id, limit, offset)).fetchall()
+            items = [(self._display(self._row(workspace_id, row["bundle_id"]))
+                      if row["kind"] == "data" else
+                      self.classification.get(workspace_id, row["bundle_id"])) for row in keys]
+            return {"items": items, "total": total,
+                    "next_offset": offset + limit if offset + limit < total else None}
         with closing(self._connect()) as db:
             total = db.execute("SELECT COUNT(*) FROM data_artifact_bundle WHERE workspace_id=? "
                                "AND status='ready'", (workspace_id,)).fetchone()[0]
@@ -95,14 +118,29 @@ class ArtifactCenter:
                 "next_offset": offset + limit if offset + limit < total else None}
 
     def get(self, workspace_id: str, bundle_id: str):
-        return self._display(self._row(workspace_id, bundle_id))
+        try:
+            return self._display(self._row(workspace_id, bundle_id))
+        except ArtifactUnavailable as error:
+            if error.code != "NOT_FOUND" or self.classification is None:
+                raise
+            return self.classification.get(workspace_id, bundle_id)
 
     def file(self, workspace_id: str, bundle_id: str, name: str):
-        row = self._row(workspace_id, bundle_id)
+        try:
+            row = self._row(workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != "NOT_FOUND" or self.classification is None:
+                raise
+            return self.classification.file(workspace_id, bundle_id, name)
         artifact_id = json.loads(row["files_json"]).get(name)
         if artifact_id is None:
             raise ArtifactUnavailable("NOT_FOUND")
         return self.store.get(workspace_id, artifact_id)
+
+    def publish_classification_result(self, workspace_id: str, handoff_id: str):
+        if self.classification is None:
+            raise ArtifactUnavailable("SOURCE_UNAVAILABLE")
+        return self.classification.publish(workspace_id, handoff_id)
 
     def _inputs(self, workspace_id: str, export: dict, summary: dict, session_id: str):
         if export["result_id"]:

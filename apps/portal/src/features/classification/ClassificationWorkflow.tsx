@@ -14,6 +14,8 @@ type Handoff = { handoff_id: string; link_id: string; state: string; availabilit
   items: { item_id: string; name: string; label_id: string | null; status: string }[];
   processing: { model_id: string; device: string; platform_job_id: string | null } | null }
 type Models = { items: { model_id: string; name: string }[] }
+type PlatformJob = { status: string; stage: string;
+  counts: { total: number | null; succeeded: number; failed: number; cancelled: number; pending: number } }
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, init)
@@ -38,6 +40,7 @@ export function ClassificationWorkflow() {
   const [labels, setLabels] = useState<Record<string, string | null>>({})
   const [modelId, setModelId] = useState<string>()
   const [device, setDevice] = useState<'cpu' | 'cuda'>('cpu')
+  const [publishedBundle, setPublishedBundle] = useState<string | null>(null)
   const base = workspaceId ? `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/classification` : ''
   const handoffBase = `${base}/handoffs`
   const chooseProject = (id: string) => {
@@ -59,6 +62,12 @@ export function ClassificationWorkflow() {
   const models = useQuery({ queryKey: ['classification-models', workspaceId, handoffId],
     enabled: !!workspaceId && !!handoffId && handoff.data?.state === 'completed',
     queryFn: ({ signal }) => json<Models>(`${handoffBase}/${encodeURIComponent(handoffId || '')}/models`, { signal }) })
+  const platformJobId = handoff.data?.processing?.platform_job_id
+  const terminal = ['succeeded', 'partial', 'failed', 'cancelled']
+  const job = useQuery({ queryKey: ['classification-job', workspaceId, platformJobId],
+    enabled: !!workspaceId && !!platformJobId,
+    queryFn: ({ signal }) => json<PlatformJob>(`/api/platform/v1/workspaces/${encodeURIComponent(workspaceId || '')}/jobs/${encodeURIComponent(platformJobId || '')}`, { signal }),
+    refetchInterval: query => terminal.includes(query.state.data?.status || '') ? false : 5000 })
   const link = useMutation({ mutationFn: (id: string) => json<Project>(`${base}/links`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ project_id: id }),
   }), onSuccess: result => {
@@ -90,6 +99,14 @@ export function ClassificationWorkflow() {
     body: JSON.stringify({ model_id: handoff.data?.processing?.model_id || modelId,
       device: handoff.data?.processing?.device || device }),
   }), onSuccess: result => client.setQueryData(['classification-handoff', workspaceId, result.handoff.handoff_id], result.handoff) })
+  const publish = useMutation({ mutationFn: () => json<{ bundle_id: string }>(
+    `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId || '')}/artifacts/classification-exports`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handoff_id: handoffId }),
+    }), onSuccess: result => {
+      setPublishedBundle(result.bundle_id)
+      void client.invalidateQueries({ queryKey: ['artifact-bundles', workspaceId] })
+    } })
   const openNative = async () => {
     if (!chosen?.link_id) return
     const popup = window.open('', '_blank')
@@ -185,6 +202,14 @@ export function ClassificationWorkflow() {
                 {handoff.data.processing ? '核实原处理请求' : '提交分类'}</Button></Space>}
             {handoff.data.processing?.platform_job_id && <div className="classification-notice"><Text>任务已登记</Text>
               <Link to={`/jobs?workspace=${encodeURIComponent(workspaceId)}`}>查看任务中心</Link></div>}
+            {job.data && <div className="classification-notice"><Text>
+              {job.data.stage || '分类任务'} · 完成 {job.data.counts.succeeded} · 失败 {job.data.counts.failed} · 未处理 {job.data.counts.pending}
+            </Text></div>}
+            {job.data && terminal.includes(job.data.status) && <div className="classification-notice">
+              <Button loading={publish.isPending} onClick={() => publish.mutate()}>归集成果</Button>
+              {publishedBundle && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(publishedBundle)}`}>查看成果</Link>}
+            </div>}
+            {publish.isError && <Alert type="error" title={publish.error.message} className="classification-notice" />}
             {infer.isError && <Alert type="error" title={infer.error.message} className="classification-notice" />}
           </div>}
         </div>}
