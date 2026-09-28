@@ -2,6 +2,7 @@
 
 import hashlib
 import io
+import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
@@ -65,3 +66,26 @@ def test_platform_backup_restores_assets_and_managed_result(tmp_path, monkeypatc
     corrupt.write_bytes(b"damaged")
     with pytest.raises(ValueError, match="changed"):
         verify(archive)
+
+
+def test_ocr_cold_backup_keeps_project_files_and_omits_runtime_state(tmp_path):
+    source, archive, recovered = (tmp_path / name for name in ("ocr", "backup", "recovered"))
+    (source / "projects" / "projectA").mkdir(parents=True)
+    (source / "projects" / "projectA" / "source.pdf").write_bytes(b"pdf-source")
+    (source / "pdf-ipc").mkdir()
+    (source / "pdf-ipc" / "request.json").write_text("temporary", encoding="utf-8")
+    (source / "service.lock").write_bytes(b"0")
+    with sqlite3.connect(source / "workbench.sqlite3") as db:
+        db.execute("CREATE TABLE projects(id TEXT PRIMARY KEY, name TEXT)")
+        db.execute("INSERT INTO projects VALUES('projectA', 'Original')")
+    manifest = create(source, archive, kind="ocr")
+    assert manifest["kind"] == "ocr"
+    assert "projects/projectA/source.pdf" in manifest["files"]
+    assert "service.lock" not in manifest["files"]
+    assert "pdf-ipc/request.json" not in manifest["files"]
+    assert verify(archive)["kind"] == "ocr"
+    restore(archive, recovered)
+    with sqlite3.connect(recovered / "workbench.sqlite3") as db:
+        assert db.execute("SELECT name FROM projects WHERE id='projectA'").fetchone()[0] == "Original"
+    assert (recovered / "projects/projectA/source.pdf").read_bytes() == b"pdf-source"
+    assert not (recovered / "service.lock").exists()

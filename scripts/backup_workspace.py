@@ -1,8 +1,8 @@
-"""Cold backup and new-directory restore for platform-owned workspace data.
+"""Cold backup and new-directory restore for platform or native OCR data.
 
 Stop the platform and both native applications before creating a backup. This
-tool covers the platform data root; native project stores are backed up by
-their own component step in the installation workflow.
+tool covers one data root at a time. The installation workflow combines it
+with the classification application's own backup and relocation utility.
 """
 
 from __future__ import annotations
@@ -19,11 +19,13 @@ import sqlite3
 import uuid
 
 
-ROOT_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
-              "recent-work.sqlite3", "ocr-handoffs.sqlite3",
-              "classification-handoffs.sqlite3")
-ROOT_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench")
-REQUIRED = ("assets.sqlite3", "workspaces.sqlite3")
+PLATFORM_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
+                  "recent-work.sqlite3", "ocr-handoffs.sqlite3",
+                  "classification-handoffs.sqlite3")
+PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench")
+REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
+            "ocr": ("workbench.sqlite3",)}
+OCR_TRANSIENT_DIRS = frozenset({".image-staging", "pdf-ipc"})
 FORMAT = 1
 CHUNK = 1024 * 1024
 
@@ -57,16 +59,37 @@ def _check_db(path: Path) -> None:
             raise ValueError(f"SQLite integrity check failed: {path}")
 
 
-def _members(root: Path) -> list[Path]:
+def _members(root: Path, kind: str) -> list[Path]:
+    if kind not in REQUIRED:
+        raise ValueError("Unknown backup component")
+    if kind == "ocr":
+        result = []
+        for directory, dirs, files in os.walk(root, followlinks=False):
+            current = Path(directory)
+            for entry in dirs:
+                _safe(current / entry)
+            dirs[:] = [entry for entry in dirs if entry not in OCR_TRANSIENT_DIRS]
+            for entry in files:
+                source = current / entry
+                _safe(source)
+                if (entry == "service.lock" and current == root) or entry.endswith(
+                        (".sqlite3-wal", ".sqlite3-shm")):
+                    continue
+                if not source.is_file():
+                    raise ValueError(f"Unsupported storage entry: {source}")
+                result.append(source)
+        if not (root / "workbench.sqlite3").is_file():
+            raise FileNotFoundError(root / "workbench.sqlite3")
+        return sorted(result)
     result = []
-    for name in ROOT_FILES:
+    for name in PLATFORM_FILES:
         path = root / name
         _safe(path)
         if path.is_file():
             result.append(path)
-        elif name in REQUIRED:
+        elif name in REQUIRED["platform"]:
             raise FileNotFoundError(path)
-    for name in ROOT_DIRS:
+    for name in PLATFORM_DIRS:
         parent = root / name
         _safe(parent)
         if not parent.exists():
@@ -113,13 +136,13 @@ def _distinct(source: Path, destination: Path) -> None:
         raise ValueError("Destination must be a new directory outside the source")
 
 
-def create(source: Path, destination: Path) -> dict:
+def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
     _safe(source)
     source, destination = source.resolve(), destination.resolve()
     if not source.is_dir():
         raise FileNotFoundError(source)
     _distinct(source, destination)
-    members = _members(source)
+    members = _members(source, kind)
     stage = destination.with_name(destination.name + ".pending-" + uuid.uuid4().hex)
     stage.mkdir(parents=True)
     try:
@@ -127,9 +150,9 @@ def create(source: Path, destination: Path) -> dict:
         for item in members:
             relative = item.relative_to(source).as_posix()
             records[relative] = _copy_member(item, stage / relative)
-        if _members(source) != members:
+        if _members(source, kind) != members:
             raise ValueError("Source file set changed during backup")
-        manifest = {"format": FORMAT,
+        manifest = {"format": FORMAT, "kind": kind,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "files": records}
         (stage / "manifest.json").write_text(
@@ -147,8 +170,10 @@ def verify(backup: Path) -> dict:
     _safe(backup)
     manifest = json.loads((backup / "manifest.json").read_text(encoding="utf-8"))
     files = manifest.get("files")
+    kind = manifest.get("kind", "platform")
     if (manifest.get("format") != FORMAT or not isinstance(files, dict)
-            or not all(name in files for name in REQUIRED)):
+            or kind not in REQUIRED
+            or not all(name in files for name in REQUIRED[kind])):
         raise ValueError("Unsupported or incomplete platform backup")
     for name, recorded in files.items():
         relative = _relative(name)
@@ -191,6 +216,7 @@ def main() -> None:
     make = commands.add_parser("create")
     make.add_argument("--data-dir", type=Path, required=True)
     make.add_argument("--output", type=Path, required=True)
+    make.add_argument("--kind", choices=sorted(REQUIRED), default="platform")
     check = commands.add_parser("verify")
     check.add_argument("--backup", type=Path, required=True)
     recover = commands.add_parser("restore")
@@ -198,7 +224,7 @@ def main() -> None:
     recover.add_argument("--target", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "create":
-        result = create(args.data_dir, args.output)
+        result = create(args.data_dir, args.output, kind=args.kind)
         print(json.dumps({"output": str(args.output.resolve()), "files": len(result["files"])},
                          ensure_ascii=False))
     elif args.command == "verify":
