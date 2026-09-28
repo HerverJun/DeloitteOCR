@@ -22,6 +22,7 @@ from .assets.routes import configure_assets, router as assets_router
 from .artifacts.routes import configure_artifacts, router as artifacts_router
 from .jobs.ocr_projects import router as ocr_projects_router
 from .jobs.ocr_handoff import configure_ocr_handoff, router as ocr_handoff_router
+from .jobs.classification_projects import router as classification_projects_router
 
 
 @asynccontextmanager
@@ -66,6 +67,7 @@ app.include_router(assets_router)
 app.include_router(artifacts_router)
 app.include_router(ocr_projects_router)
 app.include_router(ocr_handoff_router)
+app.include_router(classification_projects_router)
 
 
 @app.exception_handler(DataError)

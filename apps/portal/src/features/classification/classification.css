@@ -1,0 +1,18 @@
+.classification-workflow .page-heading { margin-bottom: 24px; }
+.classification-inputs { padding-left: 20px; margin: 12px 0; }
+.classification-inputs li { margin: 7px 0; }
+.classification-project-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.classification-project-controls .ant-select { width: min(420px, 100%); }
+.classification-labels { display: flex; align-items: center; gap: 16px; margin: 16px 0; }
+.classification-create { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 600px; }
+.classification-create > .ant-input { width: min(420px, 100%); }
+.classification-category-list { width: 100%; }
+.classification-category-list > div { display: flex; gap: 10px; margin-bottom: 10px; }
+.classification-category-list .ant-input { width: min(420px, 100%); }
+.classification-notice { margin-top: 14px; }
+@media (max-width: 600px) {
+  .classification-project-controls { align-items: stretch; flex-direction: column; }
+  .classification-project-controls .ant-select, .classification-project-controls .ant-btn { width: 100%; }
+  .classification-labels { align-items: flex-start; flex-direction: column; gap: 7px; }
+  .classification-create, .classification-create > .ant-input { width: 100%; }
+}

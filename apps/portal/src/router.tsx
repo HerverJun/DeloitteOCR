@@ -7,6 +7,7 @@ import { DataWorkbench } from './features/data/DataWorkbench'
 import { AssetLibrary } from './features/assets/AssetLibrary'
 import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
 import { OcrWorkflow } from './features/ocr/OcrWorkflow'
+import { ClassificationWorkflow } from './features/classification/ClassificationWorkflow'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: '#236759', colorText: '#172522', colorBgBase: '#f7f9f8',
@@ -26,6 +27,7 @@ export const routes: RouteObject[] = [{
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },
+    { path: 'apps/classification/workflow', element: <ClassificationWorkflow /> },
     { path: 'apps/:appId', element: <Application /> },
     { path: 'assets', element: <AssetLibrary /> },
     { path: 'jobs', element: <TaskCenter /> },

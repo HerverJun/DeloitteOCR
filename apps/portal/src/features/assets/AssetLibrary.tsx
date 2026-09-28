@@ -122,6 +122,8 @@ export function AssetLibrary() {
             <a href={`/apps/data?workspace=${encodeURIComponent(workspaceId)}&asset_set=${encodeURIComponent(setId)}`}>在数据工作台使用</a>}
           {fixed.data.members.some(item => /\.(png|jpe?g|bmp|tiff?|webp|heic|heif|pdf)$/i.test(item.original_name)) &&
             <a className="asset-app-link" href={`/apps/ocr/workflow?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(setId)}`}>在 OCR 中使用</a>}
+          {fixed.data.members.length > 0 && fixed.data.members.every(item => /\.(jpe?g|png|webp|bmp)$/i.test(item.original_name)) &&
+            <a className="asset-app-link" href={`/apps/classification/workflow?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(setId)}`}>在图像分类中使用</a>}
         </>}
       </section>}
     </>}
