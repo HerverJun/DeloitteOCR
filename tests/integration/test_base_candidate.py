@@ -69,6 +69,10 @@ def test_classification_bundle_owns_and_declares_its_worker(tmp_path):
     assert "import subprocess" in server and "subprocess.Popen" in server
     assert 'pointer = installation / "data" / "install-data.json"' in server
     compile(server, str(bundle / "server.py"), "exec")
+    worker = (bundle / "worker.py").read_text(encoding="utf-8")
+    assert "install_weights(root," in worker
+    assert "install_weights(root," not in server
+    compile(worker, str(bundle / "worker.py"), "exec")
 
 
 def test_runtime_copy_excludes_development_pth(tmp_path):

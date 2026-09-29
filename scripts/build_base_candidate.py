@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -113,13 +114,42 @@ main()
     (bundle / "bundle.manifest.json").write_bytes(declaration)
 
 
-def _classification_bundle(stage: Path, source: Path, site: Path, python_base: Path) -> None:
+def _classification_bundle(stage: Path, source: Path, site: Path, python_base: Path,
+                           weights: Path | None = None) -> None:
     bundle = stage / "bundles" / "classification"
     _copy_tree(source / "src" / "image_platform", bundle / "src" / "image_platform")
     _copy_tree(source / "schemas", bundle / "schemas")
     _copy_tree(source / "apps" / "web" / "dist", bundle / "apps" / "web" / "dist")
     if (source / "resources").is_dir():
         _copy_tree(source / "resources", bundle / "resources")
+    shutil.copy2(Path(__file__).with_name("candidate_class_weights.py"),
+                 bundle / "src" / "image_platform" / "platform_weights.py")
+    if weights is not None:
+        declaration = json.loads((weights / "manifest.json").read_text(encoding="utf-8"))
+        models = declaration.get("models")
+        training = ast.parse((source / "src/image_platform/training.py").read_text(encoding="utf-8"))
+        locked = next(ast.literal_eval(node.value) for node in training.body
+                      if isinstance(node, ast.Assign) and any(
+                          isinstance(target, ast.Name) and target.id == "ENCODERS"
+                          for target in node.targets))
+        if declaration.get("format") != 1 or not isinstance(models, dict) or set(models) != set(locked):
+            raise ValueError("Offline model pack does not cover the locked encoders")
+        for encoder, item in models.items():
+            expected = locked[encoder]
+            card = source / "resources" / "third-party" / f"{encoder}-model-card.md"
+            weight = weights / encoder / "model.safetensors"
+            if (not isinstance(item, dict)
+                    or (item.get("name"), item.get("revision"), item.get("sha256")) != (
+                        expected["name"], expected["revision"], expected["sha256"])
+                    or item.get("license") != "apache-2.0"
+                    or not card.is_file() or _hash(card) != item.get("model_card_sha256")
+                    or not weight.is_file() or weight.stat().st_size != item.get("bytes")
+                    or _hash(weight) != item["sha256"]):
+                raise ValueError(f"Offline model resource is unavailable: {encoder}")
+            target = bundle / "resources" / "weights" / encoder / "model.safetensors"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(weight, target)
+        shutil.copy2(weights / "manifest.json", bundle / "resources" / "weights" / "manifest.json")
     imports = ("../../src", "../../../../app", "../../../../app/src")
     _runtime(python_base, site, bundle / "runtimes" / "control", imports=imports)
     server = '''import json
@@ -156,8 +186,21 @@ with (data / "worker.log").open("ab") as log:
 '''
     (bundle / "server.py").write_text(server, encoding="utf-8")
     (bundle / "worker.py").write_text(
-        'import sys\nfrom image_platform.cli import main\n'
-        'sys.argv = ["image-platform", "worker"]\nmain()\n', encoding="utf-8")
+        '''import json
+import sys
+from pathlib import Path
+
+root = Path(__file__).resolve().parent
+installation = root.parent.parent
+pointer = installation / "data" / "install-data.json"
+data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).resolve()
+             if pointer.is_file() else installation / "data")
+from image_platform.platform_weights import install_weights
+install_weights(root, data_root / "native" / "classification")
+from image_platform.cli import main
+sys.argv = ["image-platform", "worker"]
+main()
+''', encoding="utf-8")
     launcher = ("@echo off\r\nset ROOT=%~dp0\r\n"
                 "\"%ROOT%runtimes\\control\\python.exe\" -I -B -u \"%ROOT%server.py\"\r\n")
     (bundle / "launch.cmd").write_bytes(launcher.encode("ascii"))
@@ -224,7 +267,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
           *, source: Path = ROOT, ocr_source: Path | None = None,
           ocr_site: Path | None = None, pdf_runtime: Path | None = None,
           classification_source: Path | None = None,
-          classification_site: Path | None = None) -> dict:
+          classification_site: Path | None = None,
+          classification_weights: Path | None = None) -> dict:
     output = output.resolve()
     source, python_base = source.resolve(), python_base.resolve()
     platform_site, data_site = platform_site.resolve(), data_site.resolve()
@@ -238,11 +282,17 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
             raise ValueError("Classification bundle requires source and runtime site packages")
         classification_source, classification_site = (
             classification_source.resolve(), classification_site.resolve())
+    if classification_weights is not None:
+        if classification_source is None:
+            raise ValueError("Offline model weights require the classification application")
+        classification_weights = classification_weights.resolve()
     inputs = (source, python_base, platform_site, data_site)
     if ocr_source is not None:
         inputs += (ocr_source, ocr_site, pdf_runtime)
     if classification_source is not None:
         inputs += (classification_source, classification_site)
+    if classification_weights is not None:
+        inputs += (classification_weights,)
     if output.exists() or any(output.is_relative_to(path) or path.is_relative_to(output)
                               for path in inputs):
         raise ValueError("Candidate output must be a new directory outside all inputs")
@@ -269,7 +319,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         if ocr_source is not None:
             _ocr_bundle(stage, ocr_source, ocr_site, pdf_runtime, python_base)
         if classification_source is not None:
-            _classification_bundle(stage, classification_source, classification_site, python_base)
+            _classification_bundle(stage, classification_source, classification_site,
+                                   python_base, classification_weights)
         (stage / "data").mkdir()
         launcher = ("@echo off\r\nsetlocal\r\nset ROOT=%~dp0\r\n"
                     "cd /d \"%ROOT%app\"\r\n"
@@ -308,7 +359,9 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "components": ["base_portal", "data_workbench"],
                     "optional_apps": {"ocr": "review_and_pdf_native" if ocr_source else "not_installed",
-                                      "classification": "runtime_included" if classification_source else "not_installed"},
+                                      "classification": ("runtime_and_weights" if classification_weights else
+                                                         "runtime_included" if classification_source else
+                                                         "not_installed")},
                     "files": files}
         (stage / "candidate-manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -370,6 +423,7 @@ def main() -> None:
     parser.add_argument("--pdf-runtime", type=Path)
     parser.add_argument("--classification-source", type=Path)
     parser.add_argument("--classification-site", type=Path)
+    parser.add_argument("--classification-weights", type=Path)
     parser.add_argument("--verify", type=Path)
     args = parser.parse_args()
     if args.verify is not None:
@@ -381,7 +435,8 @@ def main() -> None:
                            ocr_source=args.ocr_source, ocr_site=args.ocr_site,
                            pdf_runtime=args.pdf_runtime,
                            classification_source=args.classification_source,
-                           classification_site=args.classification_site),
+                           classification_site=args.classification_site,
+                           classification_weights=args.classification_weights),
                      ensure_ascii=False))
 
 
