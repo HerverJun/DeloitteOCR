@@ -26,6 +26,8 @@ Windows 单机中文 OCR 工作台，提供原生托盘启动器、本地项目�
 
 ## 运行便携包
 
+本 GitHub 源码仓库不包含模型权重或 Python 运行时。已有 GLM-OCR 模型可在本机制作完整离线引擎包并通过「引擎管理」导入，步骤见[导入本地 GLM-OCR 模型](docs/导入本地GLM-OCR模型.md)；识别仍需要布局模型、独立运行时和兼容的 GPU。
+
 解压完整包，双击 `启动工作台.cmd`，创建项目并导入照片。选择识别方式，完成后校对文字或表格，再点击「导出结果」。包内自带 CPython、四个独立运行环境、模型、CUDA 用户态 DLL、MSVC 运行库和浏览器静态资源。目标机只需要 Windows、Edge/Chrome 和兼容的 NVIDIA 驱动；不需要安装 Python、Node.js、CUDA Toolkit 或开发工具。
 
 项目默认保存在 `%LOCALAPPDATA%\OfflineOCR\Workspace`，与应用目录分离。关闭浏览器不结束后台；从系统托盘重新打开或退出。异常退出后，未完成任务等待手动「继续」，已完成项不会重复。操作说明见[使用手册](docs/DeloitteOCR使用手册.md)。
