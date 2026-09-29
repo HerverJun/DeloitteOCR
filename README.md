@@ -2,6 +2,10 @@
 
 Windows 单机中文 OCR 工作台，提供原生托盘启动器、本地项目与任务队列、四引擎顺序对比、照片校正、文字与表格校对、批次预处理及批量导出。模型和运行环境随完整包提供，运行时不下载文件。视觉审校可使用本地模型，或由用户主动配置 OpenAI 兼容 / Anthropic API。
 
+## 从源码体验
+
+GitHub 源码包可在 Windows x64、Python 3.12、Node.js 22 环境中启动无模型工作台。依次运行 `py -3.12 scripts\run_from_source.py setup`、`.\.venv\Scripts\python.exe scripts\run_from_source.py smoke` 和 `.\.venv\Scripts\python.exe scripts\run_from_source.py serve`。可验证项目创建、图片导入与普通图像处理；模型识别需要额外运行时和模型。完整步骤见[从源码启动工作台](docs/从源码启动工作台.md)。
+
 **使用手册**：[在线阅读](docs/DeloitteOCR使用手册.md) · [Word 可编辑版](output/documents/DeloitteOCR使用手册.docx) · [PDF 打印版](output/pdf/DeloitteOCR使用手册.pdf)。按导入、识别、校对、复核、导出和备份编排，适用于 2026-09-17 的 0.11.0rc1 修复版。
 
 **下一阶段 TODO**：[复杂表格专项 · Codex 自主执行计划](docs/complex-table-todo-20260919.md)，含公开数据自主探索、任务依赖、遇阻替代路线、断点恢复及分阶段验收；样本和真实 API 证据缺口不阻挡其余工程推进。
