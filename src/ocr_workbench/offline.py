@@ -16,6 +16,9 @@ def configure(root: Path):
         'PADDLE_PDX_EAGER_INIT': 'False',
         'HF_HOME': str(cache / 'hf'), 'PADDLE_PDX_CACHE_HOME': str(cache / 'paddlex'),
         'PADDLE_HOME': str(cache / 'paddle'), 'XDG_CACHE_HOME': str(cache),
+        # Managed Windows workers have no username environment variables.
+        # Give PyTorch its session cache without falling back to getpass/pwd.
+        'TORCHINDUCTOR_CACHE_DIR': str(cache / 'torchinductor'),
         'NO_PROXY': '*', 'TOKENIZERS_PARALLELISM': 'false',
     }
     os.environ.update(settings)
