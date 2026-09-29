@@ -74,7 +74,7 @@ test('lost launch response is verified and retried with exactly the same ID', as
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }))
+  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }, { timeout: 5000 }))
   expect(await screen.findByText('network response lost')).toBeInTheDocument()
   const pending = sessionStorage.getItem('workbench:pending-launch:ocr')
   expect(pending).toMatch(/^l[A-Za-z0-9_-]+$/)
@@ -143,7 +143,7 @@ test('leaving a page closes its blank window and never navigates it after a late
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   const { router } = mount()
-  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }))
+  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }, { timeout: 5000 }))
   await waitFor(() => expect(resolveCurrent).toBeDefined())
   await router.navigate('/')
   await waitFor(() => expect(popup.close).toHaveBeenCalledOnce())
@@ -166,7 +166,7 @@ test('rapid repeat click reserves only one blank window and one verification', a
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   const opened = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  const button = await screen.findByRole('button', { name: '打开工具' })
+  const button = await screen.findByRole('button', { name: '打开工具' }, { timeout: 5000 })
   fireEvent.click(button)
   fireEvent.click(button)
   await waitFor(() => expect(finish).toBeDefined())

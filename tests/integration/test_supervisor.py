@@ -27,6 +27,10 @@ root = pathlib.Path.cwd()
 mode = (root / 'mode.txt').read_text().strip()
 (root / 'starts.txt').open('a').write(str(os.getpid()) + '\\n')
 (root / 'pid.txt').write_text(str(os.getpid()))
+if mode == 'capture_env':
+    (root / 'environment.json').write_text(json.dumps({key: os.environ.get(key) for key in
+        ('WORKBENCH_APP_ID', 'WORKBENCH_INSTANCE_ID', 'WORKBENCH_LAUNCH_ID',
+         'WORKBENCH_GPU_LEDGER', 'LOCALAPPDATA')}))
 if mode == 'exit': sys.exit(4)
 if mode == 'silent': time.sleep(30); sys.exit(0)
 if mode == 'tree':
@@ -216,6 +220,29 @@ def test_dynamic_bound_port_identity_concurrent_idempotency_and_tree_cleanup(tru
         supervisor.stop("launchA")
         assert eventually(lambda: not alive(receipt.pid) and not alive(child_pid))
         assert registry.health("ocr").service.state == "unavailable"
+
+
+def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(trusted):
+    _, config, root, registry = trusted
+    (root / "mode.txt").write_text("capture_env", encoding="utf-8")
+    declaration = json.loads((root / "bundle.manifest.json").read_text(encoding="utf-8"))
+    next(item for item in declaration["files"] if item["path"] == "mode.txt")["sha256"] = digest(root / "mode.txt")
+    (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
+    register(config, root)
+    registry.reload()
+    data_root = root.parent.parent / "platform-data"
+    data_root.mkdir()
+    with Supervisor(registry, data_root=data_root) as supervisor:
+        receipt = supervisor.start("ocr", "gpuContextA")
+        actual = json.loads((root / "environment.json").read_text(encoding="utf-8"))
+        assert actual == {
+            "WORKBENCH_APP_ID": "ocr",
+            "WORKBENCH_INSTANCE_ID": receipt.instance_id,
+            "WORKBENCH_LAUNCH_ID": receipt.launch_id,
+            "WORKBENCH_GPU_LEDGER": str(data_root / "gpu.sqlite3"),
+            "LOCALAPPDATA": str(data_root / "native-local"),
+        }
+        assert (data_root / "native-local").is_dir()
 
 
 @pytest.mark.parametrize("mode", ["wrong", "exit", "silent", "redirect", "bad_port"])

@@ -298,9 +298,15 @@ class _Entry:
 
 
 class Supervisor:
-    def __init__(self, registry: AppRegistry, *, handshake_timeout: float = 5.0):
+    def __init__(self, registry: AppRegistry, *, handshake_timeout: float = 5.0,
+                 data_root: Path | None = None):
         self.registry = registry
         self.handshake_timeout = handshake_timeout
+        self.data_root = data_root.resolve() if data_root else None
+        if self.data_root:
+            if not self.data_root.is_dir():
+                raise ValueError("Platform data directory is unavailable")
+            (self.data_root / "native-local").mkdir(exist_ok=True)
         self._lock = threading.RLock()
         self._entries: dict[str, _Entry] = {}
         self._current: dict[str, tuple[int, str]] = {}
@@ -365,6 +371,9 @@ class Supervisor:
                             "WORKBENCH_APP_ID": app_id, "WORKBENCH_INSTANCE_ID": instance_id,
                             "WORKBENCH_NONCE": nonce, "WORKBENCH_LAUNCH_ID": launch_id,
                             "WORKBENCH_PORT": "0", "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1"})
+        if self.data_root:
+            environment.update({"WORKBENCH_GPU_LEDGER": str(self.data_root / "gpu.sqlite3"),
+                                "LOCALAPPDATA": str(self.data_root / "native-local")})
         job = _OwnedJob()
         with self._lock:
             entry.job = job  # close() waits for the future before cleanup.

@@ -31,10 +31,11 @@ async def lifespan(app: FastAPI):
     configure_workspace_store(app)
     configure_data(app)
     configure_assets(app)
-    supervisor = Supervisor(get_registry())
+    configured = os.environ.get("WORKBENCH_DATA_DIR")
+    data_root = Path(configured).resolve() if configured else None
+    supervisor = Supervisor(get_registry(), data_root=data_root)
     try:
-        configured = os.environ.get("WORKBENCH_DATA_DIR")
-        app.state.recent_store = RecentWorkStore(Path(configured).resolve() / "recent-work.sqlite3") if configured else None
+        app.state.recent_store = RecentWorkStore(data_root / "recent-work.sqlite3") if data_root else None
         app.state.supervisor = supervisor
         app.state.launch_service = LaunchService(supervisor, app.state.recent_store)
         app.state.context_bridge = (ContextBridge(app.state.workspace_store, supervisor)
