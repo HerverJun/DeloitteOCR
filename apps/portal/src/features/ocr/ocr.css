@@ -9,5 +9,6 @@
 .ocr-handoff-state ul { list-style: none; padding: 0; max-width: 600px; }
 .ocr-handoff-state li { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid #d9e2de; }
 .ocr-processing { margin-top: 22px; }
-.ocr-processing .ocr-notice { display: flex; gap: 16px; align-items: center; }
+.ocr-processing .ocr-notice { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.ocr-processing .ocr-notice > .ant-typography, .ocr-processing .ocr-notice > a, .ocr-processing .ocr-notice > .ant-btn { flex-shrink: 0; }
 @media (max-width: 600px) { .ocr-project-controls { align-items: stretch; flex-direction: column; } .ocr-project-controls .ant-select, .ocr-project-controls .ant-input, .ocr-project-controls .ant-btn { width: 100%; } }
