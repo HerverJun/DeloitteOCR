@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     configure_assets(app)
     configured = os.environ.get("WORKBENCH_DATA_DIR")
     data_root = Path(configured).resolve() if configured else None
-    supervisor = Supervisor(get_registry(), data_root=data_root)
+    supervisor = Supervisor(get_registry(), handshake_timeout=20.0, data_root=data_root)
     try:
         app.state.recent_store = RecentWorkStore(data_root / "recent-work.sqlite3") if data_root else None
         app.state.supervisor = supervisor
