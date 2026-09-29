@@ -17,6 +17,13 @@ class Cancelled(Exception):
     pass
 
 
+def runtime_path(runtime, system_root):
+    site = runtime.parent / 'Lib' / 'site-packages' / 'nvidia'
+    bundled = sorted(path for path in site.glob('*/bin') if path.is_dir())
+    return os.pathsep.join([str(runtime.parent), *(str(path) for path in bundled),
+                            str(Path(system_root) / 'System32')])
+
+
 def check_recognition_result(result, *, allow_empty=False):
     """An empty, completed region is reviewable; a worker error never is."""
     if result.get('status') != 'success':
@@ -88,7 +95,7 @@ class EngineAdapter:
             runtime_name = provider_config(self.geometry_provider)['runtime']
         runtime = self.bundle / 'runtimes' / runtime_name / 'python.exe'
         environment = os.environ.copy()
-        environment["PATH"] = str(runtime.parent) + os.pathsep + str(Path(os.environ["SystemRoot"]) / "System32")
+        environment["PATH"] = runtime_path(runtime, os.environ["SystemRoot"])
         for name in list(environment):
             if name.upper() in {"PYTHONPATH", "PYTHONHOME", "CUDA_HOME", "CUDA_PATH"} or name.startswith("CUDA_PATH_V"):
                 del environment[name]
