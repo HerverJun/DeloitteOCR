@@ -21,9 +21,11 @@ def audit(run_root):
     if digest(candidate_manifest) != index["candidate_manifest_sha256"]:
         raise ValueError("Candidate identity differs from run index")
     candidate = json.loads(candidate_manifest.read_text(encoding="utf-8"))
-    if (candidate["format"] != 3 or candidate["optional_apps"] != {
-            "ocr": "review_and_pdf_native", "classification": "runtime_and_weights"}):
+    optional = candidate["optional_apps"]
+    if (candidate["format"] != 3 or optional.get("classification") != "runtime_and_weights"
+            or optional.get("ocr") not in {"review_and_pdf_native", "runtime_and_models"}):
         raise ValueError("Candidate components differ from the fixed scope")
+    full_ocr = optional["ocr"] == "runtime_and_models"
     declared = candidate["files"]
     inventory = json.loads((root / "dependency-inventory.json").read_text(encoding="utf-8"))
     prefixes = {"platform": "runtimes/platform/Lib/site-packages/",
@@ -31,6 +33,9 @@ def audit(run_root):
                 "ocr_control": "bundles/ocr/runtimes/control/Lib/site-packages/",
                 "ocr_pdf": "bundles/ocr/runtimes/pdf/Lib/site-packages/",
                 "classification_control": "bundles/classification/runtimes/control/Lib/site-packages/"}
+    if full_ocr:
+        prefixes.update({f"ocr_{name}": f"bundles/ocr/runtimes/{name}/Lib/site-packages/"
+                         for name in ("ppocr", "paddlevl", "glm", "hunyuan")})
     if set(inventory) != set(prefixes):
         raise ValueError("Runtime inventory is incomplete")
     license_count = 0
@@ -51,7 +56,7 @@ def audit(run_root):
     if digest(Path(source["path"])) != source["sha256"]:
         raise ValueError("Upstream license source manifest changed")
     pinned = json.loads((root / "license-sources.json").read_text(encoding="utf-8"))
-    if pinned.get("format") != 1 or len(pinned.get("files", {})) != 7:
+    if pinned.get("format") != 1 or len(pinned.get("files", {})) != (10 if full_ocr else 7):
         raise ValueError("Pinned upstream license source set changed")
     for relative, record in pinned["files"].items():
         cache = Path(source["path"]).parent / relative
@@ -77,6 +82,26 @@ def audit(run_root):
                 or declared[relative]["sha256"] != item["sha256"]
                 or not card.is_file() or digest(card) != item["model_card_sha256"]):
             raise ValueError(f"Offline encoder changed: {encoder}")
+    ocr_models = {}
+    if full_ocr:
+        locked = json.loads((root / "bundles/ocr/config/model-lock.json").read_text(encoding="utf-8"))
+        if not isinstance(locked, dict) or len(locked) < 10:
+            raise ValueError("OCR model lock is incomplete")
+        for name, identity in locked.items():
+            relative = f"bundles/ocr/models/{name}/source-manifest.json"
+            source = root / relative
+            if not source.is_file() or digest(source) != declared[relative]["sha256"]:
+                raise ValueError(f"OCR model source manifest changed: {name}")
+            saved = json.loads(source.read_text(encoding="utf-8"))
+            if (saved.get("repo"), saved.get("revision")) != (
+                    identity["repo"], identity["revision"]):
+                raise ValueError(f"OCR model revision changed: {name}")
+            ocr_models[name] = saved["revision"]
+        for name in ("ppocr", "paddlevl", "glm", "hunyuan", "llama"):
+            relative = (f"bundles/ocr/runtimes/{name}/llama-server.exe" if name == "llama"
+                        else f"bundles/ocr/runtimes/{name}/python.exe")
+            if relative not in declared or digest(root / relative) != declared[relative]["sha256"]:
+                raise ValueError(f"OCR runtime entry changed: {name}")
     for pth in root.rglob("python312._pth"):
         if any(path in pth.read_text(encoding="utf-8").lower() for path in ("e:\\", "d:\\")):
             raise ValueError("Embedded runtime uses a development path")
@@ -84,6 +109,7 @@ def audit(run_root):
             "runtimes": {key: len(value) for key, value in inventory.items()},
             "license_files": license_count, "upstream_notices": len(pinned["files"]),
             "models": {key: value["sha256"] for key, value in models.items()},
+            "ocr_model_revisions": ocr_models,
             "checks": ["all distribution license texts bundled", "upstream notices hash pinned",
                        "four model weights and cards hash pinned", "no embedded development paths"]}
 

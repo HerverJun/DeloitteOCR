@@ -39,9 +39,11 @@ def check(run_root):
     root = Path(index["candidate_path"]).resolve(strict=True)
     if digest(root / "candidate-manifest.json") != index["candidate_manifest_sha256"]:
         raise ValueError("Candidate manifest differs from the run index")
+    candidate = json.loads((root / "candidate-manifest.json").read_text(encoding="utf-8"))
+    verification_timeout = 1800 if candidate.get("optional_apps", {}).get("ocr") == "runtime_and_models" else 360
     verifier = subprocess.run([str(root / "runtimes/platform/python.exe"), "-I", "-B",
                                str(root / "verify.py")], cwd=root, capture_output=True,
-                              text=True, encoding="utf-8", timeout=360)
+                              text=True, encoding="utf-8", timeout=verification_timeout)
     if verifier.returncode:
         raise ValueError("Candidate self-verification failed: " + verifier.stderr[-1000:])
     result = json.loads(verifier.stdout)
