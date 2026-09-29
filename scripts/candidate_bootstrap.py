@@ -42,13 +42,20 @@ def _sealed_bundle(root: Path, app_id: str, sealed: dict) -> bool:
 
 def configure(root: Path):
     root = root.resolve()
-    data = root / "data"
+    anchor = root / "data"
+    anchor.mkdir(exist_ok=True)
+    configured = os.environ.get("WORKBENCH_INSTALL_DATA_DIR")
+    data = Path(configured).resolve() if configured else anchor
+    if (data == root or root.is_relative_to(data)
+            or (data.is_relative_to(root) and data != anchor)):
+        raise ValueError("User data must not be the program directory")
     data.mkdir(exist_ok=True)
+    _write_json(anchor / "install-data.json", {"data_root": str(data)})
     config = data / "config" / "apps"
     config.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((root / "candidate-manifest.json").read_text(encoding="utf-8"))
     sealed = manifest.get("files", {})
-    if manifest.get("format") != 2 or not isinstance(sealed, dict):
+    if manifest.get("format") not in {2, 3} or not isinstance(sealed, dict):
         raise ValueError("Candidate manifest is unavailable")
     for app_id in APPS:
         source = root / "app" / "config" / "apps" / f"{app_id}.json"

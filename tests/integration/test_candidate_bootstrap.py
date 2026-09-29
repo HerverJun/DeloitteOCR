@@ -17,7 +17,8 @@ def digest(data: bytes) -> str:
 def test_optional_app_registration_is_local_and_missing_app_stays_unavailable(tmp_path, monkeypatch):
     monkeypatch.setattr(routes, "_registry", routes._registry)
     for name in ("WORKBENCH_DATA_DIR", "WORKBENCH_DATA_PYTHON",
-                 "WORKBENCH_PORTAL_DIST", "WORKBENCH_OCR_TOKEN_FILE", "PYTHONUTF8"):
+                 "WORKBENCH_PORTAL_DIST", "WORKBENCH_OCR_TOKEN_FILE",
+                 "WORKBENCH_INSTALL_DATA_DIR", "PYTHONUTF8"):
         monkeypatch.setenv(name, os.environ.get(name, ""))
     source = Path(__file__).resolve().parents[2] / "config" / "apps"
     candidate = tmp_path / "candidate"
@@ -79,6 +80,13 @@ def test_optional_app_registration_is_local_and_missing_app_stays_unavailable(tm
     relocated = configure(moved)
     assert relocated.installations["ocr"].executable == moved / "bundles/ocr/launch.cmd"
     assert relocated.installations["classification"].executable == moved / "bundles/classification/launch.cmd"
+    shared = tmp_path / "shared-data"
+    monkeypatch.setenv("WORKBENCH_INSTALL_DATA_DIR", str(shared))
+    external = configure(moved)
+    assert external.config_dir == shared / "config/apps"
+    assert json.loads((moved / "data/install-data.json").read_text(encoding="utf-8"))[
+        "data_root"] == str(shared)
+    assert external.installations["ocr"].installed and external.installations["classification"].installed
     (moved / "bundles/ocr/runtimes/control/python.exe").write_bytes(b"tampered")
     unavailable = configure(moved)
     assert not unavailable.installations["ocr"].installed

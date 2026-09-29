@@ -74,22 +74,25 @@ def _ocr_bundle(stage: Path, source: Path, control_site: Path, pdf_runtime: Path
     (bundle / "runtimes" / "pdf" / "python312._pth").write_text(
         "\n".join(("python312.zip", ".", "Lib/site-packages", *imports, "import site", "")),
         encoding="utf-8")
-    server = '''import os
-import subprocess
+    server = '''import json
+import os
 import sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parent
 installation = root.parent.parent
-data = installation / "data" / "native" / "ocr"
-local = installation / "data" / "native-local"
+pointer = installation / "data" / "install-data.json"
+data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).resolve()
+             if pointer.is_file() else installation / "data")
+data = data_root / "native" / "ocr"
+local = data_root / "native-local"
 data.mkdir(parents=True, exist_ok=True)
 local.mkdir(parents=True, exist_ok=True)
 os.environ["LOCALAPPDATA"] = str(local)
 os.environ["USERPROFILE"] = str(local)
 from ocr_workbench.service import main
 sys.argv = ["ocr-workbench", "--bundle", str(root), "--data", str(data),
-            "--token-file", str(installation / "data" / "ocr-token.txt"), "--review-only"]
+            "--token-file", str(data_root / "ocr-token.txt"), "--review-only"]
 main()
 '''
     (bundle / "server.py").write_text(server, encoding="utf-8")
@@ -119,14 +122,19 @@ def _classification_bundle(stage: Path, source: Path, site: Path, python_base: P
         _copy_tree(source / "resources", bundle / "resources")
     imports = ("../../src", "../../../../app", "../../../../app/src")
     _runtime(python_base, site, bundle / "runtimes" / "control", imports=imports)
-    server = '''import os
+    server = '''import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parent
 installation = root.parent.parent
-data = installation / "data" / "native" / "classification"
-local = installation / "data" / "native-local"
+pointer = installation / "data" / "install-data.json"
+data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).resolve()
+             if pointer.is_file() else installation / "data")
+data = data_root / "native" / "classification"
+local = data_root / "native-local"
 data.mkdir(parents=True, exist_ok=True)
 local.mkdir(parents=True, exist_ok=True)
 os.environ["ICP_DATA_DIR"] = str(data)
@@ -181,6 +189,37 @@ def _licenses(site: Path) -> list[dict]:
     return packages
 
 
+def _supplement_licenses(cache: Path, sites: dict[str, Path]) -> dict:
+    if not cache.is_dir():
+        return {}
+    manifest = json.loads((cache / "manifest.json").read_text(encoding="utf-8"))
+    files = manifest.get("files")
+    if manifest.get("format") != 1 or not isinstance(files, dict):
+        raise ValueError("Invalid upstream license cache")
+    used = {}
+    for relative, record in files.items():
+        name = Path(relative)
+        if (name.is_absolute() or name.drive or len(name.parts) != 2
+                or any(part in {".", ".."} for part in name.parts)
+                or name.as_posix() != relative):
+            raise ValueError("Unsafe upstream license path")
+        source = cache / name
+        if (source.is_symlink() or not source.is_file()
+                or source.stat().st_size != record.get("bytes")
+                or _hash(source) != record.get("sha256")
+                or not isinstance(record.get("url"), str)
+                or not record["url"].startswith("https://raw.githubusercontent.com/")):
+            raise ValueError(f"Upstream license cache changed: {relative}")
+        for site in sites.values():
+            metadata = site / (name.parts[0] + ".dist-info")
+            if metadata.is_dir():
+                target = metadata / "licenses" / "upstream" / name.parts[1]
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+                used[relative] = record
+    return used
+
+
 def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
           *, source: Path = ROOT, ocr_source: Path | None = None,
           ocr_site: Path | None = None, pdf_runtime: Path | None = None,
@@ -218,6 +257,7 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         _copy_tree(source / "modules" / "data_workbench", app / "modules" / "data_workbench")
         _copy_tree(source / "apps" / "portal" / "dist", app / "apps" / "portal" / "dist")
         shutil.copy2(source / "scripts" / "candidate_bootstrap.py", app / "bootstrap.py")
+        shutil.copy2(source / "scripts" / "candidate_verify.py", stage / "verify.py")
         (app / "config" / "apps").mkdir(parents=True)
         for name in ("ocr.json", "classification.json"):
             shutil.copy2(source / "config" / "apps" / name, app / "config" / "apps" / name)
@@ -236,17 +276,27 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
                     "\"%ROOT%runtimes\\platform\\python.exe\" -I -B "
                     "\"%ROOT%app\\bootstrap.py\"\r\n")
         (stage / "launch.cmd").write_bytes(launcher.encode("ascii"))
-        inventory = {name: _licenses(site) for name, site in (
-            ("platform", stage / "runtimes/platform/Lib/site-packages"),
-            ("data", stage / "runtimes/data/Lib/site-packages"))}
+        verifier = ("@echo off\r\nset ROOT=%~dp0\r\n"
+                    "\"%ROOT%runtimes\\platform\\python.exe\" -I -B \"%ROOT%verify.py\"\r\n")
+        (stage / "verify.cmd").write_bytes(verifier.encode("ascii"))
+        runtime_sites = {"platform": stage / "runtimes/platform/Lib/site-packages",
+                         "data": stage / "runtimes/data/Lib/site-packages"}
         if ocr_source is not None:
-            inventory["ocr_control"] = _licenses(
-                stage / "bundles/ocr/runtimes/control/Lib/site-packages")
-            inventory["ocr_pdf"] = _licenses(
-                stage / "bundles/ocr/runtimes/pdf/Lib/site-packages")
+            runtime_sites["ocr_control"] = stage / "bundles/ocr/runtimes/control/Lib/site-packages"
+            runtime_sites["ocr_pdf"] = stage / "bundles/ocr/runtimes/pdf/Lib/site-packages"
         if classification_source is not None:
-            inventory["classification_control"] = _licenses(
+            runtime_sites["classification_control"] = (
                 stage / "bundles/classification/runtimes/control/Lib/site-packages")
+        used_licenses = _supplement_licenses(source / "resources" / "candidate-licenses",
+                                              runtime_sites)
+        (stage / "license-sources.json").write_text(
+            json.dumps({"format": 1, "files": used_licenses}, ensure_ascii=False, indent=2),
+            encoding="utf-8")
+        inventory = {name: _licenses(site) for name, site in runtime_sites.items()}
+        missing = [f"{runtime}:{item['distribution']}" for runtime, rows in inventory.items()
+                   for item in rows if not item["license_files"]]
+        if missing:
+            raise ValueError("Candidate lacks upstream license files: " + ", ".join(missing))
         (stage / "dependency-inventory.json").write_text(
             json.dumps(inventory, ensure_ascii=False, indent=2), encoding="utf-8")
         files = {}
@@ -254,7 +304,7 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
             if path.is_file() and not path.is_relative_to(stage / "data"):
                 files[path.relative_to(stage).as_posix()] = {"sha256": _hash(path),
                                                                 "bytes": path.stat().st_size}
-        manifest = {"format": 2, "qualification": "engineering_preview",
+        manifest = {"format": 3, "qualification": "engineering_preview",
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "components": ["base_portal", "data_workbench"],
                     "optional_apps": {"ocr": "review_and_pdf_native" if ocr_source else "not_installed",
@@ -275,7 +325,7 @@ def verify(candidate: Path) -> dict:
     candidate = candidate.resolve()
     manifest = json.loads((candidate / "candidate-manifest.json").read_text(encoding="utf-8"))
     files = manifest.get("files")
-    if (manifest.get("format") not in {1, 2} or not isinstance(files, dict)
+    if (manifest.get("format") not in {1, 2, 3} or not isinstance(files, dict)
             or manifest.get("qualification") != "engineering_preview"):
         raise ValueError("Unsupported candidate manifest")
     required = {"launch.cmd", "app/apps/portal/dist/index.html",
@@ -283,6 +333,8 @@ def verify(candidate: Path) -> dict:
                 "dependency-inventory.json"}
     if manifest["format"] >= 2:
         required.add("app/bootstrap.py")
+    if manifest["format"] >= 3:
+        required.update({"verify.cmd", "verify.py"})
     if not required <= files.keys():
         raise ValueError("Candidate is missing a required component")
     actual = set()
