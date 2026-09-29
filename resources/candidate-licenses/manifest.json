@@ -1,6 +1,21 @@
 {
   "format": 1,
   "files": {
+    "bce_python_sdk-0.9.79/LICENSE": {
+      "url": "https://raw.githubusercontent.com/baidubce/bce-sdk-python/b1979d1e63240b88ef8c68c0456800e0d9ae31bf/LICENSE",
+      "sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+      "bytes": 10173
+    },
+    "sentencepiece-0.2.2/LICENSE": {
+      "url": "https://raw.githubusercontent.com/google/sentencepiece/v0.2.2/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    "tokenizers-0.23.2/LICENSE": {
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/v0.23.2/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
     "langsmith-0.13.0/LICENSE": {
       "url": "https://raw.githubusercontent.com/langchain-ai/langsmith-sdk/v0.13.0/LICENSE",
       "sha256": "34e0b9842c7a31d34e53bc7eb224e81e07a34996106e029bbc72dea2d449f496",

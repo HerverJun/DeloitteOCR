@@ -107,6 +107,55 @@ def test_ocr_bundle_reads_shared_data_pointer(tmp_path):
     compile(server, str(stage / "bundles/ocr/server.py"), "exec")
 
 
+def test_full_ocr_bundle_seals_models_and_uses_recognition_mode(tmp_path):
+    source = tmp_path / "ocr-source"
+    for name in ("src/ocr_workbench/__init__.py", "frontend/dist/index.html"):
+        path = source / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("fixture", encoding="utf-8")
+    config = source / "config/model-lock.json"
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps({"sample": {"repo": "example/sample", "revision": "locked"}}), encoding="utf-8")
+    full = tmp_path / "full-source"
+    files = {}
+    for name, value in {
+        "models/sample/source-manifest.json": json.dumps({"repo": "example/sample", "revision": "locked"}),
+        "models/sample/weight.bin": "weight bytes",
+        "licenses/frontend/@example/LICENSE": "license text",
+        "runtimes/llama/llama-server.exe": "llama",
+        **{f"runtimes/{engine}/python.exe": engine for engine in
+           ("ppocr", "paddlevl", "glm", "hunyuan")},
+    }.items():
+        path = full / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(value, encoding="utf-8")
+        files[name] = {"path": name, "bytes": path.stat().st_size,
+                       "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+    (full / "manifest.json").write_text(
+        json.dumps({"schema_version": 1, "files": list(files.values())}), encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "python.exe").write_bytes(b"python")
+    (runtime / "python312.zip").write_bytes(b"stdlib")
+    site = tmp_path / "site"
+    site.mkdir()
+    stage = tmp_path / "candidate"
+    _ocr_bundle(stage, source, site, runtime, runtime, full)
+    bundle = stage / "bundles/ocr"
+    assert "--review-only" not in (bundle / "server.py").read_text(encoding="utf-8")
+    assert (bundle / "models/sample/weight.bin").read_text(encoding="utf-8") == "weight bytes"
+    assert "../../src" in (bundle / "runtimes/ppocr/python312._pth").read_text(encoding="utf-8")
+    app_files = {item["path"] for item in json.loads(
+        (bundle / "manifest.json").read_text(encoding="utf-8"))["files"]}
+    assert {"bundle.manifest.json", "models/sample/weight.bin",
+            "licenses/frontend/@example/LICENSE"} <= app_files
+    launch_files = {item["path"] for item in json.loads(
+        (bundle / "bundle.manifest.json").read_text(encoding="utf-8"))["files"]}
+    assert "licenses/frontend/@example/LICENSE" not in launch_files
+    from workbench_platform.catalog.registry import _bundle_path
+    assert all(_bundle_path(path) for path in launch_files)
+
+
 def test_upstream_license_cache_is_hash_pinned(tmp_path):
     cache = tmp_path / "cache"
     source = cache / "sample-1.0" / "LICENSE"

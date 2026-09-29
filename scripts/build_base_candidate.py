@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import uuid
 
@@ -64,7 +65,7 @@ def _runtime(base: Path, site: Path, destination: Path,
 
 
 def _ocr_bundle(stage: Path, source: Path, control_site: Path, pdf_runtime: Path,
-                python_base: Path) -> None:
+                python_base: Path, model_bundle: Path | None = None) -> None:
     bundle = stage / "bundles" / "ocr"
     _copy_tree(source / "src" / "ocr_workbench", bundle / "src" / "ocr_workbench")
     _copy_tree(source / "config", bundle / "config")
@@ -75,7 +76,23 @@ def _ocr_bundle(stage: Path, source: Path, control_site: Path, pdf_runtime: Path
     (bundle / "runtimes" / "pdf" / "python312._pth").write_text(
         "\n".join(("python312.zip", ".", "Lib/site-packages", *imports, "import site", "")),
         encoding="utf-8")
-    server = '''import json
+    if model_bundle is not None:
+        locked = json.loads((source / "config/model-lock.json").read_text(encoding="utf-8"))
+        for name, identity in locked.items():
+            saved = json.loads((model_bundle / "models" / name / "source-manifest.json").read_text(encoding="utf-8"))
+            if (saved.get("repo"), saved.get("revision")) != (identity["repo"], identity["revision"]):
+                raise ValueError(f"OCR model revision changed: {name}")
+        for name in ("models", "licenses", "fonts", "tools"):
+            if (model_bundle / name).is_dir():
+                _copy_tree(model_bundle / name, bundle / name)
+        for name in ("ppocr", "paddlevl", "glm", "hunyuan", "llama"):
+            target = bundle / "runtimes" / name
+            _copy_tree(model_bundle / "runtimes" / name, target)
+            if name != "llama":
+                (target / "python312._pth").write_text(
+                    "\n".join(("python312.zip", ".", "Lib/site-packages", *imports, "import site", "")),
+                    encoding="utf-8")
+    server = f'''import json
 import os
 import sys
 from pathlib import Path
@@ -93,7 +110,7 @@ os.environ["LOCALAPPDATA"] = str(local)
 os.environ["USERPROFILE"] = str(local)
 from ocr_workbench.service import main
 sys.argv = ["ocr-workbench", "--bundle", str(root), "--data", str(data),
-            "--token-file", str(data_root / "ocr-token.txt"), "--review-only"]
+            "--token-file", str(data_root / "ocr-token.txt")] + ({'["--review-only"]' if model_bundle is None else '[]'})
 main()
 '''
     (bundle / "server.py").write_text(server, encoding="utf-8")
@@ -105,13 +122,41 @@ main()
         if not path.is_file() or path.name == "bundle.manifest.json":
             continue
         relative = path.relative_to(bundle).as_posix()
-        if not relative.startswith("runtimes/") or relative in {
-                "runtimes/control/python.exe", "runtimes/pdf/python.exe"}:
+        if relative.startswith("licenses/"):
+            continue
+        if not relative.startswith("runtimes/") or relative.endswith("/python.exe"):
+            if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", part) for part in relative.split("/")):
+                raise ValueError(f"OCR launch declaration cannot name: {relative}")
             declared.append({"path": relative, "sha256": _hash(path)})
     declaration = json.dumps({"app_id": "ocr", "files": declared}, separators=(",", ":")).encode()
     if len(declaration) > 1_048_576:
         raise ValueError("OCR bundle declaration exceeds the catalog limit")
     (bundle / "bundle.manifest.json").write_bytes(declaration)
+    if model_bundle is not None:
+        original = json.loads((model_bundle / "manifest.json").read_text(encoding="utf-8"))
+        if original.get("schema_version") != 1 or not isinstance(original.get("files"), list):
+            raise ValueError("OCR model bundle manifest is unavailable")
+        sources = {item["path"]: item for item in original["files"]}
+        copied = ("models/", "licenses/", "fonts/", "tools/",
+                  "runtimes/ppocr/", "runtimes/paddlevl/", "runtimes/glm/",
+                  "runtimes/hunyuan/", "runtimes/llama/")
+        files = []
+        for path in sorted(bundle.rglob("*")):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(bundle).as_posix()
+            if relative == "manifest.json":
+                continue
+            record = {"path": relative, "bytes": path.stat().st_size, "sha256": _hash(path)}
+            if relative.startswith(copied) and not relative.endswith("/python312._pth"):
+                upstream = sources.get(relative)
+                if upstream is None or (upstream["bytes"], upstream["sha256"]) != (
+                        record["bytes"], record["sha256"]):
+                    raise ValueError(f"OCR source bundle member changed: {relative}")
+            files.append(record)
+        (bundle / "manifest.json").write_text(
+            json.dumps({"schema_version": 1, "files": files}, ensure_ascii=False, indent=2),
+            encoding="utf-8")
 
 
 def _classification_bundle(stage: Path, source: Path, site: Path, python_base: Path,
@@ -266,6 +311,7 @@ def _supplement_licenses(cache: Path, sites: dict[str, Path]) -> dict:
 def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
           *, source: Path = ROOT, ocr_source: Path | None = None,
           ocr_site: Path | None = None, pdf_runtime: Path | None = None,
+          ocr_model_bundle: Path | None = None,
           classification_source: Path | None = None,
           classification_site: Path | None = None,
           classification_weights: Path | None = None) -> dict:
@@ -277,6 +323,10 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
             raise ValueError("OCR bundle requires source, control site packages and PDF runtime")
         ocr_source, ocr_site, pdf_runtime = (
             ocr_source.resolve(), ocr_site.resolve(), pdf_runtime.resolve())
+    if ocr_model_bundle is not None:
+        if ocr_source is None:
+            raise ValueError("OCR model bundle requires the OCR application")
+        ocr_model_bundle = ocr_model_bundle.resolve()
     if any(value is not None for value in (classification_source, classification_site)):
         if classification_source is None or classification_site is None:
             raise ValueError("Classification bundle requires source and runtime site packages")
@@ -289,6 +339,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
     inputs = (source, python_base, platform_site, data_site)
     if ocr_source is not None:
         inputs += (ocr_source, ocr_site, pdf_runtime)
+    if ocr_model_bundle is not None:
+        inputs += (ocr_model_bundle,)
     if classification_source is not None:
         inputs += (classification_source, classification_site)
     if classification_weights is not None:
@@ -317,7 +369,7 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         _runtime(python_base, platform_site, stage / "runtimes" / "platform")
         _runtime(python_base, data_site, stage / "runtimes" / "data")
         if ocr_source is not None:
-            _ocr_bundle(stage, ocr_source, ocr_site, pdf_runtime, python_base)
+            _ocr_bundle(stage, ocr_source, ocr_site, pdf_runtime, python_base, ocr_model_bundle)
         if classification_source is not None:
             _classification_bundle(stage, classification_source, classification_site,
                                    python_base, classification_weights)
@@ -335,6 +387,10 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         if ocr_source is not None:
             runtime_sites["ocr_control"] = stage / "bundles/ocr/runtimes/control/Lib/site-packages"
             runtime_sites["ocr_pdf"] = stage / "bundles/ocr/runtimes/pdf/Lib/site-packages"
+            if ocr_model_bundle is not None:
+                for name in ("ppocr", "paddlevl", "glm", "hunyuan"):
+                    runtime_sites[f"ocr_{name}"] = (
+                        stage / "bundles" / "ocr" / "runtimes" / name / "Lib" / "site-packages")
         if classification_source is not None:
             runtime_sites["classification_control"] = (
                 stage / "bundles/classification/runtimes/control/Lib/site-packages")
@@ -358,7 +414,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         manifest = {"format": 3, "qualification": "engineering_preview",
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "components": ["base_portal", "data_workbench"],
-                    "optional_apps": {"ocr": "review_and_pdf_native" if ocr_source else "not_installed",
+                    "optional_apps": {"ocr": ("runtime_and_models" if ocr_model_bundle else
+                                              "review_and_pdf_native" if ocr_source else "not_installed"),
                                       "classification": ("runtime_and_weights" if classification_weights else
                                                          "runtime_included" if classification_source else
                                                          "not_installed")},
@@ -421,6 +478,7 @@ def main() -> None:
     parser.add_argument("--ocr-source", type=Path)
     parser.add_argument("--ocr-site", type=Path)
     parser.add_argument("--pdf-runtime", type=Path)
+    parser.add_argument("--ocr-model-bundle", type=Path)
     parser.add_argument("--classification-source", type=Path)
     parser.add_argument("--classification-site", type=Path)
     parser.add_argument("--classification-weights", type=Path)
@@ -433,7 +491,7 @@ def main() -> None:
         parser.error("Building requires output and all three runtime inputs")
     print(json.dumps(build(args.output, args.python_base, args.platform_site, args.data_site,
                            ocr_source=args.ocr_source, ocr_site=args.ocr_site,
-                           pdf_runtime=args.pdf_runtime,
+                           pdf_runtime=args.pdf_runtime, ocr_model_bundle=args.ocr_model_bundle,
                            classification_source=args.classification_source,
                            classification_site=args.classification_site,
                            classification_weights=args.classification_weights),
