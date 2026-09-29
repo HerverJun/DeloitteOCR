@@ -79,10 +79,13 @@ async function main() {
     launches: {}, returns: {}, console_errors: [], page_errors: [], download: null, cleanup: {} }
   let platform, browser, base
   const opened = []
+  let ocrStopRequested = false
   const track = page => {
     page.on('pageerror', error => record.page_errors.push(error.message))
     page.on('console', message => {
-      if (message.type() === 'error') record.console_errors.push({ url: page.url(), text: message.text() })
+      if (message.type() === 'error') record.console_errors.push({
+        url: page.url(), text: message.text(), during_ocr_shutdown: ocrStopRequested,
+      })
     })
   }
   try {
@@ -101,7 +104,9 @@ async function main() {
     context.on('page', track)
     const page = await context.newPage()
     await page.goto(`${base}/apps`, { waitUntil: 'networkidle' })
-    assert.equal(await page.locator('.application-card').count(), 2)
+    assert.equal(await page.locator('.application-card').count(), 3)
+    await page.locator('.application-card').filter({ hasText: '数据清洗与比对' })
+      .getByRole('button', { name: '打开数据工作台' }).waitFor()
     for (const appId of ['classification', 'ocr']) {
       const card = page.locator('.application-card').filter({ hasText: appId })
       await card.getByRole('button', { name: '启动并打开' }).waitFor()
@@ -171,16 +176,23 @@ async function main() {
 
     const ocr = record.launches.ocr
     const ocrIdentity = await json(`${ocr.base_url}api/platform/v1/identity`)
+    const token = (await readFile(path.join(platform.info.fixture, 'bundles/ocr/token.txt'), 'utf8')).trim()
+    const ocrProject = await json(`${ocr.base_url}api/projects`, { method: 'POST',
+      headers: { Origin: ocr.base_url.slice(0, -1), 'Content-Type': 'application/json',
+                 Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: '浏览器 OCR 验收项目' }) })
     const ocrTicket = await json(`${ocr.base_url}api/platform/navigation/issue`, { method: 'POST',
       headers: { Origin: ocr.base_url.slice(0, -1), 'Content-Type': 'application/json',
                  'X-Workbench-Launch-Nonce': ocrIdentity.nonce },
       body: JSON.stringify({ app_id: 'ocr', instance_id: ocr.instance_id,
-        link_id: 'linkOcr', workspace_id: second, return_route: '/apps/ocr', platform_origin: base }) })
-    const token = (await readFile(path.join(platform.info.fixture, 'bundles/ocr/token.txt'), 'utf8')).trim()
+        link_id: 'linkOcr', workspace_id: second, project_id: ocrProject.id,
+        return_route: '/apps/ocr', platform_origin: base }) })
     const ocrPage = await context.newPage()
     opened.push(ocrPage)
     await ocrPage.goto(`${ocr.base_url}#token=${token}&platform_ticket=${ocrTicket.ticket}`, { waitUntil: 'networkidle' })
     await ocrPage.getByRole('link', { name: /返回平台/ }).waitFor({ timeout: 15000 })
+    await ocrPage.getByRole('combobox', { name: '当前项目' }).waitFor()
+    assert.equal(await ocrPage.getByRole('combobox', { name: '当前项目' }).inputValue(), ocrProject.id)
     assert(!ocrPage.url().includes('platform_ticket=') && !ocrPage.url().includes('token='))
     record.screenshots.push(await screenshot(ocrPage, 'ocr-native'))
     returnPromise = context.waitForEvent('page')
@@ -204,6 +216,7 @@ async function main() {
     assert.equal(downloadBytes.toString(), 'T017,real-http-browser\n')
     record.download = { name: download.suggestedFilename(), sha256: sha(downloadBytes), bytes: downloadBytes.length }
 
+    ocrStopRequested = true
     const stopped = await json(`${base}/__acceptance/stop/ocr`)
     assert.equal(stopped.stopped, true)
     await page.reload({ waitUntil: 'networkidle' })
@@ -213,7 +226,9 @@ async function main() {
     console.log('T017 phase: native loss reflected in portal')
     assert.deepEqual(record.page_errors, [], `Unhandled page errors: ${record.page_errors}`)
     record.unhandled_console_errors = record.console_errors.filter(item =>
-      !/Failed to load resource: the server responded with a status of (401|404)/.test(item.text))
+      !/Failed to load resource: the server responded with a status of (401|404)/.test(item.text)
+      && !(item.during_ocr_shutdown && item.url.startsWith(ocr.base_url)
+        && /net::ERR_CONNECTION_REFUSED/.test(item.text)))
     assert.deepEqual(record.unhandled_console_errors, [], 'Unhandled console errors')
     record.status = 'passed'
     console.log(`T017 browser acceptance passed: ${record.screenshots.length} screenshots, two native returns`)
