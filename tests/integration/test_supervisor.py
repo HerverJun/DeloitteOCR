@@ -30,7 +30,7 @@ mode = (root / 'mode.txt').read_text().strip()
 if mode == 'capture_env':
     (root / 'environment.json').write_text(json.dumps({key: os.environ.get(key) for key in
         ('WORKBENCH_APP_ID', 'WORKBENCH_INSTANCE_ID', 'WORKBENCH_LAUNCH_ID',
-         'WORKBENCH_GPU_LEDGER', 'LOCALAPPDATA')}))
+         'WORKBENCH_GPU_LEDGER', 'LOCALAPPDATA', 'ProgramData')}))
 if mode == 'exit': sys.exit(4)
 if mode == 'silent': time.sleep(30); sys.exit(0)
 if mode == 'tree':
@@ -241,6 +241,7 @@ def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(truste
             "WORKBENCH_LAUNCH_ID": receipt.launch_id,
             "WORKBENCH_GPU_LEDGER": str(data_root / "gpu.sqlite3"),
             "LOCALAPPDATA": str(data_root / "native-local"),
+            "ProgramData": os.environ["ProgramData"],
         }
         assert (data_root / "native-local").is_dir()
 

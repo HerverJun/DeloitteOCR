@@ -366,7 +366,7 @@ class Supervisor:
     def _start_owned(self, entry, snapshot, install, app_id, launch_id):
         _verify_bundle(self.registry, snapshot, app_id, install)
         instance_id, nonce = "i" + uuid.uuid4().hex, "n" + uuid.uuid4().hex
-        environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
+        environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "ProgramData") if key in os.environ}
         environment.update({"PATH": str(install.executable.parent) + os.pathsep + os.environ.get("SystemRoot", r"C:\Windows") + r"\System32",
                             "WORKBENCH_APP_ID": app_id, "WORKBENCH_INSTANCE_ID": instance_id,
                             "WORKBENCH_NONCE": nonce, "WORKBENCH_LAUNCH_ID": launch_id,
