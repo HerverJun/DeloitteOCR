@@ -235,14 +235,15 @@ def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(truste
     with Supervisor(registry, data_root=data_root) as supervisor:
         receipt = supervisor.start("ocr", "gpuContextA")
         actual = json.loads((root / "environment.json").read_text(encoding="utf-8"))
-        assert actual == {
+        expected = {
             "WORKBENCH_APP_ID": "ocr",
             "WORKBENCH_INSTANCE_ID": receipt.instance_id,
             "WORKBENCH_LAUNCH_ID": receipt.launch_id,
             "WORKBENCH_GPU_LEDGER": str(data_root / "gpu.sqlite3"),
             "LOCALAPPDATA": str(data_root / "native-local"),
-            "ProgramData": os.environ["ProgramData"],
         }
+        expected["ProgramData"] = os.environ.get("ProgramData")
+        assert actual == expected
         assert (data_root / "native-local").is_dir()
 
 
