@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import time
 
 
 APPS = ("ocr", "classification")
@@ -29,7 +30,8 @@ def _sealed_bundle(root: Path, app_id: str, sealed: dict) -> bool:
     if not entries:
         return False
     bundle = root / "bundles" / app_id
-    for name, identity in entries:
+    started = time.monotonic()
+    for index, (name, identity) in enumerate(entries, 1):
         member = root / name
         if (member.is_symlink() or not member.resolve().is_relative_to(bundle.resolve())
                 or not member.is_file() or _hash(member) != identity.get("sha256")):
@@ -37,6 +39,9 @@ def _sealed_bundle(root: Path, app_id: str, sealed: dict) -> bool:
         size = identity.get("bytes")
         if size is not None and member.stat().st_size != size:
             return False
+        if len(entries) >= 1000 and (index == 1 or index % 5000 == 0 or index == len(entries)):
+            print(f"Verifying {app_id}: {index:,}/{len(entries):,} ({time.monotonic() - started:.0f}s)",
+                  flush=True)
     return True
 
 
