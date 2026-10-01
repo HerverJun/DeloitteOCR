@@ -104,6 +104,62 @@ test('failed verification becomes visible and keeps launch disabled', async () =
   expect(fetcher.mock.calls.every(([, options]) => (options as RequestInit | undefined)?.method !== 'POST')).toBe(true)
 })
 
+test('file progress and completed waiting state remain visible until the launch gate opens', async () => {
+  let stage = 0
+  const fetcher = vi.fn(async (input: string) => {
+    if (input.endsWith('/installation')) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: 'ocr', installed: stage === 2, launch_ready: stage === 2,
+      state: stage === 2 ? 'registered' : 'verifying', verification: {
+        schema_version: '1.0', phase: stage === 0 ? 'checking' : stage === 1 ? 'passed' : 'cached',
+        checked_files: stage === 0 ? 250 : stage === 1 ? 1000 : 0,
+        total_files: 1000, elapsed_seconds: 65, current_file: stage === 0 ? 'models/weights.bin' : null,
+        message: stage === 0 ? '正在完整校验应用文件' : stage === 1 ? '校验完成，等待其他应用' : '已复用首次完整校验记录',
+      },
+    }) }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const { client } = mount()
+  expect(await screen.findByText('25%')).toBeInTheDocument()
+  expect(screen.getByText(/已校验 250 \/ 1,000 个文件/)).toBeInTheDocument()
+  expect(screen.getByText(/已用时 1 分 5 秒/)).toBeInTheDocument()
+  expect(screen.getByText('当前文件：models/weights.bin')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动并打开' })).toBeDisabled()
+  stage = 1
+  await client.invalidateQueries({ queryKey: ['app-installation', 'ocr'] })
+  expect(await screen.findByText('校验完成')).toBeInTheDocument()
+  expect(screen.getByText('校验完成，等待其他应用')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动并打开' })).toBeDisabled()
+  stage = 2
+  await client.invalidateQueries({ queryKey: ['app-installation', 'ocr'] })
+  expect(await screen.findByText('已复用首次完整校验记录')).toBeInTheDocument()
+  expect(screen.queryByText('25%')).not.toBeInTheDocument()
+  await waitFor(() => expect(screen.getByRole('button', { name: '启动并打开' })).toBeEnabled())
+})
+
+test('waiting and failed file verification show feedback rather than an uninstalled label', async () => {
+  let failed = false
+  vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+    if (input.endsWith('/installation')) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: 'ocr', installed: false, launch_ready: false,
+      state: failed ? 'not_registered' : 'verifying', verification: {
+        schema_version: '1.0', phase: failed ? 'failed' : 'waiting', checked_files: 0, total_files: 1000,
+        elapsed_seconds: 0, current_file: null, message: failed ? '文件校验失败，请检查程序包' : '等待其他应用的完整校验',
+      },
+    }) }
+    return baseFetch(input)
+  }))
+  const { client } = mount()
+  expect(await screen.findByText('等待校验')).toBeInTheDocument()
+  expect(screen.getByText('等待其他应用的完整校验')).toBeInTheDocument()
+  failed = true
+  await client.invalidateQueries({ queryKey: ['app-installation', 'ocr'] })
+  expect(await screen.findByText('校验失败')).toBeInTheDocument()
+  expect(screen.getByText('文件校验失败，请检查程序包')).toBeInTheDocument()
+  expect(screen.queryByText('未安装')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动并打开' })).toBeDisabled()
+})
+
 test('lost launch response is verified and retried with exactly the same ID', async () => {
   let posts = 0
   const fetcher = vi.fn(async (input: string, options?: RequestInit) => {

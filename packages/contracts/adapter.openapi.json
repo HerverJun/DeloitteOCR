@@ -67,6 +67,17 @@
             ],
             "title": "State",
             "type": "string"
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppVerification"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -249,6 +260,73 @@
           "items"
         ],
         "title": "AppManifestPage",
+        "type": "object"
+      },
+      "AppVerification": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_files": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Checked Files",
+            "type": "integer"
+          },
+          "current_file": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Current File"
+          },
+          "elapsed_seconds": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Elapsed Seconds",
+            "type": "integer"
+          },
+          "message": {
+            "maxLength": 512,
+            "title": "Message",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "waiting",
+              "checking",
+              "passed",
+              "failed",
+              "cached"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "total_files": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Total Files",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "phase",
+          "checked_files",
+          "total_files",
+          "elapsed_seconds",
+          "message"
+        ],
+        "title": "AppVerification",
         "type": "object"
       },
       "Artifact": {

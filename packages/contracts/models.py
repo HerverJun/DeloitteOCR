@@ -74,11 +74,29 @@ class AppHealth(Wire):
     models: Health
 
 
+class AppVerification(Wire):
+    phase: Literal["waiting", "checking", "passed", "failed", "cached"]
+    checked_files: Count
+    total_files: Count
+    elapsed_seconds: Count
+    current_file: str | None = Field(default=None, max_length=1024)
+    message: str = Field(max_length=512)
+
+    @model_validator(mode="after")
+    def consistent(self) -> AppVerification:
+        if self.checked_files > self.total_files:
+            raise ValueError("verification count exceeds total")
+        if self.phase == "passed" and self.checked_files != self.total_files:
+            raise ValueError("successful verification is incomplete")
+        return self
+
+
 class AppInstallation(Wire):
     app_id: Id
     installed: bool
     launch_ready: bool
     state: Literal["registered", "not_registered", "storage_unavailable", "verifying"]
+    verification: AppVerification | None = None
 
     @model_validator(mode="after")
     def consistent(self) -> AppInstallation:

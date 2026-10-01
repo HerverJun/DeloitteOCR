@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Card, Empty, Skeleton, Space, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Empty, Progress, Skeleton, Space, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppInstallation, AppManifest, LaunchReceipt, RecentWork, RecentWorkPage } from '../../../../../packages/contracts/types.generated'
 
@@ -23,6 +23,9 @@ function liveAddress(receipt: LaunchReceipt): string {
 
 function pendingKey(appId: string) { return `workbench:pending-launch:${appId}` }
 function newLaunchId() { return `l${crypto.randomUUID().replaceAll('-', '')}` }
+function elapsed(seconds: number) {
+  return `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`
+}
 
 export function ApplicationCard({ app, workspaceId }: { app: AppManifest; workspaceId: string | null }) {
   const client = useQueryClient()
@@ -136,6 +139,10 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   const missing = installation.data?.installed === false
   const verifying = installation.data?.state === 'verifying'
   const storageUnavailable = installation.data?.state === 'storage_unavailable'
+  const progress = installation.data?.verification
+  const verificationFailed = progress?.phase === 'failed'
+  const verificationPassed = progress?.phase === 'passed' || progress?.phase === 'cached'
+  const percent = progress?.total_files ? Math.floor(progress.checked_files / progress.total_files * 100) : 0
   const launchReady = !verifying && installation.data?.launch_ready === true
   const linked = `/apps/${safeId}${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`
   return <Card className="application-card" title={<Link to={linked}>{app.display_name}</Link>} extra={<Tag>{app.app_id}</Tag>}>
@@ -144,10 +151,17 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         <Alert type="error" title="无法核实应用状态" action={<Button onClick={() => { void health.refetch(); void current.refetch(); void installation.refetch() }}>重试</Button>} /> : <>
         <Paragraph type="secondary">输入：{app.input_types.join('、') || '由工具定义'} · 输出：{app.output_types.join('、') || '由工具定义'}<br />
           声明能力：{app.capabilities.join('、') || '无'} · 资源：{app.resources.join('、') || '由工具报告'}</Paragraph>
-        <div className="application-state"><Tag color={verifying ? 'processing' : current.data ? 'success' : missing || storageUnavailable ? 'error' : 'default'}>
-          {verifying ? '正在校验' : current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : health.data?.service?.state === 'unavailable' ? '暂不可用' : '尚未运行'}</Tag>
-          <Text type="secondary">{verifying ? '应用文件校验中，可先使用数据工作台' : missing ? health.data?.service?.reason || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : health.data?.service?.reason}</Text>
+        <div className="application-state"><Tag color={verificationFailed ? 'error' : verifying && !verificationPassed ? 'processing' : current.data || verificationPassed ? 'success' : missing || storageUnavailable ? 'error' : 'default'}>
+          {verificationFailed ? '校验失败' : verifying ? progress?.phase === 'waiting' ? '等待校验' : verificationPassed ? '校验完成' : '正在校验' : current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : verificationPassed ? '已校验' : health.data?.service?.state === 'unavailable' ? '暂不可用' : '尚未运行'}</Tag>
+          <Text type="secondary">{progress?.message || (verifying ? '应用文件校验中，可先使用数据工作台' : missing ? health.data?.service?.reason || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : health.data?.service?.reason)}</Text>
         </div>
+        {progress && progress.phase !== 'cached' && <div role="status" aria-live="polite" className="application-verification">
+          <Progress percent={percent} status={verificationFailed ? 'exception' : progress.phase === 'checking' ? 'active' : progress.phase === 'passed' ? 'success' : 'normal'}
+            aria-label={`${app.display_name}文件校验进度`} />
+          <Paragraph type="secondary">已校验 {progress.checked_files.toLocaleString()} / {progress.total_files.toLocaleString()} 个文件 · 已用时 {elapsed(progress.elapsed_seconds)}</Paragraph>
+          {progress.current_file && <Paragraph type="secondary" style={{ overflowWrap: 'anywhere', fontSize: 12 }}>当前文件：{progress.current_file}</Paragraph>}
+          {verifying && <Paragraph type="secondary">完整校验仅在首次启动或程序包变更时进行，可先使用数据工作台。</Paragraph>}
+        </div>}
         <Space wrap>
           <Button type="primary" disabled={!launchReady} loading={launch.isPending}
             onClick={() => begin(pendingRef.current ? 'verify' : 'start')}>

@@ -41,6 +41,7 @@ def restore_environment(monkeypatch):
     for name in ("WORKBENCH_DATA_DIR", "WORKBENCH_DATA_PYTHON", "WORKBENCH_PORTAL_DIST",
                  "WORKBENCH_OCR_TOKEN_FILE", "WORKBENCH_INSTALL_DATA_DIR", "PYTHONUTF8"):
         monkeypatch.setenv(name, "")
+    monkeypatch.setenv("WORKBENCH_FORCE_VERIFY", "")
 
 
 def wait_for_verification(registry):
@@ -76,7 +77,7 @@ def test_portal_and_data_remain_available_while_every_payload_is_checked(tmp_pat
         return original_hash(path)
 
     monkeypatch.setattr(bootstrap, "_hash", delayed_hash)
-    registry = configure(root, background=True)
+    registry = configure(root, background=True, force_verify=True)
     try:
         assert entered.wait(10)
         revision = registry.snapshot_revision
@@ -90,10 +91,16 @@ def test_portal_and_data_remain_available_while_every_payload_is_checked(tmp_pat
             for app_id in ("ocr", "classification"):
                 status = client.get(f"/api/platform/v1/apps/{app_id}/installation").json()
                 assert (status["state"], status["installed"], status["launch_ready"]) == ("verifying", False, False)
+                feedback = status["verification"]
+                assert feedback["total_files"] == 3
+                assert feedback["checked_files"] <= feedback["total_files"]
+                assert feedback["phase"] == ("passed" if app_id == "ocr" else "checking")
+                assert feedback["elapsed_seconds"] >= 0
                 launch = client.post(f"/api/platform/v1/apps/{app_id}/launches/lchecking{app_id}",
                                      headers={"Origin": "http://127.0.0.1:8765"})
                 assert launch.status_code == 503
             assert not app.state.supervisor._entries
+            assert registry.snapshot_revision == revision
             release.set()
             wait_for_verification(registry)
             assert registry.snapshot_revision == revision + 1
@@ -103,6 +110,7 @@ def test_portal_and_data_remain_available_while_every_payload_is_checked(tmp_pat
             assert classification["launch_ready"] is (not corrupt_runtime)
             if corrupt_runtime:
                 assert "校验失败" in registry.health("classification").service.reason
+                assert classification["verification"]["phase"] == "failed"
     finally:
         release.set()
         wait_for_verification(registry)
@@ -125,6 +133,113 @@ def test_background_publication_error_is_visible_and_never_allows_launch(tmp_pat
     wait_for_verification(registry)
     assert not any(item.installed for item in registry.installations.values())
     assert "未能完成" in registry.health("ocr").service.reason
+    assert not (root / "data/startup-verification.json").exists()
+
+
+def test_repeated_start_reuses_success_across_data_directories_without_payload_scan(tmp_path, monkeypatch):
+    from scripts import candidate_bootstrap as bootstrap
+
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    first = configure(root)
+    assert all(item.installed for item in first.installations.values())
+    observed = []
+    original = bootstrap._hash
+
+    def traced(path):
+        observed.append(path.relative_to(root).as_posix() if path.is_relative_to(root) else path.as_posix())
+        return original(path)
+
+    monkeypatch.setattr(bootstrap, "_hash", traced)
+    monkeypatch.setenv("WORKBENCH_INSTALL_DATA_DIR", str(tmp_path / "another-data"))
+    second = configure(root, background=True)
+    assert not second._snapshot.verifying
+    assert all(item.installed for item in second.installations.values())
+    assert all(second.verification(app_id).phase == "cached" for app_id in ("ocr", "classification"))
+    assert not any(name.endswith("runtime.bin") for name in observed)
+    assert second.config_dir == tmp_path / "another-data/config/apps"
+
+
+@pytest.mark.parametrize("invalid", ["missing", "malformed", "policy", "candidate", "relocated", "incomplete", "timestamp"])
+def test_invalid_or_stale_cache_requires_full_payload_check(tmp_path, monkeypatch, invalid):
+    from scripts import candidate_bootstrap as bootstrap
+
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    cache = root / "data/startup-verification.json"
+    if invalid == "missing":
+        cache.unlink()
+    elif invalid == "malformed":
+        cache.write_text('{"unfinished":', encoding="utf-8")
+    elif invalid == "policy":
+        value = json.loads(cache.read_text(encoding="utf-8"))
+        value["policy"] += 1
+        cache.write_text(json.dumps(value), encoding="utf-8")
+    elif invalid == "candidate":
+        manifest = root / "candidate-manifest.json"
+        manifest.write_text(manifest.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    elif invalid in {"incomplete", "timestamp"}:
+        value = json.loads(cache.read_text(encoding="utf-8"))
+        for success in value["apps"].values():
+            if invalid == "incomplete":
+                success["checked_files"] -= 1
+            else:
+                success["verified_at"] = "invalid timestamp"
+        cache.write_text(json.dumps(value), encoding="utf-8")
+    else:
+        moved = tmp_path / "relocated"
+        shutil.copytree(root, moved)
+        root = moved
+    observed = []
+    original = bootstrap._hash
+
+    def traced(path):
+        observed.append(path.relative_to(root).as_posix())
+        return original(path)
+
+    monkeypatch.setattr(bootstrap, "_hash", traced)
+    result = configure(root)
+    assert all(item.installed for item in result.installations.values())
+    assert {"bundles/ocr/runtime.bin", "bundles/classification/runtime.bin"}.issubset(observed)
+    assert all(result.verification(app_id).phase == "passed" for app_id in ("ocr", "classification"))
+
+
+def test_failed_full_check_never_saves_success_and_only_failed_app_retries(tmp_path, monkeypatch):
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    target = root / "bundles/classification/runtime.bin"
+    content = target.read_bytes()
+    target.write_bytes(b"corrupt")
+    first = configure(root)
+    assert not first.installations["classification"].installed
+    cache = root / "data/startup-verification.json"
+    assert set(json.loads(cache.read_text(encoding="utf-8"))["apps"]) == {"ocr"}
+    target.write_bytes(content)
+    second = configure(root)
+    assert second.installations["classification"].installed
+    assert second.verification("ocr").phase == "cached"
+    assert second.verification("classification").phase == "passed"
+
+
+def test_forced_check_detects_payload_mutation_and_invalidates_previous_success(tmp_path, monkeypatch):
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    target = root / "bundles/classification/runtime.bin"
+    before = target.stat()
+    target.write_bytes(b"x" * before.st_size)
+    os.utime(target, ns=(before.st_atime_ns, before.st_mtime_ns))
+    # Normal reuse checks entry points, not the content of all model/runtime files.
+    reused = configure(root)
+    assert reused.verification("classification").phase == "cached"
+    forced = configure(root, force_verify=True)
+    assert not forced.installations["classification"].installed
+    cache = json.loads((root / "data/startup-verification.json").read_text(encoding="utf-8"))
+    assert "classification" not in cache["apps"]
+    retried = configure(root)
+    assert not retried.installations["classification"].installed
+    assert retried.verification("classification").phase == "failed"
 
 
 def digest(data: bytes) -> str:

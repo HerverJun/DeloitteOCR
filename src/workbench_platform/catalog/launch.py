@@ -154,7 +154,7 @@ def _service(request: Request) -> LaunchService | None:
     return getattr(request.app.state, "launch_service", None)
 
 
-@router.get("/apps/{app_id}/installation", response_model=AppInstallation)
+@router.get("/apps/{app_id}/installation", response_model=AppInstallation, response_model_exclude_none=True)
 def installation(app_id: str, request: Request):
     if not _loopback_host(request):
         return contract_error(403, "VALIDATION_FAILED", "Local request required")
@@ -172,7 +172,8 @@ def installation(app_id: str, request: Request):
     return AppInstallation(schema_version="1.0", app_id=app_id, installed=record.installed,
                            launch_ready=ready,
                            state=("verifying" if verifying else "not_registered" if not record.installed else
-                                  "registered" if ready else "storage_unavailable"))
+                                  "registered" if ready else "storage_unavailable"),
+                           verification=service.supervisor.registry.verification(app_id))
 
 
 @router.get("/apps/{app_id}/launches/current", response_model=LaunchReceipt)

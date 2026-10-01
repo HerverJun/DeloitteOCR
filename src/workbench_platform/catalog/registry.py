@@ -11,12 +11,13 @@ import hashlib
 import json
 import re
 import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
 
-from packages.contracts.models import AppHealth, AppManifest, AppManifestPage, Health, PageQuery
+from packages.contracts.models import AppHealth, AppManifest, AppManifestPage, AppVerification, Health, PageQuery
 
 KNOWN_APPS = ("classification", "ocr")
 SHA = re.compile(r"^[a-f0-9]{64}$")
@@ -104,7 +105,31 @@ class AppRegistry:
         self._snapshot = CatalogSnapshot(MappingProxyType({}), MappingProxyType({}), MappingProxyType({}), 1,
                                          pending)
         self._observations: dict[str, AppHealth] = {}
+        self._verification: dict[str, AppVerification] = {}
+        self._verification_started: dict[str, float] = {}
         self.reload()
+
+    def update_verification(self, app_id: str, *, phase: str, checked_files: int,
+                            total_files: int, message: str, current_file: str | None = None) -> None:
+        """Publish progress without changing the catalog/owned-process generation."""
+        with self._lock:
+            if app_id not in self._snapshot.manifests:
+                raise KeyError("Application is not registered")
+            if phase == "checking":
+                self._verification_started.setdefault(app_id, time.monotonic())
+            started = self._verification_started.get(app_id)
+            elapsed = int(time.monotonic() - started) if started is not None else 0
+            self._verification[app_id] = AppVerification(schema_version="1.0", phase=phase,
+                checked_files=checked_files, total_files=total_files, elapsed_seconds=elapsed,
+                current_file=current_file, message=message)
+
+    def verification(self, app_id: str) -> AppVerification | None:
+        with self._lock:
+            progress = self._verification.get(app_id)
+            if progress is not None and progress.phase == "checking":
+                progress = progress.model_copy(update={"elapsed_seconds":
+                    int(time.monotonic() - self._verification_started[app_id])})
+            return progress
 
     @property
     def manifests(self) -> Mapping[str, AppManifest]:
