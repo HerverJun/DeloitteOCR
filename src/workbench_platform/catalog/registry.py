@@ -107,7 +107,30 @@ class AppRegistry:
         self._observations: dict[str, AppHealth] = {}
         self._verification: dict[str, AppVerification] = {}
         self._verification_started: dict[str, float] = {}
+        self._startup_verification: dict[str, tuple[int, Installation, Mapping[str, str]]] = {}
         self.reload()
+
+    def trust_startup_verification(self, app_id: str, entry_hashes: Mapping[str, str]) -> None:
+        """Bind the completed startup check to these exact installed launch fields."""
+        with self._lock:
+            install = self._snapshot.installations.get(app_id)
+            allowed = {"bundle.manifest.json", "launch.cmd", "server.py",
+                       "runtimes/control/python.exe", "runtimes/control/python312._pth"}
+            if (install is None or not install.installed or not entry_hashes
+                    or not set(entry_hashes) <= allowed
+                    or entry_hashes.get("bundle.manifest.json") != install.bundle_manifest_sha256
+                    or entry_hashes.get("launch.cmd") != install.executable_sha256
+                    or any(not SHA.fullmatch(value) for value in entry_hashes.values())):
+                raise CatalogConfigError("Startup verification identity differs")
+            self._startup_verification[app_id] = (self._snapshot.revision, install,
+                                                MappingProxyType(dict(entry_hashes)))
+
+    def startup_entry_hashes(self, app_id: str, install: Installation, *, snapshot_revision: int) -> Mapping[str, str] | None:
+        with self._lock:
+            proof = self._startup_verification.get(app_id)
+            if proof is not None and proof[:2] == (snapshot_revision, install) and snapshot_revision == self._snapshot.revision:
+                return proof[2]
+            return None
 
     def update_verification(self, app_id: str, *, phase: str, checked_files: int,
                             total_files: int, message: str, current_file: str | None = None) -> None:
@@ -252,6 +275,7 @@ class AppRegistry:
             self._snapshot = CatalogSnapshot(MappingProxyType(manifests), MappingProxyType(installations),
                                              MappingProxyType(failures), revision, pending)
             self._observations.clear()  # A prior ready result never survives reinstallation.
+            self._startup_verification.clear()
 
     def list_page(self, query: PageQuery) -> AppManifestPage:
         snapshot = self._snapshot

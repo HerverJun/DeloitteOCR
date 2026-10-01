@@ -14,6 +14,8 @@ import time
 
 APPS = ("ocr", "classification")
 CACHE_POLICY = 1
+ENTRY_FILES = ("bundle.manifest.json", "launch.cmd", "server.py",
+               "runtimes/control/python.exe", "runtimes/control/python312._pth")
 
 
 def _hash(path: Path) -> str:
@@ -61,8 +63,7 @@ def _sealed_bundle(root: Path, app_id: str, sealed: dict, progress=None) -> bool
 def _quick_bundle(root: Path, app_id: str, sealed: dict) -> bool:
     """Check declarations and necessary entry points; never scan all payloads."""
     bundle = root / "bundles" / app_id
-    for relative in ("bundle.manifest.json", "launch.cmd", "server.py",
-                     "runtimes/control/python.exe", "runtimes/control/python312._pth"):
+    for relative in ENTRY_FILES:
         name = f"bundles/{app_id}/{relative}"
         if name not in sealed:
             if relative in {"bundle.manifest.json", "launch.cmd"}:
@@ -73,6 +74,11 @@ def _quick_bundle(root: Path, app_id: str, sealed: dict) -> bool:
                 or not member.is_file() or _hash(member) != sealed[name].get("sha256")):
             return False
     return True
+
+
+def _entry_hashes(app_id: str, sealed: dict) -> dict:
+    return {relative: sealed[f"bundles/{app_id}/{relative}"]["sha256"] for relative in ENTRY_FILES
+            if f"bundles/{app_id}/{relative}" in sealed}
 
 
 def _installation_record(root: Path, app_id: str, sealed: dict, initial: dict) -> dict:
@@ -177,6 +183,9 @@ def configure(root: Path, *, background: bool = False, force_verify: bool = Fals
             checked_files=0, total_files=totals[app_id], message=(
                 "已复用首次完整校验记录" + ("，等待其他应用完成" if pending else "")
                 if app_id in cached else "等待完整校验，完成后将保存成功记录"))
+    if not pending:
+        for app_id in cached:
+            registry.trust_startup_verification(app_id, _entry_hashes(app_id, sealed))
     routes._registry = registry
     os.environ["WORKBENCH_DATA_DIR"] = str(data)
     os.environ["WORKBENCH_DATA_PYTHON"] = str(root / "runtimes" / "data" / "python.exe")
@@ -209,6 +218,9 @@ def configure(root: Path, *, background: bool = False, force_verify: bool = Fals
             # Publish once, after every app has a result, so a later catalog
             # generation cannot invalidate an app launched earlier in startup.
             registry.reload(verification_complete=True)
+            for app_id in available:
+                if registry.installations[app_id].installed:
+                    registry.trust_startup_verification(app_id, _entry_hashes(app_id, sealed))
             for app_id in pending:
                 if records[app_id]["installed"] and registry.installations[app_id].installed:
                     successes[app_id] = {"full_verified": True, "checked_files": totals[app_id],

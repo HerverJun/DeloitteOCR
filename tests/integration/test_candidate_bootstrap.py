@@ -242,6 +242,44 @@ def test_forced_check_detects_payload_mutation_and_invalidates_previous_success(
     assert retried.verification("classification").phase == "failed"
 
 
+def test_native_launch_reuses_completed_startup_and_keeps_entry_and_generation_guards(tmp_path, monkeypatch):
+    from workbench_platform.supervisor import processes
+
+    restore_environment(monkeypatch)
+    root, sealed = small_candidate(tmp_path)
+    declaration_path = root / "bundles/ocr/bundle.manifest.json"
+    declaration = json.loads(declaration_path.read_text(encoding="utf-8"))
+    declaration["files"].append({"path": "runtime.bin", "sha256": sealed["bundles/ocr/runtime.bin"]["sha256"]})
+    content = json.dumps(declaration).encode()
+    declaration_path.write_bytes(content)
+    sealed["bundles/ocr/bundle.manifest.json"] = {"sha256": digest(content), "bytes": len(content)}
+    (root / "candidate-manifest.json").write_text(json.dumps({"format": 3, "files": sealed}), encoding="utf-8")
+    registry = configure(root)
+    install = registry.installations["ocr"]
+    observed = []
+    original = processes._file_sha256
+
+    def traced(path):
+        observed.append(path.name)
+        return original(path)
+
+    monkeypatch.setattr(processes, "_file_sha256", traced)
+    processes._verify_bundle(registry, registry._snapshot, "ocr", install)
+    assert "runtime.bin" not in observed
+    assert "launch.cmd" in observed
+    (root / "bundles/ocr/runtime.bin").write_bytes(b"changed payload")
+    processes._verify_bundle(registry, registry._snapshot, "ocr", install)
+    # Reload/reinstallation revokes the completed-check proof for this generation.
+    registry.reload()
+    with pytest.raises(processes.LaunchFailure, match="payload integrity"):
+        processes._verify_bundle(registry, registry._snapshot, "ocr", registry.installations["ocr"])
+    # A current startup proof never permits a changed launcher.
+    registry = configure(root)
+    (root / "bundles/ocr/launch.cmd").write_bytes(b"changed entry")
+    with pytest.raises(processes.LaunchFailure, match="entry point"):
+        processes._verify_bundle(registry, registry._snapshot, "ocr", registry.installations["ocr"])
+
+
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 

@@ -252,7 +252,7 @@ def _identity(port: int, app_id: str, instance_id: str, nonce: str) -> str:
 
 
 def _verify_bundle(registry: AppRegistry, snapshot, app_id: str, install: Installation) -> None:
-    """At launch, verify every declared payload; catalog listings only read metadata."""
+    """Reuse completed startup verification; unverified installs check all payloads."""
     record = json.loads((registry.config_dir / f"{app_id}.install.json").read_text(encoding="utf-8"),
                         object_pairs_hook=_unique_pairs)
     manifest_bytes = (registry.config_dir / f"{app_id}.json").read_bytes()
@@ -278,6 +278,14 @@ def _verify_bundle(registry: AppRegistry, snapshot, app_id: str, install: Instal
     declaration = json.loads(data, object_pairs_hook=_unique_pairs)
     if declaration["app_id"] != app_id or not isinstance(declaration["files"], list):
         raise LaunchFailure("Invalid bundle declaration")
+    entries = registry.startup_entry_hashes(app_id, install, snapshot_revision=snapshot.revision)
+    if entries is not None:
+        for relative, expected in entries.items():
+            file_path = root.joinpath(*_bundle_path(relative)).resolve()
+            if (not file_path.is_relative_to(root) or not file_path.is_file()
+                    or _file_sha256(file_path) != expected):
+                raise LaunchFailure("Verified startup entry point changed")
+        return
     seen = set()
     for item in declaration["files"]:
         parts = _bundle_path(item["path"])
