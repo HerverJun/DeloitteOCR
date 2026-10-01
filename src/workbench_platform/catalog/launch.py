@@ -163,13 +163,15 @@ def installation(app_id: str, request: Request):
     service = _service(request)
     if service is None:
         return contract_error(503, "APP_UNAVAILABLE", "Launch service is unavailable")
-    record = service.supervisor.registry.installations.get(app_id)
+    snapshot = service.supervisor.registry._snapshot
+    record = snapshot.installations.get(app_id)
     if record is None:
         return contract_error(404, "NOT_FOUND", "Application is not registered")
-    ready = record.installed and service.recent is not None
+    verifying = app_id in snapshot.verifying
+    ready = record.installed and service.recent is not None and not verifying
     return AppInstallation(schema_version="1.0", app_id=app_id, installed=record.installed,
                            launch_ready=ready,
-                           state=("not_registered" if not record.installed else
+                           state=("verifying" if verifying else "not_registered" if not record.installed else
                                   "registered" if ready else "storage_unavailable"))
 
 

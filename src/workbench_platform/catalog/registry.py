@@ -53,6 +53,7 @@ class CatalogSnapshot:
     installations: Mapping[str, Installation]
     failures: Mapping[str, str]
     revision: int
+    verifying: frozenset[str] = frozenset()
 
 
 def _unique_pairs(pairs):
@@ -92,11 +93,16 @@ def _file_sha256(path: Path) -> str:
 
 
 class AppRegistry:
-    def __init__(self, config_dir: Path = DEFAULT_CONFIG, *, install_root: Path | None = None):
+    def __init__(self, config_dir: Path = DEFAULT_CONFIG, *, install_root: Path | None = None,
+                 verifying: tuple[str, ...] = ()):
         self.config_dir = Path(config_dir).resolve()
         self.install_root = Path(install_root or self.config_dir.parent / "bundles").resolve()
         self._lock = threading.RLock()
-        self._snapshot = CatalogSnapshot(MappingProxyType({}), MappingProxyType({}), MappingProxyType({}), 1)
+        pending = frozenset(verifying)
+        if not pending.issubset(KNOWN_APPS):
+            raise ValueError("Unknown application verification")
+        self._snapshot = CatalogSnapshot(MappingProxyType({}), MappingProxyType({}), MappingProxyType({}), 1,
+                                         pending)
         self._observations: dict[str, AppHealth] = {}
         self.reload()
 
@@ -197,7 +203,7 @@ class AppRegistry:
         return manifest, Installation(app_id, True, "Bundle registered; runtime not probed",
                                       executable, cwd, manifest_sha, executable_sha, tuple(arguments))
 
-    def reload(self) -> None:
+    def reload(self, *, verification_complete: bool = False, verification_failed: bool = False) -> None:
         manifests, installations, failures = {}, {}, {}
         for app_id in KNOWN_APPS:
             try:
@@ -208,9 +214,18 @@ class AppRegistry:
         # One immutable pointer swap prevents readers from mixing manifest,
         # install and revision from different reload generations.
         with self._lock:
+            pending = self._snapshot.verifying
+            if verification_failed or not verification_complete:
+                for app_id in pending:
+                    if app_id in installations:
+                        installations[app_id] = Installation(app_id, False,
+                            "应用校验未能完成，请检查数据目录后重新启动" if verification_failed
+                            else "正在校验应用文件")
+            if verification_complete or verification_failed:
+                pending = frozenset()
             revision = self._snapshot.revision + 1
             self._snapshot = CatalogSnapshot(MappingProxyType(manifests), MappingProxyType(installations),
-                                             MappingProxyType(failures), revision)
+                                             MappingProxyType(failures), revision, pending)
             self._observations.clear()  # A prior ready result never survives reinstallation.
 
     def list_page(self, query: PageQuery) -> AppManifestPage:
@@ -236,11 +251,16 @@ class AppRegistry:
             manifest = snapshot.manifests.get(app_id)
             if manifest is None:
                 return None
-            if app_id in self._observations:
+            verifying = app_id in snapshot.verifying
+            if app_id in self._observations and not verifying:
                 return self._observations[app_id]
             install = snapshot.installations[app_id]
         def status(state, reason):
             return Health(schema_version="1.0", state=state, reason=reason)
+        if verifying:
+            return AppHealth(schema_version="1.0", **{
+                name: status("unknown", "正在校验应用文件")
+                for name in ("service", "ui", "cpu", "gpu", "models")})
         if not install.installed:
             reason = install.reason
             return AppHealth(schema_version="1.0", service=status("unavailable", reason),

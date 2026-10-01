@@ -62,7 +62,8 @@
             "enum": [
               "registered",
               "not_registered",
-              "storage_unavailable"
+              "storage_unavailable",
+              "verifying"
             ],
             "title": "State",
             "type": "string"

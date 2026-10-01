@@ -30,7 +30,16 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   const health = useQuery({ queryKey: ['app-health', workspaceId, app.app_id],
     queryFn: ({ signal }) => response<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal) })
   const installation = useQuery({ queryKey: ['app-installation', app.app_id],
-    queryFn: ({ signal }) => response<AppInstallation>(`/api/platform/v1/apps/${safeId}/installation`, signal) })
+    queryFn: ({ signal }) => response<AppInstallation>(`/api/platform/v1/apps/${safeId}/installation`, signal),
+    refetchInterval: query => query.state.data?.state === 'verifying' ? 2000 : false })
+  const verificationState = installation.data?.state
+  const previousVerification = useRef(verificationState)
+  useEffect(() => {
+    if (previousVerification.current === 'verifying' && verificationState && verificationState !== 'verifying') {
+      void health.refetch()
+    }
+    previousVerification.current = verificationState
+  }, [verificationState, health.refetch])
   const current = useQuery({ queryKey: ['app-current', app.app_id],
     queryFn: ({ signal }) => response<LaunchReceipt>(`/api/platform/v1/apps/${safeId}/launches/current`, signal),
     staleTime: 0 })
@@ -125,8 +134,9 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     setFailure(error instanceof Error ? error.message : '启动状态无法确认')
   }, onSettled: () => { inFlightRef.current = false } })
   const missing = installation.data?.installed === false
+  const verifying = installation.data?.state === 'verifying'
   const storageUnavailable = installation.data?.state === 'storage_unavailable'
-  const launchReady = installation.data?.launch_ready === true
+  const launchReady = !verifying && installation.data?.launch_ready === true
   const linked = `/apps/${safeId}${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`
   return <Card className="application-card" title={<Link to={linked}>{app.display_name}</Link>} extra={<Tag>{app.app_id}</Tag>}>
     {health.isPending || current.isPending || installation.isPending ? <Skeleton active paragraph={{ rows: 2 }} /> :
@@ -134,9 +144,9 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         <Alert type="error" title="无法核实应用状态" action={<Button onClick={() => { void health.refetch(); void current.refetch(); void installation.refetch() }}>重试</Button>} /> : <>
         <Paragraph type="secondary">输入：{app.input_types.join('、') || '由工具定义'} · 输出：{app.output_types.join('、') || '由工具定义'}<br />
           声明能力：{app.capabilities.join('、') || '无'} · 资源：{app.resources.join('、') || '由工具报告'}</Paragraph>
-        <div className="application-state"><Tag color={current.data ? 'success' : missing || storageUnavailable ? 'error' : 'default'}>
-          {current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : health.data?.service?.state === 'unavailable' ? '暂不可用' : '尚未运行'}</Tag>
-          <Text type="secondary">{missing ? '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : health.data?.service?.reason}</Text>
+        <div className="application-state"><Tag color={verifying ? 'processing' : current.data ? 'success' : missing || storageUnavailable ? 'error' : 'default'}>
+          {verifying ? '正在校验' : current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : health.data?.service?.state === 'unavailable' ? '暂不可用' : '尚未运行'}</Tag>
+          <Text type="secondary">{verifying ? '应用文件校验中，可先使用数据工作台' : missing ? health.data?.service?.reason || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : health.data?.service?.reason}</Text>
         </div>
         <Space wrap>
           <Button type="primary" disabled={!launchReady} loading={launch.isPending}

@@ -59,6 +59,51 @@ test('unregistered bundle has a stable disabled state despite unfamiliar reason 
   expect(fetcher.mock.calls.every(([input]) => !String(input).includes('/launches/launch'))).toBe(true)
 })
 
+test('verification keeps launch disabled and refreshes to ready without reloading the page', async () => {
+  let ready = false
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.endsWith('/installation')) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: 'ocr', installed: ready, launch_ready: ready,
+      state: ready ? 'registered' : 'verifying',
+    }) }
+    if (input.endsWith('/health')) return { ok: true, json: async () =>
+      health('unknown', ready ? 'Service has not been probed' : '正在校验应用文件') }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  mount()
+  expect(await screen.findByText('正在校验')).toBeInTheDocument()
+  expect(screen.getByText('应用文件校验中，可先使用数据工作台')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动并打开' })).toBeDisabled()
+  expect(screen.queryByText('未安装')).not.toBeInTheDocument()
+  ready = true
+  await waitFor(() => expect(screen.getByRole('button', { name: '启动并打开' })).toBeEnabled(), { timeout: 5000 })
+  expect(await screen.findByText('Service has not been probed')).toBeInTheDocument()
+  expect(fetcher.mock.calls.every(([, options]) => (options as RequestInit | undefined)?.method !== 'POST')).toBe(true)
+})
+
+test('failed verification becomes visible and keeps launch disabled', async () => {
+  let finished = false
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.endsWith('/installation')) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: 'ocr', installed: false, launch_ready: false,
+      state: finished ? 'not_registered' : 'verifying',
+    }) }
+    if (input.endsWith('/health')) return { ok: true, json: async () =>
+      health(finished ? 'unavailable' : 'unknown', finished ? '可选应用包校验失败' : '正在校验应用文件') }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const { client } = mount()
+  expect(await screen.findByText('正在校验')).toBeInTheDocument()
+  finished = true
+  await client.invalidateQueries({ queryKey: ['app-installation', 'ocr'] })
+  expect(await screen.findByText('可选应用包校验失败')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动并打开' })).toBeDisabled()
+  expect(screen.queryByText('正在校验')).not.toBeInTheDocument()
+  expect(fetcher.mock.calls.every(([, options]) => (options as RequestInit | undefined)?.method !== 'POST')).toBe(true)
+})
+
 test('lost launch response is verified and retried with exactly the same ID', async () => {
   let posts = 0
   const fetcher = vi.fn(async (input: string, options?: RequestInit) => {

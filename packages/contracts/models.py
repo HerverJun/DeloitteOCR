@@ -78,7 +78,7 @@ class AppInstallation(Wire):
     app_id: Id
     installed: bool
     launch_ready: bool
-    state: Literal["registered", "not_registered", "storage_unavailable"]
+    state: Literal["registered", "not_registered", "storage_unavailable", "verifying"]
 
     @model_validator(mode="after")
     def consistent(self) -> AppInstallation:
@@ -86,6 +86,7 @@ class AppInstallation(Wire):
                 "registered": (True, True),
                 "not_registered": (False, False),
                 "storage_unavailable": (True, False),
+                "verifying": (False, False),
         }[self.state]:
             raise ValueError("installation state differs")
         return self

@@ -5,9 +5,126 @@ import json
 import os
 from pathlib import Path
 import shutil
+import threading
+import time
+
+import pytest
+from fastapi.testclient import TestClient
 
 from scripts.candidate_bootstrap import configure
 from workbench_platform.catalog import routes
+
+
+def small_candidate(tmp_path):
+    root = tmp_path / "candidate"
+    config = root / "app/config/apps"
+    config.mkdir(parents=True)
+    source = Path(__file__).resolve().parents[2] / "config/apps"
+    sealed = {}
+    for app_id in ("ocr", "classification"):
+        shutil.copy2(source / f"{app_id}.json", config / f"{app_id}.json")
+        bundle = root / "bundles" / app_id
+        bundle.mkdir(parents=True)
+        launcher = b"@echo off\r\n"
+        declaration = json.dumps({"app_id": app_id, "files": [
+            {"path": "launch.cmd", "sha256": digest(launcher)}]}).encode()
+        for name, content in (("launch.cmd", launcher), ("bundle.manifest.json", declaration),
+                              ("runtime.bin", f"runtime for {app_id}".encode())):
+            (bundle / name).write_bytes(content)
+            sealed[f"bundles/{app_id}/{name}"] = {"sha256": digest(content), "bytes": len(content)}
+    (root / "candidate-manifest.json").write_text(json.dumps({"format": 3, "files": sealed}), encoding="utf-8")
+    return root, sealed
+
+
+def restore_environment(monkeypatch):
+    monkeypatch.setattr(routes, "_registry", routes._registry)
+    for name in ("WORKBENCH_DATA_DIR", "WORKBENCH_DATA_PYTHON", "WORKBENCH_PORTAL_DIST",
+                 "WORKBENCH_OCR_TOKEN_FILE", "WORKBENCH_INSTALL_DATA_DIR", "PYTHONUTF8"):
+        monkeypatch.setenv(name, "")
+
+
+def wait_for_verification(registry):
+    deadline = time.monotonic() + 10
+    while registry._snapshot.verifying and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert not registry._snapshot.verifying, "background verification did not finish"
+
+
+@pytest.mark.parametrize("corrupt_runtime", [False, True])
+def test_portal_and_data_remain_available_while_every_payload_is_checked(tmp_path, monkeypatch, corrupt_runtime):
+    from scripts import candidate_bootstrap as bootstrap
+    from workbench_platform.app import app
+
+    restore_environment(monkeypatch)
+    root, sealed = small_candidate(tmp_path)
+    old = configure(root)
+    assert all(item.installed for item in old.installations.values())
+    target = root / "bundles/classification/runtime.bin"
+    if corrupt_runtime:
+        previous = target.stat()
+        target.write_bytes(b"x" * previous.st_size)
+        os.utime(target, ns=(previous.st_atime_ns, previous.st_mtime_ns))
+    entered, release = threading.Event(), threading.Event()
+    observed = set()
+    original_hash = bootstrap._hash
+
+    def delayed_hash(path):
+        observed.add(path.relative_to(root).as_posix())
+        if path == target:
+            entered.set()
+            assert release.wait(20), "test did not release the final payload check"
+        return original_hash(path)
+
+    monkeypatch.setattr(bootstrap, "_hash", delayed_hash)
+    registry = configure(root, background=True)
+    try:
+        assert entered.wait(10)
+        revision = registry.snapshot_revision
+        assert "bundles/ocr/runtime.bin" in observed
+        assert not any(item.installed for item in registry.installations.values())
+        with TestClient(app, base_url="http://127.0.0.1:8765") as client:
+            assert client.get("/api/platform/v1/health").json()["service"] == "ready"
+            session = client.post("/api/platform/v1/data/sessions", json={"name": "校验期间可继续作业"},
+                                  headers={"Origin": "http://127.0.0.1:8765"})
+            assert session.status_code == 201
+            for app_id in ("ocr", "classification"):
+                status = client.get(f"/api/platform/v1/apps/{app_id}/installation").json()
+                assert (status["state"], status["installed"], status["launch_ready"]) == ("verifying", False, False)
+                launch = client.post(f"/api/platform/v1/apps/{app_id}/launches/lchecking{app_id}",
+                                     headers={"Origin": "http://127.0.0.1:8765"})
+                assert launch.status_code == 503
+            assert not app.state.supervisor._entries
+            release.set()
+            wait_for_verification(registry)
+            assert registry.snapshot_revision == revision + 1
+            assert set(sealed).issubset(observed)
+            assert client.get("/api/platform/v1/apps/ocr/installation").json()["launch_ready"] is True
+            classification = client.get("/api/platform/v1/apps/classification/installation").json()
+            assert classification["launch_ready"] is (not corrupt_runtime)
+            if corrupt_runtime:
+                assert "校验失败" in registry.health("classification").service.reason
+    finally:
+        release.set()
+        wait_for_verification(registry)
+
+
+def test_background_publication_error_is_visible_and_never_allows_launch(tmp_path, monkeypatch):
+    from scripts import candidate_bootstrap as bootstrap
+
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    original_write = bootstrap._write_json
+
+    def fail_publication(path, value):
+        if value.get("installed"):
+            raise OSError("cannot persist trusted result")
+        original_write(path, value)
+
+    monkeypatch.setattr(bootstrap, "_write_json", fail_publication)
+    registry = configure(root, background=True)
+    wait_for_verification(registry)
+    assert not any(item.installed for item in registry.installations.values())
+    assert "未能完成" in registry.health("ocr").service.reason
 
 
 def digest(data: bytes) -> str:
