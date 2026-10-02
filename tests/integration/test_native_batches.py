@@ -101,3 +101,25 @@ def test_review_only_preflight_reports_real_capability(tmp_path):
         "link_id": "linkA", "engines": ["engineA"]}}, [{"asset_id": "assetA", "asset_revision": 1, "blob_hash": "a" * 64}])
     assert any(item["category"] == "capability" and "仅校对" in item["detail"] for item in issues)
     assert all(isinstance(item["source"], dict) and isinstance(item["raw_output"], dict) for item in issues)
+
+
+def test_lost_input_set_receipt_reuses_fixed_source_identity(tmp_path):
+    from workbench_platform.assets.registry import AssetRegistry
+    from workbench_platform.assets.sets import AssetSetConflict, AssetSetStore
+    inputs, blobs = tmp_path / "inputs", tmp_path / "blobs"
+    inputs.mkdir()
+    blobs.mkdir()
+    (inputs / "one.png").write_bytes(b"source-one")
+    (inputs / "two.png").write_bytes(b"source-two")
+    registry = AssetRegistry(tmp_path / "assets.sqlite3", blobs, {"inputs": inputs})
+    first = registry.register("workspaceA", "inputs", "one.png", media_type="image/png", storage_mode="managed")
+    second = registry.register("workspaceA", "inputs", "two.png", media_type="image/png", storage_mode="managed")
+    sets = AssetSetStore(registry)
+    def member(asset):
+        identity = {"asset_id": asset.asset_id, "asset_revision": asset.revision, "blob_hash": asset.blob_hash}
+        return {"schema_version": "1.0", "item_id": "itemA", **identity, "source_locator": {
+            "schema_version": "1.0", "kind": "file", "precision": "unknown", **identity}}
+    original = sets.create("workspaceA", [member(first)], asset_set_id="setBatchA")
+    assert sets.create("workspaceA", [member(first)], asset_set_id="setBatchA") == original
+    with pytest.raises(AssetSetConflict):
+        sets.create("workspaceA", [member(second)], asset_set_id="setBatchA")
