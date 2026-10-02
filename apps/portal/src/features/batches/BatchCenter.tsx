@@ -114,7 +114,7 @@ function BatchDetail({ batchId, workspaceId }: { batchId: string; workspaceId: s
       <div><Text type="secondary">成果</Text><strong>{stateNames[item.artifact_state] || item.artifact_state}</strong><span>{item.artifacts.length} 份固定版本成果</span></div></div>
     <Space wrap><Tag>{item.summary.execution_complete ? '执行已结束' : '执行尚未结束'}</Tag><Tag>{item.summary.review_complete ? '待处理记录已复核' : '复核尚未完成'}</Tag><Status value={item.artifact_state} /></Space>
     {item.template.scenario === 'data_compare' && Object.keys(coverage).length > 0 && <Paragraph className="batch-coverage" aria-label="表格比对覆盖">
-      相同 {coverage.same || 0} · 差异 {coverage.different || 0} · 仅左 {coverage.only_left || 0} · 仅右 {coverage.only_right || 0} · 重复键左 {coverage.ambiguous_left || 0} · 重复键右 {coverage.ambiguous_right || 0}</Paragraph>}
+      相同 {coverage.same_pairs || 0} · 差异 {coverage.different_pairs || 0} · 仅左 {coverage.only_left || 0} · 仅右 {coverage.only_right || 0} · 重复键左 {coverage.ambiguous_left_rows || 0} · 重复键右 {coverage.ambiguous_right_rows || 0}</Paragraph>}
     {!terminal.includes(item.status) && <Paragraph type="secondary">作业由本机服务在后台推进，刷新或关闭页面后可从处理批次继续查看。</Paragraph>}
     {item.status === 'cancelling' && <Alert type="info" title="已请求取消，等待原生任务真实终态" />}
     {item.artifact_state === 'collection_failed' && <Alert type="error" title="处理结果已保留，成果归集失败" description="使用可用的重试入口核实固定成果；不需要重新计算成功结果。" />}
