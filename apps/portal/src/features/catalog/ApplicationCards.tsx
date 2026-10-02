@@ -5,10 +5,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppInstallation, AppManifest, LaunchReceipt, RecentWork, RecentWorkPage } from '../../../../../packages/contracts/types.generated'
 
 import { brandName } from '../../clear-ui/theme'
+import { nativeAddress } from './nativeWindow'
 
 const { Text, Paragraph } = Typography
 const ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
-const BASE = /^http:\/\/127\.0\.0\.1:([1-9][0-9]{0,4})\/?$/
 
 async function response<T>(path: string, signal?: AbortSignal): Promise<T | null> {
   const result = await fetch(path, { signal, headers: { Accept: 'application/json' } })
@@ -18,9 +18,7 @@ async function response<T>(path: string, signal?: AbortSignal): Promise<T | null
 }
 
 function liveAddress(receipt: LaunchReceipt): string {
-  const match = BASE.exec(receipt.base_url)
-  if (!match || Number(match[1]) > 65535) throw new Error('服务地址未通过本机校验')
-  return receipt.base_url
+  return nativeAddress({ url: receipt.base_url, kind: 'base' })
 }
 
 function pendingKey(appId: string) { return `workbench:pending-launch:${appId}` }
@@ -33,7 +31,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   const client = useQueryClient()
   const safeId = encodeURIComponent(app.app_id)
   const health = useQuery({ queryKey: ['app-health', workspaceId, app.app_id],
-    queryFn: ({ signal }) => response<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal) })
+    queryFn: ({ signal }) => response<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal), refetchInterval: 15_000 })
   const installation = useQuery({ queryKey: ['app-installation', app.app_id],
     queryFn: ({ signal }) => response<AppInstallation>(`/api/platform/v1/apps/${safeId}/installation`, signal),
     refetchInterval: query => query.state.data?.state === 'verifying' ? 2000 : false })
@@ -47,7 +45,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   }, [verificationState, health.refetch])
   const current = useQuery({ queryKey: ['app-current', app.app_id],
     queryFn: ({ signal }) => response<LaunchReceipt>(`/api/platform/v1/apps/${safeId}/launches/current`, signal),
-    staleTime: 0 })
+    staleTime: 0, refetchInterval: 15_000 })
   const [pending, setPending] = useState(() => sessionStorage.getItem(pendingKey(app.app_id)))
   const pendingRef = useRef(pending)
   const popupRef = useRef<Window | null>(null)
@@ -81,6 +79,12 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     try {
       popupRef.current = window.open('', '_blank')
       if (popupRef.current) popupRef.current.opener = null
+      else {
+        inFlightRef.current = false
+        if (current.data) setVerified(current.data)
+        setFailure('未能创建新窗口；请允许弹出窗口后再次核实并打开。')
+        return
+      }
     } catch {
       inFlightRef.current = false
       setFailure('未能创建新窗口；请允许弹出窗口后再次核实并打开。')
@@ -93,15 +97,12 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     setVerified(receipt)
     const popup = popupRef.current
     if (popup) {
-      if (app.app_id === 'ocr') {
-        const result = await fetch(`/api/platform/v1/apps/ocr/launches/${encodeURIComponent(receipt.launch_id)}/navigation`,
+      if (app.app_id === 'ocr' || app.app_id === 'classification') {
+        const result = await fetch(`/api/platform/v1/apps/${safeId}/launches/${encodeURIComponent(receipt.launch_id)}/navigation`,
           { method: 'POST', headers: { Accept: 'application/json' } })
-        if (!result.ok) throw new Error('OCR 工作台连接暂不可用，请重新核实并打开。')
+        if (!result.ok) throw new Error(`${brandName(app.app_id)} 工作台连接暂不可用，请重新核实并打开。`)
         const value = await result.json() as { url: string }
-        const target = new URL(value.url)
-        if (target.origin !== new URL(address).origin || target.pathname !== '/' || target.search
-          || !/^#token=[A-Za-z0-9_-]{32,512}$/.test(target.hash)) throw new Error('OCR 工作台入口未通过本机校验')
-        address = target.href
+        address = nativeAddress({ url: value.url, baseUrl: address, kind: app.app_id === 'ocr' ? 'session' : 'base' })
       }
       if (!mountedRef.current) return
       popup.location.replace(address)
@@ -148,6 +149,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     if (!mountedRef.current) return
     popupRef.current?.close(); popupRef.current = null
     setFailure(error instanceof Error ? error.message : '启动状态无法确认')
+    refresh()
   }, onSettled: () => { inFlightRef.current = false } })
   const missing = installation.data?.installed === false
   const verifying = installation.data?.state === 'verifying'
@@ -177,7 +179,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         </div>}
         <Space wrap>
           <Button type="primary" disabled={!launchReady} loading={launch.isPending}
-            onClick={() => begin(pendingRef.current ? 'verify' : 'start')}>
+            onClick={() => begin(pendingRef.current ? 'verify' : current.data ? 'open' : 'start')}>
             {pending ? '核实原请求' : current.data ? '打开工具' : '启动并打开'}</Button>
           {pending && <Button disabled={launch.isPending || !launchReady} onClick={() => begin('new')}>明确新启动</Button>}
         </Space>

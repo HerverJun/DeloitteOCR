@@ -44,7 +44,7 @@ function label(column: Column) { return column.header || column.column_id }
 function options(columns: Column[]) { return columns.map(column => ({ value: column.column_id, label: label(column) })) }
 
 export function DataApplicationCard() {
-  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health') })
+  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health'), refetchInterval: 15_000 })
   return <Card className="application-card" title={brands.data}>
     <Paragraph>数据清洗与比对。导入 Excel、CSV 或 Parquet，比较差异并导出来源清单。</Paragraph>
     <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">独立数据工具 · 无需 OCR</Text></div>
@@ -287,7 +287,7 @@ export function DataWorkbench() {
       ? [{ value: item.item_id, label: member.original_name }] : []
   }) || []
   useEffect(() => { setLeftItem(tableItems[0]?.value); setRightItem(tableItems[1]?.value) }, [assetSet.data?.asset_set_id])
-  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean; message: string | null }>('/health') })
+  const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean; message: string | null }>('/health'), refetchInterval: 15_000 })
   const list = useQuery({ queryKey: ['data-sessions'], queryFn: () => request<{ items: { id: string; name: string }[] }>('/sessions') })
   const session = useQuery({ queryKey: ['data-session', sessionId], enabled: !!sessionId,
     queryFn: () => request<Session>(`/sessions/${sessionId}`),

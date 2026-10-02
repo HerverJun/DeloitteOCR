@@ -1,12 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, configure, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider } from 'antd'
 import { routes, theme } from '../src/router'
 
 beforeAll(() => {
+  configure({ asyncUtilTimeout: 10000 })
   window.matchMedia = vi.fn().mockImplementation(() => ({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }))
   globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
 })
@@ -213,6 +214,7 @@ test('missing window handle offers retry; continuing a recent record requires a 
   expect(await screen.findByRole('button', { name: '再次核实并打开 ↗' })).toBeInTheDocument()
   expect(screen.getByText(/未能创建新窗口/)).toBeInTheDocument()
   current = false
+  vi.spyOn(window, 'open').mockReturnValue({ opener: null, location: { replace: vi.fn() }, close: vi.fn() } as unknown as Window)
   fireEvent.click(screen.getByRole('button', { name: '再次核实并打开 ↗' }))
   expect(await screen.findByText('原实例已退出；请明确发起新启动。')).toBeInTheDocument()
   expect(fetcher.mock.calls.filter(([input]) => String(input).endsWith('/launches/current')).length).toBeGreaterThan(1)
@@ -244,9 +246,26 @@ test('failed OCR session handoff closes the reserved window instead of opening a
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
   fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
-  expect(await screen.findByText('OCR 工作台连接暂不可用，请重新核实并打开。')).toBeInTheDocument()
+  expect(await screen.findByText('ClearOCR 工作台连接暂不可用，请重新核实并打开。')).toBeInTheDocument()
   expect(popup.location.replace).not.toHaveBeenCalled()
   expect(popup.close).toHaveBeenCalled()
+})
+
+test('an exited cached instance is not silently replaced when the user clicks open', async () => {
+  let alive = true
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.endsWith('/launches/current')) return alive ? { ok: true, json: async () => receipt } : { ok: false, status:404 }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch',fetcher)
+  vi.spyOn(window,'open').mockReturnValue({ opener:null, close:vi.fn(), location:{ replace:vi.fn() } } as unknown as Window)
+  mount()
+  const button = await screen.findByRole('button',{name:'打开工具'})
+  alive = false
+  fireEvent.click(button)
+  expect(await screen.findByText('原实例已退出；请明确发起新启动。')).toBeInTheDocument()
+  expect(fetcher.mock.calls.some(([,options]) => options?.method === 'POST')).toBe(false)
+  expect(await screen.findByRole('button',{name:'启动并打开'})).toBeEnabled()
 })
 
 test('configured bundle without durable storage cannot launch', async () => {

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Segmented, Select, Space, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import './classification.css'
+import { useNativeWindow } from '../catalog/nativeWindow'
 
 const { Title, Text } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null;
@@ -32,19 +33,18 @@ export function ClassificationWorkflow() {
   const setId = params.get('set')
   const handoffId = params.get('handoff')
   const client = useQueryClient()
-  const [projectId, setProjectId] = useState<string | undefined>(params.get('project') || undefined)
+  const projectId = params.get('project') || undefined
   const [newName, setNewName] = useState('')
   const [categories, setCategories] = useState(['', ''])
-  const [opening, setOpening] = useState(false)
-  const [openError, setOpenError] = useState('')
+  const native = useNativeWindow(`${workspaceId}:${projectId}`)
   const [labels, setLabels] = useState<Record<string, string | null>>({})
   const [modelId, setModelId] = useState<string>()
   const [device, setDevice] = useState<'cpu' | 'cuda'>('cpu')
   const [publishedBundle, setPublishedBundle] = useState<string | null>(null)
+  useEffect(() => { setLabels({}); setModelId(undefined); setPublishedBundle(null) }, [workspaceId, projectId])
   const base = workspaceId ? `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/classification` : ''
   const handoffBase = `${base}/handoffs`
   const chooseProject = (id: string) => {
-    setProjectId(id)
     setLabels({}); setModelId(undefined)
     const next = new URLSearchParams(params)
     next.set('project', id)
@@ -107,18 +107,12 @@ export function ClassificationWorkflow() {
       setPublishedBundle(result.bundle_id)
       void client.invalidateQueries({ queryKey: ['artifact-bundles', workspaceId] })
     } })
-  const openNative = async () => {
+  const openNative = () => {
     if (!chosen?.link_id) return
-    const popup = window.open('', '_blank')
-    if (!popup) { setOpenError('未能打开新窗口；请允许弹出窗口后重试。'); return }
-    popup.opener = null
-    setOpening(true); setOpenError('')
-    try {
-      const result = await json<{ url: string }>(`${base}/links/${encodeURIComponent(chosen.link_id)}/navigation`, { method: 'POST' })
-      if (!/^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}\/#platform_ticket=[A-Za-z0-9_-]{32,128}$/.test(result.url)) throw new Error('原生入口无效')
-      popup.location.replace(result.url)
-    } catch (failure) { popup.close(); setOpenError((failure as Error).message) }
-    finally { setOpening(false) }
+    native.open(async signal => {
+      const result = await json<{ url: string }>(`${base}/links/${encodeURIComponent(chosen.link_id!)}/navigation`, { method: 'POST', signal })
+      return { url: result.url, kind: 'ticket' }
+    })
   }
   const chosen = projects.data?.items.find(item => item.project_id === projectId)
   const validCategories = categories.length >= 2 && categories.every(item => item.trim())
@@ -150,8 +144,8 @@ export function ClassificationWorkflow() {
           <Space size={6} wrap>{chosen.labels.map(item => <Tag key={item.label_id}>{item.display_name}</Tag>)}</Space></div>}
         {link.isError && <Alert type="error" title={link.error.message} className="classification-notice" />}
         {chosen?.link_id && <Alert type="success" title={`已关联：${chosen.name}`} className="classification-notice" />}
-        {chosen?.link_id && <Button className="classification-open" loading={opening} onClick={() => void openNative()}>打开原生项目</Button>}
-        {openError && <Alert type="error" title={openError} className="classification-notice" />}
+        {chosen?.link_id && <Button className="classification-open" loading={native.opening} onClick={openNative}>打开原生项目</Button>}
+        {native.error && <Alert type="error" title={native.error} className="classification-notice" />}
       </section>
       <section className="panel"><div className="section-head"><Title level={3}>新建分类项目</Title></div>
         <div className="classification-create"><Input aria-label="新分类项目名称" placeholder="项目名称" maxLength={100}

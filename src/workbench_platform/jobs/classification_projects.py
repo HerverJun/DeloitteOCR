@@ -134,8 +134,13 @@ class ClassificationProjects:
                    for item in self.projects(workspace_id)["items"]):
             raise KeyError("Linked native project no longer exists")
         receipt = self.jobs.launches.current("classification")
+        if receipt.instance_id != context.instance_id or receipt.base_url != context.base_url:
+            raise ClassificationUnavailable()
         address = issue_navigation(context, platform_origin=platform_origin,
                                    launch_nonce=receipt.handshake_nonce)
+        current = self.jobs.launches.current("classification")
+        if current.instance_id != receipt.instance_id or current.base_url != receipt.base_url:
+            raise ClassificationUnavailable()
         return {"url": address}
 
 

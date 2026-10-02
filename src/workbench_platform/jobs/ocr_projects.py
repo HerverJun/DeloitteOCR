@@ -31,21 +31,26 @@ class OcrProjects:
         # Native service identity alone does not establish a browser session.
         # Verify the administrator-provided credential against the live service
         # before using the native launcher's existing fragment handoff.
-        self._request("GET", "/api/state")
         token = self.jobs._token()
+        self._request("GET", "/api/state", expected_receipt=receipt, session_token=token)
         current = self.jobs.launches.get("ocr", launch_id)
         if (current.instance_id != receipt.instance_id or current.base_url != receipt.base_url
                 or not isinstance(token, str) or re.fullmatch(r"[A-Za-z0-9_-]{32,512}", token) is None):
             raise OcrUnavailable()
         return {"url": receipt.base_url.rstrip("/") + "/#token=" + token}
 
-    def _request(self, method: str, path: str, payload: dict | None = None) -> dict:
+    def _request(self, method: str, path: str, payload: dict | None = None,
+                 *, expected_receipt=None, session_token: str | None = None) -> dict:
         receipt = self.jobs.launches.current("ocr")
+        if expected_receipt is not None and (receipt.instance_id != expected_receipt.instance_id
+                                             or receipt.base_url != expected_receipt.base_url):
+            raise OcrUnavailable()
         parsed = urlsplit(receipt.base_url)
         if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.port is None
-                or parsed.netloc != f"127.0.0.1:{parsed.port}" or parsed.path not in ("", "/")):
+                or parsed.netloc != f"127.0.0.1:{parsed.port}" or parsed.path not in ("", "/")
+                or parsed.query or parsed.fragment or parsed.username):
             raise OcrUnavailable()
-        token = self.jobs._token()
+        token = self.jobs._token() if session_token is None else session_token
         if (not isinstance(token, str) or not 32 <= len(token) <= 512
                 or re.fullmatch(r"[A-Za-z0-9_-]+", token) is None):
             raise OcrUnavailable()
@@ -127,8 +132,13 @@ class OcrProjects:
                    for item in self.projects(workspace_id)["items"]):
             raise KeyError("Linked native project no longer exists")
         receipt = self.jobs.launches.current("ocr")
+        if receipt.instance_id != context.instance_id or receipt.base_url != context.base_url:
+            raise OcrUnavailable()
         address = issue_navigation(context, platform_origin=platform_origin,
                                    launch_nonce=receipt.handshake_nonce)
+        current = self.jobs.launches.current("ocr")
+        if current.instance_id != receipt.instance_id or current.base_url != receipt.base_url:
+            raise OcrUnavailable()
         return {"url": address}
 
 

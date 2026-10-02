@@ -228,26 +228,50 @@ async def start_launch(app_id: str, launch_id: str, request: Request):
         return contract_error(error.status, error.code, "Application launch is unavailable")
 
 
-@router.post("/apps/ocr/launches/{launch_id}/navigation")
-async def open_ocr_workbench(launch_id: str, request: Request):
+def _classification_workbench(service: LaunchService, launch_id: str) -> dict:
+    receipt = service.get("classification", launch_id)
+    connection = http.client.HTTPConnection("127.0.0.1", _loopback_port(receipt.base_url), timeout=5)
+    try:
+        connection.request("GET", "/", headers={"Accept": "text/html"})
+        response = connection.getresponse()
+        raw = response.read(65537)
+        if (response.status != 200 or not response.getheader("Content-Type", "").startswith("text/html")
+                or not raw or len(raw) > 65536):
+            raise LaunchStatus(503, "APP_UNAVAILABLE")
+        current = service.get("classification", launch_id)
+        if current.instance_id != receipt.instance_id or current.base_url != receipt.base_url:
+            raise LaunchStatus(503, "APP_UNAVAILABLE")
+        return {"url": receipt.base_url}
+    finally:
+        connection.close()
+
+
+@router.post("/apps/{app_id}/launches/{launch_id}/navigation")
+async def open_native_workbench(app_id: str, launch_id: str, request: Request):
     if not _same_loopback_origin(request):
         return contract_error(403, "VALIDATION_FAILED", "Local same-origin request required")
-    if not ID.fullmatch(launch_id) or launch_id == "current" or request.query_params:
+    if app_id not in {"ocr", "classification"} or not ID.fullmatch(launch_id) or launch_id == "current" or request.query_params:
         return contract_error(400, "VALIDATION_FAILED", "Invalid launch identity")
     async for chunk in request.stream():
         if chunk:
             return contract_error(400, "VALIDATION_FAILED", "Navigation request has no body")
-    jobs = getattr(request.app.state, "job_service", None)
-    if jobs is None:
-        return contract_error(503, "APP_UNAVAILABLE", "OCR session is unavailable")
     from fastapi.responses import JSONResponse
     from workbench_platform.jobs.ocr_projects import OcrProjects
     from workbench_platform.jobs.native_ocr import OcrUnavailable
     try:
-        value = await run_in_threadpool(OcrProjects(jobs).open_workbench, launch_id)
+        if app_id == "ocr":
+            jobs = getattr(request.app.state, "job_service", None)
+            if jobs is None:
+                raise OcrUnavailable()
+            value = await run_in_threadpool(OcrProjects(jobs).open_workbench, launch_id)
+        else:
+            service = _service(request)
+            if service is None:
+                raise LaunchStatus(503, "APP_UNAVAILABLE")
+            value = await run_in_threadpool(_classification_workbench, service, launch_id)
         return JSONResponse(value, headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"})
-    except (LaunchStatus, OcrUnavailable):
-        return contract_error(503, "APP_UNAVAILABLE", "OCR session is unavailable")
+    except (LaunchStatus, OcrUnavailable, LaunchFailure, OSError, TimeoutError, http.client.HTTPException, ValueError):
+        return contract_error(503, "APP_UNAVAILABLE", "Native workbench session is unavailable")
 
 
 @router.get("/recent-work", response_model=RecentWorkPage)

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Select, Space, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import './ocr.css'
+import { useNativeWindow } from '../catalog/nativeWindow'
 
 const { Title, Text } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null }
@@ -27,13 +28,12 @@ export function OcrWorkflow() {
   const setId = params.get('set')
   const handoffId = params.get('handoff')
   const client = useQueryClient()
-  const [projectId, setProjectId] = useState<string | undefined>(params.get('project') || undefined)
+  const projectId = params.get('project') || undefined
   const [newName, setNewName] = useState('')
   const [engines, setEngines] = useState<string[]>([])
-  const [opening, setOpening] = useState(false)
-  const [openError, setOpenError] = useState('')
+  const native = useNativeWindow(`${workspaceId}:${projectId}`)
+  useEffect(() => { setEngines([]) }, [workspaceId, projectId])
   const chooseProject = (id: string) => {
-    setProjectId(id)
     const next = new URLSearchParams(params)
     next.set('project', id)
     next.delete('handoff')
@@ -80,18 +80,12 @@ export function OcrWorkflow() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ handoff_id: handoffId }),
     }) })
-  const openNative = async () => {
+  const openNative = () => {
     if (!chosen?.link_id) return
-    const popup = window.open('', '_blank')
-    if (!popup) { setOpenError('未能打开新窗口；请允许弹出窗口后重试。'); return }
-    popup.opener = null
-    setOpening(true); setOpenError('')
-    try {
-      const result = await json<{ url: string }>(`${base}/links/${encodeURIComponent(chosen.link_id)}/navigation`, { method: 'POST' })
-      if (!/^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}\/#platform_ticket=[A-Za-z0-9_-]{32,128}$/.test(result.url)) throw new Error('原生入口无效')
-      popup.location.replace(result.url)
-    } catch (failure) { popup.close(); setOpenError((failure as Error).message) }
-    finally { setOpening(false) }
+    native.open(async signal => {
+      const result = await json<{ url: string }>(`${base}/links/${encodeURIComponent(chosen.link_id!)}/navigation`, { method: 'POST', signal })
+      return { url: result.url, kind: 'ticket' }
+    })
   }
   return <div className="ocr-workflow"><div className="page-heading"><Text className="eyebrow">CLEAROCR / 文档识别与校对</Text>
     <Title level={1}>ClearOCR</Title></div>
@@ -119,8 +113,8 @@ export function OcrWorkflow() {
           <Button disabled={!newName.trim()} loading={create.isPending} onClick={() => create.mutate(newName.trim())}>新建并关联</Button></div>
         {create.isError && <Alert type="error" title={create.error.message} className="ocr-notice" />}
         {chosen?.link_id && <Alert type="success" title={`已关联：${chosen.name}`} className="ocr-notice" />}
-        {chosen?.link_id && <Button className="ocr-open" loading={opening} onClick={() => void openNative()}>打开原生项目</Button>}
-        {openError && <Alert type="error" title={openError} className="ocr-notice" />}
+        {chosen?.link_id && <Button className="ocr-open" loading={native.opening} onClick={openNative}>打开原生项目</Button>}
+        {native.error && <Alert type="error" title={native.error} className="ocr-notice" />}
       </section>
       {assetSet.data && <section className="panel"><div className="section-head"><Title level={3}>资料交接</Title>
         <Text type="secondary">{assetSet.data.members.length} 份资料</Text></div>
