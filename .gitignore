@@ -10,6 +10,8 @@ node_modules/
 frontend/dist/
 *.tsbuildinfo
 .hypothesis/
+/.pnpm-store/
+/temp/
 
 # Generated manuals and audit runs stay local. Commit curated evidence explicitly.
 /output/
