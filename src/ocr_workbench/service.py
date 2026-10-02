@@ -400,6 +400,14 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     def create_tasks(key: str, body: dict):
         return services.submit_ocr(key, body)
 
+    @app.get("/api/projects/{key}/task-requests/{request_id}")
+    def task_request(key: str, request_id: str):
+        store.one("projects", key)
+        with store.transaction() as db:
+            row = db.execute("SELECT task_ids FROM ocr_submissions WHERE project_id=? AND request_id=?",
+                             (key, request_id)).fetchone()
+        return {"submitted": row is not None, "task_ids": json.loads(row["task_ids"]) if row else []}
+
     @app.get("/api/fusion/policies")
     def fusion_policies():
         from ocr_workbench.fusion import load_policy

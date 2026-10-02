@@ -19,5 +19,7 @@
 .document-review { display: grid; gap: 7px; border-top: 1px solid #dce2dd; padding-top: 10px; }
 .document-review-list { display: grid; gap: 5px; max-height: 290px; overflow: auto; }
 .document-review-list > button { text-align: left; display: grid; gap: 3px; padding: 8px; border: 1px solid #dce2dd; border-radius: 4px; color: #26382d; background: #f8faf8; }
+.sidebar .document-review-list > button { color: #26382d; }
+.sidebar .document-review-list > button small { color: #526457; }
 .document-review-list small { color: #64766b; }
 @media (max-width: 1050px) { .structure-comparison { grid-template-columns: minmax(0,1fr); } }

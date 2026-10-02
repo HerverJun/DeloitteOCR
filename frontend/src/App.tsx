@@ -1459,9 +1459,9 @@ export function App() {
                       !matchesVersion ||
                       editor.result.id !== currentAdopted
                     }
-                    onClick={() => void action(() => setReview("confirmed"))}
+                    onClick={() => void action(async () => { await setReview("confirmed"); await nextReview(); })}
                   >
-                    确认此结果
+                    确认并下一项
                   </Button>
                   <details>
                     <summary>复核操作</summary>
@@ -1475,14 +1475,14 @@ export function App() {
                         }
                         onClick={() => void action(() => setReview("question"))}
                       >
-                        标记有疑问
+                        暂缓：有疑问
                       </Button>
                       <Button
                         size="small"
                         disabled={busy || editor.result.id !== currentAdopted}
                         onClick={() => void action(() => setReview("pending"))}
                       >
-                        设为待校对
+                        重开为待校对
                       </Button>
                       <Button
                         size="small"
