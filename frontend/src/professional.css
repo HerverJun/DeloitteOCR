@@ -7,14 +7,14 @@
 }
 /* Refined document-editor surfaces. Shared functional styles remain in style.css. */
 :root {
-  --header-height: 44px;
-  --ink: #202823;
-  --muted: #66706a;
-  --border: #e2e7df;
+  --header-height: var(--clear-header-height);
+  --ink: var(--clear-text);
+  --muted: var(--clear-muted);
+  --border: var(--clear-border);
   --canvas: #eef1ee;
-  --surface: #fff;
-  --workspace: #f4f6f4;
-  --sidebar: #171b18;
+  --surface: var(--clear-panel);
+  --workspace: var(--clear-workspace);
+  --sidebar: var(--clear-navigation);
 }
 body {
   font-family:
@@ -26,8 +26,8 @@ body {
   stroke-width: 1.7;
 }
 .fui-Button {
-  border-radius: 6px;
-  min-height: 34px;
+  border-radius: var(--clear-control-radius);
+  min-height: var(--clear-control-height);
   font-weight: 500;
 }
 .fui-DialogSurface {
@@ -37,14 +37,22 @@ body {
 }
 .app-header {
   padding: 0 16px;
-  background: #070908;
+  background: var(--clear-header);
   border-bottom: 1px solid #2d332d;
 }
 .brand {
-  gap: 12px;
+  gap: 8px;
 }
 .brand img {
-  width: 92px;
+  width: 24px;
+  height: 24px;
+}
+.brand strong {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 .brand > span:last-child {
   padding-left: 12px;
@@ -247,7 +255,7 @@ body {
 }
 .workspace-title h1 {
   color: #202823;
-  font-size: 23px;
+  font-size: var(--clear-title-size);
   font-weight: 650;
   line-height: 1.3;
   letter-spacing: -0.025em;
@@ -695,7 +703,7 @@ body {
   padding: 10px 16px;
 }
 .toast {
-  border-radius: 10px;
+  border-radius: var(--clear-panel-radius);
   box-shadow: 0 12px 40px #263a1929;
 }
 @media (max-width: 1599px) {
@@ -793,7 +801,7 @@ body {
     padding: 0 12px;
   }
   .brand img {
-    width: 92px;
+    width: 24px;
   }
   .brand > span:last-child {
     padding-left: 12px;

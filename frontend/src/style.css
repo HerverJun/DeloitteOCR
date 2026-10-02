@@ -42,12 +42,18 @@ a:focus-visible {
 .platform-return {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
+  min-height: var(--clear-control-height);
   padding: 0 10px;
   border: 1px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--clear-control-radius);
+  color: #dce8d4;
+  white-space: nowrap;
   font-weight: 600;
   text-decoration: none;
+}
+.platform-return:hover {
+  background: #273023;
+  color: #ffffff;
 }
 input,
 select,
@@ -1214,23 +1220,23 @@ svg {
   color: #626862;
 }
 
-/* Deloitte workbench: shared design tokens and desktop application layout. */
+/* ClearOCR adapter: preserve existing layout and preference identities. */
 :root {
-  --brand: #86bc25;
-  --brand-ink: #386a12;
-  --ink: #202420;
-  --muted: #626862;
-  --border: #dde1da;
-  --canvas: #f3f4f2;
-  --sidebar: #151515;
-  --surface: #fff;
-  --focus: #386a12;
-  --radius: 4px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
+  --brand: var(--clear-accent);
+  --brand-ink: var(--clear-link);
+  --ink: var(--clear-text);
+  --muted: var(--clear-muted);
+  --border: var(--clear-border);
+  --canvas: var(--clear-workspace);
+  --sidebar: var(--clear-navigation);
+  --surface: var(--clear-panel);
+  --focus: var(--clear-focus);
+  --radius: var(--clear-control-radius);
+  --space-1: var(--clear-space-1);
+  --space-2: var(--clear-space-2);
+  --space-3: var(--clear-space-3);
+  --space-4: var(--clear-space-4);
+  --space-6: var(--clear-space-6);
   --layer-menu: 20;
   --layer-overlay: 50;
   --layer-toast: 100;
@@ -1238,7 +1244,7 @@ svg {
 body {
   color: var(--ink);
   background: var(--canvas);
-  font-size: 14px;
+  font-size: var(--clear-font-size);
 }
 button,
 input,
@@ -1256,7 +1262,7 @@ input {
     color 150ms;
 }
 button {
-  min-height: 32px;
+  min-height: var(--clear-control-height);
 }
 button:disabled {
   opacity: 0.6;
@@ -1284,7 +1290,7 @@ textarea {
   color: var(--ink);
 }
 select {
-  min-height: 32px;
+  min-height: var(--clear-control-height);
   font-size: 12px;
 }
 input::placeholder {

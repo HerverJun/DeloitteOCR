@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { FluentProvider } from "@fluentui/react-components";
 import { App } from "./App";
+import "./clear-ui/tokens.css";
 import "./style.css";
 import { workbenchTheme } from "./theme";
 ReactDOM.createRoot(document.getElementById("root")!).render(

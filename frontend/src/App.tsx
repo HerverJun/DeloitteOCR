@@ -55,6 +55,7 @@ import {
 } from "./workspacePreferences";
 import { api, request, download } from "./api";
 import { navigationFromLaunch, safeReturnUrl, type PlatformNavigation } from "./platformNavigation";
+import { brands } from "./clear-ui/theme";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
@@ -761,8 +762,8 @@ export function App() {
       <BrandHeader>
         {platformNavigation && safeReturnUrl(platformNavigation) && (
           <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
-            target="_blank" rel="noopener noreferrer" aria-label="在新标签页返回平台">
-            返回平台 ↗
+            target="_blank" rel="noopener noreferrer" aria-label={`在新标签页返回 ${brands.platform}`}>
+            返回 {brands.platform} ↗
           </a>
         )}
         {!reviewOnly && (
@@ -1782,7 +1783,8 @@ export function App() {
         setPaneRequest({ pane: "result" });
       }} />
       {message && (
-        <div role="alert" className={"toast " + (error ? "error" : "")}>
+        <div role={error ? "alert" : "status"} aria-live={error ? "assertive" : "polite"}
+          className={"toast " + (error ? "error" : "")}>
           <span>
             {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
           </span>
@@ -1810,8 +1812,8 @@ export function App() {
         </div>
       )}
       {initial && (
-        <div className="boot-overlay">
-          <Spinner label="正在打开本机工作台" />
+        <div className="boot-overlay" role="status" aria-live="polite" aria-busy="true">
+          <Spinner label={`正在打开 ${brands.ocr}`} />
         </div>
       )}
       <Dialog
