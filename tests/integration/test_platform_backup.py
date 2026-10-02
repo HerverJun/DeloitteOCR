@@ -89,3 +89,36 @@ def test_ocr_cold_backup_keeps_project_files_and_omits_runtime_state(tmp_path):
         assert db.execute("SELECT name FROM projects WHERE id='projectA'").fetchone()[0] == "Original"
     assert (recovered / "projects/projectA/source.pdf").read_bytes() == b"pdf-source"
     assert not (recovered / "service.lock").exists()
+
+
+def test_platform_cold_backup_keeps_batch_templates_receipts_and_decisions(tmp_path, monkeypatch):
+    from workbench_platform.batches.store import BatchStore
+
+    source, archive, recovered = (tmp_path / name for name in ("batch-source", "batch-archive", "batch-recovered"))
+    source.mkdir()
+    monkeypatch.setenv("WORKBENCH_DATA_DIR", str(source))
+    with TestClient(app, base_url="http://127.0.0.1:8766") as client:
+        assert client.get("/api/platform/v1/health").status_code == 200
+    store = BatchStore(source / "batches")
+    template = store.save_template({"schema_version": "1.0", "workspace_id": "workspaceA",
+                                   "name": "月度核对", "scenario": "data_compare",
+                                   "config": {"policy": "fixed-original"}})
+    request = {"schema_version": "1.0", "request_key": "requestA", "workspace_id": "workspaceA",
+               "template_id": template["template_id"], "template_version": template["version"],
+               "inputs": [{"role": "left", "asset_id": "assetA", "asset_revision": 1, "blob_hash": "a" * 64}]}
+    batch, _ = store.accept(request, template)
+    store.update(batch["batch_id"], status="succeeded", receipts={"export": {"job_id": "fixedExportA"}},
+                 issues=[{"item_id": "itemA", "raw_output": {"identifier": "00000000000000000001"}, "disposition": "pending"}])
+    store.disposition(batch["batch_id"], ["itemA"], "defer", "仍需业务解释")
+    manifest = create(source, archive)
+    assert "batches/batches.sqlite3" in manifest["files"]
+    restore(archive, recovered)
+    reopened = BatchStore(recovered / "batches")
+    assert reopened.template("workspaceA", template["template_id"], 1) == template
+    persisted = reopened.get(batch["batch_id"])
+    assert persisted["receipts"] == {"export": {"job_id": "fixedExportA"}}
+    assert persisted["issues"][0]["raw_output"]["identifier"] == "00000000000000000001"
+    assert persisted["issues"][0]["disposition"] == "deferred"
+    assert persisted["issues"][0]["note"] == "仍需业务解释"
+    with sqlite3.connect(reopened.path) as db:
+        assert db.execute("SELECT action,note FROM disposition_events").fetchall() == [("defer", "仍需业务解释")]
