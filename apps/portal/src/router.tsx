@@ -8,12 +8,23 @@ import { AssetLibrary } from './features/assets/AssetLibrary'
 import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
 import { OcrWorkflow } from './features/ocr/OcrWorkflow'
 import { ClassificationWorkflow } from './features/classification/ClassificationWorkflow'
+import { clearTheme } from './clear-ui/theme'
 
 export const theme: ThemeConfig = {
-  token: { colorPrimary: '#236759', colorText: '#172522', colorBgBase: '#f7f9f8',
-    colorBorder: '#d9e2de', borderRadius: 8, fontFamily: "'Segoe UI', 'Microsoft YaHei', sans-serif" },
-  components: { Layout: { siderBg: '#182622', bodyBg: '#f7f9f8', headerBg: '#f7f9f8' },
-    Menu: { darkItemBg: '#182622', darkItemSelectedBg: '#295447', darkItemColor: '#b8c9c2' } },
+  token: { colorPrimary: clearTheme.accent, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
+    colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorBgBase: clearTheme.panel,
+    colorBgLayout: clearTheme.workspace, colorBorder: clearTheme.border, colorBorderSecondary: clearTheme.border,
+    borderRadius: clearTheme.controlRadius, borderRadiusLG: clearTheme.panelRadius,
+    controlHeight: clearTheme.controlHeight, fontSize: clearTheme.fontSize, fontFamily: clearTheme.fontFamily },
+  components: {
+    Layout: { siderBg: clearTheme.navigation, bodyBg: clearTheme.workspace, headerBg: clearTheme.header, headerHeight: clearTheme.headerHeight },
+    Menu: { darkItemBg: clearTheme.navigation, darkItemSelectedBg: '#29341f', darkItemSelectedColor: '#d2eb9e',
+      darkItemColor: '#c6cec8', darkItemHoverBg: '#242b24', itemHeight: clearTheme.controlHeight, itemBorderRadius: clearTheme.controlRadius },
+    Button: { primaryColor: clearTheme.accentText, dangerColor: '#ffffff', defaultBorderColor: clearTheme.border },
+    Card: { headerFontSize: clearTheme.panelTitleSize, headerHeight: 44, bodyPadding: 16 },
+    Typography: { fontSizeHeading1: clearTheme.titleSize, fontSizeHeading3: clearTheme.panelTitleSize, fontSizeHeading4: clearTheme.panelTitleSize },
+    Table: { cellPaddingBlockSM: 8, cellPaddingInlineSM: 12 },
+  },
 }
 
 export const queryClient = new QueryClient({ defaultOptions: {

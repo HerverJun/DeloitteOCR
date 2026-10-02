@@ -50,6 +50,21 @@ test('deep links, context-aware navigation and history reach distinct pages', as
   expect(await screen.findByText('从这里开始作业')).toBeInTheDocument()
 })
 
+test('narrow navigation opens by keyboard-accessible button and closes after page selection', async () => {
+  vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: query.includes('max-width'), media: query,
+    onchange: null, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn() }))
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => page([]) })))
+  const { router } = mount('/settings')
+  const open = await screen.findByRole('button', { name: '展开导航' })
+  expect(open).toHaveAttribute('aria-expanded', 'false')
+  fireEvent.click(open)
+  expect(screen.getByRole('button', { name: '收起导航' })).toHaveAttribute('aria-expanded', 'true')
+  fireEvent.click(screen.getByText('工作空间', { selector: '.ant-menu-title-content' }))
+  expect(await screen.findByRole('heading', { name: '工作空间' })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/workspaces')
+  expect(screen.getByRole('button', { name: '展开导航' })).toHaveAttribute('aria-expanded', 'false')
+})
+
 test('workspace and application query identities cannot display a late old response', async () => {
   let finishOld: ((value: unknown) => void) | undefined
   let oldSignal: AbortSignal | undefined
@@ -65,10 +80,10 @@ test('workspace and application query identities cannot display a late old respo
   const { router, client } = mount('/apps/ocr?workspace=a')
   await waitFor(() => expect(finishOld).toBeDefined())
   await router.navigate('/apps/classification?workspace=b')
-  expect(await screen.findByText('图像分类', { selector: 'h1' })).toBeInTheDocument()
+  expect(await screen.findByText('ClearClassify', { selector: 'h1' })).toBeInTheDocument()
   expect(oldSignal?.aborted).toBe(true)
   finishOld!({ ok: true, json: async () => app('ocr') })
-  await waitFor(() => expect(screen.queryByText('文档识别', { selector: 'h1' })).not.toBeInTheDocument())
+  await waitFor(() => expect(screen.queryByText('ClearOCR', { selector: 'h1' })).not.toBeInTheDocument())
   expect(client.getQueryData(['app', 'b', 'classification'])).toBeDefined()
   expect(fetcher.mock.calls.some(([url]) => url.includes('/apps/classification'))).toBe(true)
 })
@@ -89,7 +104,7 @@ test('failed catalog request offers a working retry', async () => {
   mount('/apps')
   expect(await screen.findByText('暂时无法取得服务数据')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: /重\s*试/ }))
-  expect(await screen.findByText('文档识别')).toBeInTheDocument()
+  expect(await screen.findByText('ClearOCR')).toBeInTheDocument()
 })
 
 test('clearing selection removes URL scope; unknown scope and unsafe app path never fetch', async () => {

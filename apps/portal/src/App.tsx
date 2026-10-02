@@ -5,6 +5,7 @@ import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } fr
 import type { AppHealth, AppManifest, AppManifestPage, Workspace, WorkspacePage } from '../../../packages/contracts/types.generated'
 import { ApplicationCard, ApplicationCards, RecentWorks } from './features/catalog/ApplicationCards'
 import { DataApplicationCard } from './features/data/DataWorkbench'
+import { brands, brandName } from './clear-ui/theme'
 
 const { Header, Sider, Content } = Layout
 const { Title, Text, Paragraph } = Typography
@@ -50,30 +51,46 @@ const nav = [
 
 export function App() {
   const location = useLocation(), navigate = useNavigate(), workspaceId = useWorkspaceId()
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false)
+  const [narrowNavigation, setNarrowNavigation] = useState(false)
   const workspaces = useWorkspaces()
   const selected = workspaces.data?.find(item => item.workspace_id === workspaceId)
   const active = nav.find(item => item.key !== '/' && location.pathname.startsWith(item.key))?.key || '/'
   const scoped = (path: string, id: string | null = workspaceId) => `${path}${id ? `?workspace=${encodeURIComponent(id)}` : ''}`
   return <Layout className="shell">
-    <Sider className="sidebar" breakpoint="lg" collapsedWidth="0" width={226}>
-      <Link className="brand" to={scoped('/')}><span className="brand-mark">W</span><span>作业平台<small>LOCAL WORKBENCH</small></span></Link>
-      <Menu theme="dark" mode="inline" selectedKeys={[active]} items={nav.map(item => ({ key: item.key, label: item.label }))}
-        onClick={({ key }) => navigate(scoped(key))} aria-label="主导航" />
-      <div className="sidebar-foot">本机工作台 · v0.1</div>
-    </Sider>
-    <Layout><Header className="topbar"><span className="breadcrumb">作业平台 <span>/</span> {nav.find(item => item.key === active)?.label}</span>
+    <Header className="topbar"><div className="topbar-left">
+      <Button className="navigation-toggle" aria-label={navigationCollapsed ? '展开导航' : '收起导航'}
+        aria-expanded={!navigationCollapsed} aria-controls="platform-navigation" onClick={() => setNavigationCollapsed(value => !value)}>
+        <span aria-hidden="true">☰</span>
+      </Button>
+      <Link className="brand" to={scoped('/')}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
+      <span className="breadcrumb"><span>/</span> {nav.find(item => item.key === active)?.label}</span>
+    </div>
       {workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>工作空间加载失败 · 重试</Button> :
         <Select aria-label="当前工作空间" className="workspace-select" value={selected?.workspace_id || undefined}
           placeholder={workspaces.isPending ? '读取工作空间…' : '未选择工作空间'} loading={workspaces.isPending}
           allowClear
           onChange={id => navigate(scoped(location.pathname, id ?? null))}
           options={workspaces.data?.map(item => ({ value: item.workspace_id, label: item.name }))} />}
-    </Header><Content className="page">
+    </Header>
+    <Layout className="workspace-shell">
+      <Sider id="platform-navigation" className="sidebar" breakpoint="lg" collapsedWidth="0" width={216}
+        inert={narrowNavigation && navigationCollapsed}
+        collapsed={navigationCollapsed} trigger={null}
+        onBreakpoint={broken => { setNarrowNavigation(broken); setNavigationCollapsed(broken) }}>
+        <div className="sidebar-context"><span>本地作业平台</span><small>{selected?.name || '全局工作空间'}</small></div>
+        <Menu theme="dark" mode="inline" selectedKeys={[active]} items={nav.map(item => ({ key: item.key, label: item.label }))}
+          onClick={({ key }) => { navigate(scoped(key)); if (narrowNavigation) setNavigationCollapsed(true) }} aria-label="主导航" />
+        <div className="sidebar-foot">本机工作台 · v0.1</div>
+      </Sider>
+      {narrowNavigation && !navigationCollapsed && <button className="navigation-backdrop" aria-label="关闭导航" onClick={() => setNavigationCollapsed(true)} />}
+      <Content className="page">
       {workspaceId && workspaces.isPending ? <div role="status" aria-label="正在验证工作空间"><Skeleton active /></div> :
         workspaceId && workspaces.isError ? <Alert type="error" title="无法验证工作空间" action={<Button onClick={() => void workspaces.refetch()}>重试</Button>} /> :
         workspaceId && !selected ? <Alert type="warning" title="工作空间不存在或已失效" description="请选择已有工作空间，或清除当前上下文。"
           action={<Button onClick={() => navigate(scoped(location.pathname, null))}>清除工作空间</Button>} /> : <Outlet />}
-    </Content></Layout>
+      </Content>
+    </Layout>
   </Layout>
 }
 
@@ -102,7 +119,7 @@ export function Home() {
       </QueryState></section>
       <section className="panel"><div className="section-head"><Title level={3}>可用应用</Title><ScopeLink to="/apps">查看目录 →</ScopeLink></div>
         <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()} empty={apps.data?.length === 0}>
-          <div className="plain-list"><div><ScopeLink to="/apps/data">数据清洗与比对</ScopeLink><Text type="secondary">Excel / CSV / Parquet</Text></div>{apps.data?.map(app => <div key={app.app_id}><ScopeLink to={`/apps/${app.app_id}`}>{app.display_name}</ScopeLink><Text type="secondary">{app.app_id}</Text></div>)}</div>
+          <div className="plain-list"><div><ScopeLink to="/apps/data">{brands.data}</ScopeLink><Text type="secondary">数据清洗与比对</Text></div>{apps.data?.map(app => <div key={app.app_id}><ScopeLink to={`/apps/${app.app_id}`}>{brandName(app.app_id, app.display_name)}</ScopeLink><Text type="secondary">{app.app_id === 'ocr' ? '文档识别与校对' : app.app_id === 'classification' ? '图像分类与复核' : app.app_id}</Text></div>)}</div>
         </QueryState></section></div></>
 }
 
@@ -155,10 +172,10 @@ export function Application() {
   const info = useQuery({ queryKey: ['app', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppManifest>(`/api/platform/v1/apps/${safeId}`, signal) })
   const health = useQuery({ queryKey: ['app-health', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal) })
   if (!validId) return <Missing />
-  return <><PageHeading eyebrow="APPLICATION / STATUS" title={info.data?.display_name || '应用状态'} description="核实本机实例后打开工具。无需先建立工作空间。" />
+  return <><PageHeading eyebrow="APPLICATION / STATUS" title={info.data ? brandName(info.data.app_id, info.data.display_name) : '应用状态'} description="核实本机实例后打开工具。无需先建立工作空间。" />
     <QueryState pending={info.isPending || health.isPending} error={info.isError || health.isError}
       retry={() => { void info.refetch(); void health.refetch() }}>
-      <div className="panel"><div className="section-head"><Title level={3}>{info.data?.display_name}</Title><Tag>{info.data?.app_version}</Tag></div>
+      <div className="panel"><div className="section-head"><Title level={3}>{info.data && brandName(info.data.app_id, info.data.display_name)}</Title><Tag>{info.data?.app_version}</Tag></div>
         <div className="status-list">{(['service', 'ui', 'cpu', 'gpu', 'models'] as const).map(key => <div key={key}>
           <Text>{({ service: '服务', ui: '界面', cpu: 'CPU', gpu: 'GPU', models: '模型' })[key]}</Text>
           <Tag color={health.data?.[key].state === 'ready' ? 'success' : 'default'}>{health.data?.[key].state || 'unknown'}</Tag>
