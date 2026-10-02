@@ -1,0 +1,30 @@
+/* Clear UI contract v1.0.0 — canonical copy: platform portal. */
+:root {
+  --clear-header: #070908;
+  --clear-navigation: #171b18;
+  --clear-workspace: #f4f6f4;
+  --clear-panel: #ffffff;
+  --clear-text: #202823;
+  --clear-muted: #66706a;
+  --clear-border: #e2e7df;
+  --clear-accent: #86bc25;
+  --clear-accent-text: #17200d;
+  --clear-link: #386a12;
+  --clear-focus: #386a12;
+  --clear-header-height: 44px;
+  --clear-control-height: 34px;
+  --clear-primary-height: 38px;
+  --clear-page-padding: 20px;
+  --clear-panel-radius: 10px;
+  --clear-control-radius: 6px;
+  --clear-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --clear-font-size: 14px;
+  --clear-caption-size: 12px;
+  --clear-title-size: 23px;
+  --clear-panel-title-size: 16px;
+  --clear-space-1: 4px;
+  --clear-space-2: 8px;
+  --clear-space-3: 12px;
+  --clear-space-4: 16px;
+  --clear-space-6: 24px;
+}
