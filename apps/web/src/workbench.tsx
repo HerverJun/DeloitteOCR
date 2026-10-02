@@ -7,10 +7,11 @@ import {
 import {
   AppstoreOutlined, ArrowRightOutlined, CheckCircleOutlined, DatabaseOutlined,
   FolderOpenOutlined, PictureOutlined, PlusOutlined, ExperimentOutlined, DeploymentUnitOutlined,
-  SettingOutlined, ThunderboltOutlined, ApartmentOutlined, GithubOutlined,
+  SettingOutlined, ThunderboltOutlined, GithubOutlined,
   ExportOutlined,
 } from '@ant-design/icons';
 import { api, post, type Project, type Runtime } from './api';
+import { brands, clearTheme } from './clear-ui/theme';
 import { AssetsPanel, TrainPanel, ModelsPanel, JobsPanel, RuntimePanel } from './panels';
 import { navigationFromLaunch, safeReturnUrl, savedPlatformNavigation, savePlatformNavigation,
   type PlatformNavigation } from './platformNavigation';
@@ -105,26 +106,26 @@ export function Workbench() {
 
   const title = page === 'runtime' ? '运行环境' : menu.find(item => item.key === page)?.label;
   return <Layout className="workbench">
-    <Layout.Sider width={224} className="sidebar" theme="light" breakpoint="lg" collapsedWidth={72}>
-      <div className="brand"><span className="brand-mark"><ApartmentOutlined /></span><div className="brand-text"><strong>Prism</strong><span>图像分类工作台</span></div></div>
+    <Layout.Sider width={224} className="sidebar" theme="dark" breakpoint="lg" collapsedWidth={72}>
+      <div className="brand" title={`${brands.classification} · 图像分类与复核`}><img className="brand-mark" src="/brand/clear-mark.svg" alt="" /><div className="brand-text"><strong>{brands.classification}</strong><span>图像分类与复核</span></div></div>
       <div className="project-switch">
         <Text className="sidebar-label">当前项目</Text>
         <Select aria-label="切换项目" value={projectId} placeholder="选择项目" options={projects.data?.map(p => ({ label: p.name, value: p.id }))} onChange={id => { setSelectedId(id); setPage('overview'); }} popupMatchSelectWidth={260} />
         <Button icon={<PlusOutlined />} block onClick={() => setCreateOpen(true)}>新建项目</Button>
       </div>
       <div className="sidebar-label nav-label">工作空间</div>
-      <Menu selectedKeys={[page]} items={menu} onClick={({ key }) => setPage(key as Page)} />
+      <Menu theme="dark" selectedKeys={[page]} items={menu} onClick={({ key }) => setPage(key as Page)} />
       <div className="sidebar-bottom">
-        <Menu selectedKeys={[page]} items={[{ key: 'runtime', icon: <SettingOutlined />, label: '运行环境' }]} onClick={() => setPage('runtime')} />
+        <Menu theme="dark" selectedKeys={[page]} items={[{ key: 'runtime', icon: <SettingOutlined />, label: '运行环境' }]} onClick={() => setPage('runtime')} />
         <div className="local-status"><span className="status-dot" /><span>本地工作空间</span><Tag bordered={false}>0.2</Tag></div>
       </div>
     </Layout.Sider>
     <Layout>
-      <header className="topbar"><div><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text></div><Space size={16}><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top"><span className={`status-dot ${runtime.data?.gpu ? '' : 'muted'}`} />{runtime.data?.gpu ? 'GPU 已连接' : 'CPU 模式'}</span>{navigation && safeReturnUrl(navigation) && <a href={safeReturnUrl(navigation)!} target="_blank" rel="noopener noreferrer" className="api-link"><ExportOutlined /> 返回平台</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link"><GithubOutlined /> API 文档</a><div className="avatar">本地</div></Space></header>
+      <header className="topbar"><div className="topbar-context"><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text>{project && <Text className="topbar-project" ellipsis title={project.name}>{project.name}</Text>}</div><Space size={12} className="topbar-actions"><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top"><span className={`status-dot ${runtime.data?.gpu ? '' : 'muted'}`} />{runtime.data?.gpu ? 'GPU 已连接' : 'CPU 模式'}</span>{navigation && safeReturnUrl(navigation) && <a href={safeReturnUrl(navigation)!} target="_blank" rel="noopener noreferrer" className="api-link platform-return"><ExportOutlined /> 返回平台</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link api-docs"><GithubOutlined /> API 文档</a><span className="local-indicator">本地</span></Space></header>
       <main className="main-content">
         {navigationError && <Alert type="warning" showIcon message={navigationError} closable onClose={() => setNavigationError('')} />}
         <QueryError error={projects.error || detail.error} />
-        {!launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading"><Spin size="large" /></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
+        {!launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading" role="status" aria-live="polite"><Spin /><Text type="secondary">正在读取项目…</Text></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
           <section className="welcome"><span className="welcome-icon"><PictureOutlined /></span><Text type="secondary">从你的第一组图片开始</Text><Title level={1}>让图像各归其类</Title><Paragraph>创建一个分类项目，导入少量样本，训练属于你业务的模型。<br />图片、模型和结果均保留在本机。</Paragraph><Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建第一个项目</Button><div className="welcome-steps"><span>01 定义类别</span><span>02 导入样本</span><span>03 训练与分类</span></div></section> :
           <>
             {page === 'overview' && <Overview project={project} navigate={setPage} />}
@@ -134,7 +135,7 @@ export function Workbench() {
             {page === 'jobs' && <JobsPanel key={`jobs-${project.id}`} project={project} navigate={setPage} />}
           </>}
       </main>
-      <footer className="footer"><span>Prism · 本地图像分类平台</span><span>数据留在本机，结果可追溯</span></footer>
+      <footer className="footer"><span>{brands.classification} · 图像分类与复核</span><span>数据留在本机，结果可追溯</span></footer>
     </Layout>
     <Modal title="创建分类项目" open={createOpen} onCancel={() => setCreateOpen(false)} footer={null} width={580} destroyOnHidden>
       <Paragraph type="secondary">每个项目拥有独立的类别、数据集与模型。首版采用一张图片一个类别。</Paragraph>
@@ -170,7 +171,7 @@ function Overview({ project, navigate }: PanelProps) {
       <Card title="类别分布" extra={<Button type="link" onClick={() => navigate('assets')}>管理样本</Button>}>
         {total ? <div className="class-distribution">{project.labels.map((label, i) => {
           const count = counts.find(item => item.label_id === label.label_id)?.count ?? 0;
-          return <div key={label.label_id}><div className="distribution-label"><span><i style={{ background: ['#326a5b', '#7e94bc', '#b4a77b', '#a98fbc'][i % 4] }} />{label.display_name}</span><Text type="secondary">{count} 张</Text></div><div className="distribution-track"><span style={{ width: `${count / Math.max(total, 1) * 100}%`, background: ['#326a5b', '#7e94bc', '#b4a77b', '#a98fbc'][i % 4] }} /></div></div>;
+          return <div key={label.label_id}><div className="distribution-label"><span><i style={{ background: [clearTheme.link, '#667c68', '#a89d64', '#807490'][i % 4] }} />{label.display_name}</span><Text type="secondary">{count} 张</Text></div><div className="distribution-track"><span style={{ width: `${count / Math.max(total, 1) * 100}%`, background: [clearTheme.link, '#667c68', '#a89d64', '#807490'][i % 4] }} /></div></div>;
         })}<Divider /><div className="distribution-label"><Text type="secondary">未标注图片</Text><strong>{total - labeled} 张</strong></div></div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="导入图片后查看类别分布" />}
       </Card>
     </div>

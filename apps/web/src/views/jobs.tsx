@@ -48,7 +48,7 @@ export function JobsPanel({ project }: PanelProps) {
       {current.kind === 'inference' && current.result && <div className="metric-summary"><div><Text type="secondary">处理吞吐</Text><strong>{Number(current.result.images_per_second_this_run ?? 0).toFixed(1)} 图/秒</strong></div><div><Text type="secondary">总执行时间（含初始化）</Text><strong>{current.result.execution_seconds === undefined ? '—' : `${Number(current.result.execution_seconds).toFixed(2)} 秒`}</strong></div><div><Text type="secondary">模型会话</Text><strong className="provider-text">{current.result.session_cache_hit === undefined ? '未记录' : current.result.session_cache_hit ? '已复用' : '本次加载'}</strong></div></div>}
       <Tabs activeKey={tab} onChange={setTab} items={[
         ...(current.kind === 'inference' ? [{ key: 'results', label: '结果与复核', children: <Results project={project} job={current} /> }] : []),
-        { key: 'logs', label: '运行日志', children: <><QueryError error={logs.error} /><pre className="log-view">{logs.data?.text || '正在读取日志…'}</pre></> },
+        { key: 'logs', label: '运行日志', children: <><QueryError error={logs.error} /><pre className="log-view">{logs.isPending ? '正在读取日志…' : logs.error ? '日志加载失败，请切换任务后重试。' : logs.data?.text || '暂无运行日志'}</pre></> },
       ]} />
     </Card>}
     <Modal title="创建批量分类任务" open={createOpen} onCancel={() => setCreateOpen(false)} footer={null} width={560}>
