@@ -37,6 +37,7 @@ import {
 import { TaskQueue } from "./TaskQueue";
 import { RecognitionBar, modes } from "./RecognitionBar";
 import { BrandHeader } from "./BrandHeader";
+import { platformHomeFromLaunch, platformHomeUrl } from "./platformHome";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { AgentPanel } from "./AgentPanel";
 import { resolveAgentEvidence } from "./agentNavigation";
@@ -171,13 +172,19 @@ export function App() {
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
   const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
+  const [platformHome, setPlatformHome] = useState<string | null>(null);
   const [platformLaunchError, setPlatformLaunchError] = useState(false);
   useEffect(() => {
     let active = true;
     setPlatformNavigation(null);
+    setPlatformHome(null);
     const pending = navigationFromLaunch();
-    if (pending) void pending.then(value => {
+    void Promise.resolve(pending).then(async value => {
       if (active) setPlatformNavigation(value);
+      const returnUrl = value && safeReturnUrl(value);
+      const home = returnUrl ? platformHomeUrl(returnUrl)
+        : await platformHomeFromLaunch('ocr', () => api('/platform/v1/identity'));
+      if (active) setPlatformHome(home);
     }).catch(() => {
       if (active) { setPlatformLaunchError(true); onError("平台项目入口已失效，请从平台重新打开。"); }
     });
@@ -764,7 +771,7 @@ export function App() {
       </div>}
       {platformLaunchError && <div className="inline-warning" role="alert"><strong>平台项目入口已失效</strong>
         <p>请返回平台重新打开所选项目；当前页面不会自动改开其他项目。</p></div>}
-      <BrandHeader>
+      <BrandHeader homeUrl={platformHome}>
         {platformNavigation && safeReturnUrl(platformNavigation) && (
           <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
             target="_blank" rel="noopener noreferrer" aria-label={`在新标签页返回 ${brands.platform}`}>

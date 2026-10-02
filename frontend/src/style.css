@@ -118,6 +118,9 @@ svg {
   background: #386a12;
   color: white;
 }
+.app-header .brand { color: inherit; text-decoration: none; }
+.app-header .brand[href] { border-radius: 4px; padding: 4px; margin: -4px; }
+.app-header .brand[href]:hover { background: #1b241c; }
 .brand strong {
   font-size: 21px;
   font-weight: 650;
