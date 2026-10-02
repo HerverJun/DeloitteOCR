@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { App, Alert, Button, Card, Checkbox, Empty, Form, Modal, Pagination, Progress, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { App, Alert, Button, Card, Checkbox, Empty, Form, Input, Modal, Pagination, Progress, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import { DownloadOutlined, PauseOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, StopOutlined, CheckOutlined } from '@ant-design/icons';
 import { api, post, base, stateLabels, kindLabels, activeStates, dateText, type Job, type Model, type Result } from '../api';
 import { QueryError, useCommand, type PanelProps } from '../workbench';
@@ -47,7 +47,7 @@ export function JobsPanel({ project }: PanelProps) {
       {current.error && <Alert showIcon type="error" message={current.error} className="bottom-gap" />}
       {current.kind === 'inference' && current.result && <div className="metric-summary"><div><Text type="secondary">处理吞吐</Text><strong>{Number(current.result.images_per_second_this_run ?? 0).toFixed(1)} 图/秒</strong></div><div><Text type="secondary">总执行时间（含初始化）</Text><strong>{current.result.execution_seconds === undefined ? '—' : `${Number(current.result.execution_seconds).toFixed(2)} 秒`}</strong></div><div><Text type="secondary">模型会话</Text><strong className="provider-text">{current.result.session_cache_hit === undefined ? '未记录' : current.result.session_cache_hit ? '已复用' : '本次加载'}</strong></div></div>}
       <Tabs activeKey={tab} onChange={setTab} items={[
-        ...(current.kind === 'inference' ? [{ key: 'results', label: '结果与复核', children: <Results project={project} job={current} /> }] : []),
+        ...(current.kind === 'inference' ? [{ key: 'results', label: '结果与复核', children: <Results key={current.id} project={project} job={current} /> }] : []),
         { key: 'logs', label: '运行日志', children: <><QueryError error={logs.error} /><pre className="log-view">{logs.isPending ? '正在读取日志…' : logs.error ? '日志加载失败，请切换任务后重试。' : logs.data?.text || '暂无运行日志'}</pre></> },
       ]} />
     </Card>}
@@ -65,23 +65,41 @@ export function JobsPanel({ project }: PanelProps) {
 }
 
 function Results({ project, job }: { project: PanelProps['project']; job: Job }) {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('needs_review');
   const [page, setPage] = useState(1);
   const [review, setReview] = useState<Result>();
   const [label, setLabel] = useState<string>();
+  const [note, setNote] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkLabel, setBulkLabel] = useState<string>();
   const command = useCommand();
-  const results = useQuery({ queryKey: ['results', job.id, filter, page], queryFn: () => api<{ items: Result[]; total: number }>(`/jobs/${job.id}/results?limit=12&offset=${(page - 1) * 12}${filter === 'all' ? '' : `&status=${filter}`}`), refetchInterval: activeStates.includes(job.state) ? 2500 : false });
-  async function confirm() {
-    if (!review?.asset_id || !label) return;
-    const saved = await command.run(() => post(`/projects/${project.id}/annotations`, { asset_ids: [review.asset_id], label_id: label }), '人工标签已保存');
-    if (saved) setReview(undefined);
+  const results = useQuery({ queryKey: ['results', job.id, filter, page], queryFn: () => api<{ items: Result[]; total: number; disposition_counts: Record<string, number> }>(`/jobs/${job.id}/results?limit=12&offset=${(page - 1) * 12}${filter === 'all' ? '' : `&status=${filter}`}`), refetchInterval: activeStates.includes(job.state) ? 2500 : false });
+  function open(row: Result) { setReview(row); setLabel(row.human_label_id || row.prediction?.label_id); setNote(row.disposition_note || ''); }
+  async function dispose(state: 'confirmed' | 'deferred' | 'reopened', rows: Result[], next = false) {
+    if (!rows.length || (state === 'confirmed' && !(next ? label : bulkLabel))) return;
+    const saved = await command.run(() => post(`/jobs/${job.id}/dispositions`, {
+      item_ids: rows.map(row => row.id), state,
+      label_id: state === 'confirmed' ? (next ? label : bulkLabel) : null,
+      note: next ? note : '', expected_revisions: Object.fromEntries(rows.map(row => [row.id, row.disposition_revision])),
+    }), `${rows.length} 项处置已保存`);
+    if (!saved) return;
+    setSelectedIds([]);
+    const fresh = (await results.refetch()).data;
+    if (next) {
+      const remaining = fresh?.items.find(row => !rows.some(savedRow => savedRow.id === row.id) && row.state === 'succeeded' && row.disposition_state !== 'confirmed');
+      if (remaining) open(remaining);
+      else { setReview(undefined); if (page > 1 && !fresh?.items.length) setPage(page - 1); }
+    }
   }
+  const selectable = results.data?.items.filter(row => row.state === 'succeeded') ?? [];
+  const selectedRows = results.data?.items.filter(row => selectedIds.includes(row.id)) ?? [];
   return <>
-    <div className="data-toolbar"><Space><Select aria-label="筛选分类结果" value={filter} style={{ width: 150 }} options={[{ label: '全部结果', value: 'all' }, ...['needs_review', 'accepted', 'failed', 'pending'].map(value => ({ label: stateLabels[value], value }))]} onChange={value => { setFilter(value); setPage(1); }} /><Text type="secondary">{results.data?.total ?? 0} 项</Text></Space><Space><Button icon={<DownloadOutlined />} href={`${base}/jobs/${job.id}/export?format=csv`}>CSV</Button><Button href={`${base}/jobs/${job.id}/export?format=jsonl`}>JSONL</Button></Space></div>
+    <div className="data-toolbar"><Space wrap><Select aria-label="筛选分类结果" value={filter} style={{ width: 150 }} options={[{ label: '全部结果', value: 'all' }, ...['needs_review', 'confirmed', 'deferred', 'reopened', 'failed', 'pending', 'accepted'].map(value => ({ label: stateLabels[value], value }))]} onChange={value => { setFilter(value); setPage(1); setSelectedIds([]); }} /><Text type="secondary">{results.data?.total ?? 0} 项 · 本次确认 {results.data?.disposition_counts.confirmed ?? 0} · 暂缓 {results.data?.disposition_counts.deferred ?? 0}</Text></Space><Space><Button icon={<DownloadOutlined />} href={`${base}/jobs/${job.id}/export?format=csv`}>CSV</Button><Button href={`${base}/jobs/${job.id}/export?format=jsonl`}>JSONL</Button></Space></div>
+    <Space wrap className="bottom-gap"><Checkbox checked={!!selectable.length && selectedIds.length === selectable.length} indeterminate={!!selectedIds.length && selectedIds.length < selectable.length} onChange={event => setSelectedIds(event.target.checked ? selectable.map(row => row.id) : [])}>选择当前页可复核结果</Checkbox><Text type="secondary">已选当前页 {selectedRows.length} 项</Text><Select aria-label="批量确认类别" value={bulkLabel} onChange={setBulkLabel} placeholder="确认类别" style={{ width: 160 }} options={project.labels.map(item => ({ label: item.display_name, value: item.label_id }))} /><Button disabled={!selectedRows.length || !bulkLabel || command.busy} onClick={() => void dispose('confirmed', selectedRows)}>确认所选 {selectedRows.length} 项</Button><Button disabled={!selectedRows.length || command.busy} onClick={() => void dispose('deferred', selectedRows)}>暂缓所选</Button><Button disabled={!selectedRows.length || command.busy} onClick={() => void dispose('reopened', selectedRows)}>重开所选</Button></Space>
     <QueryError error={results.error} />
-    {results.data?.items.length ? <><div className="result-grid">{results.data.items.map(row => <article className="result-card" key={row.id}><div className="result-image">{row.asset_id && <img loading="lazy" src={`${base}/assets/${row.asset_id}/thumbnail`} alt={row.name || '分类图片'} />}</div><div className="result-info"><Text ellipsis title={row.name}>{row.name || row.path.split(/[\\/]/).pop()}</Text><div><Status value={row.prediction?.status || row.state} />{row.prediction && <Text>{row.prediction.display_name} · {(row.prediction.score * 100).toFixed(1)} 分</Text>}</div>{row.error && <Text type="danger" ellipsis title={row.error}>{row.error}</Text>}{row.confirmed_label && <Text type="secondary">已标注：{project.labels.find(item => item.label_id === row.confirmed_label)?.display_name}</Text>}<Button size="small" icon={<CheckOutlined />} disabled={!row.asset_id || row.state !== 'succeeded'} onClick={() => { setReview(row); setLabel(row.confirmed_label || row.prediction?.label_id); }}>查看并确认</Button></div></article>)}</div><div className="pagination"><Pagination current={page} pageSize={12} total={results.data.total} showSizeChanger={false} onChange={setPage} /></div></> : <Empty description={results.isPending ? '正在读取结果' : '暂无符合条件的结果'} />}
-    <Modal title="人工确认标签" open={!!review} onCancel={() => setReview(undefined)} width={680} footer={<Space><Button onClick={() => setReview(undefined)}>跳过</Button><Button type="primary" disabled={!label} loading={command.busy} onClick={confirm}>确认并保存</Button></Space>}>
-      {review && <><div className="review-image"><img src={`${base}/assets/${review.asset_id}/image`} alt={review.name} /></div><Paragraph>{review.name} <a href={`${base}/assets/${review.asset_id}/image`} target="_blank" rel="noreferrer">打开原图</a></Paragraph><Paragraph type="secondary">预测：{review.prediction?.display_name}，分数 {((review.prediction?.score || 0) * 100).toFixed(1)}。请根据图片内容确认真实类别。</Paragraph><Select aria-label="人工确认类别" value={label} onChange={setLabel} options={project.labels.map(item => ({ label: item.display_name, value: item.label_id }))} style={{ width: '100%' }} /><Paragraph type="secondary" className="review-note">保存后建立标注修订。原始预测和旧实验保持不变；重新发布数据版本后可用于下一轮训练。</Paragraph></>}
+    {results.data?.items.length ? <><div className="result-grid">{results.data.items.map(row => <article className="result-card" key={row.id}><div className="result-image">{row.asset_id && <img loading="lazy" src={`${base}/assets/${row.asset_id}/thumbnail`} alt={row.name || '分类图片'} />}</div><div className="result-info"><Checkbox disabled={row.state !== 'succeeded'} checked={selectedIds.includes(row.id)} onChange={event => setSelectedIds(event.target.checked ? [...selectedIds, row.id] : selectedIds.filter(id => id !== row.id))}><Text ellipsis title={row.name}>{row.name || row.path.split(/[\\/]/).pop()}</Text></Checkbox><div><Status value={row.disposition_state} />{row.prediction && <Text>建议：{row.prediction.display_name} · {(row.prediction.score * 100).toFixed(1)} 分</Text>}</div>{row.error && <Text type="danger" ellipsis title={row.error}>{row.error}</Text>}{row.human_label_id && <Text>本次确认：{project.labels.find(item => item.label_id === row.human_label_id)?.display_name}</Text>}{row.confirmed_label && <Text type="secondary">资产当前标签：{project.labels.find(item => item.label_id === row.confirmed_label)?.display_name}</Text>}<Button size="small" icon={<CheckOutlined />} disabled={!row.asset_id || row.state !== 'succeeded'} onClick={() => open(row)}>查看并处置</Button></div></article>)}</div><div className="pagination"><Pagination current={page} pageSize={12} total={results.data.total} showSizeChanger={false} onChange={value => { setPage(value); setSelectedIds([]); }} /></div></> : <Empty description={results.isPending ? '正在读取结果' : '暂无符合条件的结果'} />}
+    <Modal title="核对本次分类结果" open={!!review} onCancel={() => setReview(undefined)} width={960} footer={<Space wrap><Button onClick={() => setReview(undefined)}>关闭</Button><Button loading={command.busy} onClick={() => review && void dispose('deferred', [review], true)}>暂缓并下一项</Button><Button loading={command.busy} onClick={() => review && void dispose('reopened', [review], true)}>重开并下一项</Button><Button type="primary" disabled={!label} loading={command.busy} onClick={() => review && void dispose('confirmed', [review], true)}>保存并下一项</Button></Space>}>
+      {review && <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}><div className="review-image" style={{ flex: '1 1 440px' }}><img src={`${base}/assets/${review.asset_id}/image`} alt={review.name} /></div><div style={{ flex: '1 1 260px' }}><Paragraph>{review.name} <a href={`${base}/assets/${review.asset_id}/image`} target="_blank" rel="noreferrer">打开原图</a></Paragraph><Paragraph>原始建议：{review.prediction?.display_name}，分数 {((review.prediction?.score || 0) * 100).toFixed(1)}。</Paragraph><Paragraph type="secondary">分数不代表审计风险；请根据原图确认真实类别。</Paragraph><Select aria-label="人工确认类别" value={label} onChange={setLabel} options={project.labels.map(item => ({ label: item.display_name, value: item.label_id }))} style={{ width: '100%' }} /><Input.TextArea aria-label="人工处置说明" value={note} onChange={event => setNote(event.target.value)} maxLength={2000} placeholder="处置说明（可选）" rows={3} style={{ marginTop: 16 }} /><Paragraph type="secondary" className="review-note">本次处置单独保存。暂缓和重开仍计入待处理；原始预测持续保留。</Paragraph></div></div>}
     </Modal>
   </>;
 }

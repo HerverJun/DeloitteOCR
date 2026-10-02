@@ -101,6 +101,21 @@ CREATE INDEX platform_import_target ON platform_import_items(target_asset_id);
 PRAGMA user_version=3;
 """
 
+MIGRATION_4 = """
+CREATE TABLE result_dispositions (
+ item_id TEXT PRIMARY KEY REFERENCES job_items(id), state TEXT NOT NULL
+ CHECK(state IN ('confirmed','deferred','reopened')), label_id TEXT,
+ note TEXT NOT NULL DEFAULT '', revision INTEGER NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE TABLE result_disposition_events (
+ id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id),
+ item_id TEXT NOT NULL REFERENCES job_items(id), state TEXT NOT NULL,
+ label_id TEXT, note TEXT NOT NULL, revision INTEGER NOT NULL, created_at TEXT NOT NULL,
+ UNIQUE(item_id,revision)
+);
+PRAGMA user_version=4;
+"""
+
 
 class Store:
     def __init__(self, settings: Settings):
@@ -124,7 +139,12 @@ class Store:
                 for statement in MIGRATION_3.split(";"):
                     if statement.strip():
                         con.execute(statement)
-            elif version != 3:
+                version = 3
+            if version == 3:
+                for statement in MIGRATION_4.split(";"):
+                    if statement.strip():
+                        con.execute(statement)
+            elif version != 4:
                 raise RuntimeError(f"Unsupported database version {version}")
 
     @contextmanager
@@ -166,6 +186,50 @@ class Store:
         for key in ("params", "result"):
             result[key] = json.loads(result[key]) if result[key] else None
         return result
+
+    def dispose_results(self, job_id, item_ids, state, label_id=None, note="", expected_revisions=None):
+        """Persist decisions for this run; asset annotations never imply review."""
+        job = self.job(job_id)
+        if job["kind"] != "inference" or state not in {"confirmed", "deferred", "reopened"}:
+            raise ValueError("仅分类结果可记录此处置")
+        if not item_ids or len(item_ids) > 500 or len(set(item_ids)) != len(item_ids):
+            raise ValueError("请明确选择 1 至 500 项结果")
+        labels = {row["label_id"] for row in self.project(job["project_id"])["labels"]}
+        if state == "confirmed" and label_id not in labels:
+            raise ValueError("确认类别不属于此项目")
+        if state != "confirmed" and label_id is not None:
+            raise ValueError("暂缓或重开不能设置确认类别")
+        if expected_revisions is not None and set(expected_revisions) != set(item_ids):
+            raise ValueError("处置版本必须覆盖全部所选结果")
+        with self.connect(write=True) as con:
+            for item_id in item_ids:
+                row = con.execute("SELECT j.*,d.revision disposition_revision FROM job_items j "
+                                  "LEFT JOIN result_dispositions d ON d.item_id=j.id "
+                                  "WHERE j.id=? AND j.job_id=?", (item_id, job_id)).fetchone()
+                if row is None:
+                    raise LookupError("结果不存在或不属于此任务")
+                revision = row["disposition_revision"] or 0
+                if expected_revisions is not None and expected_revisions[item_id] != revision:
+                    raise ValueError("处置记录已变化，请刷新后重试")
+                if state == "confirmed" and (row["state"] != "succeeded" or not row["prediction"]):
+                    raise ValueError("执行失败或没有预测的结果不能确认为已复核")
+                stamp = now()
+                con.execute("INSERT INTO result_dispositions VALUES(?,?,?,?,?,?) "
+                            "ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,label_id=excluded.label_id,"
+                            "note=excluded.note,revision=excluded.revision,updated_at=excluded.updated_at",
+                            (item_id, state, label_id, note, revision + 1, stamp))
+                con.execute("INSERT INTO result_disposition_events VALUES(?,?,?,?,?,?,?,?)",
+                            (uid("decision"), job_id, item_id, state, label_id, note, revision + 1, stamp))
+                if state == "confirmed" and row["asset_id"]:
+                    asset = con.execute("SELECT label_id FROM assets WHERE id=? AND project_id=?",
+                                        (row["asset_id"], job["project_id"])).fetchone()
+                    if asset is None:
+                        raise LookupError("结果原图不属于此项目")
+                    con.execute("INSERT INTO annotations VALUES(?,?,?,?,?,?)",
+                                (uid("annotation"), row["asset_id"], asset["label_id"], label_id,
+                                 "result_confirmed:" + job_id, stamp))
+                    con.execute("UPDATE assets SET label_id=? WHERE id=?", (label_id, row["asset_id"]))
+        return {"updated": len(item_ids), "state": state}
 
     def submit(self, project_id, kind, params, items=(), key=None):
         self.project(project_id)

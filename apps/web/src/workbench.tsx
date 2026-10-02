@@ -5,7 +5,7 @@ import {
   Spin, Tag, Typography, Dropdown,
 } from 'antd';
 import {
-  AppstoreOutlined, ArrowRightOutlined, CheckCircleOutlined, DatabaseOutlined,
+  AppstoreOutlined, ArrowRightOutlined, DatabaseOutlined,
   FolderOpenOutlined, PictureOutlined, PlusOutlined, ExperimentOutlined, DeploymentUnitOutlined,
   SettingOutlined, ThunderboltOutlined, GithubOutlined,
   ExportOutlined,
@@ -161,12 +161,12 @@ function Overview({ project, navigate }: PanelProps) {
       {[['图像总数', total.toLocaleString(), <PictureOutlined />, `${labeled.toLocaleString()} 张已标注`], ['分类类别', project.labels.length, <AppstoreOutlined />, '独立定义的互斥类别'], ['可用模型', project.model_count ?? 0, <DeploymentUnitOutlined />, project.active_model_id ? '已设置默认模型' : '等待第一次训练'], ['活动任务', running, <ThunderboltOutlined />, running ? '任务正在后台处理' : '当前没有排队任务']].map(([name, value, icon, note]) => <div className="summary-stat" key={String(name)}><div className="stat-top"><Text type="secondary">{name}</Text>{icon}</div><strong>{value}</strong><Text type="secondary">{note}</Text></div>)}
     </section>
     <div className="overview-columns">
-      <Card title="开始一次分类工作流" className="workflow-card"><Paragraph type="secondary">按顺序完成数据准备、模型验证与大批量处理。</Paragraph>
+      <Card title="分类工作入口" className="workflow-card"><Paragraph type="secondary">进入对应操作。已有样本与模型表示准备可用，本次执行、复核与导出状态在任务详情核对。</Paragraph>
         {[
-          { title: '整理图像与标签', note: '导入类别文件夹，确认样本与来源分组。', page: 'assets', done: labeled > 0, icon: <FolderOpenOutlined /> },
-          { title: '冻结数据，训练模型', note: '独立保留验证与测试数据，比较分类效果。', page: 'train', done: !!project.model_count, icon: <ExperimentOutlined /> },
-          { title: '批量分类与人工复核', note: '跟踪任务、导出结果，将纠错纳入下一版数据。', page: 'jobs', done: false, icon: <ThunderboltOutlined /> },
-        ].map((step, index) => <button className="workflow-step" key={step.page} onClick={() => navigate(step.page as Page)}><span className={`step-icon ${step.done ? 'done' : ''}`}>{step.done ? <CheckCircleOutlined /> : step.icon}</span><span className="step-text"><span className="step-title"><small>0{index + 1}</small>{step.title}</span><span>{step.note}</span></span><ArrowRightOutlined /></button>)}
+          { title: '整理图像与标签', note: labeled > 0 ? `已有 ${labeled} 张标注样本，可继续维护。` : '导入类别文件夹，确认样本与来源分组。', page: 'assets', icon: <FolderOpenOutlined /> },
+          { title: '冻结数据，训练模型', note: project.model_count ? `已有 ${project.model_count} 个模型，进入验证或新建训练。` : '独立保留验证与测试数据，比较分类效果。', page: 'train', icon: <ExperimentOutlined /> },
+          { title: '批量分类与人工复核', note: '跟踪本次执行与处置记录，按需导出固定结果。', page: 'jobs', icon: <ThunderboltOutlined /> },
+        ].map((step, index) => <button className="workflow-step" key={step.page} onClick={() => navigate(step.page as Page)}><span className="step-icon">{step.icon}</span><span className="step-text"><span className="step-title"><small>0{index + 1}</small>{step.title}</span><span>{step.note}</span></span><ArrowRightOutlined /></button>)}
       </Card>
       <Card title="类别分布" extra={<Button type="link" onClick={() => navigate('assets')}>管理样本</Button>}>
         {total ? <div className="class-distribution">{project.labels.map((label, i) => {

@@ -92,6 +92,15 @@ class JobAction(BaseModel):
     action: Literal["pause", "resume", "cancel", "retry_failed"]
 
 
+class ResultDisposition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    item_ids: list[str] = Field(min_length=1, max_length=500)
+    state: Literal["confirmed", "deferred", "reopened"]
+    label_id: str | None = None
+    note: str = Field(default="", max_length=2000)
+    expected_revisions: dict[str, int] | None = None
+
+
 def public_job(store, row):
     item = dict(row)
     for key in ("params", "result"):
@@ -438,6 +447,13 @@ def create_app(settings=None):
             job_id = store.submit(project_id, "inference", params, items, idempotency_key)
         return {"job_id": job_id}
 
+    @app.get("/api/v1/projects/{project_id}/inference-requests/{request_id}")
+    def inference_request(project_id: str, request_id: str):
+        store.project(project_id)
+        row = store.one("SELECT job_id FROM idempotency WHERE scope=? AND key=?",
+                        (project_id + ":inference", request_id))
+        return {"submitted": row is not None, "job_id": row["job_id"] if row else None}
+
     @app.get("/api/v1/projects/{project_id}/jobs")
     def jobs(project_id: str, limit: int = Query(50, ge=1, le=200)):
         store.project(project_id)
@@ -479,32 +495,61 @@ def create_app(settings=None):
     def results(job_id: str, limit: int = Query(48, ge=1, le=200), offset: int = Query(0, ge=0), status: str | None = None):
         store.job(job_id)
         where, params = "j.job_id=?", [job_id]
-        if status in {"accepted", "needs_review"}:
+        if status == "needs_review":
+            where += " AND j.state='succeeded' AND COALESCE(d.state,'unreviewed') IN ('unreviewed','reopened')"
+        elif status in {"unreviewed", "confirmed", "deferred", "reopened"}:
+            where += " AND COALESCE(d.state,'unreviewed')=?"
+            params.append(status)
+        elif status == "accepted":
             where += " AND json_extract(j.prediction,'$.status')=?"
             params.append(status)
         elif status in {"failed", "pending", "cancelled"}:
             where += " AND j.state=?"
             params.append(status)
-        total = store.one(f"SELECT COUNT(*) count FROM job_items j WHERE {where}", params)["count"]
-        rows = store.rows(f"SELECT j.*,a.name,a.label_id confirmed_label FROM job_items j LEFT JOIN assets a ON a.id=j.asset_id WHERE {where} ORDER BY j.id LIMIT ? OFFSET ?", (*params, limit, offset))
+        join = "LEFT JOIN result_dispositions d ON d.item_id=j.id"
+        total = store.one(f"SELECT COUNT(*) count FROM job_items j {join} WHERE {where}", params)["count"]
+        rows = store.rows(f"SELECT j.*,a.name,a.label_id confirmed_label,COALESCE(d.state,'unreviewed') disposition_state,"
+                          f"d.label_id human_label_id,COALESCE(d.revision,0) disposition_revision,d.note disposition_note,"
+                          f"d.updated_at disposition_updated_at FROM job_items j {join} LEFT JOIN assets a ON a.id=j.asset_id "
+                          f"WHERE {where} ORDER BY j.id LIMIT ? OFFSET ?", (*params, limit, offset))
         for row in rows:
             row["prediction"] = json.loads(row["prediction"]) if row["prediction"] else None
-        return {"items": rows, "total": total}
+        counts = store.rows("SELECT COALESCE(d.state,'unreviewed') state,COUNT(*) count FROM job_items j "
+                            "LEFT JOIN result_dispositions d ON d.item_id=j.id WHERE j.job_id=? GROUP BY 1", (job_id,))
+        return {"items": rows, "total": total, "disposition_counts": {row['state']: row['count'] for row in counts}}
+
+    @app.post("/api/v1/jobs/{job_id}/dispositions")
+    def dispose_results(job_id: str, body: ResultDisposition):
+        return store.dispose_results(job_id, body.item_ids, body.state, body.label_id,
+                                     body.note, body.expected_revisions)
+
+    @app.get("/api/v1/jobs/{job_id}/results/{item_id}/dispositions")
+    def disposition_history(job_id: str, item_id: str):
+        store.job(job_id)
+        if not store.one("SELECT id FROM job_items WHERE job_id=? AND id=?", (job_id, item_id)):
+            raise LookupError("结果不存在或不属于此任务")
+        return {"items": store.rows("SELECT * FROM result_disposition_events WHERE job_id=? AND item_id=? "
+                                    "ORDER BY revision", (job_id, item_id))}
 
     @app.get("/api/v1/jobs/{job_id}/export")
     def export_results(job_id: str, format: Literal["csv", "jsonl"] = "csv"):
         store.job(job_id)
-        fields = ["job_id", "item_id", "asset_id", "path", "content_sha256", "model_version_id", "label_id", "score", "status", "error", "processed_at", "current_annotation_label_id", "effective_label_id"]
+        fields = ["job_id", "item_id", "asset_id", "path", "content_sha256", "model_version_id", "label_id", "score", "status", "error", "processed_at", "current_annotation_label_id", "effective_label_id", "disposition_state", "human_label_id", "disposition_revision", "disposition_note"]
 
         def records():
             with store.connect() as con:
-                for row in con.execute("SELECT j.*,a.label_id current_annotation_label_id FROM job_items j LEFT JOIN assets a ON a.id=j.asset_id WHERE j.job_id=? ORDER BY j.id", (job_id,)):
+                for row in con.execute("SELECT j.*,a.label_id current_annotation_label_id,COALESCE(d.state,'unreviewed') disposition_state,"
+                                       "d.label_id human_label_id,COALESCE(d.revision,0) disposition_revision,d.note disposition_note "
+                                       "FROM job_items j LEFT JOIN assets a ON a.id=j.asset_id LEFT JOIN result_dispositions d ON d.item_id=j.id "
+                                       "WHERE j.job_id=? ORDER BY j.id", (job_id,)):
                     prediction = json.loads(row["prediction"]) if row["prediction"] else {}
                     yield {"job_id": job_id, "item_id": row["id"], "asset_id": row["asset_id"], "path": row["path"], "content_sha256": row["sha256"],
                            "model_version_id": prediction.get("model_version_id"), "label_id": prediction.get("label_id"), "score": prediction.get("score"),
                            "status": prediction.get("status", row["state"]), "error": row["error"], "processed_at": prediction.get("processed_at"),
                            "current_annotation_label_id": row["current_annotation_label_id"],
-                           "effective_label_id": row["current_annotation_label_id"] or prediction.get("label_id")}
+                           "effective_label_id": row["human_label_id"] if row["disposition_state"] == "confirmed" else row["current_annotation_label_id"] or prediction.get("label_id"),
+                           "disposition_state": row["disposition_state"], "human_label_id": row["human_label_id"],
+                           "disposition_revision": row["disposition_revision"], "disposition_note": row["disposition_note"]}
 
         def stream():
             if format == "jsonl":
