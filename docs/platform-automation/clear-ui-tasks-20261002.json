@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "plan_id": "clear-ui-20261002",
+  "status": "planning_draft",
+  "execution_authorized": false,
+  "plan_file": "Clear系列界面统一务实开发计划-20261002.md",
+  "purpose": "按依赖、负责人、独立写入范围推进 Clear 界面统一；这是任务规格，不是正式工程账本或自动调度器。",
+  "source_roots": {
+    "platform": "E:/project/professional-workbench-platform",
+    "ocr": "E:/project/platform-dev-runs/dev-20260925-001/workspaces/ocr",
+    "classification": "E:/project/platform-dev-runs/dev-20260925-001/workspaces/classification",
+    "docs": "F:/OCR/docs/platform-automation",
+    "run": "F:/OCR/output/clear-ui-dev-20261002",
+    "candidate": "F:/OCR/output/clear-workbench-preview-20261002"
+  },
+  "baseline_heads": {
+    "platform": "66971e7230538addcafe4f108931415395cec407",
+    "ocr": "465620cadff2235da4fd875ca4555fcb5eb7b3e5",
+    "classification": "90fc0c1ec50223b6b3fbe2446cca86116be46ed4"
+  },
+  "brands": {
+    "platform": "Clear Workbench",
+    "ocr": "ClearOCR",
+    "classification": "ClearClassify",
+    "data": "ClearData"
+  },
+  "execution_rules": {
+    "max_development_lanes": 3,
+    "coordinator_count": 1,
+    "worktree_branch_prefix": "codex/clear-ui-",
+    "write_path_format": "repo:relative/path; ** 表示该负责人可写的子树；执行工作树实际路径由 U00 记录",
+    "resource_lock_scope": "独占资源仅在对应构建/浏览器/候选操作期间持有，不整任务占锁；同一工作树构建期间暂停写入或使用隔离工作树快照。",
+    "test_edit_policy": "任务可修改确实受影响的已有测试；新增到写入白名单前由统筹登记，确认无并行写入交叉。可逆样式不新增镜像实现测试。",
+    "shared_files_owner": "coordinator",
+    "same_files_concurrent_writers": 1,
+    "task_checkpoints_after_effective_hours": 4,
+    "nonblocking_visual_revision_rounds": 1,
+    "repeat_same_failed_check_limit": 2,
+    "resume_record": "run:NEXT.md",
+    "resume_record_writer": "coordinator",
+    "formal_task_ledger_update": false,
+    "automatic_thread_or_schedule_creation": false,
+    "release_strategy": "源码冻结后一次候选；有可靠差量工具则更新新候选的前端/显示元数据并重生成清单，否则一次全量构建；不手工继承旧成功缓存。",
+    "stop_condition": "U00–U08 完成，候选可审阅且无计划定义的阻断问题；交付后不自行开启第二轮精修。"
+  },
+  "exclusive_resources": [
+    "shared-design-contract",
+    "platform-frontend-build",
+    "ocr-frontend-build",
+    "classification-frontend-build",
+    "browser-review",
+    "candidate-update",
+    "real-gpu-task"
+  ],
+  "tasks": [
+    {
+      "id": "U00",
+      "title": "记录基线与隔离工作范围",
+      "owner": "coordinator",
+      "depends_on": [],
+      "write_paths": ["run:U00/**", "run:NEXT.md"],
+      "checks": ["只读核对三个 HEAD、已有改动、当时运行实例；读取适用规则，记录实际工作树映射"],
+      "acceptance": ["原有改动与交付不被覆盖", "源码根、负责人和写入边界明确，不重复全项目审计"],
+      "outputs": ["run:U00/baseline.md", "run:NEXT.md"],
+      "exclusive_resources": []
+    },
+    {
+      "id": "U01",
+      "title": "一次冻结 Clear 视觉与品牌契约",
+      "owner": "coordinator",
+      "depends_on": ["U00"],
+      "write_paths": [
+        "platform:apps/portal/src/clear-ui/**",
+        "platform:apps/portal/public/brand/clear-*",
+        "ocr:frontend/src/clear-ui/**",
+        "ocr:frontend/public/brand/clear-*",
+        "classification:apps/web/src/clear-ui/**",
+        "classification:apps/web/public/brand/clear-*",
+        "run:U01/**"
+      ],
+      "checks": ["人工核对参数与计划中 OCR 基准一致；比较三个静态规范副本的版本和内容", "检查主按钮、导航文字与焦点可读性"],
+      "acceptance": ["品牌/token/外壳规范可被三个原框架适配", "半天内冻结一次，不新增 UI 运行时依赖或工具链"],
+      "outputs": ["platform:apps/portal/src/clear-ui/**", "run:U01/design-contract.md"],
+      "exclusive_resources": ["shared-design-contract"]
+    },
+    {
+      "id": "U02",
+      "title": "统一门户公共外壳",
+      "owner": "lane-a",
+      "depends_on": ["U01"],
+      "write_paths": [
+        "platform:apps/portal/src/App.tsx",
+        "platform:apps/portal/src/router.tsx",
+        "platform:apps/portal/src/main.tsx",
+        "platform:apps/portal/src/style.css",
+        "platform:apps/portal/index.html",
+        "platform:apps/portal/tests/navigation.test.tsx",
+        "run:U02/**"
+      ],
+      "checks": ["platform/apps/portal: pnpm build", "platform/apps/portal: pnpm test -- tests/navigation.test.tsx", "定向核对导航、工作空间选择和 Clear 品牌显示"],
+      "acceptance": ["公共外壳与主题统一，工作页首屏出现实际内容", "路由、工作空间上下文、加载和错误语义保留"],
+      "outputs": ["run:U02/result.md", "run:U02/checks/**"],
+      "exclusive_resources": ["platform-frontend-build"]
+    },
+    {
+      "id": "U03",
+      "title": "统一 ClearOCR 原生工作台",
+      "owner": "lane-b",
+      "depends_on": ["U01"],
+      "write_paths": [
+        "ocr:frontend/src/BrandHeader.tsx",
+        "ocr:frontend/src/WorkspaceLayout.tsx",
+        "ocr:frontend/src/theme.ts",
+        "ocr:frontend/src/professional.css",
+        "ocr:frontend/src/style.css",
+        "ocr:frontend/src/App.tsx",
+        "ocr:frontend/src/main.tsx",
+        "ocr:frontend/index.html",
+        "run:U03/**"
+      ],
+      "checks": ["ocr/frontend: pnpm build", "先定位受影响的已有前端用例，再定向运行 pnpm test", "既有结果编辑/保存/导出和平台返回链在 U07 集中实测"],
+      "acceptance": ["当前品牌为 ClearOCR，保留既有精致编辑器布局", "分栏、低高度模式、校对与状态反馈没有退化"],
+      "outputs": ["run:U03/result.md", "run:U03/checks/**"],
+      "exclusive_resources": ["ocr-frontend-build"]
+    },
+    {
+      "id": "U04",
+      "title": "统一 ClearClassify 原生工作台",
+      "owner": "lane-c",
+      "depends_on": ["U01"],
+      "write_paths": [
+        "classification:apps/web/src/main.tsx",
+        "classification:apps/web/src/workbench.tsx",
+        "classification:apps/web/src/style.css",
+        "classification:apps/web/src/views/**",
+        "classification:apps/web/index.html",
+        "run:U04/**"
+      ],
+      "checks": ["classification/apps/web: pnpm build", "先定位 e2e/workspace.spec.ts 中受影响用例，再用 pnpm test:e2e 定向运行", "项目、标签、现有模型/任务及复核读回在 U07 集中实测"],
+      "acceptance": ["ClearClassify 外壳和现有功能分区统一，当前页面无 Prism 产品品牌", "训练/推理/复核语义与浏览器存储键保持兼容"],
+      "outputs": ["run:U04/result.md", "run:U04/checks/**"],
+      "exclusive_resources": ["classification-frontend-build", "browser-review"]
+    },
+    {
+      "id": "U05",
+      "title": "统一 ClearData 作业页面",
+      "owner": "lane-a",
+      "depends_on": ["U02"],
+      "write_paths": [
+        "platform:apps/portal/src/features/data/**",
+        "run:U05/**"
+      ],
+      "checks": ["platform/apps/portal: pnpm build，和 U06 的同仓构建排队执行", "两份既有小表导入/清洗/比对/实际导出读回在 U07 集中实测"],
+      "acceptance": ["作业头、输入面板、工具栏、结果和导出遵循共同层级", "版本、金额容差、比对键、警告和成果保持原语义"],
+      "outputs": ["run:U05/result.md", "run:U05/checks/**"],
+      "exclusive_resources": ["platform-frontend-build"]
+    },
+    {
+      "id": "U06",
+      "title": "统一门户交接与配套页面",
+      "owner": "coordinator",
+      "depends_on": ["U02"],
+      "write_paths": [
+        "platform:apps/portal/src/features/catalog/**",
+        "platform:apps/portal/src/features/ocr/**",
+        "platform:apps/portal/src/features/classification/**",
+        "platform:apps/portal/src/features/assets/**",
+        "platform:apps/portal/src/features/jobs/**",
+        "platform:apps/portal/src/features/artifacts/**",
+        "platform:apps/portal/tests/catalog.test.tsx",
+        "platform:apps/portal/tests/jobs.test.tsx",
+        "run:U06/**"
+      ],
+      "checks": ["platform/apps/portal: pnpm build，和 U05 的同仓构建排队执行", "platform/apps/portal: pnpm test -- tests/catalog.test.tsx tests/jobs.test.tsx，按实际改动裁剪", "保留首次校验阶段/百分比/计数/文件/用时以及禁用与错误状态"],
+      "acceptance": ["门户配套页使用相同品牌与视觉层级", "原生交接与反馈不出现身份、缓存或状态回归"],
+      "outputs": ["run:U06/result.md", "run:U06/checks/**"],
+      "exclusive_resources": ["platform-frontend-build"]
+    },
+    {
+      "id": "U07",
+      "title": "集成与一次集中检查",
+      "owner": "coordinator",
+      "depends_on": ["U03", "U04", "U05", "U06"],
+      "write_paths": ["run:U07/**"],
+      "checks": ["按主计划 6.1 的有限场景检查同一组源码预览", "三个主页面桌面截图加一张低高度、一张窄屏，必需截图最多五张", "只修复阻断和一次集中非阻断视觉问题，修复回到原文件负责人"],
+      "acceptance": ["当前产品界面全部 Clear 化且风格统一", "导航、人工编辑/复核与数据主流程可用，三个主要视口无阻断问题", "源码冻结，未通过检查不伪记完成"],
+      "outputs": ["run:U07/review.md", "run:U07/screenshots/**", "run:U07/checks/**"],
+      "exclusive_resources": ["browser-review"]
+    },
+    {
+      "id": "U08",
+      "title": "形成固定 Clear 候选与交付",
+      "owner": "coordinator",
+      "depends_on": ["U07"],
+      "write_paths": ["candidate:**", "run:U08/**"],
+      "checks": ["按现有发布流程核对前端、必要显示元数据及应用/程序清单身份", "新候选首次后台校验有真实反馈，成功后同包重启为 cached；不伪造旧缓存", "包内页面与冻结源码一致，两个原生入口身份正确，旧成果可读回"],
+      "acceptance": ["一个明确候选、入口、源码对应表、有限证据、使用/回退说明", "旧程序/数据不覆盖，正式资格状态不伪改", "全部本轮门槛通过后递交并停止精修"],
+      "outputs": ["candidate:README.md", "run:U08/delivery-report.md", "run:U08/checks/**"],
+      "exclusive_resources": ["candidate-update", "browser-review"]
+    }
+  ]
+}
