@@ -15,6 +15,7 @@ import { brands, clearTheme } from './clear-ui/theme';
 import { AssetsPanel, TrainPanel, ModelsPanel, JobsPanel, RuntimePanel } from './panels';
 import { navigationFromLaunch, safeReturnUrl, savePlatformNavigation,
   type PlatformNavigation } from './platformNavigation';
+import { platformHomeFromLaunch, platformHomeUrl } from './platformHome';
 
 const { Title, Text, Paragraph } = Typography;
 export type Page = 'overview' | 'assets' | 'train' | 'models' | 'jobs' | 'runtime';
@@ -55,6 +56,7 @@ export function Workbench() {
   const [page, setPage] = useState<Page>('overview');
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem('prism-project') || '');
   const [navigation, setNavigation] = useState<PlatformNavigation | null>(null);
+  const [platformHome, setPlatformHome] = useState<string | null>(null);
   const [navigationApplied, setNavigationApplied] = useState(false);
   const [navigationError, setNavigationError] = useState('');
   const [launchReady, setLaunchReady] = useState(false);
@@ -73,12 +75,19 @@ export function Workbench() {
   useEffect(() => {
     let active = true;
     const launch = navigationFromLaunch();
-    Promise.resolve(launch).then(value => {
+    Promise.resolve(launch).then(async value => {
       if (!active) return;
       if (value) savePlatformNavigation(value);
       setNavigation(value);
       setPage(value && (value.asset_id || sessionStorage.getItem('prism-platform-page') === 'assets') ? 'assets' : 'overview');
       setLaunchReady(true);
+      const returnUrl = value && safeReturnUrl(value);
+      const home = returnUrl ? platformHomeUrl(returnUrl) : await platformHomeFromLaunch('classification', async () => {
+        const response = await fetch('/api/platform/v1/identity', { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Identity unavailable');
+        return response.json();
+      });
+      if (active) setPlatformHome(home);
     }).catch(() => { if (active) { setNavigationError('平台入口已失效，请从平台重新打开分类应用。'); setLaunchReady(true); } });
     return () => { active = false; };
   }, []);
@@ -107,7 +116,8 @@ export function Workbench() {
   const title = page === 'runtime' ? '运行环境' : menu.find(item => item.key === page)?.label;
   return <Layout className="workbench">
     <Layout.Sider width={224} className="sidebar" theme="dark" breakpoint="lg" collapsedWidth={72}>
-      <div className="brand" title={`${brands.classification} · 图像分类与复核`}><img className="brand-mark" src="/brand/clear-mark.svg" alt="" /><div className="brand-text"><strong>{brands.classification}</strong><span>图像分类与复核</span></div></div>
+      <a className="brand" href={platformHome || undefined} title={platformHome ? '返回审计平台首页' : `${brands.classification} · 图像分类与复核`}
+        aria-label={platformHome ? `${brands.classification} · 返回审计平台首页` : undefined}><img className="brand-mark" src="/brand/clear-mark.svg" alt="" /><div className="brand-text"><strong>{brands.classification}</strong><span>图像分类与复核</span></div></a>
       <div className="project-switch">
         <Text className="sidebar-label">当前项目</Text>
         <Select aria-label="切换项目" value={projectId} placeholder="选择项目" options={projects.data?.map(p => ({ label: p.name, value: p.id }))} onChange={id => { setSelectedId(id); setPage('overview'); }} popupMatchSelectWidth={260} />
