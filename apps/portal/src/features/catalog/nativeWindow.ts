@@ -2,6 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 
 export type NativeTarget = { url: string; kind: 'base' | 'ticket' | 'session'; baseUrl?: string }
 
+export function platformHomeAddress(address: string, instanceId: string, platformOrigin: string, workspaceId: string | null): string {
+  const id = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
+  if (!id.test(instanceId) || (workspaceId !== null && !id.test(workspaceId))) throw new Error('平台首页关联无效')
+  const home = new URL(nativeAddress({ url: platformOrigin + '/', kind: 'base' }))
+  if (workspaceId) home.searchParams.set('workspace', workspaceId)
+  const native = new URL(address)
+  const hash = new URLSearchParams(native.hash.slice(1))
+  hash.set('platform_home', home.href); hash.set('platform_instance', instanceId)
+  native.hash = hash.toString()
+  return native.href
+}
+
 export function nativeAddress(target: NativeTarget): string {
   const url = new URL(target.url)
   const port = Number(url.port)

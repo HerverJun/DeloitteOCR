@@ -63,7 +63,7 @@ export function App() {
         aria-expanded={!navigationCollapsed} aria-controls="platform-navigation" onClick={() => setNavigationCollapsed(value => !value)}>
         <span aria-hidden="true">☰</span>
       </Button>
-      <Link className="brand" to={scoped('/')}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
+      <Link className="brand" to={scoped('/')} title="返回审计平台首页" aria-label={`${brands.platform} · 返回审计平台首页`}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
       <span className="breadcrumb"><span>/</span> {nav.find(item => item.key === active)?.label}</span>
     </div>
       {workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>工作空间加载失败 · 重试</Button> :

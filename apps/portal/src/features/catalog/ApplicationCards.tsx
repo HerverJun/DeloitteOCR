@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppInstallation, AppManifest, LaunchReceipt, RecentWork, RecentWorkPage } from '../../../../../packages/contracts/types.generated'
 
 import { brandName } from '../../clear-ui/theme'
-import { nativeAddress } from './nativeWindow'
+import { nativeAddress, platformHomeAddress } from './nativeWindow'
 
 const { Text, Paragraph } = Typography
 const ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
@@ -103,6 +103,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         if (!result.ok) throw new Error(`${brandName(app.app_id)} 工作台连接暂不可用，请重新核实并打开。`)
         const value = await result.json() as { url: string }
         address = nativeAddress({ url: value.url, baseUrl: address, kind: app.app_id === 'ocr' ? 'session' : 'base' })
+        address = platformHomeAddress(address, receipt.instance_id, window.location.origin, workspaceId)
       }
       if (!mountedRef.current) return
       popup.location.replace(address)

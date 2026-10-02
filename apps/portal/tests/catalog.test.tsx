@@ -1,3 +1,4 @@
+// @vitest-environment-options {"url":"http://127.0.0.1:8765/"}
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, configure, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -30,6 +31,7 @@ const receipt = { schema_version: '1.0', launch_id: 'launchA', app_id: 'ocr', in
   pid: 123, creation_time: '2026-09-25T01:00:00Z', base_url: 'http://127.0.0.1:49123/',
   handshake_nonce: 'nonceA', ownership: 'owned', version: 'fixture-1' }
 const authenticatedAddress = receipt.base_url + '#token=' + 's'.repeat(48)
+const platformAddress = authenticatedAddress + '&platform_home=http%3A%2F%2F127.0.0.1%3A8765%2F&platform_instance=instanceA'
 
 function mount() {
   const router = createMemoryRouter(routes, { initialEntries: ['/apps'] })
@@ -189,7 +191,7 @@ test('lost launch response is verified and retried with exactly the same ID', as
   const postPaths = fetcher.mock.calls.filter(([input, options]) => options?.method === 'POST' && !input.endsWith('/navigation')).map(([input]) => input)
   expect(postPaths).toEqual([postPaths[0], postPaths[0]])
   expect(postPaths[0]).toContain(pending)
-  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(authenticatedAddress))
+  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(platformAddress))
   expect(sessionStorage.getItem('workbench:pending-launch:ocr')).toBeNull()
   expect(screen.queryByRole('link', { name: /已核实的本机实例/ })).not.toBeInTheDocument()
 })
@@ -230,7 +232,7 @@ test('opening a running OCR service establishes a session before navigating and 
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
   fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
-  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(authenticatedAddress))
+  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(platformAddress))
   const posts = fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')
   expect(posts.map(([path]) => path)).toEqual(['/api/platform/v1/apps/ocr/launches/launchA/navigation'])
   expect(sessionStorage.getItem('ocr-token')).toBeNull()
