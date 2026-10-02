@@ -124,7 +124,7 @@ it("an invalid new ticket clears older context instead of silently reopening the
   const fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   const { navigationFromLaunch } = await import("./platformNavigation");
-  expect(navigationFromLaunch()).toBeNull();
+  await expect(navigationFromLaunch()).rejects.toThrow("平台入口无效");
   expect(location.hash).toBe("");
   expect(entries.has("ocr-platform-navigation")).toBe(false);
   expect(fetchMock).not.toHaveBeenCalled();
@@ -143,4 +143,14 @@ it("does not offer an external, deceptive, or mismatched return destination", as
     "http://127.0.0.1:8765/apps/ocr?workspace=workspaceA#secret"]) {
     expect(safeReturnUrl({ ...value, return_url })).toBeNull();
   }
+});
+
+it("rejects duplicate tickets and permits a new handoff after the old one expired", async () => {
+  location.hash = '#platform_ticket=' + 't'.repeat(43) + '&platform_ticket=' + 'u'.repeat(43);
+  const { navigationFromLaunch } = await import('./platformNavigation');
+  await expect(navigationFromLaunch()).rejects.toThrow('平台入口无效');
+  location.hash = '#platform_ticket=' + 'v'.repeat(43);
+  window.dispatchEvent(new Event('ocr-session-changed'));
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ ...navigation, session_token:'s'.repeat(32) }))));
+  expect(await navigationFromLaunch()).toEqual(navigation);
 });

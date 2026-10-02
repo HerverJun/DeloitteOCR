@@ -171,16 +171,18 @@ export function App() {
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
   const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
+  const [platformLaunchError, setPlatformLaunchError] = useState(false);
   useEffect(() => {
     let active = true;
+    setPlatformNavigation(null);
     const pending = navigationFromLaunch();
     if (pending) void pending.then(value => {
       if (active) setPlatformNavigation(value);
     }).catch(() => {
-      if (active) onError("平台入口已失效；当前工作台仍可独立使用。");
+      if (active) { setPlatformLaunchError(true); onError("平台项目入口已失效，请从平台重新打开。"); }
     });
     return () => { active = false; };
-  }, [onError]);
+  }, [onError, connectionAttempt]);
   const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
   const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
   const [documentReviewTarget, setDocumentReviewTarget] = useState<DocumentReviewTask | null>(null);
@@ -273,10 +275,11 @@ export function App() {
   }, []);
   useEffect(() => {
     let cancelled = false;
-    Promise.resolve(navigationFromLaunch()).catch(() => null)
+    Promise.resolve(navigationFromLaunch())
       .then(async (launch) => ({ value: await api("/state"), launch }))
       .then(({ value, launch }) => {
         if (cancelled) return;
+        setPlatformLaunchError(false);
         setSessionExpired(false);
         setMessage("");
         setProjects(value.projects);
@@ -756,9 +759,11 @@ export function App() {
     >
       {sessionExpired && <div className="inline-warning" role="alert">
         <strong>工作台连接已失效</strong>
-        <p>请从系统托盘重新打开工作台，或重新运行「启动工作台.cmd」。新启动链接会恢复连接，当前页面中的校对草稿会保留。</p>
-        <Button onClick={() => setConnectionAttempt(n => n + 1)}>重新连接</Button>
+        <p>从 Clear Workbench 打开时，请返回平台重新点击“打开工具”或“打开原生项目”。独立运行时，请从系统托盘重新打开工作台。当前页面中的校对草稿会保留。</p>
+        <Button onClick={() => setConnectionAttempt(n => n + 1)}>检查当前连接</Button>
       </div>}
+      {platformLaunchError && <div className="inline-warning" role="alert"><strong>平台项目入口已失效</strong>
+        <p>请返回平台重新打开所选项目；当前页面不会自动改开其他项目。</p></div>}
       <BrandHeader>
         {platformNavigation && safeReturnUrl(platformNavigation) && (
           <a className="platform-return" href={safeReturnUrl(platformNavigation)!}

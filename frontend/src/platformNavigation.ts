@@ -19,11 +19,12 @@ export type PlatformNavigation = {
 
 export function consumePlatformTicket(): string | null {
   const hash = new URLSearchParams(location.hash.slice(1));
-  const ticket = hash.get("platform_ticket");
+  const tickets = hash.getAll("platform_ticket");
+  const ticket = tickets[0] ?? null;
   if (ticket === null) return null;
   hash.delete("platform_ticket");
   history.replaceState(history.state, "", location.pathname + location.search + (hash.size ? `#${hash}` : ""));
-  return TICKET.test(ticket) ? ticket : null;
+  return tickets.length === 1 && TICKET.test(ticket) ? ticket : null;
 }
 
 export function safeReturnUrl(value: PlatformNavigation): string | null {
@@ -91,7 +92,7 @@ export function navigationFromLaunch(): Promise<PlatformNavigation | null> | nul
     const ticket = consumePlatformTicket();
     if (hasTicket) {
       clearSavedNavigation();
-      pendingNavigation = ticket ? resolvePlatformNavigation(ticket) : null;
+      pendingNavigation = ticket ? resolvePlatformNavigation(ticket) : Promise.reject(new Error("平台入口无效，请从平台重新打开。"));
     } else {
       const value = savedNavigation();
       pendingNavigation = value ? restoreNavigation(value) : null;
@@ -99,3 +100,8 @@ export function navigationFromLaunch(): Promise<PlatformNavigation | null> | nul
   }
   return pendingNavigation;
 }
+
+window.addEventListener("ocr-session-changed", () => {
+  clearSavedNavigation();
+  pendingNavigation = undefined;
+});

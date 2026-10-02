@@ -9,7 +9,8 @@ function consumeLaunchToken() {
 }
 consumeLaunchToken();
 window.addEventListener("hashchange", () => {
-  if (consumeLaunchToken()) window.dispatchEvent(new Event("ocr-session-changed"));
+  if (consumeLaunchToken() || new URLSearchParams(location.hash.slice(1)).has("platform_ticket"))
+    window.dispatchEvent(new Event("ocr-session-changed"));
 });
 const token = () => sessionStorage.getItem("ocr-token") || "";
 export async function request(path: string, options: RequestInit = {}) {
