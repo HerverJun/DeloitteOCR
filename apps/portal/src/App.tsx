@@ -44,7 +44,7 @@ function ScopeLink({ to, children }: { to: string; children: React.ReactNode }) 
 }
 
 const nav = [
-  { key: '/', label: '首页' }, { key: '/workspaces', label: '工作空间' },
+  { key: '/', label: '首页' }, { key: '/batches', label: '处理批次' }, { key: '/workspaces', label: '工作空间' },
   { key: '/apps', label: '应用' }, { key: '/assets', label: '资料' },
   { key: '/jobs', label: '任务' }, { key: '/artifacts', label: '成果' }, { key: '/settings', label: '设置' },
 ]
@@ -111,7 +111,9 @@ export function Home() {
   const workspaceId = useWorkspaceId()
   const health = useQuery({ queryKey: ['health', workspaceId], queryFn: ({ signal }) => read<PlatformHealth>('/api/platform/v1/health', signal) })
   const apps = useApps(workspaceId)
-  return <><PageHeading eyebrow="OVERVIEW / LOCAL" title="从这里开始作业" description="选择已有工作空间，或直接查看可用工具。各工具的数据与作业仍由自身管理。" />
+  return <><PageHeading eyebrow="OVERVIEW / LOCAL" title="从这里开始作业" description="选择资料与已确认的模板，启动一次处理批次。后台执行后先查看结果、待处理项与成果。" />
+    <section className="panel home-batch-start"><div><Title level={3}>新建处理批次</Title><Text type="secondary">两表清洗与比对 · 图像批量分类 · 按真实能力识别文档</Text></div>
+      <ScopeLink to="/batches"><Button type="primary">选资料与模板，开始处理</Button></ScopeLink></section>
     <div className="home-grid"><section className="panel"><div className="section-head"><Title level={3}>平台连接</Title><Text type="secondary">本机服务</Text></div>
       <QueryState pending={health.isPending} error={health.isError} retry={() => void health.refetch()}>
         <Tag color={health.data?.service === 'ready' ? 'success' : 'warning'}>{health.data?.service === 'ready' ? '已连接' : '不可用'}</Tag>

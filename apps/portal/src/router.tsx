@@ -8,6 +8,7 @@ import { AssetLibrary } from './features/assets/AssetLibrary'
 import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
 import { OcrWorkflow } from './features/ocr/OcrWorkflow'
 import { ClassificationWorkflow } from './features/classification/ClassificationWorkflow'
+import { BatchCenter } from './features/batches/BatchCenter'
 import { clearTheme } from './clear-ui/theme'
 
 export const theme: ThemeConfig = {
@@ -35,6 +36,7 @@ export const routes: RouteObject[] = [{
   path: '/', element: <App />, children: [
     { index: true, element: <Home /> },
     { path: 'workspaces', element: <Workspaces /> },
+    { path: 'batches', element: <BatchCenter /> },
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },

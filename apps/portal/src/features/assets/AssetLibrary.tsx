@@ -118,6 +118,7 @@ export function AssetLibrary() {
         {fixed.isError && <Alert type="error" title="输入集合无法读取" action={<Button onClick={() => void fixed.refetch()}>重试</Button>} />}
         {fixed.data && <><Text type="secondary">版本 {fixed.data.revision} · {fixed.data.members.length} 份资料</Text>
           <ul>{fixed.data.members.map(item => <li key={item.asset_id}>{item.original_name}</li>)}</ul>
+          <a className="asset-app-link" href={`/batches?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(setId)}`}>选择模板启动处理批次</a>
           {fixed.data.members.filter(item => /\.(csv|xlsx|parquet)$/i.test(item.original_name)).length >= 2 &&
             <a href={`/apps/data?workspace=${encodeURIComponent(workspaceId)}&asset_set=${encodeURIComponent(setId)}`}>在数据工作台使用</a>}
           {fixed.data.members.some(item => /\.(png|jpe?g|bmp|tiff?|webp|heic|heif|pdf)$/i.test(item.original_name)) &&
