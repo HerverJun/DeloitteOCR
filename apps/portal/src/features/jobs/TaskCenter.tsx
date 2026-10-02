@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Select, Space, Spin, Tag, Typography } from 'antd'
 import { useSearchParams } from 'react-router-dom'
 
+import { brandName } from '../../clear-ui/theme'
+
 const { Title, Text, Paragraph } = Typography
 
 type NativeError = { native_item_id: string; message: string }
@@ -44,7 +46,7 @@ function JobRow({ job, workspaceId, onRefresh }: { job: Job; workspaceId: string
       window.setTimeout(onRefresh, 1200)
     }, onError: () => setNotice('请求未确认；请刷新核实后再操作。') })
   return <article className="panel" aria-label={`${job.app_id} 任务 ${job.platform_job_id}`}>
-    <div className="section-head"><Title level={3}>{job.app_id === 'ocr' ? 'OCR' : '图像分类'} · {job.module_project_id}</Title>
+    <div className="section-head"><Title level={3}>{brandName(job.app_id)} · {job.module_project_id}</Title>
       <Space><Tag>{job.status}</Tag><Tag color={job.availability === 'ready' ? 'success' : 'warning'}>{job.availability}</Tag></Space></div>
     <Paragraph><Text strong>阶段：</Text>{job.stage || '原生服务未提供'} <Text type="secondary">· 原生状态 {job.native_status || '未取得'}</Text></Paragraph>
     <Paragraph>{jobProgress(job)}</Paragraph>

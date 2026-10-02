@@ -125,8 +125,8 @@ export function ClassificationWorkflow() {
     && new Set(categories.map(item => item.trim().toLocaleLowerCase())).size === categories.length
   const supported = assetSet.data?.members.filter(item => /\.(jpe?g|png|webp|bmp)$/i.test(item.original_name)) || []
 
-  return <div className="classification-workflow"><div className="page-heading"><Text className="eyebrow">CLASSIFICATION / WORKSPACE</Text>
-    <Title level={1}>图像分类</Title></div>
+  return <div className="classification-workflow"><div className="page-heading"><Text className="eyebrow">CLEARCLASSIFY / 图像分类与复核</Text>
+    <Title level={1}>ClearClassify</Title></div>
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>
       <section className="panel"><div className="section-head"><Title level={3}>输入资料</Title>
         <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></div>

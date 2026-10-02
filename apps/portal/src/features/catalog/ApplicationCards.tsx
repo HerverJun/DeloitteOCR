@@ -4,6 +4,8 @@ import { Alert, Button, Card, Empty, Progress, Skeleton, Space, Tag, Typography 
 import { Link, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppInstallation, AppManifest, LaunchReceipt, RecentWork, RecentWorkPage } from '../../../../../packages/contracts/types.generated'
 
+import { brandName } from '../../clear-ui/theme'
+
 const { Text, Paragraph } = Typography
 const ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
 const BASE = /^http:\/\/127\.0\.0\.1:([1-9][0-9]{0,4})\/?$/
@@ -145,7 +147,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   const percent = progress?.total_files ? Math.floor(progress.checked_files / progress.total_files * 100) : 0
   const launchReady = !verifying && installation.data?.launch_ready === true
   const linked = `/apps/${safeId}${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`
-  return <Card className="application-card" title={<Link to={linked}>{app.display_name}</Link>} extra={<Tag>{app.app_id}</Tag>}>
+  return <Card className="application-card" title={<Link to={linked}>{brandName(app.app_id, app.display_name)}</Link>} extra={<Tag>{app.app_id}</Tag>}>
     {health.isPending || current.isPending || installation.isPending ? <Skeleton active paragraph={{ rows: 2 }} /> :
       health.isError || current.isError || installation.isError || !installation.data ?
         <Alert type="error" title="无法核实应用状态" action={<Button onClick={() => { void health.refetch(); void current.refetch(); void installation.refetch() }}>重试</Button>} /> : <>
@@ -157,7 +159,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         </div>
         {progress && progress.phase !== 'cached' && <div role="status" aria-live="polite" className="application-verification">
           <Progress percent={percent} status={verificationFailed ? 'exception' : progress.phase === 'checking' ? 'active' : progress.phase === 'passed' ? 'success' : 'normal'}
-            aria-label={`${app.display_name}文件校验进度`} />
+            aria-label={`${brandName(app.app_id, app.display_name)}文件校验进度`} />
           <Paragraph type="secondary">已校验 {progress.checked_files.toLocaleString()} / {progress.total_files.toLocaleString()} 个文件 · 已用时 {elapsed(progress.elapsed_seconds)}</Paragraph>
           {progress.current_file && <Paragraph type="secondary" style={{ overflowWrap: 'anywhere', fontSize: 12 }}>当前文件：{progress.current_file}</Paragraph>}
           {verifying && <Paragraph type="secondary">完整校验仅在首次启动或程序包变更时进行，可先使用数据工作台。</Paragraph>}
@@ -201,7 +203,7 @@ export function RecentWorks({ workspaceId }: { workspaceId: string | null }) {
       <Alert type="error" title="无法读取最近记录" action={<Button onClick={() => void recent.refetch()}>重试</Button>} /> :
       !recent.data?.length ? <Empty description="没有已核验的最近操作" /> : <div className="recent-list">
         {recent.data.map(item => <div key={item.recent_id}>
-          <Text strong>{item.app_id}</Text><Text type="secondary">{item.source === 'platform_launch' ? '平台已核验启动' : '原生项目已打开'}</Text>
+          <Text strong>{brandName(item.app_id)}</Text><Text type="secondary">{item.source === 'platform_launch' ? '平台已核验启动' : '原生项目已打开'}</Text>
           <Text type="secondary">{item.module_project_id || item.launch_id}</Text>
           <Text type="secondary">{new Date(item.opened_at).toLocaleString()}</Text>
           <Link to={`/apps/${encodeURIComponent(item.app_id)}${scope ? `?workspace=${encodeURIComponent(scope)}` : ''}`}>继续（先核实实例）→</Link>

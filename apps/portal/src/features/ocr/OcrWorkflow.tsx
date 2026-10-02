@@ -93,8 +93,8 @@ export function OcrWorkflow() {
     } catch (failure) { popup.close(); setOpenError((failure as Error).message) }
     finally { setOpening(false) }
   }
-  return <div className="ocr-workflow"><div className="page-heading"><Text className="eyebrow">OCR / WORKSPACE</Text>
-    <Title level={1}>OCR 资料处理</Title></div>
+  return <div className="ocr-workflow"><div className="page-heading"><Text className="eyebrow">CLEAROCR / 文档识别与校对</Text>
+    <Title level={1}>ClearOCR</Title></div>
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>
       <section className="panel"><div className="section-head"><Title level={3}>输入资料</Title>
         <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></div>

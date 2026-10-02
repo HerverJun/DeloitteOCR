@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "app_id": "classification",
-  "display_name": "Image Classification",
+  "display_name": "ClearClassify",
   "app_version": "0.2.0",
   "adapter_version": "0.1.0",
   "min_platform_version": "0.1.0",

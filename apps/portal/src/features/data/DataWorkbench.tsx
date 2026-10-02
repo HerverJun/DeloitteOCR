@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Checkbox, Empty, Input, InputNumber, Modal, Select, Space, Spin, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
+import { brands } from '../../clear-ui/theme'
 import './data.css'
 
 const { Title, Text, Paragraph } = Typography
@@ -10,6 +11,7 @@ const active = ['queued', 'running', 'cancelling']
 const operatorNames: Record<string, string> = { source: '原始输入', trim: '去除首尾空白', rename: '列改名', map: '值映射', cast: '类型转换', filter: '筛选', duplicates: '识别重复' }
 const categoryNames: Record<string, string> = { same: '相同', different: '差异', only_left: '仅左', only_right: '仅右', ambiguous_left: '重复键·左', ambiguous_right: '重复键·右' }
 const jobNames: Record<string, string> = { import: '导入', step: '清洗', undo: '撤销', select_revision: '切换版本', save_recipe: '保存配方', replay: '应用配方', compare: '比对', export: '导出', export_table: '导出当前表' }
+const jobStatusNames: Record<string, string> = { queued: '等待执行', running: '进行中', cancelling: '正在取消', succeeded: '已完成', failed: '失败', cancelled: '已取消' }
 type Side = 'left' | 'right'
 type Column = { column_id: string; header: string | null }
 type Cell = { kind: string; value: string | boolean | null; raw: string | null; warning?: string | null }
@@ -43,8 +45,8 @@ function options(columns: Column[]) { return columns.map(column => ({ value: col
 
 export function DataApplicationCard() {
   const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health') })
-  return <Card className="application-card" title="数据清洗与比对">
-    <Paragraph>导入 Excel、CSV 或 Parquet，清洗数据，比较差异并导出来源清单。</Paragraph>
+  return <Card className="application-card" title={brands.data}>
+    <Paragraph>数据清洗与比对。导入 Excel、CSV 或 Parquet，比较差异并导出来源清单。</Paragraph>
     <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">独立数据工具 · 无需 OCR</Text></div>
     <Link to="/apps/data"><Button type="primary">打开数据工作台</Button></Link>
   </Card>
@@ -106,14 +108,14 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
         aria-label={side === 'left' ? '上传左表' : '上传右表'} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(side, file, settings) }} />{table ? '更换文件' : '上传文件'}</label>
     </div>
     {table && <Paragraph ellipsis={{ rows: 1 }} title={table.name}><strong>{table.name}</strong> <Tag>{table.format.toUpperCase()}</Tag></Paragraph>}
-    <div className="data-import-settings">
+    <details className="data-options" open={!table}><summary>导入设置 <span>表头 · 编码 · 工作表</span></summary><div className="data-import-settings">
       {table?.format === 'xlsx' && <Select aria-label={`${side}工作表`} value={settings.sheet_name} options={table.sheets.map(name => ({ value: name, label: name }))} onChange={sheet_name => setSettings(old => ({ ...old, sheet_name }))} />}
       {(!table || table.format === 'csv') && <><Select aria-label={`${side}编码`} value={settings.encoding || 'utf-8-sig'} onChange={encoding => setSettings(old => ({ ...old, encoding }))}
         options={['utf-8-sig', 'utf-8', 'gb18030', 'utf-16'].map(value => ({ value, label: value }))} />
         <Select aria-label={`${side}分隔符`} value={settings.delimiter || ','} options={[{ value: ',', label: '逗号' }, { value: '\t', label: '制表符' }, { value: ';', label: '分号' }, { value: '|', label: '竖线' }]} onChange={delimiter => setSettings(old => ({ ...old, delimiter }))} /></>}
       {table?.format !== 'parquet' && <label>表头行 <InputNumber aria-label={`${side}表头行`} min={0} max={1000} value={settings.header_row ?? 0} onChange={value => setSettings(old => ({ ...old, header_row: value === 0 ? null : value ?? 1 }))} /></label>}
       {table && <Button disabled={busy} onClick={() => void run('import', { side, upload_id: table.upload_id, options: settings })}>按设置重新导入</Button>}
-    </div>
+    </div></details>
     {!table ? <Empty description="CSV / XLSX / Parquet · 单文件最多 64 MB；表头行 0 表示无表头" /> : <>
       {table.warnings.length > 0 && <Alert type="warning" title="源文件提示" description={table.warnings.join('；')} />}
       <div className="data-step-controls">
@@ -136,11 +138,12 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
       {preview.data && (preview.data.metadata.event.errors_total > 0 || preview.data.metadata.duplicate_groups > 0) && <Alert type="warning"
         title={`转换异常 ${preview.data.metadata.event.errors_total} 条 · 重复分组 ${preview.data.metadata.duplicate_groups} 组`}
         description={preview.data.metadata.event.error_sample.slice(0, 3).map(item => `${item.raw} (${item.code})`).join('；')} />}
-      <Table<DataRow> size="small" className="data-preview" loading={preview.isPending} dataSource={preview.data?.rows || []} rowKey="row_id" scroll={{ x: 'max-content' }}
+      <Table<DataRow> size="small" className="data-preview" loading={preview.isPending} dataSource={preview.data?.rows || []} rowKey="row_id" scroll={{ x: 'max-content', y: 232 }}
         columns={[{ title: '原行', dataIndex: 'source_row', width: 65, fixed: 'left' }, ...table.columns.map((item, index) => ({ title: label(item), key: item.column_id, width: 150,
           render: (_: unknown, row: DataRow) => { const cell = row.cells[index]; return <span title={`类型：${cell.kind}\n原值：${cell.raw ?? 'NULL'}${cell.warning ? '\n' + cell.warning : ''}`}>{cell.value === null ? <Text type="secondary">{cell.kind === 'unknown_formula' ? '公式结果未知' : 'NULL'}</Text> : cell.value === '' ? <Text type="secondary">空字符串</Text> : String(cell.value)}</span> } }))]}
         pagination={{ current: page, pageSize: 20, total: preview.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
-      <RecipeControls table={table} side={side} recipes={session.state.recipes} busy={busy} run={run} />
+      <details className="data-options"><summary>清洗配方 <span>{session.state.recipes.length ? `已保存 ${session.state.recipes.length} 份` : '保存或复用清洗步骤'}</span></summary>
+        <RecipeControls table={table} side={side} recipes={session.state.recipes} busy={busy} run={run} /></details>
     </>}
   </section>
 }
@@ -186,7 +189,7 @@ function ComparePanel({ session, busy, run }: { session: Session; busy: boolean;
       try { localStorage.setItem(draftKey, JSON.stringify({ pairs, typePolicy, nullPolicy, tolerance, trim, fold })) } catch { /* Optional unsent draft. */ }
     }
   }, [draftKey, loadedKey, pairs, typePolicy, nullPolicy, tolerance, trim, fold])
-  if (!left || !right) return <section className="panel"><Title level={3}>比对设置</Title><Empty description="导入左右两份表格后设置匹配关系" /></section>
+  if (!left || !right) return <section id="data-compare" className="panel"><Title level={3}>比对设置</Title><Empty description="导入左右两份表格后设置匹配关系" /></section>
   const change = (index: number, value: Partial<Pair>) => setPairs(old => old.map((pair, i) => i === index ? { ...pair, ...value } : pair))
   const compare = () => void run('compare', { spec: {
     key_pairs: pairs.filter(pair => pair.mode === 'key').map(pair => [pair.left, pair.right]),
@@ -194,7 +197,7 @@ function ComparePanel({ session, busy, run }: { session: Session; busy: boolean;
     amount_pairs: pairs.filter(pair => pair.mode === 'compare' && pair.amount).map(pair => [pair.left, pair.right]),
     type_policy: typePolicy, null_policy: nullPolicy, amount_tolerance: tolerance, trim_text: trim, casefold_text: fold,
   } })
-  return <section className="panel"><div className="section-head"><Title level={3}>匹配键与比对列</Title>
+  return <section id="data-compare" className="panel"><div className="section-head"><Title level={3}>匹配键与比对列</Title>
     <Button type="primary" disabled={busy || !pairs.some(pair => pair.mode === 'key') || pairs.some(pair => pair.mode !== 'ignore' && !pair.right)} onClick={compare}>开始比对</Button></div>
     <Paragraph type="secondary">明确选择匹配键和需要比较的列。重复键会单独列出，不自动配对。</Paragraph>
     <div className="data-pairs">{pairs.map((pair, index) => <div className="data-pair" key={pair.left}><Text>{label(left.columns[index])}</Text><span>→</span>
@@ -236,16 +239,16 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
   const query = useQuery({ queryKey: ['data-result', session.id, selected, category, page], enabled: !!selected,
     queryFn: () => request<ResultPage>(`/sessions/${session.id}/results/${selected}?offset=${(page - 1) * 30}&limit=30${category ? '&category=' + category : ''}`) })
   const metadata = query.data?.metadata
-  return <section className="panel"><div className="section-head"><Title level={3}>差异结果</Title><Space wrap>
+  return <section id="data-results" className="panel"><div className="section-head"><Title level={3}>差异结果</Title><Space wrap>
     <Select aria-label="历史比对" placeholder="选择一次比对" value={selected || undefined} style={{ minWidth: 220 }} onChange={value => { setSelected(value); setPage(1) }}
       options={session.state.comparisons.map((item, i) => ({ value: item.id, label: `${i + 1}. ${item.left_name} / ${item.right_name}` }))} />
-    <Button disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button></Space></div>
+    <Button type="primary" disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button></Space></div>
     {!selected ? <Empty description="完成比对后，这里显示固定版本的结果" /> : <>
       {metadata && <div className="data-counts">{[['相同', 'same_pairs'], ['差异', 'different_pairs'], ['仅左', 'only_left'], ['仅右', 'only_right'], ['重复键', 'ambiguous_keys']].map(([title, key]) =>
         <div key={key}><Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></div>)}</div>}
       <Select aria-label="结果分类" value={category} style={{ width: 160, marginBottom: 16 }} onChange={value => { setCategory(value); setPage(1) }} options={[{ value: '', label: '全部结果' }, ...Object.entries(categoryNames).map(([value, label]) => ({ value, label }))]} />
       {query.isError && <Alert type="error" title="结果加载失败" action={<Button onClick={() => void query.refetch()}>重试</Button>} />}
-      <Table size="small" loading={query.isPending} dataSource={query.data?.rows || []} rowKey="ordinal" scroll={{ x: 'max-content' }}
+      <Table size="small" loading={query.isPending} dataSource={query.data?.rows || []} rowKey="ordinal" scroll={{ x: 'max-content', y: 360 }}
         columns={[{ title: '分类', dataIndex: 'category', width: 100, fixed: 'left', render: value => <Tag color={value === 'different' ? 'orange' : value === 'same' ? 'green' : 'default'}>{categoryNames[value] || value}</Tag> },
           { title: '左原行', dataIndex: 'left_source_row', width: 75 }, { title: '右原行', dataIndex: 'right_source_row', width: 75 },
           ...(metadata ? (['left', 'right'] as const).flatMap(side => metadata[side].columns.map(column => ({ title: `${side === 'left' ? '左' : '右'} · ${label(column)}`,
@@ -351,11 +354,16 @@ export function DataWorkbench() {
       await refresh()
     } catch (failure) { setError((failure as Error).message); await refresh() } finally { setSending(false) }
   }
-  return <div className="data-workbench"><div className="page-heading"><Text className="eyebrow">DATA WORKBENCH</Text><Title level={1}>数据清洗与比对</Title>
-    <Paragraph>从两份表格得到可复核的差异。每一步保留原始值和版本，随时继续上次工作。</Paragraph></div>
+  return <div className="data-workbench"><div className="page-heading"><div className="data-title-line"><Title level={1}>{brands.data}</Title>
+    <Tag color={health.isPending ? 'processing' : health.data?.ready ? 'success' : 'warning'}>{health.isPending ? '连接中' : health.data?.ready ? '服务就绪' : '服务不可用'}</Tag></div>
+    <Paragraph>数据清洗与比对 · 两份输入、清洗步骤、固定版本结果与来源清单。</Paragraph></div>
     {(!health.data?.ready || health.isError) && !health.isPending && <Alert type="warning" title={health.data?.message || '无法连接数据服务'} action={<Button onClick={() => void health.refetch()}>重试</Button>} />}
     <div className="data-session-bar"><Select aria-label="数据作业" placeholder="继续已有作业" value={sessionId || undefined} onChange={choose} loading={list.isPending} options={list.data?.items.map(item => ({ value: item.id, label: item.name }))} />
-      <Space.Compact><Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} /><Button disabled={sending || !health.data?.ready} onClick={() => void create()}>新建作业</Button></Space.Compact></div>
+      <Space.Compact><Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} /><Button disabled={sending || !health.data?.ready} onClick={() => void create()}>新建作业</Button></Space.Compact>
+      {current && <div className="data-session-context"><Text strong>{current.name}</Text><Text type="secondary">作业版本 {current.version}</Text>
+        {current.jobs[0] && <Tag aria-live="polite" color={job ? 'processing' : current.jobs[0].status === 'failed' ? 'error' : current.jobs[0].status === 'succeeded' ? 'success' : 'default'}>
+          {jobNames[(job || current.jobs[0]).action] || '操作'}{jobStatusNames[(job || current.jobs[0]).status] || (job || current.jobs[0]).status}</Tag>}
+        <nav className="data-flow-nav" aria-label="数据工作步骤"><a href="#data-inputs">输入与清洗</a><a href="#data-compare">比对设置</a><a href="#data-results">结果与导出</a></nav></div>}</div>
     {workspaceId && assetSetId && <section className="panel data-asset-selection"><div className="section-head"><Title level={3}>从资料库导入</Title>
       <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(assetSetId)}`}>返回资料库</Link></div>
       {assetSet.isError && <Alert type="error" title={assetSet.error.message} action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}
@@ -366,10 +374,10 @@ export function DataWorkbench() {
     </section>}
     {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
     {session.isError && <Alert type="error" title="无法读取作业" action={<Button onClick={() => void session.refetch()}>重试</Button>} />}
-    {job && <Alert type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
+    {job && <Alert role="status" aria-live="polite" type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
       action={<Button disabled={job.status === 'cancelling'} onClick={() => void post(`/sessions/${current!.id}/jobs/${job.id}/cancel`, {}).then(refresh).catch(failure => setError(failure.message))}>取消</Button>} />}
     {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
-    {current ? <><div className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
+    {current ? <><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
       <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
       <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></> :
       <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '新建一个作业，或继续已有表格比对。无需先创建平台工作空间。'} /></div>}
