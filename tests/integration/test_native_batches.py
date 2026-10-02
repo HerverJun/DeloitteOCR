@@ -72,12 +72,20 @@ def test_cancel_waits_for_true_terminal_and_never_collects(tmp_path, monkeypatch
     def refresh(*_):
         return {**job, "status": next(polls), "capabilities": ["cancel"]}
     runner.jobs.refresh = refresh
-    runner.jobs.action = lambda *_: {"status": "cancelling"}
+    actions = []
+    def action(*args):
+        actions.append(args)
+        return {"status": "cancelling"}
+    runner.jobs.action = action
     monkeypatch.setattr("workbench_platform.batches.native.time.sleep", lambda _: None)
-    result = runner.run(batch, checkpoint, lambda: True)
+    def cancelled():
+        return True
+    cancelled.stopping = lambda: False
+    result = runner.run(batch, checkpoint, cancelled)
     assert result["status"] == "cancelled"
     assert trace.count("native_progress") == 3
     assert trace.count("native_cancel") == 1
+    assert actions == [("workspaceA", "jobA", "cancel")]
     assert "snapshot" not in trace
 
 
@@ -90,6 +98,74 @@ def test_shutdown_preserves_native_task_for_service_recovery(tmp_path):
         runner.run(batch, checkpoint, cancelled)
     assert error.value.status == "queued"
     assert not trace
+
+
+@pytest.mark.parametrize("shutdown_at", ("refresh", "checkpoint", "cancel_callback"))
+def test_shutdown_during_native_poll_never_cancels_and_resumes_same_receipt(tmp_path, shutdown_at):
+    runner, batch, checkpoint, job, _, trace = fixture(tmp_path)
+    closing = False
+    polls = 0
+    submitted = batch["receipts"]["native_submission"]
+    actions = []
+
+    def refresh(*_):
+        nonlocal closing, polls
+        polls += 1
+        if shutdown_at == "refresh":
+            closing = True
+        return {**job, "status": "running", "capabilities": ["cancel"]}
+
+    def durable_checkpoint(stage, receipt):
+        nonlocal closing
+        checkpoint(stage, receipt)
+        if stage == "native_progress" and shutdown_at == "checkpoint":
+            closing = True
+
+    def cancelled():
+        nonlocal closing
+        # BatchService's existing callback combines closing and explicit cancel.
+        if polls and shutdown_at == "cancel_callback":
+            closing = True
+        return closing
+
+    cancelled.stopping = lambda: closing
+    runner.jobs.refresh = refresh
+    runner.jobs.action = lambda *args: actions.append(args)
+    with pytest.raises(NativeBatchError) as error:
+        runner.run(batch, durable_checkpoint, cancelled)
+    assert error.value.status == "queued"
+    assert not actions and "native_cancel" not in batch["receipts"]
+    assert batch["receipts"]["native_submission"] is submitted
+    assert batch["receipts"]["native_progress"]["status"] == "running"
+    assert "snapshot" not in trace
+
+    closing = False
+    runner.jobs.refresh = lambda *_: job
+    runner.app.state.artifact_center.classification.publish = lambda *_, **__: {"bundle_id": "bundleA"}
+    recovered = runner.run(batch, checkpoint, lambda: False)
+    assert recovered["status"] == "succeeded" and recovered["artifact_state"] == "collected"
+    assert batch["receipts"]["native_submission"] is submitted
+    assert not actions
+    assert not any(isinstance(event, tuple) and event[0] == "submit" for event in trace)
+
+
+@pytest.mark.parametrize("native_state", ("cancelled", "failed"))
+def test_unfinished_classification_items_are_execution_issues_not_model_suggestions(tmp_path, native_state):
+    runner, batch, checkpoint, job, snapshot, _ = fixture(tmp_path)
+    job.update(status=native_state, counts={"total": 1, "succeeded": 0, "pending": 0,
+               "failed": int(native_state == "failed"), "cancelled": int(native_state == "cancelled")})
+    snapshot["items"][0].update(state=native_state, prediction_label_id=None,
+                               prediction_status=None, prediction_score=None)
+    runner.app.state.artifact_center.classification.publish = lambda *_, **__: {"bundle_id": "bundleA"}
+    result = runner.run(batch, checkpoint, lambda: False)
+    assert result["status"] == native_state
+    assert result["summary"]["execution_status"] == native_state
+    assert result["summary"]["needs_review"] == 0
+    counts = result["summary"]
+    assert counts["total"] == sum(counts[key] for key in ("succeeded", "failed", "cancelled", "pending"))
+    assert len(result["issues"]) == 1 and result["issues"][0]["category"] == "execution"
+    assert result["issues"][0]["raw_output"]["state"] == native_state
+    assert result["issues"][0]["source"]["name"] == "source.png"
 
 
 def test_review_only_preflight_reports_real_capability(tmp_path):

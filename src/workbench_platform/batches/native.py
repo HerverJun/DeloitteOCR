@@ -157,13 +157,25 @@ class NativeBatchRunner:
         return snapshot
 
     def run(self, batch, checkpoint, cancelled):
-        if getattr(cancelled, "stopping", lambda: False)():
-            raise NativeBatchError("服务关闭，已提交操作将在恢复后查询", "queued")
+        stopping = getattr(cancelled, "stopping", lambda: False)
+
+        def check_stopping():
+            if stopping():
+                raise NativeBatchError("服务关闭，已提交操作将在恢复后查询", "queued")
+
+        def cancellation_requested():
+            requested = cancelled()
+            # The callback also signals service shutdown. Recheck after it
+            # returns so shutdown during a native read never becomes a cancel.
+            check_stopping()
+            return requested
+
+        check_stopping()
         scenario = batch["template"]["scenario"]
         config = batch["template"]["config"]
         workspace_id, receipts = batch["workspace_id"], batch["receipts"]
         handoff = self._handoff(scenario)
-        if cancelled() and "native_submission" not in receipts and "native_dispatch" not in receipts:
+        if cancellation_requested() and "native_submission" not in receipts and "native_dispatch" not in receipts:
             return {"status": "cancelled", "summary": {}, "issues": [], "artifacts": [],
                     "artifact_state": "not_generated"}
         # A completed native task can be collected even if the service later
@@ -186,7 +198,7 @@ class NativeBatchRunner:
                                           "revision": asset_set.revision, "manifest_hash": asset_set.manifest_hash})
         fixed = receipts["native_inputs"]
         if "native_import" not in receipts or receipts["native_import"].get("state") != "completed":
-            if cancelled():
+            if cancellation_requested():
                 return {"status": "cancelled", "summary": {}, "issues": [], "artifacts": [], "artifact_state": "not_generated"}
             imported = (handoff.begin(workspace_id, config["link_id"], fixed["asset_set_id"], fixed["revision"], {})
                         if scenario == "classification" else
@@ -197,13 +209,14 @@ class NativeBatchRunner:
                     "资料导入需核实", "原生导入回执未到达完成状态；继续时先查询原请求，避免重复导入。")],
                     "artifacts": [], "artifact_state": "not_generated"}
         if "native_submission" not in receipts:
-            if cancelled() and "native_dispatch" not in receipts:
+            if cancellation_requested() and "native_dispatch" not in receipts:
                 return {"status": "cancelled", "summary": {}, "issues": [], "artifacts": [], "artifact_state": "not_generated"}
             checkpoint("native_dispatch", {"status": "queued", "handoff_id": receipts["native_import"]["handoff_id"]})
+            allow_new = not cancellation_requested()
             try:
-                submitted = (handoff.submit(workspace_id, receipts["native_import"]["handoff_id"], config["model_id"], config.get("device", "cpu"), allow_new=not cancelled())
+                submitted = (handoff.submit(workspace_id, receipts["native_import"]["handoff_id"], config["model_id"], config.get("device", "cpu"), allow_new=allow_new)
                              if scenario == "classification" else
-                             handoff.submit(workspace_id, receipts["native_import"]["handoff_id"], config["engines"], allow_new=not cancelled()))
+                             handoff.submit(workspace_id, receipts["native_import"]["handoff_id"], config["engines"], allow_new=allow_new))
             except Exception as error:
                 raise NativeBatchError("原生提交响应需核实；继续时先查询原请求，避免重复派发") from error
             if submitted.get("not_submitted"):
@@ -212,23 +225,23 @@ class NativeBatchRunner:
         job = receipts["native_submission"]
         terminal = {"succeeded", "partial", "failed", "cancelled"}
         while True:
-            if getattr(cancelled, "stopping", lambda: False)():
-                raise NativeBatchError("服务关闭，已提交任务将在恢复后查询", "queued")
+            check_stopping()
             job = self.jobs.refresh(workspace_id, self.jobs.ledger.get(workspace_id, job["platform_job_id"]))
             checkpoint("native_progress", job)
+            check_stopping()
             if job["status"] in terminal:
                 break
             if job.get("availability") != "ready" or job["status"] == "unknown":
                 return {"status": "needs_verification", "summary": job.get("counts", {}),
                     "issues": [_issue("job", "execution", "任务状态需核实", "服务暂不可达；继续时查询已提交任务。")],
                     "artifacts": [], "artifact_state": "not_generated"}
-            if cancelled() and "cancel" in job.get("capabilities", []) and "native_cancel" not in receipts:
+            if cancellation_requested() and "cancel" in job.get("capabilities", []) and "native_cancel" not in receipts:
                 try:
                     checkpoint("native_cancel", self.jobs.action(workspace_id, job["platform_job_id"], "cancel"))
                 except Exception as error:
                     raise NativeBatchError("取消回执需核实；已保留原生任务身份，尚不能认定任务已取消") from error
             time.sleep(0.5)
-        if cancelled():
+        if cancellation_requested():
             return {"status": "cancelled", "summary": job.get("counts", {}),
                     "issues": [], "artifacts": [], "artifact_state": "not_generated"}
         summary = {**job.get("counts", {}), "execution_status": job["status"],
@@ -245,6 +258,9 @@ class NativeBatchRunner:
             state = item.get("disposition_state", "unreviewed")
             if item.get("state") == "failed":
                 issues.append(_issue(item_id, "execution", "分类执行失败", item.get("error") or "需检查原件与任务日志。", source=source, raw_output=item))
+            elif item.get("state") == "cancelled":
+                issues.append(_issue(item_id, "execution", "分类执行已取消",
+                    "本项未完成分类，原件与取消记录已保留。", source=source, raw_output=item))
             elif scenario == "classification" and state == "confirmed":
                 continue
             else:
@@ -253,7 +269,7 @@ class NativeBatchRunner:
         for error in job.get("native_errors", []):
             if scenario == "ocr":
                 issues.append(_issue(error["native_item_id"], "execution", "识别执行失败", error["message"], raw_output=error))
-        summary["needs_review"] = len(issues)
+        summary["needs_review"] = sum(item["category"] == "review" for item in issues)
         summary["review_complete"] = False
         checkpoint("results", {"summary": summary, "issues": issues})
         checkpoint("generated", {"snapshot": receipts["native_snapshot"]})
