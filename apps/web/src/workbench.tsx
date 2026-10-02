@@ -13,7 +13,7 @@ import {
 import { api, post, type Project, type Runtime } from './api';
 import { brands, clearTheme } from './clear-ui/theme';
 import { AssetsPanel, TrainPanel, ModelsPanel, JobsPanel, RuntimePanel } from './panels';
-import { navigationFromLaunch, safeReturnUrl, savedPlatformNavigation, savePlatformNavigation,
+import { navigationFromLaunch, safeReturnUrl, savePlatformNavigation,
   type PlatformNavigation } from './platformNavigation';
 
 const { Title, Text, Paragraph } = Typography;
@@ -52,7 +52,7 @@ const menu = [
 ];
 
 export function Workbench() {
-  const [page, setPage] = useState<Page>(() => sessionStorage.getItem('prism-platform-page') === 'assets' && savedPlatformNavigation() ? 'assets' : 'overview');
+  const [page, setPage] = useState<Page>('overview');
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem('prism-project') || '');
   const [navigation, setNavigation] = useState<PlatformNavigation | null>(null);
   const [navigationApplied, setNavigationApplied] = useState(false);
@@ -61,23 +61,23 @@ export function Workbench() {
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm();
   const command = useCommand();
-  const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects'), refetchInterval: 5000 });
+  const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects'), enabled: launchReady && !navigationError, refetchInterval: 5000 });
   const nativeProject = navigation && projects.data?.some(p => p.id === navigation.module_project_id)
     ? navigation.module_project_id : null;
-  const projectId = (!navigationApplied && nativeProject) || (projects.data?.some(p => p.id === selectedId) ? selectedId : projects.data?.[0]?.id);
-  const detail = useQuery({ queryKey: ['project', projectId], queryFn: () => api<Project>(`/projects/${projectId}`), enabled: !!projectId, refetchInterval: 4000 });
+  const projectId = navigation && !navigationApplied ? nativeProject || undefined
+    : projects.data?.some(p => p.id === selectedId) ? selectedId : projects.data?.[0]?.id;
+  const detail = useQuery({ queryKey: ['project', projectId], queryFn: () => api<Project>(`/projects/${projectId}`), enabled: launchReady && !navigationError && !!projectId, refetchInterval: 4000 });
   const runtime = useQuery({ queryKey: ['runtime'], queryFn: () => api<Runtime>('/runtime'), refetchInterval: 20000 });
-  const project = detail.data;
+  const project = launchReady && !navigationError ? detail.data : undefined;
 
   useEffect(() => {
     let active = true;
     const launch = navigationFromLaunch();
-    if (!launch) { setNavigation(savedPlatformNavigation()); setLaunchReady(true); return; }
-    launch.then(value => {
+    Promise.resolve(launch).then(value => {
       if (!active) return;
-      savePlatformNavigation(value);
+      if (value) savePlatformNavigation(value);
       setNavigation(value);
-      setPage(value.asset_id ? 'assets' : 'overview');
+      setPage(value && (value.asset_id || sessionStorage.getItem('prism-platform-page') === 'assets') ? 'assets' : 'overview');
       setLaunchReady(true);
     }).catch(() => { if (active) { setNavigationError('平台入口已失效，请从平台重新打开分类应用。'); setLaunchReady(true); } });
     return () => { active = false; };
@@ -123,9 +123,10 @@ export function Workbench() {
     <Layout>
       <header className="topbar"><div className="topbar-context"><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text>{project && <Text className="topbar-project" ellipsis title={project.name}>{project.name}</Text>}</div><Space size={12} className="topbar-actions"><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top"><span className={`status-dot ${runtime.data?.gpu ? '' : 'muted'}`} />{runtime.data?.gpu ? 'GPU 已连接' : 'CPU 模式'}</span>{navigation && safeReturnUrl(navigation) && <a href={safeReturnUrl(navigation)!} target="_blank" rel="noopener noreferrer" className="api-link platform-return"><ExportOutlined /> 返回平台</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link api-docs"><GithubOutlined /> API 文档</a><span className="local-indicator">本地</span></Space></header>
       <main className="main-content">
-        {navigationError && <Alert type="warning" showIcon message={navigationError} closable onClose={() => setNavigationError('')} />}
+        {navigationError && <Alert type="warning" showIcon message={navigationError}
+          action={<Button onClick={() => { setNavigation(null); setNavigationApplied(false); setNavigationError(''); }}>独立使用工作台</Button>} />}
         <QueryError error={projects.error || detail.error} />
-        {!launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading" role="status" aria-live="polite"><Spin /><Text type="secondary">正在读取项目…</Text></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
+        {navigationError ? <Empty description="请从平台重新打开所选项目" /> : !launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading" role="status" aria-live="polite"><Spin /><Text type="secondary">正在读取项目…</Text></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
           <section className="welcome"><span className="welcome-icon"><PictureOutlined /></span><Text type="secondary">从你的第一组图片开始</Text><Title level={1}>让图像各归其类</Title><Paragraph>创建一个分类项目，导入少量样本，训练属于你业务的模型。<br />图片、模型和结果均保留在本机。</Paragraph><Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建第一个项目</Button><div className="welcome-steps"><span>01 定义类别</span><span>02 导入样本</span><span>03 训练与分类</span></div></section> :
           <>
             {page === 'overview' && <Overview project={project} navigate={setPage} />}
