@@ -650,6 +650,278 @@
         "title": "AssetSetItem",
         "type": "object"
       },
+      "BatchControl": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "enum": [
+              "cancel",
+              "retry"
+            ],
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "title": "BatchControl",
+        "type": "object"
+      },
+      "BatchDisposition": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "confirm",
+              "defer",
+              "reopen"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "item_ids": {
+            "items": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Item Ids",
+            "type": "array"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_ids",
+          "action"
+        ],
+        "title": "BatchDisposition",
+        "type": "object"
+      },
+      "BatchInput": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "asset_revision": {
+            "minimum": 1,
+            "title": "Asset Revision",
+            "type": "integer"
+          },
+          "blob_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Blob Hash",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "left",
+              "right",
+              "images",
+              "documents"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "asset_id",
+          "asset_revision",
+          "blob_hash"
+        ],
+        "title": "BatchInput",
+        "type": "object"
+      },
+      "BatchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/BatchInput"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Inputs",
+            "type": "array"
+          },
+          "request_key": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "template_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Template Id",
+            "type": "string"
+          },
+          "template_version": {
+            "minimum": 1,
+            "title": "Template Version",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_key",
+          "workspace_id",
+          "template_id",
+          "template_version",
+          "inputs"
+        ],
+        "title": "BatchRequest",
+        "type": "object"
+      },
+      "BatchTemplate": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "config_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Config Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "scenario": {
+            "enum": [
+              "data_compare",
+              "classification",
+              "ocr"
+            ],
+            "title": "Scenario",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "template_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Template Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_id",
+          "template_id",
+          "version",
+          "name",
+          "scenario",
+          "config",
+          "config_hash",
+          "created_at"
+        ],
+        "title": "BatchTemplate",
+        "type": "object"
+      },
+      "BatchTemplateCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "scenario": {
+            "enum": [
+              "data_compare",
+              "classification",
+              "ocr"
+            ],
+            "title": "Scenario",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Template Id"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_id",
+          "name",
+          "scenario",
+          "config"
+        ],
+        "title": "BatchTemplateCreate",
+        "type": "object"
+      },
       "ContextIssueRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1613,6 +1885,157 @@
           "limit"
         ],
         "title": "PageQuery",
+        "type": "object"
+      },
+      "ProcessingBatch": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_state": {
+            "enum": [
+              "not_generated",
+              "generated",
+              "collected",
+              "collection_failed"
+            ],
+            "title": "Artifact State",
+            "type": "string"
+          },
+          "artifacts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "batch_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "cancel_requested": {
+            "title": "Cancel Requested",
+            "type": "boolean"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "cancel",
+                "retry"
+              ],
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/BatchInput"
+            },
+            "title": "Inputs",
+            "type": "array"
+          },
+          "issues": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "receipts": {
+            "additionalProperties": true,
+            "title": "Receipts",
+            "type": "object"
+          },
+          "request_key": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "waiting_input",
+              "waiting_resource",
+              "partial",
+              "succeeded",
+              "failed",
+              "cancelling",
+              "cancelled",
+              "needs_verification"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          },
+          "template": {
+            "$ref": "#/components/schemas/BatchTemplate"
+          },
+          "template_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Template Id",
+            "type": "string"
+          },
+          "template_version": {
+            "minimum": 1,
+            "title": "Template Version",
+            "type": "integer"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "batch_id",
+          "request_key",
+          "workspace_id",
+          "template_id",
+          "template_version",
+          "template",
+          "inputs",
+          "status",
+          "stage",
+          "summary",
+          "issues",
+          "receipts",
+          "artifact_state",
+          "artifacts",
+          "capabilities",
+          "cancel_requested",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProcessingBatch",
         "type": "object"
       },
       "RecentWork": {
@@ -2616,6 +3039,177 @@
               }
             },
             "description": "Snapshot expired"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/batch-templates": {
+      "post": {
+        "operationId": "createBatchTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchTemplateCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchTemplate"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/batches": {
+      "post": {
+        "operationId": "startProcessingBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessingBatch"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/batches/{batch_id}": {
+      "get": {
+        "operationId": "getProcessingBatch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessingBatch"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/batches/{batch_id}/control": {
+      "post": {
+        "operationId": "controlProcessingBatch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessingBatch"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/batches/{batch_id}/dispositions": {
+      "post": {
+        "operationId": "disposeBatchResults",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchDisposition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessingBatch"
+                }
+              }
+            },
+            "description": "OK"
           }
         }
       }

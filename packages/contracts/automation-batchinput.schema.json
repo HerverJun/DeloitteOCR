@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "asset_revision": {
+      "minimum": 1,
+      "title": "Asset Revision",
+      "type": "integer"
+    },
+    "blob_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Blob Hash",
+      "type": "string"
+    },
+    "role": {
+      "enum": [
+        "left",
+        "right",
+        "images",
+        "documents"
+      ],
+      "title": "Role",
+      "type": "string"
+    }
+  },
+  "required": [
+    "role",
+    "asset_id",
+    "asset_revision",
+    "blob_hash"
+  ],
+  "title": "BatchInput",
+  "type": "object"
+}

@@ -11,6 +11,7 @@ from pathlib import Path
 
 from .models import MODELS, PageQuery, VERSION
 from .examples import POSITIVE, NEGATIVE
+from .automation import AUTOMATION_MODELS
 
 ROOT = Path(__file__).resolve().parent
 NAMES = {
@@ -28,7 +29,7 @@ def dump(value: object) -> str:
 
 def components() -> dict[str, dict]:
     result = {}
-    for model in MODELS:
+    for model in [*MODELS, *AUTOMATION_MODELS]:
         schema = model.model_json_schema()
         definitions = schema.pop("$defs", {})
         for name, definition in definitions.items():
@@ -50,6 +51,8 @@ def rewrite_refs(value):
 
 
 def ts_type(schema: dict) -> str:
+    if not schema:
+        return 'unknown'
     if "$ref" in schema:
         prefix = "#/components/schemas/"
         if not schema["$ref"].startswith(prefix):
@@ -79,6 +82,8 @@ def ts_type(schema: dict) -> str:
             raise ValueError("untyped array is unsupported")
         return f"Array<{ts_type(schema['items'])}>"
     if kind == "object":
+        if schema.get('additionalProperties') is True and 'properties' not in schema:
+            return 'Record<string, unknown>'
         props = schema.get("properties")
         if props is not None:
             required = set(schema.get("required", []))
@@ -187,6 +192,19 @@ def openapi(definitions: dict[str, dict]) -> dict:
         "/api/platform/v1/handoffs/{request_id}": get("getHandoffStatus", "request_id", "HandoffStatus"),
         "/api/platform/v1/resource-grants/{resource_id}": get("getResourceGrant", "resource_id", "ResourceGrant"),
     }
+    paths.update({
+        '/api/platform/v1/batch-templates': {'post': {'operationId': 'createBatchTemplate',
+            'requestBody': body('BatchTemplateCreate'), 'responses': {'201': response('BatchTemplate')}}},
+        '/api/platform/v1/batches': {'post': {'operationId': 'startProcessingBatch',
+            'requestBody': body('BatchRequest'), 'responses': {'202': response('ProcessingBatch')}}},
+        '/api/platform/v1/batches/{batch_id}': get('getProcessingBatch', 'batch_id', 'ProcessingBatch'),
+        '/api/platform/v1/batches/{batch_id}/control': {'post': {'operationId': 'controlProcessingBatch',
+            'parameters': [parameter('batch_id')], 'requestBody': body('BatchControl'),
+            'responses': {'200': response('ProcessingBatch')}}},
+        '/api/platform/v1/batches/{batch_id}/dispositions': {'post': {'operationId': 'disposeBatchResults',
+            'parameters': [parameter('batch_id')], 'requestBody': body('BatchDisposition'),
+            'responses': {'200': response('ProcessingBatch')}}},
+    })
     return {"openapi": "3.1.0", "info": {"title": "Workbench adapter protocol", "version": VERSION},
             "paths": paths, "components": {"schemas": definitions}}
 
@@ -196,6 +214,8 @@ def artifacts() -> dict[Path, str]:
     for model in MODELS:
         if model.__name__ in NAMES:
             result[ROOT / (NAMES[model.__name__] + ".schema.json")] = dump(model.model_json_schema())
+    for model in AUTOMATION_MODELS:
+        result[ROOT / ('automation-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
     definitions = components()
     result[ROOT / "adapter.openapi.json"] = dump(openapi(definitions))
     result[ROOT / "types.generated.ts"] = render_types(definitions)

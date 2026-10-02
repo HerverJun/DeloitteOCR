@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "BatchInput": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "left",
+            "right",
+            "images",
+            "documents"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "asset_id",
+        "asset_revision",
+        "blob_hash"
+      ],
+      "title": "BatchInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/BatchInput"
+      },
+      "maxItems": 1000,
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "request_key": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Key",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "template_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Template Id",
+      "type": "string"
+    },
+    "template_version": {
+      "minimum": 1,
+      "title": "Template Version",
+      "type": "integer"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_key",
+    "workspace_id",
+    "template_id",
+    "template_version",
+    "inputs"
+  ],
+  "title": "BatchRequest",
+  "type": "object"
+}

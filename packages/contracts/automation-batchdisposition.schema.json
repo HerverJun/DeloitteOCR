@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "confirm",
+        "defer",
+        "reopen"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "item_ids": {
+      "items": {
+        "maxLength": 64,
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "minItems": 1,
+      "title": "Item Ids",
+      "type": "array"
+    },
+    "note": {
+      "default": "",
+      "maxLength": 2000,
+      "title": "Note",
+      "type": "string"
+    }
+  },
+  "required": [
+    "item_ids",
+    "action"
+  ],
+  "title": "BatchDisposition",
+  "type": "object"
+}

@@ -60,6 +60,9 @@ class DataWorkbenchService:
                 CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,session_id TEXT,action TEXT,
                     status TEXT,error TEXT,result TEXT,created TEXT,updated TEXT);
                 CREATE INDEX IF NOT EXISTS session_jobs ON jobs(session_id,created);
+                CREATE TABLE IF NOT EXISTS operation_requests(request_key TEXT PRIMARY KEY,
+                    session_id TEXT,job_id TEXT UNIQUE,fingerprint TEXT,version INTEGER,request TEXT);
+                CREATE TABLE IF NOT EXISTS session_requests(request_key TEXT PRIMARY KEY,session_id TEXT);
             ''')
             columns = {row[1] for row in db.execute('PRAGMA table_info(uploads)')}
             for name, kind in (('source_workspace_id', 'TEXT'), ('source_asset_id', 'TEXT'),
@@ -69,6 +72,7 @@ class DataWorkbenchService:
             db.execute("UPDATE jobs SET status='interrupted',error=?,updated=? "
                        "WHERE status IN ('queued','running','cancelling')",
                        ('上次运行被中断，已保留最后成功版本。可重新发起操作。', now()))
+        self._recover_replies()
 
     def db(self):
         db = sqlite3.connect(self.db_path, timeout=15)
@@ -82,17 +86,24 @@ class DataWorkbenchService:
     def session_dir(self, session_id):
         return self.root / 'sessions' / identity(session_id)
 
-    def create(self, name):
+    def create(self, name, request_key=None):
         name = str(name).strip()
         if not name or len(name) > 100:
             raise DataError('请输入 1–100 字的名称')
-        key = 's' + uuid.uuid4().hex
-        folder = self.session_dir(key)
-        (folder / 'uploads').mkdir(parents=True)
-        (folder / 'jobs').mkdir()
-        state = {'tables': {}, 'recipes': [], 'comparisons': [], 'exports': [], 'result_id': None}
         with closing(self.db()) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            previous = db.execute('SELECT session_id FROM session_requests WHERE request_key=?',
+                                  (request_key,)).fetchone() if request_key else None
+            if previous:
+                return self.get(previous['session_id'])
+            key = 's' + uuid.uuid4().hex
+            folder = self.session_dir(key)
+            (folder / 'uploads').mkdir(parents=True)
+            (folder / 'jobs').mkdir()
+            state = {'tables': {}, 'recipes': [], 'comparisons': [], 'exports': [], 'result_id': None}
             db.execute('INSERT INTO sessions VALUES (?,?,?,?,?,?)', (key, name, now(), now(), 1, encode(state)))
+            if request_key:
+                db.execute('INSERT INTO session_requests VALUES(?,?)', (request_key, key))
         return self.get(key)
 
     def list(self):
@@ -128,7 +139,7 @@ class DataWorkbenchService:
                         source_asset.get('revision'), source_asset.get('blob_hash')))
         return {'id': upload_id, 'name': name, 'format': suffix.lstrip('.'), 'sha256': sha256, 'size': size}
 
-    def submit(self, session_id, action, payload, version):
+    def submit(self, session_id, action, payload, version, request_key=None):
         if not self.ready():
             raise DataError('数据分析环境尚未配置，请通过数据工作台启动入口启动平台。', 503)
         identity(session_id)
@@ -137,6 +148,15 @@ class DataWorkbenchService:
         job_id = 'j' + uuid.uuid4().hex
         with closing(self.db()) as db, db:
             db.execute('BEGIN IMMEDIATE')
+            digest = hashlib.sha256(encode({'session_id': session_id, 'action': action,
+                                            'payload': payload}).encode()).hexdigest()
+            if request_key:
+                prior = db.execute('SELECT * FROM operation_requests WHERE request_key=?',
+                                   (request_key,)).fetchone()
+                if prior:
+                    if prior['fingerprint'] != digest:
+                        raise DataError('操作请求标识与已提交参数不一致', 409)
+                    return self.job(session_id, prior['job_id'])
             row = db.execute('SELECT * FROM sessions WHERE id=?', (session_id,)).fetchone()
             if row is None:
                 raise DataError('作业不存在', 404)
@@ -155,8 +175,63 @@ class DataWorkbenchService:
                 request['upload'] = dict(upload)
             db.execute('INSERT INTO jobs VALUES (?,?,?,?,?,?,?,?)',
                        (job_id, session_id, action, 'queued', None, None, now(), now()))
+            if request_key:
+                db.execute('INSERT INTO operation_requests VALUES(?,?,?,?,?,?)',
+                           (request_key, session_id, job_id, digest, version, encode(request)))
         self.pool.submit(self._run, session_id, job_id, version, request)
         return self.job(session_id, job_id)
+
+    def operation(self, request_key):
+        with closing(self.db()) as db:
+            row = db.execute('SELECT session_id,job_id FROM operation_requests WHERE request_key=?',
+                             (request_key,)).fetchone()
+        return self.job(row['session_id'], row['job_id']) if row else None
+
+    def _recover_replies(self):
+        with closing(self.db()) as db:
+            pending = db.execute("SELECT r.* FROM operation_requests r JOIN jobs j ON j.id=r.job_id "
+                                 "WHERE j.status='interrupted'").fetchall()
+        for row in pending:
+            response = self.session_dir(row['session_id']) / 'jobs' / row['job_id'] / 'response.json'
+            if not response.is_file():
+                continue
+            try:
+                value = json.loads(response.read_text(encoding='utf-8'))
+                if not value.get('ok'):
+                    continue
+                with closing(self.db()) as db, db:
+                    db.execute('BEGIN IMMEDIATE')
+                    changed = db.execute('UPDATE sessions SET state=?,version=version+1,updated=? '
+                                         'WHERE id=? AND version=?',
+                                         (encode(value['state']), now(), row['session_id'], row['version'])).rowcount
+                    if changed:
+                        db.execute("UPDATE jobs SET status='succeeded',result=?,error=NULL,updated=? WHERE id=?",
+                                   (encode(value.get('result', {})), now(), row['job_id']))
+            except (ValueError, OSError, KeyError):
+                continue
+
+    def resume_operation(self, request_key):
+        with closing(self.db()) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            row = db.execute('SELECT * FROM operation_requests WHERE request_key=?', (request_key,)).fetchone()
+            if row is None:
+                raise DataError('已提交操作不存在', 404)
+            job = self.job(row['session_id'], row['job_id'])
+            if job['status'] in ACTIVE or job['status'] == 'succeeded':
+                return job
+            if job['status'] == 'cancelled':
+                raise DataError('已取消的原生操作不能直接恢复', 409)
+            request = json.loads(row['request'])
+            if request['action'] in {'export', 'export_table'}:
+                folder = self.session_dir(row['session_id']) / 'exports' / row['job_id']
+                if folder.exists():
+                    raise DataError('固定成果生成中断，已保留文件，需核实原成果完整性；不会重新计算替代', 409)
+            version = self.get(row['session_id'])['version']
+            if version != row['version']:
+                raise DataError('原生作业版本已变化，需要核实恢复点', 409)
+            db.execute("UPDATE jobs SET status='queued',error=NULL,updated=? WHERE id=?", (now(), row['job_id']))
+        self.pool.submit(self._run, row['session_id'], row['job_id'], version, request)
+        return self.job(row['session_id'], row['job_id'])
 
     def job(self, session_id, job_id):
         identity(session_id)
@@ -171,10 +246,12 @@ class DataWorkbenchService:
 
     def cancel(self, session_id, job_id):
         with closing(self.db()) as db, db:
-            item = self.job(session_id, job_id)
-            if item['status'] in ACTIVE:
-                status = 'cancelled' if item['status'] == 'queued' else 'cancelling'
-                db.execute('UPDATE jobs SET status=?,updated=? WHERE id=?', (status, now(), job_id))
+            self.job(session_id, job_id)
+            # Compare the persisted state in the UPDATE; a stale polling read
+            # must never resurrect a terminal child as "cancelling".
+            db.execute("UPDATE jobs SET status=CASE WHEN status='queued' THEN 'cancelled' ELSE 'cancelling' END,"
+                       "updated=? WHERE id=? AND session_id=? AND status IN ('queued','running','cancelling')",
+                       (now(), job_id, session_id))
         return self.job(session_id, job_id)
 
     def _run(self, session_id, job_id, version, request):
@@ -186,7 +263,7 @@ class DataWorkbenchService:
             if not changed:
                 return
             folder = self.session_dir(session_id) / 'jobs' / job_id
-            folder.mkdir()
+            folder.mkdir(exist_ok=True)
             request_path, response_path = folder / 'request.json', folder / 'response.json'
             request_path.write_text(encode(request), encoding='utf-8')
             environment = {key: value for key, value in os.environ.items() if key.upper() in
@@ -194,8 +271,15 @@ class DataWorkbenchService:
             environment['PYTHONUTF8'] = '1'
             environment['PYTHONNOUSERSITE'] = '1'
             environment['PYTHONPATH'] = str(self.project_root)
+            temporary = self.root / 'runtime-temp'
+            temporary.mkdir(exist_ok=True)
+            for variable in ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'XDG_CACHE_HOME'):
+                environment[variable] = str(temporary)
+            environment['PYTHONDONTWRITEBYTECODE'] = '1'
+            environment['DUCKDB_TMPDIR'] = str(temporary)
             with (folder / 'process.log').open('ab') as log:
-                process = subprocess.Popen([str(self.python), '-B', '-m', 'modules.data_workbench.interactive_worker',
+                bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('modules.data_workbench.interactive_worker',run_name='__main__')"
+                process = subprocess.Popen([str(self.python), '-B', '-c', bootstrap, str(self.project_root),
                                             str(request_path), str(response_path)], cwd=self.project_root,
                                            env=environment, stdout=log, stderr=log,
                                            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)

@@ -1,0 +1,18 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "operation": {
+      "enum": [
+        "cancel",
+        "retry"
+      ],
+      "title": "Operation",
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation"
+  ],
+  "title": "BatchControl",
+  "type": "object"
+}
