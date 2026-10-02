@@ -1,12 +1,71 @@
 """OCR project selection uses native state and creates durable workspace links."""
 
+import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import threading
+from types import SimpleNamespace
+
 from fastapi.testclient import TestClient
 
 from workbench_platform.app import app
 from workbench_platform.bridge.context import ResolvedContext
 from workbench_platform.jobs.ocr_projects import OcrProjects
+from workbench_platform.catalog.launch import LaunchStatus
 
 LOCAL = {"host": "127.0.0.1:8766", "origin": "http://127.0.0.1:8766"}
+
+
+def test_direct_workbench_open_authenticates_without_creating_a_project(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKBENCH_DATA_DIR", str(tmp_path))
+    native_token = "s" * 48
+    supplied_token = native_token
+    requests = []
+
+    class Native(BaseHTTPRequestHandler):
+        def do_GET(self):
+            requests.append(self.path)
+            authorized = self.headers.get("Authorization") == "Bearer " + native_token
+            raw = json.dumps({"projects": []} if authorized else {"message": "expired"}).encode()
+            self.send_response(200 if authorized else 401)
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+
+        def log_message(self, *_args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Native)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    receipt = SimpleNamespace(instance_id="instanceA", base_url=f"http://127.0.0.1:{server.server_port}/")
+
+    def get(app_id, launch_id):
+        if app_id != "ocr" or launch_id != "launchA":
+            raise LaunchStatus(410, "APP_UNAVAILABLE")
+        return receipt
+
+    try:
+        with TestClient(app, base_url="http://127.0.0.1:8766") as client:
+            monkeypatch.setattr(app.state, "job_service", SimpleNamespace(
+                launches=SimpleNamespace(get=get, current=lambda _: receipt),
+                _token=lambda: supplied_token))
+            route = "/api/platform/v1/apps/ocr/launches/launchA/navigation"
+            assert client.post(route).status_code == 403
+            assert client.post(route, headers=LOCAL, content=b"{}").status_code == 400
+            assert client.post(route + "?url=http://example.com", headers=LOCAL).status_code == 400
+            assert client.get(route).status_code == 405
+            opened = client.post(route, headers=LOCAL)
+            assert opened.status_code == 200
+            assert opened.json() == {"url": receipt.base_url + "#token=" + native_token}
+            assert opened.headers["Cache-Control"] == "no-store"
+            assert requests == ["/api/state"]
+            supplied_token = "w" * 48
+            assert client.post(route, headers=LOCAL).status_code == 503
+            assert client.post(route.replace("launchA", "oldLaunch"), headers=LOCAL).status_code == 503
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 def test_project_listing_linking_and_creation_without_manual_native_id(tmp_path, monkeypatch):

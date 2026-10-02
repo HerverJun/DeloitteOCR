@@ -26,6 +26,19 @@ class OcrProjects:
     def __init__(self, jobs):
         self.jobs = jobs
 
+    def open_workbench(self, launch_id: str) -> dict:
+        receipt = self.jobs.launches.get("ocr", launch_id)
+        # Native service identity alone does not establish a browser session.
+        # Verify the administrator-provided credential against the live service
+        # before using the native launcher's existing fragment handoff.
+        self._request("GET", "/api/state")
+        token = self.jobs._token()
+        current = self.jobs.launches.get("ocr", launch_id)
+        if (current.instance_id != receipt.instance_id or current.base_url != receipt.base_url
+                or not isinstance(token, str) or re.fullmatch(r"[A-Za-z0-9_-]{32,512}", token) is None):
+            raise OcrUnavailable()
+        return {"url": receipt.base_url.rstrip("/") + "/#token=" + token}
+
     def _request(self, method: str, path: str, payload: dict | None = None) -> dict:
         receipt = self.jobs.launches.current("ocr")
         parsed = urlsplit(receipt.base_url)

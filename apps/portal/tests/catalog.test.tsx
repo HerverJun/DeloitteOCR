@@ -28,6 +28,7 @@ const health = (state: string, reason: string) => ({ schema_version: '1.0', serv
 const receipt = { schema_version: '1.0', launch_id: 'launchA', app_id: 'ocr', instance_id: 'instanceA',
   pid: 123, creation_time: '2026-09-25T01:00:00Z', base_url: 'http://127.0.0.1:49123/',
   handshake_nonce: 'nonceA', ownership: 'owned', version: 'fixture-1' }
+const authenticatedAddress = receipt.base_url + '#token=' + 's'.repeat(48)
 
 function mount() {
   const router = createMemoryRouter(routes, { initialEntries: ['/apps'] })
@@ -37,6 +38,7 @@ function mount() {
 }
 
 function baseFetch(input: string) {
+  if (input.endsWith('/navigation')) return { ok: true, json: async () => ({ url: authenticatedAddress }) }
   if (input.startsWith('/api/platform/v1/workspaces')) return { ok: true, json: async () => page([]) }
   if (input.startsWith('/api/platform/v1/apps?')) return { ok: true, json: async () => page([app]) }
   if (input.endsWith('/health')) return { ok: true, json: async () => health('unknown', 'Not probed') }
@@ -163,6 +165,7 @@ test('waiting and failed file verification show feedback rather than an uninstal
 test('lost launch response is verified and retried with exactly the same ID', async () => {
   let posts = 0
   const fetcher = vi.fn(async (input: string, options?: RequestInit) => {
+    if (input.endsWith('/navigation')) return baseFetch(input)
     if (input.includes('/launches/l') && options?.method === 'POST') {
       posts++
       if (posts === 1) throw new Error('network response lost')
@@ -182,10 +185,10 @@ test('lost launch response is verified and retried with exactly the same ID', as
   expect(popup.close).toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: '核实原请求' }))
   await waitFor(() => expect(posts).toBe(2))
-  const postPaths = fetcher.mock.calls.filter(([, options]) => options?.method === 'POST').map(([input]) => input)
+  const postPaths = fetcher.mock.calls.filter(([input, options]) => options?.method === 'POST' && !input.endsWith('/navigation')).map(([input]) => input)
   expect(postPaths).toEqual([postPaths[0], postPaths[0]])
   expect(postPaths[0]).toContain(pending)
-  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(receipt.base_url))
+  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(authenticatedAddress))
   expect(sessionStorage.getItem('workbench:pending-launch:ocr')).toBeNull()
   expect(screen.queryByRole('link', { name: /已核实的本机实例/ })).not.toBeInTheDocument()
 })
@@ -213,6 +216,37 @@ test('missing window handle offers retry; continuing a recent record requires a 
   fireEvent.click(screen.getByRole('button', { name: '再次核实并打开 ↗' }))
   expect(await screen.findByText('原实例已退出；请明确发起新启动。')).toBeInTheDocument()
   expect(fetcher.mock.calls.filter(([input]) => String(input).endsWith('/launches/current')).length).toBeGreaterThan(1)
+})
+
+test('opening a running OCR service establishes a session before navigating and does not relaunch it', async () => {
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.endsWith('/launches/current')) return { ok: true, json: async () => receipt }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
+  vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
+  await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(authenticatedAddress))
+  const posts = fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')
+  expect(posts.map(([path]) => path)).toEqual(['/api/platform/v1/apps/ocr/launches/launchA/navigation'])
+  expect(sessionStorage.getItem('ocr-token')).toBeNull()
+})
+
+test('failed OCR session handoff closes the reserved window instead of opening an unauthenticated page', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+    if (input.endsWith('/launches/current')) return { ok: true, json: async () => receipt }
+    if (input.endsWith('/navigation')) return { ok: false, status: 503 }
+    return baseFetch(input)
+  }))
+  const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
+  vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
+  expect(await screen.findByText('OCR 工作台连接暂不可用，请重新核实并打开。')).toBeInTheDocument()
+  expect(popup.location.replace).not.toHaveBeenCalled()
+  expect(popup.close).toHaveBeenCalled()
 })
 
 test('configured bundle without durable storage cannot launch', async () => {

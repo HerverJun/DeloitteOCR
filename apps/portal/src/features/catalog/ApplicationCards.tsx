@@ -88,13 +88,24 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     }
     launch.mutate({ action })
   }
-  const open = (receipt: LaunchReceipt) => {
-    const address = liveAddress(receipt)
+  const open = async (receipt: LaunchReceipt) => {
+    let address = liveAddress(receipt)
     setVerified(receipt)
     const popup = popupRef.current
-    popupRef.current = null
     if (popup) {
+      if (app.app_id === 'ocr') {
+        const result = await fetch(`/api/platform/v1/apps/ocr/launches/${encodeURIComponent(receipt.launch_id)}/navigation`,
+          { method: 'POST', headers: { Accept: 'application/json' } })
+        if (!result.ok) throw new Error('OCR 工作台连接暂不可用，请重新核实并打开。')
+        const value = await result.json() as { url: string }
+        const target = new URL(value.url)
+        if (target.origin !== new URL(address).origin || target.pathname !== '/' || target.search
+          || !/^#token=[A-Za-z0-9_-]{32,512}$/.test(target.hash)) throw new Error('OCR 工作台入口未通过本机校验')
+        address = target.href
+      }
+      if (!mountedRef.current) return
       popup.location.replace(address)
+      popupRef.current = null
       setFailure('')
     } else {
       setFailure('未能创建新窗口；请允许弹出窗口后再次核实并打开。')
@@ -125,11 +136,11 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
       throw new Error(`启动失败（${result.status}）；可核实原请求。`)
     }
     return result.json() as Promise<LaunchReceipt>
-  }, onSuccess: receipt => {
+  }, onSuccess: async receipt => {
     if (!mountedRef.current) return
     remember(null)
     refresh()
-    try { open(receipt) } catch (error) {
+    try { await open(receipt) } catch (error) {
       popupRef.current?.close(); popupRef.current = null
       setFailure(error instanceof Error ? error.message : '服务地址不可用')
     }

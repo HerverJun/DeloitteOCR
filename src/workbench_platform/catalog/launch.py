@@ -228,6 +228,28 @@ async def start_launch(app_id: str, launch_id: str, request: Request):
         return contract_error(error.status, error.code, "Application launch is unavailable")
 
 
+@router.post("/apps/ocr/launches/{launch_id}/navigation")
+async def open_ocr_workbench(launch_id: str, request: Request):
+    if not _same_loopback_origin(request):
+        return contract_error(403, "VALIDATION_FAILED", "Local same-origin request required")
+    if not ID.fullmatch(launch_id) or launch_id == "current" or request.query_params:
+        return contract_error(400, "VALIDATION_FAILED", "Invalid launch identity")
+    async for chunk in request.stream():
+        if chunk:
+            return contract_error(400, "VALIDATION_FAILED", "Navigation request has no body")
+    jobs = getattr(request.app.state, "job_service", None)
+    if jobs is None:
+        return contract_error(503, "APP_UNAVAILABLE", "OCR session is unavailable")
+    from fastapi.responses import JSONResponse
+    from workbench_platform.jobs.ocr_projects import OcrProjects
+    from workbench_platform.jobs.native_ocr import OcrUnavailable
+    try:
+        value = await run_in_threadpool(OcrProjects(jobs).open_workbench, launch_id)
+        return JSONResponse(value, headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"})
+    except (LaunchStatus, OcrUnavailable):
+        return contract_error(503, "APP_UNAVAILABLE", "OCR session is unavailable")
+
+
 @router.get("/recent-work", response_model=RecentWorkPage)
 def recent_work(request: Request, limit: int = Query(..., ge=1, le=200),
                 cursor: str | None = None, snapshot_revision: int | None = Query(None, ge=1, le=9_007_199_254_740_991),
