@@ -104,7 +104,9 @@ class BatchService:
         else:
             if batch['status'] not in RETRYABLE:
                 raise DataError('本批次当前不支持重试', 409)
-            self.store.update(batch_id, status='queued', cancel_requested=False)
+            # A retry of an uncertain cancellation continues reconciliation;
+            # it must not turn the original cancellation into resumed work.
+            self.store.update(batch_id, status='queued', cancel_requested=batch['cancel_requested'])
             self.schedule(batch_id)
         return self.get(batch_id)
 
@@ -159,8 +161,8 @@ class BatchService:
             current = self.store.get(batch_id)
             cancelled = current['cancel_requested']
             message = str(error) if isinstance(error, ValueError) else '批次处理未完成，已保留成功阶段和来源'
-            status = ('cancelled' if cancelled else getattr(error, 'status', None)
-                      if getattr(error, 'status', None) in RETRYABLE else
+            status = (getattr(error, 'status', None) if getattr(error, 'status', None) in RETRYABLE else
+                      'cancelled' if cancelled else
                       'needs_verification' if '需核实' in message or '恢复点' in message else 'failed')
             if self.closing.is_set() and not cancelled:
                 status = 'queued'  # Service recovery owns the remaining work.

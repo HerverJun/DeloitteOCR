@@ -231,3 +231,44 @@ def test_service_restart_retries_collection_without_new_results(tmp_path, monkey
 
 
 from contextlib import closing as closing_connection
+
+
+def test_uncertain_native_cancel_remains_unverified_and_retry_keeps_cancel(client, monkeypatch):
+    from types import SimpleNamespace
+    from workbench_platform.batches.native import NativeBatchError
+    ws = workspace(client)
+    asset = upload(client, ws, 'input.csv', '编号,金额\nA,1\n')
+    saved = client.post(PREFIX + '/batch-templates', headers=LOCAL, json={
+        'schema_version': '1.0', 'workspace_id': ws, 'name': '取消回执核实',
+        'scenario': 'classification', 'config': {'link_id': 'linkedProject', 'model_id': 'existingModel'}}).json()
+    submitted = threading.Event()
+    release = threading.Event()
+    attempts = []
+    def run(batch, checkpoint, cancelled):
+        attempts.append({'cancel_requested': batch['cancel_requested'], 'inputs': batch['inputs']})
+        if len(attempts) == 1:
+            checkpoint('native_submission', {'platform_job_id': 'jExistingNativeJob'})
+            submitted.set()
+            assert release.wait(5)
+            # The native worker may still run; unavailable status cannot prove termination.
+            raise NativeBatchError('原生服务不可达，取消终态需核实', 'needs_verification')
+        assert cancelled(), 'Retry must continue cancellation, not resume dispatch'
+        assert batch['receipts']['native_submission']['platform_job_id'] == 'jExistingNativeJob'
+        return {'status': 'cancelled', 'summary': {'total': 1, 'cancelled': 1}, 'issues': [],
+                'artifacts': [], 'artifact_state': 'not_generated'}
+    monkeypatch.setattr(app.state.batch_service, 'native', SimpleNamespace(preflight=lambda *_: [], run=run))
+    payload = request(ws, saved, [{'role': 'images', **asset}], key='cancelUnverified')
+    posted = client.post(PREFIX + '/batches', headers=LOCAL, json=payload).json()
+    assert submitted.wait(5)
+    assert client.post(f"{PREFIX}/batches/{posted['batch_id']}/control", headers=LOCAL,
+                       json={'operation': 'cancel'}).status_code == 200
+    release.set()
+    unknown = terminal(client, posted['batch_id'])
+    assert unknown['status'] == 'needs_verification' and unknown['cancel_requested'] is True
+    assert unknown['summary']['execution_complete'] is False
+    assert client.post(f"{PREFIX}/batches/{posted['batch_id']}/control", headers=LOCAL,
+                       json={'operation': 'retry'}).status_code == 200
+    reconciled = terminal(client, posted['batch_id'])
+    assert reconciled['status'] == 'cancelled' and reconciled['cancel_requested'] is True
+    assert len(attempts) == 2 and attempts[1]['cancel_requested'] is True
+    assert attempts[0]['inputs'] == attempts[1]['inputs']
