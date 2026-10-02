@@ -288,6 +288,10 @@ class ClassificationHandoff:
                           "prediction_status": result.prediction_status,
                           "prediction_score": result.prediction_score,
                           "human_label_id": result.human_label_id,
+                          "disposition_state": result.disposition_state,
+                          "disposition_revision": result.disposition_revision,
+                          "disposition_note": result.disposition_note,
+                          "current_annotation_label_id": result.current_annotation_label_id,
                           "error": result.error})
         projection = self.jobs.refresh(workspace_id, self.jobs.ledger.get(
             workspace_id, submission["platform_job_id"]))
@@ -303,7 +307,7 @@ class ClassificationHandoff:
                 "inputs": inputs, "items": items, "native_state": job.state,
                 "platform_job": projection}
 
-    def submit(self, workspace_id, handoff_id, model_id, device):
+    def submit(self, workspace_id, handoff_id, model_id, device, *, allow_new=True):
         if (not isinstance(model_id, str) or not ID.fullmatch(model_id)
                 or device not in {"cpu", "cuda"}):
             raise ValueError("Invalid model selection")
@@ -331,7 +335,11 @@ class ClassificationHandoff:
                 raise AssetSetConflict("Processing request is already bound to another model")
             native_job = submission["native_job_id"]
             if native_job is None:
-                native_job = adapter.infer(model_id, asset_ids, key=request_id, device=device)
+                native_job = adapter.lookup_inference(request_id) if hasattr(adapter, "lookup_inference") else None
+                if native_job is None:
+                    if not allow_new:
+                        return {"not_submitted": True}
+                    native_job = adapter.infer(model_id, asset_ids, key=request_id, device=device)
                 with closing(self._connect()) as db:
                     db.execute("UPDATE classification_submission SET native_job_id=? "
                                "WHERE handoff_id=?", (native_job, handoff_id))

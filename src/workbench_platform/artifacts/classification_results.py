@@ -104,7 +104,8 @@ class ClassificationResults:
         writer = csv.writer(stream)
         columns = ("source_name", "asset_id", "native_asset_id", "state",
                    "prediction_label_id", "prediction_status", "prediction_score",
-                   "human_label_id", "error")
+                   "human_label_id", "disposition_state", "disposition_revision",
+                   "disposition_note", "current_annotation_label_id", "error")
         writer.writerow(columns)
         for item in snapshot["items"]:
             writer.writerow([_csv_cell(item.get(column)) for column in columns])
@@ -127,9 +128,11 @@ class ClassificationResults:
                       last_event_seq=projection["last_event_seq"],
                       updated_at=projection["updated_at"])
 
-    def publish(self, workspace_id, handoff_id):
+    def publish(self, workspace_id, handoff_id, *, snapshot=None):
         with self.lock:
-            snapshot = self.handoff.result_snapshot(workspace_id, handoff_id)
+            snapshot = snapshot or self.handoff.result_snapshot(workspace_id, handoff_id)
+            if snapshot.get("workspace_id") != workspace_id or snapshot.get("handoff_id") != handoff_id:
+                raise ArtifactUnavailable("SOURCE_FAILED")
             payloads = self._files(snapshot)
             identity = {"job": snapshot["native_job_id"], "model": snapshot["model_id"],
                         "inputs": snapshot["input_manifest_hash"], "items": snapshot["items"],

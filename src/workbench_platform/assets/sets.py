@@ -110,8 +110,22 @@ class AssetSetStore:
         return hashlib.sha256(_canonical({"schema_version": "1.0", "items": ordered}).encode("utf-8")).hexdigest()
 
     def create(self, workspace_id: str, items: Iterable[AssetSetItem | dict], *,
-               parents: Mapping[str, tuple[str, int, str]] | None = None) -> AssetSet:
-        return self._write(workspace_id, self._items(items), parents, None, None)
+               parents: Mapping[str, tuple[str, int, str]] | None = None,
+               asset_set_id: str | None = None) -> AssetSet:
+        members = self._items(items)
+        if asset_set_id is not None:
+            if not _id(asset_set_id):
+                raise AssetSetConflict("Invalid fixed set identity")
+            try:
+                existing = self.get(workspace_id, asset_set_id, 1)
+            except AssetSetMissing:
+                pass
+            else:
+                lineage = self._parents(parents, {item.item_id for item in members})
+                if existing.manifest_hash != self._manifest(members, lineage):
+                    raise AssetSetConflict("Fixed set identity belongs to other inputs")
+                return existing
+        return self._write(workspace_id, members, parents, None, None, fixed_id=asset_set_id)
 
     def revise(self, workspace_id: str, asset_set_id: str, expected_revision: int,
                items: Iterable[AssetSetItem | dict], *,
@@ -123,7 +137,8 @@ class AssetSetStore:
 
     def _write(self, workspace_id: str, items: tuple[AssetSetItem, ...],
                parents: Mapping[str, tuple[str, int, str]] | None,
-               asset_set_id: str | None, expected_revision: int | None) -> AssetSet:
+               asset_set_id: str | None, expected_revision: int | None,
+               fixed_id: str | None = None) -> AssetSet:
         if not _id(workspace_id):
             raise AssetSetConflict("Invalid workspace")
         lineage = self._parents(parents, {item.item_id for item in items})
@@ -142,7 +157,7 @@ class AssetSetStore:
             except (AssetChanged, AssetUnavailable):
                 raise AssetSetConflict("Asset content is no longer available") from None
             checked.add(key)
-        set_id = asset_set_id or "s" + uuid.uuid4().hex
+        set_id = asset_set_id or fixed_id or "s" + uuid.uuid4().hex
         digest = self._manifest(items, lineage)
         with closing(self._connect()) as db:
             db.execute("BEGIN IMMEDIATE")

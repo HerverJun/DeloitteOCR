@@ -105,9 +105,11 @@ class OcrResults:
                       capabilities=[], last_event_seq=projection["last_event_seq"],
                       updated_at=projection["updated_at"])
 
-    def publish(self, workspace_id, handoff_id):
+    def publish(self, workspace_id, handoff_id, *, snapshot=None):
         with self.lock:
-            snapshot = self.handoff.result_snapshot(workspace_id, handoff_id)
+            snapshot = snapshot or self.handoff.result_snapshot(workspace_id, handoff_id)
+            if snapshot.get("workspace_id") != workspace_id or snapshot.get("handoff_id") != handoff_id:
+                raise ArtifactUnavailable("SOURCE_FAILED")
             archive_name = ("ocr-results.zip" if snapshot["media_type"] == "application/zip"
                             else "ocr-result.json")
             provenance = {"schema_version": "1.0", "platform_job_id": snapshot["platform_job_id"],

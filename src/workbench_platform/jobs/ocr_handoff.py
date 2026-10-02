@@ -238,7 +238,7 @@ class OcrHandoff:
         return {"recognition": available.recognition, "reason": available.reason,
                 "engines": engines if available.recognition else []}
 
-    def submit(self, workspace_id: str, handoff_id: str, engines: list[str]):
+    def submit(self, workspace_id: str, handoff_id: str, engines: list[str], *, allow_new=True):
         if (not isinstance(engines, list) or not 1 <= len(engines) <= 16
                 or any(not isinstance(item, str) or not ID.fullmatch(item) for item in engines)
                 or len(set(engines)) != len(engines)):
@@ -251,8 +251,6 @@ class OcrHandoff:
                 raise AssetSetConflict("PDF uses the native document workflow")
             context = self._context(workspace_id, row["link_id"])
             adapter = self._adapter(context)
-            if not adapter.capabilities().recognition:
-                raise OcrUnavailable()
             native = adapter.import_status(row["request_id"])
             if native["state"] != "completed":
                 raise AssetSetConflict("OCR import has not completed")
@@ -276,7 +274,13 @@ class OcrHandoff:
             task_ids = (json.loads(submission["native_task_ids_json"])
                         if submission["native_task_ids_json"] else None)
             if task_ids is None:
-                task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id))
+                task_ids = list(adapter.lookup_submission(request_id) or ()) if hasattr(adapter, "lookup_submission") else []
+                if not task_ids:
+                    if not allow_new:
+                        return {"not_submitted": True}
+                    if not adapter.capabilities().recognition:
+                        raise OcrUnavailable()
+                    task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id))
                 with closing(self._connect()) as db:
                     db.execute("UPDATE ocr_submission SET native_task_ids_json=? WHERE handoff_id=?",
                                (_json(task_ids), handoff_id))

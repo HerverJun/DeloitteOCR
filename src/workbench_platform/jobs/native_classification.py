@@ -60,6 +60,10 @@ class ReviewItem:
     prediction_score: float | None
     human_label_id: str | None
     error: str | None
+    disposition_state: str = "unreviewed"
+    disposition_revision: int = 0
+    disposition_note: str | None = None
+    current_annotation_label_id: str | None = None
 
 
 def _id(value: object) -> bool:
@@ -314,6 +318,25 @@ class ClassificationAdapter:
             raise ClassificationUnavailable()
         return result["job_id"]
 
+    def lookup_inference(self, request_id: str) -> str | None:
+        if not isinstance(request_id, str) or not KEY.fullmatch(request_id):
+            raise ClassificationUnavailable()
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}/inference-requests/{request_id}")
+        if (not isinstance(result, dict) or type(result.get("submitted")) is not bool
+                or (result["submitted"] and not _id(result.get("job_id")))
+                or (not result["submitted"] and result.get("job_id") is not None)):
+            raise ClassificationUnavailable()
+        return result["job_id"]
+
+    def dispose(self, job_id: str, items: list[ReviewItem], state: str, label_id=None, note=""):
+        if self.context.role == "viewer" or state not in {"confirmed", "deferred", "reopened"}:
+            raise ClassificationUnavailable()
+        return self._request("POST", f"/api/v1/jobs/{job_id}/dispositions", {
+            "item_ids": [item.native_item_id for item in items], "state": state,
+            "label_id": label_id, "note": note,
+            "expected_revisions": {item.native_item_id: item.disposition_revision for item in items}},
+            max_body=65536)
+
     def job(self, job_id: str) -> JobStatus:
         if not _id(job_id):
             raise ClassificationUnavailable()
@@ -362,13 +385,22 @@ class ClassificationAdapter:
             label = prediction.get("label_id") if prediction else None
             status = prediction.get("status") if prediction else None
             score = prediction.get("score") if prediction else None
-            human = row.get("confirmed_label")
+            human = row.get("human_label_id")
+            disposition = row.get("disposition_state", "unreviewed")
+            disposition_revision = row.get("disposition_revision", 0)
+            current_annotation = row.get("confirmed_label")
             if ((label is not None and not _id(label)) or (human is not None and not _id(human))
+                    or disposition not in {"unreviewed", "confirmed", "deferred", "reopened"}
+                    or type(disposition_revision) is not int or disposition_revision < 0
+                    or (current_annotation is not None and not _id(current_annotation))
                     or (status is not None and status not in {"accepted", "needs_review"})
                     or (score is not None and (not isinstance(score, (int, float)) or type(score) is bool
                                                or not 0 <= score <= 1))):
                 raise ClassificationUnavailable()
             items.append(ReviewItem(row["id"], row.get("asset_id"), str(row.get("state", "")),
                                     label, status, float(score) if score is not None else None,
-                                    human, row.get("error") if isinstance(row.get("error"), str) else None))
+                                    human, row.get("error") if isinstance(row.get("error"), str) else None,
+                                    disposition, disposition_revision,
+                                    row.get("disposition_note") if isinstance(row.get("disposition_note"), str) else None,
+                                    current_annotation))
         return tuple(items)

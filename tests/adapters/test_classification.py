@@ -125,7 +125,8 @@ def test_project_annotation_training_inference_and_label_separation(native):
     assert client.train(DATASET, key="stable_key") == TRAIN
     assert client.infer(MODEL, [ASSET], key="stable_key") == INFER
     result = client.results(INFER)[0]
-    assert result.prediction_label_id == "a" and result.human_label_id == "b"
+    assert result.prediction_label_id == "a" and result.human_label_id is None
+    assert result.current_annotation_label_id == "b" and result.disposition_state == "unreviewed"
     assert result.prediction_status == "needs_review" and result.prediction_score == 0.8
     assert Native.calls[-1][1].endswith("/results?limit=48&offset=0")
 

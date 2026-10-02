@@ -328,6 +328,17 @@ class OcrAdapter:
         # response says nothing about eventual success.
         return tuple(ids)
 
+    def lookup_submission(self, request_id: str) -> tuple[str, ...] | None:
+        if not isinstance(request_id, str) or not REQUEST_ID.fullmatch(request_id):
+            raise OcrUnavailable()
+        value = self._request("GET", f"/api/projects/{self.context.module_project_id}/task-requests/{request_id}")
+        ids = value.get("task_ids")
+        if (type(value.get("submitted")) is not bool or not isinstance(ids, list)
+                or len(ids) != len(set(ids)) or any(not _is_native_id(item) for item in ids)
+                or (bool(ids) != value["submitted"])):
+            raise OcrUnavailable()
+        return tuple(ids) if value["submitted"] else None
+
     def batch(self, task_ids: list[str]) -> BatchStatus:
         if (not isinstance(task_ids, list) or not task_ids or any(not _is_native_id(x) for x in task_ids)
                 or len(set(task_ids)) != len(task_ids)):
