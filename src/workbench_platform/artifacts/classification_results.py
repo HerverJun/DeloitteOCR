@@ -123,7 +123,7 @@ class ClassificationResults:
                       operation_id=projection["operation_id"],
                       input_manifest_hash=projection["input_manifest_hash"],
                       native_status=projection["native_status"], status=projection["status"],
-                      stage=projection["stage"],
+                      stage=projection["stage"] or projection["status"],
                       counts=Counts(schema_version="1.0", **counts), capabilities=[],
                       last_event_seq=projection["last_event_seq"],
                       updated_at=projection["updated_at"])
