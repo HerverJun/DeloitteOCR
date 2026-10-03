@@ -276,6 +276,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     @app.get("/api/state")
     def state():
         return {
+            "project_create_idempotency": "1.0",
             "projects": store.rows("SELECT * FROM projects ORDER BY updated DESC"),
             "engines": registry.engines(),
             "queue": queue.status(),
@@ -289,7 +290,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
 
     @app.post("/api/projects")
     def create_project(body: dict):
-        return store.project(body.get("name", ""))
+        return store.project(body.get("name", ""), request_id=body.get('request_id'))
 
     @app.patch("/api/projects/{key}")
     def rename_project(key: str, body: dict):
@@ -459,6 +460,38 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     @app.get("/api/results/{key}")
     def result(key: str):
         return present_result(store.result(key))
+
+    @app.get("/api/results/{key}/snapshot")
+    def result_snapshot(key: str):
+        return store.result_snapshot(key)
+
+    @app.get("/api/results/{key}/revisions/{revision}")
+    def result_revision(key: str, revision: int):
+        return store.result_snapshot(key, revision)
+
+    @app.get("/api/results/{key}/revisions")
+    def result_revisions(key: str, offset: int = 0, limit: int = 50):
+        return store.result_history(key, offset, limit)
+
+    def require_adoption_instance(instance_id):
+        if navigation is None or instance_id != platform_instance:
+            raise Conflict("采用操作必须来自当前受管 OCR 实例")
+
+    @app.post("/api/platform/adoptions/{operation_id}")
+    def adopt_revision(operation_id: str, body: dict):
+        require_adoption_instance(body.get("instance_id"))
+        with maintenance.guard:
+            return store.adopt_result(operation_id, body)
+
+    @app.get("/api/platform/adoptions/{operation_id}")
+    def adoption_operation(operation_id: str, project_id: str, instance_id: str,
+                           operation_instance_id: str | None = None):
+        require_adoption_instance(instance_id)
+        # The live transport instance can differ after a restart/restore. The
+        # historical operation identity remains pinned by the platform intent.
+        origin_instance = instance_id if operation_instance_id is None else operation_instance_id
+        receipt = store.adoption_operation(operation_id, project_id, origin_instance)
+        return {"operation_id": operation_id, "committed": receipt is not None, "receipt": receipt}
 
     @app.get("/api/results/{key}/text", response_class=PlainTextResponse)
     def result_text(key: str):
