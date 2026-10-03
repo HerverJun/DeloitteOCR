@@ -55,7 +55,11 @@ def normalize_url(value):
 class CredentialVault:
     """Current-user Windows DPAPI, stored outside projects and their exports."""
     def __init__(self, root=None):
-        self.root = Path(root) if root else Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'OfflineOCR' / 'Credentials'
+        if root:
+            self.root = Path(root)
+        else:
+            local = os.environ.get('LOCALAPPDATA')
+            self.root = Path(local if local is not None else Path.home()) / 'OfflineOCR' / 'Credentials'
 
     @staticmethod
     def _crypt(data, decrypt=False):

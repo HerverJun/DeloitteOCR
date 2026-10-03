@@ -126,6 +126,62 @@ class ProviderFixture:
         self.thread.join(3)
 
 
+class CredentialVaultStartupTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def test_configured_local_appdata_does_not_require_home(self):
+        local = self.root / 'local-appdata'
+        with patch.dict(os.environ, {'LOCALAPPDATA': str(local)}), \
+                patch.object(Path, 'home', side_effect=RuntimeError('No home directory')) as home:
+            vault = ext.CredentialVault()
+            self.assertEqual(vault.root, local / 'OfflineOCR' / 'Credentials')
+            home.assert_not_called()
+            self.assertFalse(vault.root.exists())
+
+    def test_explicit_root_does_not_require_home(self):
+        explicit = self.root / 'explicit-credentials'
+        with patch.object(Path, 'home', side_effect=RuntimeError('No home directory')) as home:
+            self.assertEqual(ext.CredentialVault(explicit).root, explicit)
+            home.assert_not_called()
+
+    def test_home_fallback_remains_available_without_local_appdata(self):
+        with patch.dict(os.environ), patch.object(Path, 'home', return_value=self.root) as home:
+            os.environ.pop('LOCALAPPDATA', None)
+            self.assertEqual(ext.CredentialVault().root, self.root / 'OfflineOCR' / 'Credentials')
+            home.assert_called_once_with()
+
+    def test_real_app_starts_without_home_or_queue(self):
+        from fastapi.testclient import TestClient
+        from ocr_workbench.service import create_app
+
+        bundle = self.root / 'bundle'
+        (bundle / 'config').mkdir(parents=True)
+        (bundle / 'config/engines.json').write_text('{}', encoding='utf-8')
+        local = self.root / 'local-appdata'
+        with patch.dict(os.environ, {'LOCALAPPDATA': str(local)}), \
+                patch.object(Path, 'home', side_effect=RuntimeError('No home directory')) as home:
+            app = create_app(bundle, self.root / 'workspace', 't' * 32,
+                             start_queue=False, review_only=True, agent_enabled=False)
+            self.assertEqual(app.state.external_connection.vault.root,
+                             local / 'OfflineOCR' / 'Credentials')
+            self.assertEqual(app.state.agent_connection.vault.root,
+                             local / 'OfflineOCR' / 'Credentials' / 'AgentController')
+            with TestClient(app, base_url='http://127.0.0.1') as client:
+                response = client.get('/api/health')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json()['status'], 'ready')
+                self.assertFalse(app.state.start_queue)
+                for queue in (app.state.queue, app.state.fusion_queue, app.state.external_queue):
+                    self.assertIsNone(queue.thread)
+                    self.assertFalse(queue.status()['alive'])
+                self.assertEqual(app.state.documents.status()['alive'], 0)
+            self.assertFalse(app.state.external_connection.vault.root.exists())
+            home.assert_not_called()
+
+
 class ExternalReviewTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

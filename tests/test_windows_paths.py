@@ -12,6 +12,7 @@ class PathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp, patch.dict(os.environ, {}):
             os.environ.pop('ProgramData', None)
             os.environ.pop('SystemRoot', None)
+            os.environ['CLEAR_PADDLE_TEMP']=temp
             models=Path(temp)/'模型';models.mkdir()
             (models/'model.bin').write_bytes(b'model')
             with ascii_model_directory(models) as alias:
@@ -37,3 +38,26 @@ class PathTests(unittest.TestCase):
                     raise RuntimeError('test failure')
             self.assertFalse(alias.exists())
             self.assertTrue(models.exists())
+
+    def test_unregistered_or_off_drive_temp_never_uses_system_fallback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            models=Path(temp)/'模型';models.mkdir()
+            for value in (None, 'C:/Windows/Temp'):
+                with patch.dict(os.environ, {}, clear=True):
+                    if value is not None:os.environ['CLEAR_PADDLE_TEMP']=value
+                    with self.assertRaisesRegex(RuntimeError,'registered|F drive'):
+                        with ascii_model_directory(models):self.fail('invalid temporary directory')
+
+    def test_unwritable_registered_temp_preserves_models(self):
+        with tempfile.TemporaryDirectory() as temp:
+            models=Path(temp)/'模型';models.mkdir()
+            blocked=Path(temp)/'blocked';blocked.write_bytes(b'keep')
+            with patch.dict(os.environ, {'CLEAR_PADDLE_TEMP':str(blocked)}):
+                with self.assertRaisesRegex(RuntimeError,'no fallback'):
+                    with ascii_model_directory(models):self.fail('unwritable temporary directory')
+            self.assertEqual(blocked.read_bytes(),b'keep')
+            self.assertTrue(models.exists())
+
+    def test_off_drive_ascii_models_are_rejected_before_aliasing(self):
+        with self.assertRaisesRegex(RuntimeError,'local F drive'):
+            with ascii_model_directory(Path('C:/Windows')):self.fail('off-drive model')
