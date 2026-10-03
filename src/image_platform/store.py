@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 import sqlite3
 import time
 import uuid
@@ -117,6 +118,20 @@ PRAGMA user_version=4;
 """
 
 
+MIGRATION_5 = """
+ALTER TABLE result_disposition_events ADD COLUMN operation_id TEXT;
+ALTER TABLE result_disposition_events ADD COLUMN request_id TEXT;
+ALTER TABLE result_disposition_events ADD COLUMN actor_json TEXT;
+CREATE TABLE result_disposition_requests (
+ project_id TEXT NOT NULL REFERENCES projects(id), request_id TEXT NOT NULL,
+ operation_id TEXT NOT NULL UNIQUE, job_id TEXT NOT NULL REFERENCES jobs(id),
+ instance_id TEXT NOT NULL, payload_hash TEXT NOT NULL, receipt_json TEXT NOT NULL,
+ created_at TEXT NOT NULL, PRIMARY KEY(project_id,request_id)
+);
+PRAGMA user_version=5;
+"""
+
+
 class Store:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -144,7 +159,12 @@ class Store:
                 for statement in MIGRATION_4.split(";"):
                     if statement.strip():
                         con.execute(statement)
-            elif version != 4:
+                version = 4
+            if version == 4:
+                for statement in MIGRATION_5.split(";"):
+                    if statement.strip():
+                        con.execute(statement)
+            elif version != 5:
                 raise RuntimeError(f"Unsupported database version {version}")
 
     @contextmanager
@@ -172,6 +192,30 @@ class Store:
         rows = self.rows(sql, params)
         return rows[0] if rows else None
 
+    def create_project(self, name, description, labels, request_id=None):
+        if request_id is not None and (not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}', request_id)):
+            raise ValueError('创建请求无效')
+        project_id = uid('project')
+        payload = dump({'name': name, 'description': description, 'labels': labels})
+        with self.connect(write=True) as con:
+            con.execute('CREATE TABLE IF NOT EXISTS project_create_requests(request_id TEXT PRIMARY KEY, payload TEXT NOT NULL, project_id TEXT NOT NULL)')
+            if request_id:
+                prior = con.execute('SELECT payload,project_id FROM project_create_requests WHERE request_id=?', (request_id,)).fetchone()
+                if prior:
+                    if prior['payload'] != payload:
+                        raise ValueError('创建请求已用于其他内容')
+                    row = con.execute('SELECT * FROM projects WHERE id=?', (prior['project_id'],)).fetchone()
+                    if row is None:
+                        raise ValueError('原请求创建的项目已删除')
+                    result = dict(row)
+                    result['labels'] = json.loads(result['labels'])
+                    return result
+            con.execute('INSERT INTO projects(id,name,description,labels,created_at) VALUES(?,?,?,?,?)',
+                        (project_id, name, description, dump(labels), now()))
+            if request_id:
+                con.execute('INSERT INTO project_create_requests VALUES(?,?,?)', (request_id, payload, project_id))
+        return self.project(project_id)
+
     def project(self, project_id):
         result = self.one("SELECT * FROM projects WHERE id=?", (project_id,))
         if not result:
@@ -187,7 +231,14 @@ class Store:
             result[key] = json.loads(result[key]) if result[key] else None
         return result
 
-    def dispose_results(self, job_id, item_ids, state, label_id=None, note="", expected_revisions=None):
+    def disposition_operation(self, project_id, operation_id):
+        self.project(project_id)
+        row = self.one("SELECT receipt_json FROM result_disposition_requests WHERE project_id=? AND operation_id=?",
+                       (project_id, operation_id))
+        return json.loads(row["receipt_json"]) if row else None
+
+    def dispose_results(self, job_id, item_ids, state, label_id=None, note="", expected_revisions=None,
+                        *, operation_id=None, request_id=None, actor=None, instance_id=None, intent="manual"):
         """Persist decisions for this run; asset annotations never imply review."""
         job = self.job(job_id)
         if job["kind"] != "inference" or state not in {"confirmed", "deferred", "reopened"}:
@@ -199,37 +250,99 @@ class Store:
             raise ValueError("确认类别不属于此项目")
         if state != "confirmed" and label_id is not None:
             raise ValueError("暂缓或重开不能设置确认类别")
-        if expected_revisions is not None and set(expected_revisions) != set(item_ids):
+        identity = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}\Z")
+        if any(not isinstance(value, str) or not identity.fullmatch(value)
+               for value in (operation_id, request_id, instance_id)):
+            raise ValueError("处置必须携带稳定操作、请求及实例身份")
+        if (not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or actor.get("source") != "local" or not identity.fullmatch(str(actor.get("id", "")))
+                or not isinstance(actor.get("display_name"), str) or not 1 <= len(actor["display_name"]) <= 100):
+            raise ValueError("处置必须明确本机操作身份；不代表组织认证")
+        if (not isinstance(note, str) or len(note) > 2000
+                or intent not in {"manual", "accept_prediction", "adopt"}):
+            raise ValueError("处置说明或操作意图无效")
+        if intent == "adopt" and len(item_ids) != 1:
+            raise ValueError("采用修订必须明确指定一项结果")
+        if (not isinstance(expected_revisions, dict) or set(expected_revisions) != set(item_ids)
+                or any(type(value) is not int or value < 0 for value in expected_revisions.values())):
             raise ValueError("处置版本必须覆盖全部所选结果")
+        payload = {"job_id": job_id, "item_ids": sorted(item_ids), "state": state,
+                   "label_id": label_id, "note": note, "expected_revisions": expected_revisions,
+                   "actor": actor, "instance_id": instance_id, "intent": intent}
+        payload_hash = fingerprint(payload)
         with self.connect(write=True) as con:
+            prior = con.execute("SELECT * FROM result_disposition_requests WHERE "
+                                "(project_id=? AND request_id=?) OR operation_id=?",
+                                (job["project_id"], request_id, operation_id)).fetchone()
+            if prior:
+                if (prior["payload_hash"] != payload_hash or prior["request_id"] != request_id
+                        or prior["operation_id"] != operation_id or prior["project_id"] != job["project_id"]):
+                    raise ValueError("操作或请求身份已用于不同内容")
+                return json.loads(prior["receipt_json"])
+            changes = []
+            stamp = now()
             for item_id in item_ids:
-                row = con.execute("SELECT j.*,d.revision disposition_revision FROM job_items j "
+                row = con.execute("SELECT j.*,d.revision disposition_revision,d.state disposition_state,"
+                                  "d.label_id human_label_id FROM job_items j "
                                   "LEFT JOIN result_dispositions d ON d.item_id=j.id "
                                   "WHERE j.id=? AND j.job_id=?", (item_id, job_id)).fetchone()
                 if row is None:
                     raise LookupError("结果不存在或不属于此任务")
                 revision = row["disposition_revision"] or 0
-                if expected_revisions is not None and expected_revisions[item_id] != revision:
+                if expected_revisions[item_id] != revision:
                     raise ValueError("处置记录已变化，请刷新后重试")
                 if state == "confirmed" and (row["state"] != "succeeded" or not row["prediction"]):
                     raise ValueError("执行失败或没有预测的结果不能确认为已复核")
-                stamp = now()
+                prediction = json.loads(row["prediction"]) if row["prediction"] else None
+                asset = None
+                if row["asset_id"]:
+                    asset = con.execute("SELECT * FROM assets WHERE id=? AND project_id=?",
+                                        (row["asset_id"], job["project_id"])).fetchone()
+                    if asset is None or asset["sha256"] != row["sha256"] or asset["path"] != row["path"]:
+                        raise ValueError("结果原图来源身份已变化")
+                    from pathlib import Path
+                    try:
+                        with Path(row["path"]).open("rb") as source:
+                            if hashlib.file_digest(source, "sha256").hexdigest() != row["sha256"]:
+                                raise ValueError("结果原图内容已变化")
+                    except OSError as error:
+                        raise ValueError("结果原图不可读取，处置未写入") from error
+                if intent == "accept_prediction" and state == "confirmed":
+                    if (not prediction or label_id != prediction.get("label_id")
+                            or (row["human_label_id"] is not None and row["human_label_id"] != label_id)
+                            or (asset and asset["label_id"] is not None and asset["label_id"] != label_id)):
+                        raise ValueError("原建议不能覆盖已有人工判断；请明确采用人工类别")
+                if intent == "adopt" and (state != "confirmed" or row["disposition_state"] != "confirmed"
+                                          or row["human_label_id"] != label_id):
+                    raise ValueError("采用必须对应所见版本的原生人工类别")
                 con.execute("INSERT INTO result_dispositions VALUES(?,?,?,?,?,?) "
                             "ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,label_id=excluded.label_id,"
                             "note=excluded.note,revision=excluded.revision,updated_at=excluded.updated_at",
                             (item_id, state, label_id, note, revision + 1, stamp))
-                con.execute("INSERT INTO result_disposition_events VALUES(?,?,?,?,?,?,?,?)",
-                            (uid("decision"), job_id, item_id, state, label_id, note, revision + 1, stamp))
+                con.execute("INSERT INTO result_disposition_events "
+                            "(id,job_id,item_id,state,label_id,note,revision,created_at,operation_id,request_id,actor_json) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                            (uid("decision"), job_id, item_id, state, label_id, note, revision + 1, stamp,
+                             operation_id, request_id, dump(actor)))
                 if state == "confirmed" and row["asset_id"]:
-                    asset = con.execute("SELECT label_id FROM assets WHERE id=? AND project_id=?",
-                                        (row["asset_id"], job["project_id"])).fetchone()
-                    if asset is None:
-                        raise LookupError("结果原图不属于此项目")
                     con.execute("INSERT INTO annotations VALUES(?,?,?,?,?,?)",
                                 (uid("annotation"), row["asset_id"], asset["label_id"], label_id,
                                  "result_confirmed:" + job_id, stamp))
                     con.execute("UPDATE assets SET label_id=? WHERE id=?", (label_id, row["asset_id"]))
-        return {"updated": len(item_ids), "state": state}
+                changes.append({"item_id": item_id, "asset_id": row["asset_id"], "path": row["path"],
+                                "original_sha256": row["sha256"], "prediction": prediction,
+                                "human_label_id": label_id, "revision": revision + 1,
+                                "previous": {"revision": revision, "human_label_id": row["human_label_id"],
+                                             "state": row["disposition_state"] or "unreviewed"}})
+            receipt = {"operation_id": operation_id, "request_id": request_id, "payload_hash": payload_hash,
+                       "state": "committed", "project_id": job["project_id"], "instance_id": instance_id,
+                       "job_id": job_id, "updated": len(item_ids), "disposition_state": state,
+                       "human_label_id": label_id, "revisions": {item["item_id"]: item["revision"] for item in changes},
+                       "items": changes, "actor": actor, "note": note, "intent": intent, "created": stamp}
+            con.execute("INSERT INTO result_disposition_requests VALUES(?,?,?,?,?,?,?,?)",
+                        (job["project_id"], request_id, operation_id, job_id, instance_id,
+                         payload_hash, dump(receipt), stamp))
+        return receipt
 
     def submit(self, project_id, kind, params, items=(), key=None):
         self.project(project_id)

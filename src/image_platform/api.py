@@ -40,6 +40,7 @@ class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: str = Field(default="", max_length=2000)
     labels: list[Label] = Field(min_length=2, max_length=1000)
+    request_id: str | None = Field(default=None, pattern=r'^[A-Za-z][A-Za-z0-9_-]{0,63}$')
 
     @model_validator(mode="after")
     def unique_labels(self):
@@ -92,13 +93,25 @@ class JobAction(BaseModel):
     action: Literal["pause", "resume", "cancel", "retry_failed"]
 
 
+class DispositionActor(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+    display_name: str = Field(min_length=1, max_length=100)
+    source: Literal["local"]
+
+
 class ResultDisposition(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
     item_ids: list[str] = Field(min_length=1, max_length=500)
     state: Literal["confirmed", "deferred", "reopened"]
     label_id: str | None = None
     note: str = Field(default="", max_length=2000)
-    expected_revisions: dict[str, int] | None = None
+    expected_revisions: dict[str, int]
+    operation_id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+    request_id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+    actor: DispositionActor
+    instance_id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+    intent: Literal["manual", "accept_prediction", "adopt"] = "manual"
 
 
 def public_job(store, row):
@@ -123,6 +136,7 @@ def create_app(settings=None):
     app.state.store = store
     register_platform_import_routes(app, store)
     platform_instance = os.environ.get("WORKBENCH_INSTANCE_ID", "")
+    disposition_instance = platform_instance or "local_" + secrets.token_hex(16)
     platform_nonce = os.environ.get("WORKBENCH_NONCE", "")
     navigation = (NavigationTickets(instance_id=platform_instance, store=store)
                   if os.environ.get("WORKBENCH_APP_ID") == "classification" and platform_instance
@@ -159,7 +173,8 @@ def create_app(settings=None):
 
     @app.get("/api/v1/health")
     def health():
-        return {"status": "ok", "version": "0.2.0", "mode": "local", "time": now()}
+        return {"status": "ok", "version": "0.2.0", "mode": "local", "time": now(),
+                "instance_id": disposition_instance}
 
     @app.get("/api/platform/v1/identity")
     def platform_identity():
@@ -237,16 +252,20 @@ def create_app(settings=None):
             row["labels"] = json.loads(row["labels"])
         return rows
 
+    @app.get('/api/v1/project-create-capabilities')
+    def project_create_capabilities():
+        return {'project_create_idempotency': '1.0'}
+
     @app.post("/api/v1/projects", status_code=201)
     def create_project(body: ProjectCreate):
-        project_id = uid("project")
         labels = [label.model_dump() for label in body.labels]
         for label in labels:
             if not label["definition"]:
                 label["definition"] = label["display_name"]
-        with store.connect(write=True) as con:
-            con.execute("INSERT INTO projects(id,name,description,labels,created_at) VALUES(?,?,?,?,?)", (project_id, body.name.strip(), body.description, dump(labels), now()))
-        return store.project(project_id)
+        try:
+            return store.create_project(body.name.strip(), body.description, labels, body.request_id)
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from None
 
     @app.get("/api/v1/projects/{project_id}")
     def project_detail(project_id: str):
@@ -520,16 +539,35 @@ def create_app(settings=None):
 
     @app.post("/api/v1/jobs/{job_id}/dispositions")
     def dispose_results(job_id: str, body: ResultDisposition):
+        if body.instance_id != disposition_instance:
+            raise ValueError("分类实例已变化，请核对原操作身份后继续")
         return store.dispose_results(job_id, body.item_ids, body.state, body.label_id,
-                                     body.note, body.expected_revisions)
+                                     body.note, body.expected_revisions, operation_id=body.operation_id,
+                                     request_id=body.request_id, actor=body.actor.model_dump(),
+                                     instance_id=body.instance_id, intent=body.intent)
+
+    @app.get("/api/v1/projects/{project_id}/disposition-operations/{operation_id}")
+    def disposition_operation(project_id: str, operation_id: str, instance_id: str, operation_instance_id: str):
+        if instance_id != disposition_instance:
+            raise ValueError("当前分类实例身份不匹配")
+        receipt = store.disposition_operation(project_id, operation_id)
+        # The current service authenticates transport. The immutable receipt
+        # retains its original instance for cross-library recovery after restart.
+        if receipt is not None and receipt["instance_id"] != operation_instance_id:
+            raise ValueError("处置回执与原操作实例身份不匹配")
+        return receipt or {"operation_id": operation_id, "state": "not_found"}
 
     @app.get("/api/v1/jobs/{job_id}/results/{item_id}/dispositions")
     def disposition_history(job_id: str, item_id: str):
         store.job(job_id)
         if not store.one("SELECT id FROM job_items WHERE job_id=? AND id=?", (job_id, item_id)):
             raise LookupError("结果不存在或不属于此任务")
-        return {"items": store.rows("SELECT * FROM result_disposition_events WHERE job_id=? AND item_id=? "
-                                    "ORDER BY revision", (job_id, item_id))}
+        events = store.rows("SELECT * FROM result_disposition_events WHERE job_id=? AND item_id=? "
+                            "ORDER BY revision", (job_id, item_id))
+        for event in events:
+            raw_actor = event.pop("actor_json", None)
+            event["actor"] = json.loads(raw_actor) if raw_actor else None
+        return {"items": events}
 
     @app.get("/api/v1/jobs/{job_id}/export")
     def export_results(job_id: str, format: Literal["csv", "jsonl"] = "csv"):
