@@ -104,7 +104,7 @@ class ClassificationProjects:
                                              role="owner", expected_revision=workspace.revision)
         return {**project, "link_id": link.link_id, "role": link.role}
 
-    def create(self, workspace_id: str, name: str, categories: list[str]) -> dict:
+    def create(self, workspace_id: str, name: str, categories: list[str], request_id: str | None = None) -> dict:
         if (not isinstance(name, str) or not name.strip() or len(name) > 100
                 or any(ord(char) < 32 for char in name)
                 or not isinstance(categories, list) or not 2 <= len(categories) <= 1000):
@@ -119,17 +119,23 @@ class ClassificationProjects:
             raise ValueError("Duplicate category name")
         if self.jobs.workspaces.get_workspace(workspace_id) is None:
             raise KeyError("Workspace not found")
-        native = self._request("POST", "/api/v1/projects", {"name": name.strip(),
+        payload = {"name": name.strip(),
             "labels": [{"label_id": f"class_{index + 1}", "display_name": item,
-                        "definition": item} for index, item in enumerate(names)]})
+                        "definition": item} for index, item in enumerate(names)]}
+        if request_id is not None:
+            payload['request_id'] = self.jobs.workspaces.reserve_native_create(
+                workspace_id, 'classification', request_id, json.dumps(payload, sort_keys=True))
+            if self._request('GET', '/api/v1/project-create-capabilities').get('project_create_idempotency') != '1.0':
+                raise ClassificationUnavailable()
+        native = self._request("POST", "/api/v1/projects", payload)
         if (not isinstance(native, dict) or not isinstance(native.get("id"), str)
                 or not NATIVE_ID.fullmatch(native["id"])):
             raise ClassificationUnavailable()
         return self.link(workspace_id, native["id"])
 
-    def open(self, workspace_id: str, link_id: str, platform_origin: str) -> dict:
+    def open(self, workspace_id: str, link_id: str, platform_origin: str, *, quick: bool = False) -> dict:
         context = replace(self.jobs._context(workspace_id, "classification", link_id),
-                          return_route="/apps/classification/workflow")
+                          return_route="/apps/classification/start" if quick else "/apps/classification/workflow")
         if not any(item["project_id"] == context.module_project_id
                    for item in self.projects(workspace_id)["items"]):
             raise KeyError("Linked native project no longer exists")
@@ -217,17 +223,18 @@ async def link_project(workspace_id: str, request: Request):
 async def create_project(workspace_id: str, request: Request):
     service = _service(request, workspace_id, write=True)
     payload = await _body(request)
-    if set(payload) != {"name", "categories"}:
+    if set(payload) not in ({"name", "categories"}, {"name", "categories", "request_id"}):
         raise HTTPException(400, "请输入项目名称和类别")
     try:
         return await run_in_threadpool(service.create, workspace_id,
-                                       payload["name"], payload["categories"])
+                                       payload["name"], payload["categories"], payload.get('request_id'))
     except (KeyError, ClassificationUnavailable, LaunchStatus, RevisionConflict,
             sqlite3.IntegrityError, ValueError) as error:
         _failed(error)
 
 
 @router.post("/links/{link_id}/navigation")
+@router.post("/links/{link_id}/quick-navigation")
 async def open_project(workspace_id: str, link_id: str, request: Request):
     service = _service(request, workspace_id, write=True)
     if not ID.fullmatch(link_id):
@@ -237,6 +244,8 @@ async def open_project(workspace_id: str, link_id: str, request: Request):
             raise HTTPException(400, "打开项目不接受参数")
     try:
         origin = "http://" + request.headers["host"]
+        if request.url.path.endswith('/quick-navigation'):
+            return await run_in_threadpool(service.open, workspace_id, link_id, origin, quick=True)
         return await run_in_threadpool(service.open, workspace_id, link_id, origin)
     except (KeyError, ClassificationUnavailable, NavigationUnavailable, LaunchStatus,
             ValueError) as error:

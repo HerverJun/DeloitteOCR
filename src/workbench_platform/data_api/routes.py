@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import uuid
 
@@ -61,15 +62,33 @@ def health(request: Request):
 
 
 @router.get('/sessions')
-def sessions(request: Request):
-    return {'items': service(request).list()}
+def sessions(request: Request, workspace_id: str | None = None,
+             offset: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=200)):
+    if workspace_id is not None:
+        library(request, workspace_id)
+    return service(request).list_page(workspace_id, offset, limit)
 
 
 @router.post('/sessions', status_code=201)
 async def create(request: Request):
     value = service(request, True)
     payload = await body(request)
-    return value.create(payload.get('name', '未命名比对'))
+    workspace_id = payload.get('workspace_id')
+    if workspace_id is not None:
+        if not isinstance(workspace_id, str):
+            raise HTTPException(400, '项目选择无效')
+        library(request, workspace_id, write=True)
+    request_id = payload.get('request_id')
+    if request_id is not None and (not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}', request_id)):
+        raise HTTPException(400, '创建请求无效')
+    return value.create(payload.get('name', '未命名比对'), request_key=request_id, workspace_id=workspace_id)
+
+
+@router.get('/outputs')
+def outputs(request: Request, workspace_id: str,
+            offset: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=200)):
+    library(request, workspace_id)
+    return service(request).output_page(workspace_id, offset, limit)
 
 
 @router.get('/sessions/{session_id}')

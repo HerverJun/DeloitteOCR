@@ -64,6 +64,10 @@ class DataWorkbenchService:
                     session_id TEXT,job_id TEXT UNIQUE,fingerprint TEXT,version INTEGER,request TEXT);
                 CREATE TABLE IF NOT EXISTS session_requests(request_key TEXT PRIMARY KEY,session_id TEXT);
             ''')
+            session_columns = {row[1] for row in db.execute('PRAGMA table_info(sessions)')}
+            if 'workspace_id' not in session_columns:
+                db.execute('ALTER TABLE sessions ADD COLUMN workspace_id TEXT')
+            db.execute('CREATE INDEX IF NOT EXISTS data_session_workspace ON sessions(workspace_id,updated)')
             columns = {row[1] for row in db.execute('PRAGMA table_info(uploads)')}
             for name, kind in (('source_workspace_id', 'TEXT'), ('source_asset_id', 'TEXT'),
                                ('source_asset_revision', 'INTEGER'), ('source_blob_hash', 'TEXT')):
@@ -86,7 +90,9 @@ class DataWorkbenchService:
     def session_dir(self, session_id):
         return self.root / 'sessions' / identity(session_id)
 
-    def create(self, name, request_key=None):
+    def create(self, name, request_key=None, workspace_id=None):
+        if workspace_id is not None:
+            identity(workspace_id)
         name = str(name).strip()
         if not name or len(name) > 100:
             raise DataError('请输入 1–100 字的名称')
@@ -95,21 +101,35 @@ class DataWorkbenchService:
             previous = db.execute('SELECT session_id FROM session_requests WHERE request_key=?',
                                   (request_key,)).fetchone() if request_key else None
             if previous:
-                return self.get(previous['session_id'])
+                existing = self.get(previous['session_id'])
+                if existing['workspace_id'] != workspace_id or existing['name'] != name:
+                    raise DataError('原创建请求与项目或名称不一致', 409)
+                return existing
             key = 's' + uuid.uuid4().hex
             folder = self.session_dir(key)
             (folder / 'uploads').mkdir(parents=True)
             (folder / 'jobs').mkdir()
             state = {'tables': {}, 'recipes': [], 'comparisons': [], 'exports': [], 'result_id': None}
-            db.execute('INSERT INTO sessions VALUES (?,?,?,?,?,?)', (key, name, now(), now(), 1, encode(state)))
+            db.execute('INSERT INTO sessions(id,name,created,updated,version,state,workspace_id) VALUES (?,?,?,?,?,?,?)',
+                       (key, name, now(), now(), 1, encode(state), workspace_id))
             if request_key:
                 db.execute('INSERT INTO session_requests VALUES(?,?)', (request_key, key))
         return self.get(key)
 
-    def list(self):
+    def list(self, workspace_id=None):
+        return self.list_page(workspace_id)['items']
+
+    def list_page(self, workspace_id=None, offset=0, limit=100):
+        if workspace_id is not None:
+            identity(workspace_id)
         with closing(self.db()) as db:
-            return [dict(row) for row in db.execute('SELECT id,name,created,updated,version FROM sessions '
-                                                    'ORDER BY updated DESC LIMIT 100')]
+            db.execute('BEGIN')
+            where = 'WHERE workspace_id=? ' if workspace_id is not None else ''
+            params = (workspace_id,) if workspace_id is not None else ()
+            total = db.execute('SELECT COUNT(*) FROM sessions ' + where, params).fetchone()[0]
+            items = [dict(row) for row in db.execute('SELECT id,name,created,updated,version,workspace_id FROM sessions '
+                + where + 'ORDER BY updated DESC,id DESC LIMIT ? OFFSET ?', (*params, limit, offset))]
+            return {'items': items, 'total': total, 'offset': offset, 'limit': limit}
 
     def get(self, session_id):
         identity(session_id)
@@ -125,6 +145,27 @@ class DataWorkbenchService:
             value['uploads'] = [dict(item) for item in db.execute(
                 'SELECT id,name,format,sha256,size FROM uploads WHERE session_id=?', (session_id,))]
             return value
+
+    def outputs(self, workspace_id):
+        return self.output_page(workspace_id)['items']
+
+    def output_page(self, workspace_id, offset=0, limit=100):
+        identity(workspace_id)
+        with closing(self.db()) as db:
+            db.execute('BEGIN')
+            source = ("FROM sessions s JOIN jobs j ON j.session_id=s.id "
+                      "JOIN json_each(s.state,'$.exports') e ON json_extract(e.value,'$.id')=j.id "
+                      "WHERE s.workspace_id=? AND j.status='succeeded' AND j.action IN ('export','export_table') ")
+            total = db.execute('SELECT COUNT(*) ' + source, (workspace_id,)).fetchone()[0]
+            rows = db.execute("SELECT s.id,s.name,e.value AS export,j.id AS export_id,j.updated " + source
+                + "ORDER BY j.updated DESC,j.id DESC LIMIT ? OFFSET ?", (workspace_id, limit, offset)).fetchall()
+            items = []
+            for row in rows:
+                export = json.loads(row['export'])
+                if export:
+                    items.append({'session_id': row['id'], 'session_name': row['name'], 'export_id': row['export_id'],
+                                  'created_at': row['updated'], 'files': export['files']})
+            return {'items': items, 'total': total, 'offset': offset, 'limit': limit}
 
     def upload(self, session_id, upload_id, name, suffix, path, sha256, size, *, source_asset=None):
         self.get(session_id)
@@ -348,6 +389,24 @@ class DataWorkbenchService:
         if raw is None:
             raise DataError('预览不可用', 404)
         return {'metadata': json.loads(raw[0]), 'total': count, 'offset': offset,
+                'rows': [{'ordinal': row[0], **json.loads(row[1])} for row in records]}
+
+    def result_page_after(self, session_id, result_id, next_ordinal, limit=1000):
+        """Bounded keyset read from the immutable comparison's cached row view."""
+        if type(next_ordinal) is not int or next_ordinal < 0 or type(limit) is not int or not 1 <= limit <= 1000:
+            raise DataError('固定结果索引分页参数无效')
+        session = self.get(session_id)
+        identity(result_id)
+        if result_id not in {entry['id'] for entry in session['state']['comparisons']}:
+            raise DataError('该结果不属于当前作业', 404)
+        with closing(sqlite3.connect(self.session_dir(session_id) / 'views.sqlite3')) as db:
+            raw = db.execute('SELECT metadata FROM result_views WHERE id=?', (result_id,)).fetchone()
+            if raw is None:
+                raise DataError('固定结果预览不可用', 404)
+            metadata = json.loads(raw[0])
+            records = db.execute('SELECT ordinal,payload FROM result_rows WHERE id=? AND ordinal>=? '
+                                 'ORDER BY ordinal LIMIT ?', (result_id, next_ordinal, limit)).fetchall()
+        return {'metadata': metadata, 'total': metadata['row_count'], 'offset': next_ordinal,
                 'rows': [{'ordinal': row[0], **json.loads(row[1])} for row in records]}
 
     def download(self, session_id, export_id, name):

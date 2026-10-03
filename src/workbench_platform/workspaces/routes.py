@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from packages.contracts.models import Workspace, WorkspaceCreate, WorkspacePage
 from workbench_platform.catalog.routes import contract_error
 from workbench_platform.store import WorkspaceStore
+from workbench_platform.store.workspaces import RevisionConflict
 
 router = APIRouter(prefix="/api/platform/v1/workspaces", tags=["workspaces"])
 ID = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
@@ -129,4 +130,7 @@ async def create_workspace(request: Request, store: WorkspaceStore | None = Depe
             raise ValueError("invalid name")
     except (ValidationError, ValueError):
         return contract_error(400, "VALIDATION_FAILED", "Invalid workspace request")
-    return Workspace.model_validate(asdict(store.create_workspace(payload.name)))
+    try:
+        return Workspace.model_validate(asdict(store.create_workspace(payload.name, request_id=payload.request_id)))
+    except RevisionConflict:
+        return contract_error(409, 'IDEMPOTENCY_CONFLICT', "创建请求已用于其他内容，请核对原项目")

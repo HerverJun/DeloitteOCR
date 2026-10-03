@@ -113,21 +113,27 @@ class OcrProjects:
                                              role="owner", expected_revision=workspace.revision)
         return {**project, "link_id": link.link_id, "role": link.role}
 
-    def create(self, workspace_id: str, name: str) -> dict:
+    def create(self, workspace_id: str, name: str, request_id: str | None = None) -> dict:
         if (not isinstance(name, str) or not name.strip() or len(name) > 120
                 or "\x00" in name):
             raise ValueError("Invalid project name")
         if self.jobs.workspaces.get_workspace(workspace_id) is None:
             raise KeyError("Workspace not found")
-        project = self._request("POST", "/api/projects", {"name": name.strip()})
+        payload = {"name": name.strip()}
+        if request_id is not None:
+            payload['request_id'] = self.jobs.workspaces.reserve_native_create(
+                workspace_id, 'ocr', request_id, json.dumps(payload, sort_keys=True))
+            if self._request('GET', '/api/state').get('project_create_idempotency') != '1.0':
+                raise OcrUnavailable()
+        project = self._request("POST", "/api/projects", payload)
         project_id = project.get("id")
         if not isinstance(project_id, str) or not NATIVE_ID.fullmatch(project_id):
             raise OcrUnavailable()
         return self.link(workspace_id, project_id)
 
-    def open(self, workspace_id: str, link_id: str, platform_origin: str) -> dict:
+    def open(self, workspace_id: str, link_id: str, platform_origin: str, *, quick: bool = False) -> dict:
         context = replace(self.jobs._context(workspace_id, "ocr", link_id),
-                          return_route="/apps/ocr/workflow")
+                          return_route="/apps/ocr/start" if quick else "/apps/ocr/workflow")
         if not any(item["project_id"] == context.module_project_id
                    for item in self.projects(workspace_id)["items"]):
             raise KeyError("Linked native project no longer exists")
@@ -206,16 +212,17 @@ async def link_project(workspace_id: str, request: Request):
 async def create_project(workspace_id: str, request: Request):
     service = _service(request, workspace_id, write=True)
     payload = await _body(request)
-    if set(payload) != {"name"}:
+    if set(payload) not in ({"name"}, {"name", "request_id"}):
         raise HTTPException(400, "请输入项目名称")
     try:
-        return await run_in_threadpool(service.create, workspace_id, payload["name"])
+        return await run_in_threadpool(service.create, workspace_id, payload["name"], payload.get('request_id'))
     except (KeyError, OcrUnavailable, LaunchStatus, RevisionConflict,
             sqlite3.IntegrityError, ValueError) as error:
         _failed(error)
 
 
 @router.post("/links/{link_id}/navigation")
+@router.post("/links/{link_id}/quick-navigation")
 async def open_project(workspace_id: str, link_id: str, request: Request):
     service = _service(request, workspace_id, write=True)
     if not ID.fullmatch(link_id) or request.query_params:
@@ -225,6 +232,8 @@ async def open_project(workspace_id: str, link_id: str, request: Request):
             raise HTTPException(400, "打开项目不接受参数")
     try:
         origin = "http://" + request.headers["host"]
+        if request.url.path.endswith('/quick-navigation'):
+            return await run_in_threadpool(service.open, workspace_id, link_id, origin, quick=True)
         return await run_in_threadpool(service.open, workspace_id, link_id, origin)
     except (KeyError, OcrUnavailable, NavigationUnavailable, LaunchStatus, ValueError) as error:
         _failed(error)

@@ -200,6 +200,11 @@ class WorkspaceStore:
                     connection.execute("ROLLBACK")
                     raise
             connection.execute("PRAGMA journal_mode=WAL")
+            connection.execute("CREATE TABLE IF NOT EXISTS workspace_create_requests ("
+                               "request_id TEXT PRIMARY KEY, name TEXT NOT NULL, workspace_id TEXT NOT NULL)")
+            connection.execute("CREATE TABLE IF NOT EXISTS native_create_requests ("
+                               "workspace_id TEXT NOT NULL, app_id TEXT NOT NULL, request_id TEXT NOT NULL, "
+                               "payload TEXT NOT NULL, PRIMARY KEY(workspace_id,app_id,request_id))")
 
     def _backup(self, source: sqlite3.Connection) -> Path:
         backup = self.path.with_name(f"{self.path.name}.before-v1-to-v2-{uuid.uuid4().hex}.sqlite3")
@@ -228,14 +233,58 @@ class WorkspaceStore:
         finally:
             connection.close()
 
-    def create_workspace(self, name: str, *, workspace_id: str | None = None) -> Workspace:
+    def create_workspace(self, name: str, *, workspace_id: str | None = None,
+                         request_id: str | None = None) -> Workspace:
         name = _text(name, "workspace name")
+        if request_id is not None:
+            _id(request_id, "request id")
         key = _id("w" + uuid.uuid4().hex if workspace_id is None else workspace_id, "workspace id")
         stamp = _utc()
         with self._connection() as connection:
-            connection.execute("INSERT INTO workspace(workspace_id, name, revision, created_at, updated_at) "
-                               "VALUES (?, ?, 1, ?, ?)", (key, name, stamp, stamp))
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                if request_id:
+                    prior = connection.execute("SELECT name,workspace_id FROM workspace_create_requests "
+                                               "WHERE request_id=?", (request_id,)).fetchone()
+                    if prior:
+                        if prior['name'] != name:
+                            raise RevisionConflict("Creation request already used for different content")
+                        row = connection.execute("SELECT workspace_id,name,revision,created_at,updated_at "
+                                                 "FROM workspace WHERE workspace_id=?", (prior['workspace_id'],)).fetchone()
+                        if row is None:
+                            raise RevisionConflict("Created workspace no longer exists")
+                        connection.execute("COMMIT")
+                        return Workspace(*row)
+                connection.execute("INSERT INTO workspace(workspace_id, name, revision, created_at, updated_at) "
+                                   "VALUES (?, ?, 1, ?, ?)", (key, name, stamp, stamp))
+                if request_id:
+                    connection.execute("INSERT INTO workspace_create_requests VALUES(?,?,?)", (request_id, name, key))
+                connection.execute("COMMIT")
+            except BaseException:
+                connection.execute("ROLLBACK")
+                raise
         return Workspace(key, name, 1, stamp, stamp)
+
+    def reserve_native_create(self, workspace_id: str, app_id: str, request_id: str, payload: str) -> str:
+        """Persist the intent before contacting a native service; retries keep identical content."""
+        import hashlib
+        for value in (workspace_id, app_id, request_id):
+            _id(value, "creation identity")
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                prior = connection.execute("SELECT payload FROM native_create_requests "
+                    "WHERE workspace_id=? AND app_id=? AND request_id=?", (workspace_id, app_id, request_id)).fetchone()
+                if prior and prior[0] != payload:
+                    raise RevisionConflict("Creation request already used for different content")
+                if not prior:
+                    connection.execute("INSERT INTO native_create_requests VALUES(?,?,?,?)",
+                                       (workspace_id, app_id, request_id, payload))
+                connection.execute("COMMIT")
+            except BaseException:
+                connection.execute("ROLLBACK")
+                raise
+        return 'p' + hashlib.sha256(f'{workspace_id}:{app_id}:{request_id}'.encode()).hexdigest()[:60]
 
     def get_workspace(self, workspace_id: str) -> Workspace | None:
         with self._connection() as connection:
