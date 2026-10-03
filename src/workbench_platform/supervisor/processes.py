@@ -42,6 +42,51 @@ class NotOwned(PermissionError):
     pass
 
 
+def require_f_path(value: Path, label: str = "Project path") -> Path:
+    """Check both the requested name and its real target before any write."""
+    path = Path(value).absolute()
+    resolved = path.resolve()
+    if path.drive.upper() != "F:" or resolved.drive.upper() != "F:":
+        raise ValueError(f"{label} must remain on the local F drive: {path}")
+    return resolved
+
+
+def storage_environment(data_root: Path) -> dict[str, str]:
+    """One explicit write boundary inherited by brokers and all native workers."""
+    data = require_f_path(data_root, "Data directory")
+    identity = hashlib.sha256(str(data).casefold().encode("utf-8")).hexdigest()[:20]
+    temporary = require_f_path(Path(os.environ.get("CLEAR_PADDLE_TEMP") or
+        f"F:/OCR/temp/paddle/{identity}"), "Paddle temporary directory")
+    if not str(temporary).isascii():
+        raise ValueError("Paddle temporary directory must be an ASCII F drive path")
+    directories = {
+        "TEMP": temporary, "TMP": temporary, "CLEAR_PADDLE_TEMP": temporary,
+        "APPDATA": data / "cache/appdata", "LOCALAPPDATA": data / "native-local",
+        "PIP_CACHE_DIR": data / "cache/pip", "npm_config_cache": data / "cache/npm",
+        "npm_config_store_dir": data / "cache/pnpm-store", "PNPM_HOME": data / "cache/pnpm",
+        "HF_HOME": data / "cache/huggingface", "TORCH_HOME": data / "cache/torch",
+        "XDG_CACHE_HOME": data / "cache", "XDG_CONFIG_HOME": data / "cache/config",
+        "XDG_DATA_HOME": data / "cache/data", "PADDLE_PDX_CACHE_HOME": data / "cache/paddlex",
+        "PADDLEOCR_HOME": data / "cache/paddleocr", "MPLCONFIGDIR": data / "cache/matplotlib",
+        "HYPOTHESIS_STORAGE_DIRECTORY": data / "cache/hypothesis",
+        "JUPYTER_CONFIG_DIR": data / "cache/jupyter", "JUPYTER_DATA_DIR": data / "cache/jupyter-data",
+        "PLAYWRIGHT_BROWSERS_PATH": data / "cache/playwright",
+    }
+    # Validate every existing ancestor (including junctions) before creating any.
+    checked = {key: require_f_path(path, key) for key, path in directories.items()}
+    for directory in set(checked.values()):
+        directory.mkdir(parents=True, exist_ok=True)
+        probe = directory / (".write-check-" + uuid.uuid4().hex)
+        try:
+            with probe.open("xb") as stream:
+                stream.write(b"F")
+        finally:
+            probe.unlink(missing_ok=True)
+    return {**{key: str(path) for key, path in checked.items()},
+            "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "1",
+            "PIP_DISABLE_PIP_VERSION_CHECK": "1", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"}
+
+
 KERNEL = ctypes.WinDLL("kernel32", use_last_error=True)
 HANDLE = wintypes.HANDLE
 KERNEL.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
@@ -310,11 +355,11 @@ class Supervisor:
                  data_root: Path | None = None):
         self.registry = registry
         self.handshake_timeout = handshake_timeout
-        self.data_root = data_root.resolve() if data_root else None
+        self.data_root = require_f_path(data_root) if data_root else None
         if self.data_root:
             if not self.data_root.is_dir():
                 raise ValueError("Platform data directory is unavailable")
-            (self.data_root / "native-local").mkdir(exist_ok=True)
+            require_f_path(self.data_root / "native-local").mkdir(exist_ok=True)
         self._lock = threading.RLock()
         self._entries: dict[str, _Entry] = {}
         self._current: dict[str, tuple[int, str]] = {}
@@ -373,21 +418,31 @@ class Supervisor:
 
     def _start_owned(self, entry, snapshot, install, app_id, launch_id):
         _verify_bundle(self.registry, snapshot, app_id, install)
+        require_f_path(install.working_directory, "Native working directory")
         instance_id, nonce = "i" + uuid.uuid4().hex, "n" + uuid.uuid4().hex
-        environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "ProgramData") if key in os.environ}
+        # Vendor SDKs evaluate user-directory defaults even when their cache
+        # variables are explicit. Preserve the real identity for read-only
+        # resolution; storage_environment still selects every managed write root.
+        environment = {key: os.environ[key] for key in (
+            "SystemRoot", "WINDIR", "ProgramData", "USERPROFILE", "HOMEDRIVE", "HOMEPATH",
+        ) if key in os.environ}
         environment.update({"PATH": str(install.executable.parent) + os.pathsep + os.environ.get("SystemRoot", r"C:\Windows") + r"\System32",
                             "WORKBENCH_APP_ID": app_id, "WORKBENCH_INSTANCE_ID": instance_id,
                             "WORKBENCH_NONCE": nonce, "WORKBENCH_LAUNCH_ID": launch_id,
                             "WORKBENCH_PORT": "0", "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1"})
+        if not self.data_root:
+            raise LaunchFailure("A verified F drive data directory is required for native launch")
         if self.data_root:
-            environment.update({"WORKBENCH_GPU_LEDGER": str(self.data_root / "gpu.sqlite3"),
+            environment.update(storage_environment(self.data_root))
+            environment.update({"WORKBENCH_GPU_LEDGER": str(require_f_path(self.data_root / "gpu.sqlite3")),
                                 "LOCALAPPDATA": str(self.data_root / "native-local")})
         job = _OwnedJob()
         with self._lock:
             entry.job = job  # close() waits for the future before cleanup.
-        broker = subprocess.Popen([sys.executable, "-I", "-S", "-u", str(Path(__file__).with_name("broker.py"))],
+        broker = subprocess.Popen([sys.executable, "-I", "-B", "-S", "-u", str(Path(__file__).with_name("broker.py"))],
                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                  creationflags=0x08000000, text=True, encoding="utf-8", errors="replace")
+                                  creationflags=0x08000000, text=True, encoding="utf-8", errors="replace",
+                                  env=environment, cwd=install.working_directory)
         entry.broker = broker
         try:
             job.assign(broker)

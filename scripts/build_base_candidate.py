@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 import re
 import shutil
+import sys
+import time
 import uuid
 
 
@@ -20,6 +22,21 @@ SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules", "build",
              "image_classification_platform-0.2.0.dist-info"}
 SKIP_FILES = {"__editable__.workbench_platform-0.1.0.pth", "direct_url.json"}
 CHUNK = 1024 * 1024
+OCR_MODEL_PREFIXES = ("models/", "licenses/", "fonts/", "tools/",
+                      "runtimes/ppocr/", "runtimes/paddlevl/", "runtimes/glm/",
+                      "runtimes/hunyuan/", "runtimes/llama/")
+# These precise paths were supplemented after the legacy OCR native manifest
+# was sealed. They can only be rebuilt from the current pinned license cache.
+LEGACY_OCR_LICENSES = {
+    f"runtimes/{engine}/Lib/site-packages/{package}.dist-info/licenses/upstream/LICENSE":
+        f"{package}/LICENSE"
+    for package, engines in (
+        ("sentencepiece-0.2.2", ("glm", "paddlevl", "ppocr")),
+        ("tokenizers-0.23.2", ("glm", "paddlevl", "ppocr")),
+        ("bce_python_sdk-0.9.79", ("paddlevl", "ppocr")),
+        ("latex2mathml-3.81.1", ("paddlevl", "ppocr")),
+    ) for engine in engines
+}
 
 
 def _hash(path: Path) -> str:
@@ -31,6 +48,8 @@ def _hash(path: Path) -> str:
 
 
 def _copy_tree(source: Path, target: Path) -> None:
+    from workbench_platform.supervisor.processes import require_f_path
+    target = require_f_path(target, "Candidate output")
     if not source.is_dir():
         raise FileNotFoundError(source)
     for current, dirs, files in os.walk(source, followlinks=False):
@@ -51,21 +70,140 @@ def _copy_tree(source: Path, target: Path) -> None:
 
 
 def _runtime(base: Path, site: Path, destination: Path,
-             *, imports: tuple[str, ...] = ("../../app", "../../app/src")) -> None:
+             *, imports: tuple[str, ...] = ("../../app", "../../app/src"),
+             site_members: tuple[str, ...] | None = None) -> None:
     if not (base / "python.exe").is_file() or not (base / "python312.zip").is_file():
         raise ValueError("A complete local embedded Python 3.12 runtime is required")
     destination.mkdir(parents=True)
     for entry in base.iterdir():
         if entry.is_file() and entry.name != "python312._pth":
             shutil.copy2(entry, destination / entry.name)
-    _copy_tree(site, destination / "Lib" / "site-packages")
+    if site_members is None:
+        _copy_tree(site, destination / "Lib" / "site-packages")
+    else:
+        for name in site_members:
+            _copy_tree(site / name, destination / 'Lib/site-packages' / name)
     (destination / "python312._pth").write_text(
         "\n".join(("python312.zip", ".", "Lib/site-packages", *imports, "import site", "")),
         encoding="utf-8")
 
 
+def _forensics_bundle(stage: Path, source: Path, python_base: Path, site: Path) -> None:
+    """Package the admitted classic tools and their three binary dependencies."""
+    _copy_tree(source / 'modules/image_forensics', stage / 'app/modules/image_forensics')
+    required = {'numpy', 'cv2', 'PIL'}
+    if not all((site / name).is_dir() for name in required):
+        raise ValueError('Forensics requires a Python 3.12 site with numpy, OpenCV and Pillow')
+    members = tuple(entry.name for entry in site.iterdir() if entry.is_dir() and (
+        entry.name in required or entry.name in {'numpy.libs', 'pillow.libs', 'opencv_python.libs'}
+        or re.fullmatch(r'(numpy|pillow|opencv_python|opencv_python_headless)-[^/]+\.dist-info', entry.name)))
+    _runtime(python_base, site, stage / 'runtimes/forensics', site_members=members,
+             imports=('../../app/modules/image_forensics',))
+    config = stage / 'app/config/forensics.json'
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_text(json.dumps({'python': '../runtimes/forensics/python.exe',
+                                 'runtime_status': 'bundled classic tools'}, indent=2), encoding='utf-8')
+
+
+def _ocr_copyable(relative: str) -> bool:
+    parts = Path(relative).parts
+    return (not any(part in SKIP_DIRS for part in parts[:-1])
+            and not parts[-1].endswith((".pyc", ".pth")) and parts[-1] not in SKIP_FILES)
+
+
+def _copy_ocr_model_members(model_bundle: Path, bundle: Path,
+                            license_cache: Path | None) -> None:
+    from workbench_platform.supervisor.processes import require_f_path
+    bundle = require_f_path(bundle, "OCR bundle output")
+    original = json.loads((model_bundle / "manifest.json").read_text(encoding="utf-8"))
+    if original.get("schema_version") != 1 or not isinstance(original.get("files"), list):
+        raise ValueError("OCR model bundle manifest is unavailable")
+    sources = {}
+    for item in original["files"]:
+        relative = item.get("path") if isinstance(item, dict) else None
+        name = Path(relative) if isinstance(relative, str) else None
+        if (name is None or not name.parts or name.is_absolute() or name.drive
+                or name.as_posix() != relative or any(part in {".", ".."} for part in name.parts)
+                or relative in sources or type(item.get("bytes")) is not int or item["bytes"] < 0
+                or not isinstance(item.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])):
+            raise ValueError("Invalid OCR model bundle member declaration")
+        sources[relative] = item
+    licenses = _license_cache(license_cache) if license_cache is not None else {}
+    actual = {}
+    for prefix in OCR_MODEL_PREFIXES:
+        source = model_bundle / prefix.rstrip("/")
+        if not source.is_dir():
+            if prefix.startswith("runtimes/"):
+                raise FileNotFoundError(source)
+            continue
+        if source.is_symlink() or (hasattr(source, "is_junction") and source.is_junction()):
+            raise ValueError(f"Linked OCR model source: {source}")
+        for current, dirs, files in os.walk(source, followlinks=False):
+            parent = Path(current)
+            for name in dirs:
+                entry = parent / name
+                if entry.is_symlink() or (hasattr(entry, "is_junction") and entry.is_junction()):
+                    raise ValueError(f"Linked OCR model source: {entry}")
+            dirs[:] = [name for name in dirs if name not in SKIP_DIRS]
+            for name in files:
+                path = parent / name
+                relative = path.relative_to(model_bundle).as_posix()
+                if not _ocr_copyable(relative):
+                    continue
+                if path.is_symlink():
+                    raise ValueError(f"Linked OCR model source: {path}")
+                actual[relative] = path
+    required = {name for name in sources if name.startswith(OCR_MODEL_PREFIXES) and _ocr_copyable(name)}
+    if missing := required - actual.keys():
+        raise ValueError(f"OCR source bundle member missing: {sorted(missing)[0]}")
+    # Validate the whole input set before copying. An exception is tied to one
+    # exact destination and current pinned cache identity, never a license glob.
+    for relative, path in actual.items():
+        identity = sources.get(relative)
+        if identity is None:
+            identity = licenses.get(LEGACY_OCR_LICENSES.get(relative))
+        if (identity is None or path.stat().st_size != identity["bytes"]
+                or _hash(path) != identity["sha256"]):
+            raise ValueError(f"OCR source bundle member changed: {relative}")
+    for relative in sorted(required):
+        target = require_f_path(bundle / relative, "OCR model member")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(actual[relative], target)
+        identity = sources[relative]
+        for attempt in range(1, 4):
+            try:
+                if target.stat().st_size != identity["bytes"] or _hash(target) != identity["sha256"]:
+                    raise ValueError(f"OCR source bundle member changed during copy: {relative}")
+            except PermissionError as error:
+                # Each _hash starts with a new digest and a new stream at byte 0.
+                # A transient Windows read denial never weakens the byte check.
+                try:
+                    print(f"OCR copied target verification denied: path={target} "
+                          f"attempt={attempt}/3 error={error!r}", file=sys.stderr, flush=True)
+                except Exception:
+                    pass  # Logging failure must not replace the original read denial.
+                if attempt == 3:
+                    raise
+                time.sleep((1, 3)[attempt - 1])
+            else:
+                break
+
+
+def _seal_ocr_manifest(bundle: Path) -> None:
+    from workbench_platform.supervisor.processes import require_f_path
+    bundle = require_f_path(bundle, "OCR native manifest output")
+    files = [{"path": path.relative_to(bundle).as_posix(), "bytes": path.stat().st_size,
+              "sha256": _hash(path)} for path in sorted(bundle.rglob("*"))
+             if path.is_file() and path != bundle / "manifest.json"]
+    (bundle / "manifest.json").write_text(
+        json.dumps({"schema_version": 1, "files": files}, ensure_ascii=False, indent=2),
+        encoding="utf-8")
+
+
 def _ocr_bundle(stage: Path, source: Path, control_site: Path, pdf_runtime: Path,
-                python_base: Path, model_bundle: Path | None = None) -> None:
+                python_base: Path, model_bundle: Path | None = None, *,
+                license_cache: Path | None = None, finalize_manifest: bool = True) -> None:
     bundle = stage / "bundles" / "ocr"
     _copy_tree(source / "src" / "ocr_workbench", bundle / "src" / "ocr_workbench")
     _copy_tree(source / "config", bundle / "config")
@@ -82,13 +220,11 @@ def _ocr_bundle(stage: Path, source: Path, control_site: Path, pdf_runtime: Path
             saved = json.loads((model_bundle / "models" / name / "source-manifest.json").read_text(encoding="utf-8"))
             if (saved.get("repo"), saved.get("revision")) != (identity["repo"], identity["revision"]):
                 raise ValueError(f"OCR model revision changed: {name}")
-        for name in ("models", "licenses", "fonts", "tools"):
-            if (model_bundle / name).is_dir():
-                _copy_tree(model_bundle / name, bundle / name)
+        _copy_ocr_model_members(model_bundle, bundle, license_cache)
         for name in ("ppocr", "paddlevl", "glm", "hunyuan", "llama"):
             target = bundle / "runtimes" / name
-            _copy_tree(model_bundle / "runtimes" / name, target)
             if name != "llama":
+                target.mkdir(parents=True, exist_ok=True)
                 (target / "python312._pth").write_text(
                     "\n".join(("python312.zip", ".", "Lib/site-packages", *imports, "import site", "")),
                     encoding="utf-8")
@@ -104,10 +240,12 @@ data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).
              if pointer.is_file() else installation / "data")
 data = data_root / "native" / "ocr"
 local = data_root / "native-local"
+from workbench_platform.supervisor.processes import storage_environment, require_f_path
+require_f_path(root, "Native bundle")
+os.environ.update(storage_environment(data_root))
+require_f_path(data, "Native data")
 data.mkdir(parents=True, exist_ok=True)
 local.mkdir(parents=True, exist_ok=True)
-os.environ["LOCALAPPDATA"] = str(local)
-os.environ["USERPROFILE"] = str(local)
 from ocr_workbench.service import main
 sys.argv = ["ocr-workbench", "--bundle", str(root), "--data", str(data),
             "--token-file", str(data_root / "ocr-token.txt")] + ({'["--review-only"]' if model_bundle is None else '[]'})
@@ -132,31 +270,8 @@ main()
     if len(declaration) > 1_048_576:
         raise ValueError("OCR bundle declaration exceeds the catalog limit")
     (bundle / "bundle.manifest.json").write_bytes(declaration)
-    if model_bundle is not None:
-        original = json.loads((model_bundle / "manifest.json").read_text(encoding="utf-8"))
-        if original.get("schema_version") != 1 or not isinstance(original.get("files"), list):
-            raise ValueError("OCR model bundle manifest is unavailable")
-        sources = {item["path"]: item for item in original["files"]}
-        copied = ("models/", "licenses/", "fonts/", "tools/",
-                  "runtimes/ppocr/", "runtimes/paddlevl/", "runtimes/glm/",
-                  "runtimes/hunyuan/", "runtimes/llama/")
-        files = []
-        for path in sorted(bundle.rglob("*")):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(bundle).as_posix()
-            if relative == "manifest.json":
-                continue
-            record = {"path": relative, "bytes": path.stat().st_size, "sha256": _hash(path)}
-            if relative.startswith(copied) and not relative.endswith("/python312._pth"):
-                upstream = sources.get(relative)
-                if upstream is None or (upstream["bytes"], upstream["sha256"]) != (
-                        record["bytes"], record["sha256"]):
-                    raise ValueError(f"OCR source bundle member changed: {relative}")
-            files.append(record)
-        (bundle / "manifest.json").write_text(
-            json.dumps({"schema_version": 1, "files": files}, ensure_ascii=False, indent=2),
-            encoding="utf-8")
+    if model_bundle is not None and finalize_manifest:
+        _seal_ocr_manifest(bundle)
 
 
 def _classification_bundle(stage: Path, source: Path, site: Path, python_base: Path,
@@ -210,11 +325,13 @@ data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).
              if pointer.is_file() else installation / "data")
 data = data_root / "native" / "classification"
 local = data_root / "native-local"
+from workbench_platform.supervisor.processes import storage_environment, require_f_path
+require_f_path(root, "Native bundle")
+os.environ.update(storage_environment(data_root))
+require_f_path(data, "Native data")
 data.mkdir(parents=True, exist_ok=True)
 local.mkdir(parents=True, exist_ok=True)
 os.environ["ICP_DATA_DIR"] = str(data)
-os.environ["LOCALAPPDATA"] = str(local)
-os.environ["USERPROFILE"] = str(local)
 from image_platform.cli import main
 sys.argv = ["image-platform", "serve"]
 with (data / "worker.log").open("ab") as log:
@@ -232,6 +349,7 @@ with (data / "worker.log").open("ab") as log:
     (bundle / "server.py").write_text(server, encoding="utf-8")
     (bundle / "worker.py").write_text(
         '''import json
+import os
 import sys
 from pathlib import Path
 
@@ -240,6 +358,10 @@ installation = root.parent.parent
 pointer = installation / "data" / "install-data.json"
 data_root = (Path(json.loads(pointer.read_text(encoding="utf-8"))["data_root"]).resolve()
              if pointer.is_file() else installation / "data")
+from workbench_platform.supervisor.processes import storage_environment, require_f_path
+require_f_path(root, "Native bundle")
+require_f_path(data_root / "native" / "classification", "Native data")
+os.environ.update(storage_environment(data_root))
 from image_platform.platform_weights import install_weights
 install_weights(root, data_root / "native" / "classification")
 from image_platform.cli import main
@@ -277,20 +399,23 @@ def _licenses(site: Path) -> list[dict]:
     return packages
 
 
-def _supplement_licenses(cache: Path, sites: dict[str, Path]) -> dict:
+def _license_cache(cache: Path) -> dict:
     if not cache.is_dir():
         return {}
     manifest = json.loads((cache / "manifest.json").read_text(encoding="utf-8"))
     files = manifest.get("files")
     if manifest.get("format") != 1 or not isinstance(files, dict):
         raise ValueError("Invalid upstream license cache")
-    used = {}
     for relative, record in files.items():
         name = Path(relative)
         if (name.is_absolute() or name.drive or len(name.parts) != 2
                 or any(part in {".", ".."} for part in name.parts)
                 or name.as_posix() != relative):
             raise ValueError("Unsafe upstream license path")
+        if (not isinstance(record, dict) or type(record.get("bytes")) is not int
+                or record["bytes"] < 0 or not isinstance(record.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", record["sha256"])):
+            raise ValueError(f"Invalid upstream license identity: {relative}")
         source = cache / name
         if (source.is_symlink() or not source.is_file()
                 or source.stat().st_size != record.get("bytes")
@@ -298,12 +423,23 @@ def _supplement_licenses(cache: Path, sites: dict[str, Path]) -> dict:
                 or not isinstance(record.get("url"), str)
                 or not record["url"].startswith("https://raw.githubusercontent.com/")):
             raise ValueError(f"Upstream license cache changed: {relative}")
+    return files
+
+
+def _supplement_licenses(cache: Path, sites: dict[str, Path]) -> dict:
+    files = _license_cache(cache)
+    used = {}
+    for relative, record in files.items():
+        name = Path(relative)
+        source = cache / name
         for site in sites.values():
             metadata = site / (name.parts[0] + ".dist-info")
             if metadata.is_dir():
                 target = metadata / "licenses" / "upstream" / name.parts[1]
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
+                if target.stat().st_size != record["bytes"] or _hash(target) != record["sha256"]:
+                    raise ValueError(f"Upstream license changed during copy: {relative}")
                 used[relative] = record
     return used
 
@@ -314,10 +450,21 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
           ocr_model_bundle: Path | None = None,
           classification_source: Path | None = None,
           classification_site: Path | None = None,
-          classification_weights: Path | None = None) -> dict:
-    output = output.resolve()
+          classification_weights: Path | None = None,
+          forensics_site: Path | None = None) -> dict:
+    from workbench_platform.supervisor.processes import require_f_path
+    output = require_f_path(output, "Candidate output")
     source, python_base = source.resolve(), python_base.resolve()
     platform_site, data_site = platform_site.resolve(), data_site.resolve()
+    include_forensics = (source / 'modules/image_forensics').is_dir()
+    if include_forensics:
+        if forensics_site is None:
+            config = json.loads((source / 'config/forensics.json').read_text(encoding='utf-8-sig'))
+            interpreter = Path(config['python'])
+            if not interpreter.is_absolute():
+                raise ValueError('Provide --forensics-site for a relative or bundled forensic runtime')
+            forensics_site = interpreter.parent.parent / 'Lib/site-packages'
+        forensics_site = forensics_site.resolve()
     if any(value is not None for value in (ocr_source, ocr_site, pdf_runtime)):
         if not all(value is not None for value in (ocr_source, ocr_site, pdf_runtime)):
             raise ValueError("OCR bundle requires source, control site packages and PDF runtime")
@@ -337,6 +484,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
             raise ValueError("Offline model weights require the classification application")
         classification_weights = classification_weights.resolve()
     inputs = (source, python_base, platform_site, data_site)
+    if include_forensics:
+        inputs += (forensics_site,)
     if ocr_source is not None:
         inputs += (ocr_source, ocr_site, pdf_runtime)
     if ocr_model_bundle is not None:
@@ -368,8 +517,11 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
                      app / "config/runtime-locks/data.json")
         _runtime(python_base, platform_site, stage / "runtimes" / "platform")
         _runtime(python_base, data_site, stage / "runtimes" / "data")
+        if include_forensics:
+            _forensics_bundle(stage, source, python_base, forensics_site)
         if ocr_source is not None:
-            _ocr_bundle(stage, ocr_source, ocr_site, pdf_runtime, python_base, ocr_model_bundle)
+            _ocr_bundle(stage, ocr_source, ocr_site, pdf_runtime, python_base, ocr_model_bundle,
+                        license_cache=source / "resources/candidate-licenses", finalize_manifest=False)
         if classification_source is not None:
             _classification_bundle(stage, classification_source, classification_site,
                                    python_base, classification_weights)
@@ -384,6 +536,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
         (stage / "verify.cmd").write_bytes(verifier.encode("ascii"))
         runtime_sites = {"platform": stage / "runtimes/platform/Lib/site-packages",
                          "data": stage / "runtimes/data/Lib/site-packages"}
+        if include_forensics:
+            runtime_sites['forensics'] = stage / 'runtimes/forensics/Lib/site-packages'
         if ocr_source is not None:
             runtime_sites["ocr_control"] = stage / "bundles/ocr/runtimes/control/Lib/site-packages"
             runtime_sites["ocr_pdf"] = stage / "bundles/ocr/runtimes/pdf/Lib/site-packages"
@@ -396,6 +550,8 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
                 stage / "bundles/classification/runtimes/control/Lib/site-packages")
         used_licenses = _supplement_licenses(source / "resources" / "candidate-licenses",
                                               runtime_sites)
+        if ocr_model_bundle is not None:
+            _seal_ocr_manifest(stage / "bundles/ocr")
         (stage / "license-sources.json").write_text(
             json.dumps({"format": 1, "files": used_licenses}, ensure_ascii=False, indent=2),
             encoding="utf-8")
@@ -413,7 +569,7 @@ def build(output: Path, python_base: Path, platform_site: Path, data_site: Path,
                                                                 "bytes": path.stat().st_size}
         manifest = {"format": 3, "qualification": "engineering_preview",
                     "created_at": datetime.now(timezone.utc).isoformat(),
-                    "components": ["base_portal", "data_workbench"],
+                    "components": ["base_portal", "data_workbench"] + (["image_forensics"] if include_forensics else []),
                     "optional_apps": {"ocr": ("runtime_and_models" if ocr_model_bundle else
                                               "review_and_pdf_native" if ocr_source else "not_installed"),
                                       "classification": ("runtime_and_weights" if classification_weights else
@@ -445,6 +601,9 @@ def verify(candidate: Path) -> dict:
         required.add("app/bootstrap.py")
     if manifest["format"] >= 3:
         required.update({"verify.cmd", "verify.py"})
+    if 'image_forensics' in manifest.get('components', []):
+        required.update({'app/config/forensics.json', 'app/modules/image_forensics/worker.py',
+                         'app/modules/image_forensics/source-manifest.json', 'runtimes/forensics/python.exe'})
     if not required <= files.keys():
         raise ValueError("Candidate is missing a required component")
     actual = set()
@@ -482,6 +641,7 @@ def main() -> None:
     parser.add_argument("--classification-source", type=Path)
     parser.add_argument("--classification-site", type=Path)
     parser.add_argument("--classification-weights", type=Path)
+    parser.add_argument("--forensics-site", type=Path)
     parser.add_argument("--verify", type=Path)
     args = parser.parse_args()
     if args.verify is not None:
@@ -494,7 +654,7 @@ def main() -> None:
                            pdf_runtime=args.pdf_runtime, ocr_model_bundle=args.ocr_model_bundle,
                            classification_source=args.classification_source,
                            classification_site=args.classification_site,
-                           classification_weights=args.classification_weights),
+                           classification_weights=args.classification_weights, forensics_site=args.forensics_site),
                      ensure_ascii=False))
 
 

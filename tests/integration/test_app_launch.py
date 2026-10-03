@@ -23,6 +23,7 @@ from workbench_platform.catalog.registry import AppRegistry, DEFAULT_CONFIG
 SERVER = '''
 import http.server, json, os, pathlib, sys, time
 root = pathlib.Path.cwd()
+(root / 'environment.json').write_text(json.dumps(dict(os.environ)))
 with (root / 'starts.txt').open('a') as output: output.write(str(os.getpid()) + '\\n')
 mode = (root / 'mode.txt').read_text().strip()
 if mode == 'exit': sys.exit(7)
@@ -55,14 +56,31 @@ def configured(tmp_path, monkeypatch):
     config.mkdir(parents=True)
     for item in DEFAULT_CONFIG.glob("*.json"):
         shutil.copy2(item, config / item.name)
+    (config / "classification.install.json").write_text(json.dumps({
+        "app_id": "classification", "installed": False,
+        "manifest_sha256": digest(config / "classification.json"), "reason": "fixture not installed"}),
+        encoding="utf-8")
     root = tmp_path / "bundles" / "ocr"
     scripts = root / "Scripts"
     scripts.mkdir(parents=True)
     shutil.copy2(sys.executable, scripts / "python.exe")
-    shutil.copy2(Path(sys.executable).parent.parent / "pyvenv.cfg", root / "pyvenv.cfg")
+    venv_config = Path(sys.executable).parent.parent / "pyvenv.cfg"
+    runtime_names = ["Scripts/python.exe"]
+    if venv_config.is_file():
+        shutil.copy2(venv_config, root / "pyvenv.cfg")
+        runtime_names.append("pyvenv.cfg")
+    else:
+        # D00 binds a read-only embedded runtime, which has no venv redirector.
+        runtime = Path(sys.executable).parent
+        for entry in runtime.iterdir():
+            if entry.is_file() and entry.suffix in {".dll", ".pyd", ".zip"}:
+                shutil.copy2(entry, scripts / entry.name)
+                runtime_names.append("Scripts/" + entry.name)
+        (scripts / "python312._pth").write_text("python312.zip\n.\n", encoding="utf-8")
+        runtime_names.append("Scripts/python312._pth")
     (root / "server.py").write_text(SERVER, encoding="utf-8")
     (root / "mode.txt").write_text("normal", encoding="utf-8")
-    names = ["Scripts/python.exe", "pyvenv.cfg", "server.py", "mode.txt"]
+    names = [*runtime_names, "server.py", "mode.txt"]
     def install():
         (root / "bundle.manifest.json").write_text(json.dumps({
             "app_id": "ocr", "files": [{"path": name, "sha256": digest(root / name)} for name in names]
@@ -90,11 +108,11 @@ def live_http():
     server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", access_log=False, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [listener]}, daemon=True)
     thread.start()
-    deadline = time.monotonic() + 5
-    while not server.started and time.monotonic() < deadline:
-        time.sleep(0.01)
-    assert server.started
     try:
+        deadline = time.monotonic() + 20
+        while not server.started and thread.is_alive() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert server.started
         yield port
     finally:
         server.should_exit = True
@@ -199,6 +217,21 @@ def test_recent_snapshot_persistence_and_no_duplicate_on_retry(configured):
         assert start(port, "launchOne")[0] == 410  # A prior owned Job cannot be recreated after restart.
         assert len((root / "starts.txt").read_text().splitlines()) == 3
         assert len(app.routes) > 0  # Router count also asserted by live_http on each shutdown.
+
+
+def test_owned_cpu_child_receives_complete_f_drive_environment(configured):
+    _, root, _ = configured
+    with live_http() as port:
+        assert start(port)[0] == 201
+        actual = json.loads((root / "environment.json").read_text())
+        names = ("TEMP", "TMP", "APPDATA", "LOCALAPPDATA", "HF_HOME", "TORCH_HOME",
+                 "PIP_CACHE_DIR", "NPM_CONFIG_CACHE", "NPM_CONFIG_STORE_DIR", "XDG_CACHE_HOME",
+                 "PADDLE_PDX_CACHE_HOME", "PADDLEOCR_HOME", "CLEAR_PADDLE_TEMP")
+        for name in names:
+            assert Path(actual[name]).resolve().drive.upper() == "F:"
+        assert str(actual["CLEAR_PADDLE_TEMP"]).isascii()
+        assert actual["PYTHONDONTWRITEBYTECODE"] == "1"
+        assert "HOME" not in actual and "CODEX_HOME" not in actual and "USERPROFILE" not in actual
 
 
 def test_lifespan_recreates_supervisor_and_missing_store_is_honest(configured, monkeypatch):

@@ -5,6 +5,9 @@ import json
 import os
 from pathlib import Path
 import shutil
+import socket
+import subprocess
+import sys
 import threading
 import time
 
@@ -42,6 +45,18 @@ def restore_environment(monkeypatch):
                  "WORKBENCH_OCR_TOKEN_FILE", "WORKBENCH_INSTALL_DATA_DIR", "PYTHONUTF8"):
         monkeypatch.setenv(name, "")
     monkeypatch.setenv("WORKBENCH_FORCE_VERIFY", "")
+    monkeypatch.setenv("WORKBENCH_PORT", "8765")
+    for name in ("TEMP", "TMP", "CLEAR_PADDLE_TEMP", "APPDATA", "LOCALAPPDATA",
+                 "PIP_CACHE_DIR", "npm_config_cache", "npm_config_store_dir", "PNPM_HOME",
+                 "HF_HOME", "TORCH_HOME", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
+                 "PADDLE_PDX_CACHE_HOME", "PADDLEOCR_HOME", "MPLCONFIGDIR",
+                 "HYPOTHESIS_STORAGE_DIRECTORY", "JUPYTER_CONFIG_DIR", "JUPYTER_DATA_DIR",
+                 "PLAYWRIGHT_BROWSERS_PATH", "PYTHONDONTWRITEBYTECODE",
+                 "PIP_DISABLE_PIP_VERSION_CHECK", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"):
+        if name in os.environ:
+            monkeypatch.setenv(name, os.environ[name])
+        else:
+            monkeypatch.delenv(name, raising=False)
 
 
 def wait_for_verification(registry):
@@ -282,6 +297,214 @@ def test_native_launch_reuses_completed_startup_and_keeps_entry_and_generation_g
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def test_invalid_port_and_occupied_port_do_not_publish_configuration(tmp_path, monkeypatch):
+    from scripts.candidate_bootstrap import candidate_instance
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    pointer = root / "data/install-data.json"
+    before = pointer.read_bytes()
+    monkeypatch.setenv("WORKBENCH_INSTALL_DATA_DIR", str(tmp_path / "other-data"))
+    monkeypatch.setenv("WORKBENCH_PORT", "70000")
+    with pytest.raises(ValueError, match="between"):
+        configure(root)
+    assert pointer.read_bytes() == before
+    with socket.socket() as occupied:
+        occupied.bind(("127.0.0.1", 0))
+        occupied.listen()
+        monkeypatch.setenv("WORKBENCH_PORT", str(occupied.getsockname()[1]))
+        with pytest.raises(OSError):
+            with candidate_instance(root):
+                pytest.fail("occupied port must stop before configuration")
+    assert pointer.read_bytes() == before
+    assert not (tmp_path / "other-data").exists()
+
+
+def test_candidate_os_lease_rejects_concurrent_process_and_preserves_pointer(tmp_path, monkeypatch):
+    from scripts.candidate_bootstrap import CandidateBusy
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    before = (root / "data/install-data.json").read_bytes()
+    source = Path(__file__).resolve().parents[2]
+    child_code = ("import sys;sys.path[:0]=[sys.argv[1],sys.argv[1]+'/src'];"
+                  "from scripts.candidate_bootstrap import _FileLease;"
+                  "lease=_FileLease(__import__('pathlib').Path(sys.argv[2]));"
+                  "assert lease.acquire();print('LOCKED',flush=True);sys.stdin.readline();lease.close()")
+    child = subprocess.Popen([sys.executable, "-I", "-B", "-c", child_code, str(source),
+                              str(root / "data/candidate-instance.lock")],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             text=True, env=os.environ.copy(), cwd=tmp_path)
+    try:
+        assert child.stdout.readline().strip() == "LOCKED"
+        with pytest.raises(CandidateBusy):
+            configure(root)
+        assert (root / "data/install-data.json").read_bytes() == before
+    finally:
+        child.communicate("close\n", timeout=10)
+        assert child.returncode == 0
+
+
+def test_active_same_package_other_data_or_port_is_rejected(tmp_path, monkeypatch):
+    from scripts.candidate_bootstrap import CandidateBusy, candidate_instance, _write_json
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    before = (root / "data/install-data.json").read_bytes()
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    monkeypatch.setenv("WORKBENCH_PORT", str(port))
+    with candidate_instance(root) as active:
+        _write_json(root / "data/candidate-instance.json", active["record"])
+        for name, value in (("WORKBENCH_INSTALL_DATA_DIR", str(tmp_path / "other")),
+                            ("WORKBENCH_PORT", str(port + 1 if port < 65535 else port - 1))):
+            with monkeypatch.context() as changed:
+                changed.setenv(name, value)
+                with pytest.raises(CandidateBusy, match="another data directory or port"):
+                    with candidate_instance(root):
+                        pytest.fail("must reject different active instance arguments")
+        with pytest.raises(CandidateBusy):
+            configure(root)
+    assert (root / "data/install-data.json").read_bytes() == before
+
+
+def test_duplicate_candidate_reuses_only_verified_owned_page(tmp_path, monkeypatch):
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    from scripts.candidate_bootstrap import candidate_instance, _write_json, CandidateBusy
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    monkeypatch.setenv("WORKBENCH_PORT", str(port))
+    with candidate_instance(root) as active:
+        record = active["record"]
+        _write_json(root / "data/candidate-instance.json", record)
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps(record).encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_):
+                pass
+        server = HTTPServer(("127.0.0.1", port), Handler, bind_and_activate=False)
+        server.socket.close()
+        server.socket = active["listener"]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with candidate_instance(root) as duplicate:
+                assert duplicate == {"reused_url": f"http://127.0.0.1:{port}/"}
+            changed = {**record, "nonce": "wrong"}
+            _write_json(root / "data/candidate-instance.json", changed)
+            with pytest.raises(CandidateBusy, match="identity"):
+                with candidate_instance(root):
+                    pytest.fail("an unverified page must not be reused")
+        finally:
+            server.shutdown()
+            thread.join(5)
+            assert not thread.is_alive()
+
+
+def test_bootstrap_main_identity_precedes_actual_portal_catchall(tmp_path, monkeypatch):
+    from contextlib import contextmanager
+    import importlib.util
+    import uvicorn
+    from scripts import candidate_bootstrap as bootstrap
+    import workbench_platform.app as application
+
+    restore_environment(monkeypatch)
+    portal = tmp_path / 'portal'
+    portal.mkdir()
+    (portal / 'index.html').write_text('<html>candidate portal</html>', encoding='utf-8')
+    monkeypatch.setenv('WORKBENCH_PORTAL_DIST', str(portal))
+    spec = importlib.util.spec_from_file_location('workbench_platform._candidate_route_test', application.__file__)
+    composed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(composed)
+    monkeypatch.setattr(application, 'app', composed.app)
+    record = {'program_root': str(tmp_path), 'data_root': str(tmp_path / 'data'),
+              'port': 8765, 'pid': os.getpid(), 'creation_time': 'fixed-process-time', 'nonce': 'fixed-nonce'}
+    @contextmanager
+    def instance(_root):
+        yield {'record': record, 'anchor': tmp_path, 'listener': object()}
+    monkeypatch.setattr(bootstrap, 'candidate_instance', instance)
+    monkeypatch.setattr(bootstrap, 'configure', lambda *args, **kwargs: None)
+    observed = []
+    class ObserveServer:
+        def __init__(self, config):
+            self.app = config.app
+        def run(self, **kwargs):
+            # Routing is the real composition; no native or ASGI lifespan starts.
+            client = TestClient(self.app)
+            response = client.get('/api/platform/v1/candidate-identity')
+            assert response.status_code == 200 and response.json() == record
+            assert client.get('/api/platform/v1/unregistered').status_code == 404
+            assert 'candidate portal' in client.get('/batches').text
+            observed.append(response.json())
+    monkeypatch.setattr(uvicorn, 'Server', ObserveServer)
+    bootstrap.main()
+    assert observed == [record]
+    assert json.loads((tmp_path / 'candidate-instance.json').read_text('utf-8')) == record
+
+
+def test_chinese_space_paths_and_real_child_environment_have_only_f_write_roots(tmp_path, monkeypatch):
+    from workbench_platform.supervisor.processes import storage_environment
+    restore_environment(monkeypatch)
+    root = tmp_path / "中文 空格" / "data"
+    monkeypatch.delenv("CLEAR_PADDLE_TEMP", raising=False)
+    before = {name: os.environ.get(name) for name in ("HOME", "CODEX_HOME", "USERPROFILE")}
+    env = {**os.environ, **storage_environment(root)}
+    result = subprocess.run([sys.executable, "-I", "-B", "-c",
+        "import json,os,tempfile;print(json.dumps({'env':dict(os.environ),'temp':tempfile.gettempdir()}))"],
+        cwd=root, env=env, capture_output=True, text=True, check=True)
+    actual = json.loads(result.stdout)
+    assert Path(actual["temp"]).drive.upper() == "F:"
+    assert str(actual["temp"]).isascii()
+    for name, value in storage_environment(root).items():
+        assert actual["env"][name.upper()] == value
+        if name.endswith("HOME") or name in {"TEMP", "TMP", "APPDATA", "LOCALAPPDATA"}:
+            assert Path(value).resolve().drive.upper() == "F:"
+    assert {name: actual["env"].get(name) for name in before} == before
+
+
+def test_outside_drive_and_junction_escape_block_before_pointer_write(tmp_path, monkeypatch):
+    from scripts.candidate_bootstrap import configure
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    configure(root)
+    before = (root / "data/install-data.json").read_bytes()
+    monkeypatch.setenv("WORKBENCH_INSTALL_DATA_DIR", "C:/forbidden-project-data")
+    with pytest.raises(ValueError, match="local F"):
+        configure(root)
+    junction = tmp_path / "escape"
+    command = subprocess.run(["cmd.exe", "/c", "mklink", "/J", str(junction), os.environ["SystemRoot"]],
+                             cwd=tmp_path, env=os.environ.copy(), capture_output=True)
+    assert command.returncode == 0, command.stderr
+    try:
+        monkeypatch.setenv("WORKBENCH_INSTALL_DATA_DIR", str(junction / "never-write"))
+        with pytest.raises(ValueError, match="local F"):
+            configure(root)
+    finally:
+        assert junction.is_junction()
+        os.rmdir(junction)
+    assert (root / "data/install-data.json").read_bytes() == before
+
+
+def test_unwritable_registered_temp_does_not_fallback(tmp_path, monkeypatch):
+    restore_environment(monkeypatch)
+    root, _ = small_candidate(tmp_path)
+    blocked = tmp_path / "not-a-directory"
+    blocked.write_bytes(b"keep")
+    monkeypatch.setenv("CLEAR_PADDLE_TEMP", str(blocked))
+    with pytest.raises(OSError):
+        configure(root)
+    assert blocked.read_bytes() == b"keep"
+    assert not (root / "data/install-data.json").exists()
 
 
 def test_optional_app_registration_is_local_and_missing_app_stays_unavailable(tmp_path, monkeypatch):

@@ -1,6 +1,6 @@
 {
   "app_id": "classification",
-  "manifest_sha256": "cbce9cd9bf27ef264f14bdf34387c1a53c41834db793c3c96ec526a744788eb2",
+  "manifest_sha256": "d4b1a82921eb8e9d84a1cb6cfa89800fc4056ba92c1c86fecdaeec1c53aaf90e",
   "installed": false,
   "reason": "Application bundle is not registered"
 }

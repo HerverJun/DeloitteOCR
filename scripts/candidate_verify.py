@@ -17,6 +17,9 @@ def verify(root: Path) -> dict:
                 "dependency-inventory.json"}
     if manifest["format"] >= 3:
         required.update({"verify.cmd", "verify.py"})
+    if 'image_forensics' in manifest.get('components', []):
+        required.update({'app/config/forensics.json', 'app/modules/image_forensics/worker.py',
+                         'app/modules/image_forensics/source-manifest.json', 'runtimes/forensics/python.exe'})
     if not required <= files.keys():
         raise ValueError("Candidate is missing a required component")
     actual = set()

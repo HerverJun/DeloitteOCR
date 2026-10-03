@@ -10,6 +10,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -17,7 +18,9 @@ import pytest
 
 from workbench_platform.catalog.registry import AppRegistry, DEFAULT_CONFIG
 from workbench_platform.supervisor import LaunchConflict, LaunchFailure, NotOwned, Supervisor
-from workbench_platform.supervisor.processes import _OwnedJob, _listener_pid, process_creation_time
+from workbench_platform.supervisor.processes import (
+    _OwnedJob, _listener_pid, process_creation_time, storage_environment,
+)
 from workbench_platform.supervisor import broker as gate
 
 
@@ -30,11 +33,20 @@ mode = (root / 'mode.txt').read_text().strip()
 if mode == 'capture_env':
     (root / 'environment.json').write_text(json.dumps({key: os.environ.get(key) for key in
         ('WORKBENCH_APP_ID', 'WORKBENCH_INSTANCE_ID', 'WORKBENCH_LAUNCH_ID',
-         'WORKBENCH_GPU_LEDGER', 'LOCALAPPDATA', 'ProgramData')}))
+         'WORKBENCH_GPU_LEDGER', 'ProgramData', 'TEMP', 'TMP', 'CLEAR_PADDLE_TEMP',
+         'APPDATA', 'LOCALAPPDATA', 'PIP_CACHE_DIR', 'npm_config_cache',
+         'npm_config_store_dir', 'PNPM_HOME', 'HF_HOME', 'TORCH_HOME',
+         'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'PADDLE_PDX_CACHE_HOME',
+         'PADDLEOCR_HOME', 'MPLCONFIGDIR', 'HYPOTHESIS_STORAGE_DIRECTORY',
+         'JUPYTER_CONFIG_DIR', 'JUPYTER_DATA_DIR', 'PLAYWRIGHT_BROWSERS_PATH',
+         'PYTHONDONTWRITEBYTECODE', 'PYTHONUTF8', 'PIP_DISABLE_PIP_VERSION_CHECK',
+         'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH',
+         'HOME', 'CODEX_HOME', 'UNRELATED_PARENT_MARKER')}))
+    (root / 'home-readonly.txt').write_text(str(pathlib.Path.home()))
 if mode == 'exit': sys.exit(4)
 if mode == 'silent': time.sleep(30); sys.exit(0)
 if mode == 'tree':
-    child = subprocess.Popen([sys.executable, '-u', 'child.py'], cwd=root)
+    child = subprocess.Popen([sys.executable, '-B', '-u', 'child.py'], cwd=root)
     (root / 'child-pid.txt').write_text(str(child.pid))
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -106,11 +118,24 @@ def bundle(tmp_path, app_id="ocr", mode="normal", port=None):
     scripts = root / "Scripts"
     scripts.mkdir(parents=True)
     shutil.copy2(sys.executable, scripts / "python.exe")
-    shutil.copy2(Path(sys.executable).parent.parent / "pyvenv.cfg", root / "pyvenv.cfg")
+    venv_config = Path(sys.executable).parent.parent / "pyvenv.cfg"
+    runtime_names = ["Scripts/python.exe"]
+    if venv_config.is_file():
+        shutil.copy2(venv_config, root / "pyvenv.cfg")
+        runtime_names.append("pyvenv.cfg")
+    else:
+        # D00 registers an embedded runtime rather than a venv redirector.
+        runtime = Path(sys.executable).parent
+        for entry in runtime.iterdir():
+            if entry.is_file() and entry.suffix in {".dll", ".pyd", ".zip"}:
+                shutil.copy2(entry, scripts / entry.name)
+                runtime_names.append("Scripts/" + entry.name)
+        (scripts / "python312._pth").write_text("python312.zip\n.\n", encoding="utf-8")
+        runtime_names.append("Scripts/python312._pth")
     (root / "server.py").write_text(SERVER, encoding="utf-8")
     (root / "child.py").write_text(CHILD, encoding="utf-8")
     (root / "mode.txt").write_text(mode, encoding="utf-8")
-    names = ["Scripts/python.exe", "pyvenv.cfg", "server.py", "child.py", "mode.txt"]
+    names = [*runtime_names, "server.py", "child.py", "mode.txt"]
     if port is not None:
         (root / "port.txt").write_text(str(port), encoding="utf-8")
         names.append("port.txt")
@@ -123,7 +148,7 @@ def register(config, root, app_id="ocr"):
     record = {"app_id": app_id, "installed": True,
               "manifest_sha256": digest(config / f"{app_id}.json"),
               "launch": {"bundle_root": str(root), "executable": str(root / "Scripts/python.exe"),
-                         "working_directory": str(root), "allowed_arguments": ["-u", "server.py"],
+                         "working_directory": str(root), "allowed_arguments": ["-B", "-u", "server.py"],
                          "executable_sha256": digest(root / "Scripts/python.exe"),
                          "bundle_manifest_sha256": digest(root / "bundle.manifest.json")}}
     (config / f"{app_id}.install.json").write_text(json.dumps(record), encoding="utf-8")
@@ -140,6 +165,14 @@ def trusted(tmp_path):
     registry = AppRegistry(config, install_root=tmp_path / "bundles")
     assert registry.installations["ocr"].installed
     return tmp_path, config, root, registry
+
+
+def make_supervisor(registry, **kwargs):
+    data_root = kwargs.pop("data_root", None)
+    if data_root is None:
+        data_root = registry.config_dir.parent.parent / ("platform-data-" + uuid.uuid4().hex)
+    data_root.mkdir(parents=True, exist_ok=True)
+    return Supervisor(registry, data_root=data_root, **kwargs)
 
 
 class ExternalService:
@@ -159,16 +192,18 @@ def external(tmp_path, *, app_id="ocr", instance_id="externalInstance", nonce="e
     (root / "server.py").write_text(SERVER, encoding="utf-8")
     (root / "mode.txt").write_text("normal", encoding="utf-8")
     environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
+    environment.update(storage_environment(root / "data"))
     environment.update({"PATH": str(Path(sys.executable).parent), "WORKBENCH_APP_ID": app_id,
                         "WORKBENCH_INSTANCE_ID": instance_id, "WORKBENCH_NONCE": nonce,
                         "PYTHONDONTWRITEBYTECODE": "1"})
     job = _OwnedJob()  # Test-owned, entirely separate from Supervisor's Job.
-    broker = subprocess.Popen([sys.executable, "-I", "-S", "-u", str(Path(gate.__file__))],
+    broker = subprocess.Popen([sys.executable, "-I", "-B", "-S", "-u", str(Path(gate.__file__))],
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              text=True, encoding="utf-8", creationflags=0x08000000)
+                              text=True, encoding="utf-8", creationflags=0x08000000,
+                              env=environment, cwd=root)
     try:
         job.assign(broker)  # The broker cannot spawn the external service until this succeeds.
-        broker.stdin.write(json.dumps({"argv": [sys.executable, "-u", "server.py"],
+        broker.stdin.write(json.dumps({"argv": [sys.executable, "-B", "-u", "server.py"],
                                        "cwd": str(root), "environment": environment}) + "\n")
         broker.stdin.close()
         messages = queue.Queue()
@@ -201,7 +236,7 @@ def test_dynamic_bound_port_identity_concurrent_idempotency_and_tree_cleanup(tru
     config = registry.config_dir
     register(config, root)
     registry.reload()
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         with ThreadPoolExecutor(max_workers=4) as pool:
             receipts = list(pool.map(lambda _: supervisor.start("ocr", "launchA"), range(4)))
         assert all(receipt == receipts[0] for receipt in receipts)
@@ -222,8 +257,9 @@ def test_dynamic_bound_port_identity_concurrent_idempotency_and_tree_cleanup(tru
         assert registry.health("ocr").service.state == "unavailable"
 
 
-def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(trusted):
+def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(trusted, monkeypatch):
     _, config, root, registry = trusted
+    monkeypatch.setenv('UNRELATED_PARENT_MARKER', 'must-not-reach-native')
     (root / "mode.txt").write_text("capture_env", encoding="utf-8")
     declaration = json.loads((root / "bundle.manifest.json").read_text(encoding="utf-8"))
     next(item for item in declaration["files"] if item["path"] == "mode.txt")["sha256"] = digest(root / "mode.txt")
@@ -232,10 +268,10 @@ def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(truste
     registry.reload()
     data_root = root.parent.parent / "platform-data"
     data_root.mkdir()
-    with Supervisor(registry, data_root=data_root) as supervisor:
+    with make_supervisor(registry, data_root=data_root) as supervisor:
         receipt = supervisor.start("ocr", "gpuContextA")
         actual = json.loads((root / "environment.json").read_text(encoding="utf-8"))
-        expected = {
+        expected = {**storage_environment(data_root),
             "WORKBENCH_APP_ID": "ocr",
             "WORKBENCH_INSTANCE_ID": receipt.instance_id,
             "WORKBENCH_LAUNCH_ID": receipt.launch_id,
@@ -243,7 +279,15 @@ def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(truste
             "LOCALAPPDATA": str(data_root / "native-local"),
         }
         expected["ProgramData"] = os.environ.get("ProgramData")
+        expected.update({key: os.environ.get(key) for key in ("USERPROFILE", "HOMEDRIVE", "HOMEPATH")})
+        expected.update({"HOME": None, "CODEX_HOME": None, "UNRELATED_PARENT_MARKER": None})
         assert actual == expected
+        assert (root / 'home-readonly.txt').read_text() == str(Path.home())
+        for key, value in actual.items():
+            if value is not None and (key in {"TEMP", "TMP", "CLEAR_PADDLE_TEMP", "APPDATA", "LOCALAPPDATA"}
+                    or key.endswith(("_DIR", "_DIRECTORY", "_HOME", "_PATH"))
+                    or key in {"PNPM_HOME", "npm_config_cache", "npm_config_store_dir"}):
+                assert Path(value).resolve().drive.upper() == "F:", key
         assert (data_root / "native-local").is_dir()
 
 
@@ -256,7 +300,7 @@ def test_failed_handshakes_are_cached_and_only_own_child_is_cleaned(trusted, mod
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    with Supervisor(registry, handshake_timeout=0.7) as supervisor:
+    with make_supervisor(registry, handshake_timeout=0.7) as supervisor:
         def attempt(_):
             with pytest.raises(LaunchFailure):
                 supervisor.start("ocr", "failedA")
@@ -279,7 +323,7 @@ def test_occupied_port_does_not_capture_external_sentinel(trusted):
         (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
         register(config, root)
         registry.reload()
-        with Supervisor(registry, handshake_timeout=0.8) as supervisor:
+        with make_supervisor(registry, handshake_timeout=0.8) as supervisor:
             with pytest.raises(LaunchFailure):
                 supervisor.start("ocr", "occupiedA")
         assert alive(sentinel.pid)
@@ -292,7 +336,7 @@ def test_discovered_identity_is_query_only_and_never_kills_external_service(trus
     tmp_path, _, _, registry = trusted
     sentinel, port = external(tmp_path)
     try:
-        with Supervisor(registry) as supervisor:
+        with make_supervisor(registry) as supervisor:
             service_pid = sentinel.pid
             creation = process_creation_time(service_pid)
             with pytest.raises(LaunchFailure):
@@ -326,7 +370,7 @@ def test_discovered_close_stops_monitoring_without_claiming_service_exited(trust
     tmp_path, _, _, registry = trusted
     sentinel, port = external(tmp_path)
     try:
-        with Supervisor(registry) as supervisor:
+        with make_supervisor(registry) as supervisor:
             supervisor.discover("ocr", "discoveryClose", pid=sentinel.pid,
                                 creation_time=process_creation_time(sentinel.pid),
                                 base_url=f"http://127.0.0.1:{port}/", instance_id="externalInstance",
@@ -342,7 +386,7 @@ def test_discovered_close_stops_monitoring_without_claiming_service_exited(trust
 def test_bundle_payload_tamper_rejected_before_business_spawn(trusted):
     _, _, root, registry = trusted
     (root / "server.py").write_text(SERVER + "\n# changed", encoding="utf-8")
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         with pytest.raises(LaunchFailure, match="integrity"):
             supervisor.start("ocr", "tamperedA")
     assert not (root / "starts.txt").exists()
@@ -356,7 +400,7 @@ def test_trusted_manifest_change_after_reload_is_rejected(trusted):
     record = json.loads((config / "ocr.install.json").read_text())
     record["manifest_sha256"] = digest(config / "ocr.json")
     (config / "ocr.install.json").write_text(json.dumps(record), encoding="utf-8")
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         with pytest.raises(LaunchFailure, match="declaration changed"):
             supervisor.start("ocr", "manifestChanged")
     assert not (root / "starts.txt").exists()
@@ -370,14 +414,14 @@ def test_noisy_child_cannot_evict_critical_ready_protocol(trusted):
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         receipt = supervisor.start("ocr", "noisyLaunch")
         assert receipt.ownership == "owned"
 
 
 def test_exited_service_changes_health_and_old_stop_cannot_hide_new_instance(trusted):
     _, config, root, registry = trusted
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         old = supervisor.start("ocr", "oldLaunch")
         newer = supervisor.start("ocr", "newLaunch")
         assert newer.pid != old.pid and registry.health("ocr").service.state == "ready"
@@ -391,7 +435,7 @@ def test_exited_service_changes_health_and_old_stop_cannot_hide_new_instance(tru
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         receipt = supervisor.start("ocr", "shortLaunch")
         assert registry.health("ocr").service.state == "ready"
         assert eventually(lambda: not alive(receipt.pid) and registry.health("ocr").service.state == "unavailable", 4)
@@ -410,7 +454,7 @@ def test_main_exit_with_stdout_held_by_descendant_still_reaps_owned_tree(trusted
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         receipt = supervisor.start("ocr", "exitsWithChild")
         child_pid = int((root / "child-pid.txt").read_text())
         assert alive(child_pid)
@@ -420,7 +464,7 @@ def test_main_exit_with_stdout_held_by_descendant_still_reaps_owned_tree(trusted
 
 def test_same_launch_id_retry_survives_catalog_reload(trusted):
     _, _, _, registry = trusted
-    with Supervisor(registry) as supervisor:
+    with make_supervisor(registry) as supervisor:
         receipt = supervisor.start("ocr", "stableLaunch")
         registry.reload()
         assert supervisor.start("ocr", "stableLaunch") == receipt
@@ -431,7 +475,7 @@ def test_discovered_exit_becomes_unavailable_without_supervisor_kill(trusted):
     tmp_path, _, _, registry = trusted
     sentinel, port = external(tmp_path)
     try:
-        with Supervisor(registry) as supervisor:
+        with make_supervisor(registry) as supervisor:
             supervisor.discover("ocr", "discoveryExit", pid=sentinel.pid,
                                 creation_time=process_creation_time(sentinel.pid),
                                 base_url=f"http://127.0.0.1:{port}/", instance_id="externalInstance",
@@ -452,7 +496,7 @@ def test_stop_and_close_wait_for_pending_failure_without_deadlock(trusted):
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    supervisor = Supervisor(registry, handshake_timeout=0.7)
+    supervisor = make_supervisor(registry, handshake_timeout=0.7)
     with ThreadPoolExecutor(max_workers=3) as pool:
         starting = pool.submit(supervisor.start, "ocr", "pendingLaunch")
         assert eventually(lambda: (root / "pid.txt").exists())

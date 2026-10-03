@@ -22,12 +22,21 @@ import uuid
 PLATFORM_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
                   "recent-work.sqlite3", "ocr-handoffs.sqlite3",
                   "classification-handoffs.sqlite3")
-PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches")
+PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics")
 REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
             "ocr": ("workbench.sqlite3",)}
 OCR_TRANSIENT_DIRS = frozenset({".image-staging", "pdf-ipc"})
 FORMAT = 1
 CHUNK = 1024 * 1024
+
+
+def _f_path(value: Path, label: str) -> Path:
+    """Validate the requested drive and junction target before creating files."""
+    requested = Path(value).absolute()
+    resolved = requested.resolve()
+    if requested.drive.upper() != "F:" or resolved.drive.upper() != "F:":
+        raise ValueError(f"{label} must remain on the local F drive: {requested}")
+    return resolved
 
 
 def _safe(path: Path) -> None:
@@ -138,7 +147,8 @@ def _distinct(source: Path, destination: Path) -> None:
 
 def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
     _safe(source)
-    source, destination = source.resolve(), destination.resolve()
+    source = _f_path(source, "Backup data directory")
+    destination = _f_path(destination, "Backup output directory")
     if not source.is_dir():
         raise FileNotFoundError(source)
     _distinct(source, destination)
@@ -166,8 +176,8 @@ def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
 
 
 def verify(backup: Path) -> dict:
-    backup = backup.resolve()
     _safe(backup)
+    backup = _f_path(backup, "Backup directory")
     manifest = json.loads((backup / "manifest.json").read_text(encoding="utf-8"))
     files = manifest.get("files")
     kind = manifest.get("kind", "platform")
@@ -189,7 +199,8 @@ def verify(backup: Path) -> dict:
 
 
 def restore(backup: Path, destination: Path) -> dict:
-    backup, destination = backup.resolve(), destination.resolve()
+    backup = _f_path(backup, "Backup directory")
+    destination = _f_path(destination, "Restore output directory")
     _distinct(backup, destination)
     manifest = verify(backup)
     stage = destination.with_name(destination.name + ".pending-" + uuid.uuid4().hex)

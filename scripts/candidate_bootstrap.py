@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 from datetime import datetime, timezone
 import json
+import msvcrt
 import os
 from pathlib import Path
 import secrets
+import socket
+import tempfile
 import threading
 import time
+from contextlib import contextmanager
+
+from workbench_platform.supervisor.processes import (
+    require_f_path, storage_environment, process_creation_time, _process_active, _listener_pid,
+)
 
 
 APPS = ("ocr", "classification")
@@ -24,9 +33,113 @@ def _hash(path: Path) -> str:
 
 
 def _write_json(path: Path, value: dict) -> None:
+    path = require_f_path(path)
     temporary = path.with_name(path.name + ".new")
+    require_f_path(temporary)
     temporary.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
     os.replace(temporary, path)
+
+
+class CandidateBusy(ValueError):
+    pass
+
+
+class _FileLease:
+    """OS-owned lease; a crash releases it without a stale-lock reset."""
+    def __init__(self, path):
+        self.path, self.stream = require_f_path(path), None
+
+    def acquire(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        stream = self.path.open("a+b")
+        if stream.tell() == 0:
+            stream.write(b"0")
+            stream.flush()
+        stream.seek(0)
+        try:
+            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            stream.close()
+            return False
+        self.stream = stream
+        return True
+
+    def close(self):
+        if self.stream is not None:
+            self.stream.seek(0)
+            msvcrt.locking(self.stream.fileno(), msvcrt.LK_UNLCK, 1)
+            self.stream.close()
+            self.stream = None
+
+
+def _paths(root):
+    root = require_f_path(root, "Program directory")
+    anchor = require_f_path(root / "data", "Candidate state directory")
+    configured = os.environ.get("WORKBENCH_INSTALL_DATA_DIR")
+    data = require_f_path(Path(configured) if configured else anchor, "User data directory")
+    if (data == root or root.is_relative_to(data)
+            or (data.is_relative_to(root) and data != anchor)):
+        raise ValueError("User data must not be the program directory")
+    port = int(os.environ.get("WORKBENCH_PORT") or "8765")
+    if not 1 <= port <= 65535:
+        raise ValueError("WORKBENCH_PORT must be between 1 and 65535")
+    # Check all mutable descendants before pointer/configuration publication.
+    for path in (anchor / "install-data.json", anchor / "startup-verification.json",
+                 anchor / "candidate-instance.json", data / "config/apps", data / "ocr-token.txt"):
+        require_f_path(path)
+    for app_id in APPS:
+        require_f_path(data / "config/apps" / f"{app_id}.json")
+        require_f_path(data / "config/apps" / f"{app_id}.install.json")
+    return root, anchor, data, port
+
+
+def _reuse_instance(root, anchor, data, port):
+    try:
+        record = json.loads((anchor / "candidate-instance.json").read_text(encoding="utf-8"))
+        if (record["program_root"] != str(root) or record["data_root"] != str(data)
+                or record["port"] != port):
+            raise CandidateBusy("This package is active with another data directory or port")
+        if (not _process_active(record["pid"], record["creation_time"])
+                or _listener_pid(port) != record["pid"]):
+            raise CandidateBusy("Candidate startup identity is not yet verifiable")
+        connection = http.client.HTTPConnection("127.0.0.1", port, timeout=1)
+        try:
+            connection.request("GET", "/api/platform/v1/candidate-identity")
+            response = connection.getresponse()
+            if response.status != 200 or json.loads(response.read(8193)) != record:
+                raise CandidateBusy("Candidate page identity could not be verified")
+        finally:
+            connection.close()
+        return f"http://127.0.0.1:{port}/"
+    except CandidateBusy:
+        raise
+    except (OSError, ValueError, KeyError, TypeError, http.client.HTTPException):
+        raise CandidateBusy("Candidate is starting or its identity needs verification; no configuration changed") from None
+
+
+@contextmanager
+def candidate_instance(root):
+    root, anchor, data, port = _paths(root)
+    lease = _FileLease(anchor / "candidate-instance.lock")
+    listener = None
+    try:
+        if not lease.acquire():
+            yield {"reused_url": _reuse_instance(root, anchor, data, port)}
+            return
+        listener = socket.socket()
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            listener.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        # Keep the reserved socket for uvicorn, eliminating the check/bind race.
+        listener.bind(("127.0.0.1", port))
+        listener.listen(128)
+        record = {"program_root": str(root), "data_root": str(data), "port": port,
+                  "pid": os.getpid(), "creation_time": process_creation_time(os.getpid()),
+                  "nonce": secrets.token_urlsafe(32)}
+        yield {"record": record, "listener": listener, "anchor": anchor}
+    finally:
+        if listener:
+            listener.close()
+        lease.close()
 
 
 def _sealed_bundle(root: Path, app_id: str, sealed: dict, progress=None) -> bool:
@@ -110,15 +223,31 @@ def _read_successes(path: Path, identity: dict) -> dict:
         return {}
 
 
-def configure(root: Path, *, background: bool = False, force_verify: bool = False):
-    root = root.resolve()
-    anchor = root / "data"
+def configure(root: Path, *, background: bool = False, force_verify: bool = False,
+              _instance_owned: bool = False):
+    _, anchor, _, _ = _paths(root)
+    instance = _FileLease(anchor / "candidate-instance.lock")
+    configuration = _FileLease(anchor / "candidate-config.lock")
+    def finished():
+        configuration.close()
+        instance.close()
+    try:
+        if not _instance_owned and not instance.acquire():
+            raise CandidateBusy("Candidate is active; configuration was not changed")
+        if not configuration.acquire():
+            raise CandidateBusy("Candidate configuration is already being prepared")
+        return _configure(root, background=background, force_verify=force_verify, _finished=finished)
+    except BaseException:
+        finished()
+        raise
+
+
+def _configure(root: Path, *, background: bool = False, force_verify: bool = False, _finished=lambda: None):
+    root, anchor, data, _ = _paths(root)
+    environment = storage_environment(data)
+    os.environ.update(environment)
+    tempfile.tempdir = None
     anchor.mkdir(exist_ok=True)
-    configured = os.environ.get("WORKBENCH_INSTALL_DATA_DIR")
-    data = Path(configured).resolve() if configured else anchor
-    if (data == root or root.is_relative_to(data)
-            or (data.is_relative_to(root) and data != anchor)):
-        raise ValueError("User data must not be the program directory")
     data.mkdir(exist_ok=True)
     _write_json(anchor / "install-data.json", {"data_root": str(data)})
     config = data / "config" / "apps"
@@ -189,6 +318,7 @@ def configure(root: Path, *, background: bool = False, force_verify: bool = Fals
     routes._registry = registry
     os.environ["WORKBENCH_DATA_DIR"] = str(data)
     os.environ["WORKBENCH_DATA_PYTHON"] = str(root / "runtimes" / "data" / "python.exe")
+    os.environ['WORKBENCH_FORENSICS_PYTHON'] = str(root / 'runtimes/forensics/python.exe')
     os.environ["WORKBENCH_PORTAL_DIST"] = str(root / "app" / "apps" / "portal" / "dist")
     os.environ["PYTHONUTF8"] = "1"
     if (root / "bundles" / "ocr").is_dir():
@@ -247,23 +377,37 @@ def configure(root: Path, *, background: bool = False, force_verify: bool = Fals
                 registry.update_verification(app_id, phase="failed", checked_files=previous.checked_files,
                     total_files=totals[app_id], message="校验结果未能发布，请检查数据目录后重新启动")
             print(f"Optional-app verification could not finish: {type(error).__name__}", flush=True)
+        finally:
+            _finished()
 
     if background and pending:
         threading.Thread(target=verify_packages, name="candidate-verification", daemon=True).start()
     elif pending or not background:
         verify_packages()
+    else:
+        _finished()
     return registry
 
 
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
-    configure(root, background=True)
-    port = int(os.environ.get("WORKBENCH_PORT", "8765"))
-    if not 1 <= port <= 65535:
-        raise ValueError("WORKBENCH_PORT must be between 1 and 65535")
-    import uvicorn
-
-    uvicorn.run("workbench_platform.app:app", host="127.0.0.1", port=port)
+    with candidate_instance(root) as instance:
+        if "reused_url" in instance:
+            print("Verified existing candidate: " + instance["reused_url"], flush=True)
+            return
+        configure(root, background=True, _instance_owned=True)
+        import uvicorn
+        from workbench_platform.app import app
+        record = instance["record"]
+        @app.get("/api/platform/v1/candidate-identity", include_in_schema=False)
+        def candidate_identity():
+            return record
+        # app.py registers the portal catchall during import. This runtime-only
+        # identity route must precede it so duplicate starts can verify ownership.
+        app.router.routes.insert(0, app.router.routes.pop())
+        _write_json(instance["anchor"] / "candidate-instance.json", record)
+        server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=record["port"]))
+        server.run(sockets=[instance["listener"]])
 
 
 if __name__ == "__main__":
