@@ -33,6 +33,10 @@ class ClassificationImportConflict(ClassificationUnavailable):
     """The native request ID belongs to a different import manifest."""
 
 
+class ClassificationConflict(ClassificationUnavailable):
+    """Conditional disposition or operation identity no longer matches."""
+
+
 @dataclass(frozen=True)
 class JobStatus:
     native_job_id: str
@@ -60,6 +64,10 @@ class ReviewItem:
     disposition_revision: int = 0
     disposition_note: str | None = None
     current_annotation_label_id: str | None = None
+
+    @property
+    def effective_label_id(self):
+        return self.human_label_id if self.disposition_state == "confirmed" else self.prediction_label_id
 
 
 def _id(value: object) -> bool:
@@ -106,7 +114,7 @@ class ClassificationAdapter:
 
     def _request(self, method: str, path: str, body: dict | None = None,
                  *, key: str | None = None, max_body: int = 8192,
-                 import_conflict: bool = False) -> dict | list:
+                 import_conflict: bool = False, conditional: bool = False) -> dict | list:
         try:
             if not self.live(self.context):
                 raise ClassificationUnavailable()
@@ -122,6 +130,8 @@ class ClassificationAdapter:
                                         **({"Content-Type": "application/json"} if payload is not None else {}),
                                         **({"Idempotency-Key": key} if key else {})})
             response = connection.getresponse()
+            if conditional and response.status == 409:
+                raise ClassificationConflict()
             if import_conflict and response.status == 409:
                 raise ClassificationImportConflict()
             if response.status not in {200, 201, 202} or int(response.getheader("Content-Length", "0")) > MAX_JSON:
@@ -133,7 +143,7 @@ class ClassificationAdapter:
             if not isinstance(result, (dict, list)):
                 raise ClassificationUnavailable()
             return result
-        except ClassificationImportConflict:
+        except (ClassificationImportConflict, ClassificationConflict):
             raise
         except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
                 http.client.HTTPException):
@@ -324,14 +334,95 @@ class ClassificationAdapter:
             raise ClassificationUnavailable()
         return result["job_id"]
 
-    def dispose(self, job_id: str, items: list[ReviewItem], state: str, label_id=None, note=""):
-        if self.context.role == "viewer" or state not in {"confirmed", "deferred", "reopened"}:
+    def _receipt(self, result, operation_id, *, expected_instance_id=None):
+        if (not isinstance(result, dict) or result.get("operation_id") != operation_id
+                or result.get("state") != "committed" or result.get("project_id") != self.project_id
+                or result.get("instance_id") != (expected_instance_id or self.context.instance_id)
+                or not _id(result.get("job_id"))
+                or not isinstance(result.get("payload_hash"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", result["payload_hash"])
+                or not isinstance(result.get("items"), list) or not 1 <= len(result["items"]) <= 500
+                or not isinstance(result.get("revisions"), dict)):
             raise ClassificationUnavailable()
-        return self._request("POST", f"/api/v1/jobs/{job_id}/dispositions", {
+        seen = set()
+        for item in result["items"]:
+            if (not isinstance(item, dict) or not _id(item.get("item_id")) or item["item_id"] in seen
+                    or type(item.get("revision")) is not int or item["revision"] < 1
+                    or result["revisions"].get(item["item_id"]) != item["revision"]
+                    or not isinstance(item.get("original_sha256"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", item["original_sha256"])
+                    or (item.get("asset_id") is not None and not _id(item["asset_id"]))):
+                raise ClassificationUnavailable()
+            seen.add(item["item_id"])
+        if set(result["revisions"]) != seen:
+            raise ClassificationUnavailable()
+        return result
+
+    def operation(self, operation_id: str, *, expected_instance_id: str | None = None):
+        if not _id(operation_id) or (expected_instance_id is not None and not _id(expected_instance_id)):
+            raise ClassificationUnavailable()
+        original_instance = expected_instance_id or self.context.instance_id
+        result = self._request("GET", f"/api/v1/projects/{self.project_id}/disposition-operations/{operation_id}"
+                               f"?instance_id={self.context.instance_id}&operation_instance_id={original_instance}",
+                               conditional=True)
+        if result == {"operation_id": operation_id, "state": "not_found"}:
+            return None
+        return self._receipt(result, operation_id, expected_instance_id=expected_instance_id)
+
+    def disposition_history(self, job_id: str, item_id: str):
+        self.job(job_id)
+        if not _id(item_id):
+            raise ClassificationUnavailable()
+        result = self._request("GET", f"/api/v1/jobs/{job_id}/results/{item_id}/dispositions")
+        if (not isinstance(result, dict) or not isinstance(result.get("items"), list)
+                or any(not isinstance(item, dict) or item.get("job_id") != job_id
+                       or item.get("item_id") != item_id or type(item.get("revision")) is not int
+                       or item["revision"] < 1 for item in result["items"])):
+            raise ClassificationUnavailable()
+        return result["items"]
+
+    def dispose(self, job_id: str, items: list[ReviewItem], state: str, label_id=None, note="",
+                *, operation_id: str, actor: dict, request_id: str | None = None, intent="accept_prediction"):
+        if (self.context.role == "viewer" or state not in {"confirmed", "deferred", "reopened"}
+                or not _id(operation_id) or not isinstance(items, list) or not 1 <= len(items) <= 500
+                or any(not isinstance(item, ReviewItem) for item in items)
+                or len({item.native_item_id for item in items}) != len(items)):
+            raise ClassificationUnavailable()
+        self.job(job_id)  # Prove project ownership before sending a conditional write.
+        request_id = request_id or operation_id
+        if not _id(request_id):
+            raise ClassificationUnavailable()
+        body = {
             "item_ids": [item.native_item_id for item in items], "state": state,
             "label_id": label_id, "note": note,
-            "expected_revisions": {item.native_item_id: item.disposition_revision for item in items}},
-            max_body=65536)
+            "expected_revisions": {item.native_item_id: item.disposition_revision for item in items},
+            "operation_id": operation_id, "request_id": request_id, "actor": actor,
+            "instance_id": self.context.instance_id, "intent": intent}
+        result = self._request("POST", f"/api/v1/jobs/{job_id}/dispositions", body,
+                               max_body=65536, conditional=True)
+        receipt = self._receipt(result, operation_id)
+        identity = {"job_id": job_id, **{key: value for key, value in body.items()
+                                       if key not in {"operation_id", "request_id"}}}
+        identity["item_ids"] = sorted(identity["item_ids"])
+        expected_hash = hashlib.sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True,
+            separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        if (receipt["job_id"] != job_id or set(receipt["revisions"]) != {item.native_item_id for item in items}
+                or receipt.get("human_label_id") != label_id or receipt.get("disposition_state") != state
+                or receipt.get("request_id") != request_id or receipt.get("payload_hash") != expected_hash
+                or receipt.get("actor") != actor or receipt.get("note") != note
+                or {item["item_id"]: item.get("asset_id") for item in receipt["items"]}
+                   != {item.native_item_id: item.asset_id for item in items}):
+            raise ClassificationUnavailable()
+        return receipt
+
+    def adopt(self, job_id: str, item: ReviewItem, native_revision: int, human_label_id: str,
+              *, operation_id: str, actor: dict, note="", request_id: str | None = None):
+        if (type(native_revision) is not int or not isinstance(item, ReviewItem)
+                or item.disposition_revision != native_revision or item.disposition_state != "confirmed"
+                or not _id(human_label_id) or item.human_label_id != human_label_id):
+            raise ClassificationConflict()
+        return self.dispose(job_id, [item], "confirmed", human_label_id, note,
+                            operation_id=operation_id, request_id=request_id, actor=actor, intent="adopt")
 
     def job(self, job_id: str) -> JobStatus:
         if not _id(job_id):

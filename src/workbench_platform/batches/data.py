@@ -76,8 +76,9 @@ def validate_config(config):
 
 
 class DataBatchRunner:
-    def __init__(self, data, registry, center, root):
+    def __init__(self, data, registry, center, root, store=None):
         self.data, self.registry, self.center = data, registry, center
+        self.store = store
         self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
 
@@ -90,16 +91,26 @@ class DataBatchRunner:
         for side in ('left', 'right'):
             table = state['tables'][side]
             original_revision = table['history'][0]['revision']
-            original = self.data.page(session_id, 'table', original_revision, 0, 100_000)
+            original = self.data.page(session_id, 'table', original_revision, 0, 1000)
             columns = original['metadata']['columns']
             names = {column['column_id']: column['header'] for column in columns}
             if any(not header for header in names.values()) or len(set(names.values())) != len(names):
                 raise DataError('原始资料含空列名或重名，请先明确资料结构', 409)
-            expected = []
-            for index, column in enumerate(columns):
-                kinds = sorted({row['cells'][index]['kind'] for row in original['rows']
-                                if row['cells'][index]['kind'] != 'null'})
-                expected.append({'header': column['header'], 'kinds': kinds})
+            kinds_by_column = [set() for _ in columns]
+            offset = 0
+            while True:
+                for row in original['rows']:
+                    for index, cell in enumerate(row['cells']):
+                        if cell['kind'] != 'null':
+                            kinds_by_column[index].add(cell['kind'])
+                offset += len(original['rows'])
+                if offset >= original['total']:
+                    break
+                if not original['rows']:
+                    raise DataError('固定原表分页未覆盖全部资料', 409)
+                original = self.data.page(session_id, 'table', original_revision, offset, 1000)
+            expected = [{'header': column['header'], 'kinds': sorted(kinds_by_column[index])}
+                        for index, column in enumerate(columns)]
             steps = []
             for record in table['history']:
                 step = record.get('step')
@@ -287,35 +298,68 @@ class DataBatchRunner:
             spec[field] = [[mapping['left'][left], mapping['right'][right]] for left, right in spec.get(field, [])]
         session = operation('compare', 'compare', {'spec': spec})
         result_id = session['state']['result_id']
-        page = self.data.page(session_id, 'result', result_id, 0, 100_000)
-        issues = []
-        for row in page['rows']:
-            if row['category'] == 'same':
-                continue
-            title = {'different': '左右内容差异', 'only_left': '仅左表存在', 'only_right': '仅右表存在',
-                     'ambiguous_left': '左表重复键，未强行配对', 'ambiguous_right': '右表重复键，未强行配对'}.get(row['category'], '需核查结果')
-            issues.append(issue(row['category'], title, row.get('key_json', ''),
-                                {'session_id': session_id, 'result_id': result_id,
-                                 'left_row_id': row.get('left_row_id'), 'right_row_id': row.get('right_row_id'),
-                                 'left_source_row': row.get('left_source_row'), 'right_source_row': row.get('right_source_row')},
-                                row, key=[batch['batch_id'], result_id, row['ordinal']]))
-        coverage = page['metadata']['coverage']
-        summary = {'total': page['total'], 'processed': page['total'], 'succeeded': page['total'], 'failed': 0,
+        metadata = self.index_results(batch, session_id, result_id, checkpoint, cancelled)
+        coverage = metadata['coverage']
+        total = metadata['row_count']
+        summary = {'total': total, 'processed': total, 'succeeded': total, 'failed': 0,
                    'coverage': coverage, 'result_id': result_id, 'session_id': session_id,
                    'execution_complete': True}
-        checkpoint('results', {'result_id': result_id, 'summary': summary, 'issues': issues})
+        summary.update(total=total, processed=total, succeeded=total)
+        checkpoint('results', {'result_id': result_id, 'summary': summary})
         if cancelled():
-            return {'summary': summary, 'issues': issues, 'artifacts': [], 'artifact_state': 'not_generated', 'status': 'cancelled'}
+            return {'summary': summary, 'artifacts': [], 'artifact_state': 'not_generated', 'status': 'cancelled'}
         operation('export', 'export', {'result_id': result_id})
         export_id = receipts['export']['job_id']
         checkpoint('generated', {'export_id': export_id})
         if cancelled():
-            return {'summary': summary, 'issues': issues, 'artifacts': [], 'artifact_state': 'generated', 'status': 'cancelled'}
+            return {'summary': summary, 'artifacts': [], 'artifact_state': 'generated', 'status': 'cancelled'}
         try:
             bundle = self.center.publish_data_export(batch['workspace_id'], session_id, export_id)
             checkpoint('collect', {'bundle_id': bundle['bundle_id'], 'export_id': export_id})
-            return {'summary': summary, 'issues': issues, 'artifacts': [bundle], 'artifact_state': 'collected', 'status': 'succeeded'}
+            return {'summary': summary, 'artifacts': [bundle], 'artifact_state': 'collected', 'status': 'succeeded'}
         except Exception as error:
-            problems = [*issues, issue('collection_failed', '成果归集失败', str(error) if isinstance(error, ValueError)
+            problems = [issue('collection_failed', '成果归集失败', str(error) if isinstance(error, ValueError)
                                       else '固定成果已保留，可重试归集', {'session_id': session_id, 'export_id': export_id})]
             return {'summary': summary, 'issues': problems, 'artifacts': [], 'artifact_state': 'collection_failed', 'status': 'partial'}
+
+    def index_results(self, batch, session_id, result_id, checkpoint, cancelled):
+        page = self.data.result_page_after(session_id, result_id, 0)
+        metadata, total = page['metadata'], page['total']
+        coverage = metadata['coverage']
+        expected_total = (coverage['same_pairs'] + coverage['different_pairs'] + coverage['only_left'] +
+                          coverage['only_right'] + coverage['ambiguous_left_rows'] + coverage['ambiguous_right_rows'])
+        if (total != expected_total or coverage['left_total'] != coverage['left_categorized']
+                or coverage['right_total'] != coverage['right_categorized']
+                or coverage['left_total'] != coverage['same_pairs'] + coverage['different_pairs'] +
+                   coverage['only_left'] + coverage['ambiguous_left_rows']
+                or coverage['right_total'] != coverage['same_pairs'] + coverage['different_pairs'] +
+                   coverage['only_right'] + coverage['ambiguous_right_rows']):
+            raise DataError('固定结果左右覆盖不守恒', 409)
+        index = self.store.begin_index(batch['batch_id'], result_id, total, total - coverage['same_pairs'],
+                                       coverage['left_total'], coverage['right_total'])
+        cursor = index['next_ordinal']
+        while cursor < total:
+            if cancelled():
+                raise DataError('索引中断，已保留恢复点')
+            page = self.data.result_page_after(session_id, result_id, cursor)
+            if page['metadata'] != metadata or page['total'] != total:
+                raise DataError('固定结果身份在索引过程中变化', 409)
+            items = []
+            for row in page['rows']:
+                if row['category'] == 'same':
+                    continue
+                title = {'different': '左右内容差异', 'only_left': '仅左表存在', 'only_right': '仅右表存在',
+                         'ambiguous_left': '左表重复键，未强行配对', 'ambiguous_right': '右表重复键，未强行配对'}.get(row['category'], '需核查结果')
+                items.append(issue(row['category'], title, row.get('key_json', ''),
+                    {'session_id': session_id, 'result_id': result_id, 'left_row_id': row.get('left_row_id'),
+                     'right_row_id': row.get('right_row_id'), 'left_source_row': row.get('left_source_row'),
+                     'right_source_row': row.get('right_source_row')}, row,
+                    key=[batch['batch_id'], result_id, row['ordinal']]))
+            self.store.index_page(batch['batch_id'], result_id, cursor, page['rows'], items)
+            cursor += len(page['rows'])
+            checkpoint('index', {'result_id': result_id, 'next_ordinal': cursor, 'result_rows': total})
+        if total == 0:
+            self.store.complete_empty_index(batch['batch_id'])
+        if not self.store.coverage(batch['batch_id'], len(batch['inputs']))['index_complete']:
+            raise DataError('固定结果索引覆盖未完成，已保留恢复点', 409)
+        return metadata

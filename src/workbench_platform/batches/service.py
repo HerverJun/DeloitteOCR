@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from packages.contracts.automation import BatchTemplateCreate, BatchRequest, BatchControl, BatchDisposition
 from workbench_platform.data_api.service import DataError
 from .data import DataBatchRunner, issue, validate_config
-from .store import BatchStore, now
+from .store import BatchStore, now, present_batch
 
 ACTIVE = {'queued', 'running', 'waiting_resource', 'cancelling'}
 RETRYABLE = {'failed', 'partial', 'waiting_input', 'needs_verification'}
@@ -23,8 +23,9 @@ class BatchService:
     def __init__(self, app, root: Path):
         self.app = app
         self.store = BatchStore(root)
+        app.state.artifact_center.batch_store = self.store
         self.data = DataBatchRunner(app.state.data_workbench, app.state.asset_library[0],
-                                    app.state.artifact_center, root / 'data')
+                                    app.state.artifact_center, root / 'data', self.store)
         from .native import NativeBatchRunner
         self.native = NativeBatchRunner(app)
         self.pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix='processing-batch')
@@ -82,17 +83,79 @@ class BatchService:
         self.pool.submit(self._run, batch_id)
 
     def get(self, batch_id):
-        batch = self.store.get(batch_id)
+        batch, counts, _ = self.store.snapshot(batch_id)
         self.workspace(batch['workspace_id'])
-        issues = batch['issues']
-        counts = {state: sum(item.get('disposition', 'pending') == state for item in issues)
-                  for state in ('pending', 'confirmed', 'deferred')}
-        batch['summary'] = {'total': len(batch['inputs']), 'processed': 0, 'succeeded': 0, 'failed': 0,
-                            'execution_complete': batch['status'] == 'succeeded',
-                            **batch['summary'], **counts,
-                            'review_complete': batch['status'] in {'succeeded', 'partial'} and not counts['pending'] and not counts['deferred']}
-        batch['capabilities'] = ['cancel'] if batch['status'] in ACTIVE else ['retry'] if batch['status'] in RETRYABLE else []
+        return self._present(batch, counts)
+
+    def _present(self, batch, counts):
+        batch = present_batch(batch, counts)
+        if batch['delivery'].get('bundle_id'):
+            try:
+                review = self.app.state.artifact_center.get(batch['workspace_id'], batch['delivery']['bundle_id'])
+                batch['delivery']['status'] = review['status']
+                batch['artifacts'] = [*batch['artifacts'], review]
+            except ValueError:
+                pass
         return batch
+
+    def review_export(self, batch_id, payload):
+        from workbench_platform.artifacts.store import ArtifactUnavailable
+        self.get(batch_id)
+        operation = self.store.begin_review(batch_id, payload)
+        import json
+        receipt = json.loads(operation['receipt'])
+        if receipt:
+            return receipt
+        try:
+            bundle = self.app.state.artifact_center.publish_batch_review(operation)
+        except (ArtifactUnavailable, OSError, ValueError) as error:
+            if isinstance(error, DataError):
+                raise
+            reason = '正在生成，请重试同一成果请求' if getattr(error, 'code', None) == 'PUBLISHING' else '复核成果生成未完成；保留原请求和旧成果，可重试同一请求'
+            raise DataError(reason, 409) from error
+        # The bundle becomes visible before this CAS; a crash can only leave
+        # a readable outdated snapshot. Replay attaches this original bundle.
+        response = self.store.finish_review(operation['request_id'], bundle)
+        return response
+
+    def issue_page(self, batch_id, offset=0, limit=30, disposition=None):
+        batch, counts, page = self.store.snapshot(batch_id, offset, limit, disposition)
+        self.workspace(batch['workspace_id'])
+        batch = self._present(batch, counts)
+        return {'schema_version': '1.0', 'batch_id': batch_id, 'revision': batch['revision'],
+                **page,
+                'summary': batch['summary'], 'coverage': batch['coverage']}
+
+    def disposition_history(self, batch_id, offset=0, limit=30, item_id=None):
+        self.get(batch_id)
+        return self.store.history(batch_id, offset, limit, item_id=item_id)
+
+    def operation(self, batch_id, operation_id):
+        operation = self.store.operation(operation_id)
+        self.get(batch_id)
+        if operation['batch_id'] != batch_id:
+            raise DataError('操作不属于此批次', 404)
+        return operation
+
+    def native_revisions(self, batch_id, item_id, offset=0, limit=30):
+        batch = self.get(batch_id)
+        item = self.store.selected_items(batch_id, [item_id])[0]
+        return self.native.revisions(batch, item, offset, limit)
+
+    def recover_operation(self, batch_id, operation_id):
+        self.operation(batch_id, operation_id)
+        with self.lock:
+            operation = self.store.operation(operation_id, private=True)
+            return self._finish_operation(self.store.get(batch_id), operation)
+
+    def _finish_operation(self, batch, operation):
+        if operation['state'] == 'committed':
+            if operation['receipt'].get('outcome') == 'conflict':
+                raise DataError(operation['receipt']['reason'], 409)
+            return operation['receipt']['batch']
+        if operation['intent']['scenario'] == 'data_compare':
+            return self.store.commit_operation(operation['operation_id'])['batch']
+        return self.native.finish(batch, operation, self.store)['batch']
 
     def control(self, batch_id, payload):
         operation = validated(BatchControl, payload)['operation']
@@ -113,39 +176,64 @@ class BatchService:
     def dispositions(self, batch_id, payload):
         value = validated(BatchDisposition, payload)
         batch = self.get(batch_id)
-        known = {item['item_id'] for item in batch['issues']}
-        if len(set(value['item_ids'])) != len(value['item_ids']) or not set(value['item_ids']) <= known:
-            raise DataError('请选择本批次明确存在的结果范围', 409)
-        if batch['template']['scenario'] != 'data_compare':
+        with self.lock:
+            previous = self.store.request_operation(batch_id, value)
+            if previous:
+                return self._finish_operation(batch, previous)
+            if value['expected_revision'] != batch['revision']:
+                raise DataError('处置版本冲突，请重新检查所见内容，不能自动补最新版本', 409)
+            if batch['summary'].get('pending_operations'):
+                raise DataError('已有处置待核实，请先恢复原操作 ' + batch['summary']['pending_operation']['operation_id'], 409)
+            if batch['template']['scenario'] == 'data_compare':
+                return self.store.disposition(batch_id, value)['batch']
+            targets = self.store.selected_items(batch_id, value['item_ids'])
             try:
-                self.native.dispose(batch, value['item_ids'], value['action'], value['note'])
-            except ValueError as error:
-                raise DataError(str(error), 409) from None
-        self.store.disposition(batch_id, value['item_ids'], value['action'], value['note'])
-        return self.get(batch_id)
+                origin, specifications = self.native.prepare(batch, targets, value, self.store)
+            except DataError:
+                raise
+            except Exception as error:
+                raise DataError('原生来源或所见版本暂不可核对，未派发处置', 409) from error
+            operation = self.store.begin_operation(batch_id, value, origin=origin, segments=specifications)
+            return self._finish_operation(batch, operation)
 
     def _run(self, batch_id):
         batch = self.store.get(batch_id)
         try:
+            native = batch['template']['scenario'] != 'data_compare'
+            business_receipts = (any(key in batch['receipts'] for key in
+                ('native_import', 'native_dispatch', 'native_submission')) if native else bool(batch['receipts']))
             if batch['cancel_requested']:
                 # A restart still reconciles an active child operation before terminal cancellation.
-                if not batch['receipts']:
+                if not business_receipts:
                     self.store.update(batch_id, status='cancelled', stage='cancelled')
                     return
-            runner = self.data if batch['template']['scenario'] == 'data_compare' else self.native
-            if not batch['receipts']:
-                self.store.update(batch_id, status='running', stage='preflight')
-                problems = runner.preflight(batch['template'], batch['inputs'])
-                if problems:
-                    self.store.update(batch_id, status='waiting_input', stage='preflight', issues=self._merge_issues(batch_id, problems))
-                    return
+            runner = self.native if native else self.data
             self.store.update(batch_id, status='running' if not batch['cancel_requested'] else 'cancelling')
 
             def checkpoint(stage, receipt):
                 batch['receipts'][stage] = receipt
                 changes = {'stage': stage, 'receipts': batch['receipts']}
                 if stage == 'results':
-                    changes.update(summary=receipt['summary'], issues=self._merge_issues(batch_id, receipt.get('issues', [])))
+                    self.store.clear_technical_issues(batch_id)
+                    changes['summary'] = receipt['summary']
+                    if 'issues' in receipt:
+                        if batch['template']['scenario'] != 'data_compare':
+                            fixed = receipt['issues']
+                            identity = batch['receipts']['native_snapshot']['sha256']
+                            # The immutable snapshot covers every returned native
+                            # item. Existing human labels remain explicit platform
+                            # decisions instead of being auto-confirmed here.
+                            self.store.begin_index(batch_id, identity, len(fixed), len(fixed), 0, 0)
+                            coverage = self.store.coverage(batch_id, len(batch['inputs']))
+                            for start in range(coverage['next_ordinal'], len(fixed), 1000):
+                                selected = [{**item, 'source': {**item['source'], 'result_id': identity},
+                                    'raw_output': {**item['raw_output'], 'ordinal': start + offset}}
+                                    for offset, item in enumerate(fixed[start:start + 1000])]
+                                self.store.index_page(batch_id, identity, start,
+                                    [{'ordinal': start + offset} for offset in range(len(selected))], selected)
+                            if not fixed:
+                                self.store.complete_empty_index(batch_id)
+                        changes['issues'] = receipt['issues']
                 if stage == 'generated':
                     changes['artifact_state'] = 'generated'
                 self.store.update(batch_id, **changes)
@@ -154,8 +242,21 @@ class BatchService:
                 return self.closing.is_set() or self.store.get(batch_id)['cancel_requested']
             cancelled.stopping = self.closing.is_set
 
+            if native:
+                preparation = runner.prepare_runtime(batch, checkpoint, cancelled)
+                if preparation:
+                    preparation['issues'] = self._merge_issues(batch_id, preparation['issues'])
+                    self.store.update(batch_id, **preparation)
+                    return
+            if not business_receipts:
+                self.store.update(batch_id, status='running', stage='preflight')
+                problems = runner.preflight({**batch['template'], 'workspace_id': batch['workspace_id']}, batch['inputs'])
+                if problems:
+                    self.store.update(batch_id, status='waiting_input', stage='preflight', issues=self._merge_issues(batch_id, problems))
+                    return
             result = runner.run(batch, checkpoint, cancelled)
-            result['issues'] = self._merge_issues(batch_id, result.get('issues', []))
+            if 'issues' in result:
+                result['issues'] = self._merge_issues(batch_id, result['issues'])
             self.store.update(batch_id, **result)
         except Exception as error:
             current = self.store.get(batch_id)

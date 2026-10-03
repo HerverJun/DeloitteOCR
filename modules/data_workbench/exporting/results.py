@@ -20,6 +20,7 @@ import uuid
 from zipfile import BadZipFile, ZipFile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from threading import RLock
 
 import duckdb
 from defusedxml.ElementTree import iterparse
@@ -360,3 +361,238 @@ def export_and_publish(result: ComparisonResult, left_snapshot: dict, right_snap
                 application_version=application_version, rule_or_model_version=rule_version)
         artifacts[name] = artifact.artifact_id
     return ExportedBundle(result.comparison_id, folder, files, artifacts, _digest(files["summary.json"]))
+
+
+_REVIEW_XLSX_TEXT_UNITS = 32000
+_EXCEL_MAX_ROWS = 1048576
+_EXCEL_MAX_COLUMNS = 16384
+_REVIEW_CSV_READBACK_LOCK = RLock()
+
+
+def _review_utf16_units(value: str) -> int:
+    try:
+        return len(value.encode('utf-16-le')) // 2
+    except UnicodeError:
+        raise ExportError('Review XLSX text contains an invalid Unicode scalar') from None
+
+
+def _review_text_parts(value: str) -> list[str]:
+    if _review_utf16_units(value) <= _REVIEW_XLSX_TEXT_UNITS:
+        return [value]
+    parts, start, units = [], 0, 0
+    for position, character in enumerate(value):
+        size = 2 if ord(character) > 0xffff else 1
+        if units + size > _REVIEW_XLSX_TEXT_UNITS:
+            parts.append(value[start:position])
+            start, units = position, 0
+        units += size
+    parts.append(value[start:])
+    return parts
+
+
+def _review_xlsx_layout(headers: list[str], rows: list[list[str]]):
+    """Keep logical values intact while fitting every physical Excel text cell."""
+    if len(rows) + 1 > _EXCEL_MAX_ROWS:
+        raise ExportError('Review XLSX exceeds the Excel worksheet row limit')
+    if len(headers) > _EXCEL_MAX_COLUMNS:
+        raise ExportError('Review XLSX exceeds the Excel worksheet column limit')
+    counts = [1] * len(headers)
+    split_rows, spills = [], []
+    for row_number, row in enumerate(rows, start=2):
+        if len(row) != len(headers):
+            raise ExportError('Review XLSX logical row width differs')
+        parts_row = []
+        for offset, value in enumerate(row):
+            parts = _review_text_parts(value)
+            counts[offset] = max(counts[offset], len(parts))
+            if sum(counts) > _EXCEL_MAX_COLUMNS:
+                raise ExportError('Review XLSX exceeds the Excel worksheet column limit')
+            parts_row.append(parts)
+            if len(parts) > 1:
+                spills.append({'row_number': row_number, 'column': headers[offset],
+                    'parts': len(parts), 'characters': len(value),
+                    'utf16_units': _review_utf16_units(value),
+                    'utf8_sha256': hashlib.sha256(value.encode('utf-8')).hexdigest()})
+        split_rows.append(parts_row)
+    columns = {header: [header, *(f'{header}__part_{part}' for part in range(2, counts[offset] + 1))]
+               for offset, header in enumerate(headers)}
+    physical_headers = [*headers, *(part for header in headers for part in columns[header][1:])]
+    if len(set(physical_headers)) != len(physical_headers):
+        raise ExportError('Review XLSX physical columns are not unique')
+    physical_rows = [[*(parts[0] for parts in row),
+        *(parts[part] if part < len(parts) else '' for offset, parts in enumerate(row)
+          for part in range(1, counts[offset]))] for row in split_rows]
+    encoding = None
+    if spills:
+        encoding = {'schema_version': '1.0', 'kind': 'utf16_column_chunks',
+            'max_utf16_units': _REVIEW_XLSX_TEXT_UNITS, 'logical_headers': headers,
+            'physical_headers': physical_headers, 'columns': columns, 'spills': spills}
+    return physical_headers, physical_rows, encoding
+
+
+def _review_xlsx_logical_rows(path: Path, headers: list[str], encoding: dict | None):
+    """Reconstruct actual worksheet bytes, checking each declared spill's identity."""
+    if encoding is None:
+        yield from _xlsx_rows(path, len(headers))
+        return
+    if (encoding.get('schema_version') != '1.0' or encoding.get('kind') != 'utf16_column_chunks'
+            or encoding.get('max_utf16_units') != _REVIEW_XLSX_TEXT_UNITS
+            or encoding.get('logical_headers') != headers):
+        raise ExportError('Review XLSX text encoding differs')
+    physical_headers, columns = encoding['physical_headers'], encoding['columns']
+    offsets = {header: offset for offset, header in enumerate(physical_headers)}
+    if (physical_headers[:len(headers)] != headers or len(offsets) != len(physical_headers)
+            or set(columns) != set(headers)
+            or physical_headers != [*headers, *(name for header in headers for name in columns[header][1:])]
+            or any(names != [header, *(f'{header}__part_{part}' for part in range(2, len(names) + 1))]
+                   for header, names in columns.items())):
+        raise ExportError('Review XLSX text column layout differs')
+    spills = {}
+    for spill in encoding['spills']:
+        key = (spill['row_number'], spill['column'])
+        if key in spills or key[1] not in columns:
+            raise ExportError('Review XLSX text spill identity differs')
+        spills[key] = spill
+    seen = set()
+    with closing(_xlsx_rows(path, len(physical_headers))) as readback:
+        for row_number, row in enumerate(readback, start=1):
+            if row_number == 1:
+                if row != physical_headers:
+                    raise ExportError('Review XLSX physical headers differ')
+                yield headers
+                continue
+            logical = []
+            for header in headers:
+                parts = [row[offsets[name]] for name in columns[header]]
+                if any(_review_utf16_units(part) > _REVIEW_XLSX_TEXT_UNITS for part in parts):
+                    raise ExportError('Review XLSX physical text exceeds its limit')
+                value = ''.join(parts)
+                spill = spills.get((row_number, header))
+                if spill:
+                    count = spill['parts']
+                    if (type(count) is not int or not 2 <= count <= len(parts)
+                            or not all(parts[:count]) or any(parts[count:])
+                            or spill['characters'] != len(value)
+                            or spill['utf16_units'] != _review_utf16_units(value)
+                            or spill['utf16_units'] <= _REVIEW_XLSX_TEXT_UNITS
+                            or spill['utf8_sha256'] != hashlib.sha256(value.encode('utf-8')).hexdigest()):
+                        raise ExportError('Review XLSX reconstructed spill differs')
+                    seen.add((row_number, header))
+                elif any(parts[1:]) or _review_utf16_units(value) > _REVIEW_XLSX_TEXT_UNITS:
+                    raise ExportError('Review XLSX text spill is missing')
+                logical.append(value)
+            yield logical
+    if seen != set(spills):
+        raise ExportError('Review XLSX has surplus text spills')
+
+
+def _review_csv_readback(path: Path, headers: list[str], rows: list[list[str]]) -> None:
+    # csv's field-size setting is process-global. Serialize review readers so
+    # concurrent publications cannot restore a limit while another is reading.
+    with _REVIEW_CSV_READBACK_LOCK:
+        previous_limit = csv.field_size_limit()
+        required_limit = max((len(value) + 1 for row in rows for value in row), default=previous_limit)
+        try:
+            csv.field_size_limit(max(previous_limit, required_limit))
+            with path.open(encoding='utf-8-sig', newline='') as stream:
+                _same_rows(csv.reader(stream), chain((headers,),
+                    ([_safe_csv(value) for value in row] for row in rows)), 'Review CSV')
+        finally:
+            csv.field_size_limit(previous_limit)
+
+
+def render_review_export(directory: Path, snapshot: dict, result_rows: list[dict]) -> dict[str, Path]:
+    """Render only frozen platform judgments; independently verify every format."""
+    batch, items = snapshot['batch'], snapshot['items']
+    by_ordinal = {item['raw_output']['ordinal']: item for item in items if 'ordinal' in item.get('raw_output', {})}
+    accepted = {}
+    for operation in snapshot['operations']:
+        if operation['state'] == 'committed' and operation['payload']['action'] == 'confirm':
+            for segment in operation['intent'].get('segments', []):
+                if segment.get('snapshot'):
+                    for binding in segment['bindings']:
+                        accepted[binding['platform_item_id']] = segment['snapshot']
+    headers = ['ordinal', 'item_id', 'category', 'disposition', 'note', 'adopted_revision',
+               'adopted_value', 'original_json', 'adoption_json', 'source_json']
+    rows, sources, used = [], [], set()
+    for result in result_rows:
+        item = by_ordinal.get(result['ordinal'])
+        if item:
+            used.add(item['item_id'])
+        original = item.get('raw_output', result) if item else result
+        adoption = item.get('adoption', {}) if item else {}
+        adopted = adoption.get('snapshot', accepted.get(item['item_id'], {}) if item else {})
+        if 'text' in adopted.get('edited', {}):
+            value = adopted['edited']['text']
+        else:
+            value = adoption.get('human_label_id', adopted.get('original', {}).get('text',
+                original.get('edited_output', {}).get('text', original.get('text', original.get('prediction_label_id', '')))))
+        source = item.get('source', {}) if item else {'result_identity': snapshot.get('index', {}).get('result_identity')}
+        rows.append([str(result['ordinal']), item['item_id'] if item else '', item['category'] if item else result.get('category', 'review'),
+            item['disposition'] if item else 'not_required', item.get('note', '') if item else '',
+            str(adoption['native_revision']) if adoption else '', str(value or ''),
+            _canonical(original).decode(), _canonical(adoption).decode(), _canonical(source).decode()])
+        sources.append({'ordinal': result['ordinal'], 'item_id': item['item_id'] if item else None,
+                        'source': source, 'adoption': adoption or None})
+    for item in items:
+        if item['item_id'] not in used:
+            rows.append(['', item['item_id'], item['category'], item['disposition'], item.get('note', ''), '', '',
+                         _canonical(item['raw_output']).decode(), _canonical(item.get('adoption')).decode(),
+                         _canonical(item['source']).decode()])
+    unresolved = [{'item_id': item['item_id'], 'category': item['category'], 'disposition': item['disposition'],
+                   'title': item.get('title', item['category']), 'note': item.get('note', '')} for item in items if item['disposition'] != 'confirmed']
+    constraints = []
+    if batch['status'] != 'succeeded':
+        constraints.append({'kind': 'execution_incomplete', 'status': batch['status']})
+    if not batch['coverage']['index_complete']:
+        constraints.append({'kind': 'coverage_incomplete', 'coverage': batch['coverage']})
+    for operation in snapshot['operations']:
+        if operation['state'] != 'committed':
+            constraints.append({'kind': 'operation_unverified', 'operation_id': operation['operation_id'], 'state': operation['state']})
+    documents = {'review.json': {**snapshot, 'results': result_rows, 'unresolved': unresolved, 'constraints': constraints},
+        'history.json': {'batch_id': batch['batch_id'], 'revision': batch['revision'], 'items': snapshot['history']},
+        'adoptions.json': {'batch_id': batch['batch_id'], 'revision': batch['revision'], 'items':
+            [{'item_id': item['item_id'], **item['adoption']} for item in items if item.get('adoption')]},
+        'provenance.json': {'schema_version': '1.0', 'batch_id': batch['batch_id'], 'revision': batch['revision'],
+            'inputs': batch['inputs'], 'template': batch['template'], 'coverage': batch['coverage'],
+            'index': snapshot['index'], 'original_bundles': snapshot['original_bundles'],
+            'rows': sources, 'csv_text_policy': 'prefix_apostrophe_for_formula_prefix',
+            'review_scope': batch['summary'].get('review_scope', 'platform_fixed_result'),
+            'native_review_qualification': batch['summary'].get('native_review_qualification', 'native_disposition' if
+                batch['template']['scenario'] == 'classification' else 'not_applicable')}}
+    physical_headers, physical_rows, encoding = _review_xlsx_layout(headers, rows)
+    if encoding is not None:
+        documents['provenance.json']['xlsx_text_encoding'] = encoding
+    files = {name: directory / name for name in ('results.csv', 'results.xlsx', *documents, 'review.md')}
+    _csv(files['results.csv'], headers, rows)
+    _xlsx(files['results.xlsx'], physical_headers, physical_rows)
+    for name, document in documents.items():
+        files[name].write_bytes(_canonical(document))
+    actor = snapshot['request']['actor']
+    lines = ['# 复核成果', '', f"交付类型：{'正式复核成果' if snapshot['request']['kind'] == 'final' else '中间材料（尚有未完成条件）'}",
+        f"批次：{batch['batch_id']}；固定处置版本：{batch['revision']}",
+        f"编制人：{actor['display_name']}（{actor['id']}，本机身份，非组织认证）",
+        f"处理状态：{batch['status']}；原固定结果：{batch['coverage']['result_rows']}；已索引事项：{batch['coverage']['indexed_items']}",
+        f"全量索引完成：{batch['coverage']['index_complete']}；未解决事项：{len(unresolved)}；待核实操作/覆盖条件：{len(constraints)}",
+        f"后继于：{snapshot.get('predecessor_bundle_id') or '原始成果'}", '',
+        '原始输出与采用修订分别保留。来源、版本、全量历史及采用关系见同包 JSON 文件。']
+    if batch['template']['scenario'] == 'ocr':
+        lines += ['', '本成果确认平台固定结果；OCR 原生复核资格独立，未表示原生复核已通过。']
+    lines += ['', '## 未解决事项']
+    lines += [f"- {item['item_id']}｜{item['title']}｜{item['disposition']}｜{item['note']}" for item in unresolved] or ['无。']
+    lines += ['', '## 未完成条件']
+    lines += ['- ' + _canonical(item).decode() for item in constraints] or ['无。']
+    markdown = '\n'.join(lines) + '\n'
+    files['review.md'].write_text(markdown, encoding='utf-8')
+    _review_csv_readback(files['results.csv'], headers, rows)
+    with closing(_xlsx_rows(files['results.xlsx'], len(physical_headers))) as readback:
+        _same_rows(readback, chain((physical_headers,), physical_rows), 'Review XLSX physical')
+    for name, document in documents.items():
+        if _canonical(json.loads(files[name].read_text('utf-8'))) != _canonical(document):
+            raise ExportError('Review JSON readback differs')
+    written_encoding = json.loads(files['provenance.json'].read_text('utf-8')).get('xlsx_text_encoding')
+    with closing(_review_xlsx_logical_rows(files['results.xlsx'], headers, written_encoding)) as readback:
+        _same_rows(readback, chain((headers,), rows), 'Review XLSX')
+    if files['review.md'].read_text('utf-8') != markdown:
+        raise ExportError('Review summary readback differs')
+    return files

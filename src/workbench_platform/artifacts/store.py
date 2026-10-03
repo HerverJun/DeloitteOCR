@@ -135,6 +135,38 @@ class ArtifactStore:
         db.execute("PRAGMA busy_timeout=5000")
         return db
 
+    @contextmanager
+    def publication_lock(self, identity: str):
+        """An OS lock serializes publishers and releases on process death."""
+        if not _valid_id(identity):
+            raise ArtifactUnavailable('VALIDATION_FAILED')
+        folder = self.blob_root / '.publication-locks'
+        folder.mkdir(exist_ok=True)
+        path = folder / identity
+        with path.open('a+b') as stream:
+            stream.seek(0, os.SEEK_END)
+            if stream.tell() == 0:
+                stream.write(b'0')
+                stream.flush()
+            stream.seek(0)
+            try:
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError:
+                raise ArtifactUnavailable('PUBLISHING') from None
+            try:
+                yield
+            finally:
+                stream.seek(0)
+                if os.name == 'nt':
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+
     def _blob(self, digest: str) -> Path:
         if not isinstance(digest, str) or _HASH.fullmatch(digest) is None:
             raise ArtifactUnavailable("VALIDATION_FAILED")
@@ -189,7 +221,8 @@ class ArtifactStore:
     def _insert(self, workspace_id: str, job: JobRef, refs: list[SourceLocator],
                 *, digest: str, size: int, media_type: str, application_version: str,
                 rule_or_model_version: str, storage_mode: str,
-                native_artifact_id: str | None, expires_at: str | None) -> Artifact:
+                native_artifact_id: str | None, expires_at: str | None,
+                on_insert: Callable | None = None) -> Artifact:
         artifact_id = "a" + uuid.uuid4().hex
         created_at = _utc()
         artifact = Artifact(schema_version="1.0", artifact_id=artifact_id,
@@ -209,6 +242,8 @@ class ArtifactStore:
                             job.model_dump_json(), json.dumps([ref.model_dump(mode="json") for ref in refs],
                                                            ensure_ascii=False, separators=(",", ":")),
                             job.app_id, job.instance_id, native_artifact_id, expires_at))
+                if on_insert is not None:
+                    on_insert(db, artifact)
                 db.execute("COMMIT")
             except BaseException:
                 db.execute("ROLLBACK")
@@ -219,7 +254,7 @@ class ArtifactStore:
                         expected_hash: str, expected_size: int,
                         job_ref: JobRef | dict, source_refs: Iterable[SourceLocator | dict],
                         media_type: str, application_version: str,
-                        rule_or_model_version: str) -> Artifact:
+                        rule_or_model_version: str, on_insert: Callable | None = None) -> Artifact:
         if (not _valid_id(workspace_id) or not isinstance(expected_hash, str)
                 or _HASH.fullmatch(expected_hash) is None
                 or type(expected_size) is not int or not 0 <= expected_size <= _MAX_BYTES):
@@ -237,7 +272,7 @@ class ArtifactStore:
             return self._insert(workspace_id, job, refs, digest=digest, size=size,
                                 media_type=media_type, application_version=application_version,
                                 rule_or_model_version=rule_or_model_version,
-                                storage_mode="managed", native_artifact_id=None, expires_at=None)
+                                storage_mode="managed", native_artifact_id=None, expires_at=None, on_insert=on_insert)
         finally:
             if "temp" in locals():
                 temp.unlink(missing_ok=True)

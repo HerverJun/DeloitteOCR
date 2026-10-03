@@ -8,11 +8,15 @@ import os
 from pathlib import Path
 import socket
 import subprocess
+import sys
 import time
 import urllib.request
 
 from adapters.ocr.adapter import OcrAdapter, OcrImportConflict, OcrUnavailable
 from workbench_platform.bridge.context import ResolvedContext
+from workbench_platform.supervisor.processes import (
+    process_creation_time, require_f_path, storage_environment,
+)
 
 
 PNG = base64.b64decode(
@@ -21,12 +25,32 @@ PNG = base64.b64decode(
 )
 TOKEN = "i" * 40
 SERVER = r"""
+import hashlib
+import json
+import os
 import sys
+from pathlib import Path
+bundle, platform, data = (Path(value).resolve() for value in sys.argv[1:4])
+sys.path[:0] = [str(bundle / 'src'), str(platform / 'src'), str(platform)]
+from workbench_platform.supervisor.processes import require_f_path, storage_environment
+require_f_path(bundle, 'OCR fixture source')
+runtime_environment = storage_environment(data)
+os.environ.update(runtime_environment)
 import uvicorn
+import ocr_workbench.service as service
+import ocr_workbench.store as store
 from ocr_workbench.service import create_app
-app = create_app(sys.argv[1], sys.argv[2], sys.argv[3], start_queue=False,
+identity = {'pid': os.getpid(), 'executable': sys.executable,
+            'sources': {name: {'path': str(Path(module.__file__).resolve()),
+                             'sha256': hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()}
+                        for name, module in [('service', service), ('store', store)]},
+            'environment': runtime_environment,
+            'start_queue': False, 'review_only': True, 'agent_enabled': False}
+(data.parent / f'native-identity-{os.getpid()}.json').write_text(
+    json.dumps(identity, ensure_ascii=False, indent=2), encoding='utf-8')
+app = create_app(bundle, data, sys.argv[4], start_queue=False,
                  review_only=True, agent_enabled=False)
-uvicorn.run(app, host='127.0.0.1', port=int(sys.argv[4]),
+uvicorn.run(app, host='127.0.0.1', port=int(sys.argv[5]),
             log_level='warning', access_log=False)
 """
 
@@ -45,30 +69,54 @@ def _http(port, method, path, payload=None, *, content_type="application/json"):
         connection.close()
 
 
-def _start(python, bundle, data, port, log):
+def _record(log, process, event):
+    with log.with_name('native-processes.jsonl').open('a', encoding='utf-8') as output:
+        output.write(json.dumps({'event': event, 'pid': process.pid,
+            'creation_time': process_creation_time(process.pid),
+            'returncode': process.poll()}, sort_keys=True) + '\n')
+
+
+def _start(python, bundle, platform, data, port, log):
+    for path in (python, bundle, platform, data, log):
+        require_f_path(path, 'OCR fixture path')
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(bundle / "src")
+    env.update(storage_environment(data))
     output = log.open("ab")
     try:
-        process = subprocess.Popen([str(python), "-c", SERVER, str(bundle), str(data), TOKEN, str(port)],
-                                   cwd=bundle, env=env, stdout=output, stderr=subprocess.STDOUT)
+        process = subprocess.Popen([str(python), "-I", "-B", "-u", "-c", SERVER,
+                                    str(bundle), str(platform), str(data), TOKEN, str(port)],
+                                   cwd=data.parent, env=env, stdout=output, stderr=subprocess.STDOUT,
+                                   creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
     finally:
         output.close()
-    deadline = time.monotonic() + 25
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise AssertionError(f"OCR service exited: {log.read_text(errors='replace')}")
-        try:
-            with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=1):
-                return process
-        except (OSError, TimeoutError):
-            time.sleep(0.1)
-    process.terminate()
-    process.wait(timeout=10)
-    raise AssertionError(f"OCR service did not start: {log.read_text(errors='replace')}")
+    try:
+        _record(log, process, 'started')
+        deadline = time.monotonic() + 25
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                raise AssertionError(f"OCR service exited: {log.read_text(errors='replace')}")
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=1):
+                    identity = json.loads((data.parent / f'native-identity-{process.pid}.json').read_text('utf-8'))
+                    assert Path(identity['executable']).resolve() == python.resolve()
+                    for name in ('service', 'store'):
+                        source = bundle / 'src' / 'ocr_workbench' / f'{name}.py'
+                        assert Path(identity['sources'][name]['path']) == source.resolve()
+                        assert identity['sources'][name]['sha256'] == hashlib.sha256(source.read_bytes()).hexdigest()
+                    for key, value in identity['environment'].items():
+                        if key not in {'PYTHONDONTWRITEBYTECODE', 'PYTHONUTF8',
+                                       'PIP_DISABLE_PIP_VERSION_CHECK', 'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD'}:
+                            require_f_path(Path(value), key)
+                    return process
+            except (OSError, TimeoutError):
+                time.sleep(0.1)
+        raise AssertionError(f"OCR service did not start: {log.read_text(errors='replace')}")
+    except BaseException:
+        _stop(process, log)
+        raise
 
 
-def _stop(process):
+def _stop(process, log):
     if process.poll() is None:
         process.terminate()
         try:
@@ -76,20 +124,20 @@ def _stop(process):
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait(timeout=10)
+    assert process.poll() is not None
+    _record(log, process, 'exited')
 
 
 def test_durable_idempotent_import_over_native_http(tmp_path):
-    project_root = Path(__file__).resolve().parents[3]
-    run_root = Path(os.environ.get("PLATFORM_DEV_RUN_ROOT",
-                           project_root / "platform-dev-runs" / "dev-20260925-001"))
-    bundle = run_root / "workspaces" / "ocr"
-    python = run_root / "workspaces" / "ocr-test-venv" / "Scripts" / "python.exe"
+    platform = Path(__file__).resolve().parents[2]
+    bundle = Path(os.environ.get('PLATFORM_OCR_TEST_SOURCE', platform.parent / 'ocr')).resolve()
+    python = Path(os.environ.get('PLATFORM_OCR_TEST_PYTHON', sys.executable)).resolve()
     assert python.is_file() and (bundle / "src" / "ocr_workbench" / "service.py").is_file()
     data, log = tmp_path / "ocr-data", tmp_path / "native.log"
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
-    process = _start(python, bundle, data, port, log)
+    process = _start(python, bundle, platform, data, port, log)
     try:
         code, project = _http(port, "POST", "/api/projects", {"name": "handoff"})
         assert code == 200
@@ -133,8 +181,8 @@ def test_durable_idempotent_import_over_native_http(tmp_path):
                                               "Content-Type": "application/octet-stream"})
         connection.getresponse().close()
         connection.close()
-        _stop(process)
-        process = _start(python, bundle, data, port, log)
+        _stop(process, log)
+        process = _start(python, bundle, platform, data, port, log)
         status = adapter.import_status(request_id)
         assert status["state"] == "accepted"
         first_image = status["items"][0]["target_asset_id"]
@@ -160,4 +208,4 @@ def test_durable_idempotent_import_over_native_http(tmp_path):
         else:
             raise AssertionError("Viewer started a native import")
     finally:
-        _stop(process)
+        _stop(process, log)

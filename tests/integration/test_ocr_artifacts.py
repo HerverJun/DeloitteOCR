@@ -72,8 +72,24 @@ def test_ocr_bundle_replay_revision_and_workspace_scope(tmp_path, monkeypatch):
         changed = client.post(base + "/ocr-exports", headers=LOCAL, json=payload)
         assert changed.status_code == 201 and changed.json()["bundle_id"] != first["bundle_id"]
         assert client.get(path).content == old.content
+        second_path = base + f"/{changed.json()['bundle_id']}/files/ocr-result.json"
+        second_bytes = client.get(second_path).content
+        export["revision"] = item["revision"] = 2
+        export["edited"]["text"] = "第二次人工修订"
+        snapshot["export"] = json.dumps(export, ensure_ascii=False).encode()
+        adopted = client.post(base + "/ocr-exports", headers=LOCAL, json=payload)
+        assert adopted.status_code == 201
+        adopted_bundle = adopted.json()["bundle_id"]
+        saved = client.get(base + f"/{adopted_bundle}/files/ocr-result.json").json()
+        adopted_source = client.get(base + f"/{adopted_bundle}/files/provenance.json").json()
+        assert saved["revision"] == adopted_source["results"][0]["revision"] == 2
+        assert saved["edited"]["text"] == "第二次人工修订"
+        assert adopted_source["results"][0]["native_result_id"] == "resultA"
+        assert adopted_source["results"][0]["asset_id"] == source["asset_id"]
+        assert client.get(path).content == old.content
+        assert client.get(second_path).content == second_bytes
         listing = client.get(base).json()
-        assert listing["total"] == 2
+        assert listing["total"] == 3
 
 
 def test_pdf_pages_keep_document_page_source_and_require_full_coverage(tmp_path, monkeypatch):

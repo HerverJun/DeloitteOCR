@@ -91,23 +91,31 @@ class ClassificationResults:
 
     @staticmethod
     def _files(snapshot):
+        items = [{**item, "effective_label_id": (item.get("human_label_id")
+                  if item.get("disposition_state") == "confirmed" else item.get("prediction_label_id"))}
+                 for item in snapshot["items"]]
         report = {"schema_version": "1.0", "platform_job_id": snapshot["platform_job_id"],
                   "native_job_id": snapshot["native_job_id"], "model_id": snapshot["model_id"],
                   "native_state": snapshot["native_state"],
                   "counts": snapshot["platform_job"]["counts"],
-                  "items": snapshot["items"]}
+                  "items": items}
         provenance = {"schema_version": "1.0", "input_set_id": snapshot["input_set_id"],
                       "input_set_revision": snapshot["input_set_revision"],
                       "input_manifest_hash": snapshot["input_manifest_hash"],
-                      "inputs": snapshot["inputs"]}
+                      "inputs": snapshot["inputs"], "native_job_id": snapshot["native_job_id"],
+                      "model_id": snapshot["model_id"],
+                      "instance_id": snapshot["platform_job"]["instance_id"],
+                      "result_revisions": [{"native_item_id": item["native_item_id"],
+                                            "disposition_revision": item.get("disposition_revision", 0)}
+                                           for item in items]}
         stream = io.StringIO(newline="")
         writer = csv.writer(stream)
         columns = ("source_name", "asset_id", "native_asset_id", "state",
                    "prediction_label_id", "prediction_status", "prediction_score",
-                   "human_label_id", "disposition_state", "disposition_revision",
+                   "human_label_id", "effective_label_id", "disposition_state", "disposition_revision",
                    "disposition_note", "current_annotation_label_id", "error")
         writer.writerow(columns)
-        for item in snapshot["items"]:
+        for item in items:
             writer.writerow([_csv_cell(item.get(column)) for column in columns])
         return {"classification-results.json": (_canonical(report), "application/json"),
                 "classification-results.csv": (('\ufeff' + stream.getvalue()).encode("utf-8"), "text/csv"),

@@ -42,7 +42,7 @@ class OcrImportConflict(OcrUnavailable):
 
 
 class OcrResultConflict(OcrUnavailable):
-    """The native result revision changed during a pinned export."""
+    """The requested revision or identified adoption conflicts with native state."""
 
 
 @dataclass(frozen=True)
@@ -126,7 +126,8 @@ class OcrAdapter:
         return credential
 
     def _request(self, method: str, path: str, body: dict | None = None,
-                 *, max_body: int = 8192, import_conflict: bool = False) -> dict:
+                 *, max_body: int = 8192, import_conflict: bool = False,
+                 result_conflict: bool = False) -> dict:
         credential = self._credential()
         payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
         if payload is not None and len(payload) > max_body:
@@ -140,6 +141,8 @@ class OcrAdapter:
             response = connection.getresponse()
             if import_conflict and response.status == 409:
                 raise OcrImportConflict()
+            if result_conflict and response.status == 409:
+                raise OcrResultConflict()
             if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
                 raise OcrUnavailable()
             raw = response.read(MAX_JSON + 1)
@@ -149,7 +152,7 @@ class OcrAdapter:
             if not isinstance(value, dict):
                 raise OcrUnavailable()
             return value
-        except OcrImportConflict:
+        except (OcrImportConflict, OcrResultConflict):
             raise
         except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
                 http.client.HTTPException):
@@ -406,6 +409,119 @@ class OcrAdapter:
                 or type(revision) is not int or revision < 0):
             raise OcrUnavailable()
         return revision
+
+    def result_snapshot(self, result: ResultArtifact, revision: int | None = None) -> dict:
+        if (not isinstance(result, ResultArtifact)
+                or any(not _is_native_id(value) for value in
+                       (result.native_result_id, result.native_task_id, result.image_id, result.version_id))
+                or (revision is not None and (type(revision) is not int or revision < 0))):
+            raise OcrUnavailable()
+        suffix = "snapshot" if revision is None else f"revisions/{revision}"
+        value = self._request("GET", f"/api/results/{result.native_result_id}/{suffix}")
+        if ((value.get("id"), value.get("task_id"), value.get("image_id"), value.get("version_id"),
+             value.get("project_id")) != (result.native_result_id, result.native_task_id,
+                result.image_id, result.version_id, self.context.module_project_id)
+                or type(value.get("revision")) is not int or value["revision"] < 0
+                or type(value.get("current_revision")) is not int or value["current_revision"] < value["revision"]
+                or (revision is not None and value["revision"] != revision)
+                or type(value.get("available")) is not bool
+                or not isinstance(value.get("original_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["original_sha256"])
+                or (value["available"] and not isinstance(value.get("edited"), dict))
+                or (not value["available"] and value.get("reason") != "legacy_revision_unavailable")):
+            raise OcrUnavailable()
+        return value
+
+    def result_history(self, result: ResultArtifact, offset: int = 0, limit: int = 50) -> dict:
+        if (not isinstance(result, ResultArtifact) or not _is_native_id(result.native_result_id)
+                or type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100):
+            raise OcrUnavailable()
+        value = self._request("GET", f"/api/results/{result.native_result_id}/revisions?offset={offset}&limit={limit}")
+        if ((value.get("id"), value.get("task_id"), value.get("project_id"), value.get("image_id"),
+             value.get("version_id")) != (result.native_result_id, result.native_task_id,
+                self.context.module_project_id, result.image_id, result.version_id)
+                or value.get("offset") != offset or value.get("limit") != limit
+                or any(type(value.get(key)) is not int or value[key] < 0
+                       for key in ("current_revision", "total", "unavailable_revisions"))
+                or not isinstance(value.get("items"), list) or len(value["items"]) > limit
+                or any(not isinstance(row, dict) or type(row.get("revision")) is not int
+                       or not 0 <= row["revision"] <= value["current_revision"] for row in value["items"])):
+            raise OcrUnavailable()
+        return value
+
+    def _adoption_receipt(self, value: dict, operation_id: str, expected_instance_id: str | None = None) -> dict:
+        if (value.get("operation_id") != operation_id or value.get("state") != "committed"
+                or value.get("project_id") != self.context.module_project_id
+                or value.get("instance_id") != (expected_instance_id or self.context.instance_id)
+                or any(not _is_native_id(value.get(key)) for key in ("result_id", "task_id", "image_id", "version_id"))
+                or type(value.get("revision")) is not int or value["revision"] < 0
+                or not isinstance(value.get("payload_hash"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["payload_hash"])
+                or not isinstance(value.get("original_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["original_sha256"])):
+            raise OcrUnavailable()
+        actor = value.get("actor")
+        if (not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or not _is_native_id(actor["id"]) or actor["source"] != "local"
+                or not isinstance(actor["display_name"], str) or not 1 <= len(actor["display_name"]) <= 100
+                or not isinstance(value.get("note"), str) or len(value["note"]) > 2000):
+            raise OcrUnavailable()
+        body = {key: value[key] for key in ("project_id", "instance_id", "result_id", "task_id", "image_id",
+                                           "version_id", "revision", "original_sha256", "actor", "note")}
+        digest = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                                separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+        if value["payload_hash"] != digest:
+            raise OcrUnavailable()
+        return value
+
+    def operation(self, operation_id: str, *, expected_instance_id: str | None = None) -> dict | None:
+        if (not isinstance(operation_id, str) or not REQUEST_ID.fullmatch(operation_id)
+                or (expected_instance_id is not None and not _is_native_id(expected_instance_id))):
+            raise OcrUnavailable()
+        original_instance = expected_instance_id or self.context.instance_id
+        value = self._request("GET", f"/api/platform/adoptions/{operation_id}"
+                              f"?project_id={self.context.module_project_id}&instance_id={self.context.instance_id}"
+                              f"&operation_instance_id={original_instance}",
+                              result_conflict=True)
+        if (value.get("operation_id") != operation_id or type(value.get("committed")) is not bool
+                or (value["committed"] and not isinstance(value.get("receipt"), dict))
+                or (not value["committed"] and value.get("receipt") is not None)):
+            raise OcrUnavailable()
+        return self._adoption_receipt(value["receipt"], operation_id, original_instance) if value["committed"] else None
+
+    def adopt(self, result: ResultArtifact, native_revision: int, *, operation_id: str,
+              actor: dict, note: str = "") -> dict:
+        if (self.context.role == "viewer" or not isinstance(result, ResultArtifact)
+                or any(not _is_native_id(value) for value in
+                       (result.native_result_id, result.native_task_id, result.image_id, result.version_id))
+                or type(native_revision) is not int or native_revision < 0
+                or not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or not _is_native_id(actor["id"]) or actor["source"] != "local"
+                or not isinstance(actor["display_name"], str) or not 1 <= len(actor["display_name"]) <= 100
+                or not isinstance(note, str) or len(note) > 2000):
+            raise OcrUnavailable()
+        expected = {"result_id": result.native_result_id, "task_id": result.native_task_id,
+                    "image_id": result.image_id, "version_id": result.version_id,
+                    "revision": native_revision, "actor": actor, "note": note}
+        existing = self.operation(operation_id)
+        if existing is not None:
+            if any(existing.get(key) != value for key, value in expected.items()):
+                raise OcrResultConflict()
+            return existing
+        snapshot = self.result_snapshot(result, native_revision)
+        if not snapshot["available"] or snapshot["current_revision"] != native_revision:
+            raise OcrResultConflict()
+        body = {**expected, "project_id": self.context.module_project_id,
+                "instance_id": self.context.instance_id, "original_sha256": snapshot["original_sha256"]}
+        receipt = self._adoption_receipt(self._request("POST", f"/api/platform/adoptions/{operation_id}",
+                                       body, max_body=16384, result_conflict=True), operation_id)
+        if any(receipt.get(key) != value for key, value in body.items()):
+            raise OcrUnavailable()
+        expected_hash = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                                      separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+        if receipt["payload_hash"] != expected_hash:
+            raise OcrUnavailable()
+        return receipt
 
     def export_results(self, results: list[tuple[ResultArtifact, int]]) -> tuple[bytes, str]:
         if (not results or len(results) > 1000

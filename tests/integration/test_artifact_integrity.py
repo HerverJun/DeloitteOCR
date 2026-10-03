@@ -12,6 +12,7 @@ import pytest
 from packages.contracts.models import JobRef, SourceLocator
 from workbench_platform.artifacts import ArtifactStore, ArtifactUnavailable
 import workbench_platform.artifacts.store as artifact_store_module
+from test_native_batches import disposition_bridge, disposition_request
 
 
 EXAMPLES = json.loads((Path(__file__).parents[2] / "packages/contracts/examples/positive.json").read_text(
@@ -66,6 +67,96 @@ def test_managed_publication_and_download_readback_are_exact(store):
                                   expected_revision=1, expected_hash=artifact.blob_hash):
             pytest.fail("Another workspace must not read this artifact")
     assert wrong.value.code == "NOT_FOUND"
+
+
+def test_artifact_and_review_mapping_registration_roll_back_together(store):
+    def fail_mapping(db, artifact):
+        raise OSError('mapping transaction failed')
+    with pytest.raises(OSError, match='mapping transaction failed'):
+        store.publish_managed('workspaceA', io.BytesIO(b'whole'), expected_hash=sha(b'whole'), expected_size=5,
+            job_ref=JOB, source_refs=[SOURCE], media_type='text/plain', application_version='1',
+            rule_or_model_version='review', on_insert=fail_mapping)
+    with sqlite3.connect(store.db_path) as db:
+        assert db.execute('SELECT count(*) FROM published_artifact').fetchone()[0] == 0
+
+
+@pytest.mark.parametrize('decision', ('classification_confirm_A', 'classification_adopt_B', 'ocr_confirm_original', 'ocr_adopt_revision_2'))
+def test_review_export_uses_actual_native_adopted_snapshot_not_latest(disposition_bridge, decision):
+    import csv
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from openpyxl import load_workbook
+    from packages.contracts.automation import ProcessingBatch, ReviewBundle
+    from workbench_platform.artifacts.center import ArtifactCenter
+    fixture = disposition_bridge('ocr' if decision.startswith('ocr') else 'classification')
+    service, native = fixture.service, fixture.native
+    actor = disposition_request(fixture, 'manual')['actor']
+    if decision == 'classification_adopt_B':
+        raw = fixture.issues[0]['raw_output']
+        native.dispose_results(fixture.job_id, [raw['native_item_id']], 'confirmed', 'B', '', {raw['native_item_id']: 0},
+            operation_id='manualB', request_id='manualB', actor=actor, instance_id='instanceA', intent='manual')
+        fixed = service.dispositions(fixture.batch_id, disposition_request(fixture, 'adoptB', 'adopt',
+            adoption={'native_revision': 1, 'human_label_id': 'B'}))
+        expected = 'B'
+        native.dispose_results(fixture.job_id, [raw['native_item_id']], 'confirmed', 'A', '', {raw['native_item_id']: 2},
+            operation_id='laterA', request_id='laterA', actor=actor, instance_id='instanceA', intent='manual')
+    elif decision == 'ocr_adopt_revision_2':
+        result_id = fixture.state['result_id']
+        native.save(result_id, {'text': 'revision 1', 'tables': []}, 0)
+        native.save(result_id, {'text': 'revision 2', 'tables': []}, 1)
+        fixed = service.dispositions(fixture.batch_id, disposition_request(fixture, 'adopt2', 'adopt',
+            adoption={'native_revision': 2, 'native_result_id': result_id,
+                      'native_version_id': fixture.issues[0]['raw_output']['native_version_id']}))
+        expected = 'revision 2'
+        native.save(result_id, {'text': 'revision 3 later edit', 'tables': []}, 2)
+    elif decision == 'ocr_confirm_original':
+        fixed = service.dispositions(fixture.batch_id, disposition_request(fixture, 'confirmOriginalOCR'))
+        expected = 'original A'
+    else:
+        fixed = service.dispositions(fixture.batch_id, disposition_request(fixture, 'confirmA'))
+        expected = 'A'
+    # The native fixture already created a real source PNG. Its platform
+    # registry boundary verifies that exact pinned file without registering a
+    # second copy or changing the native/platform identities under review.
+    @contextmanager
+    def pinned(workspace_id, asset_id, *, revision, blob_hash):
+        assert (workspace_id, asset_id, revision) == ('workspaceA', 'assetA', 1)
+        source = (native.file(native.one('images', fixture.state['image_id'])['original_path'])
+                  if decision.startswith('ocr') else fixture.source_path)
+        assert sha(source.read_bytes()) == blob_hash == fixture.source_hash
+        yield source
+    center = ArtifactCenter(service.store.path.parent / 'review-artifacts', SimpleNamespace(stage_verified=pinned), None, None)
+    center.batch_store = service.store
+    service.app.state.artifact_center = center
+    calls = list(fixture.state['calls'])
+    payload = {'request_id': 'nativeReview', 'expected_revision': fixed['revision'], 'actor': actor, 'kind': 'final'}
+    response = service.review_export(fixture.batch_id, payload)
+    ProcessingBatch.model_validate(response)
+    bundle = response['artifacts'][-1]
+    ReviewBundle.model_validate(bundle)
+    assert bundle['status'] == 'current' and fixture.state['calls'] == calls
+    def content(name):
+        artifact = center.file('workspaceA', bundle['bundle_id'], name)
+        with center.store.stage_download('workspaceA', artifact.artifact_id, expected_revision=artifact.revision,
+                                         expected_hash=artifact.blob_hash) as path:
+            return path.read_bytes()
+    rows = list(csv.DictReader(io.StringIO(content('results.csv').decode('utf-8-sig'))))
+    assert len(rows) == 1 and rows[0]['adopted_value'] == expected and rows[0]['category'] == 'review'
+    original = json.loads(rows[0]['original_json'])
+    assert original == fixture.issues[0]['raw_output']
+    workbook = load_workbook(io.BytesIO(content('results.xlsx')), read_only=True, data_only=False)
+    try:
+        assert workbook.active.cell(2, 7).value == expected
+        assert all(cell.data_type != 'f' for row in workbook.active.iter_rows() for cell in row)
+    finally:
+        workbook.close()
+    review = json.loads(content('review.json'))
+    assert review['history'][0]['actor'] == actor and review['items'][0]['raw_output'] == original
+    if decision == 'ocr_adopt_revision_2':
+        assert review['items'][0]['adoption']['snapshot']['edited']['text'] == 'revision 2'
+        assert review['items'][0]['adoption']['native_revision'] == 2
+        assert '原生复核资格独立' in content('review.md').decode()
+    assert service.review_export(fixture.batch_id, payload) == response
 
 
 def test_interrupted_or_mismatched_write_never_publishes_metadata(store):

@@ -2,11 +2,14 @@
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import hashlib
 import threading
 
 import pytest
 
 from adapters.classification.adapter import ClassificationAdapter, ClassificationUnavailable
+from workbench_platform.jobs.native_classification import ClassificationAdapter as PackagedAdapter
+from workbench_platform.jobs.native_classification import ClassificationUnavailable as PackagedUnavailable
 from workbench_platform.bridge.context import ResolvedContext
 
 PROJECT = "project_" + "a" * 16
@@ -23,6 +26,10 @@ class Native(BaseHTTPRequestHandler):
     job_kind = "inference"
     job_state = "running"
     bad_project = False
+    human_label = None
+    disposition_revision = 0
+    operations = {}
+    history = []
 
     def reply(self, status, value):
         body = json.dumps(value).encode()
@@ -38,6 +45,38 @@ class Native(BaseHTTPRequestHandler):
         if self.command == "POST" and self.headers.get("X-Platform-Request") != "1":
             return self.reply(403, {"detail": "missing header"})
         prefix = f"/api/v1/projects/{PROJECT}"
+        operation_prefix = prefix + "/disposition-operations/"
+        if self.path.startswith(operation_prefix):
+            operation = self.path.removeprefix(operation_prefix).split("?")[0]
+            return self.reply(200, self.operations.get(operation) or {"operation_id": operation, "state": "not_found"})
+        if self.path == f"/api/v1/jobs/{INFER}/results/item_" + "a" * 16 + "/dispositions":
+            return self.reply(200, {"items": self.history})
+        if self.path == f"/api/v1/jobs/{INFER}/dispositions" and self.command == "POST":
+            body = json.loads(raw)
+            prior = self.operations.get(body["operation_id"])
+            identity = {"job_id": INFER, **{key: value for key, value in body.items()
+                                           if key not in {"operation_id", "request_id"}}}
+            identity["item_ids"] = sorted(identity["item_ids"])
+            fingerprint = hashlib.sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True,
+                                        separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+            if prior:
+                return self.reply(200 if prior["payload_hash"] == fingerprint else 409, prior)
+            item_id = "item_" + "a" * 16
+            if body["expected_revisions"] != {item_id: self.disposition_revision}:
+                return self.reply(409, {"detail": "stale revision"})
+            assert body["instance_id"] == "instanceA" and body["actor"]["source"] == "local"
+            Native.disposition_revision += 1
+            Native.human_label = body["label_id"]
+            receipt = {"operation_id": body["operation_id"], "request_id": body["request_id"],
+                       "payload_hash": fingerprint, "state": "committed", "project_id": PROJECT,
+                       "instance_id": "instanceA", "job_id": INFER, "human_label_id": body["label_id"],
+                       "disposition_state": body["state"], "revisions": {item_id: self.disposition_revision},
+                       "items": [{"item_id": item_id, "asset_id": ASSET, "original_sha256": "a" * 64,
+                                  "revision": self.disposition_revision}], "actor": body["actor"], "note": body["note"]}
+            Native.operations[body["operation_id"]] = receipt
+            Native.history.append({"job_id": INFER, "item_id": item_id, "revision": self.disposition_revision,
+                                   "operation_id": body["operation_id"], "actor": body["actor"]})
+            return self.reply(200, receipt)
         if self.path == prefix:
             return self.reply(200, {"id": "other" if self.bad_project else PROJECT,
                                     "labels": [{"label_id": "a"}, {"label_id": "b"}],
@@ -66,7 +105,10 @@ class Native(BaseHTTPRequestHandler):
             return self.reply(200, {"items": [{"id": "item_" + "a" * 16, "job_id": INFER,
                                                "asset_id": ASSET, "state": "succeeded",
                                                "prediction": {"label_id": "a", "status": "needs_review", "score": 0.8},
-                                               "confirmed_label": "b", "error": None}], "total": 1})
+                                               "confirmed_label": "b", "error": None,
+                                               "human_label_id": self.human_label,
+                                               "disposition_state": "confirmed" if self.human_label else "unreviewed",
+                                               "disposition_revision": self.disposition_revision}], "total": 1})
         if self.path in {f"/api/v1/jobs/{TRAIN}", f"/api/v1/jobs/{INFER}"} and self.command == "GET":
             job_id = self.path.rsplit("/", 1)[1]
             return self.reply(200, {"id": job_id, "project_id": PROJECT,
@@ -94,6 +136,7 @@ class Native(BaseHTTPRequestHandler):
 @pytest.fixture
 def native():
     Native.calls, Native.job_kind, Native.job_state, Native.bad_project = [], "inference", "running", False
+    Native.human_label, Native.disposition_revision, Native.operations, Native.history = None, 0, {}, []
     server = ThreadingHTTPServer(("127.0.0.1", 0), Native)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -190,3 +233,36 @@ def test_liveness_and_cross_project_job_rejected(native):
     assert Native.calls == []
     with pytest.raises(ClassificationUnavailable):
         adapter(native).job("job_other")
+
+
+@pytest.mark.parametrize("adapter_type", [ClassificationAdapter, PackagedAdapter])
+def test_adopts_b_with_original_expected_revision_and_reconciles_one_operation(native, adapter_type):
+    client = adapter_type(context(native), live=lambda _: True)
+    original = client.results(INFER)[0]
+    Native.human_label, Native.disposition_revision = "b", 1
+    manual = client.results(INFER)[0]
+    assert manual.prediction_label_id == "a" and manual.effective_label_id == "b"
+    actor = {"id": "localReviewer", "display_name": "本机复核员", "source": "local"}
+    receipt = client.adopt(INFER, manual, 1, "b", operation_id="adoptB", actor=actor, note="核对原图")
+    assert receipt["revisions"][manual.native_item_id] == 2
+    assert client.operation("adoptB") == receipt
+    assert client.adopt(INFER, manual, 1, "b", operation_id="adoptB", actor=actor, note="核对原图") == receipt
+    assert Native.disposition_revision == 2 and len(Native.history) == 1
+    assert client.disposition_history(INFER, manual.native_item_id)[0]["actor"] == actor
+    with pytest.raises((ClassificationUnavailable, PackagedUnavailable)):
+        client.adopt(INFER, manual, 0, "b", operation_id="staleAdoption", actor=actor)
+    with pytest.raises((ClassificationUnavailable, PackagedUnavailable)):
+        client.dispose(INFER, [original], "confirmed", "a", operation_id="oldPrediction", actor=actor)
+    posts = [json.loads(call[3]) for call in Native.calls if call[0] == "POST"]
+    assert posts[-1]["expected_revisions"] == {original.native_item_id: 0}
+    assert Native.human_label == "b"
+    assert client.operation("unknownOperation") is None
+    new_client = adapter_type(context(native, instance_id="instanceB"), live=lambda _: True)
+    post_count = len([call for call in Native.calls if call[0] == "POST"])
+    assert new_client.operation("adoptB", expected_instance_id="instanceA") == receipt
+    assert len([call for call in Native.calls if call[0] == "POST"]) == post_count
+    with pytest.raises((ClassificationUnavailable, PackagedUnavailable)):
+        new_client.operation("adoptB")
+    Native.operations["adoptB"]["instance_id"] = "foreignInstance"
+    with pytest.raises((ClassificationUnavailable, PackagedUnavailable)):
+        client.operation("adoptB")

@@ -3,6 +3,7 @@
 The caller must consume ContextBridge authorization first, then supply a live
 Supervisor verifier and a trusted native session-token provider. Browser input
 never chooses a host, credentials, native project, or arbitrary route.
+Mirrors workbench_platform.jobs.native_ocr until the shared adapter package is distributed.
 """
 
 from __future__ import annotations
@@ -10,11 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import http.client
+import io
 import json
 from pathlib import Path
 import re
 from typing import Callable
 from urllib.parse import urlsplit
+import zipfile
 
 from workbench_platform.bridge.context import ResolvedContext
 
@@ -24,6 +27,7 @@ IMPORT_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{7,119}\Z")
 MAX_JSON = 8 * 1024 * 1024
 MAX_IMPORT_MANIFEST = 1_048_576
 MAX_IMPORT_ITEM = 128 * 1024 * 1024
+MAX_EXPORT = 128 * 1024 * 1024
 TERMINAL = frozenset({"succeeded", "failed", "cancelled"})
 KNOWN_STATES = frozenset({"queued", "running", "paused", "interrupted", *TERMINAL})
 
@@ -34,7 +38,11 @@ class OcrUnavailable(ValueError):
 
 
 class OcrImportConflict(OcrUnavailable):
-    """The native request ID is already bound to a different manifest."""
+    """The native request ID belongs to a different immutable manifest."""
+
+
+class OcrResultConflict(OcrUnavailable):
+    """The requested revision or identified adoption conflicts with native state."""
 
 
 @dataclass(frozen=True)
@@ -118,7 +126,8 @@ class OcrAdapter:
         return credential
 
     def _request(self, method: str, path: str, body: dict | None = None,
-                 *, max_body: int = 8192, import_conflict: bool = False) -> dict:
+                 *, max_body: int = 8192, import_conflict: bool = False,
+                 result_conflict: bool = False) -> dict:
         credential = self._credential()
         payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
         if payload is not None and len(payload) > max_body:
@@ -132,6 +141,8 @@ class OcrAdapter:
             response = connection.getresponse()
             if import_conflict and response.status == 409:
                 raise OcrImportConflict()
+            if result_conflict and response.status == 409:
+                raise OcrResultConflict()
             if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
                 raise OcrUnavailable()
             raw = response.read(MAX_JSON + 1)
@@ -141,70 +152,8 @@ class OcrAdapter:
             if not isinstance(value, dict):
                 raise OcrUnavailable()
             return value
-        except OcrImportConflict:
+        except (OcrImportConflict, OcrResultConflict):
             raise
-        except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
-                http.client.HTTPException):
-            raise OcrUnavailable() from None
-        finally:
-            connection.close()
-
-    def begin_import(self, request_id: str, manifest: dict) -> dict:
-        if (self.context.role == "viewer" or not isinstance(request_id, str)
-                or not IMPORT_REQUEST_ID.fullmatch(request_id) or not isinstance(manifest, dict)):
-            raise OcrUnavailable()
-        result = self._request("POST", self._import_path(request_id), manifest,
-                               max_body=MAX_IMPORT_MANIFEST, import_conflict=True)
-        status = self._import_status(result, request_id)
-        canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True,
-                               separators=(",", ":"), allow_nan=False).encode("utf-8")
-        if (status["payload_hash"] != hashlib.sha256(canonical).hexdigest()
-                or [item["item_id"] for item in status["items"]]
-                != [item.get("item_id") for item in manifest.get("items", [])]):
-            raise OcrUnavailable()
-        return status
-
-    def import_status(self, request_id: str) -> dict:
-        result = self._request("GET", self._import_path(request_id))
-        return self._import_status(result, request_id)
-
-    def import_item(self, request_id: str, item_id: str, source: Path,
-                    *, blob_hash: str, size_bytes: int) -> dict:
-        if (self.context.role == "viewer" or not _is_native_id(item_id)
-                or not isinstance(source, Path) or not re.fullmatch(r"[0-9a-f]{64}", blob_hash)
-                or type(size_bytes) is not int or not 1 <= size_bytes <= MAX_IMPORT_ITEM):
-            raise OcrUnavailable()
-        try:
-            path = source.resolve(strict=True)
-        except OSError:
-            raise OcrUnavailable() from None
-        if not path.is_file() or path.stat().st_size != size_bytes:
-            raise OcrUnavailable()
-        with path.open("rb") as stream:
-            if hashlib.file_digest(stream, "sha256").hexdigest() != blob_hash:
-                raise OcrUnavailable()
-        credential = self._credential()
-        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
-        try:
-            connection.putrequest("PUT", self._import_path(request_id) + "/items/" + item_id)
-            connection.putheader("Authorization", "Bearer " + credential)
-            connection.putheader("Accept", "application/json")
-            connection.putheader("Content-Type", "application/octet-stream")
-            connection.putheader("Content-Length", str(size_bytes))
-            connection.endheaders()
-            with path.open("rb") as stream:
-                remaining = size_bytes
-                while remaining:
-                    chunk = stream.read(min(1024 * 1024, remaining))
-                    if not chunk:
-                        raise OcrUnavailable()
-                    connection.send(chunk)
-                    remaining -= len(chunk)
-            response = connection.getresponse()
-            if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
-                raise OcrUnavailable()
-            result = json.loads(response.read(MAX_JSON + 1))
-            return self._import_status(result, request_id)
         except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
                 http.client.HTTPException):
             raise OcrUnavailable() from None
@@ -250,11 +199,74 @@ class OcrAdapter:
                     "page_count", "page_numbers")):
                 raise OcrUnavailable()
         states = {item["status"] for item in result["items"]}
-        expected_state = ("unknown" if "missing" in states else "completed" if states == {"imported"}
-                          else "accepted" if "imported" in states else "prepared")
-        if result["state"] != expected_state:
+        expected = ("unknown" if "missing" in states else "completed" if states == {"imported"}
+                    else "accepted" if "imported" in states else "prepared")
+        if result["state"] != expected:
             raise OcrUnavailable()
         return result
+
+    def begin_import(self, request_id: str, manifest: dict) -> dict:
+        if (self.context.role == "viewer" or not isinstance(request_id, str)
+                or not IMPORT_REQUEST_ID.fullmatch(request_id) or not isinstance(manifest, dict)):
+            raise OcrUnavailable()
+        result = self._request("POST", self._import_path(request_id), manifest,
+                               max_body=MAX_IMPORT_MANIFEST, import_conflict=True)
+        status = self._import_status(result, request_id)
+        canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True,
+                               separators=(",", ":"), allow_nan=False).encode("utf-8")
+        if (status["payload_hash"] != hashlib.sha256(canonical).hexdigest()
+                or [item["item_id"] for item in status["items"]]
+                != [item.get("item_id") for item in manifest.get("items", [])]):
+            raise OcrUnavailable()
+        return status
+
+    def import_status(self, request_id: str) -> dict:
+        return self._import_status(self._request("GET", self._import_path(request_id)), request_id)
+
+    def import_item(self, request_id: str, item_id: str, source: Path,
+                    *, blob_hash: str, size_bytes: int) -> dict:
+        if (self.context.role == "viewer" or not _is_native_id(item_id)
+                or not isinstance(source, Path) or not re.fullmatch(r"[0-9a-f]{64}", blob_hash)
+                or type(size_bytes) is not int or not 1 <= size_bytes <= MAX_IMPORT_ITEM):
+            raise OcrUnavailable()
+        try:
+            path = source.resolve(strict=True)
+        except OSError:
+            raise OcrUnavailable() from None
+        if not path.is_file() or path.stat().st_size != size_bytes:
+            raise OcrUnavailable()
+        with path.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != blob_hash:
+                raise OcrUnavailable()
+        credential = self._credential()
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=self.timeout)
+        try:
+            connection.putrequest("PUT", self._import_path(request_id) + "/items/" + item_id)
+            connection.putheader("Authorization", "Bearer " + credential)
+            connection.putheader("Accept", "application/json")
+            connection.putheader("Content-Type", "application/octet-stream")
+            connection.putheader("Content-Length", str(size_bytes))
+            connection.endheaders()
+            with path.open("rb") as stream:
+                remaining = size_bytes
+                while remaining:
+                    chunk = stream.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        raise OcrUnavailable()
+                    connection.send(chunk)
+                    remaining -= len(chunk)
+            response = connection.getresponse()
+            if response.status != 200 or int(response.getheader("Content-Length", "0")) > MAX_JSON:
+                raise OcrUnavailable()
+            raw = response.read(MAX_JSON + 1)
+            if len(raw) > MAX_JSON:
+                raise OcrUnavailable()
+            return self._import_status(json.loads(raw), request_id)
+        except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError,
+                http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
 
     def capabilities(self) -> Capabilities:
         health = self._request("GET", "/api/health")
@@ -388,6 +400,185 @@ class OcrAdapter:
                                             task.version_id, image.get("selected_result") == task.result_id,
                                             locator))
         return tuple(artifacts)
+
+    def result_revision(self, result: ResultArtifact) -> int:
+        value = self._request("GET", f"/api/results/{result.native_result_id}")
+        revision = value.get("revision")
+        if (value.get("id") != result.native_result_id
+                or value.get("task_id") != result.native_task_id
+                or type(revision) is not int or revision < 0):
+            raise OcrUnavailable()
+        return revision
+
+    def result_snapshot(self, result: ResultArtifact, revision: int | None = None) -> dict:
+        if (not isinstance(result, ResultArtifact)
+                or any(not _is_native_id(value) for value in
+                       (result.native_result_id, result.native_task_id, result.image_id, result.version_id))
+                or (revision is not None and (type(revision) is not int or revision < 0))):
+            raise OcrUnavailable()
+        suffix = "snapshot" if revision is None else f"revisions/{revision}"
+        value = self._request("GET", f"/api/results/{result.native_result_id}/{suffix}")
+        if ((value.get("id"), value.get("task_id"), value.get("image_id"), value.get("version_id"),
+             value.get("project_id")) != (result.native_result_id, result.native_task_id,
+                result.image_id, result.version_id, self.context.module_project_id)
+                or type(value.get("revision")) is not int or value["revision"] < 0
+                or type(value.get("current_revision")) is not int or value["current_revision"] < value["revision"]
+                or (revision is not None and value["revision"] != revision)
+                or type(value.get("available")) is not bool
+                or not isinstance(value.get("original_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["original_sha256"])
+                or (value["available"] and not isinstance(value.get("edited"), dict))
+                or (not value["available"] and value.get("reason") != "legacy_revision_unavailable")):
+            raise OcrUnavailable()
+        return value
+
+    def result_history(self, result: ResultArtifact, offset: int = 0, limit: int = 50) -> dict:
+        if (not isinstance(result, ResultArtifact) or not _is_native_id(result.native_result_id)
+                or type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100):
+            raise OcrUnavailable()
+        value = self._request("GET", f"/api/results/{result.native_result_id}/revisions?offset={offset}&limit={limit}")
+        if ((value.get("id"), value.get("task_id"), value.get("project_id"), value.get("image_id"),
+             value.get("version_id")) != (result.native_result_id, result.native_task_id,
+                self.context.module_project_id, result.image_id, result.version_id)
+                or value.get("offset") != offset or value.get("limit") != limit
+                or any(type(value.get(key)) is not int or value[key] < 0
+                       for key in ("current_revision", "total", "unavailable_revisions"))
+                or not isinstance(value.get("items"), list) or len(value["items"]) > limit
+                or any(not isinstance(row, dict) or type(row.get("revision")) is not int
+                       or not 0 <= row["revision"] <= value["current_revision"] for row in value["items"])):
+            raise OcrUnavailable()
+        return value
+
+    def _adoption_receipt(self, value: dict, operation_id: str, expected_instance_id: str | None = None) -> dict:
+        if (value.get("operation_id") != operation_id or value.get("state") != "committed"
+                or value.get("project_id") != self.context.module_project_id
+                or value.get("instance_id") != (expected_instance_id or self.context.instance_id)
+                or any(not _is_native_id(value.get(key)) for key in ("result_id", "task_id", "image_id", "version_id"))
+                or type(value.get("revision")) is not int or value["revision"] < 0
+                or not isinstance(value.get("payload_hash"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["payload_hash"])
+                or not isinstance(value.get("original_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", value["original_sha256"])):
+            raise OcrUnavailable()
+        actor = value.get("actor")
+        if (not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or not _is_native_id(actor["id"]) or actor["source"] != "local"
+                or not isinstance(actor["display_name"], str) or not 1 <= len(actor["display_name"]) <= 100
+                or not isinstance(value.get("note"), str) or len(value["note"]) > 2000):
+            raise OcrUnavailable()
+        body = {key: value[key] for key in ("project_id", "instance_id", "result_id", "task_id", "image_id",
+                                           "version_id", "revision", "original_sha256", "actor", "note")}
+        digest = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                                separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+        if value["payload_hash"] != digest:
+            raise OcrUnavailable()
+        return value
+
+    def operation(self, operation_id: str, *, expected_instance_id: str | None = None) -> dict | None:
+        if (not isinstance(operation_id, str) or not REQUEST_ID.fullmatch(operation_id)
+                or (expected_instance_id is not None and not _is_native_id(expected_instance_id))):
+            raise OcrUnavailable()
+        original_instance = expected_instance_id or self.context.instance_id
+        value = self._request("GET", f"/api/platform/adoptions/{operation_id}"
+                              f"?project_id={self.context.module_project_id}&instance_id={self.context.instance_id}"
+                              f"&operation_instance_id={original_instance}",
+                              result_conflict=True)
+        if (value.get("operation_id") != operation_id or type(value.get("committed")) is not bool
+                or (value["committed"] and not isinstance(value.get("receipt"), dict))
+                or (not value["committed"] and value.get("receipt") is not None)):
+            raise OcrUnavailable()
+        return self._adoption_receipt(value["receipt"], operation_id, original_instance) if value["committed"] else None
+
+    def adopt(self, result: ResultArtifact, native_revision: int, *, operation_id: str,
+              actor: dict, note: str = "") -> dict:
+        if (self.context.role == "viewer" or not isinstance(result, ResultArtifact)
+                or any(not _is_native_id(value) for value in
+                       (result.native_result_id, result.native_task_id, result.image_id, result.version_id))
+                or type(native_revision) is not int or native_revision < 0
+                or not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or not _is_native_id(actor["id"]) or actor["source"] != "local"
+                or not isinstance(actor["display_name"], str) or not 1 <= len(actor["display_name"]) <= 100
+                or not isinstance(note, str) or len(note) > 2000):
+            raise OcrUnavailable()
+        expected = {"result_id": result.native_result_id, "task_id": result.native_task_id,
+                    "image_id": result.image_id, "version_id": result.version_id,
+                    "revision": native_revision, "actor": actor, "note": note}
+        existing = self.operation(operation_id)
+        if existing is not None:
+            if any(existing.get(key) != value for key, value in expected.items()):
+                raise OcrResultConflict()
+            return existing
+        snapshot = self.result_snapshot(result, native_revision)
+        if not snapshot["available"] or snapshot["current_revision"] != native_revision:
+            raise OcrResultConflict()
+        body = {**expected, "project_id": self.context.module_project_id,
+                "instance_id": self.context.instance_id, "original_sha256": snapshot["original_sha256"]}
+        receipt = self._adoption_receipt(self._request("POST", f"/api/platform/adoptions/{operation_id}",
+                                       body, max_body=16384, result_conflict=True), operation_id)
+        if any(receipt.get(key) != value for key, value in body.items()):
+            raise OcrUnavailable()
+        expected_hash = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                                      separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+        if receipt["payload_hash"] != expected_hash:
+            raise OcrUnavailable()
+        return receipt
+
+    def export_results(self, results: list[tuple[ResultArtifact, int]]) -> tuple[bytes, str]:
+        if (not results or len(results) > 1000
+                or len({item.native_result_id for item, _ in results}) != len(results)
+                or any(type(revision) is not int or revision < 0 for _, revision in results)):
+            raise OcrUnavailable()
+        body = {"result_ids": [item.native_result_id for item, _ in results],
+                "format": "json", "expected_results": {
+                    item.native_result_id: {"revision": revision, "version_id": item.version_id}
+                    for item, revision in results}}
+        credential = self._credential()
+        payload = json.dumps(body, separators=(",", ":")).encode("utf-8")
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
+        try:
+            connection.request("POST", "/api/export", body=payload,
+                               headers={"Authorization": "Bearer " + credential,
+                                        "Content-Type": "application/json", "Accept": "application/octet-stream"})
+            response = connection.getresponse()
+            if response.status == 409:
+                raise OcrResultConflict()
+            if response.status != 200:
+                raise OcrUnavailable()
+            length = response.getheader("Content-Length")
+            if length is not None and (not length.isdecimal() or int(length) > MAX_EXPORT):
+                raise OcrUnavailable()
+            data = response.read(MAX_EXPORT + 1)
+            if not data or len(data) > MAX_EXPORT:
+                raise OcrUnavailable()
+            names = (["OCR-result.json"] if len(results) == 1 else
+                     [f"{index:04d}.json" for index in range(1, len(results) + 1)])
+            if zipfile.is_zipfile(io.BytesIO(data)):
+                with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                    entries = archive.infolist()
+                    if (len(entries) > 10_000 or len({entry.filename for entry in entries}) != len(entries)
+                            or sum(entry.file_size for entry in entries) > MAX_EXPORT):
+                        raise OcrUnavailable()
+                    for name, (item, revision) in zip(names, results):
+                        if name not in archive.namelist() or archive.getinfo(name).file_size > MAX_JSON:
+                            raise OcrUnavailable()
+                        value = json.loads(archive.read(name))
+                        if (value.get("id"), value.get("revision")) != (item.native_result_id, revision):
+                            raise OcrUnavailable()
+                return data, "application/zip"
+            if len(results) != 1 or len(data) > MAX_JSON:
+                raise OcrUnavailable()
+            value = json.loads(data)
+            if (value.get("id"), value.get("revision")) != (
+                    results[0][0].native_result_id, results[0][1]):
+                raise OcrUnavailable()
+            return data, "application/json"
+        except OcrResultConflict:
+            raise
+        except (OSError, TimeoutError, ValueError, TypeError, KeyError,
+                json.JSONDecodeError, zipfile.BadZipFile, http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
 
 
 def _is_native_id(value: object) -> bool:

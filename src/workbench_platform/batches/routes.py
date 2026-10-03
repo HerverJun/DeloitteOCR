@@ -1,9 +1,12 @@
 import os
+from contextlib import closing
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query, Request
 from workbench_platform.assets.routes import json_body
 from workbench_platform.workspaces.routes import _loopback_host, _same_loopback_origin
 from .service import BatchService
+from packages.contracts.automation import BatchItemRead
+from workbench_platform.data_api.service import DataError
 
 router = APIRouter(prefix='/api/platform/v1', tags=['processing-batches'])
 
@@ -83,10 +86,25 @@ def get_batch(batch_id: str, request: Request):
 @router.get('/batches/{batch_id}/issues')
 def issues(batch_id: str, request: Request, disposition: str | None = None,
            offset: int = Query(0, ge=0), limit: int = Query(30, ge=1, le=200)):
-    batch = service(request).get(batch_id)
-    items = [issue for issue in batch['issues'] if not disposition or issue['disposition'] == disposition]
-    return {'items': items[offset:offset+limit], 'total': len(items), 'offset': offset,
-            'summary': batch['summary']}
+    return service(request).issue_page(batch_id, offset, limit, disposition)
+
+
+@router.get('/batches/{batch_id}/items/{item_id}', response_model=BatchItemRead)
+def indexed_item(batch_id: str, item_id: str, request: Request,
+                 batch_revision: int | None = Query(None, ge=1, le=9_007_199_254_740_991)):
+    value = service(request)
+    with value.store.lock, closing(value.store.db()) as db:
+        db.execute('BEGIN')
+        batch, _, _ = value.store._snapshot(db, batch_id, limit=1)
+        value.workspace(batch['workspace_id'])
+        if batch_revision is not None and batch['revision'] != batch_revision:
+            raise DataError('事项所见批次版本已变化，请刷新后继续', 409)
+        if db.execute('SELECT 1 FROM batch_items WHERE batch_id=? AND item_id=?',
+                      (batch_id, item_id)).fetchone() is None:
+            raise DataError('此批次没有该事项', 404)
+        item = value.store._selected_items(db, batch_id, [item_id])[0]
+        return BatchItemRead(schema_version='1.0', workspace_id=batch['workspace_id'],
+                             batch_id=batch_id, revision=batch['revision'], item=item)
 
 
 @router.post('/batches/{batch_id}/control')
@@ -100,3 +118,38 @@ async def dispositions(batch_id: str, request: Request):
     payload = await json_body(request, 65536)
     from starlette.concurrency import run_in_threadpool
     return await run_in_threadpool(value.dispositions, batch_id, payload)
+
+
+@router.post('/batches/{batch_id}/review-artifacts', status_code=201)
+async def review_artifacts(batch_id: str, request: Request):
+    value = service(request, True)
+    payload = await json_body(request, 4096)
+    from starlette.concurrency import run_in_threadpool
+    return await run_in_threadpool(value.review_export, batch_id, payload)
+
+
+@router.get('/batches/{batch_id}/history')
+def history(batch_id: str, request: Request, item_id: str | None = None,
+            offset: int = Query(0, ge=0), limit: int = Query(30, ge=1, le=200)):
+    return service(request).disposition_history(batch_id, offset, limit, item_id)
+
+
+@router.get('/batches/{batch_id}/items/{item_id}/native-revisions')
+def native_revisions(batch_id: str, item_id: str, request: Request,
+                     offset: int = Query(0, ge=0), limit: int = Query(30, ge=1, le=100)):
+    return service(request).native_revisions(batch_id, item_id, offset, limit)
+
+
+@router.get('/batches/{batch_id}/operations/{operation_id}')
+def operation(batch_id: str, operation_id: str, request: Request):
+    return service(request).operation(batch_id, operation_id)
+
+
+@router.post('/batches/{batch_id}/operations/{operation_id}/recover')
+async def recover(batch_id: str, operation_id: str, request: Request):
+    value = service(request, True)
+    payload = await json_body(request, 4096)
+    if payload:
+        raise HTTPException(400, '恢复使用原固定请求，不接受替代参数')
+    from starlette.concurrency import run_in_threadpool
+    return await run_in_threadpool(value.recover_operation, batch_id, operation_id)

@@ -3,18 +3,23 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import mimetypes
 import os
+import sqlite3
 import uuid
 from contextlib import ExitStack
 from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import ValidationError
+from starlette.concurrency import run_in_threadpool
 
-from packages.contracts.models import AssetSetItem, SourceLocator
-from workbench_platform.assets.registry import AssetRegistry, AssetUnavailable
+from packages.contracts.models import AssetSetItem, Error, SourceLocator
+from packages.contracts.uploads import UploadBinding, UploadStatus
+from workbench_platform.assets.registry import AssetChanged, AssetRegistry, AssetUnavailable, UploadConflict, UploadMissing
 from workbench_platform.assets.sets import AssetSetConflict, AssetSetMissing, AssetSetStore
 from workbench_platform.workspaces.routes import ID, _loopback_host, _same_loopback_origin
 
@@ -116,6 +121,90 @@ async def upload_asset(workspace_id: str, request: Request,
         source.unlink(missing_ok=True)
         folder.rmdir()
         raise
+
+
+def upload_error(status, code, message, request_id, *, retryable=False):
+    identity = request_id if ID.fullmatch(request_id) else "u" + uuid.uuid4().hex
+    error = Error(schema_version="1.0", code=code, message=message, retryable=retryable,
+                  request_id=identity, details={})
+    return JSONResponse(status_code=status, content=error.model_dump(mode="json"))
+
+
+@router.get("/uploads/{request_id}", response_model=UploadStatus)
+def get_upload(workspace_id: str, request_id: str, request: Request):
+    if not ID.fullmatch(request_id) or request.query_params:
+        return upload_error(400, "VALIDATION_FAILED", "上传请求身份或查询参数无效", request_id)
+    try:
+        registry, _, _ = library(request, workspace_id)
+        return registry.upload_status(workspace_id, request_id)
+    except HTTPException as error:
+        return upload_error(error.status_code, "NOT_FOUND" if error.status_code == 404 else
+            "APP_UNAVAILABLE" if error.status_code == 503 else "VALIDATION_FAILED", str(error.detail), request_id)
+    except UploadMissing:
+        return upload_error(404, "NOT_FOUND", "尚未接收此上传请求；可以按原身份提交原文件", request_id)
+    except (AssetUnavailable, sqlite3.Error, OSError, ValueError):
+        return upload_error(503, "APP_UNAVAILABLE", "上传状态暂不可读取；请保留原请求身份并查询恢复", request_id, retryable=True)
+
+
+@router.post("/uploads/{request_id}", response_model=UploadStatus, status_code=201)
+async def upload_recoverable(workspace_id: str, request_id: str, request: Request,
+                             name: str = Query(..., min_length=1, max_length=240),
+                             sha256: str = Query(...), size_bytes: int = Query(..., ge=1)):
+    try:
+        registry, _, uploads = library(request, workspace_id, write=True)
+    except HTTPException as error:
+        return upload_error(error.status_code, "NOT_FOUND" if error.status_code == 404 else
+            "APP_UNAVAILABLE" if error.status_code == 503 else "VALIDATION_FAILED", str(error.detail), request_id)
+    permitted = {"name", "sha256", "size_bytes"}
+    if (set(request.query_params) != permitted
+            or any(len(request.query_params.getlist(key)) != 1 for key in permitted)
+            or request.query_params["size_bytes"] != str(size_bytes)):
+        return upload_error(400, "VALIDATION_FAILED", "上传参数必须完整且不重复", request_id)
+    if size_bytes > MAX_UPLOAD:
+        return upload_error(413, "VALIDATION_FAILED", "文件超过 128 MB", request_id)
+    try:
+        binding = UploadBinding(schema_version="1.0", workspace_id=workspace_id, request_id=request_id,
+                                name=name, sha256=sha256, size_bytes=size_bytes)
+    except ValidationError:
+        return upload_error(400, "VALIDATION_FAILED", "上传文件名、内容身份或大小无效", request_id)
+    if request.headers.get("content-type", "").split(";", 1)[0].lower() != "application/octet-stream":
+        return upload_error(400, "VALIDATION_FAILED", "请提交原文件二进制内容", request_id)
+    folder = uploads / (".incoming-" + uuid.uuid4().hex)
+    staged = folder / "body"
+    created_folder = False
+    try:
+        await run_in_threadpool(registry.reserve_upload, binding)
+        folder.mkdir()
+        created_folder = True
+        size, digest = 0, hashlib.sha256()
+        with staged.open("xb") as stream:
+            async for chunk in request.stream():
+                size += len(chunk)
+                if size > MAX_UPLOAD or size > binding.size_bytes:
+                    await run_in_threadpool(registry.reject_upload, binding, "文件实际大小与原上传身份不符")
+                    return upload_error(413 if size > MAX_UPLOAD else 409, "INTEGRITY_MISMATCH",
+                                        "文件实际大小与原上传身份不符；请重试原文件", request_id)
+                digest.update(chunk)
+                stream.write(chunk)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if (size, digest.hexdigest()) != (binding.size_bytes, binding.sha256):
+            await run_in_threadpool(registry.reject_upload, binding, "文件实际内容与原上传身份不符")
+            return upload_error(409, "INTEGRITY_MISMATCH", "文件实际内容与原上传身份不符；请重试原文件", request_id)
+        media_type = mimetypes.guess_type(binding.name)[0] or "application/octet-stream"
+        status, created = await run_in_threadpool(registry.commit_upload, binding, staged, media_type=media_type)
+        return JSONResponse(status_code=201 if created else 200, content=status.model_dump(mode="json"))
+    except UploadConflict:
+        return upload_error(409, "IDEMPOTENCY_CONFLICT", "此上传请求已绑定其他文件；保留原请求，不能替换内容", request_id)
+    except AssetChanged:
+        return upload_error(409, "INTEGRITY_MISMATCH", "上传内容或固定原件需核实；请查询原请求后恢复", request_id)
+    except (AssetUnavailable, sqlite3.Error, OSError):
+        return upload_error(503, "APP_UNAVAILABLE", "上传未完成；请保留原文件与请求身份，先查询状态再恢复", request_id,
+                            retryable=True)
+    finally:
+        if created_folder:
+            staged.unlink(missing_ok=True)
+            folder.rmdir()
 
 
 @router.post("/sets", status_code=201)
