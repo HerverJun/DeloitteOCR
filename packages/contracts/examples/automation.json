@@ -1,0 +1,37 @@
+{
+  "BatchCoverage": {
+    "confirmed": 0,
+    "deferred": 0,
+    "index_complete": true,
+    "indexed_items": 100002,
+    "input_files": 2,
+    "left_rows": 50001,
+    "next_ordinal": 100002,
+    "pending": 100002,
+    "required_items": 100002,
+    "result_rows": 100002,
+    "right_rows": 50001,
+    "scanned_results": 100002
+  },
+  "BatchDisposition": {
+    "action": "adopt",
+    "actor": {
+      "display_name": "本机编制人",
+      "id": "localUser",
+      "source": "local"
+    },
+    "adoption": {
+      "human_label_id": null,
+      "native_result_id": "01result",
+      "native_revision": 2,
+      "native_version_id": null
+    },
+    "automation_version": "2.0",
+    "expected_revision": 1,
+    "item_ids": [
+      "itemA"
+    ],
+    "note": "采用原生校对 revision 2",
+    "request_id": "requestA"
+  }
+}

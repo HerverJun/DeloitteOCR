@@ -58,6 +58,16 @@ def check_revision(*, supplied: int, persisted: int) -> None:
         raise ContractError("REVISION_CONFLICT", "Object revision has changed")
 
 
+def check_review_completion(coverage, *, execution_state: str,
+                            pending_operations: int = 0) -> None:
+    """Final review requires durable complete coverage and resolved human work."""
+    from .automation import BatchCoverage
+    value = BatchCoverage.model_validate(coverage)
+    if (execution_state != 'succeeded' or not value.index_complete or
+            value.pending or value.deferred or pending_operations):
+        raise ContractError('REVIEW_INCOMPLETE', 'Review has unresolved coverage, items or operations')
+
+
 def check_snapshot(*, supplied: int | None, persisted: int) -> None:
     if supplied is not None and supplied != persisted:
         raise ContractError("SNAPSHOT_EXPIRED", "List snapshot is no longer available")

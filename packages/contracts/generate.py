@@ -11,7 +11,12 @@ from pathlib import Path
 
 from .models import MODELS, PageQuery, VERSION
 from .examples import POSITIVE, NEGATIVE
-from .automation import AUTOMATION_MODELS
+from .automation import AUTOMATION_MODELS, AUTOMATION_EXAMPLES
+from .audit import AUDIT_MODELS, TodoQuery
+from .audit_openapi import audit_paths
+from .uploads import UPLOAD_MODELS, UploadBinding
+from .uploads_openapi import upload_paths
+from .forensics import FORENSICS_MODELS, forensics_paths
 
 ROOT = Path(__file__).resolve().parent
 NAMES = {
@@ -29,7 +34,7 @@ def dump(value: object) -> str:
 
 def components() -> dict[str, dict]:
     result = {}
-    for model in [*MODELS, *AUTOMATION_MODELS]:
+    for model in [*MODELS, *AUTOMATION_MODELS, *AUDIT_MODELS, *UPLOAD_MODELS, *FORENSICS_MODELS]:
         schema = model.model_json_schema()
         definitions = schema.pop("$defs", {})
         for name, definition in definitions.items():
@@ -100,7 +105,7 @@ def ts_type(schema: dict) -> str:
 
 
 def render_types(definitions: dict[str, dict]) -> str:
-    lines = ["// Generated from packages/contracts/models.py; do not edit.", "// Runtime validation still belongs to the strict wire models.", ""]
+    lines = ["// Generated from packages/contracts wire models; do not edit.", "// Runtime validation still belongs to the strict wire models.", ""]
     for name, schema in sorted(definitions.items()):
         lines.append(f"export type {name} = {ts_type(schema)};")
     return "\n".join(lines) + "\n"
@@ -148,6 +153,7 @@ def openapi(definitions: dict[str, dict]) -> dict:
             **listing("listWorkspaces", "WorkspacePage", safe_revision=True),
             "post": {"operationId": "createWorkspace", "requestBody": body("WorkspaceCreate"),
                      "responses": {"201": response("Workspace"), "400": response("Error", "Invalid request"),
+                                   "409": response("Error", "Creation request already used for different content"),
                                    "403": response("Error", "Origin not permitted"),
                                    "503": response("Error", "Workspace store unavailable")}}},
         "/api/platform/v1/workspaces/{workspace_id}": get("getWorkspace", "workspace_id", "Workspace"),
@@ -203,8 +209,58 @@ def openapi(definitions: dict[str, dict]) -> dict:
             'responses': {'200': response('ProcessingBatch')}}},
         '/api/platform/v1/batches/{batch_id}/dispositions': {'post': {'operationId': 'disposeBatchResults',
             'parameters': [parameter('batch_id')], 'requestBody': body('BatchDisposition'),
-            'responses': {'200': response('ProcessingBatch')}}},
+            'responses': {'200': response('ProcessingBatch'), '409': response('Error', 'Revision or request conflict')}}},
+        '/api/platform/v1/batches/{batch_id}/issues': {'get': {'operationId': 'listBatchIssues',
+            'parameters': [parameter('batch_id'),
+                {'name': 'offset', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 0}},
+                {'name': 'limit', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 1, 'maximum': 200}},
+                {'name': 'disposition', 'in': 'query', 'schema': {'type': 'string', 'enum': ['pending', 'confirmed', 'deferred']}}],
+            'responses': {'200': response('BatchIssuePage')}}},
+        '/api/platform/v1/batches/{batch_id}/items/{item_id}': {'get': {
+            'operationId': 'getBatchIndexedItem', 'parameters': [parameter('batch_id'), parameter('item_id'),
+                {'name': 'batch_revision', 'in': 'query', 'required': False,
+                 'schema': {'type': 'integer', 'minimum': 1, 'maximum': 9_007_199_254_740_991}}],
+            'responses': {'200': response('BatchItemRead'), '404': response('Error', 'Unknown batch or item'),
+                          '409': response('Error', 'Batch revision changed')}}},
+        '/api/platform/v1/batches/{batch_id}/operations/{operation_id}': {'get': {
+            'operationId': 'getBatchOperation', 'parameters': [parameter('batch_id'), parameter('operation_id')],
+            'responses': {'200': response('BatchOperation'), '404': response('Error', 'Unknown operation')}}},
+        '/api/platform/v1/batches/{batch_id}/operations/{operation_id}/recover': {'post': {
+            'operationId': 'recoverBatchOperation', 'parameters': [parameter('batch_id'), parameter('operation_id')],
+            'description': 'Recover the persisted operation without replacing its request, actor, targets or native IDs.',
+            'requestBody': {'required': True, 'content': {'application/json': {
+                'schema': {'type': 'object', 'additionalProperties': False, 'maxProperties': 0}}}},
+            'responses': {'200': response('ProcessingBatch'), '409': response('Error', 'Native outcome requires verification')}}},
+        '/api/platform/v1/batches/{batch_id}/history': {'get': {
+            'operationId': 'listBatchDispositionHistory', 'parameters': [parameter('batch_id'),
+                {'name': 'item_id', 'in': 'query', 'schema': {'type': 'string'}},
+                {'name': 'offset', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 0}},
+                {'name': 'limit', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 1, 'maximum': 200}}],
+            'responses': {'200': response('BatchHistoryPage'), '404': response('Error', 'Unknown batch')}}},
+        '/api/platform/v1/batches/{batch_id}/items/{item_id}/native-revisions': {'get': {
+            'operationId': 'getBatchNativeRevisions', 'parameters': [parameter('batch_id'), parameter('item_id'),
+                {'name': 'offset', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 0}},
+                {'name': 'limit', 'in': 'query', 'schema': {'type': 'integer', 'minimum': 1, 'maximum': 100}}],
+            'responses': {'200': response('BatchNativeRevisionPage'),
+                '409': response('Error', 'Native identity or outcome requires verification'),
+                '404': response('Error', 'Unknown batch item')}}},
+        '/api/platform/v1/batches/{batch_id}/review-artifacts': {'post': {
+            'operationId': 'publishReviewArtifacts', 'parameters': [parameter('batch_id')],
+            'requestBody': body('ReviewArtifactRequest'),
+            'responses': {'201': response('ProcessingBatch'), '409': response('Error', 'Review or revision conflict')}}},
+        '/api/platform/v1/workspaces/{workspace_id}/artifacts/{bundle_id}': {'get': {
+            'operationId': 'getWorkspaceArtifactBundle',
+            'parameters': [parameter('workspace_id'), parameter('bundle_id')],
+            'description': 'Ready review bundles return bounded metadata; complete history and unresolved items are immutable bundle files. Current status is evaluated against the live batch snapshot.',
+            'responses': {'200': {'description': 'Ready bundle', 'content': {'application/json': {
+                'schema': {'oneOf': [ref('ReviewBundle'), ref('WorkpaperBundle'), ref('ForensicBundle'), {'type': 'object',
+                    'description': 'Existing data, classification or OCR bundle metadata',
+                    'not': {'required': ['kind'], 'properties': {'kind': {'enum': ['batch_review', 'audit_workpaper', 'image_forensics']}}}}]}}}},
+                '404': response('Error', 'Unknown or unpublished bundle')}}},
     })
+    paths.update(audit_paths(ref, response, body, parameter, TodoQuery))
+    paths.update(upload_paths(ref, response, parameter, UploadBinding))
+    paths.update(forensics_paths(ref, response, body, parameter))
     return {"openapi": "3.1.0", "info": {"title": "Workbench adapter protocol", "version": VERSION},
             "paths": paths, "components": {"schemas": definitions}}
 
@@ -216,12 +272,22 @@ def artifacts() -> dict[Path, str]:
             result[ROOT / (NAMES[model.__name__] + ".schema.json")] = dump(model.model_json_schema())
     for model in AUTOMATION_MODELS:
         result[ROOT / ('automation-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
+    for model in AUDIT_MODELS:
+        result[ROOT / ('audit-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
+    for model in UPLOAD_MODELS:
+        result[ROOT / ('upload-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
+    for model in FORENSICS_MODELS:
+        result[ROOT / ("forensics-" + model.__name__.lower() + ".schema.json")] = dump(model.model_json_schema())
     definitions = components()
     result[ROOT / "adapter.openapi.json"] = dump(openapi(definitions))
     result[ROOT / "types.generated.ts"] = render_types(definitions)
     result[ROOT / "examples" / "positive.json"] = dump(POSITIVE)
     result[ROOT / "examples" / "negative.json"] = dump({name: {"model": model, "payload": payload}
                                                           for name, (model, payload) in NEGATIVE.items()})
+    automation_models = {model.__name__: model for model in AUTOMATION_MODELS}
+    result[ROOT / 'examples' / 'automation.json'] = dump({
+        name: automation_models[name].model_validate(value).model_dump()
+        for name, value in AUTOMATION_EXAMPLES.items()})
     return result
 
 

@@ -1,5 +1,154 @@
 {
   "$defs": {
+    "BatchCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Confirmed",
+          "type": "integer"
+        },
+        "deferred": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Deferred",
+          "type": "integer"
+        },
+        "index_complete": {
+          "default": false,
+          "title": "Index Complete",
+          "type": "boolean"
+        },
+        "indexed_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Indexed Items",
+          "type": "integer"
+        },
+        "input_files": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Input Files",
+          "type": "integer"
+        },
+        "left_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Left Rows",
+          "type": "integer"
+        },
+        "next_ordinal": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Next Ordinal",
+          "type": "integer"
+        },
+        "pending": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Pending",
+          "type": "integer"
+        },
+        "required_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Required Items",
+          "type": "integer"
+        },
+        "result_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Result Rows",
+          "type": "integer"
+        },
+        "right_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Right Rows",
+          "type": "integer"
+        },
+        "scanned_results": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Scanned Results",
+          "type": "integer"
+        }
+      },
+      "title": "BatchCoverage",
+      "type": "object"
+    },
+    "BatchDelivery": {
+      "additionalProperties": false,
+      "properties": {
+        "bundle_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bundle Id"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "intermediate",
+                "final"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        },
+        "status": {
+          "default": "none",
+          "enum": [
+            "none",
+            "current",
+            "outdated"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "title": "BatchDelivery",
+      "type": "object"
+    },
     "BatchInput": {
       "additionalProperties": false,
       "properties": {
@@ -127,6 +276,12 @@
       "title": "Artifacts",
       "type": "array"
     },
+    "automation_version": {
+      "const": "2.0",
+      "default": "2.0",
+      "title": "Automation Version",
+      "type": "string"
+    },
     "batch_id": {
       "maxLength": 64,
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
@@ -148,9 +303,15 @@
       "title": "Capabilities",
       "type": "array"
     },
+    "coverage": {
+      "$ref": "#/$defs/BatchCoverage"
+    },
     "created_at": {
       "title": "Created At",
       "type": "string"
+    },
+    "delivery": {
+      "$ref": "#/$defs/BatchDelivery"
     },
     "inputs": {
       "items": {
@@ -177,6 +338,12 @@
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
       "title": "Request Key",
       "type": "string"
+    },
+    "revision": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
     },
     "schema_version": {
       "const": "1.0",

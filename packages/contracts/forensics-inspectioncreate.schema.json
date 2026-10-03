@@ -1,0 +1,59 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "asset_revision": {
+      "minimum": 1,
+      "title": "Asset Revision",
+      "type": "integer"
+    },
+    "blob_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Blob Hash",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "enum": [
+          "metadata",
+          "noise",
+          "frequency",
+          "jpeg",
+          "jpeg_grid",
+          "copy_move"
+        ],
+        "type": "string"
+      },
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Tools",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "asset_id",
+    "asset_revision",
+    "blob_hash",
+    "tools"
+  ],
+  "title": "InspectionCreate",
+  "type": "object"
+}

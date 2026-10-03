@@ -1,0 +1,207 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "cursor": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]{1,256}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cursor"
+    },
+    "disposition": {
+      "anyOf": [
+        {
+          "enum": [
+            "pending",
+            "confirmed",
+            "deferred"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Disposition"
+    },
+    "execution_state": {
+      "anyOf": [
+        {
+          "enum": [
+            "queued",
+            "running",
+            "waiting_input",
+            "waiting_resource",
+            "partial",
+            "succeeded",
+            "failed",
+            "cancelling",
+            "cancelled",
+            "needs_verification"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution State"
+    },
+    "finding_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "draft",
+            "resolved"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Finding Status"
+    },
+    "issue_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "result",
+            "technical",
+            "investigation"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Issue Type"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "issue",
+            "finding"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Kind"
+    },
+    "limit": {
+      "default": 50,
+      "maximum": 200,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "priority": {
+      "anyOf": [
+        {
+          "enum": [
+            "high",
+            "normal",
+            "low"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Priority"
+    },
+    "procedure_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Procedure Id"
+    },
+    "project_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Project Id"
+    },
+    "scenario": {
+      "anyOf": [
+        {
+          "enum": [
+            "data_compare",
+            "classification",
+            "ocr"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "image_forensics",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scenario"
+    },
+    "snapshot_token": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]{1,256}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Token"
+    },
+    "sort": {
+      "default": "priority_then_updated",
+      "enum": [
+        "priority_then_updated",
+        "updated"
+      ],
+      "title": "Sort",
+      "type": "string"
+    }
+  },
+  "title": "TodoQuery",
+  "type": "object"
+}

@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "intermediate",
+        "final"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "review_bundle_ids": {
+      "items": {
+        "maxLength": 64,
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Review Bundle Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "actor",
+    "expected_revision",
+    "kind"
+  ],
+  "title": "WorkpaperRequest",
+  "type": "object"
+}

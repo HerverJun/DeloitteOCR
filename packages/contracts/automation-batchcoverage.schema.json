@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confirmed": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Confirmed",
+      "type": "integer"
+    },
+    "deferred": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Deferred",
+      "type": "integer"
+    },
+    "index_complete": {
+      "default": false,
+      "title": "Index Complete",
+      "type": "boolean"
+    },
+    "indexed_items": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Indexed Items",
+      "type": "integer"
+    },
+    "input_files": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Input Files",
+      "type": "integer"
+    },
+    "left_rows": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Left Rows",
+      "type": "integer"
+    },
+    "next_ordinal": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Next Ordinal",
+      "type": "integer"
+    },
+    "pending": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Pending",
+      "type": "integer"
+    },
+    "required_items": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Required Items",
+      "type": "integer"
+    },
+    "result_rows": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Result Rows",
+      "type": "integer"
+    },
+    "right_rows": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Right Rows",
+      "type": "integer"
+    },
+    "scanned_results": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Scanned Results",
+      "type": "integer"
+    }
+  },
+  "title": "BatchCoverage",
+  "type": "object"
+}

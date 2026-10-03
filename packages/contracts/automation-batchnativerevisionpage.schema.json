@@ -1,0 +1,129 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adoptable": {
+      "title": "Adoptable",
+      "type": "boolean"
+    },
+    "adoption": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Adoption"
+    },
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "current": {
+      "additionalProperties": true,
+      "title": "Current",
+      "type": "object"
+    },
+    "current_revision": {
+      "minimum": 0,
+      "title": "Current Revision",
+      "type": "integer"
+    },
+    "history": {
+      "additionalProperties": true,
+      "title": "History",
+      "type": "object"
+    },
+    "instance_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "item_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Item Id",
+      "type": "string"
+    },
+    "limit": {
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "native_review_qualification": {
+      "enum": [
+        "independent",
+        "native_disposition"
+      ],
+      "title": "Native Review Qualification",
+      "type": "string"
+    },
+    "offset": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Offset",
+      "type": "integer"
+    },
+    "original": {
+      "additionalProperties": true,
+      "title": "Original",
+      "type": "object"
+    },
+    "project_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "scenario": {
+      "enum": [
+        "classification",
+        "ocr"
+      ],
+      "title": "Scenario",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "additionalProperties": true,
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "batch_id",
+    "revision",
+    "item_id",
+    "scenario",
+    "original",
+    "source",
+    "adoption",
+    "instance_id",
+    "project_id",
+    "offset",
+    "limit",
+    "current_revision",
+    "adoptable",
+    "native_review_qualification",
+    "current",
+    "history"
+  ],
+  "title": "BatchNativeRevisionPage",
+  "type": "object"
+}

@@ -132,6 +132,7 @@ class Workspace(Timestamped):
 
 class WorkspaceCreate(Wire):
     name: ShortText
+    request_id: Id | None = None
 
 
 class ModuleProjectLink(Wire):

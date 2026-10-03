@@ -1,0 +1,150 @@
+{
+  "$defs": {
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "confirm",
+        "defer",
+        "reopen",
+        "adopt"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "actor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocalActor"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adoption": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Adoption"
+    },
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "current_state": {
+      "additionalProperties": true,
+      "title": "Current State",
+      "type": "object"
+    },
+    "event_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "item_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Item Id",
+      "type": "string"
+    },
+    "legacy": {
+      "title": "Legacy",
+      "type": "boolean"
+    },
+    "note": {
+      "title": "Note",
+      "type": "string"
+    },
+    "operation_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Operation Id"
+    },
+    "previous_state": {
+      "additionalProperties": true,
+      "title": "Previous State",
+      "type": "object"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Revision"
+    }
+  },
+  "required": [
+    "event_id",
+    "batch_id",
+    "item_id",
+    "operation_id",
+    "revision",
+    "action",
+    "note",
+    "actor",
+    "previous_state",
+    "current_state",
+    "adoption",
+    "legacy",
+    "created_at"
+  ],
+  "title": "BatchHistoryEvent",
+  "type": "object"
+}

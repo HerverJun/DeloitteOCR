@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "content_revision": {
+      "minimum": 1,
+      "title": "Content Revision",
+      "type": "integer"
+    },
+    "entity_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "entity_kind": {
+      "enum": [
+        "project",
+        "procedure",
+        "finding"
+      ],
+      "title": "Entity Kind",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "note": {
+      "default": "",
+      "maxLength": 4000,
+      "title": "Note",
+      "type": "string"
+    },
+    "project_context_revision": {
+      "minimum": 1,
+      "title": "Project Context Revision",
+      "type": "integer"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "role": {
+      "enum": [
+        "prepared",
+        "reviewed"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "actor",
+    "expected_revision",
+    "entity_kind",
+    "entity_id",
+    "content_revision",
+    "project_context_revision",
+    "role"
+  ],
+  "title": "AuditRecordCreate",
+  "type": "object"
+}

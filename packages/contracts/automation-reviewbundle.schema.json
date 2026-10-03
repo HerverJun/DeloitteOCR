@@ -1,0 +1,405 @@
+{
+  "$defs": {
+    "BatchCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Confirmed",
+          "type": "integer"
+        },
+        "deferred": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Deferred",
+          "type": "integer"
+        },
+        "index_complete": {
+          "default": false,
+          "title": "Index Complete",
+          "type": "boolean"
+        },
+        "indexed_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Indexed Items",
+          "type": "integer"
+        },
+        "input_files": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Input Files",
+          "type": "integer"
+        },
+        "left_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Left Rows",
+          "type": "integer"
+        },
+        "next_ordinal": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Next Ordinal",
+          "type": "integer"
+        },
+        "pending": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Pending",
+          "type": "integer"
+        },
+        "required_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Required Items",
+          "type": "integer"
+        },
+        "result_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Result Rows",
+          "type": "integer"
+        },
+        "right_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Right Rows",
+          "type": "integer"
+        },
+        "scanned_results": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Scanned Results",
+          "type": "integer"
+        }
+      },
+      "title": "BatchCoverage",
+      "type": "object"
+    },
+    "BatchInput": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "left",
+            "right",
+            "images",
+            "documents"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "asset_id",
+        "asset_revision",
+        "blob_hash"
+      ],
+      "title": "BatchInput",
+      "type": "object"
+    },
+    "ReviewBundleFile": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "expired",
+            "missing",
+            "corrupt"
+          ],
+          "title": "Availability",
+          "type": "string"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "size_bytes": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "artifact_id",
+        "revision",
+        "media_type",
+        "size_bytes",
+        "availability",
+        "blob_hash"
+      ],
+      "title": "ReviewBundleFile",
+      "type": "object"
+    },
+    "ReviewUnresolvedItem": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "pending",
+            "deferred"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "item_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Item Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "item_id",
+        "category",
+        "disposition",
+        "title"
+      ],
+      "title": "ReviewUnresolvedItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Ready immutable materials plus bounded, current read-time metadata.",
+  "properties": {
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "batch_revision": {
+      "minimum": 1,
+      "title": "Batch Revision",
+      "type": "integer"
+    },
+    "bundle_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Bundle Id",
+      "type": "string"
+    },
+    "coverage": {
+      "$ref": "#/$defs/BatchCoverage"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "delivery_kind": {
+      "enum": [
+        "intermediate",
+        "final"
+      ],
+      "title": "Delivery Kind",
+      "type": "string"
+    },
+    "execution_status": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_input",
+        "waiting_resource",
+        "partial",
+        "succeeded",
+        "failed",
+        "cancelling",
+        "cancelled",
+        "needs_verification"
+      ],
+      "title": "Execution Status",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ReviewBundleFile"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/BatchInput"
+      },
+      "maxItems": 1000,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "kind": {
+      "const": "batch_review",
+      "title": "Kind",
+      "type": "string"
+    },
+    "payload_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Payload Hash",
+      "type": "string"
+    },
+    "pending_operations": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Pending Operations",
+      "type": "integer"
+    },
+    "predecessor_bundle_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Predecessor Bundle Id"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "current",
+        "outdated"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "successor_bundle_ids": {
+      "items": {
+        "maxLength": 64,
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Successor Bundle Ids",
+      "type": "array"
+    },
+    "successor_count": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Successor Count",
+      "type": "integer"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "unresolved_count": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Unresolved Count",
+      "type": "integer"
+    },
+    "unresolved_preview": {
+      "items": {
+        "$ref": "#/$defs/ReviewUnresolvedItem"
+      },
+      "maxItems": 30,
+      "title": "Unresolved Preview",
+      "type": "array"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "bundle_id",
+    "workspace_id",
+    "kind",
+    "batch_id",
+    "batch_revision",
+    "delivery_kind",
+    "predecessor_bundle_id",
+    "successor_bundle_ids",
+    "successor_count",
+    "status",
+    "request_id",
+    "payload_hash",
+    "snapshot_hash",
+    "title",
+    "created_at",
+    "files",
+    "inputs",
+    "coverage",
+    "unresolved_count",
+    "unresolved_preview",
+    "execution_status",
+    "pending_operations"
+  ],
+  "title": "ReviewBundle",
+  "type": "object"
+}

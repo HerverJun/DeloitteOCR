@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "intermediate",
+        "final"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "expected_revision",
+    "actor",
+    "kind"
+  ],
+  "title": "ReviewArtifactRequest",
+  "type": "object"
+}

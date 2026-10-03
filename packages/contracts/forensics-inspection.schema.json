@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "InspectionFile": {
+      "additionalProperties": false,
+      "properties": {
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "name",
+        "sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "title": "InspectionFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "asset_revision": {
+      "minimum": 1,
+      "title": "Asset Revision",
+      "type": "integer"
+    },
+    "blob_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Blob Hash",
+      "type": "string"
+    },
+    "created_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Created At",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/InspectionFile"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "inspection_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Inspection Id",
+      "type": "string"
+    },
+    "original_name": {
+      "title": "Original Name",
+      "type": "string"
+    },
+    "report": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Report"
+    },
+    "report_hash": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Report Hash"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "review": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Review"
+    },
+    "review_history": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Review History",
+      "type": "array"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "partial",
+        "failed",
+        "needs_verification"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "enum": [
+          "metadata",
+          "noise",
+          "frequency",
+          "jpeg",
+          "jpeg_grid",
+          "copy_move"
+        ],
+        "type": "string"
+      },
+      "title": "Tools",
+      "type": "array"
+    },
+    "updated_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "inspection_id",
+    "workspace_id",
+    "request_id",
+    "revision",
+    "asset_id",
+    "asset_revision",
+    "blob_hash",
+    "original_name",
+    "tools",
+    "status",
+    "error",
+    "report_hash",
+    "report",
+    "files",
+    "review",
+    "review_history",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "Inspection",
+  "type": "object"
+}

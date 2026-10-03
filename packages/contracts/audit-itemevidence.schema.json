@@ -1,0 +1,588 @@
+{
+  "$defs": {
+    "EvidenceField": {
+      "additionalProperties": false,
+      "properties": {
+        "delta": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta"
+        },
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "equal",
+            "different",
+            "within_tolerance",
+            "outside_tolerance",
+            "unmatched",
+            "ambiguous",
+            "adopted",
+            "unadopted",
+            "unknown"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "rule_kind": {
+          "enum": [
+            "exact",
+            "text",
+            "amount",
+            "native_revision",
+            "unmatched",
+            "ambiguous",
+            "technical",
+            "unknown"
+          ],
+          "title": "Rule Kind",
+          "type": "string"
+        },
+        "tolerance": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tolerance"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/EvidenceValue"
+          },
+          "maxItems": 5,
+          "title": "Values",
+          "type": "array"
+        },
+        "within_tolerance": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Within Tolerance"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "rule_kind",
+        "outcome"
+      ],
+      "title": "EvidenceField",
+      "type": "object"
+    },
+    "EvidenceValue": {
+      "additionalProperties": false,
+      "description": "Literal source values; integer/decimal/formula strings stay strings.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "null",
+            "text",
+            "decimal",
+            "integer",
+            "boolean",
+            "date",
+            "error",
+            "unknown_formula",
+            "unknown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "maxLength": 40000,
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        },
+        "role": {
+          "enum": [
+            "left",
+            "right",
+            "original",
+            "adopted",
+            "manual"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "row_id": {
+          "anyOf": [
+            {
+              "pattern": "^r[a-f0-9]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Row Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLocator"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "table_revision": {
+          "anyOf": [
+            {
+              "pattern": "^v[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Revision"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maxLength": 40000,
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "role",
+        "kind",
+        "raw",
+        "value",
+        "source"
+      ],
+      "title": "EvidenceValue",
+      "type": "object"
+    },
+    "SourceLocator": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "box": {
+          "anyOf": [
+            {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Box"
+        },
+        "column_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Column Number"
+        },
+        "coordinate_space": {
+          "anyOf": [
+            {
+              "enum": [
+                "image_pixels",
+                "normalized"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordinate Space"
+        },
+        "image_version_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Version Id"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "page",
+            "table",
+            "cell",
+            "row",
+            "region"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "page_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Number"
+        },
+        "precision": {
+          "enum": [
+            "exact",
+            "approximate",
+            "page_only",
+            "unknown"
+          ],
+          "title": "Precision",
+          "type": "string"
+        },
+        "row_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Row Number"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet Name"
+        },
+        "table_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Number"
+        },
+        "transform_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transform Revision"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "asset_id",
+        "asset_revision",
+        "blob_hash",
+        "precision"
+      ],
+      "title": "SourceLocator",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "adoption_operation_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Adoption Operation Id"
+    },
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "batch_revision": {
+      "minimum": 1,
+      "title": "Batch Revision",
+      "type": "integer"
+    },
+    "config_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/$defs/EvidenceField"
+      },
+      "maxItems": 256,
+      "title": "Fields",
+      "type": "array"
+    },
+    "issue_type": {
+      "enum": [
+        "result",
+        "technical"
+      ],
+      "title": "Issue Type",
+      "type": "string"
+    },
+    "item_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Item Id",
+      "type": "string"
+    },
+    "native_context_available": {
+      "title": "Native Context Available",
+      "type": "boolean"
+    },
+    "native_revision": {
+      "anyOf": [
+        {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Native Revision"
+    },
+    "native_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Native Version Id"
+    },
+    "result_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Result Id"
+    },
+    "rule_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Rule Hash",
+      "type": "string"
+    },
+    "rule_summary": {
+      "maxLength": 4000,
+      "title": "Rule Summary",
+      "type": "string"
+    },
+    "scenario": {
+      "enum": [
+        "data_compare",
+        "classification",
+        "ocr"
+      ],
+      "title": "Scenario",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "source_count": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Source Count",
+      "type": "integer"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceLocator"
+      },
+      "maxItems": 10,
+      "title": "Sources",
+      "type": "array"
+    },
+    "template_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Template Id",
+      "type": "string"
+    },
+    "template_version": {
+      "minimum": 1,
+      "title": "Template Version",
+      "type": "integer"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "workspace_id",
+    "batch_id",
+    "item_id",
+    "batch_revision",
+    "scenario",
+    "issue_type",
+    "snapshot_hash",
+    "template_id",
+    "template_version",
+    "config_hash",
+    "result_id",
+    "native_version_id",
+    "native_revision",
+    "adoption_operation_id",
+    "rule_summary",
+    "rule_hash",
+    "fields",
+    "sources",
+    "source_count",
+    "native_context_available"
+  ],
+  "title": "ItemEvidence",
+  "type": "object"
+}

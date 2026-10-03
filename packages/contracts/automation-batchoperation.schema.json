@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "operation_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Operation Id",
+      "type": "string"
+    },
+    "payload_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Payload Hash",
+      "type": "string"
+    },
+    "receipt": {
+      "additionalProperties": true,
+      "title": "Receipt",
+      "type": "object"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "intent",
+        "native_committed",
+        "committed",
+        "needs_verification"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation_id",
+    "batch_id",
+    "request_id",
+    "payload_hash",
+    "expected_revision",
+    "actor",
+    "state",
+    "receipt",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "BatchOperation",
+  "type": "object"
+}
