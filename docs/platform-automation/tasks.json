@@ -1,0 +1,2569 @@
+{
+  "schema_version": 1,
+  "plan_id": "professional-workbench-v1",
+  "revision": 11,
+  "created": "2026-09-25",
+  "scope": "Develop a Windows local multi-application platform with OCR, classification and an independent tabular workbench.",
+  "status": "planned_not_started",
+  "references": {
+    "playbook": "README.md",
+    "contracts": "contracts.md",
+    "checks": "checks.json",
+    "architecture": "../多功能作业平台开发方案-20260925.md"
+  },
+  "repositories": {
+    "ocr": {
+      "default_root": "C:/Users/A/Desktop/OCR",
+      "existing": true
+    },
+    "classification": {
+      "default_root": "E:/project/image-classification-platform",
+      "existing": true
+    },
+    "platform": {
+      "default_root": "E:/project/professional-workbench-platform",
+      "existing": false
+    }
+  },
+  "execution": {
+    "default_executor": "single_agent",
+    "subagents_required": false,
+    "stage_approval_required": false,
+    "start_condition": "本次制定方法；未来收到用户启动实施的指令后开始。该文件本身不触发开发、调度或授权。",
+    "state_values": [
+      "pending",
+      "running",
+      "verifying",
+      "done",
+      "blocked",
+      "failed"
+    ],
+    "maximum_active_tasks": 1,
+    "selection": "Verified dependencies then ascending priority; missing resources block only dependent tasks.",
+    "unchanged_failure_attempt_limit": 2,
+    "checkpoint_minutes": 30,
+    "production_data_mutation": false,
+    "external_paid_api_required": false,
+    "status_note": "Only run state carries per-task status; the task plan is immutable within a run.",
+    "authorization_note": "阶段完成后不再次索取已获授权的实施许可；只有确需新增范围/付费外发/破坏性生产操作且会话未授权时提出具体问题。"
+  },
+  "resources": [
+    "source",
+    "python",
+    "node",
+    "browser",
+    "ocr_runtime",
+    "classification_runtime",
+    "ocr_bundle",
+    "gpu",
+    "clean_windows",
+    "candidate_transfer",
+    "business_samples",
+    "business_reviewer"
+  ],
+  "phases": [
+    {
+      "id": "P0",
+      "title": "基线与契约"
+    },
+    {
+      "id": "P1",
+      "title": "统一门户"
+    },
+    {
+      "id": "P2",
+      "title": "模块适配与资源"
+    },
+    {
+      "id": "P3",
+      "title": "资料与成果"
+    },
+    {
+      "id": "P4",
+      "title": "数据工作台"
+    },
+    {
+      "id": "P5",
+      "title": "交付与资格"
+    }
+  ],
+  "gates": [
+    {
+      "id": "portal_ready",
+      "tasks": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006",
+        "T010",
+        "T011",
+        "T012",
+        "T013",
+        "T014",
+        "T015",
+        "T016",
+        "T017"
+      ],
+      "meaning": "入口、导航和基线已验证，不代表跨模块处理和GPU验收。"
+    },
+    {
+      "id": "engineering_ready",
+      "tasks": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006",
+        "T010",
+        "T011",
+        "T012",
+        "T013",
+        "T014",
+        "T015",
+        "T016",
+        "T017",
+        "T020",
+        "T021",
+        "T022",
+        "T023",
+        "T024",
+        "T025",
+        "T026",
+        "T027",
+        "T028",
+        "T030",
+        "T031",
+        "T032",
+        "T033",
+        "T034",
+        "T035",
+        "T036",
+        "T037",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044",
+        "T045",
+        "T046",
+        "T047",
+        "T050",
+        "T051",
+        "T052",
+        "T056",
+        "T057"
+      ],
+      "meaning": "本机CPU/协议/打包与恢复工程完成；未取得的硬件或业务资格单列。"
+    },
+    {
+      "id": "device_qualified",
+      "tasks": [
+        "T053",
+        "T054",
+        "T056",
+        "T057"
+      ],
+      "requires_gates": [
+        "engineering_ready"
+      ],
+      "meaning": "真实GPU、不同设备离线/搬迁和回退均已验证。"
+    },
+    {
+      "id": "business_qualified",
+      "tasks": [
+        "T055"
+      ],
+      "requires_gates": [
+        "engineering_ready"
+      ],
+      "meaning": "已冻结的业务范围通过，不外推其他场景。"
+    },
+    {
+      "id": "v1_qualified",
+      "tasks": [],
+      "requires_gates": [
+        "engineering_ready",
+        "device_qualified",
+        "business_qualified"
+      ],
+      "meaning": "首版声明范围内所有要求完成。"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "phase": "P0",
+      "title": "盘点三仓位置、现有改动和可用运行时",
+      "priority": 1,
+      "depends_on": [],
+      "write_scopes": {
+        "ocr": [
+          "docs/platform-automation/"
+        ],
+        "platform": [],
+        "classification": []
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "baseline/inventory.json"
+        },
+        {
+          "repo": "run",
+          "path": "baseline/repositories.json"
+        }
+      ],
+      "required_checks": [
+        "inventory"
+      ],
+      "resources": [
+        "source"
+      ],
+      "steps": [
+        "记录两仓 HEAD、dirty 文件内容摘要及已有包身份，发现运行时和测试入口。",
+        "检测目标平台路径是否存在、当前服务与端口；生成不含凭据的资源清单。"
+      ],
+      "acceptance": [
+        "既有用户改动与会话产生改动可区分；不把历史测试回执当成本次通过。",
+        "没有运行时或第三台设备可记缺口，资产身份与路径盘点仍能完成。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T002",
+      "phase": "P0",
+      "title": "创建独立平台工程与隔离运行目录",
+      "priority": 2,
+      "depends_on": [
+        "T001"
+      ],
+      "write_scopes": {
+        "platform": [
+          ".gitignore",
+          "pyproject.toml",
+          "apps/portal/",
+          "src/workbench_platform/",
+          "tests/",
+          "scripts/",
+          "docs/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "pyproject.toml"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/package.json"
+        },
+        {
+          "repo": "platform",
+          "path": "docs/environment.md"
+        }
+      ],
+      "required_checks": [
+        "platform_unit",
+        "portal_build"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "node"
+      ],
+      "steps": [
+        "在独立 codex/ 分支或工作树建立平台工程；数据和测试工作区放运行目录。",
+        "验证新门户候选依赖后锁版本，提供最小健康服务及真实构建，不移植两个应用环境。"
+      ],
+      "acceptance": [
+        "基础 API 单测与门户构建通过；锁定可重现的 Node/Python 依赖。",
+        "新目标路径非空时先识别已有项目并保留，不覆盖现有工程。"
+      ],
+      "max_attempts": 5,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T003",
+      "phase": "P0",
+      "title": "建立现有应用可重复回归基线",
+      "priority": 3,
+      "depends_on": [
+        "T001"
+      ],
+      "write_scopes": {
+        "ocr": [],
+        "classification": []
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "baseline/ocr-regression.json"
+        },
+        {
+          "repo": "run",
+          "path": "baseline/classification-regression.json"
+        }
+      ],
+      "required_checks": [
+        "ocr_cpu",
+        "classification_cpu"
+      ],
+      "resources": [
+        "source",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "使用发现的独立 Python 与临时数据目录跑既有 CPU/逻辑套件。",
+        "记录已存在失败的可重复反例和源码绑定；新增改动不得增加失败。"
+      ],
+      "acceptance": [
+        "两套回归须通过才标完成；历史失败登记不等于通过。",
+        "业务数据、模型包、真实 API 凭据不进入测试目录或日志。"
+      ],
+      "max_attempts": 9,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T004",
+      "phase": "P0",
+      "title": "冻结应用、资料、任务及错误契约",
+      "priority": 4,
+      "depends_on": [
+        "T002"
+      ],
+      "write_scopes": {
+        "platform": [
+          "packages/contracts/",
+          "tests/contract/",
+          "docs/adr/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "packages/contracts/app-manifest.schema.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/adapter.openapi.json"
+        },
+        {
+          "repo": "platform",
+          "path": "docs/adr/0001-module-boundaries.md"
+        }
+      ],
+      "required_checks": [
+        "contracts"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "按 contracts.md 定义版本化 JSON Schema/OpenAPI 和正反例。",
+        "确认 capability、项目映射、幂等、版本冲突、部分完成及定位降级语义。"
+      ],
+      "acceptance": [
+        "未知字段、伪造路径、旧修订和不支持操作的负例通过。",
+        "spec 由可验证 schema 生成或双向核对，UI 不另造一套状态含义。"
+      ],
+      "max_attempts": 4,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T005",
+      "phase": "P0",
+      "title": "准备可公开复现的隔离夹具",
+      "priority": 5,
+      "depends_on": [
+        "T002"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/fixtures/",
+          "scripts/fixtures/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/fixtures/manifest.json"
+        },
+        {
+          "repo": "platform",
+          "path": "scripts/fixtures/build_fixtures.py"
+        }
+      ],
+      "required_checks": [
+        "fixtures"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "生成可重现图片、PDF、XLSX、CSV、Parquet 所需夹具；记录公开素材来源与许可。",
+        "覆盖同字节不同来源、源文件变化、长编号、公式缓存缺失、重复键和 Unicode 路径。"
+      ],
+      "acceptance": [
+        "每个夹具有明确真值与哈希；合成和真实公开材料分开标识。",
+        "不要求用户先提供私密业务样本，不以合成样例承诺业务准确率。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T006",
+      "phase": "P0",
+      "title": "建立检查执行器与证据回执格式",
+      "priority": 6,
+      "depends_on": [
+        "T002",
+        "T004",
+        "T005"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/",
+          "tests/harness/",
+          "docs/automation/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "scripts/run_check.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/harness/test_receipts.py"
+        }
+      ],
+      "required_checks": [
+        "harness"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "实现通用检查执行器、参数解析、进程所有权和不可覆盖日志；各业务检查入口由声明的 producer_task 实现。",
+        "将任务输入/输出摘要绑定到检查回执，区分模拟、真实 CPU、GPU 和目标设备证据。"
+      ],
+      "acceptance": [
+        "命令退出零但断言失败、子进程未退出、输出缺失均不能给 passed。",
+        "超时只终止本次拥有的进程；失败与后续成功使用不同 attempt 目录。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T010",
+      "phase": "P1",
+      "title": "平台元数据与工作空间映射",
+      "priority": 7,
+      "depends_on": [
+        "T002",
+        "T004"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/store/",
+          "tests/unit/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/store/workspaces.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/unit/test_workspaces.py"
+        }
+      ],
+      "required_checks": [
+        "platform_unit"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "建立 SQLite 迁移与 Workspace/ModuleProjectLink 存取。",
+        "支持一个平台工作空间关联多个分类项目，并保存模块 ID 与实际项目 ID。"
+      ],
+      "acceptance": [
+        "同名项目不会自动合并；旧 schema 与未来 schema 处理明确。",
+        "事务失败不留下半条项目映射，迁移备份可恢复。"
+      ],
+      "max_attempts": 5,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T011",
+      "phase": "P1",
+      "title": "应用注册、能力与健康 API",
+      "priority": 8,
+      "depends_on": [
+        "T010",
+        "T004"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/catalog/",
+          "config/apps/",
+          "tests/contract/",
+          "src/workbench_platform/app.py",
+          "tests/unit/test_health.py"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/catalog/registry.py"
+        },
+        {
+          "repo": "platform",
+          "path": "config/apps/ocr.json"
+        },
+        {
+          "repo": "platform",
+          "path": "config/apps/classification.json"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/app.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/unit/test_health.py"
+        }
+      ],
+      "required_checks": [
+        "contracts",
+        "platform_unit"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "只加载受信安装记录对应的 manifest，注册能力和输入输出类型。",
+        "区分界面就绪、模型缺失、GPU 等待和服务不可达。"
+      ],
+      "acceptance": [
+        "打开首页不加载模型；缺一个应用不影响其他应用。",
+        "用户上传文件不能指定任意启动命令或代理目标。"
+      ],
+      "max_attempts": 4,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T012",
+      "phase": "P1",
+      "title": "动态启动、服务发现与受管退出",
+      "priority": 9,
+      "depends_on": [
+        "T011",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/supervisor/",
+          "tests/integration/test_supervisor.py"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/supervisor/processes.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_supervisor.py"
+        }
+      ],
+      "required_checks": [
+        "supervisor"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "记录启动请求、PID/创建时间、健康握手和动态端口，处理端口占用竞争。",
+        "区分平台拥有与发现的外部服务；按所有权清理进程树。"
+      ],
+      "acceptance": [
+        "同一启动请求不产生两个服务；就绪响应属于实际启动的应用。",
+        "不能因端口相同就接管或杀死其他线程、用户应用进程。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T013",
+      "phase": "P1",
+      "title": "门户导航、主题与服务器状态层",
+      "priority": 10,
+      "depends_on": [
+        "T002",
+        "T004"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/",
+          "packages/ui/",
+          "apps/portal/tests/",
+          "apps/portal/package.json",
+          "apps/portal/pnpm-lock.yaml",
+          "packages/contracts/",
+          "tests/contract/",
+          "docs/adr/0001-module-boundaries.md",
+          "src/workbench_platform/workspaces/",
+          "src/workbench_platform/app.py",
+          "tests/unit/",
+          "docs/environment.md"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/router.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/App.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/package.json"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/pnpm-lock.yaml"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/main.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/tests/navigation.test.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/models.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/generate.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/examples.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/workspace-page.schema.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/workspace-create.schema.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/adapter.openapi.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/types.generated.ts"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/contract/test_contracts.py"
+        },
+        {
+          "repo": "platform",
+          "path": "docs/adr/0001-module-boundaries.md"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/workspaces/__init__.py"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/workspaces/routes.py"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/app.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/unit/test_workspaces_api.py"
+        },
+        {
+          "repo": "platform",
+          "path": "docs/environment.md"
+        }
+      ],
+      "required_checks": [
+        "portal_build",
+        "portal_unit"
+      ],
+      "resources": [
+        "source",
+        "node"
+      ],
+      "steps": [
+        "建立 Router、Query、工作空间上下文与 Ant Design 主题。",
+        "划分首页、应用、资料、任务、成果、设置路由及加载/空/错误状态。"
+      ],
+      "acceptance": [
+        "深链接和浏览器前进后退有效；查询缓存以工作空间和应用隔离。",
+        "没有实际功能的页面不呈现可用操作和伪造成功统计。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T014",
+      "phase": "P1",
+      "title": "应用卡片与最近工作",
+      "priority": 11,
+      "depends_on": [
+        "T011",
+        "T012",
+        "T013"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/catalog/",
+          "apps/portal/tests/",
+          "src/workbench_platform/catalog/",
+          "src/workbench_platform/app.py",
+          "packages/contracts/generate.py",
+          "packages/contracts/adapter.openapi.json",
+          "tests/contract/",
+          "tests/integration/test_app_launch.py",
+          "apps/portal/src/App.tsx",
+          "apps/portal/src/style.css",
+          "packages/contracts/models.py",
+          "packages/contracts/examples.py",
+          "packages/contracts/types.generated.ts",
+          "packages/contracts/recent-work.schema.json",
+          "packages/contracts/recent-work-page.schema.json",
+          "packages/contracts/examples/positive.json",
+          "packages/contracts/examples/negative.json",
+          "src/workbench_platform/bridge/routes.py",
+          "tests/integration/test_bridge_auth.py"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/features/catalog/ApplicationCards.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/catalog/launch.py"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/catalog/recent.py"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/app.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/generate.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/adapter.openapi.json"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/contract/test_contracts.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_app_launch.py"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/App.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/style.css"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/tests/catalog.test.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/models.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/examples.py"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/types.generated.ts"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/recent-work.schema.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/recent-work-page.schema.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/examples/positive.json"
+        },
+        {
+          "repo": "platform",
+          "path": "packages/contracts/examples/negative.json"
+        },
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/bridge/routes.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_bridge_auth.py"
+        }
+      ],
+      "required_checks": [
+        "portal_unit",
+        "portal_build",
+        "catalog_launch"
+      ],
+      "resources": [
+        "source",
+        "node"
+      ],
+      "steps": [
+        "显示真实应用状态、可用能力和继续上次工作入口。",
+        "提供无需先创建项目的直接工具入口，固定错误后的恢复动作。"
+      ],
+      "acceptance": [
+        "卡片点击打开已发现的真实地址，不硬编码 8765。",
+        "加载失败可定位原因，缺包不伪装为应用正常。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T015",
+      "phase": "P1",
+      "title": "OCR 平台进入与返回导航",
+      "priority": 12,
+      "depends_on": [
+        "T003",
+        "T004",
+        "T012",
+        "T013"
+      ],
+      "write_scopes": {
+        "ocr": [
+          "frontend/src/",
+          "src/ocr_workbench/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/ocr/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "ocr",
+          "path": "frontend/src/platformNavigation.ts"
+        },
+        {
+          "repo": "platform",
+          "path": "adapters/ocr/navigation.py"
+        }
+      ],
+      "required_checks": [
+        "ocr_cpu",
+        "ocr_frontend",
+        "adapter_navigation"
+      ],
+      "resources": [
+        "source",
+        "ocr_runtime",
+        "node"
+      ],
+      "steps": [
+        "增加显式平台启动上下文和受限返回入口，复用现有会话认证。",
+        "保留独立启动、草稿保护与 CSP；只交接受控 ID，不传递凭据明文。"
+      ],
+      "acceptance": [
+        "旧工作台独立启动仍可用；返回平台不会丢失编辑草稿。",
+        "首期不修改 frame-ancestors 为任意来源，不为嵌入删除原防护。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T016",
+      "phase": "P1",
+      "title": "分类平台进入与返回导航",
+      "priority": 13,
+      "depends_on": [
+        "T003",
+        "T004",
+        "T012",
+        "T013"
+      ],
+      "write_scopes": {
+        "classification": [
+          "apps/web/src/",
+          "src/image_platform/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/classification/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "classification",
+          "path": "apps/web/src/platformNavigation.ts"
+        },
+        {
+          "repo": "platform",
+          "path": "adapters/classification/navigation.py"
+        }
+      ],
+      "required_checks": [
+        "classification_cpu",
+        "classification_frontend",
+        "classification_navigation"
+      ],
+      "resources": [
+        "source",
+        "classification_runtime",
+        "node"
+      ],
+      "steps": [
+        "增加类别项目映射、选中资料上下文及返回门户导航。",
+        "保留独立 URL 和原有训练/分类界面，状态与路由恢复不修改标签集。"
+      ],
+      "acceptance": [
+        "不会把平台工作空间 ID 误当分类项目 ID。",
+        "独立运行和刷新恢复通过，未标注与预测标签语义保持原有区分。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T017",
+      "phase": "P1",
+      "title": "入口版真实浏览器验收",
+      "priority": 14,
+      "depends_on": [
+        "T014",
+        "T015",
+        "T016",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/e2e/",
+          "docs/acceptance/"
+        ],
+        "ocr": [
+          "src/ocr_workbench/service.py"
+        ],
+        "classification": [
+          "src/image_platform/api.py",
+          "src/image_platform/cli.py"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/e2e/platform-navigation.mjs"
+        },
+        {
+          "repo": "run",
+          "path": "portal/acceptance.json"
+        },
+        {
+          "repo": "ocr",
+          "path": "src/ocr_workbench/service.py"
+        },
+        {
+          "repo": "classification",
+          "path": "src/image_platform/api.py"
+        },
+        {
+          "repo": "classification",
+          "path": "src/image_platform/cli.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/e2e/platform_server.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/e2e/package.json"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/e2e/package-lock.json"
+        }
+      ],
+      "required_checks": [
+        "portal_e2e"
+      ],
+      "resources": [
+        "source",
+        "node",
+        "browser",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "在隔离数据与实际 HTTP 服务上验证两张卡、切换工作空间、返回、刷新和失联。",
+        "外部 Chromium/Edge 禁 GPU 截图；保存截图、下载读回和页面错误。",
+        "实际原生服务实现受管动态端口 READY 与身份握手；测试夹具不得伪造身份路由。"
+      ],
+      "acceptance": [
+        "测试完成关闭自己创建的浏览器与服务；无控制台未处理错误。",
+        "模拟 API 页面测试不能替代本任务的真实服务导航验收。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T020",
+      "phase": "P2",
+      "title": "本机适配通道与上下文验证",
+      "priority": 15,
+      "depends_on": [
+        "T004",
+        "T011",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/bridge/",
+          "tests/contract/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/bridge/context.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_bridge_auth.py"
+        }
+      ],
+      "required_checks": [
+        "bridge"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "绑定注册服务身份、工作空间授权上下文、nonce 和有效期。",
+        "校验回环地址、Origin、已登记目标及重放；模块认证通过适配器传递。"
+      ],
+      "acceptance": [
+        "未注册目标、过期上下文、跨工作空间请求被拒绝。",
+        "不能把分类写请求头当作多人身份，也不能自动对外发送项目内容。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T021",
+      "phase": "P2",
+      "title": "OCR 能力、任务和成果适配器",
+      "priority": 16,
+      "depends_on": [
+        "T015",
+        "T020"
+      ],
+      "write_scopes": {
+        "platform": [
+          "adapters/ocr/",
+          "tests/adapters/"
+        ],
+        "ocr": [
+          "src/ocr_workbench/",
+          "tests/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "adapters/ocr/adapter.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/adapters/test_ocr.py"
+        }
+      ],
+      "required_checks": [
+        "adapters",
+        "ocr_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime"
+      ],
+      "steps": [
+        "映射 OCR/原生提取/导出能力与真实任务 ID。",
+        "实现状态、取消、原件定位和成果列表，明确仅校对模式能力。"
+      ],
+      "acceptance": [
+        "入队不表示成功；部分结果保留未完成清单。",
+        "无可靠单元格框时保留原图或表级定位，不生成等分框。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T022",
+      "phase": "P2",
+      "title": "分类能力、任务和成果适配器",
+      "priority": 17,
+      "depends_on": [
+        "T016",
+        "T020"
+      ],
+      "write_scopes": {
+        "platform": [
+          "adapters/classification/",
+          "tests/adapters/"
+        ],
+        "classification": [
+          "src/image_platform/",
+          "tests/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "adapters/classification/adapter.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/adapters/test_classification.py"
+        }
+      ],
+      "required_checks": [
+        "classification_adapter",
+        "classification_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "classification_runtime"
+      ],
+      "steps": [
+        "映射标注、训练、推理、数据版本、模型和人工复核状态。",
+        "按任务类型声明 pause/resume/retry，不隐藏训练中断需要新任务的事实。"
+      ],
+      "acceptance": [
+        "原始预测和当前人工标签不混写为同一字段。",
+        "不支持训练断点续跑时不向 UI 暴露可成功执行的恢复按钮。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T023",
+      "phase": "P2",
+      "title": "跨进程资源协调器及故障模型",
+      "priority": 18,
+      "depends_on": [
+        "T012",
+        "T004",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/resources/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/resources/gpu.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_gpu_coordinator.py"
+        }
+      ],
+      "required_checks": [
+        "gpu_sim"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "实现持有者身份、generation、心跳、排队和释放确认。",
+        "用可控进程模拟重复申请、协调器重启、失联旧 owner 和子进程残留。"
+      ],
+      "acceptance": [
+        "过期租约不会单独触发第二份 GPU 所有权。",
+        "旧 generation 不能提交释放新 owner 或越权杀进程。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T024",
+      "phase": "P2",
+      "title": "接入 OCR 全部 GPU 加载入口",
+      "priority": 19,
+      "depends_on": [
+        "T021",
+        "T023",
+        "T003"
+      ],
+      "write_scopes": {
+        "ocr": [
+          "src/ocr_workbench/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/ocr/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "ocr",
+          "path": "src/ocr_workbench/platform_resources.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_ocr_resource_hooks.py"
+        }
+      ],
+      "required_checks": [
+        "gpu_ocr_hooks",
+        "ocr_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime"
+      ],
+      "steps": [
+        "在识别、引擎维护自检和允许的 CLI 路径加载模型前取得资源。",
+        "独立旧包使用显式兼容策略；网络审校和 CPU 操作不占 GPU。"
+      ],
+      "acceptance": [
+        "入口覆盖清单逐项有可执行验证；只改首页按钮不能完成。",
+        "实际 GPU 释放效果留给 T053，本任务模拟/CPU 证据不替代真实设备证据。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T025",
+      "phase": "P2",
+      "title": "接入分类训练和推理 GPU 入口",
+      "priority": 20,
+      "depends_on": [
+        "T022",
+        "T023",
+        "T003"
+      ],
+      "write_scopes": {
+        "classification": [
+          "src/image_platform/",
+          "scripts/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/classification/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "classification",
+          "path": "src/image_platform/platform_resources.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_classification_resource_hooks.py"
+        }
+      ],
+      "required_checks": [
+        "gpu_classification_hooks",
+        "classification_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "classification_runtime"
+      ],
+      "steps": [
+        "训练、ONNX GPU session、验证/导出检查和允许 CLI 路径统一资源取得顺序。",
+        "处理 session 缓存与取消后的释放；CPU 显式执行不争用 GPU。"
+      ],
+      "acceptance": [
+        "GPU 会话保留时不能先报告释放，再让 OCR 加载。",
+        "资源失联不会静默降到 CPU 或自动重启已完成任务。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T026",
+      "phase": "P2",
+      "title": "任务状态投影与事件恢复",
+      "priority": 21,
+      "depends_on": [
+        "T010",
+        "T004",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/jobs/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/jobs/projection.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_job_projection.py"
+        }
+      ],
+      "required_checks": [
+        "jobs"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "保存原生任务引用、单调序列与计数，统一 UI 状态投影。",
+        "SSE/轮询重连从持久状态核实，失联显示 unknown 而非成功。"
+      ],
+      "acceptance": [
+        "旧事件不能覆盖新终态；部分完成保留 failed/unprocessed 数量。",
+        "平台数据库记录不是原生任务完成的替代权威。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T027",
+      "phase": "P2",
+      "title": "任务中心与能力驱动控制",
+      "priority": 22,
+      "depends_on": [
+        "T026",
+        "T013"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/jobs/",
+          "apps/portal/tests/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/features/jobs/TaskCenter.tsx"
+        }
+      ],
+      "required_checks": [
+        "portal_unit",
+        "portal_build"
+      ],
+      "resources": [
+        "source",
+        "node"
+      ],
+      "steps": [
+        "显示任务来源、阶段、等待 GPU 原因和原生错误。",
+        "按钮依据实际 capability 和状态，提交与响应不明时有明确反馈。"
+      ],
+      "acceptance": [
+        "取消请求已发送不能立即显示所有 worker 已停止。",
+        "用户刷新后计数、错误和可用操作可恢复。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T028",
+      "phase": "P2",
+      "title": "跨模块恢复与取消故障注入",
+      "priority": 23,
+      "depends_on": [
+        "T024",
+        "T025",
+        "T026",
+        "T027"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/integration/",
+          "tests/e2e/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_cross_module_recovery.py"
+        }
+      ],
+      "required_checks": [
+        "recovery"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "在提交前/后、回执丢失、owner 变更和进程退出窗口注入确定性故障。",
+        "复核恢复不会重写人工修改，取消不影响复用任务和其他用户进程。"
+      ],
+      "acceptance": [
+        "受控反例在修复前失败、修复后通过；保留每次 attempt 日志。",
+        "仅关闭页面不算取消；任务完成必须回查实际账本。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T030",
+      "phase": "P3",
+      "title": "资料登记与受控文件访问",
+      "priority": 24,
+      "depends_on": [
+        "T010",
+        "T004",
+        "T005"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/assets/",
+          "tests/unit/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/assets/registry.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/unit/test_asset_identity.py"
+        }
+      ],
+      "required_checks": [
+        "assets"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "分别定义资产来源身份、blob 内容哈希、引用与托管模式。",
+        "限制目录根、规范路径、检测链接越界、文件变化及引用丢失。"
+      ],
+      "acceptance": [
+        "同内容不同来源保留两个 asset；内容去重不吞来源。",
+        "源文件更改后不得继续以原哈希提交处理。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T031",
+      "phase": "P3",
+      "title": "不可变资料集与源定位",
+      "priority": 25,
+      "depends_on": [
+        "T030",
+        "T004"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/assets/",
+          "tests/contract/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/assets/sets.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/contract/test_source_locators.py"
+        }
+      ],
+      "required_checks": [
+        "assets",
+        "contracts",
+        "source_locators"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "固定资料集 revision、条目顺序、来源定位和处理派生关系。",
+        "实现页、表、行列和图像版本定位的规范化读写。"
+      ],
+      "acceptance": [
+        "模型更新与后续编辑不会改写旧资料集输入身份。",
+        "来源定位精度有明确类型，不能把近似位置标为精确。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T032",
+      "phase": "P3",
+      "title": "OCR 持久幂等导入端点",
+      "priority": 26,
+      "depends_on": [
+        "T021",
+        "T031"
+      ],
+      "write_scopes": {
+        "ocr": [
+          "src/ocr_workbench/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/ocr/",
+          "tests/adapters/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "ocr",
+          "path": "src/ocr_workbench/platform_imports.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/adapters/test_ocr_import.py"
+        }
+      ],
+      "required_checks": [
+        "handoff_ocr",
+        "ocr_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime"
+      ],
+      "steps": [
+        "持久化接收请求键、规范 payload hash 和逐项导入映射。",
+        "提供按请求键核实状态的接口，已成功条目不重复导入。"
+      ],
+      "acceptance": [
+        "同键同 payload 返回原回执；同键不同 payload 返回冲突。",
+        "进程在目标接受后强退，恢复能核实已接收部分。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T033",
+      "phase": "P3",
+      "title": "分类持久幂等导入端点",
+      "priority": 27,
+      "depends_on": [
+        "T022",
+        "T031"
+      ],
+      "write_scopes": {
+        "classification": [
+          "src/image_platform/",
+          "tests/"
+        ],
+        "platform": [
+          "adapters/classification/",
+          "tests/adapters/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "classification",
+          "path": "src/image_platform/platform_imports.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/adapters/test_classification_import.py"
+        }
+      ],
+      "required_checks": [
+        "handoff_classification",
+        "classification_cpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "classification_runtime"
+      ],
+      "steps": [
+        "复用或扩展已有幂等表，为跨平台 asset 映射固定请求身份。",
+        "将分类项目类别、资料内容和来源组作为显式输入核验。"
+      ],
+      "acceptance": [
+        "不因跨模块导入改变锁定测试集或当前类别定义。",
+        "响应丢失后重查得到原任务，不能创建第二批导入。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T034",
+      "phase": "P3",
+      "title": "跨模块交接 outbox 与核实流程",
+      "priority": 28,
+      "depends_on": [
+        "T032",
+        "T033",
+        "T026"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/handoffs/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/handoffs/outbox.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_handoff_faults.py"
+        }
+      ],
+      "required_checks": [
+        "handoffs"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "先固定输入/目标/请求 ID，再持久化提交意图和外部回执。",
+        "对不明接收状态先查询，不把普通重试转成新操作。"
+      ],
+      "acceptance": [
+        "跨库不宣称原子提交；unknown 可恢复且不会无限重发。",
+        "部分条目失败有清单，源资料不会在交接后被移走或删除。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T035",
+      "phase": "P3",
+      "title": "成果发布、下载与完整性",
+      "priority": 29,
+      "depends_on": [
+        "T031",
+        "T026"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/artifacts/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/artifacts/store.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_artifact_integrity.py"
+        }
+      ],
+      "required_checks": [
+        "artifacts"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "临时写入、哈希核验、不可变发布和元数据索引。",
+        "下载绑定版本，引用模块产物时记录保留/过期和源模块身份。"
+      ],
+      "acceptance": [
+        "中断写入不会出现可下载成功产物；下载读回与原件一致。",
+        "文件过期/缺失明确失败，不返回旧路径或静默重算的新内容。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T036",
+      "phase": "P3",
+      "title": "资料、搜索与成果界面",
+      "priority": 30,
+      "depends_on": [
+        "T030",
+        "T031",
+        "T035",
+        "T013"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/assets/",
+          "apps/portal/src/features/artifacts/",
+          "apps/portal/tests/",
+          "src/workbench_platform/search/",
+          "tests/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/features/assets/AssetLibrary.tsx"
+        },
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/features/artifacts/ArtifactCenter.tsx"
+        }
+      ],
+      "required_checks": [
+        "portal_unit",
+        "portal_build",
+        "assets"
+      ],
+      "resources": [
+        "source",
+        "node",
+        "python"
+      ],
+      "steps": [
+        "提供来源/标签/类型筛选、中文关键词、选中资料和打开出处。",
+        "显示人工确认状态与预测状态，成果链接定位到具体模块版本。"
+      ],
+      "acceptance": [
+        "两字中文和 Unicode 搜索有反例；分页不会一次加载全部原图。",
+        "列表状态与导出范围一致，选中项不会在切换工作空间后串用。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T037",
+      "phase": "P3",
+      "title": "一致备份与独立目录恢复",
+      "priority": 31,
+      "depends_on": [
+        "T010",
+        "T031",
+        "T035",
+        "T034"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/backup/",
+          "tests/integration/",
+          "scripts/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "src/workbench_platform/backup/snapshot.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_backup_restore.py"
+        }
+      ],
+      "required_checks": [
+        "backup"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "协调暂停写入或模块快照，记录 SQLite、外部原图、模型引用及成果清单。",
+        "恢复到新目录，核验哈希、相对路径和模块映射后才打开应用。"
+      ],
+      "acceptance": [
+        "遗漏 WAL、外部引用或未完成产物的备份不能报告完整。",
+        "恢复绝不覆盖原目录，缺少模型包可说明但不伪装模型可用。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T040",
+      "phase": "P4",
+      "title": "DuckDB 独立分析运行时",
+      "priority": 32,
+      "depends_on": [
+        "T002",
+        "T004",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "modules/data_workbench/",
+          "config/runtime-locks/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "modules/data_workbench/runtime.py"
+        },
+        {
+          "repo": "platform",
+          "path": "config/runtime-locks/data.json"
+        }
+      ],
+      "required_checks": [
+        "data_core"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "锁定 DuckDB 与表格读取依赖，创建单写进程/作业独立数据库执行器。",
+        "限制受控文件、内存、临时磁盘和扩展联网，支持取消。"
+      ],
+      "acceptance": [
+        "不开放任意 SQL/shell；输入路径不能绕过资料授权。",
+        "无 GPU 与无 OCR 模型环境仍可完成数据计算。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T041",
+      "phase": "P4",
+      "title": "表格导入和类型保真",
+      "priority": 33,
+      "depends_on": [
+        "T040",
+        "T031",
+        "T005"
+      ],
+      "write_scopes": {
+        "platform": [
+          "modules/data_workbench/importing/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "modules/data_workbench/importing/tables.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/data/test_import_fidelity.py"
+        }
+      ],
+      "required_checks": [
+        "data_import"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "实现工作表、表头、编码、分隔符选择，固定行 ID 与原始字面值。",
+        "保留公式/缓存可用性、长编号、Decimal、空白与缺失。"
+      ],
+      "acceptance": [
+        "已经损失的 Excel 数值精度明确报告，不能自动补回数字。",
+        "零、空字符串、null、未知公式结果能在导出中区分。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T042",
+      "phase": "P4",
+      "title": "版本化清洗配方与逐步预览",
+      "priority": 34,
+      "depends_on": [
+        "T041"
+      ],
+      "write_scopes": {
+        "platform": [
+          "modules/data_workbench/recipes/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "modules/data_workbench/recipes/engine.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/data/test_recipe_replay.py"
+        }
+      ],
+      "required_checks": [
+        "data_recipe"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "实现 trim、重命名、映射、显式类型转换、筛选与重复识别固定算子。",
+        "每步保存参数、输入 revision、行数及错误样本；撤销产生分支版本。"
+      ],
+      "acceptance": [
+        "同输入/版本/配方产生相同逻辑结果，历史不因新操作被覆盖。",
+        "格式转换失败保留原字面值与错误，不静默变成零或删除行。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T043",
+      "phase": "P4",
+      "title": "精确匹配与差异引擎",
+      "priority": 35,
+      "depends_on": [
+        "T041",
+        "T042"
+      ],
+      "write_scopes": {
+        "platform": [
+          "modules/data_workbench/comparison/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "modules/data_workbench/comparison/exact.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/data/test_exact_matching.py"
+        }
+      ],
+      "required_checks": [
+        "data_compare"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "规范匹配键和类型策略，输出相同/差异/仅左/仅右及歧义重复键。",
+        "保留左右行级出处；金额容差和空值策略必须显式记录。"
+      ],
+      "acceptance": [
+        "多对多重复键默认进入歧义集合，不能默默笛卡尔积放大。",
+        "输入行能被完整解释；结果类别计数与左右覆盖清单一致。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T044",
+      "phase": "P4",
+      "title": "数据工作台完整交互",
+      "priority": 36,
+      "depends_on": [
+        "T042",
+        "T043",
+        "T013"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/data/",
+          "apps/portal/tests/",
+          "tests/e2e/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "apps/portal/src/features/data/DataWorkbench.tsx"
+        }
+      ],
+      "required_checks": [
+        "portal_unit",
+        "portal_build",
+        "data_ui"
+      ],
+      "resources": [
+        "source",
+        "node",
+        "python",
+        "browser"
+      ],
+      "steps": [
+        "实现输入表、操作步骤、预览、键映射、差异结果和取消反馈。",
+        "直接从应用卡打开，不要求有 OCR 项目；保存配方和恢复草稿。"
+      ],
+      "acceptance": [
+        "每个可点击按钮有实际行为与错误状态，未完成功能不伪装可用。",
+        "刷新后输入/步骤/结果版本一致，分页和大表交互有界。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T045",
+      "phase": "P4",
+      "title": "数据成果导出与来源清单",
+      "priority": 37,
+      "depends_on": [
+        "T043",
+        "T035"
+      ],
+      "write_scopes": {
+        "platform": [
+          "modules/data_workbench/exporting/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "modules/data_workbench/exporting/results.py"
+        },
+        {
+          "repo": "platform",
+          "path": "tests/data/test_export_readback.py"
+        }
+      ],
+      "required_checks": [
+        "data_export"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "发布 CSV/XLSX/Parquet 结果、运行摘要和来源映射。",
+        "按文本字段安全输出，防止未经确认的公式执行，导出后独立读回。"
+      ],
+      "acceptance": [
+        "金额与编号导出可核对；CSV 安全展示与原始字面值策略有记录。",
+        "工作表/原始行号和左右来源不会在汇总后丢失。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T046",
+      "phase": "P4",
+      "title": "数据工作台确定性与反例验收",
+      "priority": 38,
+      "depends_on": [
+        "T044",
+        "T045"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/data/",
+          "tests/e2e/",
+          "docs/acceptance/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/data/test_regression_corpus.py"
+        },
+        {
+          "repo": "run",
+          "path": "data/correctness.json"
+        }
+      ],
+      "required_checks": [
+        "data_regression",
+        "data_ui"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "node",
+        "browser"
+      ],
+      "steps": [
+        "在冻结夹具组上核对逐行结果、输入覆盖、配方重放和导出读回。",
+        "覆盖重复键、类型漂移、公式缓存、中文表头、混合日期和取消恢复。"
+      ],
+      "acceptance": [
+        "依据独立预期值验收，不用同一实现生成预期答案。",
+        "端到端从 Excel 到差异表无需 OCR/分类服务启动。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T047",
+      "phase": "P4",
+      "title": "有界性能与取消响应测量",
+      "priority": 39,
+      "depends_on": [
+        "T043",
+        "T045",
+        "T006"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/benchmarks/",
+          "tests/data/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "scripts/benchmarks/data_workbench.py"
+        },
+        {
+          "repo": "run",
+          "path": "data/performance.json"
+        }
+      ],
+      "required_checks": [
+        "data_performance"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "按固定参数生成十万行双表并运行规模阶梯，记录机器、阶段耗时与峰值内存。",
+        "验证内存/磁盘预算、坏行、取消和服务重启，发现瓶颈后才扩大到百万行。"
+      ],
+      "acceptance": [
+        "在测量前冻结阈值，失败时优化或说明范围，不能事后降低阈值充通过。",
+        "该任务不启动旧 OCR Agent 四小时混合长测。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T050",
+      "phase": "P5",
+      "title": "依赖许可、离线资源与分发清单",
+      "priority": 40,
+      "depends_on": [
+        "T006",
+        "T021",
+        "T022",
+        "T040"
+      ],
+      "write_scopes": {
+        "platform": [
+          "packaging/",
+          "licenses/",
+          "docs/distribution/",
+          "scripts/release/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "packaging/components.lock.json"
+        },
+        {
+          "repo": "platform",
+          "path": "licenses/index.json"
+        }
+      ],
+      "required_checks": [
+        "distribution"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "冻结各应用版本、运行时、模型来源、哈希和许可；区分可选包。",
+        "核实分类权重首次下载需求，将已获授权的所需缓存纳入离线准备。"
+      ],
+      "acceptance": [
+        "不能把开发机已有缓存算作包内资源；许可不明组件不悄悄分发。",
+        "不把 n8n/Dify/Stirling 特殊许可目录标成纯 MIT/Apache。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T051",
+      "phase": "P5",
+      "title": "基础门户与三应用候选包",
+      "priority": 41,
+      "depends_on": [
+        "T050",
+        "T028",
+        "T037",
+        "T046"
+      ],
+      "write_scopes": {
+        "platform": [
+          "packaging/",
+          "scripts/release/",
+          "docs/distribution/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "scripts/release/build_candidate.py"
+        },
+        {
+          "repo": "run",
+          "path": "release/candidate-manifest.json"
+        }
+      ],
+      "required_checks": [
+        "bundle"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "node",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "按锁文件生成新候选目录；基础门户和可选应用包绑定兼容矩阵。",
+        "记录清单哈希、构建源码和实际可执行入口，逐项检查产物存在。"
+      ],
+      "acceptance": [
+        "创建候选包不等于通过真实设备资格。",
+        "保留旧包和用户工作区，不把活跃数据库或凭据打入分发包。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T052",
+      "phase": "P5",
+      "title": "三应用 CPU 与真实 HTTP 综合回归",
+      "priority": 42,
+      "depends_on": [
+        "T017",
+        "T028",
+        "T034",
+        "T037",
+        "T046",
+        "T051"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/e2e/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/e2e/three-apps.mjs"
+        },
+        {
+          "repo": "run",
+          "path": "release/cpu-integration.json"
+        }
+      ],
+      "required_checks": [
+        "cpu_integration"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "node",
+        "browser",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "对固定候选执行真实服务导航、任务、资料交接、数据比对和产物下载。",
+        "三应用失败隔离与恢复后核对行数、哈希和人工修订。"
+      ],
+      "acceptance": [
+        "不使用网络拦截模拟替代真实 HTTP 验收。",
+        "截图流程遵守全局浏览器规则；完成后关闭自己启动的浏览器活动。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T053",
+      "phase": "P5",
+      "title": "真实 GPU 互斥及释放验收",
+      "priority": 43,
+      "depends_on": [
+        "T024",
+        "T025",
+        "T028",
+        "T051"
+      ],
+      "write_scopes": {
+        "platform": [
+          "tests/gpu/",
+          "scripts/acceptance/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "qualification/gpu.json"
+        }
+      ],
+      "required_checks": [
+        "real_gpu"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "gpu",
+        "ocr_bundle",
+        "classification_runtime"
+      ],
+      "steps": [
+        "用小规模固定真实模型任务交替请求 OCR、训练和推理，记录模型加载、PID 与显存。",
+        "在取消、session缓存、异常退出后检查资源释放和下一任务运行。"
+      ],
+      "acceptance": [
+        "模拟进程通过不能满足本任务；没有 GPU 时保持 blocked/not_tested。",
+        "不未经授权重启桌面应用、停止用户已有长任务或发起付费 API。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T054",
+      "phase": "P5",
+      "title": "干净 Windows 离线与搬迁验收",
+      "priority": 44,
+      "depends_on": [
+        "T051",
+        "T052"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/acceptance/",
+          "docs/distribution/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "qualification/clean-windows.json"
+        }
+      ],
+      "required_checks": [
+        "clean_windows"
+      ],
+      "resources": [
+        "source",
+        "clean_windows",
+        "candidate_transfer"
+      ],
+      "steps": [
+        "在不同于开发机的合格 Windows 环境安装候选，核对无开发依赖与无联网下载。",
+        "更换盘符/中文空格目录并从一致备份恢复，核对内容哈希及应用能力。"
+      ],
+      "acceptance": [
+        "目标环境无实际证据时记录缺口，不能把同机子进程测试算作另一台设备。",
+        "系统级禁网或重启只在该测试环境已有授权时进行。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T055",
+      "phase": "P5",
+      "title": "业务样本与使用效果验收",
+      "priority": 45,
+      "depends_on": [
+        "T046",
+        "T052"
+      ],
+      "write_scopes": {
+        "platform": [
+          "docs/acceptance/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "qualification/business.json"
+        }
+      ],
+      "required_checks": [
+        "business"
+      ],
+      "resources": [
+        "source",
+        "business_samples",
+        "business_reviewer"
+      ],
+      "steps": [
+        "冻结业务样本范围、预期结果与复核口径，运行三个应用各自代表性任务。",
+        "区分平台工程可用、模型准确率和实际节省时间。"
+      ],
+      "acceptance": [
+        "没有业务材料或业务复核时不得标 business-qualified。",
+        "公开花卉识别和合成账表不冒充用户实际业务效果。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T056",
+      "phase": "P5",
+      "title": "升级与回退演练",
+      "priority": 46,
+      "depends_on": [
+        "T037",
+        "T051",
+        "T052"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/acceptance/",
+          "tests/integration/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "platform",
+          "path": "tests/integration/test_release_rollback.py"
+        },
+        {
+          "repo": "run",
+          "path": "release/rollback.json"
+        }
+      ],
+      "required_checks": [
+        "rollback"
+      ],
+      "resources": [
+        "source",
+        "python",
+        "ocr_runtime",
+        "classification_runtime"
+      ],
+      "steps": [
+        "复制快照后演练新候选切换、迁移失败和代码/数据一致回退。",
+        "确认旧程序不会读未来 schema，失败产物保留独立回执。"
+      ],
+      "acceptance": [
+        "只切换可执行程序但未处理数据库版本不能算回退成功。",
+        "演练局限于本次隔离副本，不对现有用户项目做破坏性操作。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30
+    },
+    {
+      "id": "T057",
+      "phase": "P5",
+      "title": "交付索引、资格结论和续作交接",
+      "priority": 47,
+      "depends_on": [
+        "T052",
+        "T056"
+      ],
+      "write_scopes": {
+        "platform": [
+          "docs/distribution/",
+          "scripts/release/"
+        ]
+      },
+      "outputs": [
+        {
+          "repo": "run",
+          "path": "release/delivery-index.json"
+        },
+        {
+          "repo": "run",
+          "path": "release/qualification.json"
+        },
+        {
+          "repo": "run",
+          "path": "NEXT.md"
+        }
+      ],
+      "required_checks": [
+        "delivery"
+      ],
+      "resources": [
+        "source",
+        "python"
+      ],
+      "steps": [
+        "汇总固定候选、测试证据、缺口和三个独立资格结论。",
+        "检查 T053/T054/T055 的实际状态；未测项保留 not_tested，并列明确下一步。"
+      ],
+      "acceptance": [
+        "工程完成、设备合格和业务合格分别判定；不因报告写完就宣布全部生产通过。",
+        "成果链接可打开，接续者从指定状态继续，不重做已绑定且未变化的验收。"
+      ],
+      "max_attempts": 3,
+      "checkpoint_after_minutes": 30,
+      "observes_tasks": [
+        "T053",
+        "T054",
+        "T055"
+      ]
+    }
+  ]
+}

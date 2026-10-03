@@ -1,0 +1,964 @@
+{
+  "schema_version": 1,
+  "plan_id": "professional-workbench-v1",
+  "revision": 3,
+  "execution_policy": "This is a command specification. platform_plan.py never executes these commands. Resolve runtimes and paths from T001/T002, implement planned check producers, then run only in the isolated scope.",
+  "checks": [
+    {
+      "id": "inventory",
+      "producer_task": "T001",
+      "evidence_kind": "source",
+      "scope": "read-only",
+      "description": "盘点文件、仓库和进程报告",
+      "kind": "review",
+      "command": null,
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "platform_unit",
+      "producer_task": "T002",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "tests/unit",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/unit",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "portal_build",
+      "producer_task": "T002",
+      "evidence_kind": "build",
+      "scope": "portal",
+      "description": "TypeScript/Vite生产构建",
+      "kind": "command",
+      "command": {
+        "runtime": "pnpm",
+        "cwd": "platform/apps/portal",
+        "args": [
+          "run",
+          "build"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "ocr_cpu",
+      "producer_task": "T003",
+      "evidence_kind": "native_cpu",
+      "scope": "ocr",
+      "description": "既有逻辑回归",
+      "kind": "command",
+      "command": {
+        "runtime": "ocr_python",
+        "cwd": "ocr",
+        "args": [
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-v"
+        ]
+      },
+      "timeout_seconds": 1200,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "classification_cpu",
+      "producer_task": "T003",
+      "evidence_kind": "native_cpu",
+      "scope": "classification",
+      "description": "既有逻辑回归",
+      "kind": "command",
+      "command": {
+        "runtime": "classification_python",
+        "cwd": "classification",
+        "args": [
+          "-m",
+          "pytest",
+          "tests",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "contracts",
+      "producer_task": "T004",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "tests/contract",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/contract",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "fixtures",
+      "producer_task": "T005",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "夹具哈希与真值",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/fixtures/test_manifest.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "harness",
+      "producer_task": "T006",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "回执与子进程监控",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/harness",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "supervisor",
+      "producer_task": "T012",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "启动和端口",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_supervisor.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "portal_unit",
+      "producer_task": "T013",
+      "evidence_kind": "native_cpu",
+      "scope": "portal",
+      "description": "前端逻辑",
+      "kind": "command",
+      "command": {
+        "runtime": "pnpm",
+        "cwd": "platform/apps/portal",
+        "args": [
+          "run",
+          "test"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "ocr_frontend",
+      "producer_task": "T015",
+      "evidence_kind": "build",
+      "scope": "ocr_frontend",
+      "description": "OCR生产构建；行为由导航协议和真实浏览器检查验证",
+      "kind": "command",
+      "command": {
+        "runtime": "npm",
+        "cwd": "ocr/frontend",
+        "args": [
+          "run",
+          "build"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "classification_frontend",
+      "producer_task": "T016",
+      "evidence_kind": "build",
+      "scope": "classification_frontend",
+      "description": "分类构建",
+      "kind": "command",
+      "command": {
+        "runtime": "pnpm",
+        "cwd": "classification/apps/web",
+        "args": [
+          "run",
+          "build"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "adapter_navigation",
+      "producer_task": "T015",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "模块进入返回协议",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_ocr_navigation.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "portal_e2e",
+      "producer_task": "T017",
+      "evidence_kind": "real_http_browser",
+      "scope": "platform",
+      "description": "双工作台导航",
+      "kind": "command",
+      "command": {
+        "runtime": "node",
+        "cwd": "platform",
+        "args": [
+          "tests/e2e/platform-navigation.mjs",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "bridge",
+      "producer_task": "T020",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "认证与上下文",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_bridge_auth.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "adapters",
+      "producer_task": "T021",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "模块适配器",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/adapters/test_ocr.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "gpu_sim",
+      "producer_task": "T023",
+      "evidence_kind": "simulated_process",
+      "scope": "platform",
+      "description": "无GPU资源协议",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_gpu_coordinator.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "jobs",
+      "producer_task": "T026",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "任务状态投影",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_job_projection.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "recovery",
+      "producer_task": "T028",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "跨模块故障",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_cross_module_recovery.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "assets",
+      "producer_task": "T030",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "资料身份/来源",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/unit/test_asset_identity.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "handoff_ocr",
+      "producer_task": "T032",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "OCR幂等导入",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/adapters/test_ocr_import.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "handoff_classification",
+      "producer_task": "T033",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "分类幂等导入",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/adapters/test_classification_import.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "handoffs",
+      "producer_task": "T034",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "跨库响应丢失窗口",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_handoff_faults.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "artifacts",
+      "producer_task": "T035",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "成果原子发布与读回",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_artifact_integrity.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "backup",
+      "producer_task": "T037",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "独立恢复",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_backup_restore.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_core",
+      "producer_task": "T040",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "DuckDB执行器",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_runtime.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_import",
+      "producer_task": "T041",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "导入类型",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_import_fidelity.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_recipe",
+      "producer_task": "T042",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "配方重放",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_recipe_replay.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_compare",
+      "producer_task": "T043",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "匹配覆盖",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_exact_matching.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_ui",
+      "producer_task": "T044",
+      "evidence_kind": "real_http_browser",
+      "scope": "platform",
+      "description": "数据工作台",
+      "kind": "command",
+      "command": {
+        "runtime": "node",
+        "cwd": "platform",
+        "args": [
+          "tests/e2e/data-workbench.mjs",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_export",
+      "producer_task": "T045",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "独立导出读回",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_export_readback.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_regression",
+      "producer_task": "T046",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "冻结反例组",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/data/test_regression_corpus.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "data_performance",
+      "producer_task": "T047",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "固定规模性能",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/benchmarks/data_workbench.py",
+          "--run-root",
+          "{run_root}",
+          "--rows",
+          "100000"
+        ]
+      },
+      "timeout_seconds": 1200,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "distribution",
+      "producer_task": "T050",
+      "evidence_kind": "static_audit",
+      "scope": "platform",
+      "description": "许可/资源闭包",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/release/audit_components.py",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "bundle",
+      "producer_task": "T051",
+      "evidence_kind": "package_audit",
+      "scope": "platform",
+      "description": "候选产物",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/release/verify_candidate.py",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 1200,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "cpu_integration",
+      "producer_task": "T052",
+      "evidence_kind": "real_http_browser",
+      "scope": "platform",
+      "description": "三应用真实服务",
+      "kind": "command",
+      "command": {
+        "runtime": "node",
+        "cwd": "platform",
+        "args": [
+          "tests/e2e/three-apps.mjs",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 1200,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "real_gpu",
+      "producer_task": "T053",
+      "evidence_kind": "real_gpu",
+      "scope": "platform",
+      "description": "真实模型互斥",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/acceptance/gpu.py",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 1200,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "clean_windows",
+      "producer_task": "T054",
+      "evidence_kind": "real_device",
+      "scope": "platform",
+      "description": "独立Windows",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/acceptance/offline.py",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 1800,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "business",
+      "producer_task": "T055",
+      "evidence_kind": "business_review",
+      "scope": "manual",
+      "description": "冻结业务样本签核",
+      "kind": "review",
+      "command": null,
+      "timeout_seconds": 1800,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "rollback",
+      "producer_task": "T056",
+      "evidence_kind": "real_http",
+      "scope": "platform",
+      "description": "代码与数据回退",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_release_rollback.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "delivery",
+      "producer_task": "T057",
+      "evidence_kind": "static_audit",
+      "scope": "platform",
+      "description": "资格分离与索引",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "scripts/release/check_delivery.py",
+          "--run-root",
+          "{run_root}"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "gpu_ocr_hooks",
+      "producer_task": "T024",
+      "evidence_kind": "simulated_process",
+      "scope": "platform",
+      "description": "GPU入口覆盖",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_ocr_resource_hooks.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "gpu_classification_hooks",
+      "producer_task": "T025",
+      "evidence_kind": "simulated_process",
+      "scope": "platform",
+      "description": "GPU入口覆盖",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_classification_resource_hooks.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "source_locators",
+      "producer_task": "T031",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "资料身份/来源",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/contract/test_source_locators.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "classification_adapter",
+      "producer_task": "T022",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "模块适配器",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/adapters/test_classification.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 600,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "classification_navigation",
+      "producer_task": "T016",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "模块进入返回协议",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_classification_navigation.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    },
+    {
+      "id": "catalog_launch",
+      "producer_task": "T014",
+      "evidence_kind": "native_cpu",
+      "scope": "platform",
+      "description": "真实本机启动、状态与最近成功记录",
+      "kind": "command",
+      "command": {
+        "runtime": "platform_python",
+        "cwd": "platform",
+        "args": [
+          "-m",
+          "pytest",
+          "tests/integration/test_app_launch.py",
+          "-q"
+        ]
+      },
+      "timeout_seconds": 300,
+      "success_rule": "status=passed, exit_code=0, matching evidence_kind and task binding; existing nonempty raw logs with hashes. A failed assertion, missing output or not_tested outcome is not a pass.",
+      "repeat_only_when": "affected source/dependency/fixture/config changed, previous failure needs retest, or scope expanded"
+    }
+  ]
+}
