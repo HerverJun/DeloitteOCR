@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { App, Alert, Button, Card, Checkbox, Empty, Form, Input, Modal, Pagination, Progress, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import { DownloadOutlined, PauseOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, StopOutlined, CheckOutlined } from '@ant-design/icons';
@@ -65,6 +65,15 @@ export function JobsPanel({ project }: PanelProps) {
 }
 
 function Results({ project, job }: { project: PanelProps['project']; job: Job }) {
+  type PendingDisposition = { item_ids: string[]; state: string; label_id: string | null;
+    note: string; expected_revisions: Record<string, number>; request_id: string; operation_id: string;
+    instance_id: string; actor: { id: string; display_name: string; source: 'local' }; intent: 'manual' };
+  const storageKey = `classification-dispositions:${project.id}:${job.id}`;
+  const pending = useRef<Record<string, PendingDisposition> | undefined>(undefined);
+  if (!pending.current) {
+    try { pending.current = JSON.parse(sessionStorage.getItem(storageKey) || '{}'); }
+    catch { pending.current = {}; }
+  }
   const [filter, setFilter] = useState('needs_review');
   const [page, setPage] = useState(1);
   const [review, setReview] = useState<Result>();
@@ -77,11 +86,36 @@ function Results({ project, job }: { project: PanelProps['project']; job: Job })
   function open(row: Result) { setReview(row); setLabel(row.human_label_id || row.prediction?.label_id); setNote(row.disposition_note || ''); }
   async function dispose(state: 'confirmed' | 'deferred' | 'reopened', rows: Result[], next = false) {
     if (!rows.length || (state === 'confirmed' && !(next ? label : bulkLabel))) return;
-    const saved = await command.run(() => post(`/jobs/${job.id}/dispositions`, {
-      item_ids: rows.map(row => row.id), state,
-      label_id: state === 'confirmed' ? (next ? label : bulkLabel) : null,
-      note: next ? note : '', expected_revisions: Object.fromEntries(rows.map(row => [row.id, row.disposition_revision])),
-    }), `${rows.length} 项处置已保存`);
+    const actor = { id: 'local-classification-user', display_name: '本机分类操作者', source: 'local' as const };
+    const choice = { item_ids: rows.map(row => row.id).sort(), state,
+      label_id: state === 'confirmed' ? (next ? label : bulkLabel)! : null, note: next ? note : '', actor };
+    const signature = JSON.stringify(choice);
+    const saved = await command.run(async () => {
+      const requests = pending.current!;
+      if (!requests[signature]) {
+        const identity = await api<{ instance_id: string }>('/health');
+        requests[signature] = { ...choice, expected_revisions: Object.fromEntries(rows.map(row => [row.id, row.disposition_revision])),
+          request_id: `request_${crypto.randomUUID().replaceAll('-', '')}`,
+          operation_id: `operation_${crypto.randomUUID().replaceAll('-', '')}`,
+          instance_id: identity.instance_id, intent: 'manual' };
+        sessionStorage.setItem(storageKey, JSON.stringify(requests));
+      }
+      // Preserve the original revisions and identity when a response is lost.
+      const response = await fetch(`${base}/jobs/${job.id}/dispositions`, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Platform-Request': '1' },
+        body: JSON.stringify(requests[signature]) });
+      const receipt = await response.json();
+      if (!response.ok) {
+        if (response.status === 409) {
+          delete requests[signature];
+          sessionStorage.setItem(storageKey, JSON.stringify(requests));
+        }
+        throw new Error(typeof receipt.detail === 'string' ? receipt.detail : '处置未保存，请刷新结果并重新核对');
+      }
+      delete requests[signature];
+      sessionStorage.setItem(storageKey, JSON.stringify(requests));
+      return receipt;
+    }, `${rows.length} 项处置已保存`);
     if (!saved) return;
     setSelectedIds([]);
     const fresh = (await results.refetch()).data;
@@ -94,6 +128,8 @@ function Results({ project, job }: { project: PanelProps['project']; job: Job })
   const selectable = results.data?.items.filter(row => row.state === 'succeeded') ?? [];
   const selectedRows = results.data?.items.filter(row => selectedIds.includes(row.id)) ?? [];
   return <>
+    <Text type="secondary">处置身份：本机分类操作者（本机来源，不代表组织认证）。响应丢失时重复同一操作会核对原请求。</Text>
+    <Button type="link" onClick={() => void results.refetch()}>刷新结果并重新核对</Button>
     <div className="data-toolbar"><Space wrap><Select aria-label="筛选分类结果" value={filter} style={{ width: 150 }} options={[{ label: '全部结果', value: 'all' }, ...['needs_review', 'confirmed', 'deferred', 'reopened', 'failed', 'pending', 'accepted'].map(value => ({ label: stateLabels[value], value }))]} onChange={value => { setFilter(value); setPage(1); setSelectedIds([]); }} /><Text type="secondary">{results.data?.total ?? 0} 项 · 本次确认 {results.data?.disposition_counts.confirmed ?? 0} · 暂缓 {results.data?.disposition_counts.deferred ?? 0}</Text></Space><Space><Button icon={<DownloadOutlined />} href={`${base}/jobs/${job.id}/export?format=csv`}>CSV</Button><Button href={`${base}/jobs/${job.id}/export?format=jsonl`}>JSONL</Button></Space></div>
     <Space wrap className="bottom-gap"><Checkbox checked={!!selectable.length && selectedIds.length === selectable.length} indeterminate={!!selectedIds.length && selectedIds.length < selectable.length} onChange={event => setSelectedIds(event.target.checked ? selectable.map(row => row.id) : [])}>选择当前页可复核结果</Checkbox><Text type="secondary">已选当前页 {selectedRows.length} 项</Text><Select aria-label="批量确认类别" value={bulkLabel} onChange={setBulkLabel} placeholder="确认类别" style={{ width: 160 }} options={project.labels.map(item => ({ label: item.display_name, value: item.label_id }))} /><Button disabled={!selectedRows.length || !bulkLabel || command.busy} onClick={() => void dispose('confirmed', selectedRows)}>确认所选 {selectedRows.length} 项</Button><Button disabled={!selectedRows.length || command.busy} onClick={() => void dispose('deferred', selectedRows)}>暂缓所选</Button><Button disabled={!selectedRows.length || command.busy} onClick={() => void dispose('reopened', selectedRows)}>重开所选</Button></Space>
     <QueryError error={results.error} />
