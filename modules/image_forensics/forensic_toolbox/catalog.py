@@ -1,0 +1,27 @@
+"""Capability descriptions intended for routing, never proof of accuracy."""
+
+CATALOG = [
+    {"tool": "metadata", "family": "file_quality", "applies_to": "all decoded images",
+     "question": "What source format and global quality indicators remain?", "cost": "low"},
+    {"tool": "noise", "family": "noise", "applies_to": "images with both dimensions >=64",
+     "question": "Do local high-pass residual scales differ?", "cost": "low",
+     "caution": "Texture, text edges and forwarding affect residuals."},
+    {"tool": "frequency", "family": "noise", "applies_to": "images with both dimensions >=64",
+     "question": "Do block DCT high-frequency energies differ?", "cost": "low",
+     "caution": "Correlated with noise; do not double count."},
+    {"tool": "jpeg", "family": "compression", "applies_to": "JPEG source with both dimensions >=64",
+     "question": "Are final-file recompression differences spatially uneven?", "cost": "medium",
+     "caution": "Not proof of multiple JPEG compression."},
+    {"tool": "jpeg_grid", "family": "compression", "applies_to": "JPEG source with both dimensions >=64",
+     "question": "Are final JPEG grid discontinuities uneven?", "cost": "low",
+     "caution": "Cropping, text and rescaling alter block discontinuities."},
+    {"tool": "copy_move", "family": "content", "applies_to": "images with both dimensions >=96",
+     "question": "Are there spatially repeated keypoint groups?", "cost": "medium",
+     "caution": "Repeated text, logos and patterns can match naturally."},
+    {"tool": "ocr", "family": "text", "applies_to": "text images with optional RapidOCR installed",
+     "question": "Where is text and what does OCR read?", "cost": "high",
+     "caution": "Recognition errors and confidence are not tampering evidence."},
+    {"tool": "external_model", "family": "configurable", "applies_to": "only approved local model configurations",
+     "question": "What does the configured localization model predict?", "cost": "high",
+     "caution": "Check model license, training domain and business calibration."},
+]

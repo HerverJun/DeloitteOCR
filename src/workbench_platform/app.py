@@ -25,6 +25,8 @@ from .jobs.ocr_handoff import configure_ocr_handoff, router as ocr_handoff_route
 from .jobs.classification_projects import router as classification_projects_router
 from .jobs.classification_handoff import configure_classification_handoff, router as classification_handoff_router
 from .batches.routes import configure_batches, router as batches_router
+from .audit.routes import configure_audit, router as audit_router
+from .forensics.routes import configure_forensics, router as forensics_router
 
 
 @asynccontextmanager
@@ -46,8 +48,15 @@ async def lifespan(app: FastAPI):
         configure_classification_handoff(app)
         configure_artifacts(app)
         configure_batches(app)
+        configure_audit(app)
+        configure_forensics(app)
         yield
     finally:
+        forensic_service = getattr(app.state, "forensic_service", None)
+        if forensic_service is not None:
+            forensic_service.close()
+        app.state.forensic_service = None
+        app.state.audit_service = None
         batch_service = getattr(app.state, 'batch_service', None)
         if batch_service is not None:
             batch_service.close()
@@ -80,6 +89,8 @@ app.include_router(ocr_handoff_router)
 app.include_router(classification_projects_router)
 app.include_router(classification_handoff_router)
 app.include_router(batches_router)
+app.include_router(audit_router)
+app.include_router(forensics_router)
 
 
 @app.exception_handler(DataError)
