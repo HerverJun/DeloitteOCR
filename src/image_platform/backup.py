@@ -21,6 +21,14 @@ EXCLUDED_DIRS = {"cache", "features", "thumbnails"}  # Regenerated as needed.
 EXCLUDED_FILES = {"platform.sqlite3", "platform.sqlite3-wal", "platform.sqlite3-shm", "launcher.pid"}
 
 
+def _f_path(value, label):
+    requested = Path(value).absolute()
+    resolved = requested.resolve()
+    if requested.drive.upper() != "F:" or resolved.drive.upper() != "F:":
+        raise ValueError(f"{label} must remain on the local F drive: {requested}")
+    return resolved
+
+
 @contextmanager
 def connection(path):
     # sqlite3.Connection.__exit__ commits but does not close; Windows cannot
@@ -62,7 +70,8 @@ def record_file(root, relative, records):
 
 
 def backup(data_dir, destination):
-    data_dir, destination = Path(data_dir).resolve(), Path(destination).resolve()
+    data_dir = _f_path(data_dir, "Backup data directory")
+    destination = _f_path(destination, "Backup output directory")
     if not (data_dir / "platform.sqlite3").is_file():
         raise FileNotFoundError("No platform.sqlite3 in the selected data directory")
     if destination.exists() or destination.is_relative_to(data_dir) or data_dir.is_relative_to(destination):
@@ -142,7 +151,7 @@ def backup(data_dir, destination):
 
 
 def verify(backup_dir):
-    backup_dir = Path(backup_dir).resolve()
+    backup_dir = _f_path(backup_dir, "Backup directory")
     metadata = json.loads((backup_dir / "manifest.json").read_text(encoding="utf-8"))
     if metadata.get("format") != 1 or "data/platform.sqlite3" not in metadata["files"]:
         raise ValueError("Unsupported or incomplete backup")
@@ -158,7 +167,8 @@ def verify(backup_dir):
 
 
 def restore(backup_dir, destination):
-    backup_dir, destination = Path(backup_dir).resolve(), Path(destination).resolve()
+    backup_dir = _f_path(backup_dir, "Backup directory")
+    destination = _f_path(destination, "Restore output directory")
     if destination.exists() or destination.is_relative_to(backup_dir) or backup_dir.is_relative_to(destination):
         raise ValueError("Restore only into a new directory outside the backup")
     metadata = verify(backup_dir)
