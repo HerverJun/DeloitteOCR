@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Empty, Progress, Skeleton, Space, Tag, Typography } from 'antd'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppInstallation, AppManifest, LaunchReceipt, RecentWork, RecentWorkPage } from '../../../../../packages/contracts/types.generated'
 
-import { brandName } from '../../clear-ui/theme'
+import { brandName, applicationDescriptions } from '../../clear-ui/theme'
 import { nativeAddress, platformHomeAddress } from './nativeWindow'
 
 const { Text, Paragraph } = Typography
@@ -27,7 +27,8 @@ function elapsed(seconds: number) {
   return `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`
 }
 
-export function ApplicationCard({ app, workspaceId }: { app: AppManifest; workspaceId: string | null }) {
+export function ApplicationCard({ app, workspaceId, projectMode = false }: { app: AppManifest; workspaceId: string | null; projectMode?: boolean }) {
+  const navigate = useNavigate()
   const client = useQueryClient()
   const safeId = encodeURIComponent(app.app_id)
   const health = useQuery({ queryKey: ['app-health', workspaceId, app.app_id],
@@ -77,6 +78,7 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     // Reserve a blank window synchronously with the user gesture; it cannot
     // navigate to a stale native address before the live GET completes.
     try {
+      if (projectMode && workspaceId) { launch.mutate({ action }); return }
       popupRef.current = window.open('', '_blank')
       if (popupRef.current) popupRef.current.opener = null
       else {
@@ -93,6 +95,11 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
     launch.mutate({ action })
   }
   const open = async (receipt: LaunchReceipt) => {
+    if (projectMode && workspaceId) {
+      navigate(`/apps/${encodeURIComponent(app.app_id)}/start?workspace=${encodeURIComponent(workspaceId)}`)
+      setFailure('')
+      return
+    }
     let address = liveAddress(receipt)
     setVerified(receipt)
     const popup = popupRef.current
@@ -161,12 +168,13 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
   const percent = progress?.total_files ? Math.floor(progress.checked_files / progress.total_files * 100) : 0
   const launchReady = !verifying && installation.data?.launch_ready === true
   const linked = `/apps/${safeId}${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`
-  return <Card className="application-card" title={<Link to={linked}>{brandName(app.app_id, app.display_name)}</Link>} extra={<Tag>{app.app_id}</Tag>}>
+  const presentation = applicationDescriptions[app.app_id]
+  return <Card className="application-card" title={<Link to={linked}>{brandName(app.app_id, app.display_name)}</Link>}>
+    <Text className="application-purpose">{presentation?.purpose || app.display_name}</Text>
+    <Paragraph className="application-description" type="secondary">{presentation?.description || '查看工具信息，核实本机服务后开始处理资料。'}</Paragraph>
     {health.isPending || current.isPending || installation.isPending ? <Skeleton active paragraph={{ rows: 2 }} /> :
       health.isError || current.isError || installation.isError || !installation.data ?
         <Alert type="error" title="无法核实应用状态" action={<Button onClick={() => { void health.refetch(); void current.refetch(); void installation.refetch() }}>重试</Button>} /> : <>
-        <Paragraph type="secondary">输入：{app.input_types.join('、') || '由工具定义'} · 输出：{app.output_types.join('、') || '由工具定义'}<br />
-          声明能力：{app.capabilities.join('、') || '无'} · 资源：{app.resources.join('、') || '由工具报告'}</Paragraph>
         <div className="application-state"><Tag color={verificationFailed ? 'error' : verifying && !verificationPassed ? 'processing' : current.data || verificationPassed ? 'success' : missing || storageUnavailable ? 'error' : 'default'}>
           {verificationFailed ? '校验失败' : verifying ? progress?.phase === 'waiting' ? '等待校验' : verificationPassed ? '校验完成' : '正在校验' : current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : verificationPassed ? '已校验' : health.data?.service?.state === 'unavailable' ? '暂不可用' : '尚未运行'}</Tag>
           <Text type="secondary">{progress?.message || (verifying ? '应用文件校验中，可先使用数据工作台' : missing ? health.data?.service?.reason || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : health.data?.service?.reason)}</Text>
@@ -187,11 +195,11 @@ export function ApplicationCard({ app, workspaceId }: { app: AppManifest; worksp
         {failure && <Alert className="application-message" type="warning" title={failure} />}
         {verified && <Paragraph className="verified-address"><Button type="link" disabled={launch.isPending || !launchReady} onClick={() => begin('open')}>再次核实并打开 ↗</Button></Paragraph>}
       </>}
+    <details className="application-details"><summary>查看工具声明</summary>
+      <Paragraph type="secondary">输入：{app.input_types.join('、') || '由工具定义'} · 输出：{app.output_types.join('、') || '由工具定义'}<br />
+        声明能力：{app.capabilities.join('、') || '无'} · 资源：{app.resources.join('、') || '由工具报告'}</Paragraph>
+    </details>
   </Card>
-}
-
-export function ApplicationCards({ apps, workspaceId }: { apps: AppManifest[]; workspaceId: string | null }) {
-  return <div className="app-grid">{apps.map(app => <ApplicationCard key={app.app_id} app={app} workspaceId={workspaceId} />)}</div>
 }
 
 export function RecentWorks({ workspaceId }: { workspaceId: string | null }) {

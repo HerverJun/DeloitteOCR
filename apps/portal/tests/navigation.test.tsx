@@ -1,12 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { beforeAll, beforeEach, afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider } from 'antd'
 import { routes, theme } from '../src/router'
 
 beforeAll(() => {
+  configure({ asyncUtilTimeout: 10000 })
   window.matchMedia = vi.fn().mockImplementation(() => ({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }))
   globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
 })
@@ -33,13 +34,14 @@ test('deep links, context-aware navigation and history reach distinct pages', as
   vi.stubGlobal('fetch', vi.fn(async (input: string) => ({ ok: true, json: async () =>
     input.includes('/jobs/links') ? { items: [] } :
     input.includes('/jobs?') ? { items: [], next_offset: null } :
+    input.includes('/forensics?') ? page([]) :
     input.includes('/workspaces?') ? page([{ workspace_id: 'a', name: '甲' }, { workspace_id: 'b', name: '乙' }]) :
     input.includes('/apps') ? page([app('ocr')]) :
     input.includes('/assets?') ? { items: [], total: 0, next_offset: null, facets: { media_types: [], tags: [] } } :
     { service: 'ready' } })))
   const { router } = mount('/assets?workspace=a')
   expect(await screen.findByRole('heading', { name: '资料库' })).toBeInTheDocument()
-  fireEvent.click(screen.getByText('任务', { selector: '.ant-menu-title-content' }))
+  fireEvent.click(screen.getByText('运行任务', { selector: '.ant-menu-title-content' }))
   expect(await screen.findByText('此工作空间还没有已跟踪任务')).toBeInTheDocument()
   expect(router.state.location.search).toBe('?workspace=a')
   await router.navigate(-1)
@@ -47,7 +49,53 @@ test('deep links, context-aware navigation and history reach distinct pages', as
   await router.navigate('/absent?workspace=b')
   expect(await screen.findByText('页面不存在')).toBeInTheDocument()
   fireEvent.click(screen.getByText('返回首页 →'))
-  expect(await screen.findByText('从这里开始作业')).toBeInTheDocument()
+  expect(await screen.findByText('选择项目，开始处理')).toBeInTheDocument()
+})
+
+test('Clear tools share one directory and workflow groups preserve workspace navigation', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+    if (input.includes('/workspaces?')) return { ok: true, json: async () => page([{ workspace_id: 'a', name: '甲' }]) }
+    if (input.includes('/apps?')) return { ok: true, json: async () => page([app('classification'), app('ocr')]) }
+    if (input.includes('/launches/current')) return { ok: false, status: 404 }
+    if (input.includes('/installation')) return { ok: true, json: async () => ({ installed: false, launch_ready: false, state: 'not_registered' }) }
+    if (input.includes('/data/health')) return { ok: true, json: async () => ({ ready: true }) }
+    if (input.includes('/health')) return { ok: true, json: async () => ({ service: { state: 'unavailable', reason: '本机未登记安装包' } }) }
+    return { ok: true, json: async () => page([]) }
+  }))
+  const { router, view } = mount('/apps?workspace=a')
+  const directory = await screen.findByLabelText('Clear 应用目录')
+  for (const name of ['ClearData', 'ClearClassify', 'ClearOCR', 'ClearForensics']) {
+    expect(await within(directory).findByRole('link', { name })).toHaveAttribute('href', expect.stringContaining('workspace=a'))
+  }
+  expect(directory.querySelectorAll('.application-card')).toHaveLength(4)
+  const navigation = screen.getByRole('menu', { name: '主导航' })
+  for (const entry of ['开始处理', '项目', 'Clear 工具', '输出', '高级功能']) expect(within(navigation).getByText(entry)).toBeInTheDocument()
+  expect(within(navigation).queryByText('图像取证')).not.toBeInTheDocument()
+  expect(within(navigation).queryByText('ClearForensics')).not.toBeInTheDocument()
+  fireEvent.click(within(directory).getByRole('button', { name: '打开图像取证' }))
+  expect(await screen.findByRole('heading', { name: 'ClearForensics', level: 1 })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/apps/forensics')
+  expect(router.state.location.search).toBe('?workspace=a')
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('Clear 工具')
+  fireEvent.click(screen.getByRole('link', { name: '← 返回应用目录' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/apps'))
+  expect(router.state.location.search).toBe('?workspace=a')
+})
+
+test('legacy forensic report links retain all context when redirected to the application', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+    if (input.includes('/workspaces?')) return { ok: true, json: async () => page([{ workspace_id: 'a', name: '甲' }]) }
+    if (input.includes('/forensics/old-report')) return { ok: false, status: 404, json: async () => ({ detail: '报告不存在' }) }
+    return { ok: true, json: async () => ({ ...page([]), total: 0 }) }
+  }))
+  const query = '?workspace=a&inspection=old-report&return_to=%2Faudit%3Fproject%3Dp1'
+  const { router, view } = mount(`/forensics${query}#heatmap`)
+  expect(await screen.findByRole('heading', { name: 'ClearForensics', level: 1 })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/apps/forensics')
+  expect(router.state.location.search).toBe(query)
+  expect(router.state.location.hash).toBe('#heatmap')
+  expect(router.state.historyAction).toBe('REPLACE')
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('Clear 工具')
 })
 
 test('narrow navigation opens by keyboard-accessible button and closes after page selection', async () => {
@@ -59,9 +107,9 @@ test('narrow navigation opens by keyboard-accessible button and closes after pag
   expect(open).toHaveAttribute('aria-expanded', 'false')
   fireEvent.click(open)
   expect(screen.getByRole('button', { name: '收起导航' })).toHaveAttribute('aria-expanded', 'true')
-  fireEvent.click(screen.getByText('工作空间', { selector: '.ant-menu-title-content' }))
-  expect(await screen.findByRole('heading', { name: '工作空间' })).toBeInTheDocument()
-  expect(router.state.location.pathname).toBe('/workspaces')
+  fireEvent.click(screen.getByText('项目', { selector: '.ant-menu-title-content' }))
+  expect(await screen.findByRole('heading', { name: '项目' })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/projects')
   expect(screen.getByRole('button', { name: '展开导航' })).toHaveAttribute('aria-expanded', 'false')
 })
 
@@ -120,8 +168,8 @@ test('clearing selection removes URL scope; unknown scope and unsafe app path ne
   expect(router.state.location.search).toBe('?workspace=a')
   await router.navigate('/assets')
   await router.navigate('/assets?workspace=missing')
-  expect(await screen.findByText('工作空间不存在或已失效')).toBeInTheDocument()
-  fireEvent.click(screen.getByText('清除工作空间'))
+  expect(await screen.findByText('项目不存在或已失效')).toBeInTheDocument()
+  fireEvent.click(screen.getByText('清除项目选择'))
   await waitFor(() => expect(router.state.location.search).toBe(''))
   await router.navigate('/apps/%2Fprivate')
   expect(await screen.findByText('页面不存在')).toBeInTheDocument()
@@ -143,14 +191,14 @@ test('create rejects a blank name and uses persisted identity before slow list r
   vi.stubGlobal('fetch', fetcher)
   const { router } = mount('/workspaces')
   await screen.findByText('目前没有记录')
-  fireEvent.click(screen.getByText('新建工作空间'))
+  fireEvent.click(screen.getByText('新建项目'))
   fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }))
   await screen.findByText('请输入名称')
   expect(fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(0)
   fireEvent.change(screen.getByPlaceholderText('例如：季度资料整理'), { target: { value: '新项目' } })
   fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }))
   await waitFor(() => expect(router.state.location.search).toBe('?workspace=newA'))
-  expect(screen.queryByText('工作空间不存在或已失效')).not.toBeInTheDocument()
+  expect(screen.queryByText('项目不存在或已失效')).not.toBeInTheDocument()
   expect(fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1)
-  expect(JSON.parse(fetcher.mock.calls.find(([, options]) => options?.method === 'POST')![1]!.body as string)).toEqual({ schema_version: '1.0', name: '新项目' })
+  expect(JSON.parse(fetcher.mock.calls.find(([, options]) => options?.method === 'POST')![1]!.body as string)).toEqual({ schema_version: '1.0', name: '新项目', request_id: expect.stringMatching(/^w/) })
 })

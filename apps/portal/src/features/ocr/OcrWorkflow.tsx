@@ -4,8 +4,9 @@ import { Alert, Button, Empty, Input, Select, Space, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import './ocr.css'
 import { useNativeWindow } from '../catalog/nativeWindow'
+import { nativeReviewReturn } from '../catalog/nativeReviewReturn'
 
-const { Title, Text } = Typography
+const { Title, Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null }
 type AssetSet = { asset_set_id: string; revision: number; members: { asset_id: string; original_name: string }[] }
 type Handoff = { handoff_id: string; link_id: string; state: string; availability: string;
@@ -25,6 +26,7 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 export function OcrWorkflow() {
   const [params, setParams] = useSearchParams()
   const workspaceId = params.get('workspace')
+  const reviewReturn = nativeReviewReturn(params.get('return_to'), workspaceId)
   const setId = params.get('set')
   const handoffId = params.get('handoff')
   const client = useQueryClient()
@@ -89,6 +91,7 @@ export function OcrWorkflow() {
   }
   return <div className="ocr-workflow"><div className="page-heading"><Text className="eyebrow">CLEAROCR / 文档识别与校对</Text>
     <Title level={1}>ClearOCR</Title></div>
+    {reviewReturn && <Paragraph><Link to={reviewReturn}>返回原待办事项</Link></Paragraph>}
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>
       <section className="panel"><div className="section-head"><Title level={3}>输入资料</Title>
         <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></div>

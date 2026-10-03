@@ -1,4 +1,4 @@
-import { createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import type { ThemeConfig } from 'antd'
 import { App, Home, Workspaces, Applications, Application, Placeholder, Missing } from './App'
@@ -9,7 +9,11 @@ import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
 import { OcrWorkflow } from './features/ocr/OcrWorkflow'
 import { ClassificationWorkflow } from './features/classification/ClassificationWorkflow'
 import { BatchCenter } from './features/batches/BatchCenter'
+import { AuditWorkbench } from './features/audit/AuditWorkbench'
+import { TodoCenter } from './features/todos/TodoCenter'
+import { ForensicWorkbench } from './features/forensics/ForensicWorkbench'
 import { clearTheme } from './clear-ui/theme'
+import { QuickNativeWorkbench } from './features/start/QuickNativeWorkbench'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: clearTheme.accent, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
@@ -32,13 +36,25 @@ export const queryClient = new QueryClient({ defaultOptions: {
   queries: { retry: false, staleTime: 15_000, refetchOnWindowFocus: false },
 } })
 
+function LegacyForensicsRedirect() {
+  const { search, hash } = useLocation()
+  return <Navigate replace to={`/apps/forensics${search}${hash}`} />
+}
+
 export const routes: RouteObject[] = [{
   path: '/', element: <App />, children: [
     { index: true, element: <Home /> },
+    { path: 'projects', element: <Workspaces /> },
     { path: 'workspaces', element: <Workspaces /> },
     { path: 'batches', element: <BatchCenter /> },
+    { path: 'audit', element: <AuditWorkbench /> },
+    { path: 'todos', element: <TodoCenter /> },
+    { path: 'forensics', element: <LegacyForensicsRedirect /> },
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
+    { path: 'apps/forensics', element: <ForensicWorkbench /> },
+    { path: 'apps/ocr/start', element: <QuickNativeWorkbench appId="ocr" /> },
+    { path: 'apps/classification/start', element: <QuickNativeWorkbench appId="classification" /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },
     { path: 'apps/classification/workflow', element: <ClassificationWorkflow /> },
     { path: 'apps/:appId', element: <Application /> },

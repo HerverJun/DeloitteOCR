@@ -4,8 +4,9 @@ import { Alert, Button, Empty, Input, Segmented, Select, Space, Tag, Typography 
 import { Link, useSearchParams } from 'react-router-dom'
 import './classification.css'
 import { useNativeWindow } from '../catalog/nativeWindow'
+import { nativeReviewReturn } from '../catalog/nativeReviewReturn'
 
-const { Title, Text } = Typography
+const { Title, Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null;
   labels: { label_id: string; display_name: string }[] }
 type AssetSet = { asset_set_id: string; revision: number;
@@ -30,6 +31,7 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 export function ClassificationWorkflow() {
   const [params, setParams] = useSearchParams()
   const workspaceId = params.get('workspace')
+  const reviewReturn = nativeReviewReturn(params.get('return_to'), workspaceId)
   const setId = params.get('set')
   const handoffId = params.get('handoff')
   const client = useQueryClient()
@@ -121,6 +123,7 @@ export function ClassificationWorkflow() {
 
   return <div className="classification-workflow"><div className="page-heading"><Text className="eyebrow">CLEARCLASSIFY / 图像分类与复核</Text>
     <Title level={1}>ClearClassify</Title></div>
+    {reviewReturn && <Paragraph><Link to={reviewReturn}>返回原待办事项</Link></Paragraph>}
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>
       <section className="panel"><div className="section-head"><Title level={3}>输入资料</Title>
         <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></div>

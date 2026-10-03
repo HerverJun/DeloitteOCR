@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Card, Checkbox, Empty, Input, InputNumber, Modal, Select, Space, Spin, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Checkbox, Empty, Input, InputNumber, Modal, Pagination, Select, Space, Spin, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
-import { brands } from '../../clear-ui/theme'
+import { brands, applicationDescriptions } from '../../clear-ui/theme'
+import { useWorkspaces } from '../../App'
 import './data.css'
 
 const { Title, Text, Paragraph } = Typography
@@ -22,7 +23,7 @@ type Recipe = { id: string; name: string; steps: unknown[]; columns: Column[] }
 type Export = { id: string; result_id: string | null; files: { name: string; bytes: number; sha256: string }[] }
 type Job = { id: string; action: string; status: string; error?: string | null }
 type Policy = { key_pairs: string[][]; compare_pairs: string[][]; amount_pairs: string[][]; type_policy: string; null_policy: string; amount_tolerance: string; trim_text: boolean; casefold_text: boolean }
-type Session = { id: string; name: string; version: number; updated: string; jobs: Job[]; state: { tables: Partial<Record<Side, InputTable>>; recipes: Recipe[]; result_id: string | null; comparison?: { left_revision: string; right_revision: string; spec: Policy }; comparisons: { id: string; left_name: string; right_name: string; coverage: Record<string, number> }[]; exports: Export[] } }
+type Session = { id: string; name: string; workspace_id?: string | null; version: number; updated: string; jobs: Job[]; state: { tables: Partial<Record<Side, InputTable>>; recipes: Recipe[]; result_id: string | null; comparison?: { left_revision: string; right_revision: string; spec: Policy }; comparisons: { id: string; left_name: string; right_name: string; coverage: Record<string, number> }[]; exports: Export[] } }
 type DataRow = { ordinal: number; row_id: string; source_row: number; cells: Cell[] }
 type Preview = { total: number; rows: DataRow[]; metadata: { event: { errors_total: number; error_sample: { code: string; raw: string; row_id: string }[] }; duplicate_groups: number } }
 type ResultPage = { total: number; rows: (Record<string, string> & { ordinal: number })[]; metadata: { coverage: Record<string, number>; left: InputTable; right: InputTable } }
@@ -47,10 +48,12 @@ export function DataApplicationCard() {
   const [params] = useSearchParams()
   const workspace = params.get('workspace')
   const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health'), refetchInterval: 15_000 })
-  return <Card className="application-card" title={brands.data}>
-    <Paragraph>数据清洗与比对。导入 Excel、CSV 或 Parquet，比较差异并导出来源清单。</Paragraph>
-    <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">独立数据工具 · 无需 OCR</Text></div>
-    <Link to={`/apps/data${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ''}`}><Button type="primary">打开数据工作台</Button></Link>
+  const linked = `/apps/data${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ''}`
+  return <Card className="application-card" title={<Link to={linked}>{brands.data}</Link>}>
+    <Text className="application-purpose">{applicationDescriptions.data.purpose}</Text>
+    <Paragraph className="application-description" type="secondary">{applicationDescriptions.data.description}</Paragraph>
+    <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">可直接打开</Text></div>
+    <Link to={linked}><Button type="primary">打开数据工作台</Button></Link>
   </Card>
 }
 
@@ -261,7 +264,9 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
       {publishError && <Alert type="error" title={publishError} closable onClose={() => setPublishError('')} />}
       {session.state.exports.map((item, index) => <div className="data-download-row" key={item.id}><Text type="secondary">第 {session.state.exports.length - index} 次导出</Text>
         <Space wrap>{item.files.map(file => <a key={file.name} href={`${API}/sessions/${session.id}/exports/${item.id}/${file.name}`} download>{file.name} <small>({Math.ceil(file.bytes / 1024)} KB)</small></a>)}</Space>
-        {workspaceId && (published[item.id]?.workspace === workspaceId
+        {workspaceId && (session.workspace_id === workspaceId
+          ? <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}`}>查看项目输出</Link>
+          : published[item.id]?.workspace === workspaceId
           ? <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(published[item.id].bundle)}`}>查看成果</Link>
           : <Button size="small" loading={publishing === item.id} disabled={publishing !== null}
               onClick={() => void publish(item.id)}>归集到成果中心</Button>)}</div>)}
@@ -273,6 +278,10 @@ export function DataWorkbench() {
   const [params, setParams] = useSearchParams()
   const sessionId = params.get('session')
   const workspaceId = params.get('workspace')
+  const [historyPage, setHistoryPage] = useState({ workspaceId, page: 1 })
+  const sessionPage = historyPage.workspaceId === workspaceId ? historyPage.page : 1
+  const projects = useWorkspaces()
+  const projectName = projects.data?.find(item => item.workspace_id === workspaceId)?.name
   const assetSetId = params.get('asset_set')
   const client = useQueryClient()
   const [name, setName] = useState('新建表格比对'), [error, setError] = useState(''), [sending, setSending] = useState(false)
@@ -290,25 +299,36 @@ export function DataWorkbench() {
   }) || []
   useEffect(() => { setLeftItem(tableItems[0]?.value); setRightItem(tableItems[1]?.value) }, [assetSet.data?.asset_set_id])
   const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean; message: string | null }>('/health'), refetchInterval: 15_000 })
-  const list = useQuery({ queryKey: ['data-sessions'], queryFn: () => request<{ items: { id: string; name: string }[] }>('/sessions') })
+  const list = useQuery({ queryKey: ['data-sessions', workspaceId, sessionPage], queryFn: () => request<{ items: { id: string; name: string }[]; total: number }>(`/sessions?${workspaceId ? `workspace_id=${encodeURIComponent(workspaceId)}&` : ''}offset=${(sessionPage - 1) * 20}&limit=20`) })
   const session = useQuery({ queryKey: ['data-session', sessionId], enabled: !!sessionId,
     queryFn: () => request<Session>(`/sessions/${sessionId}`),
     refetchInterval: query => query.state.data?.jobs.some(job => active.includes(job.status)) ? 750 : false })
-  const current = session.data
+  const wrongProject = !!session.data?.workspace_id && session.data.workspace_id !== workspaceId
+  const current = wrongProject ? undefined : session.data
   const job = current?.jobs.find(item => active.includes(item.status))
   const busy = sending || !!job || !health.data?.ready
   const refresh = async () => { await client.invalidateQueries({ queryKey: ['data-session', sessionId] }); void client.invalidateQueries({ queryKey: ['data-sessions'] }) }
   const choose = (id: string) => { const next = new URLSearchParams(params); next.set('session', id); setParams(next); setError('') }
   const create = async () => {
     setSending(true); setError('')
-    try { const result = await post<Session>('/sessions', { name }); await client.invalidateQueries({ queryKey: ['data-sessions'] }); choose(result.id) }
+    const key = `clear-data-create:${workspaceId || 'standalone'}`
+    try {
+      const pending = localStorage.getItem(key)
+      const payload = pending ? JSON.parse(pending) : { name: projectName ? `${projectName.slice(0, 85)} · 表格比对` : name,
+        workspace_id: workspaceId, request_id: `s${crypto.randomUUID().replaceAll('-', '')}` }
+      localStorage.setItem(key, JSON.stringify(payload))
+      const result = await post<Session>('/sessions', payload)
+      localStorage.removeItem(key)
+      client.setQueryData(['data-session', result.id], result)
+      await client.invalidateQueries({ queryKey: ['data-sessions'] }); choose(result.id)
+    }
     catch (failure) { setError((failure as Error).message) } finally { setSending(false) }
   }
   const importSelection = async () => {
     if (!workspaceId || !assetSet.data || !leftItem || !rightItem || leftItem === rightItem) return
     setSending(true); setError('')
     try {
-      let work = await post<Session>('/sessions', { name: '资料库表格比对' })
+      let work = await post<Session>('/sessions', { name: '资料库表格比对', workspace_id: workspaceId })
       choose(work.id)
       for (const [side, itemId] of ([['left', leftItem], ['right', rightItem]] as const)) {
         const upload = await post<{ id: string }>(`/sessions/${work.id}/asset-uploads`, {
@@ -358,10 +378,16 @@ export function DataWorkbench() {
   }
   return <div className="data-workbench"><div className="page-heading"><div className="data-title-line"><Title level={1}>{brands.data}</Title>
     <Tag color={health.isPending ? 'processing' : health.data?.ready ? 'success' : 'warning'}>{health.isPending ? '连接中' : health.data?.ready ? '服务就绪' : '服务不可用'}</Tag></div>
-    <Paragraph>数据清洗与比对 · 两份输入、清洗步骤、固定版本结果与来源清单。</Paragraph></div>
+    <Paragraph>导入两份表格，按需要清洗和比对，直接生成下载文件。</Paragraph></div>
     {(!health.data?.ready || health.isError) && !health.isPending && <Alert type="warning" title={health.data?.message || '无法连接数据服务'} action={<Button onClick={() => void health.refetch()}>重试</Button>} />}
-    <div className="data-session-bar"><Select aria-label="数据作业" placeholder="继续已有作业" value={sessionId || undefined} onChange={choose} loading={list.isPending} options={list.data?.items.map(item => ({ value: item.id, label: item.name }))} />
-      <Space.Compact><Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} /><Button disabled={sending || !health.data?.ready} onClick={() => void create()}>新建作业</Button></Space.Compact>
+    <div className="data-session-bar"><Select aria-label="数据作业" placeholder="继续已有作业" value={sessionId || undefined} onChange={choose} loading={list.isPending} options={[
+      ...(current && !list.data?.items.some(item => item.id === current.id) ? [{ value: current.id, label: current.name }] : []),
+      ...(list.data?.items.map(item => ({ value: item.id, label: item.name })) || [])]} />
+      <Pagination aria-label="作业历史分页" size="small" current={sessionPage} pageSize={20} total={list.data?.total || 0} showSizeChanger={false}
+        hideOnSinglePage onChange={page => setHistoryPage({ workspaceId, page })} />
+      {list.isError && <Alert type="error" title="作业历史读取失败" action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
+      <Space.Compact>{!workspaceId && <Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} />}<Button disabled={sending || !health.data?.ready || !!workspaceId && !projectName} onClick={() => void create()}>{workspaceId ? '开始新的比对' : '新建作业'}</Button></Space.Compact>
+      {workspaceId && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}`}>项目输出</Link>}
       {current && <div className="data-session-context"><Text strong>{current.name}</Text><Text type="secondary">作业版本 {current.version}</Text>
         {current.jobs[0] && <Tag aria-live="polite" color={job ? 'processing' : current.jobs[0].status === 'failed' ? 'error' : current.jobs[0].status === 'succeeded' ? 'success' : 'default'}>
           {jobNames[(job || current.jobs[0]).action] || '操作'}{jobStatusNames[(job || current.jobs[0]).status] || (job || current.jobs[0]).status}</Tag>}
@@ -376,12 +402,13 @@ export function DataWorkbench() {
     </section>}
     {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
     {session.isError && <Alert type="error" title="无法读取作业" action={<Button onClick={() => void session.refetch()}>重试</Button>} />}
+    {wrongProject && <Alert type="warning" title="这个数据作业属于其他项目，请选择当前项目的作业" />}
     {job && <Alert role="status" aria-live="polite" type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
       action={<Button disabled={job.status === 'cancelling'} onClick={() => void post(`/sessions/${current!.id}/jobs/${job.id}/cancel`, {}).then(refresh).catch(failure => setError(failure.message))}>取消</Button>} />}
     {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
     {current ? <><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
       <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
       <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></> :
-      <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '新建一个作业，或继续已有表格比对。无需先创建平台工作空间。'} /></div>}
+      <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '点击开始新的比对，或继续已有作业。'} /></div>}
   </div>
 }

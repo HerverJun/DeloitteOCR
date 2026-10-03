@@ -1,0 +1,8 @@
+.todo-filters { margin-bottom: 16px; }
+.todo-filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.todo-layout { display: grid; grid-template-columns: minmax(300px, .9fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+.todo-layout > section { min-width: 0; }
+.todo-selected td { background: #eef3e7 !important; }
+.todo-actions { margin-bottom: 16px; }
+.todo-center .ant-alert { margin-block: 12px; }
+@media (max-width: 1100px) { .todo-layout { grid-template-columns: 1fr; } }

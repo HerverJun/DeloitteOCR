@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Input, Select, Space, Typography } from 'antd'
 import { Link } from 'react-router-dom'
 import { post, request, scenarioNames, type Scenario, type Template } from './api'
+import { FirstDataSetup } from './FirstDataSetup'
 
 const { Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null }
@@ -57,6 +58,7 @@ export function TemplateSetup({ workspaceId, onSaved }: { workspaceId: string; o
     {scenario === 'classification' && <Alert type="info" title="自动接受保持关闭" description="执行分类后保留原始模型建议，人的确认单独记录。" />}
     {scenario === 'ocr' && options.data && !options.data.recognition && <Alert type="warning" title="当前能力不足，不能自动识别" description={options.data.reason || '当前实例仅支持已有结果校对。请进入原生工作台处理已有结果。'} />}
     {[sessions.error, projects.error, options.error, link.error, save.error].filter(Boolean).map((error, index) => <Alert key={index} type="error" title={(error as Error).message} />)}
-    <Space><Button type="primary" disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>确认并保存模板</Button><Text type="secondary">保存后可直接选择新资料启动</Text></Space>
+    {scenario === 'data_compare' ? <FirstDataSetup workspaceId={workspaceId} name={name} existingSessionId={sessionId} onSaved={item => { onSaved(item); setName('') }} /> :
+      <Space><Button type="primary" disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>确认并保存模板</Button><Text type="secondary">保存后可直接选择新资料启动</Text></Space>}
   </details>
 }

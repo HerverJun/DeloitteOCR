@@ -1,11 +1,14 @@
+import type { BatchCoverage, BatchDelivery, BatchDisposition, BatchHistoryPage, BatchNativeRevisionPage, BatchOperation, LocalActor, NativeAdoption, ReviewArtifactRequest, ReviewBundle } from '../../../../../packages/contracts/types.generated'
+export type { BatchCoverage, BatchDisposition, BatchHistoryPage, BatchNativeRevisionPage, BatchOperation, LocalActor, NativeAdoption, ReviewArtifactRequest, ReviewBundle }
 export const API = '/api/platform/v1'
 export type Scenario = 'data_compare' | 'classification' | 'ocr'
 export type Template = { template_id: string; version: number; name: string; scenario: Scenario; config: Record<string, unknown>; config_hash: string }
 export type Asset = { asset_id: string; original_name: string; media_type: string; revision: number; blob_hash: string }
-export type Issue = { item_id: string; category: string; title: string; detail: string; source: Record<string, unknown> | null; raw_output: unknown; disposition: 'pending' | 'confirmed' | 'deferred'; note: string }
-export type Summary = { total: number; processed: number; succeeded: number; failed: number; pending: number; confirmed: number; deferred: number; coverage: Record<string, number>; execution_complete: boolean; review_complete: boolean }
-export type Artifact = { bundle_id: string; title: string; files: { name: string; availability: string }[] }
-export type Batch = { batch_id: string; workspace_id: string; template: Template; template_id: string; template_version: number; status: string; stage: string; summary: Summary; issues: Issue[]; receipts: Record<string, unknown>; artifact_state: string; artifacts: Artifact[]; capabilities: string[]; created_at: string; updated_at: string }
+export type Issue = { item_id: string; category: string; title: string; detail: string; source: Record<string, unknown> | null; raw_output: unknown; disposition: 'pending' | 'confirmed' | 'deferred'; note: string; adoption?: Record<string, unknown> | null }
+export type IssuePage = { revision: number; items: Issue[]; total: number; coverage: BatchCoverage; summary: Summary }
+export type Summary = { total: number; processed: number; succeeded: number; failed: number; pending: number; confirmed: number; deferred: number; coverage: Record<string, number>; execution_complete: boolean; review_complete: boolean; pending_operations?: number; pending_operation?: { operation_id: string; request_id: string; state: string } | null; review_scope?: string; native_review_qualification?: string }
+export type Artifact = { bundle_id: string; title: string; kind?: string; files: { name: string; availability: string }[] }
+export type Batch = { revision: number; coverage: BatchCoverage; delivery: BatchDelivery; batch_id: string; workspace_id: string; template: Template; template_id: string; template_version: number; status: string; stage: string; summary: Summary; issues: Issue[]; receipts: Record<string, unknown>; artifact_state: string; artifacts: Artifact[]; capabilities: string[]; created_at: string; updated_at: string }
 export type BatchInput = { role: string; asset_id: string; asset_revision: number; blob_hash: string }
 export type RunRequest = { schema_version: '1.0'; request_key: string; workspace_id: string; template_id: string; template_version: number; inputs: BatchInput[] }
 export type Preflight = { ready?: boolean; ok?: boolean; issues: { title?: string; detail?: string; message?: string; code?: string }[] }
@@ -29,11 +32,45 @@ export function persistRequest(workspaceId: string, value: RunRequest | null) {
   else localStorage.removeItem(pendingKey(workspaceId))
 }
 
+export function newRequestId() { return 'r' + crypto.randomUUID().replaceAll('-', '') }
+export function localReviewer(): LocalActor {
+  try {
+    const value = JSON.parse(localStorage.getItem('clear-local-reviewer') || 'null')
+    if (value?.source === 'local' && typeof value.id === 'string' && /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(value.id) && typeof value.display_name === 'string') return value
+  } catch { /* The user can supply a fresh explicit display name. */ }
+  const value: LocalActor = { id: 'u' + crypto.randomUUID().replaceAll('-', ''), display_name: '', source: 'local' }
+  localStorage.setItem('clear-local-reviewer', JSON.stringify(value))
+  return value
+}
+export type FixedRequest<T> = { payload: T; status: 'uncertain' | 'conflict' }
+export function fixedRequest<T>(kind: 'disposition' | 'review', batchId: string): FixedRequest<T> | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(`clear-batch-${kind}:${batchId}`) || 'null')
+    const payload = value?.payload
+    if (!['uncertain', 'conflict'].includes(value?.status) || !payload || typeof payload.request_id !== 'string' ||
+      !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(payload.request_id) || !Number.isInteger(payload.expected_revision) || payload.expected_revision < 1 ||
+      payload.actor?.source !== 'local' || typeof payload.actor.id !== 'string' || typeof payload.actor.display_name !== 'string') return null
+    if (kind === 'disposition' && (!Array.isArray(payload.item_ids) || !payload.item_ids.length || !['confirm', 'defer', 'reopen', 'adopt'].includes(payload.action))) return null
+    if (kind === 'review' && !['intermediate', 'final'].includes(payload.kind)) return null
+    return value
+  }
+  catch { return null }
+}
+export function persistFixed<T>(kind: 'disposition' | 'review', batchId: string, value: FixedRequest<T> | null) {
+  const key = `clear-batch-${kind}:${batchId}`
+  if (value) localStorage.setItem(key, JSON.stringify(value))
+  else localStorage.removeItem(key)
+}
+
+export class HttpError extends Error {
+  constructor(message: string, readonly status: number) { super(message); this.name = 'HttpError' }
+}
+
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(API + path, init)
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new Error(typeof body.detail === 'string' ? body.detail : `操作未完成（${response.status}）`)
+    throw new HttpError(typeof body.detail === 'string' ? body.detail : `操作未完成（${response.status}）`, response.status)
   }
   return response.json() as Promise<T>
 }

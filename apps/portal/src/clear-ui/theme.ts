@@ -11,8 +11,15 @@ export const clearTheme = {
 } as const
 export const brands = {
   platform: 'Clear Workbench', ocr: 'ClearOCR',
-  classification: 'ClearClassify', data: 'ClearData',
+  classification: 'ClearClassify', data: 'ClearData', forensics: 'ClearForensics',
 } as const
 export function brandName(appId: string, fallback = appId): string {
-  return appId === 'ocr' ? brands.ocr : appId === 'classification' ? brands.classification : fallback
+  return appId === 'ocr' ? brands.ocr : appId === 'classification' ? brands.classification :
+    appId === 'data' ? brands.data : appId === 'forensics' ? brands.forensics : fallback
+}
+export const applicationDescriptions: Record<string, { purpose: string; description: string }> = {
+  data: { purpose: '数据清洗与比对', description: '导入表格，清洗与比较差异，导出结果和来源清单。' },
+  classification: { purpose: '图像分类与复核', description: '整理图像资料，执行分类并人工复核归类结果。' },
+  ocr: { purpose: '文档识别与校对', description: '识别文档文字和字段，校对结果并保留原文来源。' },
+  forensics: { purpose: '图像取证与审阅', description: '检查图像篡改线索，审阅原图与热图，形成报告和审计证据。' },
 }
