@@ -1,0 +1,2517 @@
+{
+  "schema_version": 1,
+  "plan_id": "audit-platform-development-20261002",
+  "revision": 24,
+  "status": "implementation_in_progress",
+  "user_scope_override": {
+    "revision": 24,
+    "primary_flow": "选择项目→选择Clear工具→开始处理与输出",
+    "priority": "快速落地与稳定",
+    "optional_advanced": [
+      "审计程序",
+      "调查证据",
+      "编制复核",
+      "正式底稿"
+    ],
+    "next_delivery": [
+      "实际工具安装启动",
+      "项目隔离",
+      "异常恢复",
+      "文件下载",
+      "独立交付"
+    ],
+    "historical_task_counts": "原21项审计流程计数保留，不作为新简化流程的完成比例"
+  },
+  "created_at": "2026-10-02",
+  "timezone": "Asia/Hong_Kong",
+  "current_scope": [
+    "M1",
+    "M2"
+  ],
+  "deferred": [
+    "M3"
+  ],
+  "purpose": "先保证异常全量覆盖、人工修订采用、可追溯复核交付与运行可靠，再形成最小审计主线；最后按限定资格扩展 PDF 和提取后比对。",
+  "repositories": {
+    "platform": {
+      "root": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+      "audit_baseline_head": "cbcfd6d40e2bb3d9ad9595b283c4a81b96dbeccf"
+    },
+    "ocr": {
+      "root": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+      "audit_baseline_head": "946d830df91b3e7d83bdad1d054f9121f997f21e"
+    },
+    "classification": {
+      "root": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
+      "audit_baseline_head": "15387bd55e8dd7f73e7b99043376821dcc0553da"
+    },
+    "docs": {
+      "root": "F:/OCR/docs/platform-automation"
+    }
+  },
+  "baseline_policy": "以上 HEAD 来自 2026-10-02 审查，只作事实基线；D00 核对实际 HEAD/改动/真实 Git 目标，实施和候选均重新绑定资格。",
+  "run_root": "F:/OCR/output/audit-platform-dev-20261002",
+  "candidate_roots": {
+    "M1": "F:/OCR/output/audit-platform-m1-preview-20261002-r3",
+    "M2": "F:/OCR/output/audit-platform-m2-preview-20261002",
+    "M3": "F:/OCR/output/audit-platform-m3-preview-20261002"
+  },
+  "owners": {
+    "coordinator": "唯一统筹，冻结契约、维护运行状态/锁、执行浏览器/GPU/原生/冷备/候选门禁，裁决任务接口。",
+    "lane_a": "平台存储、覆盖、处置编排、成果及审计业务后端。",
+    "lane_b": "分类原生及适配、启动/运行环境、自动准备，后续 PDF。",
+    "lane_c": "OCR 原生及适配、门户业务/待办/引导；共享门户文件串行修改。"
+  },
+  "execution_policy": {
+    "planned_status_meaning": "本次仅制定计划；planned_not_started 不是实施拒绝开关。用户后续授权实施 M1/M2 后按 DAG 自主推进，通过门禁直接进入下一当前阶段，不增加阶段审批。",
+    "scope": "当前执行仅 M1/M2；M3 已拆好但延期，不因 D20 完成自动纳入实施。",
+    "ready_rule": "先续接 running/verifying 并核对实际操作身份；选新任务仅从 status=pending、当前 milestone.enabled=true、依赖全部 done、操作所需资源可用且源码 claim 无冲突的任务中选。ready 是计算条件，不存为任务状态；同优先级按 ID，单泳道一次一任务。",
+    "blocked_rule": "只阻断真正依赖受阻的任务，继续其他就绪任务；记录具体外部条件，不为常规实现选择反复问用户。",
+    "ownership": "每任务一位责任人；公共契约由 coordinator 裁决，同一源文件/构建目录禁止同时写。",
+    "no_new_scheduler": "代理直接读取本 JSON 和运行状态按依赖推进；不用旧 platform_plan/checks 格式，不安装新调度器。",
+    "no_old_ledger_mutation": "旧 T/N 台账与历史证据只读参考；不得篡改旧记录、把正式 T052–T057 改完成或复用旧通过身份。",
+    "protect_existing": "保留用户改动、活动实例、旧候选及真实数据；在隔离 F 盘夹具和独立候选验证，不擅自移动/删除盘外旧资料。",
+    "no_detail_detours": "内部选型由负责人按最小可复用方案处理；模型/训练、品牌、组件库重构、通用流程/调度、云服务、多组织权限不进入当前关键路径。",
+    "retry_rule": "failed/blocked 只有代码、诊断假设或具体解除条件发生实质变化后，由 coordinator 记录原因转回 pending；相同输入/源码/失败最多重复两次，第三次前必须有新原因、修复或不同验证路线。",
+    "no_ready_rule": "没有可续接 running/verifying 且没有符合条件的 pending 时，保存唯一 state.json 与 NEXT.md，报告具体解除条件并结束当前回合；禁止空转、轮询未变状态或自行建立周期提醒。",
+    "finish_rule": "M1 门禁通过直接推进 M2，不增加阶段审批；M1/M2 当前范围全部通过后交付并结束本轮，M3 保持 deferred 且 enabled=false。",
+    "business_mainline_priority": "2026-10-03 用户要求推动业务主线、避免重复测试：D11已有源码集成验收后允许M2源码开发；D12独立候选交付保持未通过，作为D19/D20最终交付门禁，不阻塞D13/D15/D16开发。旧M1源码冻结不再约束M2开发；旧候选/冻结快照保持只读，不再重复构建大包。"
+  },
+  "runtime_state": {
+    "state_file": "F:/OCR/output/audit-platform-dev-20261002/state.json",
+    "next_file": "F:/OCR/output/audit-platform-dev-20261002/NEXT.md",
+    "creation": "仅实施 D00 时创建，当前计划交付不得创建运行状态/候选。",
+    "single_source": "任务实际状态、责任人、输入身份、证据、阻碍和资源锁仅存在这一 state.json；NEXT.md 是由其生成的下一步摘要，不另建每任务进度账本。",
+    "task_states": [
+      "pending",
+      "running",
+      "verifying",
+      "done",
+      "blocked",
+      "failed"
+    ],
+    "completion_rule": "代码/交付物实现、硬验收通过且证据绑定实际身份才标 done；ready 仅为 pending 的动态筛选条件，候选门禁不以报告文字或 HTTP 成功替代真实操作。",
+    "update_rule": "coordinator 串行更新 state.json 并原子写回；子代理交付源码/证据/建议状态，由统筹核对后登记。",
+    "evidence_layout": "F:/OCR/output/audit-platform-dev-20261002/evidence/{task_id}/{attempt}/{check_id}/",
+    "resume_rule": "先读 state.json/NEXT.md，核对源码/证据/遗留操作身份，优先续接 running/verifying；失联任务先核对进程/结果，再恢复，禁止直接重发。仅按当前 enabled 里程碑挑选 pending；无就绪项保存解除条件后结束当前回合。",
+    "task_record_fields": [
+      "status",
+      "owner",
+      "attempt",
+      "checkpoint",
+      "source_revision",
+      "outputs",
+      "checks",
+      "blocker",
+      "next_action"
+    ],
+    "initial_current_milestone": "M1"
+  },
+  "storage_policy": {
+    "allowed_volume": "F:",
+    "scope": "源码/实际 Git 元数据、依赖、虚拟环境、模型、数据库、日志、临时缓存、截图/profile/下载、报告、备份及候选全部在本机 F 盘。",
+    "before_write": "解析实际目标并检查 junction/符号链接/容量/权限；显式绑定工具和全部子进程写入位置，不能只设 cwd 或 --data。",
+    "environment_plan": {
+      "TEMP": "F:/OCR/output/audit-platform-dev-20261002/temp",
+      "TMP": "F:/OCR/output/audit-platform-dev-20261002/temp",
+      "APPDATA": "F:/OCR/output/audit-platform-dev-20261002/cache/appdata",
+      "LOCALAPPDATA": "F:/OCR/output/audit-platform-dev-20261002/cache/localappdata",
+      "PIP_CACHE_DIR": "F:/OCR/output/audit-platform-dev-20261002/cache/pip",
+      "npm_config_cache": "F:/OCR/output/audit-platform-dev-20261002/cache/npm",
+      "npm_config_store_dir": "F:/OCR/output/audit-platform-dev-20261002/cache/pnpm-store",
+      "HF_HOME": "F:/OCR/output/audit-platform-dev-20261002/cache/huggingface",
+      "TORCH_HOME": "F:/OCR/output/audit-platform-dev-20261002/cache/torch",
+      "HYPOTHESIS_STORAGE_DIRECTORY": "F:/OCR/output/audit-platform-dev-20261002/cache/hypothesis",
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "browser_roots": {
+      "profile": "F:/OCR/output/audit-platform-dev-20261002/browser/profile",
+      "cache": "F:/OCR/output/audit-platform-dev-20261002/browser/cache",
+      "downloads": "F:/OCR/output/audit-platform-dev-20261002/downloads",
+      "screenshots": "F:/OCR/output/audit-platform-dev-20261002/evidence/screenshots"
+    },
+    "paddle_ascii_temp": "F:/OCR/output/audit-platform-dev-20261002/temp/paddle-ascii",
+    "prohibited_environment_changes": [
+      "HOME",
+      "CODEX_HOME",
+      "系统级用户目录"
+    ],
+    "tooling": "盘外已安装系统工具可只读使用；工具不能保证 F 盘写入边界则停止相关操作，不自动回退到 C/D/E、系统 temp、云同步或网络共享。",
+    "legacy_run_check": "scripts/run_check.py 当前环境函数改写 HOME/USERPROFILE，并依赖旧冻结台账；本计划不得直接复用其默认执行方式。D00 仅提取已核对的命令/夹具，使用本清单的 F 盘环境直接运行。",
+    "no_creation_now": "上述均为实施时的登记落点，本 JSON 创建不创建目录、运行状态、候选或数据库。"
+  },
+  "write_scope_policy": "write_scopes 是源仓库到相对路径的允许范围，目录以 / 结尾；根仅取 repositories，禁止绝对路径和 ..。公共文件排除于非统筹 scope，按 shared_file_ownership/coordinator_changes 由 coordinator 唯一写。证据/备份/候选按全局 F 盘根落盘。扩大范围由统筹登记原因/影响并更新计划版本，常规边界协调不增加阶段审批。",
+  "exclusive_resources": [
+    {
+      "id": "shared.contracts",
+      "scope": "platform:packages/contracts/",
+      "rule": "契约及生成类型一次只由一个任务写；下游按冻结版本消费。"
+    },
+    {
+      "id": "shared.platform-batches-store",
+      "scope": "platform:src/workbench_platform/batches/store.py",
+      "rule": "串行写；D02→D03 依赖保证初期不并写。"
+    },
+    {
+      "id": "shared.platform-batches-service",
+      "scope": "platform:src/workbench_platform/batches/service.py",
+      "rule": "串行写；涉及共享编排的任务互斥。"
+    },
+    {
+      "id": "shared.platform-native-module",
+      "scope": "platform:src/workbench_platform/batches/native.py",
+      "rule": "D04/D05 在独立适配文件交付，D06 统一写此公共文件；后续任务继续加锁。"
+    },
+    {
+      "id": "shared.platform-startup",
+      "scope": "platform:catalog/supervisor/scripts 的启动公共实现",
+      "rule": "共享启动源文件写入及启动器变更串行。"
+    },
+    {
+      "id": "shared.platform-artifacts",
+      "scope": "platform:src/workbench_platform/artifacts/",
+      "rule": "成果身份/生成/发布公共实现串行。"
+    },
+    {
+      "id": "shared.platform-data-api",
+      "scope": "platform:src/workbench_platform/data_api/",
+      "rule": "D16/D17 等修改公共 Data API 时串行。"
+    },
+    {
+      "id": "shared.platform-audit-domain",
+      "scope": "platform:src/workbench_platform/audit/",
+      "rule": "审计业务公共存储/API 写入串行。"
+    },
+    {
+      "id": "shared.portal-batches",
+      "scope": "platform:apps/portal/src/features/batches/ 和共享 App/router",
+      "rule": "门户公共文件一次一个任务写；D18 等待 D14/D16。"
+    },
+    {
+      "id": "build.platform-portal",
+      "scope": "platform:apps/portal/dist/ 和同目录构建元数据",
+      "rule": "平台门户 build/test 共享产物串行。"
+    },
+    {
+      "id": "build.ocr-frontend",
+      "scope": "ocr:frontend/dist/ 和同目录构建元数据",
+      "rule": "OCR 前端 build 共享产物串行。"
+    },
+    {
+      "id": "build.classification-web",
+      "scope": "classification:apps/web/dist/ 和同目录构建元数据",
+      "rule": "分类前端 build 共享产物串行。"
+    },
+    {
+      "id": "browser",
+      "scope": "浏览器活动/profile/下载/截图",
+      "rule": "唯一负责人；内置浏览器截图前停止其他线程活动，截图后停止活动并待稳定再收口；外部 Chromium 优先且使用 --disable-gpu --disable-gpu-compositing。"
+    },
+    {
+      "id": "gpu",
+      "scope": "真实 GPU 验证及原生 GPU 所有权",
+      "rule": "真实 GPU 作业串行，不改变现有资格策略。"
+    },
+    {
+      "id": "native-runtime",
+      "scope": "OCR/分类真实服务、启动/停止、端口/活动实例及原生数据",
+      "rule": "服务活动串行；测试优先隔离实例，不擅自停止用户活动服务。"
+    },
+    {
+      "id": "candidate",
+      "scope": "候选构建/冻结输入/清单/首验/更新",
+      "rule": "每里程碑冻结后统一构建一个独立候选，不覆盖活动包；身份变化必须重新冻结。"
+    },
+    {
+      "id": "backup-restore",
+      "scope": "三库一致冷备、迁移和全新目录恢复",
+      "rule": "统筹独占受控一致窗口，禁并行业务写入；优先隔离副本。"
+    },
+    {
+      "id": "git-index",
+      "scope": "三个源码仓库及文档仓库 Git index/commit",
+      "rule": "涉及暂存/提交/冻结身份时统筹串行，不覆盖用户已有暂存或改动。"
+    },
+    {
+      "id": "shared.global-files",
+      "scope": "shared_file_ownership.coordinator_only",
+      "rule": "公共文件由 coordinator 唯一执行；局部任务提出 coordinator_changes，不通过宽目录取得隐含写权。"
+    }
+  ],
+  "runtime_aliases": {
+    "platform_python": {
+      "purpose": "平台测试解释器",
+      "binding": "D00 绑定实际可读工具，依赖及所有写入在 F 盘。"
+    },
+    "ocr_python": {
+      "purpose": "OCR 测试解释器",
+      "binding": "D00 绑定现有 OCR 解释器/依赖，现有 unittest 用例以 unittest discover 定向运行，不要求安装 pytest，不运行无关模型全量。"
+    },
+    "classification_python": {
+      "purpose": "分类测试解释器",
+      "binding": "D00 绑定已登记环境，原生资格保持独立。"
+    },
+    "pnpm": {
+      "purpose": "现有 pnpm 前端测试/构建",
+      "binding": "D00 绑定 Node/pnpm 实际位置与 F 盘 store/cache；不因计划创建安装依赖。"
+    },
+    "browser": {
+      "purpose": "目标浏览器或外部 Chromium/Playwright",
+      "binding": "D00 绑定实际工具及 F 盘 profile/cache/download/temp，禁止不可控写入。"
+    }
+  },
+  "test_commands": [
+    {
+      "id": "platform_contracts_generated",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "packages.contracts.generate",
+        "--check"
+      ]
+    },
+    {
+      "id": "platform_contracts",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/contract/test_contracts.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_export_readback",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/data/test_export_readback.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_batches",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_processing_batches.py",
+        "tests/integration/test_native_batches.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_classification",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/adapters/test_classification.py",
+        "tests/integration/test_classification_artifacts.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_ocr",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/adapters/test_ocr.py",
+        "tests/integration/test_ocr_adapter_export.py",
+        "tests/integration/test_ocr_artifacts.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_startup",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_candidate_bootstrap.py",
+        "tests/integration/test_app_launch.py",
+        "tests/integration/test_supervisor.py",
+        "tests/integration/test_gpu_coordinator.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_artifacts",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_artifact_integrity.py",
+        "tests/integration/test_artifact_center_api.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_backup",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_platform_backup.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_workspaces",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_workspaces.py",
+        "tests/unit/test_workspaces_api.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "platform_data",
+      "runtime_alias": "platform_python",
+      "repo": "platform",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/data/test_exact_matching.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "classification_dispositions",
+      "runtime_alias": "classification_python",
+      "repo": "classification",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_result_dispositions.py",
+        "tests/test_api.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "classification_runtime_backup",
+      "runtime_alias": "classification_python",
+      "repo": "classification",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_backup.py",
+        "tests/test_resource_hooks.py",
+        "tests/test_runtime.py",
+        "--basetemp",
+        "{evidence_dir}/pytest-temp"
+      ]
+    },
+    {
+      "id": "portal_batches",
+      "runtime_alias": "pnpm",
+      "repo": "platform",
+      "cwd": "apps/portal",
+      "args": [
+        "run",
+        "test",
+        "tests/batches.test.tsx"
+      ]
+    },
+    {
+      "id": "portal_navigation",
+      "runtime_alias": "pnpm",
+      "repo": "platform",
+      "cwd": "apps/portal",
+      "args": [
+        "run",
+        "test",
+        "tests/navigation.test.tsx",
+        "tests/native-window.test.tsx"
+      ]
+    },
+    {
+      "id": "platform_portal_build",
+      "runtime_alias": "pnpm",
+      "repo": "platform",
+      "cwd": "apps/portal",
+      "args": [
+        "run",
+        "build"
+      ]
+    },
+    {
+      "id": "ocr_frontend_build",
+      "runtime_alias": "pnpm",
+      "repo": "ocr",
+      "cwd": "frontend",
+      "args": [
+        "run",
+        "build"
+      ]
+    },
+    {
+      "id": "classification_web_build",
+      "runtime_alias": "pnpm",
+      "repo": "classification",
+      "cwd": "apps/web",
+      "args": [
+        "run",
+        "build"
+      ]
+    },
+    {
+      "id": "ocr_revisions",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_store.py"
+      ]
+    },
+    {
+      "id": "ocr_worker_results",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_worker_results.py"
+      ]
+    },
+    {
+      "id": "ocr_paths",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_windows_paths.py"
+      ]
+    },
+    {
+      "id": "ocr_adapter_runtime_path",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_adapter_runtime_path.py"
+      ]
+    },
+    {
+      "id": "ocr_document_foundation",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_foundation.py"
+      ]
+    },
+    {
+      "id": "ocr_document_processing",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_processing.py"
+      ]
+    },
+    {
+      "id": "ocr_document_api",
+      "runtime_alias": "ocr_python",
+      "repo": "ocr",
+      "cwd": ".",
+      "args": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_api.py"
+      ]
+    }
+  ],
+  "test_policy": {
+    "command_format": "按 runtime_alias + args 启动，cwd 相对于 repositories[repo].root；不把 args 拼成未经转义的 shell 字符串。",
+    "placeholder_binding": "{evidence_dir} 是命令参数中唯一受信替换，严格解析为 run_root/evidence/<task_id>/<attempt>/<check_id> 的真实本机 F 盘目录。拒绝其他未展开占位、..、绝对替换、junction 逃逸和越界；逐检查隔离 TEMP/TMP、日志及 pytest basetemp。",
+    "minimal_checks": "仅执行当前变化受影响的真实回归及新增硬反例；通过后不重复扩大测试，除非有新变化、失败或未消除疑点。",
+    "new_scenarios": "各卡 new_scenarios 为待实现验收场景名称，不是已有测试 selector；优先扩展所列真实回归文件，新文件存在并核对后才加入命令。",
+    "candidate_checks": "构建/校验脚本先读参数及环境默认再运行；不直接复制旧路径、旧 HOME 改写或旧台账写入。冻结后进行该新包必要首次全验与同身份缓存重启。",
+    "evidence": "记录当前源码/契约/输入身份、cwd/args、F 盘环境落点、退出结果与原始日志/必要产物；不得以旧报告替代新候选通过。",
+    "qualification_boundaries": "合成/公开夹具证明工程行为，不推断真实业务准确率；独立干净 Windows、真实内网设备与真实业务效果分别保留未验证状态。",
+    "ocr_unittest": "已核对 test_store.py、test_worker_results.py、test_windows_paths.py、test_adapter_runtime_path.py、test_document_*.py 的现有 unittest 入口；用 unittest discover 避免未知 pytest 依赖，TEMP/TMP 和用例输出仍显式在 F 盘。"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "status": "planned_scope",
+      "goal": "异常无遗漏、修订不被旧建议覆盖、版本化判断可交付、启动无副作用且全部写入 F 盘、成果真实保存。",
+      "tasks": [
+        "D00",
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12"
+      ],
+      "gate": "D12",
+      "next": "门禁通过直接进入当前范围 M2。",
+      "enabled": true
+    },
+    {
+      "id": "M2",
+      "status": "planned_scope",
+      "goal": "最小审计项目/工作程序/调查/复核底稿主线，自动准备、首配上传恢复、统一待办与证据核查。",
+      "tasks": [
+        "D13",
+        "D14",
+        "D15",
+        "D16",
+        "D17",
+        "D18",
+        "D19",
+        "D20"
+      ],
+      "gate": "D20",
+      "next": "完成当前范围并报告，M3 保持延期。",
+      "enabled": true
+    },
+    {
+      "id": "M3",
+      "status": "deferred_scope",
+      "goal": "PDF 逐页覆盖与一个限定提取后比对场景，沿用同一审计闭环。",
+      "tasks": [
+        "D21",
+        "D22",
+        "D23"
+      ],
+      "gate": "D23",
+      "next": "仅用户明确纳入范围后实施。",
+      "enabled": false
+    }
+  ],
+  "hard_gates": [
+    "100,002 条异常全量索引，混合键覆盖守恒，中断恢复无遗漏重复。",
+    "分类 A→B 不被旧建议覆盖，OCR revision 1→2 可采用且原版本保留。",
+    "两窗口过期版本冲突明确，同 request_id 同 payload 返回原结果、异 payload 拒绝。",
+    "原生已写成功平台未记账可恢复，响应丢失重放不重复副作用。",
+    "复核包只完整发布，半成品不暴露，旧包哈希不改，重开标记旧交付落后。",
+    "重复/并发启动与端口冲突无配置副作用，中文/空格 F 路径及子进程无盘外回退。",
+    "目标浏览器真实保存及读回最终文件，身份/内容/类型/哈希一致。",
+    "新增领域迁移可重复与失败可恢复，三库一致冷备到全新 F 盘目录后版本/关系/历史/请求身份一致。"
+  ],
+  "tasks": [
+    {
+      "id": "D00",
+      "title": "绑定基线、F 盘落点、环境与工具",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "coordinator",
+      "depends_on": [],
+      "write_scopes": {},
+      "deliverables": [
+        "运行基线：三库实际 HEAD、工作区改动、契约版本、既有活动实例与 Git 元数据真实路径。",
+        "运行映射：F 盘源码、工具、依赖、临时/缓存/应用数据、模型、证据和候选位置；运行时别名及命令参数绑定。",
+        "实施时在 run_root 建立唯一 state.json 与 NEXT.md；本计划交付不创建运行状态。"
+      ],
+      "steps": [
+        "只读核对三库与活动实例，保留用户改动和历史候选；检查真实路径、junction、容量与写权限。",
+        "确认已安装 Python、Node、pnpm 与浏览器；工具可只读使用盘外安装，项目依赖和所有写入须位于 F 盘。",
+        "为当前进程及子进程显式绑定 F 盘临时、缓存、应用数据、浏览器和模型目录，不改 HOME/CODEX_HOME。",
+        "绕开旧 scripts/run_check.py 的 HOME/USERPROFILE 环境改写与旧台账写入；只读借用已确认的命令/夹具，按本清单直接执行受影响检查。"
+      ],
+      "acceptance": [
+        "实际 HEAD 与工作区差异登记；审查提交只作事实基线，旧通过记录不自动成为新源码资格。",
+        "源码、实际 Git 元数据、依赖和全部可写目标均在 F 盘；不能保证写入边界的工具不运行。",
+        "运行时别名、命令 cwd/args、环境、证据目录已具体绑定；不安装通用调度器，不写旧 T/N 台账。"
+      ],
+      "verification": {
+        "command_refs": [],
+        "new_scenarios": [
+          "baseline_and_realpath_binding",
+          "all_process_environment_on_f"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "git-index"
+      ],
+      "fallback": [
+        "工具或 F 盘边界不满足时只阻断相关操作，记录具体缺口；继续可以完成的只读核实，不回退盘外。"
+      ]
+    },
+    {
+      "id": "D01",
+      "title": "冻结覆盖、版本、请求身份、恢复与交付语义",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "coordinator",
+      "depends_on": [
+        "D00"
+      ],
+      "write_scopes": {
+        "platform": [
+          "packages/contracts/automation.py",
+          "packages/contracts/semantics.py",
+          "packages/contracts/types.generated.ts",
+          "packages/contracts/automation-batchdisposition.schema.json",
+          "packages/contracts/automation-processingbatch.schema.json",
+          "packages/contracts/automation-batchcontrol.schema.json",
+          "packages/contracts/examples/",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_native_batches.py",
+          "packages/contracts/generate.py",
+          "packages/contracts/AUTOMATION-V2.md",
+          "packages/contracts/automation-localactor.schema.json",
+          "packages/contracts/automation-nativeadoption.schema.json",
+          "packages/contracts/automation-batchcoverage.schema.json",
+          "packages/contracts/automation-batchdelivery.schema.json",
+          "packages/contracts/automation-batchoperation.schema.json",
+          "packages/contracts/automation-reviewartifactrequest.schema.json",
+          "packages/contracts/automation-batchissuepage.schema.json",
+          "packages/contracts/adapter.openapi.json",
+          "tests/contract/test_automation_contracts.py",
+          "config/apps/ocr.install.json",
+          "config/apps/classification.install.json"
+        ]
+      },
+      "deliverables": [
+        "共享契约及生成类型：覆盖计数、用户所见版本、采用版本、真实本机操作身份、请求身份/内容、冲突和未完成跨库操作。",
+        "复核完成、最终交付、中间成果、后继版本和交付落后状态的统一定义。",
+        "固定反例夹具与预期输出，原生能力缺口按仓库明确登记。"
+      ],
+      "steps": [
+        "冻结最小共享语义及错误结果，不引入多人权限和通用流程引擎。",
+        "区分接受原建议与采用修订，明确原结果不可变、revision 条件写入和同请求不同内容拒绝。",
+        "定义跨库已成功/未记账的恢复判定、全量覆盖守恒及成果发布条件。",
+        "生成类型与契约例子保持一致，原生已有能力优先复用。"
+      ],
+      "acceptance": [
+        "平台、两原生及门户对相同输入有相同版本和状态解释。",
+        "覆盖未完成、未解决或暂缓存在时不得声明最终完成；中间交付显式标记。",
+        "同 request_id 同 payload 返回原动作结果，异 payload 拒绝；用户所见旧 revision 冲突不能静默刷新后写入。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_contracts_generated",
+          "platform_contracts",
+          "platform_batches"
+        ],
+        "new_scenarios": [
+          "coverage_counts_contract",
+          "disposition_version_request_contract",
+          "cross_store_recovery_contract",
+          "review_and_delivery_status_contract"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.contracts"
+      ],
+      "fallback": [
+        "契约存在歧义时接口负责人一次裁决并记录；依赖任务等待相关字段稳定，其他就绪任务继续。"
+      ]
+    },
+    {
+      "id": "D02",
+      "title": "持久全量异常索引与断点恢复",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_a",
+      "depends_on": [
+        "D01"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/batches/data.py",
+          "src/workbench_platform/batches/store.py",
+          "src/workbench_platform/batches/service.py",
+          "src/workbench_platform/data_api/service.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/data/test_exact_matching.py",
+          "src/workbench_platform/batches/routes.py"
+        ]
+      },
+      "deliverables": [
+        "分页/流式持久事项索引和覆盖计数，查询与内存有界。",
+        "索引进度绑定固定结果身份，支持断点续建及去重。",
+        "超过 100,000 条与混合键场景的完整性反例检查。"
+      ],
+      "steps": [
+        "按固定结果身份分页生成索引，独立记录总结果、应处置、已索引及各处置状态数量。",
+        "明确索引中断、重启、重复请求和旧数据补建的恢复行为。",
+        "把覆盖完整性纳入完成与交付判断。"
+      ],
+      "acceptance": [
+        "左右各 50,001 行完全不相交时 100,002 条异常全部可查。",
+        "配对、重复键、空键混合场景计数守恒；不同分页/处理顺序无重复遗漏。",
+        "索引中断恢复不丢项；覆盖未完成或暂缓/未解决仍存在时不会误报完成。",
+        "不通过扩大单页 LIMIT 或反复读写十万项批次 JSON 代替完整性保证。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_data"
+        ],
+        "new_scenarios": [
+          "100002_anomaly_full_index",
+          "mixed_keys_coverage",
+          "index_crash_resume_no_duplicates"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-batches-store",
+        "shared.platform-batches-service"
+      ],
+      "fallback": [
+        "索引异常则保留原结果与恢复位置并明确覆盖未完成；修复后从已验证断点继续，不删异常压低计数。"
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "平台处置账本、幂等记录与迁移",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_a",
+      "depends_on": [
+        "D01",
+        "D02"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/batches/store.py",
+          "src/workbench_platform/batches/service.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_native_batches.py",
+          "tests/integration/test_platform_backup.py"
+        ]
+      },
+      "deliverables": [
+        "平台处置版本、采用关系、身份/说明/历史及请求去重的持久存储。",
+        "跨库未完成操作记录与条件更新能力，恢复后仍能识别原请求。",
+        "旧数据兼容迁移和新增领域冷备清单。"
+      ],
+      "steps": [
+        "在 D02 后串行修改共同存储文件，保留旧批次与旧成果读取路径。",
+        "持久化 expected_revision、request_id、payload 绑定和有效事件。",
+        "先记录跨库操作，再允许原生副作用；保留可核对的中间状态。",
+        "迁移和备份纳入事项索引、账本、采用关系与未完成操作。"
+      ],
+      "acceptance": [
+        "两窗口提交同一旧处置版本，第二次明确冲突。",
+        "同请求同内容不新增有效事件；同请求异内容拒绝。",
+        "迁移重复执行不丢历史；失败恢复不覆盖旧用户数据。",
+        "冷备恢复保留去重身份和未完成操作，原始结果与旧成果身份不变。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_backup"
+        ],
+        "new_scenarios": [
+          "two_windows_expected_revision_conflict",
+          "same_request_same_payload",
+          "same_request_different_payload_rejected",
+          "ledger_migration_and_restore"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-batches-store",
+        "shared.platform-batches-service",
+        "backup-restore"
+      ],
+      "fallback": [
+        "迁移失败停止写入新领域，保留旧数据与诊断；使用受控备份恢复，禁止原地删库或降级覆盖。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "scripts/backup_workspace.py"
+          ],
+          "requested_change": "把事项索引、处置账本、采用关系与未完成操作纳入冷备清单；D11 最终执行一致恢复。",
+          "executor": "coordinator",
+          "resource": "backup-restore",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "title": "分类条件写入、历史与平台分类适配",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_b",
+      "depends_on": [
+        "D01"
+      ],
+      "write_scopes": {
+        "classification": [
+          "src/image_platform/api.py",
+          "src/image_platform/store.py",
+          "tests/test_result_dispositions.py",
+          "tests/test_api.py",
+          "tests/test_backup.py",
+          "apps/web/src/views/jobs.tsx",
+          "apps/web/e2e/classification.spec.ts"
+        ],
+        "platform": [
+          "adapters/classification/adapter.py",
+          "src/workbench_platform/jobs/native_classification.py",
+          "src/workbench_platform/artifacts/classification_results.py",
+          "tests/adapters/test_classification.py",
+          "tests/integration/test_classification_artifacts.py"
+        ]
+      },
+      "deliverables": [
+        "分类原生版本读取、条件写入、历史及必要请求去重能力；已有接口满足时不重复实现。",
+        "平台分类适配的版本/来源身份转换，不以旧预测固定值覆盖新判断。",
+        "分类 A→B、旧版本冲突与重复请求检查。"
+      ],
+      "steps": [
+        "核对分类原生现有 revision、历史和处置接口，按 D01 补最小缺口。",
+        "平台适配读取明确版本并保留原建议与人工判断的关系。",
+        "原生和适配回归分别通过后交付 D06，避免提前修改共享 batches/native.py。"
+      ],
+      "acceptance": [
+        "原生把 A 改成 B 后，平台采用 B 并保持 B。",
+        "接受原建议必须校验用户所见原生版本；不先读最新版本来绕过冲突。",
+        "有效历史可读，响应丢失后的重放不重复更改类别。"
+      ],
+      "verification": {
+        "command_refs": [
+          "classification_dispositions",
+          "platform_classification"
+        ],
+        "new_scenarios": [
+          "classification_a_to_b_adopt_without_revert",
+          "classification_stale_version_conflict",
+          "classification_retry_identity"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "build.classification-web",
+        "native-runtime"
+      ],
+      "fallback": [
+        "原生版本能力不足则先补契约缺口；保留人工 B，不以旧 A 强行完成平台事项。"
+      ]
+    },
+    {
+      "id": "D05",
+      "title": "OCR 修订身份、历史与平台 OCR 适配",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_c",
+      "depends_on": [
+        "D01"
+      ],
+      "write_scopes": {
+        "ocr": [
+          "src/ocr_workbench/service.py",
+          "src/ocr_workbench/store.py",
+          "src/ocr_workbench/platform_resources.py",
+          "tests/test_store.py",
+          "tests/test_worker_results.py"
+        ],
+        "platform": [
+          "adapters/ocr/adapter.py",
+          "src/workbench_platform/jobs/native_ocr.py",
+          "src/workbench_platform/artifacts/ocr_results.py",
+          "tests/adapters/test_ocr.py",
+          "tests/integration/test_ocr_adapter_export.py",
+          "tests/integration/test_ocr_artifacts.py",
+          "tests/adapters/test_ocr_import.py"
+        ]
+      },
+      "deliverables": [
+        "OCR service.py/store.py 中修订结果/历史的明确版本身份读取，按契约补最小接口；platform_resources.py 仅在资源关联确需变更时修改。",
+        "平台 OCR 适配输出可采用的新版本、来源及旧新关系。",
+        "revision 1→2 采用与旧 revision 保护检查。"
+      ],
+      "steps": [
+        "核对现有 OCR 修订能力，优先复用；仅补版本读取和身份缺口。",
+        "适配读取用户校对后的明确 revision，验证来源与任务身份。",
+        "保留原 revision 和原成果，不取消版本校验；交付 D06 统一采用操作。"
+      ],
+      "acceptance": [
+        "OCR revision 1→2 后可采用 2，结果、事项及导出来源能定位同一修订。",
+        "旧 revision 1 仍可追溯；过期用户所见版本不能静默写入。",
+        "校对能力与实际运行能力分开，不为版本检查额外运行模型。"
+      ],
+      "verification": {
+        "command_refs": [
+          "ocr_revisions",
+          "ocr_worker_results",
+          "platform_ocr"
+        ],
+        "new_scenarios": [
+          "ocr_revision_1_to_2_adoption",
+          "ocr_original_revision_retained",
+          "ocr_stale_version_conflict"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "build.ocr-frontend",
+        "native-runtime"
+      ],
+      "fallback": [
+        "无法验证修订身份时保留未解决并给出原生修订入口；不把新文本覆盖旧结果或跳过 revision 校验。"
+      ]
+    },
+    {
+      "id": "D06",
+      "title": "平台跨库采用、处置 API 与中断恢复",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_a",
+      "depends_on": [
+        "D03",
+        "D04",
+        "D05"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/batches/native.py",
+          "src/workbench_platform/batches/service.py",
+          "src/workbench_platform/batches/routes.py",
+          "src/workbench_platform/batches/probe.py",
+          "tests/integration/test_native_batches.py",
+          "tests/integration/test_processing_batches.py",
+          "src/workbench_platform/batches/store.py"
+        ]
+      },
+      "deliverables": [
+        "统一接受原建议、采用修订、暂缓、重开及历史查询 API。",
+        "跨库操作核对与恢复，原生成功但平台未记账时可收敛。",
+        "平台事项采用关系、原生版本和用户判断的一致性检查。"
+      ],
+      "steps": [
+        "使用 D03 条件更新/请求账本，分别调用两原生适配器。",
+        "只在身份和版本核对成功后提交采用关系与有效事件。",
+        "覆盖响应丢失、服务恢复、原生已写成功平台尚未提交等中断点。",
+        "把冲突与恢复结果返回明确下一动作，保留人的既有判断。"
+      ],
+      "acceptance": [
+        "分类 B 与 OCR revision 2 在平台被正确采用，旧建议不覆盖新判断。",
+        "原生成功平台未记账时，重启/重试核对原请求并补齐，不二次副作用。",
+        "同请求同内容返回原结果，异内容拒绝；两窗口旧版本冲突明确。",
+        "来源/版本不符保持未解决，不能靠刷新到最新版本绕过用户所见冲突。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_classification",
+          "platform_ocr"
+        ],
+        "new_scenarios": [
+          "native_commit_before_platform_commit_recovery",
+          "cross_store_lost_response_replay",
+          "two_windows_expected_revision_conflict",
+          "same_request_different_payload_rejected"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-native-module",
+        "shared.platform-batches-service",
+        "native-runtime"
+      ],
+      "fallback": [
+        "无法确定原生是否已执行时进入可核对的待恢复状态；查证后收敛，禁止盲重试或反向覆盖人工判断。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "packages/contracts/"
+          ],
+          "requested_change": "同步D06实际历史/原生版本只读响应、OCR平台处置独立资格、无副作用冲突及恢复语义；公共契约/生成物仍统筹唯一写",
+          "executor": "coordinator",
+          "resource": "shared.contracts"
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "title": "复核版成果、后继关系与完整发布",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_a",
+      "depends_on": [
+        "D02",
+        "D06"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/artifacts/center.py",
+          "src/workbench_platform/artifacts/store.py",
+          "src/workbench_platform/artifacts/routes.py",
+          "src/workbench_platform/batches/service.py",
+          "modules/data_workbench/exporting/results.py",
+          "tests/integration/test_artifact_integrity.py",
+          "tests/integration/test_artifact_center_api.py",
+          "tests/integration/test_processing_batches.py",
+          "src/workbench_platform/batches/store.py"
+        ]
+      },
+      "deliverables": [
+        "不可变复核成果的新 ID、版本、来源、采用结果、处置/历史、全量覆盖与未解决清单。",
+        "旧新成果后继关系和重开后的交付落后标记。",
+        "完整生成后发布，失败/中断半成品不可下载。"
+      ],
+      "steps": [
+        "从固定采用版本与账本快照生成复核 CSV/XLSX/来源 JSON。",
+        "保留旧成果哈希，明确中间成果与最终成果资格。",
+        "加入完整发布/中断恢复及重开后的状态更新。"
+      ],
+      "acceptance": [
+        "旧包文件和哈希不变；新版关联旧版并承载全部有效人工判断。",
+        "未完成覆盖或未解决项存在时仅允许显式中间交付。",
+        "生成中断不暴露半成品；重试不替换旧包。",
+        "事项重开后既有复核成果明确落后于当前状态，不能继续标最终有效。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_artifacts",
+          "platform_batches",
+          "platform_export_readback"
+        ],
+        "new_scenarios": [
+          "review_export_bound_to_adopted_revision",
+          "review_package_atomic_publication",
+          "old_package_hash_unchanged",
+          "reopen_marks_old_review_outdated"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-artifacts",
+        "shared.platform-batches-service"
+      ],
+      "fallback": [
+        "新成果失败保留旧成果及当前处置，展示可重试原因；不降低最终成果门槛或改写旧包。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "packages/contracts/",
+            "src/workbench_platform/batches/routes.py",
+            "tests/contract/test_automation_contracts.py"
+          ],
+          "requested_change": "统筹补既有冻结review-artifacts委托路由与有界ReviewBundle只读契约，同步公共生成物并加入资格/边界反例",
+          "executor": "coordinator",
+          "resource": "shared.contracts"
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "title": "门户修订采用、历史、冲突与交付入口",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_c",
+      "depends_on": [
+        "D06",
+        "D07"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/batches/BatchCenter.tsx",
+          "apps/portal/src/features/batches/api.ts",
+          "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
+          "apps/portal/tests/batches.test.tsx"
+        ]
+      },
+      "deliverables": [
+        "门户四种处置动作、可读历史和新旧版本关系。",
+        "基于用户所见版本的冲突反馈及明确恢复动作。",
+        "当前复核成果、旧成果和交付落后状态的可操作链接。"
+      ],
+      "steps": [
+        "使用冻结 API 绑定所见 revision 和 request_id，不自行推断最新状态。",
+        "加入采用修订、新旧关系及处置身份展示，历史可读。",
+        "引导下载正确复核成果，重开后提示旧交付状态。"
+      ],
+      "acceptance": [
+        "用户从原生修订返回可采用正确版本；冲突不丢解释文字或静默覆盖。",
+        "接受原建议与采用修订能区分；待恢复、暂缓和未解决不会显示完成。",
+        "入口下载目标与当前采用版本一致，旧成果关系可查。"
+      ],
+      "verification": {
+        "command_refs": [
+          "portal_batches",
+          "platform_portal_build"
+        ],
+        "new_scenarios": [
+          "portal_adopt_revision_and_history",
+          "portal_conflict_preserves_user_input",
+          "portal_review_download_and_outdated_status"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.portal-batches",
+        "build.platform-portal",
+        "browser"
+      ],
+      "fallback": [
+        "API 尚未满足时保留未完成状态与可执行提示；不提供绕过版本或覆盖校验的按钮。"
+      ]
+    },
+    {
+      "id": "D09",
+      "title": "启动互斥、F 盘边界及子进程环境",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "lane_b",
+      "depends_on": [
+        "D00"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/candidate_bootstrap.py",
+          "scripts/build_base_candidate.py",
+          "src/workbench_platform/catalog/launch.py",
+          "src/workbench_platform/supervisor/processes.py",
+          "tests/integration/test_candidate_bootstrap.py",
+          "tests/integration/test_app_launch.py",
+          "tests/integration/test_supervisor.py"
+        ],
+        "ocr": [
+          "src/ocr_workbench/windows_paths.py",
+          "tests/test_windows_paths.py",
+          "tests/test_adapter_runtime_path.py"
+        ]
+      },
+      "deliverables": [
+        "配置写入前的跨进程互斥和占用反馈，同实例重复启动可复用已核实页面。",
+        "候选入口及全部原生子进程的 F 盘环境/落点校验。",
+        "登记的 F 盘 ASCII Paddle 兼容目录，不存在系统目录回退。"
+      ],
+      "steps": [
+        "在写指针/配置前处理实例身份、端口和互斥，按既有单实例边界拒绝异数据根/端口。",
+        "入口及受控原生启动传递全部必要环境，核查实际子进程值。",
+        "检查 F 盘中文/空格路径、盘外目标、junction 逃逸和不可写临时路径。"
+      ],
+      "acceptance": [
+        "重复双击、并发启动、占用端口和同包换数据根/端口均不改坏原配置或任务。",
+        "F 盘中文/空格目录可运行，Paddle 临时路径为登记的 F 盘 ASCII 目录。",
+        "盘外目标、junction 逃逸及不可写 F 盘明确阻断，无 SystemRoot/ProgramData 回退。",
+        "不更改 HOME/CODEX_HOME，不移动或删除历史盘外资料。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_startup",
+          "ocr_paths",
+          "ocr_adapter_runtime_path"
+        ],
+        "new_scenarios": [
+          "startup_concurrent_no_configuration_side_effect",
+          "startup_same_package_other_data_or_port_rejected",
+          "f_chinese_spaces_and_child_environment",
+          "f_unwritable_and_junction_escape_rejected"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "native-runtime",
+        "shared.platform-startup"
+      ],
+      "fallback": [
+        "启动资格不满足则在配置写入前停止并给出原因；保留活动实例和原指针，不为运行自动回退 C 盘。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "scripts/windows_job.py"
+          ],
+          "requested_change": "原生子进程环境传递和进程归属公共辅助的最小修正。",
+          "executor": "coordinator",
+          "resource": "shared.platform-startup",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "title": "立即诊断既有成果的真实保存",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "coordinator",
+      "depends_on": [
+        "D00"
+      ],
+      "write_scopes": {},
+      "deliverables": [
+        "目标浏览器对既有固定 CSV/XLSX/来源 JSON 的点击、保存到 F 盘、重开与身份核对证据。",
+        "区分真实产品故障与 headless canceled 工具边界；缺陷明确交给相应成果/API/门户负责人。"
+      ],
+      "steps": [
+        "不等待新成果功能，先选既有固定成果验证保存及读回。",
+        "使用独立 F 盘 profile/缓存/下载目录及单一浏览器负责人。",
+        "核对取消、重试、同名文件和缺失成果的行为；实际产品故障交给源码负责人定向修复。"
+      ],
+      "acceptance": [
+        "不能仅凭 HTTP 200 宣称保存成功；记录实际浏览器保存结果。",
+        "取消/重试不重新计算或替换固定成果。",
+        "若产品故障未解决，不进入 D12 最终门禁；headless 工具限制不能扩大成所有用户浏览器故障。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_artifacts"
+        ],
+        "new_scenarios": [
+          "existing_artifacts_real_browser_save_readback",
+          "download_cancel_retry_same_name_missing"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。",
+        "manual_checks": [
+          "浏览器 profile、下载、缓存、临时目录及保存文件均在 F 盘；外部 Chromium 使用 --disable-gpu、--disable-gpu-compositing。"
+        ]
+      },
+      "exclusive_resources": [
+        "browser"
+      ],
+      "fallback": [
+        "外部 Chromium/Playwright 无法完成时换已核实的目标浏览器；仍失败保留具体证据和阻碍，不冒充成功。"
+      ]
+    },
+    {
+      "id": "D11",
+      "title": "M1 集成、三库一致冷备恢复与源码冻结",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "coordinator",
+      "depends_on": [
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/backup_workspace.py",
+          "scripts/release/check_backup.py",
+          "tests/integration/test_platform_backup.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_native_batches.py"
+        ],
+        "classification": [
+          "src/image_platform/backup.py",
+          "tests/test_backup.py"
+        ],
+        "ocr": [
+          "src/ocr_workbench/external_review.py",
+          "tests/test_external_review.py"
+        ]
+      },
+      "deliverables": [
+        "M1 受影响集成检查与源提交/契约/依赖身份清单。",
+        "三库一致冷备、升级迁移及全新 F 盘目录恢复证据。",
+        "冻结身份及 D12 构建输入，残留阻碍和资格边界清单。"
+      ],
+      "steps": [
+        "按场景完成全量覆盖、采用修订、冲突幂等、跨库中断、成果完整发布与启动边界集成。",
+        "在受控一致窗口冷备相关平台/原生数据；恢复到全新 F 盘目录核对来源、版本、历史、账本与成果关系。",
+        "迁移在副本验证重复执行及失败恢复，保留旧数据可读。",
+        "只冻结本轮实际通过的源码身份；不修改正式 T/N 证据或把旧包成功平移到新包。",
+        "实际受管OCR API发现CredentialVault默认值提前求Path.home，在LOCALAPPDATA已配置F但broker无用户目录时启动失败；只修懒惰选择配置路径并补对应回归，保持凭据/DPAPI语义。"
+      ],
+      "acceptance": [
+        "新增索引、账本、采用关系、未完成跨库操作及旧新成果均进入冷备并可恢复。",
+        "恢复后同请求重放不新增有效事件，原生和平台版本关系一致。",
+        "所有 M1 硬反例通过，旧用户数据与旧成果未被覆盖；未解决故障不得冻结为通过。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_artifacts",
+          "platform_startup",
+          "platform_backup",
+          "classification_runtime_backup",
+          "ocr_revisions",
+          "ocr_worker_results",
+          "ocr_paths",
+          "ocr_adapter_runtime_path",
+          "portal_batches",
+          "platform_portal_build",
+          "platform_contracts_generated",
+          "platform_contracts",
+          "platform_export_readback"
+        ],
+        "new_scenarios": [
+          "m1_end_to_end_correctness",
+          "three_store_consistent_cold_backup_restore",
+          "migration_repeat_and_failure_recovery",
+          "restored_request_identity_and_pending_operation"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "backup-restore",
+        "native-runtime",
+        "gpu",
+        "git-index"
+      ],
+      "fallback": [
+        "集成或恢复失败定位到负责卡修复并只重跑受影响检查；冻结取消后不直接改已有候选，修复再重新冻结。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "scripts/candidate_bootstrap.py",
+            "tests/integration/test_candidate_bootstrap.py"
+          ],
+          "executor": "coordinator",
+          "resource": "startup-bootstrap",
+          "requested_change": "候选真实应用identity路由被portal catchall截获404；最小重排并补main实际路由反例，保持既有启动/CAS/F边界"
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "title": "M1 独立候选、首次全验/缓存与最终保存门禁",
+      "milestone": "M1",
+      "priority": "P1",
+      "owner": "coordinator",
+      "depends_on": [
+        "D11"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/build_base_candidate.py",
+          "scripts/candidate_bootstrap.py",
+          "scripts/candidate_verify.py",
+          "scripts/release/verify_candidate.py",
+          "scripts/release/audit_components.py",
+          "tests/integration/test_base_candidate.py",
+          "tests/integration/test_candidate_bootstrap.py",
+          "src/workbench_platform/supervisor/processes.py",
+          "tests/integration/test_supervisor.py",
+          "modules/data_workbench/exporting/results.py",
+          "tests/data/test_review_long_text_export.py"
+        ],
+        "ocr": [
+          "src/ocr_workbench/offline.py",
+          "tests/test_offline.py"
+        ]
+      },
+      "deliverables": [
+        "candidate_roots.M1 下唯一独立候选、源身份/依赖/组件清单及哈希。",
+        "候选首次必要全验、同身份缓存重启、启动边界和最终复核成果真实保存/读回证据。",
+        "M1 交付报告、使用说明、回退与已知资格边界，作为 M2 输入。"
+      ],
+      "steps": [
+        "冻结后先核对构建脚本实际参数和全部写入目录，再一次构建独立 M1 候选，不覆盖活动包。",
+        "从候选执行必要首次全验与缓存重启；新增身份必须重新验证，旧成功不平移。",
+        "从实际门户保存最终 CSV/XLSX/来源 JSON 到 F 盘并重开，核对采用版本、内容、身份与哈希。",
+        "记录完整性、冲突幂等、冷备恢复及启动检查结果；通过后直接推进 M2，不增加阶段审批。"
+      ],
+      "acceptance": [
+        "候选与 D11 冻结源码一致；包内半成品不暴露、旧包哈希不改。",
+        "实际用户保存和读回成功，取消/重试不会重算成果。",
+        "首次全验和缓存重启都有新候选证据；M1 硬门槛全部通过。",
+        "独立设备/真实业务/模型资格未验证项保持明确未验证，不将 T052–T057 改完成。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_startup",
+          "platform_artifacts",
+          "platform_backup",
+          "portal_batches"
+        ],
+        "new_scenarios": [
+          "m1_candidate_first_verify_and_cached_restart",
+          "m1_final_review_real_save_readback",
+          "m1_candidate_manifest_identity"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。",
+        "manual_checks": [
+          "候选运行前逐项确认构建器/启动器/校验器对子进程的 F 盘环境；截图后停止浏览器活动、待稳定再执行最终收口。"
+        ]
+      },
+      "exclusive_resources": [
+        "candidate",
+        "browser",
+        "native-runtime",
+        "gpu",
+        "backup-restore",
+        "git-index"
+      ],
+      "fallback": [
+        "门禁失败不交付为可用；保留独立失败候选和证据，修复源卡后重新冻结/构建，不覆盖旧合格包。"
+      ],
+      "narrow_repair": {
+        "reason": "r2 actual native OCR final export: original_json53404/adoption_json55028 exceed Excel32767; complete CSV/JSON preserved, XLSX reversible encoding",
+        "source_owner": "lane_b",
+        "source_paths": [
+          "modules/data_workbench/exporting/results.py",
+          "tests/data/test_review_long_text_export.py"
+        ],
+        "coordinator_helpers": [
+          "checks/readback-review-downloads.py",
+          "checks/save-review-downloads.mjs",
+          "checks/d12-browser-config.py",
+          "checks/d12-reopen-readback.py",
+          "checks/build-m1-r3.ps1",
+          "checks/start-m1-r3.ps1"
+        ],
+        "policy": "checks/review-xlsx-chunks-contract.json",
+        "qualification": "Independent new r3 candidate; r2 failure and fixed original request preserved; no hotpatch or migrated success cache"
+      }
+    },
+    {
+      "id": "D13",
+      "title": "最小审计项目、工作程序与调查事项业务域/API",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_a",
+      "depends_on": [
+        "D11"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/audit/",
+          "src/workbench_platform/store/workspaces.py",
+          "tests/unit/test_workspaces.py",
+          "tests/unit/test_workspaces_api.py",
+          "tests/integration/test_audit_workflow.py",
+          "src/workbench_platform/artifacts/center.py"
+        ]
+      },
+      "deliverables": [
+        "最小审计项目期间/对象/目标、工作程序依据/范围/规则/批次、调查事项证据/解释/结论与编制/复核信息。",
+        "版本化业务 API、迁移/历史及冷备登记，技术故障和业务发现明确区分。",
+        "新审计业务测试文件及一项差异闭环夹具。",
+        "底稿生成后端输出 workpaper.md + workpaper.json，引用已有复核成果和 XLSX 明细；固定承载目标/范围、规则/覆盖、发现/解释、结论、编制复核与证据索引，D14 负责交互闭环。"
+      ],
+      "steps": [
+        "沿用工作空间身份，补最小审计业务域而非新平台架构。",
+        "关联实际批次、来源、采用结果、覆盖和成果，按 D01 语义保存版本。",
+        "技术重试只恢复任务，不重复制造调查发现；单机身份不冒充组织认证。",
+        "为新增领域补迁移、备份及契约生成。"
+      ],
+      "acceptance": [
+        "期间/来源/结论变更有版本和历史，旧底稿可定位。",
+        "调查事项可关联多个结果与证据，技术错误不自动算业务发现。",
+        "旧工作空间/批次仍可读；新增业务域进入备份恢复。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_workspaces",
+          "platform_batches",
+          "platform_contracts_generated",
+          "platform_contracts"
+        ],
+        "new_scenarios": [
+          "audit_project_procedure_finding_domain",
+          "audit_business_revision_and_migration",
+          "technical_retry_not_duplicate_finding"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。",
+        "planned_new_test_files": [
+          {
+            "repo": "platform",
+            "path": "tests/integration/test_audit_workflow.py",
+            "activation": "实现并确认文件存在后，将真实文件加入直接 pytest 命令，不声称现已存在。"
+          }
+        ]
+      },
+      "exclusive_resources": [
+        "shared.contracts",
+        "shared.platform-audit-domain",
+        "shared.platform-artifacts"
+      ],
+      "fallback": [
+        "关联或迁移不可靠则保留独立技术状态，修复最小业务域；不扩展组织权限或审批替代闭环。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "src/workbench_platform/app.py",
+            "packages/contracts/",
+            "tests/contract/test_audit_contracts.py"
+          ],
+          "requested_change": "登记最小审计业务 API 入口与契约，由统筹改公共入口/契约源并运行既有生成命令同步 schema/OpenAPI/前端类型。",
+          "executor": "coordinator",
+          "resource": "shared.contracts",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        }
+      ]
+    },
+    {
+      "id": "D14",
+      "title": "审计业务 UI 与一项差异复核底稿",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_c",
+      "depends_on": [
+        "D13"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/audit/",
+          "apps/portal/src/features/batches/BatchCenter.tsx",
+          "apps/portal/tests/audit-workflow.test.tsx",
+          "tests/integration/test_audit_workflow.py"
+        ]
+      },
+      "deliverables": [
+        "项目/程序/调查事项最小主线与明确编制/复核操作。",
+        "使用 D13 底稿后端，完成一项两表差异从调查解释到 workpaper.md + workpaper.json 的操作闭环，引用已有复核成果/XLSX。",
+        "业务底稿的版本、采用证据、未解决状态和旧新关系展示。"
+      ],
+      "steps": [
+        "串联 D13 业务对象与现有批次、异常、复核成果。",
+        "以一项差异贯穿调查解释、结论、编制/复核和底稿生成。",
+        "沿用 M1 不可变成果机制，在底稿中携带工作目标、程序、来源与采用版本。"
+      ],
+      "acceptance": [
+        "用户能完成‘项目目标→工作程序→批次→差异→调查解释→复核底稿’。",
+        "底稿的证据与采用版本可定位；重开/更换结论明确旧交付状态。",
+        "未解决事项不会被 UI 或底稿默认为最终完成。",
+        "默认底稿为 workpaper.md + workpaper.json，不新增 DOCX/PDF 渲染链；文件引用已有复核成果与 XLSX 明细。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_artifacts",
+          "portal_batches",
+          "platform_portal_build"
+        ],
+        "new_scenarios": [
+          "one_difference_investigation_to_review_workpaper",
+          "audit_ui_and_workpaper_version_links"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。",
+        "planned_new_test_files": [
+          {
+            "repo": "platform",
+            "path": "apps/portal/tests/audit-workflow.test.tsx",
+            "activation": "实现并确认后使用 pnpm run test tests/audit-workflow.test.tsx，运行 cwd 为 apps/portal。"
+          }
+        ]
+      },
+      "exclusive_resources": [
+        "shared.portal-batches",
+        "shared.platform-artifacts",
+        "build.platform-portal",
+        "browser"
+      ],
+      "fallback": [
+        "底稿来源或版本不完整时只提供明确中间材料；修复关联，不以人工另写无来源结论宣称通过。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "apps/portal/src/router.tsx",
+            "apps/portal/src/App.tsx"
+          ],
+          "requested_change": "将新增局部审计业务 UI 接入门户全局入口；泳道仅交付 features/audit/ 局部组件。",
+          "executor": "coordinator",
+          "resource": "shared.portal-batches",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        },
+        {
+          "repo": "platform",
+          "paths": [
+            "apps/portal/src/features/artifacts/ArtifactCenter.tsx"
+          ],
+          "requested_change": "Explicit WorkpaperBundle branch for audit_workpaper metadata/list/detail/download and return-to-audit context; do not read nonexistent original inputs.",
+          "executor": "coordinator",
+          "resource": "shared.platform-artifacts",
+          "rule": "D12 acceptance first; coordinator only, no overlapping source edits."
+        }
+      ]
+    },
+    {
+      "id": "D15",
+      "title": "原生自动准备与可执行恢复",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_b",
+      "depends_on": [
+        "D11"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/catalog/launch.py",
+          "src/workbench_platform/supervisor/",
+          "src/workbench_platform/batches/native.py",
+          "src/workbench_platform/batches/probe.py",
+          "src/workbench_platform/batches/service.py",
+          "src/workbench_platform/jobs/native_classification.py",
+          "src/workbench_platform/jobs/native_ocr.py",
+          "tests/integration/test_app_launch.py",
+          "tests/integration/test_native_batches.py",
+          "tests/integration/test_gpu_coordinator.py"
+        ],
+        "ocr": [
+          "src/ocr_workbench/platform_resources.py"
+        ],
+        "classification": [
+          "src/image_platform/platform_resources.py"
+        ]
+      },
+      "deliverables": [
+        "从批次主线自动校验/准备/等待原生能力，并复用既有受控启动、launch 身份与 GPU 所有权。",
+        "能力声明与类型/场景一致；故障返回可执行动作且不丢选择。",
+        "服务未启动、校验失败、无 GPU、仅校对能力与响应丢失恢复检查。"
+      ],
+      "steps": [
+        "D11源码门禁通过后由统筹显式移交batches/native.py源码claim给lane_b，D12保留最终交付门禁。",
+        "批次使用现有受控启动能力，不新建服务调度器。",
+        "分辨校验、启动、资源等待、可执行状态和仅校对能力。",
+        "按请求/导入/任务身份恢复，确保重试不重复导入或建任务。",
+        "由服务能力声明提供允许类型和恢复动作，图像 OCR/PDF 边界准确。"
+      ],
+      "acceptance": [
+        "冷启动后普通用户从处理入口完成准备，无须先手动启动原生。",
+        "失败有下一动作，选模板/资料保留；恢复不重复任务或导入。",
+        "资源锁和 F 盘子进程环境继续满足 M1 门槛。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_startup",
+          "platform_batches",
+          "classification_runtime_backup"
+        ],
+        "new_scenarios": [
+          "native_cold_prepare_from_batch",
+          "native_prepare_failure_and_resource_wait",
+          "native_retry_no_duplicate_import_or_job",
+          "capability_types_match_backend"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-startup",
+        "shared.platform-native-module",
+        "shared.platform-batches-service",
+        "native-runtime",
+        "gpu"
+      ],
+      "fallback": [
+        "能力不可用则保留批次和选择、显示明确恢复入口；不启动无资格模型或绕过 GPU 所有权。"
+      ]
+    },
+    {
+      "id": "D16",
+      "title": "模板摘要、首配引导与逐文件上传恢复",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_c",
+      "depends_on": [
+        "D11"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/batches/TemplateSetup.tsx",
+          "apps/portal/src/features/batches/BatchCenter.tsx",
+          "apps/portal/src/features/batches/api.ts",
+          "src/workbench_platform/batches/routes.py",
+          "src/workbench_platform/data_api/service.py",
+          "src/workbench_platform/assets/routes.py",
+          "src/workbench_platform/assets/registry.py",
+          "tests/integration/test_processing_batches.py",
+          "apps/portal/tests/batches.test.tsx",
+          "packages/contracts/uploads.py",
+          "packages/contracts/uploads_openapi.py",
+          "packages/contracts/generate.py",
+          "packages/contracts/generated/",
+          "tests/integration/test_upload_recovery.py",
+          "apps/portal/src/features/batches/UploadQueue.tsx",
+          "apps/portal/tests/upload-recovery.test.tsx",
+          "apps/portal/tests/template-setup.test.tsx"
+        ]
+      },
+      "deliverables": [
+        "可读模板摘要：左右角色、匹配键、映射、清洗/金额/空值政策及引擎版本。",
+        "首次两表模板连续引导、小样本验算与确认；重复使用只读摘要。",
+        "逐文件成功/失败/未提交状态及仅失败/未提交项恢复。"
+      ],
+      "steps": [
+        "复用现有模板机制，结构变化停在明确确认，不猜列位置。",
+        "为首次配置提供小样本核对，重复处理清楚展示实际规则。",
+        "保存成功上传项，失败不清空整个选择；按已有身份避免重复登记。"
+      ],
+      "acceptance": [
+        "用户能说明左右资料、匹配键和金额/空值政策；同名不同模板可区分。",
+        "10 文件第 4 个失败时，1–3 成功、4 失败、5–10 未提交均可见。",
+        "恢复只补必要项，成功项不重传/重复登记，来源身份不混合。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_data",
+          "portal_batches",
+          "platform_portal_build"
+        ],
+        "new_scenarios": [
+          "template_first_setup_and_reuse_summary",
+          "template_structure_change_requires_confirmation",
+          "upload_10_file_fourth_failure_resume"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.portal-batches",
+        "shared.platform-data-api",
+        "build.platform-portal",
+        "browser"
+      ],
+      "fallback": [
+        "无法确认规则/输入结构时保留草稿与资料，请用户核对必要字段；单文件故障不要求全批重传。"
+      ]
+    },
+    {
+      "id": "D17",
+      "title": "跨批次待办与可读证据后端",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_a",
+      "depends_on": [
+        "D13"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/batches/store.py",
+          "src/workbench_platform/batches/service.py",
+          "src/workbench_platform/batches/routes.py",
+          "src/workbench_platform/audit/",
+          "src/workbench_platform/data_api/service.py",
+          "src/workbench_platform/artifacts/ocr_results.py",
+          "src/workbench_platform/artifacts/classification_results.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_audit_workflow.py",
+          "tests/data/test_exact_matching.py",
+          "tests/integration/test_workspace_todos.py"
+        ]
+      },
+      "deliverables": [
+        "工作空间级待办的服务端全局筛选、排序和分页。",
+        "业务键、字段左右值、原行/原文、来源及实际采用规则的可读证据响应。",
+        "调查业务关联与技术故障分类，明确优先级依据。"
+      ],
+      "steps": [
+        "按持久全量索引汇总需介入、待复核、暂缓、归集失败与运行状态。",
+        "后端提供字段变化及数值容差结论，保留技术详情入口。",
+        "关联 D13 工作程序/调查事项，明确人工优先级和问题类型。"
+      ],
+      "acceptance": [
+        "全局筛选/排序覆盖所有批次，不用当前页排序冒充全局优先级。",
+        "来源、原值/采用值、实际规则可核查，分类分数不充当审计风险分数。",
+        "查询响应有界、返回上下文身份稳定；技术故障不混成审计发现。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_data",
+          "platform_workspaces"
+        ],
+        "new_scenarios": [
+          "global_todo_pagination_and_sort",
+          "readable_evidence_and_backend_tolerance",
+          "todo_technical_vs_audit_finding"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-batches-store",
+        "shared.platform-batches-service",
+        "shared.platform-data-api",
+        "shared.platform-audit-domain"
+      ],
+      "fallback": [
+        "证据解释无法确定时保留原始来源并明确未知，禁止前端猜容差或排序遗漏未加载页。"
+      ]
+    },
+    {
+      "id": "D18",
+      "title": "统一待办、字段对照与返回上下文 UI",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "lane_c",
+      "depends_on": [
+        "D14",
+        "D16",
+        "D17"
+      ],
+      "write_scopes": {
+        "platform": [
+          "apps/portal/src/features/batches/BatchCenter.tsx",
+          "apps/portal/src/features/batches/api.ts",
+          "apps/portal/src/features/audit/",
+          "apps/portal/src/features/catalog/nativeWindow.ts",
+          "apps/portal/tests/batches.test.tsx",
+          "apps/portal/tests/navigation.test.tsx",
+          "apps/portal/tests/native-window.test.tsx",
+          "apps/portal/tests/audit-workflow.test.tsx",
+          "apps/portal/src/features/todos/",
+          "apps/portal/tests/todos.test.tsx",
+          "apps/portal/src/features/catalog/nativeReviewReturn.ts",
+          "apps/portal/src/features/ocr/OcrWorkflow.tsx",
+          "apps/portal/src/features/classification/ClassificationWorkflow.tsx",
+          "apps/portal/tests/native-review-return.test.ts",
+          "apps/portal/tests/item-evidence.test.tsx",
+          "apps/portal/tests/todos-workflow.test.tsx",
+          "src/workbench_platform/batches/routes.py",
+          "tests/integration/test_batch_item_read.py",
+          "src/workbench_platform/audit/evidence.py"
+        ]
+      },
+      "deliverables": [
+        "统一待办入口和状态/场景/问题筛选，直接定位项目/程序/批次/事项。",
+        "默认可读字段对照、原行/来源、大图和类别；JSON 收入技术详情。",
+        "连续确认、原生往返与过滤/位置上下文保持。"
+      ],
+      "steps": [
+        "在 D14/D16 后串行修改共享门户文件，消费 D17 服务端数据。",
+        "保持连续复核与原生返回的正确事项/筛选/滚动位置。",
+        "串联完整主线并记录首次配置、重复处理、修订、上传故障、服务恢复及保存任务。"
+      ],
+      "acceptance": [
+        "用户进入待办能直接处理正确事项，确认下一项保留位置。",
+        "回原生再返回恢复正确上下文，来源与当前采用版本可见。",
+        "六类任务记录独立完成、操作数、用时、跨页/错误/求助及正确性，不虚构效率百分比。"
+      ],
+      "verification": {
+        "command_refs": [
+          "portal_batches",
+          "portal_navigation",
+          "platform_portal_build"
+        ],
+        "new_scenarios": [
+          "todo_to_correct_item_with_context",
+          "field_comparison_and_image_evidence",
+          "native_roundtrip_preserves_item_context",
+          "six_user_tasks_measurement"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.portal-batches",
+        "build.platform-portal",
+        "browser"
+      ],
+      "fallback": [
+        "定位或返回上下文错误先修路由与身份；不以跳回首页或隐藏版本信息换取少点击。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "apps/portal/src/router.tsx",
+            "apps/portal/src/App.tsx"
+          ],
+          "requested_change": "归并统一待办/审计主线的全局入口和返回上下文路由调整，门户局部实现由泳道交付。",
+          "executor": "coordinator",
+          "resource": "shared.portal-batches",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        }
+      ]
+    },
+    {
+      "id": "D19",
+      "title": "M2 集成、业务域冷备迁移与源码冻结",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "coordinator",
+      "depends_on": [
+        "D12",
+        "D14",
+        "D15",
+        "D16",
+        "D17",
+        "D18"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/backup_workspace.py",
+          "scripts/release/check_backup.py",
+          "tests/integration/test_platform_backup.py",
+          "tests/integration/test_audit_workflow.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_native_batches.py"
+        ]
+      },
+      "deliverables": [
+        "项目/程序/调查事项/底稿与 M1 领域的一致备份、迁移和全新 F 盘目录恢复。",
+        "M2 完整主线与六类任务检查记录，受影响回归和冻结身份。",
+        "下一候选输入、已知限制和回退说明。"
+      ],
+      "steps": [
+        "完成项目到复核底稿、自动准备、首配、上传恢复和统一待办的集成。",
+        "冷备恢复新增业务对象/历史/关系及旧新底稿，核对迁移可重复。",
+        "保留 M1 核心硬门槛；新变化涉及的检查重新执行，未受影响模型不无因全量重跑。",
+        "冻结实际通过源码和契约身份。"
+      ],
+      "acceptance": [
+        "一项差异从目标到最终底稿完整可操作；技术重试不产生重复调查发现。",
+        "恢复后所有业务对象/来源/采用版本/处置历史/成果关系一致。",
+        "M1 正确性与 F 盘边界无回归，使用度量来自完整路径。",
+        "用户追加I01：核对图像取证领域迁移/冷备，归集匹配F盘运行时，独立候选不得依赖开发备份路径。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_batches",
+          "platform_artifacts",
+          "platform_backup",
+          "platform_workspaces",
+          "platform_startup",
+          "portal_batches",
+          "portal_navigation",
+          "platform_portal_build",
+          "platform_contracts_generated",
+          "platform_contracts"
+        ],
+        "new_scenarios": [
+          "m2_full_audit_mainline",
+          "m2_business_domain_cold_backup_restore",
+          "m2_six_task_usage_evidence",
+          "m1_invariants_preserved_in_m2"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "backup-restore",
+        "native-runtime",
+        "gpu",
+        "git-index"
+      ],
+      "fallback": [
+        "集成/恢复不通过则修复负责卡并取消冻结；既有 M1 候选仍保留，不把新增业务失败降格成已通过。"
+      ]
+    },
+    {
+      "id": "D20",
+      "title": "M2 独立候选与最终审计主线交付",
+      "milestone": "M2",
+      "priority": "P2",
+      "owner": "coordinator",
+      "depends_on": [
+        "D19"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/build_base_candidate.py",
+          "scripts/candidate_bootstrap.py",
+          "scripts/candidate_verify.py",
+          "scripts/release/verify_candidate.py",
+          "scripts/release/audit_components.py"
+        ]
+      },
+      "deliverables": [
+        "candidate_roots.M2 下唯一独立候选、清单/哈希/冻结身份及新增领域资格。",
+        "候选首次必要全验、缓存重启、复核成果/底稿真实保存读回及冷备恢复证据。",
+        "workpaper.md + workpaper.json（引用已有复核成果/XLSX）、审计主线使用说明、效果记录、已知限制及回退；M1/M2 完成后结束本轮。",
+        "纳入图像取证入口、人工说明、调查证据与底稿的实际候选使用说明和匹配运行时；研究模型维持原准入状态。"
+      ],
+      "steps": [
+        "统一构建冻结 M2，独立于 M1 和活动数据。",
+        "从候选验证一项差异全过程、服务冷启动、故障恢复和最终保存。",
+        "确认候选身份与新增领域冷备、首次全验及缓存重启关系，交付可用说明。",
+        "M1/M2 完成后报告当前范围已完成；M3 保持延期，等用户明确纳入实施范围。"
+      ],
+      "acceptance": [
+        "候选真实主线可完成且保存/重开正确；来源、版本、判断及底稿可追溯。",
+        "无异常遗漏、旧建议覆盖、盘外回退、重复启动副作用或半成品发布。",
+        "新包资格绑定本轮身份；独立设备、真实业务、模型资格继续如实记录。",
+        "不为阶段结束增加批准流，不自动扩展 M3。"
+      ],
+      "verification": {
+        "command_refs": [
+          "platform_startup",
+          "platform_artifacts",
+          "platform_backup",
+          "portal_batches",
+          "portal_navigation"
+        ],
+        "new_scenarios": [
+          "m2_candidate_first_verify_cached_restart",
+          "m2_candidate_audit_workpaper_real_save",
+          "m2_candidate_manifest_and_rollback"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "candidate",
+        "browser",
+        "native-runtime",
+        "gpu",
+        "backup-restore",
+        "git-index"
+      ],
+      "fallback": [
+        "门禁不通过继续修复当前范围，独立保留失败证据和旧合格候选；不可把 HTTP 成功替代真实保存。"
+      ]
+    },
+    {
+      "id": "D21",
+      "title": "限定现有能力的 PDF 批次",
+      "milestone": "M3",
+      "priority": "P2",
+      "owner": "lane_b",
+      "depends_on": [
+        "D20"
+      ],
+      "write_scopes": {
+        "ocr": [
+          "src/ocr_workbench/documents.py",
+          "src/ocr_workbench/document_store.py",
+          "src/ocr_workbench/document_routes.py",
+          "src/ocr_workbench/document_review.py",
+          "tests/test_document_foundation.py",
+          "tests/test_document_processing.py",
+          "tests/test_document_api.py"
+        ],
+        "platform": [
+          "adapters/ocr/adapter.py",
+          "src/workbench_platform/batches/native.py",
+          "src/workbench_platform/batches/probe.py",
+          "tests/integration/test_native_batches.py",
+          "tests/integration/test_ocr_artifacts.py"
+        ]
+      },
+      "deliverables": [
+        "现有文档能力范围内的 PDF 输入与逐页覆盖/错误/来源定位。",
+        "扫描/原生文字/混合 PDF 策略及修订/复核成果接入。"
+      ],
+      "steps": [
+        "仅在 M3 纳入授权范围后核对现有文档 API/任务能力，先定义限定资格。",
+        "复用现有页级身份和修订闭环，明确错误页与不支持输入的恢复入口。",
+        "接入统一覆盖、采用关系和成果规则。"
+      ],
+      "acceptance": [
+        "每页来源可定位，失败页保留并阻止误报全量成功。",
+        "扫描/原生文字/混合 PDF 策略明确，超出能力不默认为成功。",
+        "修订与底稿遵循 M1/M2 相同版本和交付约束。"
+      ],
+      "verification": {
+        "command_refs": [
+          "ocr_document_foundation",
+          "ocr_document_processing",
+          "ocr_document_api",
+          "platform_ocr",
+          "platform_batches"
+        ],
+        "new_scenarios": [
+          "pdf_page_coverage_and_failure_retention",
+          "pdf_scan_text_mixed_policy",
+          "pdf_revision_to_review_export"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.platform-native-module",
+        "native-runtime",
+        "gpu"
+      ],
+      "fallback": [
+        "现有文档能力不能支撑时限定输入/给原生入口，保留失败页；不承诺任意 PDF 批量成功。"
+      ]
+    },
+    {
+      "id": "D22",
+      "title": "一个限定场景的提取后比对",
+      "milestone": "M3",
+      "priority": "P2",
+      "owner": "lane_a",
+      "depends_on": [
+        "D21"
+      ],
+      "write_scopes": {
+        "platform": [
+          "src/workbench_platform/batches/data.py",
+          "src/workbench_platform/batches/service.py",
+          "src/workbench_platform/batches/store.py",
+          "src/workbench_platform/batches/routes.py",
+          "src/workbench_platform/data_api/service.py",
+          "modules/data_workbench/importing/",
+          "modules/data_workbench/comparison/",
+          "tests/integration/test_processing_batches.py",
+          "tests/data/test_exact_matching.py"
+        ],
+        "ocr": [
+          "src/ocr_workbench/document_review.py",
+          "src/ocr_workbench/document_routes.py",
+          "tests/test_document_processing.py",
+          "tests/test_document_api.py"
+        ]
+      },
+      "deliverables": [
+        "一个明确文档结构/字段集合的版本化提取映射，结构化行保留页/原文来源。",
+        "人工确认歧义后使用已确认对账规则；限定场景资格与成果。"
+      ],
+      "steps": [
+        "选一个有明确字段与文档结构的场景，冻结提取映射和对账政策。",
+        "编号/日期/金额歧义停在人工确认，确认后生成有来源的行。",
+        "继承全量覆盖、采用版本、异常处置及底稿交付机制。"
+      ],
+      "acceptance": [
+        "每个结构化值可回原页/原文，规则和映射版本可追溯。",
+        "金额/日期/编号歧义不自动变成确定值；失败/不支持输入明确。",
+        "只在限定夹具和场景资格通过后交付，不扩大成任意票据入表。"
+      ],
+      "verification": {
+        "command_refs": [
+          "ocr_document_foundation",
+          "ocr_document_processing",
+          "ocr_document_api",
+          "platform_data",
+          "platform_batches",
+          "platform_contracts_generated",
+          "platform_contracts"
+        ],
+        "new_scenarios": [
+          "limited_extraction_to_comparison",
+          "ambiguous_fields_require_confirmation",
+          "extracted_value_source_lineage"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "shared.contracts",
+        "shared.platform-batches-store",
+        "shared.platform-batches-service",
+        "shared.platform-native-module",
+        "shared.platform-data-api",
+        "native-runtime",
+        "gpu"
+      ],
+      "fallback": [
+        "字段可靠性或业务资格不足则缩小场景并保留人工确认；不把低可靠文本自动转换成无来源金额。"
+      ],
+      "coordinator_changes": [
+        {
+          "repo": "platform",
+          "paths": [
+            "packages/contracts/"
+          ],
+          "requested_change": "为限定提取映射与来源关系补最小契约并同步生成物；native.py 若需变更先交当前 lane_b 持有人，禁止 broad batches/ scope。",
+          "executor": "coordinator",
+          "resource": "shared.contracts",
+          "rule": "统筹唯一修改并登记影响范围，任务责任人交付局部实现及验收，不自行扩大公共 scope。"
+        }
+      ]
+    },
+    {
+      "id": "D23",
+      "title": "M3 集成、冷备恢复及独立候选",
+      "milestone": "M3",
+      "priority": "P2",
+      "owner": "coordinator",
+      "depends_on": [
+        "D22"
+      ],
+      "write_scopes": {
+        "platform": [
+          "scripts/build_base_candidate.py",
+          "scripts/candidate_verify.py",
+          "scripts/release/verify_candidate.py",
+          "scripts/backup_workspace.py",
+          "tests/integration/test_platform_backup.py",
+          "tests/integration/test_processing_batches.py",
+          "tests/integration/test_native_batches.py"
+        ],
+        "ocr": [
+          "tests/test_document_foundation.py",
+          "tests/test_document_processing.py",
+          "tests/test_document_api.py"
+        ]
+      },
+      "deliverables": [
+        "PDF 和限定提取到对账的受影响集成/迁移/冷备检查及冻结身份。",
+        "candidate_roots.M3 下独立候选、限定场景真实保存/读回、清单与资格边界。"
+      ],
+      "steps": [
+        "验证页覆盖、字段来源、歧义确认、修订/调查/交付主线和新增领域恢复。",
+        "冻结后统一构建一个 M3 候选，执行新增身份必要首验与缓存重启。",
+        "保存并重开最终成果，记录限定输入、失败策略、使用说明及回退。"
+      ],
+      "acceptance": [
+        "失败页/歧义字段未被删除后当成功，全部采用值有来源。",
+        "恢复和最终保存正确；M1/M2 核心硬门槛无回归。",
+        "候选只声明验证过的限定场景，旧候选/数据/成果保留。"
+      ],
+      "verification": {
+        "command_refs": [
+          "ocr_document_foundation",
+          "ocr_document_processing",
+          "ocr_document_api",
+          "platform_batches",
+          "platform_data",
+          "platform_artifacts",
+          "platform_backup"
+        ],
+        "new_scenarios": [
+          "m3_limited_scenario_end_to_end",
+          "m3_page_and_field_domain_restore",
+          "m3_candidate_real_save_and_identity"
+        ],
+        "evidence": "使用本轮输入、源码身份、隔离 F 盘环境与实际退出结果；既有测试文件为回归入口，新增场景在实现后执行，不把计划名称当成已存在的测试选择器。"
+      },
+      "exclusive_resources": [
+        "candidate",
+        "browser",
+        "native-runtime",
+        "gpu",
+        "backup-restore",
+        "git-index"
+      ],
+      "fallback": [
+        "超出资格或门禁失败只修复/缩小当前限定场景；保留旧合格候选，不扩大自动化适用范围。"
+      ]
+    }
+  ],
+  "human_plan": "F:/OCR/docs/platform-automation/审计平台自动化开发执行计划-20261002.md",
+  "lock_policy": {
+    "source_claims": "对 write_scopes 解析成真实文件/目录范围并检查重叠；源码 claim 覆盖编辑周期，同文件及目录内文件不得并行编辑，交付协调后释放。公共文件始终由登记 owner 单写。",
+    "short_operation_locks": "exclusive_resources 的 browser/GPU/native-runtime/build/candidate/backup-restore/git-index 是相关操作阶段的预约锁，不从整个任务 running 持到 done。只在该操作前预约，操作结束/状态稳定后释放；不需要真实服务的代码/CPU检查不占 native-runtime。",
+    "parallelism": "D04/D05 独立文件编辑与 CPU 检查可并行；真实原生服务活动串行；同一前端构建目录串行。同泳道一次一任务，统筹串行处理公共修改及 Git index。",
+    "state_record": "coordinator 在唯一 state.json 记录源码 claim 和短锁 owner、用途及释放条件；异常中断先核对实际进程/文件状态再释放，不靠超时盲抢锁。",
+    "global_rule": "所有源码 scope 重叠均需 claim，即使 exclusive_resources 未逐项重复列出该文件；不得以缺少某个命名锁推断可并写。"
+  },
+  "shared_file_ownership": {
+    "coordinator_only": {
+      "platform": [
+        "packages/contracts/",
+        "src/workbench_platform/app.py",
+        "apps/portal/src/App.tsx",
+        "apps/portal/src/router.tsx",
+        "apps/portal/src/main.tsx",
+        "scripts/windows_job.py",
+        "scripts/backup_workspace.py",
+        "scripts/release/check_backup.py",
+        "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
+        "tests/contract/test_audit_contracts.py"
+      ],
+      "docs": [
+        "audit-development-tasks-20261002.json",
+        "审计平台自动化开发执行计划-20261002.md"
+      ]
+    },
+    "rule": "非 coordinator 任务不得直接写上述公共文件或通过宽目录 scope 包含它们；通过 coordinator_changes 提出最小修改，coordinator 登记需求/scope 协作并唯一执行，生成物仅按现有生成命令更新。",
+    "native_module_transfer": {
+      "repo": "platform",
+      "path": "src/workbench_platform/batches/native.py",
+      "first_owner": "lane_a",
+      "first_task": "D06",
+      "next_owner": "lane_b",
+      "next_task": "D15",
+      "condition": "revision20主线优先：D11 done后coordinator显式登记从lane_a到lane_b的所有权/claim移交；D12为最终交付门禁。",
+      "later": "后续 D21 仍由 lane_b 持有；其他任务只提出局部适配需求，统筹登记必要移交，不靠宽目录覆盖。"
+    }
+  },
+  "supplemental_tasks": [
+    {
+      "id": "I01",
+      "title": "将图像取证融入资料、任务、成果与审计证据主线",
+      "milestone": "M2",
+      "owner": "coordinator",
+      "depends_on": [
+        "D13",
+        "D14",
+        "D17"
+      ],
+      "write_scopes": [
+        "platform:modules/image_forensics",
+        "platform:src/workbench_platform/forensics",
+        "platform:packages/contracts",
+        "platform:audit/service.py and render.py",
+        "platform:apps/portal/src/features/forensics",
+        "platform:shared app/router/centers",
+        "platform:backup_workspace.py"
+      ],
+      "deliverables": [
+        "经典工具真实执行和可读证据审阅",
+        "人工版本条件写入、固定调查证据和正式底稿",
+        "门户既有风格及任务/成果中心",
+        "ClearForensics品牌、统一Clear应用目录与业务分组导航",
+        "F盘来源登记和冷备领域"
+      ],
+      "acceptance": [
+        "原件/任务/报告/审阅身份正确，技术失败不作业务结论",
+        "审阅改动不会修改旧快照和旧稿字节",
+        "本地真实主线、冷备恢复、受影响界面与唯一生产构建通过"
+      ],
+      "delivery_gate": "source slice does not satisfy independent candidate runtime or browser-save qualification"
+    },
+    {
+      "id": "Q01",
+      "title": "选择项目、选择Clear工具、直接处理与输出",
+      "milestone": "M2",
+      "owner": "coordinator",
+      "status": "done",
+      "qualification": "source quick flow; native runtime installation and independent candidate remain separate",
+      "deliverables": [
+        "三步首页与精简导航",
+        "轻量项目复用现有存储",
+        "数据作业项目隔离与稳定创建",
+        "原生工具简化作业入口及返回",
+        "项目输出直接查询下载",
+        "审计程序与追溯降为可选高级功能"
+      ],
+      "acceptance": [
+        "项目隔离、重放与旧数据库迁移通过",
+        "原生创建响应丢失后核对已有作业",
+        "实际合成两表处理与输出下载通过",
+        "生产构建与实际页面读回通过"
+      ],
+      "record": "项目与Clear工具简化开发记录-20261003.md"
+    },
+    {
+      "id": "N01",
+      "title": "接通简化首页的OCR与分类真实运行时",
+      "milestone": "M2",
+      "owner": "coordinator",
+      "status": "done",
+      "deliverables": [
+        "独立F盘原生开发启动层",
+        "当前项目数据与OCR凭据绑定",
+        "已有模型/依赖只读复用",
+        "实际启动和项目界面打开"
+      ],
+      "checks": [
+        "ocr actual owned runtime + linked project UI passed",
+        "classification actual owned runtime + linked project UI passed",
+        "no page errors"
+      ],
+      "evidence": "evidence/N01/1/native-entry-readback.json",
+      "qualification": "current source native startup only; D15 broader inference and independent candidate qualification unchanged"
+    }
+  ]
+}
