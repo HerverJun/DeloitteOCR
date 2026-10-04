@@ -1,4 +1,4 @@
 {
-  "runtime_status": "existing local dependency runtime; independent packaging pending",
-  "python": "F:\\CodexBackups\\图像篡改识别\\20261003_111113\\project\\.venv\\Scripts\\python.exe"
+  "runtime_status": "physical runtime inside the current development directory",
+  "python": "../../program/runtimes/forensics/python.exe"
 }
