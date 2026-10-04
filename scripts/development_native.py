@@ -52,6 +52,22 @@ def _copy(source: Path, target: Path) -> None:
         shutil.copyfile(source, target)
 
 
+def runtime_source_record(asset: Path, aliases: list[str], sealed: dict, candidate_sha256: str) -> dict:
+    """Bind linked runtime libraries to exact files in the sealed old candidate."""
+    sources = {alias: {} for alias in aliases}
+    prefix = 'bundles/ocr/'
+    for name, item in sealed.items():
+        if not name.startswith(prefix) or Path(name).suffix.lower() not in {'.dll', '.pyd', '.exe'}:
+            continue
+        relative = name[len(prefix):]
+        for alias in aliases:
+            if relative.startswith(alias + '/'):
+                sources[alias][relative[len(alias) + 1:]] = {
+                    'sha256': item['sha256'], 'bytes': item['bytes']}
+    return {'schema_version': 1, 'source_bundle': str(asset), 'candidate_sha256': candidate_sha256,
+            'sources': [{'path': alias, 'files': files} for alias, files in sorted(sources.items())]}
+
+
 SERVER = '''import json, os, subprocess, sys
 from pathlib import Path
 root = Path(__file__).resolve().parent
@@ -133,12 +149,14 @@ def configure(source: Path, program: Path, data: Path) -> AppRegistry:
             _json(cache_path, {**identity, "apps": successes})
         bundle = require_f_path(bundle_root / app_id)
         bundle.mkdir(parents=True, exist_ok=True)
+        runtime_aliases = []
         for runtime in (asset / "runtimes").iterdir():
             if not runtime.is_dir():
                 continue
             target = bundle / "runtimes" / runtime.name
             if not (runtime / "python.exe").is_file():
                 _link(target, runtime)
+                runtime_aliases.append(target.relative_to(bundle).as_posix())
                 continue
             target.mkdir(parents=True, exist_ok=True)
             for member in runtime.iterdir():
@@ -146,6 +164,7 @@ def configure(source: Path, program: Path, data: Path) -> AppRegistry:
                     _copy(member, target / member.name)
                 elif member.is_dir():
                     _link(target / member.name, member)
+                    runtime_aliases.append((target / member.name).relative_to(bundle).as_posix())
             (target / "python312._pth").write_text("\n".join([
                 "python312.zip", ".", str(native_source / "src"), str(source), str(source / "src"),
                 "Lib/site-packages", "import site", ""]), encoding="utf-8")
@@ -159,7 +178,11 @@ def configure(source: Path, program: Path, data: Path) -> AppRegistry:
             (bundle / "worker.py").write_text(WORKER, encoding="utf-8")
         _json(bundle / "native-binding.json", {"app_id": app_id, "data_root": str(data),
             "asset_bundle": str(asset), "native_source": str(native_source), "platform_source": str(source),
+            "asset_candidate_sha256": identity['candidate_sha256'],
             "qualification": "source development; verified existing runtime assets reused read-only"})
+        if app_id == 'ocr':
+            _json(bundle / 'runtime-sources.json', runtime_source_record(
+                asset, runtime_aliases, sealed, identity['candidate_sha256']))
         (bundle / "server.py").write_text(SERVER, encoding="utf-8")
         (bundle / "launch.cmd").write_text('@echo off\n"%~dp0runtimes\\control\\python.exe" -I -B -u "%~dp0server.py"\n', encoding="utf-8")
         # Declare private launch files only. Junction assets are bound above to
