@@ -263,11 +263,23 @@ class ScreenBatches:
                 if old:
                     continue
                 key = uid()
+                source = db.execute('''SELECT c.task_id FROM screen_contexts c
+                    JOIN tasks t ON t.id=c.task_id JOIN screen_items i
+                    ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
+                    WHERE c.batch_id=? AND i.source_hash=? AND t.kind='screen_context'
+                    AND t.status IN ('queued','running','succeeded') ORDER BY i.position LIMIT 1''',
+                    (batch['id'], item['source_hash'])).fetchone()
                 db.execute('''INSERT INTO tasks(id,project_id,image_id,version_id,input_version_id,engine,batch,status,phase,kind,created)
                               VALUES(?,?,?,?,?,?,?,?,?,?,?)''', (key, batch['project_id'], item['image_id'], item['input_version_id'],
-                    item['input_version_id'], 'geometry', batch['id'] + '-stage-0-context', 'queued', '定位业务表区', 'screen_context', now()))
-                db.execute('INSERT INTO screen_contexts(task_id,batch_id,input_version_id) VALUES(?,?,?)', (key, batch['id'], item['input_version_id']))
+                    item['input_version_id'], 'geometry', batch['id'] + '-stage-0-context', 'queued',
+                    '等待相同图片定位结果' if source else '定位业务表区',
+                    'screen_context_cached' if source else 'screen_context', now()))
+                pending_raw = encoded({'cache_pending_source_task_id': source['task_id'],
+                    'cache_key': fingerprint([item['source_hash'], self.model_identity, 'context'])}) if source else None
+                db.execute('INSERT INTO screen_contexts(task_id,batch_id,input_version_id,raw) VALUES(?,?,?,?)',
+                           (key, batch['id'], item['input_version_id'], pending_raw))
                 worked = True
+        worked = self._resolve_context_reuse(batch, items) or worked
         rows = self.store.rows('''SELECT c.*,t.status,t.error FROM screen_contexts c JOIN tasks t ON t.id=c.task_id WHERE c.batch_id=?''', (batch['id'],))
         pending = False
         for row in rows:
@@ -275,7 +287,11 @@ class ScreenBatches:
             if item['status'] != 'queued' or item.get('evidence'):
                 continue
             if row['status'] == 'succeeded' and row['raw']:
-                self._update(batch['id'], row['input_version_id'], evidence=encoded(normalize_screen_context(json.loads(row['raw']))))
+                context = json.loads(row['raw'])
+                evidence = normalize_screen_context(context)
+                if context.get('cache_hit'):
+                    evidence['provenance']['cache_hit'] = context['cache_hit']
+                self._update(batch['id'], row['input_version_id'], evidence=encoded(evidence))
                 worked = True
             elif row['status'] in {'failed', 'cancelled'}:
                 self._update(batch['id'], row['input_version_id'], evidence=encoded({'layout': [], 'text': [],
@@ -289,9 +305,117 @@ class ScreenBatches:
         self.queue.wake.set()
         return worked, pending
 
+    def _resolve_context_reuse(self, batch, items):
+        """Reuse only exact original bytes; every target keeps its own binding."""
+        worked = False
+        by_version = {item['input_version_id']: item for item in items}
+        waiters = self.store.rows('''SELECT c.*,t.status FROM screen_contexts c JOIN tasks t ON t.id=c.task_id
+            WHERE c.batch_id=? AND t.kind='screen_context_cached' AND t.status='queued' ORDER BY t.created,t.id''', (batch['id'],))
+        for row in waiters:
+            item = by_version[row['input_version_id']]
+            pending = json.loads(row['raw'] or '{}')
+            source_id = pending.get('cache_pending_source_task_id')
+            sources = self.store.rows('''SELECT c.raw,c.artifact,c.input_version_id,t.status,t.id,i.source_hash
+                FROM screen_contexts c JOIN tasks t ON t.id=c.task_id JOIN screen_items i
+                ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
+                WHERE c.task_id=? AND c.batch_id=?''', (source_id, batch['id']))
+            source = sources[0] if sources else None
+            context = json.loads(source['raw']) if source and source['status']=='succeeded' and source['raw'] else None
+            if source and source['status'] in {'queued','running'}:
+                continue
+            if (source and source['source_hash']==item['source_hash'] and context
+                    and context.get('status')=='success'):
+                version = self.store.one('versions', item['input_version_id'])
+                if hashlib.sha256(self.store.file(version['path']).read_bytes()).hexdigest()!=item['source_hash']:
+                    raise Conflict('重复图片的输入内容已变化')
+                raw = deepcopy(context)
+                raw.update(image_version=item['input_version_id'], inference_seconds=0, load_seconds=0,
+                    screen_context_input={'image_version':item['input_version_id'],
+                        'input_path':str(self.store.file(version['path'])), 'source_sha256':item['source_hash'],
+                        'coordinate_space':'exif_normalized_original'},
+                    cache_hit={'source_task_id':source['id'], 'source_image_version':source['input_version_id'],
+                        'source_artifact':source['artifact'], 'source_raw_sha256':fingerprint(context),
+                        'key':pending['cache_key'], 'reuse_scope':'same_batch_exact_input'})
+                from ocr_workbench.atomic_files import write_json
+                artifact = self.root/batch['id']/item['input_version_id']/'context-reuse.json'
+                artifact.parent.mkdir(parents=True,exist_ok=True)
+                write_json(artifact,raw,durable=True)
+                with self.store.transaction() as db:
+                    if db.execute("UPDATE tasks SET status='succeeded',phase='复用相同图片定位结果',finished=? WHERE id=? AND status='queued'",
+                                  (now(),row['task_id'])).rowcount:
+                        db.execute('UPDATE screen_contexts SET raw=?,artifact=? WHERE task_id=?',
+                            (encoded(raw),str(artifact.relative_to(self.store.root)),row['task_id']))
+                        worked = True
+            else:
+                # A failed/cancelled/individually paused leader must not strand
+                # an unrelated active input or manufacture successful evidence.
+                with self.store.transaction() as db:
+                    replacement = db.execute('''SELECT c.task_id FROM screen_contexts c JOIN tasks t ON t.id=c.task_id
+                        JOIN screen_items i ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
+                        WHERE c.batch_id=? AND i.source_hash=? AND t.kind='screen_context'
+                        AND t.status IN ('queued','running') AND t.id!=? ORDER BY i.position LIMIT 1''',
+                        (batch['id'],item['source_hash'],row['task_id'])).fetchone()
+                    if replacement:
+                        pending['cache_pending_source_task_id']=replacement['task_id']
+                        db.execute('UPDATE screen_contexts SET raw=? WHERE task_id=?',(encoded(pending),row['task_id']))
+                    else:
+                        db.execute("UPDATE tasks SET kind='screen_context',phase='定位业务表区' WHERE id=? AND status='queued'",(row['task_id'],))
+                        db.execute('UPDATE screen_contexts SET raw=NULL,artifact=NULL WHERE task_id=?',(row['task_id'],))
+                    worked = True
+        return worked
+
+    def _resolve_ocr_reuse(self, batch):
+        """Resolve exact prepared-pixel dependencies without sharing source maps."""
+        worked = False
+        waiters = self.store.rows('''SELECT s.*,t.status,t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+            WHERE s.batch_id=? AND t.kind='screen_cached' AND t.status IN ('queued','running') ORDER BY t.created,t.id''',(batch['id'],))
+        for row in waiters:
+            metadata = json.loads(row['metadata'])
+            source_id = metadata.get('cache_pending_source_task_id')
+            sources = self.store.rows('''SELECT t.id,t.status,t.result_id,t.input_version_id,s.metadata FROM tasks t
+                JOIN screen_tasks s ON s.task_id=t.id WHERE t.id=?''',(source_id,))
+            source = sources[0] if sources else None
+            if source and source['status'] in {'queued','running'}:
+                continue
+            if (source and source['status']=='succeeded' and source['result_id']
+                    and json.loads(source['metadata']).get('cache_key')==metadata.get('cache_key')):
+                if (metadata.get('prepared_pixel_sha256') and hashlib.sha256(
+                        self.store.file(row['prepared_path']).read_bytes()).hexdigest()!=metadata['prepared_pixel_sha256']):
+                    with self.store.transaction() as db:
+                        db.execute("UPDATE tasks SET status='failed',phase='输入已变化',error='重复复用的预处理像素已变化',finished=? WHERE id=? AND status IN ('queued','running')",
+                                   (now(),row['task_id']))
+                    worked = True
+                    continue
+                raw = deepcopy(self.store.result(source['result_id'])['original'])
+                version = self.store.one('versions',row['input_version_id'])
+                raw.update(project_image_version=row['input_version_id'], screen_input=metadata,
+                    version_operations=version['operations'], elapsed_seconds=0,
+                    cache_hit={'source_task_id':source['id'],'source_result_id':source['result_id'],
+                        'source_image_version':source['input_version_id'],'key':metadata['cache_key']})
+                with self.store.transaction() as db:
+                    changed = db.execute("UPDATE tasks SET status='running',phase='复用相同图片结果' WHERE id=? AND status IN ('queued','running')",
+                                         (row['task_id'],)).rowcount
+                if changed:
+                    worked = self.store.complete(row['task_id'],raw) or worked
+            else:
+                with self.store.transaction() as db:
+                    replacement = db.execute('''SELECT s.task_id FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+                        WHERE s.batch_id=? AND json_extract(s.metadata,'$.cache_key')=?
+                        AND t.kind!='screen_cached' AND t.status IN ('queued','running') AND t.id!=?
+                        ORDER BY t.created,t.id LIMIT 1''',(batch['id'],metadata.get('cache_key'),row['task_id'])).fetchone()
+                    if replacement:
+                        metadata['cache_pending_source_task_id']=replacement['task_id']
+                    else:
+                        metadata.pop('cache_pending_source_task_id',None)
+                        db.execute("UPDATE tasks SET kind='ocr',status='queued',phase='屏拍表格识别' WHERE id=? AND status IN ('queued','running')",(row['task_id'],))
+                    db.execute('UPDATE screen_tasks SET metadata=? WHERE task_id=?',(encoded(metadata),row['task_id']))
+                    worked = True
+        if worked:
+            self.queue.wake.set()
+        return worked
+
     def _enqueue(self, batch, items, engine, pass_index):
         from ocr_workbench.screen_imaging import select_screen_first_pass
-        cached = []
         with self.guard, self.store.transaction() as db:
             db.execute('BEGIN IMMEDIATE')
             for item in items:
@@ -308,26 +432,30 @@ class ScreenBatches:
                                                   request_id='screen-' + fingerprint([batch['id'], item['input_version_id'], pass_index, image['id'], item['attempt']])[:64])[0]
                     db.execute('UPDATE tasks SET batch=?,phase=? WHERE id=?',
                                (batch['id'] + '-stage-' + str(pass_index + 1) + '-' + engine, '屏拍表格识别', task_id))
+                    pixel_hash = hashlib.sha256(Path(image['path']).read_bytes()).hexdigest()
                     metadata = {**image, 'input_version_id': item['input_version_id'], 'batch_id': batch['id'],
+                                'prepared_pixel_sha256':pixel_hash,
                                 'strategy_version': batch['policy']['strategy_version'],
                                 'timeout_seconds': batch['policy']['budget_seconds'],
                                 'attempt': item['attempt'],
-                                'cache_key': fingerprint([hashlib.sha256(Path(image['path']).read_bytes()).hexdigest(),
+                                'cache_key': fingerprint([pixel_hash,
                                                           engine, self.model_identity, batch['policy']['strategy_version']])}
                     path = str(Path(image['path']).relative_to(self.store.root))
                     db.execute('INSERT INTO screen_tasks(task_id,batch_id,input_version_id,pass_index,prepared_id,prepared_path,metadata,attempt) VALUES(?,?,?,?,?,?,?,?)',
                                (task_id, batch['id'], item['input_version_id'], pass_index, image['id'], path, encoded(metadata), item['attempt']))
-                    hit = db.execute('SELECT c.result_id,r.original FROM screen_cache c JOIN results r ON r.id=c.result_id WHERE c.cache_key=?', (metadata['cache_key'],)).fetchone()
+                    hit = db.execute('SELECT r.task_id FROM screen_cache c JOIN results r ON r.id=c.result_id WHERE c.cache_key=?', (metadata['cache_key'],)).fetchone()
+                    if not hit:
+                        hit = db.execute('''SELECT s.task_id FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+                            WHERE s.batch_id=? AND json_extract(s.metadata,'$.cache_key')=?
+                            AND t.id!=? AND t.kind!='screen_cached' AND t.status IN ('queued','running','succeeded')
+                            ORDER BY t.created,t.id LIMIT 1''',(batch['id'],metadata['cache_key'],task_id)).fetchone()
                     if hit:
-                        raw = json.loads(hit['original'])
-                        raw.update(project_image_version=item['input_version_id'], screen_input=metadata,
-                                   cache_hit={'source_result_id': hit['result_id'], 'key': metadata['cache_key']}, elapsed_seconds=0)
-                        db.execute("UPDATE tasks SET status='running',kind='screen_cached',phase='复用相同图片结果' WHERE id=?", (task_id,))
-                        cached.append((task_id, raw))
+                        metadata['cache_pending_source_task_id']=hit['task_id']
+                        db.execute('UPDATE screen_tasks SET metadata=? WHERE task_id=?',(encoded(metadata),task_id))
+                        db.execute("UPDATE tasks SET kind='screen_cached',phase='等待相同图片结果' WHERE id=?", (task_id,))
                 db.execute('UPDATE screen_items SET status=?,stage=?,pass_index=?,updated=? WHERE batch_id=? AND input_version_id=?',
                            ('running', 'first_pass' if pass_index == 0 else 'upgrading', pass_index, now(), batch['id'], item['input_version_id']))
-        for task_id, raw in cached:
-            self.store.complete(task_id, raw)
+        self._resolve_ocr_reuse(batch)
         self.queue.wake.set()
 
     def _candidate(self, batch, item, rows):
@@ -486,6 +614,7 @@ class ScreenBatches:
                     self._reconcile(batch)
                     worked = True
                     continue
+                worked = self._resolve_ocr_reuse(batch) or worked
                 if batch['policy']['layout_evidence']:
                     changed, pending = self._contexts(batch, items)
                     worked = worked or changed

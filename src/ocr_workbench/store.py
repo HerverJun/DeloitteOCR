@@ -508,6 +508,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
             scope = self.queue_scope(fusion, external)
+            # The screen coordinator resolves persisted exact-cache dependencies.
+            # A resumed waiter must never dispatch its own model inference.
+            scope += " AND kind NOT IN ('screen_cached','screen_context_cached')"
             if fusion:
                 scope += " AND NOT EXISTS (SELECT 1 FROM fusion_dependencies d JOIN tasks p ON p.id=d.parent_task_id WHERE d.task_id=tasks.id AND p.status NOT IN ('succeeded','failed','cancelled'))"
             task = db.execute(
