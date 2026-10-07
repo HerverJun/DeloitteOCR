@@ -1,0 +1,362 @@
+{
+  "format": "clear-agent-streaming-ux-plan-v1",
+  "date": "2026-10-05",
+  "status": "completed",
+  "plan": "Agent流式交互与聊天工作台开发计划-20261005.md",
+  "source_root": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+  "planned_run_root": "F:/OCR/output/agent-streaming-ux-dev-20261005",
+  "baseline_candidate": "F:/OCR/output/agent-context-skills-development-20261005/candidate-final",
+  "preview_url": "http://127.0.0.1:8879/",
+  "tasks": [
+    {
+      "id": "AS01",
+      "priority": "P0",
+      "status": "completed",
+      "title": "公开事件契约、显示身份与终态",
+      "owner": "主代理",
+      "depends_on": [],
+      "paths": [
+        "packages/contracts/agent.py",
+        "src/workbench_platform/agent/state.py",
+        "src/workbench_platform/agent/store.py",
+        "src/workbench_platform/agent/runtime.py",
+        "apps/portal/src/features/agent/api.ts"
+      ],
+      "outputs": [
+        "前后端事件类型",
+        "稳定display_id与revision语义",
+        "事务代际校验与终态规则",
+        "旧事件适配约定"
+      ],
+      "acceptance": [
+        "生成结束与业务确认分开",
+        "空assistant消息不关闭预览",
+        "取消/失败关联原请求并优先于迟到帧"
+      ],
+      "checks": [
+        "C04",
+        "C05",
+        "C09",
+        "C13"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS02",
+      "priority": "P0",
+      "status": "completed",
+      "title": "正文与答案工具参数的真实流式预览",
+      "owner": "流式后端代理；共享文件由主代理集成",
+      "depends_on": [
+        "AS01"
+      ],
+      "paths": [
+        "src/workbench_platform/agent/streaming.py",
+        "src/workbench_platform/agent/providers.py",
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/graph.py",
+        "tests/agent"
+      ],
+      "outputs": [
+        "两协议公开文本帧",
+        "conversation_answer.content增量读取",
+        "预览确认/中断事件",
+        "分片与完整性回归"
+      ],
+      "acceptance": [
+        "只有工具参数也能在完整回包前预览",
+        "完整验证后才执行并确认",
+        "预览不进入模型历史或input_state_version",
+        "交付候选文字不冒充成果回执"
+      ],
+      "checks": [
+        "C01",
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS03",
+      "priority": "P0",
+      "status": "completed",
+      "title": "工具开始/恢复状态与原生任务真实进度",
+      "owner": "工具状态代理；共享文件由主代理集成",
+      "depends_on": [
+        "AS01"
+      ],
+      "paths": [
+        "src/workbench_platform/agent/registry.py",
+        "src/workbench_platform/agent/graph.py",
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/tools/jobs.py",
+        "src/workbench_platform/application_services"
+      ],
+      "outputs": [
+        "handler前的开始事件",
+        "恢复原操作状态事件",
+        "原生进度读状态桥",
+        "变化去重与真实任务接续"
+      ],
+      "acceptance": [
+        "拒绝的工具不显示已执行",
+        "恢复不造成第二次提交",
+        "总量未知仅显示阶段/数量/耗时",
+        "不增加主控轮询调用"
+      ],
+      "checks": [
+        "C04",
+        "C05",
+        "C06",
+        "C11"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS04",
+      "priority": "P0",
+      "status": "completed",
+      "title": "稳定会话投影、工具聚合与诊断收纳",
+      "owner": "门户代理",
+      "depends_on": [
+        "AS01",
+        "AS02",
+        "AS03"
+      ],
+      "can_start_after": [
+        "AS01"
+      ],
+      "paths": [
+        "apps/portal/src/features/agent/AgentWorkbench.tsx",
+        "apps/portal/src/features/agent/api.ts",
+        "apps/portal/src/features/agent/ContextBudget.tsx",
+        "apps/portal/src/features/agent/conversationProjection.ts",
+        "apps/portal/src/features/agent/AgentMessage.tsx",
+        "apps/portal/src/features/agent/ToolActivity.tsx"
+      ],
+      "outputs": [
+        "按身份/revision投影",
+        "原位置确认/中断",
+        "单调用单活动项",
+        "诊断展开区与旧事件兼容"
+      ],
+      "acceptance": [
+        "旧累计快照替换而非追加",
+        "重复或晚到事件不新增气泡",
+        "正文/过程说明/成果关系清楚",
+        "错误和上下文超限仍可见"
+      ],
+      "checks": [
+        "C01",
+        "C02",
+        "C08",
+        "C10",
+        "C13"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS05",
+      "priority": "P1",
+      "status": "completed",
+      "title": "Markdown、状态动画、滚动与控制体验",
+      "owner": "门户代理",
+      "depends_on": [
+        "AS04"
+      ],
+      "paths": [
+        "apps/portal/src/features/agent/AgentMessage.tsx",
+        "apps/portal/src/features/agent/RunStatus.tsx",
+        "apps/portal/src/features/agent/useConversationScroll.ts",
+        "apps/portal/src/features/agent/TaskPanel.tsx",
+        "apps/portal/src/features/agent/agent.css",
+        "apps/portal/package.json",
+        "apps/portal/tests"
+      ],
+      "outputs": [
+        "Markdown/GFM渲染与依赖锁",
+        "真实状态动画和耗时",
+        "自动跟随/回看/阅读位置",
+        "窄屏与停止/接管入口"
+      ],
+      "acceptance": [
+        "不因无正文而停止状态反馈",
+        "用户回看不被拉到底部",
+        "减少动画时文字状态完整",
+        "不运行Markdown中的HTML或代码"
+      ],
+      "checks": [
+        "C04",
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS06",
+      "priority": "P0",
+      "status": "completed",
+      "title": "实际流式能力、重连、日志容量与冷恢复",
+      "owner": "主代理统筹，后端与门户分文件协作",
+      "depends_on": [
+        "AS01",
+        "AS02",
+        "AS03",
+        "AS04"
+      ],
+      "can_start_after": [
+        "AS01"
+      ],
+      "paths": [
+        "src/workbench_platform/agent/connection.py",
+        "src/workbench_platform/agent/providers.py",
+        "src/workbench_platform/agent/routes.py",
+        "src/workbench_platform/agent/store.py",
+        "src/workbench_platform/agent/runtime.py",
+        "apps/portal/src/features/agent/useAgentEvents.ts",
+        "apps/portal/src/features/agent/ControllerSettings.tsx"
+      ],
+      "outputs": [
+        "配置/实际SSE/整包JSON能力区分",
+        "游标补读与可见重连状态",
+        "代际隔离",
+        "增量帧和周期快照",
+        "sent/received恢复检查"
+      ],
+      "acceptance": [
+        "整包响应降级不影响工具能力",
+        "恢复订阅不重发模型或操作",
+        "终态后仍接收最后确认/usage",
+        "预览存储随正文总量有界增长"
+      ],
+      "checks": [
+        "C03",
+        "C05",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C13"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS07",
+      "priority": "P1",
+      "status": "completed",
+      "title": "减少普通对话的无必要工具往返",
+      "owner": "主代理或流式后端代理，在主要改动稳定后执行",
+      "depends_on": [
+        "AS02",
+        "AS04"
+      ],
+      "paths": [
+        "src/workbench_platform/agent/providers.py",
+        "src/workbench_platform/agent/environment.py",
+        "src/workbench_platform/agent/runtime.py",
+        "tests/agent"
+      ],
+      "outputs": [
+        "按问题需要查询的提示",
+        "可信事实可用时直接回答路径",
+        "实际资料查询回归"
+      ],
+      "acceptance": [
+        "普通问候/已注入配置问题不强制查询背景",
+        "审计和原生模型状态仍读真实工具",
+        "配置ID不冒充真实返回模型"
+      ],
+      "checks": [
+        "C14",
+        "C13"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS08",
+      "priority": "P0",
+      "status": "completed",
+      "title": "生产链路集成与界面核对",
+      "owner": "主代理统筹定向检查",
+      "depends_on": [
+        "AS02",
+        "AS03",
+        "AS04",
+        "AS05",
+        "AS06",
+        "AS07"
+      ],
+      "paths": [
+        "tests/agent",
+        "apps/portal/tests",
+        "F:/OCR/output/agent-streaming-ux-dev-20261005/evidence"
+      ],
+      "outputs": [
+        "C01—C14检查记录",
+        "公开片段到UI的延迟记录",
+        "10000字回答帧数/容量/恢复一致性",
+        "桌面与窄屏界面核对"
+      ],
+      "acceptance": [
+        "协议模拟与实际上游能力证据区分",
+        "纯工具回答不再等待整段后显示",
+        "停止/恢复不增加原业务提交",
+        "不以供应商首字时间冒充平台渲染开销"
+      ],
+      "checks": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    },
+    {
+      "id": "AS09",
+      "priority": "P0",
+      "status": "completed",
+      "title": "新候选、历史兼容与本地预览交付",
+      "owner": "主代理",
+      "depends_on": [
+        "AS08"
+      ],
+      "paths": [
+        "scripts/package_agent_candidate.py",
+        "docs/agent",
+        "F:/OCR/docs/platform-automation",
+        "F:/OCR/output/agent-streaming-ux-dev-20261005"
+      ],
+      "outputs": [
+        "新F盘候选与清单",
+        "源码一致性和冷启动记录",
+        "旧会话/连接保留核查",
+        "更新的预览和使用说明",
+        "任务完成记录"
+      ],
+      "acceptance": [
+        "不覆盖历史包/基线/失败证据",
+        "预览重启前检查进程身份及活动任务",
+        "没有自动重发旧聊天",
+        "C01—C15通过后才标计划完成"
+      ],
+      "checks": [
+        "C15"
+      ],
+      "evidence_root": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\evidence"
+    }
+  ],
+  "completion_report": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\完成报告.md",
+  "candidate": "F:\\OCR\\output\\agent-streaming-ux-dev-20261005\\candidate-final"
+}
