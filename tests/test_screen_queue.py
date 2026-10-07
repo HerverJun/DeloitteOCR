@@ -3,9 +3,12 @@ import asyncio
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
+import os
 from pathlib import Path
+import runpy
 import tempfile
 import threading
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -297,6 +300,71 @@ class ScreenQueueTests(unittest.TestCase):
             asyncio.run(probe())
         finally:
             manager.stop()
+
+    def test_experiment_routes_use_actual_observations_and_visual_proposals_only(self):
+        driver = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/screen_experiments.py'))
+        source = self.root / 'experiment.png'
+        Image.new('RGB', (1000, 700), 'white').save(source)
+        inputs = self.root / 'experiment-inputs.json'
+        inputs.write_text(json.dumps([{'id':'sample','image':str(source),
+            'truth':{'amount':'13.25'},'ideal_roi':[1,2,3,4]}]), 'utf-8')
+        observed = []
+        class ExperimentAdapter:
+            def __init__(self, bundle, engine, root):
+                self.engine, self.provider = engine, None
+            def configure_geometry(self, provider):
+                self.provider = self.geometry_provider = provider
+            def load(self):
+                pass
+            def unload(self):
+                observed.append(('unload',self.engine,self.provider))
+            def recognize(self, image, output, geometry_request=None):
+                observed.append(('request',self.engine,self.provider,deepcopy(geometry_request)))
+                with Image.open(image) as pixels:
+                    width,height = pixels.size
+                blocks = [{'text':'12.50','polygon':[[30,30],[100,30],[100,60],[30,60]],'confidence':.98}]
+                if self.provider == 'context':
+                    return {'status':'success','image':{'width':width,'height':height},'coordinate_space':'exif_normalized_original',
+                        'image_version':geometry_request['image_version'],'component':'mock-actual-context',
+                        'layout_blocks':[{'label':'table','box':[10,10,width-10,height-10],'confidence':.99}],
+                        'regions':[{'box':[10,10,width-10,height-10],'confidence':.99}],
+                        'ocr_blocks':blocks,'ocr_source':'mock-ppocr'}
+                if self.engine == 'ppocr':
+                    return {'status':'success','text':'12.50','blocks':blocks,'tables':[]}
+                return {'status':'success','component':self.provider,'tables':[],
+                        'candidate_tables':[],'coordinate_contract':'crop-pixels-to-image-affine-v1'}
+        class Review:
+            def __init__(self,*args):
+                pass
+            def __enter__(self):
+                return self
+            def __exit__(self,*args):
+                pass
+            def review(self,image,snapshot):
+                self_snapshot = deepcopy(snapshot)
+                observed.append(('visual',self_snapshot))
+                return {'items':[{'target_id':target['id'],'decision':'replace','after':'13.25','reason':'mock observed reading'}
+                                 for target in snapshot['targets']]}
+        args = SimpleNamespace(bundle=self.bundle,inputs=inputs,output=self.root/'experiment-run',
+            geometry_source_root=None,mode='all',providers='rapidtable,tableformer-raw,paddle',limit=1,
+            max_tiles=4,max_targets=4,tile_size=768,budget_seconds=30,task_timeout=10,dry_run=False,
+            context_run=None,context_verifier=None,context_normalizer=None)
+        with patch.dict(os.environ), patch('ocr_workbench.multimodal_runtime.load_config',return_value={}):
+            # runpy imports are bound in the function's global namespace.
+            driver['run'].__globals__['load_config'] = lambda *args: {}
+            receipt = driver['run'](args,adapter_factory=ExperimentAdapter,review_factory=Review)
+        self.assertTrue(all(row['source_unchanged'] for row in receipt['rows']))
+        self.assertFalse(any(stage['status']=='failed' for stage in receipt['stages']))
+        self.assertIn('tile-ppocr',{stage['stage'] for stage in receipt['stages']})
+        for call in observed:
+            if call[0]=='request' and call[3] is not None:
+                self.assertFalse({'truth','ideal_roi','reference'} & set(call[3]))
+        visual = next(call[1] for call in observed if call[0]=='visual')
+        self.assertTrue(all(target['before']=='' for target in visual['targets']))
+        proposals = json.loads((args.output/'image-01/visual/proposals-only.json').read_text('utf-8'))
+        self.assertEqual(proposals['proposals'][0]['before'],'12.50')
+        self.assertFalse(proposals['proposals'][0]['automatic_apply'])
+        self.assertEqual(proposals['proposals'][0]['human_review'],'not_performed')
 
 
 if __name__ == '__main__':
