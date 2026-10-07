@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import type { ThemeConfig } from 'antd'
-import { App, Home, Workspaces, Applications, Application, Placeholder, Missing } from './App'
+import { App, Home, Workspaces, Applications, Application, Missing } from './App'
 import { TaskCenter } from './features/jobs/TaskCenter'
 import { DataWorkbench } from './features/data/DataWorkbench'
 import { AssetLibrary } from './features/assets/AssetLibrary'
@@ -14,20 +14,28 @@ import { TodoCenter } from './features/todos/TodoCenter'
 import { ForensicWorkbench } from './features/forensics/ForensicWorkbench'
 import { clearTheme } from './clear-ui/theme'
 import { QuickNativeWorkbench } from './features/start/QuickNativeWorkbench'
+import { PlatformSettings } from './features/agent/PlatformSettings'
+import { FindingsWorkspace } from './features/agent/FindingsWorkspace'
+import { Projects } from './features/agent/ProjectHome'
+import { AuditHelp } from './features/agent/AuditHelp'
 
 export const theme: ThemeConfig = {
-  token: { colorPrimary: clearTheme.accent, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
+  token: { colorPrimary: clearTheme.primary, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
     colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorBgBase: clearTheme.panel,
     colorBgLayout: clearTheme.workspace, colorBorder: clearTheme.border, colorBorderSecondary: clearTheme.border,
     borderRadius: clearTheme.controlRadius, borderRadiusLG: clearTheme.panelRadius,
+    colorInfoBg: '#f0f4f7', colorInfoBorder: '#d8e1e8',
+    colorSuccessBg: clearTheme.selected, colorWarningBg: '#fbf6ea', colorErrorBg: '#fdf1f1',
+    colorSuccess: clearTheme.success, colorWarning: clearTheme.warning, colorError: clearTheme.error, colorInfo: clearTheme.info,
+    motionDurationFast: clearTheme.motionFast, motionDurationMid: clearTheme.motionNormal,
     controlHeight: clearTheme.controlHeight, fontSize: clearTheme.fontSize, fontFamily: clearTheme.fontFamily },
   components: {
     Layout: { siderBg: clearTheme.navigation, bodyBg: clearTheme.workspace, headerBg: clearTheme.header, headerHeight: clearTheme.headerHeight },
-    Menu: { darkItemBg: clearTheme.navigation, darkItemSelectedBg: '#29341f', darkItemSelectedColor: '#d2eb9e',
-      darkItemColor: '#c6cec8', darkItemHoverBg: '#242b24', itemHeight: clearTheme.controlHeight, itemBorderRadius: clearTheme.controlRadius },
-    Button: { primaryColor: clearTheme.accentText, dangerColor: '#ffffff', defaultBorderColor: clearTheme.border },
-    Card: { headerFontSize: clearTheme.panelTitleSize, headerHeight: 44, bodyPadding: 16 },
-    Typography: { fontSizeHeading1: clearTheme.titleSize, fontSizeHeading3: clearTheme.panelTitleSize, fontSizeHeading4: clearTheme.panelTitleSize },
+    Menu: { darkItemBg: clearTheme.navigation, darkItemSelectedBg: '#273329', darkItemSelectedColor: '#d2eb9e',
+      darkItemColor: clearTheme.navigationText, darkItemHoverBg: '#222c31', itemHeight: clearTheme.controlHeight, itemBorderRadius: clearTheme.controlRadius },
+    Button: { primaryColor: clearTheme.primaryText, dangerColor: '#ffffff', defaultBorderColor: clearTheme.border },
+    Card: { headerFontSize: clearTheme.panelTitleSize, headerHeight: 48, bodyPadding: 20 },
+    Typography: { fontSizeHeading1: clearTheme.titleSize, fontSizeHeading2: clearTheme.titleSize, fontSizeHeading3: clearTheme.panelTitleSize, fontSizeHeading4: clearTheme.panelTitleSize },
     Table: { cellPaddingBlockSM: 8, cellPaddingInlineSM: 12 },
   },
 }
@@ -41,15 +49,35 @@ function LegacyForensicsRedirect() {
   return <Navigate replace to={`/apps/forensics${search}${hash}`} />
 }
 
+function LegacyDataRedirect() {
+  const { search, hash } = useLocation()
+  return <Navigate replace to={`/apps/data${search}${hash}`} />
+}
+
+function AgentHomeRedirect() {
+  const { search, hash } = useLocation()
+  return <Navigate replace to={`/${search}${hash}`} />
+}
+
+function ManualToolsRedirect() {
+  const { search, hash } = useLocation()
+  const tool = new URLSearchParams(search).get('tool')
+  const path = tool === 'ocr' || tool === 'classification' ? `/apps/${tool}/start` : tool === 'data' || tool === 'forensics' ? `/apps/${tool}` : '/apps'
+  return <Navigate replace to={`${path}${search}${hash}`} />
+}
+
 export const routes: RouteObject[] = [{
   path: '/', element: <App />, children: [
     { index: true, element: <Home /> },
-    { path: 'projects', element: <Workspaces /> },
+    { path: 'projects', element: <Projects /> },
+    { path: 'findings', element: <FindingsWorkspace /> },
+    { path: 'help', element: <AuditHelp /> },
     { path: 'workspaces', element: <Workspaces /> },
     { path: 'batches', element: <BatchCenter /> },
     { path: 'audit', element: <AuditWorkbench /> },
     { path: 'todos', element: <TodoCenter /> },
     { path: 'forensics', element: <LegacyForensicsRedirect /> },
+    { path: 'data', element: <LegacyDataRedirect /> },
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
     { path: 'apps/forensics', element: <ForensicWorkbench /> },
@@ -61,7 +89,9 @@ export const routes: RouteObject[] = [{
     { path: 'assets', element: <AssetLibrary /> },
     { path: 'jobs', element: <TaskCenter /> },
     { path: 'artifacts', element: <ArtifactCenter /> },
-    { path: 'settings', element: <Placeholder title="设置" description="门户设置尚未开放。应用安装和平台数据目录由本机管理员配置。" /> },
+    { path: 'agent', element: <AgentHomeRedirect /> },
+    { path: 'manual', element: <ManualToolsRedirect /> },
+    { path: 'settings', element: <PlatformSettings /> },
     { path: '*', element: <Missing /> },
   ],
 }]

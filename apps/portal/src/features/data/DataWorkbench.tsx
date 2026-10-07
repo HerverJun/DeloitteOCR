@@ -1,15 +1,17 @@
+import { ToolIdentity } from '../catalog/ToolIdentity'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Checkbox, Empty, Input, InputNumber, Modal, Pagination, Select, Space, Spin, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import { brands, applicationDescriptions } from '../../clear-ui/theme'
+import { ApplicationDeclaration, dataDeclaration } from '../catalog/ApplicationDeclaration'
 import { useWorkspaces } from '../../App'
 import './data.css'
 
 const { Title, Text, Paragraph } = Typography
 const API = '/api/platform/v1/data'
 const active = ['queued', 'running', 'cancelling']
-const operatorNames: Record<string, string> = { source: '原始输入', trim: '去除首尾空白', rename: '列改名', map: '值映射', cast: '类型转换', filter: '筛选', duplicates: '识别重复' }
+const operatorNames: Record<string, string> = { source: '原始输入', trim: '去除首尾空白', rename: '列改名', map: '值映射', cast: '类型转换', filter: '筛选', duplicates: '识别重复', filter_compare: '类型化区间筛选', group_summary: '分组计数与金额合计' }
 const categoryNames: Record<string, string> = { same: '相同', different: '差异', only_left: '仅左', only_right: '仅右', ambiguous_left: '重复键·左', ambiguous_right: '重复键·右' }
 const jobNames: Record<string, string> = { import: '导入', step: '清洗', undo: '撤销', select_revision: '切换版本', save_recipe: '保存配方', replay: '应用配方', compare: '比对', export: '导出', export_table: '导出当前表' }
 const jobStatusNames: Record<string, string> = { queued: '等待执行', running: '进行中', cancelling: '正在取消', succeeded: '已完成', failed: '失败', cancelled: '已取消' }
@@ -24,7 +26,7 @@ type Export = { id: string; result_id: string | null; files: { name: string; byt
 type Job = { id: string; action: string; status: string; error?: string | null }
 type Policy = { key_pairs: string[][]; compare_pairs: string[][]; amount_pairs: string[][]; type_policy: string; null_policy: string; amount_tolerance: string; trim_text: boolean; casefold_text: boolean }
 type Session = { id: string; name: string; workspace_id?: string | null; version: number; updated: string; jobs: Job[]; state: { tables: Partial<Record<Side, InputTable>>; recipes: Recipe[]; result_id: string | null; comparison?: { left_revision: string; right_revision: string; spec: Policy }; comparisons: { id: string; left_name: string; right_name: string; coverage: Record<string, number> }[]; exports: Export[] } }
-type DataRow = { ordinal: number; row_id: string; source_row: number; cells: Cell[] }
+type DataRow = { ordinal: number; row_id: string; source_row: number; cells: Cell[]; source_rows?: { source_row: number }[] }
 type Preview = { total: number; rows: DataRow[]; metadata: { event: { errors_total: number; error_sample: { code: string; raw: string; row_id: string }[] }; duplicate_groups: number } }
 type ResultPage = { total: number; rows: (Record<string, string> & { ordinal: number })[]; metadata: { coverage: Record<string, number>; left: InputTable; right: InputTable } }
 type Run = (action: string, payload: Record<string, unknown>) => Promise<void>
@@ -44,16 +46,33 @@ function post<T>(path: string, value: unknown) { return request<T>(path, { metho
 function label(column: Column) { return column.header || column.column_id }
 function options(columns: Column[]) { return columns.map(column => ({ value: column.column_id, label: label(column) })) }
 
+function FixedTable({ session }: { session: Session }) {
+  const [params, setParams] = useSearchParams(), revision = params.get('table')
+  const [page, setPage] = useState(Math.floor(Math.max(0, Number(params.get('offset')) || 0) / 20) + 1)
+  useEffect(() => setPage(Math.floor(Math.max(0, Number(params.get('offset')) || 0) / 20) + 1), [revision])
+  const preview = useQuery({ queryKey: ['data-fixed-table', session.id, revision, page], enabled: !!revision,
+    queryFn: () => request<Preview & { metadata: { columns: Column[] } }>(`/sessions/${session.id}/tables/${revision}?offset=${(page - 1) * 20}&limit=20`) })
+  if (!revision) return null
+  return <section className="panel" aria-label="固定版本来源"><div className="section-head"><Title level={3}>固定版本来源</Title><Button onClick={() => { const next = new URLSearchParams(params); next.delete('table'); next.delete('offset'); setParams(next) }}>关闭来源预览</Button></div>
+    <Paragraph type="secondary">这里读取证据引用时保存的表格版本。下方工具区可以继续处理当前版本。</Paragraph><Text code>{revision}</Text>
+    {preview.error && <Alert type="error" title={preview.error.message} />}
+    <Table<DataRow> size="small" loading={preview.isPending} rowKey="row_id" scroll={{ x: 'max-content' }} dataSource={preview.data?.rows || []} columns={[
+      { title: '来源行', render: (_, row) => row.source_rows?.map(source => source.source_row).join('、') || row.source_row },
+      ...(preview.data?.metadata.columns || []).map((column, index) => ({ title: label(column), key: column.column_id, render: (_: unknown, row: DataRow) => String(row.cells[index]?.value ?? '') })),
+    ]} pagination={{ current: page, pageSize: 20, total: preview.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
+  </section>
+}
+
 export function DataApplicationCard() {
   const [params] = useSearchParams()
-  const workspace = params.get('workspace')
   const health = useQuery({ queryKey: ['data-health'], queryFn: () => request<{ ready: boolean }>('/health'), refetchInterval: 15_000 })
-  const linked = `/apps/data${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ''}`
-  return <Card className="application-card" title={<Link to={linked}>{brands.data}</Link>}>
+  const linked = `/apps/data${params.size ? `?${params}` : ''}`
+  return <Card className="application-card" title={<ToolIdentity appId="data" to={linked} label={brands.data} />}>
     <Text className="application-purpose">{applicationDescriptions.data.purpose}</Text>
     <Paragraph className="application-description" type="secondary">{applicationDescriptions.data.description}</Paragraph>
-    <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.data?.ready ? '可使用' : '查看环境状态'}</Tag><Text type="secondary">可直接打开</Text></div>
-    <Link to={linked}><Button type="primary">打开数据工作台</Button></Link>
+    <div className="application-state"><Tag color={health.data?.ready ? 'success' : 'default'}>{health.isPending ? '正在检测' : health.isError ? '无法检测' : health.data?.ready ? '可使用' : '暂不可用'}</Tag><Text type="secondary">{health.data?.ready ? '本地 CPU 处理' : '可打开工作台查看环境状态'}</Text></div>
+    <Link className="application-actions" to={linked}><Button type="primary">打开数据工作台</Button></Link>
+    <ApplicationDeclaration declaration={dataDeclaration} />
   </Card>
 }
 
@@ -92,6 +111,7 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
   const [replacement, setReplacement] = useState('')
   const [target, setTarget] = useState('decimal')
   const [predicate, setPredicate] = useState('equals')
+  const [typedPredicate, setTypedPredicate] = useState('ge'), [valueKind, setValueKind] = useState('decimal'), [upper, setUpper] = useState(''), [amountColumns, setAmountColumns] = useState<string[]>([])
   const [duplicates, setDuplicates] = useState<string[]>([])
   const [includeNull, setIncludeNull] = useState(false)
   const [page, setPage] = useState(1)
@@ -105,6 +125,8 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
     if (operator === 'cast') parameters.target = target
     if (operator === 'filter') { parameters.predicate = predicate; if (!['is_null', 'not_null'].includes(predicate)) parameters.value = text }
     if (operator === 'duplicates') parameters = { columns: duplicates, include_null: includeNull }
+    if (operator === 'filter_compare') parameters = { column, predicate: typedPredicate, value_kind: valueKind, value: text, ...(typedPredicate === 'between' ? { upper } : {}) }
+    if (operator === 'group_summary') parameters = { columns: duplicates, amount_columns: amountColumns }
     void run('step', { side, operator, parameters })
   }
   return <section className="data-input panel">
@@ -125,13 +147,16 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
       {table.warnings.length > 0 && <Alert type="warning" title="源文件提示" description={table.warnings.join('；')} />}
       <div className="data-step-controls">
         <Select aria-label={`${side}清洗操作`} value={operator} onChange={setOperator} options={Object.entries(operatorNames).filter(([key]) => key !== 'source').map(([value, label]) => ({ value, label }))} />
-        {operator !== 'duplicates' ? <Select aria-label={`${side}清洗列`} value={column} onChange={setColumn} options={options(table.columns)} /> :
+        {!['duplicates', 'group_summary'].includes(operator) ? <Select aria-label={`${side}清洗列`} value={column} onChange={setColumn} options={options(table.columns)} /> :
           <Select aria-label={`${side}重复识别列`} mode="multiple" value={duplicates} onChange={setDuplicates} options={options(table.columns)} placeholder="选择字段" />}
         {operator === 'cast' && <Select aria-label={`${side}目标类型`} value={target} onChange={setTarget} options={[{ value: 'decimal', label: '金额/十进制' }, { value: 'integer', label: '整数' }, { value: 'date', label: '日期 YYYY-MM-DD' }, { value: 'boolean', label: '真假值' }]} />}
         {operator === 'filter' && <Select aria-label={`${side}筛选条件`} value={predicate} onChange={setPredicate} options={[{ value: 'equals', label: '等于' }, { value: 'not_equals', label: '不等于' }, { value: 'is_null', label: '为空值' }, { value: 'not_null', label: '非空值' }]} />}
         {(operator === 'rename' || operator === 'map' || operator === 'filter' && !['is_null', 'not_null'].includes(predicate)) && <Input aria-label={`${side}操作值`} placeholder={operator === 'rename' ? '新列名' : operator === 'map' ? '原值' : '比较值'} value={text} onChange={event => setText(event.target.value)} />}
         {operator === 'map' && <Input aria-label={`${side}映射新值`} placeholder="新值" value={replacement} onChange={event => setReplacement(event.target.value)} />}
         {operator === 'duplicates' && <Checkbox checked={includeNull} onChange={event => setIncludeNull(event.target.checked)}>包含空值</Checkbox>}
+        {operator === 'group_summary' && <><Select aria-label={`${side}金额汇总列`} mode="multiple" value={amountColumns} onChange={setAmountColumns} options={options(table.columns)} placeholder="金额列（可留空仅计数）" /><Text type="secondary">先转为金额类型；未知金额会报错，保留全部来源行。</Text></>}
+        {operator === 'filter_compare' && <><Select aria-label={`${side}比较类型`} value={valueKind} onChange={setValueKind} options={[{ value: 'decimal', label: '十进制数' }, { value: 'date', label: '日期' }, { value: 'text', label: '文字' }]} />
+          <Select aria-label={`${side}区间条件`} value={typedPredicate} onChange={setTypedPredicate} options={[{ value: 'gt', label: '大于' }, { value: 'ge', label: '大于等于' }, { value: 'lt', label: '小于' }, { value: 'le', label: '小于等于' }, { value: 'between', label: '闭区间' }]} /><Input aria-label={`${side}比较下限`} value={text} onChange={e => setText(e.target.value)} placeholder="比较值 / 下限" />{typedPredicate === 'between' && <Input aria-label={`${side}比较上限`} value={upper} onChange={e => setUpper(e.target.value)} placeholder="上限" />}</>}
         <Button type="primary" disabled={busy || !column} onClick={apply}>应用步骤</Button>
       </div>
       <Space className="data-history" wrap><Select aria-label={`${side}历史版本`} value={table.revision} style={{ minWidth: 235 }} disabled={busy}
@@ -145,7 +170,7 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
         description={preview.data.metadata.event.error_sample.slice(0, 3).map(item => `${item.raw} (${item.code})`).join('；')} />}
       <Table<DataRow> size="small" className="data-preview" loading={preview.isPending} dataSource={preview.data?.rows || []} rowKey="row_id" scroll={{ x: 'max-content', y: 232 }}
         columns={[{ title: '原行', dataIndex: 'source_row', width: 65, fixed: 'left' }, ...table.columns.map((item, index) => ({ title: label(item), key: item.column_id, width: 150,
-          render: (_: unknown, row: DataRow) => { const cell = row.cells[index]; return <span title={`类型：${cell.kind}\n原值：${cell.raw ?? 'NULL'}${cell.warning ? '\n' + cell.warning : ''}`}>{cell.value === null ? <Text type="secondary">{cell.kind === 'unknown_formula' ? '公式结果未知' : 'NULL'}</Text> : cell.value === '' ? <Text type="secondary">空字符串</Text> : String(cell.value)}</span> } }))]}
+          render: (_: unknown, row: DataRow) => { const cell = row.cells[index]; return <span className={cell.kind === 'decimal' || cell.kind === 'integer' ? 'data-cell data-cell-number' : 'data-cell'} data-value-kind={cell.kind} title={`类型：${cell.kind}\n原值：${cell.raw ?? 'NULL'}${cell.warning ? '\n' + cell.warning : ''}`}>{cell.value === null ? <Text type="secondary">{cell.kind === 'unknown_formula' ? '公式结果未知' : 'NULL'}</Text> : cell.value === '' ? <Text type="secondary">空字符串</Text> : String(cell.value)}</span> } }))]}
         pagination={{ current: page, pageSize: 20, total: preview.data?.total || 0, showSizeChanger: false, onChange: setPage }} />
       <details className="data-options"><summary>清洗配方 <span>{session.state.recipes.length ? `已保存 ${session.state.recipes.length} 份` : '保存或复用清洗步骤'}</span></summary>
         <RecipeControls table={table} side={side} recipes={session.state.recipes} busy={busy} run={run} /></details>
@@ -240,14 +265,17 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
     } catch (failure) { setPublishError((failure as Error).message) }
     finally { setPublishing(null) }
   }
-  useEffect(() => { setSelected(session.state.result_id); setPage(1) }, [session.state.result_id])
+  const [sourceParams] = useSearchParams()
+  const requestedResult = sourceParams.get('result')
+  useEffect(() => { setSelected(requestedResult || session.state.result_id); setPage(1) }, [session.state.result_id, requestedResult])
   const query = useQuery({ queryKey: ['data-result', session.id, selected, category, page], enabled: !!selected,
     queryFn: () => request<ResultPage>(`/sessions/${session.id}/results/${selected}?offset=${(page - 1) * 30}&limit=30${category ? '&category=' + category : ''}`) })
   const metadata = query.data?.metadata
   return <section id="data-results" className="panel"><div className="section-head"><Title level={3}>差异结果</Title><Space wrap>
     <Select aria-label="历史比对" placeholder="选择一次比对" value={selected || undefined} style={{ minWidth: 220 }} onChange={value => { setSelected(value); setPage(1) }}
       options={session.state.comparisons.map((item, i) => ({ value: item.id, label: `${i + 1}. ${item.left_name} / ${item.right_name}` }))} />
-    <Button type="primary" disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button></Space></div>
+    <Button type="primary" disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button>
+    {workspaceId && selected && session.workspace_id === workspaceId && <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&data_session=${encodeURIComponent(session.id)}&result=${encodeURIComponent(selected)}`}><Button>交给 Agent 继续处理</Button></Link>}</Space></div>
     {!selected ? <Empty description="完成比对后，这里显示固定版本的结果" /> : <>
       {metadata && <div className="data-counts">{[['相同', 'same_pairs'], ['差异', 'different_pairs'], ['仅左', 'only_left'], ['仅右', 'only_right'], ['重复键', 'ambiguous_keys']].map(([title, key]) =>
         <div key={key}><Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></div>)}</div>}
@@ -406,7 +434,7 @@ export function DataWorkbench() {
     {job && <Alert role="status" aria-live="polite" type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
       action={<Button disabled={job.status === 'cancelling'} onClick={() => void post(`/sessions/${current!.id}/jobs/${job.id}/cancel`, {}).then(refresh).catch(failure => setError(failure.message))}>取消</Button>} />}
     {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
-    {current ? <><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
+    {current ? <><FixedTable session={current} /><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
       <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
       <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></> :
       <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '点击开始新的比对，或继续已有作业。'} /></div>}

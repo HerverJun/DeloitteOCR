@@ -31,7 +31,7 @@ export async function fileSha256(file: File) {
 function matches(left: UploadBinding, right: UploadBinding) {
   return left.workspace_id === right.workspace_id && left.request_id === right.request_id && left.name === right.name && left.size_bytes === right.size_bytes && left.sha256 === right.sha256
 }
-export function UploadQueue({ workspaceId, disabled = false, onBusy }: { workspaceId: string; disabled?: boolean; onBusy?: (value: boolean) => void }) {
+export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded, compact = false }: { workspaceId: string; disabled?: boolean; onBusy?: (value: boolean) => void; onUploaded?: (assetId: string) => void; compact?: boolean }) {
   const client = useQueryClient()
   const [rows, setRows] = useState(() => restored(workspaceId))
   const current = useRef(rows)
@@ -49,6 +49,7 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy }: { workspa
     const receipt = status.receipt
     if (!receipt || !matches(receipt.binding, binding) || receipt.asset.workspace_id !== workspaceId || receipt.asset.blob_hash !== binding.sha256 || receipt.asset.size_bytes !== binding.size_bytes || receipt.asset.original_name !== binding.name) throw new Error('上传收据与原文件不一致，保留原请求等待核实')
     update(binding.request_id, { state: 'committed', asset_id: receipt.asset.asset_id, receipt, message: undefined })
+    onUploaded?.(receipt.asset.asset_id)
     return true
   }
   async function add(selected: File[]) {
@@ -112,7 +113,7 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy }: { workspa
   const failed = rows.filter(row => row.state === 'failed' || row.state === 'uncertain').length
   const waiting = rows.filter(row => row.state === 'queued').length
   return <div className="batch-upload-queue"><Space wrap><label className="batch-upload">{busy ? '核实 / 上传资料中…' : rows.some(row => row.state !== 'committed') ? '添加或重选原文件' : '添加新资料'}
-    <input aria-label="添加批次资料" type="file" multiple disabled={disabled || busy} onChange={event => { const selected = Array.from(event.target.files || []); event.target.value = ''; if (selected.length) void add(selected) }} /></label>
+    <input aria-label={compact ? '添加审计资料' : '添加批次资料'} type="file" multiple disabled={disabled || busy} onChange={event => { const selected = Array.from(event.target.files || []); event.target.value = ''; if (selected.length) void add(selected) }} /></label>
     <Button disabled={disabled || busy || !rows.some(row => row.state !== 'committed')} onClick={() => void upload()}>{failed ? '核实并恢复失败与未提交' : '上传未提交资料'}</Button>
     {!!rows.length && <Text>成功 {success} · 失败 / 待核实 {failed} · 未提交 {waiting}</Text>}
     {!!rows.length && success === rows.length && <Button disabled={busy || disabled} onClick={() => { remember([]); files.current.clear() }}>清除已完成上传记录</Button>}</Space>
@@ -121,6 +122,6 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy }: { workspa
       columns={[{ title: '文件', key: 'name', render: (_, row) => row.binding.name }, { title: '大小', key: 'size', render: (_, row) => `${row.binding.size_bytes.toLocaleString()} 字节` },
         { title: '上传状态', key: 'state', render: (_, row) => <Tag color={row.state === 'committed' ? 'success' : row.state === 'failed' ? 'error' : 'default'}>{labels[row.state]}</Tag> },
         { title: '恢复说明', dataIndex: 'message' }]} />
-      <Paragraph type="secondary">成功项保留；发生问题时后续文件暂不提交。页面重载后，原文件需重新选择，名称、大小和 SHA256 必须一致。恢复先核实原请求，再只继续必要文件。</Paragraph></>}
+      <Paragraph type="secondary">{compact ? '上传成功的资料可直接加入当前任务。上传中断后可在这里继续。' : '成功项保留；发生问题时后续文件暂不提交。页面重载后，原文件需重新选择，名称、大小和 SHA256 必须一致。恢复先核实原请求，再只继续必要文件。'}</Paragraph></>}
   </div>
 }

@@ -5,6 +5,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import './classification.css'
 import { useNativeWindow } from '../catalog/nativeWindow'
 import { nativeReviewReturn } from '../catalog/nativeReviewReturn'
+import { FixedNativeEvidence } from '../agent/FixedNativeEvidence'
+import { NativeResultPreview } from '../agent/NativeResultPreview'
 
 const { Title, Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null;
@@ -29,6 +31,11 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function ClassificationWorkflow() {
+  const [params] = useSearchParams()
+  return params.get('native_binding') ? <NativeResultPreview /> : <ClassificationHandoffWorkflow />
+}
+
+function ClassificationHandoffWorkflow() {
   const [params, setParams] = useSearchParams()
   const workspaceId = params.get('workspace')
   const reviewReturn = nativeReviewReturn(params.get('return_to'), workspaceId)
@@ -117,11 +124,17 @@ export function ClassificationWorkflow() {
     })
   }
   const chosen = projects.data?.items.find(item => item.project_id === projectId)
+  useEffect(() => {
+    if (handoff.data && !projectId) {
+      const project = projects.data?.items.find(item => item.link_id === handoff.data.link_id)
+      if (project) { const next = new URLSearchParams(params); next.set('project', project.project_id); setParams(next, { replace: true }) }
+    }
+  }, [handoff.data?.link_id, projects.data, projectId])
   const validCategories = categories.length >= 2 && categories.every(item => item.trim())
     && new Set(categories.map(item => item.trim().toLocaleLowerCase())).size === categories.length
   const supported = assetSet.data?.members.filter(item => /\.(jpe?g|png|webp|bmp)$/i.test(item.original_name)) || []
 
-  return <div className="classification-workflow"><div className="page-heading"><Text className="eyebrow">CLEARCLASSIFY / 图像分类与复核</Text>
+  return <div className="classification-workflow"><FixedNativeEvidence /><div className="page-heading"><Text className="eyebrow">CLEARCLASSIFY / 图像分类与复核</Text>
     <Title level={1}>ClearClassify</Title></div>
     {reviewReturn && <Paragraph><Link to={reviewReturn}>返回原待办事项</Link></Paragraph>}
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>

@@ -47,9 +47,9 @@ function FindingEvidence({ workspaceId, finding, selected }: { workspaceId: stri
     queryFn: ({ signal }) => request<AuditEvidenceSnapshot>(`/audit-projects/${encodeURIComponent(finding.project_id)}/evidence/${encodeURIComponent(evidenceId)}`, { signal }) })
   return <><Paragraph><Text strong>调查解释：</Text>{finding.finding.explanation || '尚未填写'}</Paragraph><Paragraph><Text strong>调查结论：</Text>{finding.finding.conclusion || '尚未填写'}</Paragraph>
     <Space wrap><Text>固定证据 {finding.evidence_refs.length} 项</Text><Select aria-label="调查证据选择" value={evidenceId || undefined} onChange={setEvidenceId}
-      options={finding.evidence_refs.map((item, index) => ({ value: item.evidence_id, label: 'inspection_id' in item ? `证据 ${index + 1} · 图像取证 · 固定版本 ${item.inspection_revision}` : `证据 ${index + 1} · ${item.batch_id} / ${item.item_id} · 固定版本 ${item.batch_revision}` }))} style={{ minWidth: 300 }} /></Space>
+      options={finding.evidence_refs.map((item, index) => ({ value: item.evidence_id, label: 'source_evidence_id' in item ? `证据 ${index + 1} · 直接工具 · 固定版本` : 'inspection_id' in item ? `证据 ${index + 1} · 图像取证 · 固定版本 ${item.inspection_revision}` : `证据 ${index + 1} · ${item.batch_id} / ${item.item_id} · 固定版本 ${item.batch_revision}` }))} style={{ minWidth: 300 }} /></Space>
     <Failure error={evidence.error} refresh={() => void evidence.refetch()} />{evidence.isPending && evidenceId && <Paragraph>读取固定证据…</Paragraph>}
-    {evidence.data && (evidence.data.scenario === 'image_forensics' ? <ForensicEvidenceView inspection={evidence.data.inspection} /> : <ItemEvidenceView evidence={evidence.data} />)}</>
+    {evidence.data && ('reference' in evidence.data ? <Paragraph>{evidence.data.summary}<a href={evidence.data.location_url}>查看直接结果来源</a></Paragraph> : evidence.data.scenario === 'image_forensics' ? <ForensicEvidenceView inspection={evidence.data.inspection} /> : <ItemEvidenceView evidence={evidence.data} />)}</>
 }
 function TodoWorkspace({ workspaceId }: { workspaceId: string }) {
   const [params, setParams] = useSearchParams()

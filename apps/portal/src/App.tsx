@@ -1,13 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Empty, Form, Input, Layout, Menu, Modal, Select, Skeleton, Space, Tag, Typography } from 'antd'
 import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { AppHealth, AppManifest, AppManifestPage, Workspace, WorkspacePage } from '../../../packages/contracts/types.generated'
 import { ApplicationCard, RecentWorks } from './features/catalog/ApplicationCards'
+import { healthStateText, healthReasonText } from './features/catalog/ApplicationDeclaration'
 import { DataApplicationCard } from './features/data/DataWorkbench'
 import { ForensicApplicationCard } from './features/forensics/ForensicWorkbench'
 import { brands, brandName } from './clear-ui/theme'
-import { QuickStart } from './features/start/QuickStart'
+import { AgentWorkbench } from './features/agent/AgentWorkbench'
+import { ManualReturn } from './features/agent/ManualReturn'
+import { ProjectNavigation } from './features/agent/ProjectNavigation'
+import { ReferenceLinks } from './features/agent/TaskPanel'
+import { agentRequest, type AuditTask } from './features/agent/api'
 
 const { Header, Sider, Content } = Layout
 const { Title, Text, Paragraph } = Typography
@@ -44,57 +49,71 @@ function ScopeLink({ to, children }: { to: string; children: React.ReactNode }) 
   return <Link to={`${path}${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`}>{children}</Link>
 }
 
+function NavigationIcon({ kind }: { kind: 'audit' | 'project' | 'tools' | 'menu' }) {
+  return <svg className="navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {kind === 'audit' ? <><path d="M5 5h14v10H9l-4 4V5Z" /><path d="M9 9h6M9 12h4" /></> :
+      kind === 'project' ? <><path d="M3 7h7l2-3h9v16H3V7Z" /><path d="M7 11h10M7 15h7" /></> :
+      kind === 'tools' ? <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></> :
+      <><path d="M4 6h16M4 12h16M4 18h16" /></>}
+  </svg>
+}
+
 const primaryNavigation = [
-  { key: '/', label: '开始处理' }, { key: '/projects', label: '项目' },
-  { key: '/apps', label: 'Clear 工具' }, { key: '/artifacts', label: '输出' },
+  { key: '/', icon: <NavigationIcon kind="audit" />, label: '智能审计' }, { key: '/projects', icon: <NavigationIcon kind="project" />, label: '审计项目' },
+  { key: '/apps', icon: <NavigationIcon kind="tools" />, label: '手动工具' },
 ]
-const advancedNavigation = [
-  { key: '/audit', label: '审计底稿' }, { key: '/todos', label: '统一待办' },
-  { key: '/assets', label: '资料库' }, { key: '/batches', label: '模板批次' },
-  { key: '/jobs', label: '运行任务' }, { key: '/settings', label: '设置' },
-]
-const nav = [...primaryNavigation, ...advancedNavigation]
+const projectPaths = ['/projects', '/workspaces', '/assets', '/findings', '/artifacts', '/audit', '/todos', '/batches', '/jobs']
 
 export function App() {
   const location = useLocation(), navigate = useNavigate(), workspaceId = useWorkspaceId()
-  const [navigationCollapsed, setNavigationCollapsed] = useState(false)
-  const [narrowNavigation, setNarrowNavigation] = useState(false)
-  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [navigationCollapsed, setNavigationCollapsed] = useState(() => !!window.matchMedia?.('(max-width: 991px)').matches)
+  const [narrowNavigation, setNarrowNavigation] = useState(() => !!window.matchMedia?.('(max-width: 991px)').matches)
   const workspaces = useWorkspaces()
   const selected = workspaces.data?.find(item => item.workspace_id === workspaceId)
-  const active = location.pathname === '/workspaces' ? '/projects' : nav.find(item => item.key !== '/' && (location.pathname === item.key || location.pathname.startsWith(`${item.key}/`)))?.key || '/'
-  const isAdvanced = advancedNavigation.some(item => item.key === active)
+  const isProject = projectPaths.some(path => location.pathname === path || location.pathname.startsWith(`${path}/`))
+  const active = isProject ? '/projects' : ['/apps', '/manual', '/data', '/forensics'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`)) ? '/apps' : '/'
   const scoped = (path: string, id: string | null = workspaceId) => `${path}${id ? `?workspace=${encodeURIComponent(id)}` : ''}`
-  return <Layout className="shell">
+  const mainHref = (path: string) => {
+    const current = new URLSearchParams(location.search), next = new URLSearchParams()
+    if (workspaceId) next.set('workspace', workspaceId)
+    const taskId = current.get('task_return') || (location.pathname === '/' || location.pathname === '/agent' ? current.get('session') : null)
+    if (taskId) next.set(path === '/' ? 'session' : 'task_return', taskId)
+    return `${path}${next.size ? `?${next}` : ''}`
+  }
+  return <Layout className={"shell" + (location.pathname === "/" ? " agent-shell" : "")}>
+    <a className="skip-link" href="#platform-content">跳至工作区</a>
     <Header className="topbar"><div className="topbar-left">
       <Button className="navigation-toggle" aria-label={navigationCollapsed ? '展开导航' : '收起导航'}
         aria-expanded={!navigationCollapsed} aria-controls="platform-navigation" onClick={() => setNavigationCollapsed(value => !value)}>
-        <span aria-hidden="true">☰</span>
+        <NavigationIcon kind="menu" />
       </Button>
-      <Link className="brand" to={scoped('/')} title="返回审计平台首页" aria-label={`${brands.platform} · 返回审计平台首页`}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
-      <span className="breadcrumb"><span>/</span> {isAdvanced && '高级功能 / '}{nav.find(item => item.key === active)?.label}</span>
+      <Link className="brand" to={mainHref('/')} title="返回审计平台首页" aria-label={`${brands.platform} · 返回审计平台首页`}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
+      <span className="breadcrumb"><span>/</span> {location.pathname === '/settings' ? '设置' : primaryNavigation.find(item => item.key === active)?.label}</span>
     </div>
-      {workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>项目加载失败 · 重试</Button> :
+      <div className="topbar-controls">{workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>项目加载失败 · 重试</Button> :
         <Select aria-label="当前项目" className="workspace-select" value={selected?.workspace_id || undefined}
           placeholder={workspaces.isPending ? '读取项目…' : '选择项目'} loading={workspaces.isPending}
           allowClear
           onChange={id => navigate(scoped(location.pathname, id ?? null))}
           options={workspaces.data?.map(item => ({ value: item.workspace_id, label: item.name }))} />}
+      <Link to={`/settings${location.search}`} className="topbar-settings">设置</Link>
+      </div>
     </Header>
     <Layout className="workspace-shell">
-      <Sider id="platform-navigation" className="sidebar" breakpoint="lg" collapsedWidth="0" width={216}
+      <Sider id="platform-navigation" className="sidebar" breakpoint="lg" collapsedWidth="0" width={220}
         inert={narrowNavigation && navigationCollapsed}
         collapsed={navigationCollapsed} trigger={null}
         onBreakpoint={broken => { setNarrowNavigation(broken); setNavigationCollapsed(broken) }}>
-        <div className="sidebar-context"><span>本地作业平台</span><small>{selected?.name || '选择项目后开始'}</small></div>
-        <Menu theme="dark" mode="inline" selectedKeys={[active]} openKeys={advancedOpen || isAdvanced ? ['advanced'] : []}
-          onOpenChange={keys => setAdvancedOpen(keys.includes('advanced'))}
-          items={[...primaryNavigation, { key: 'advanced', label: '高级功能', children: advancedNavigation }]}
-          onClick={({ key }) => { navigate(scoped(key)); if (narrowNavigation) setNavigationCollapsed(true) }} aria-label="主导航" />
-        <div className="sidebar-foot">本机工作台 · v0.1</div>
+        <div className="sidebar-context"><span>智能自动化审计</span><small>{selected?.name || '从审计目标开始'}</small></div>
+        <Menu theme="dark" mode="inline" selectedKeys={location.pathname === '/settings' || location.pathname === '/help' ? [] : [active]}
+          items={primaryNavigation}
+          onClick={({ key }) => { navigate(mainHref(key)); if (narrowNavigation) setNavigationCollapsed(true) }} aria-label="主导航" />
+        <div className="sidebar-foot"><Link to={scoped('/help')}>使用指南</Link><br />Clear 智能审计 · v0.9.3</div>
       </Sider>
       {narrowNavigation && !navigationCollapsed && <button className="navigation-backdrop" aria-label="关闭导航" onClick={() => setNavigationCollapsed(true)} />}
-      <Content className="page">
+      <Content id="platform-content" tabIndex={-1} className={`page${location.pathname === '/' ? ' audit-home-page' : ''}`}>
+      <ManualReturn />
+      {isProject && <ProjectNavigation />}
       {workspaceId && workspaces.isPending ? <div role="status" aria-label="正在读取项目"><Skeleton active /></div> :
         workspaceId && workspaces.isError ? <Alert type="error" title="无法读取项目" action={<Button onClick={() => void workspaces.refetch()}>重试</Button>} /> :
         workspaceId && !selected ? <Alert type="warning" title="项目不存在或已失效" description="请选择已有项目，或清除当前选择。"
@@ -118,12 +137,26 @@ function PageHeading({ eyebrow, title, description }: { eyebrow: string; title: 
 }
 
 export function Home() {
-  return <QuickStart />
+  return <AgentWorkbench />
 }
 
-export function Workspaces() {
+export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/apps/ocr/start' | '/apps/classification/start' } = {}) {
   const list = useWorkspaces(), workspaceId = useWorkspaceId(), client = useQueryClient(), navigate = useNavigate()
   const [params] = useSearchParams()
+  const location = useLocation()
+  const mounted = useRef(true), currentLocationKey = useRef(location.key)
+  currentLocationKey.current = location.key
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
+  const workspaceHref = (id: string) => {
+    if (!continueTo) return `/?workspace=${encodeURIComponent(id)}`
+    const next = new URLSearchParams(params)
+    next.set('workspace', id)
+    next.delete('create')
+    return `${continueTo}?${next}${location.hash}`
+  }
   const [open, setOpen] = useState(params.get('create') === '1')
   const [form] = Form.useForm<{ name: string }>()
   const pendingKey = 'clear-workspace-create'
@@ -132,6 +165,7 @@ export function Workspaces() {
     if (saved) { try { form.setFieldsValue({ name: JSON.parse(saved).name }) } catch { /* Preserve unknown intent. */ } }
   }, [form])
   const create = useMutation({ mutationFn: async (name: string) => {
+    const entryLocationKey = location.key
     const saved = localStorage.getItem(pendingKey)
     const payload = saved ? JSON.parse(saved) : { schema_version: '1.0', name, request_id: `w${crypto.randomUUID().replaceAll('-', '')}` }
     if (payload.name !== name) throw new Error('上次创建尚未确认，请使用原名称重试；确认后可修改项目名称。')
@@ -139,35 +173,44 @@ export function Workspaces() {
     const response = await fetch('/api/platform/v1/workspaces', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload) })
     if (!response.ok) throw new Error(`创建失败（${response.status}）`)
-    return response.json() as Promise<Workspace>
-  }, onSuccess: item => {
+    return { item: await response.json() as Workspace, entryLocationKey }
+  }, onSuccess: ({ item, entryLocationKey }) => {
     localStorage.removeItem(pendingKey)
     // The confirmed server response is immediately visible while the list refreshes.
     client.setQueryData<Workspace[]>(['workspaces'], previous => [...(previous || []).filter(value => value.workspace_id !== item.workspace_id), item])
-    setOpen(false); form.resetFields()
-    navigate(`/?workspace=${encodeURIComponent(item.workspace_id)}`)
     void client.invalidateQueries({ queryKey: ['workspaces'] })
+    if (!mounted.current || currentLocationKey.current !== entryLocationKey) return
+    setOpen(false); form.resetFields()
+    navigate(workspaceHref(item.workspace_id))
   } })
-  return <><PageHeading eyebrow="PROJECTS" title="项目" description="按项目整理资料和输出。填写一个名称即可开始使用 Clear 工具。" />
-    <div className="section-head"><Title level={3}>已有项目</Title><Button type="primary" onClick={() => setOpen(true)}>新建项目</Button></div>
-    <QueryState pending={list.isPending} error={list.isError} retry={() => void list.refetch()} empty={list.data?.length === 0}>
+  const content = <>{!continueTo && <PageHeading eyebrow="PROJECTS" title="项目" description="按项目整理资料和输出。填写一个名称即可开始使用 Clear 工具。" />}
+    <div className="section-head"><Title level={3}>{continueTo ? '选择项目后继续' : '已有项目'}</Title><Button type="primary" onClick={() => setOpen(true)}>新建项目</Button></div>
+    {continueTo && <Paragraph type="secondary">选择已有项目或新建项目，随后直接进入当前工具。资料和结果会保存在所选项目中。</Paragraph>}
+    <QueryState pending={list.isPending} error={list.isError} retry={() => void list.refetch()} empty={!continueTo && list.data?.length === 0}>
+      {continueTo && list.data?.length === 0 && <Empty description="暂无项目，新建后即可继续" />}
       <div className="workspace-list">{list.data?.map(item => <Card key={item.workspace_id} className={item.workspace_id === workspaceId ? 'selected' : ''}>
-        <Space orientation="vertical"><Link to={`/?workspace=${encodeURIComponent(item.workspace_id)}`}>{item.name}</Link>
-          <Link to={`/artifacts?workspace=${encodeURIComponent(item.workspace_id)}`}>查看项目输出</Link></Space><Tag>{item.workspace_id === workspaceId ? '当前项目' : '选择并开始'}</Tag>
+        <Space orientation="vertical"><Link to={workspaceHref(item.workspace_id)}>{item.name}</Link>
+          {!continueTo && <Link to={`/artifacts?workspace=${encodeURIComponent(item.workspace_id)}`}>查看项目输出</Link>}</Space><Tag>{item.workspace_id === workspaceId ? '当前项目' : continueTo ? '选择并继续' : '选择并开始'}</Tag>
       </Card>)}</div>
     </QueryState>
-    <Modal title="新建项目" open={open} onCancel={() => { setOpen(false); create.reset() }}
+    <Modal title="新建项目" open={open} closable={!create.isPending} mask={{ closable: !create.isPending }} keyboard={!create.isPending}
+      onCancel={() => { if (!create.isPending) { setOpen(false); create.reset() } }}
       onOk={() => void form.validateFields().then(values => create.mutate(values.name)).catch(() => undefined)}
-      okText="创建" okButtonProps={{ loading: create.isPending }} cancelText="取消">
+      okText={continueTo ? '创建并继续' : '创建'} okButtonProps={{ loading: create.isPending }} cancelText="取消" cancelButtonProps={{ disabled: create.isPending }}>
       <Form form={form} layout="vertical"><Form.Item label="名称" name="name" rules={[{ required: true, whitespace: true, message: '请输入名称' }, { max: 256 }]}>
         <Input autoFocus maxLength={256} placeholder="例如：季度资料整理" /></Form.Item></Form>
       {create.isError && <Alert type="error" showIcon title={create.error.message} />}
     </Modal></>
+  return continueTo ? <section className="panel tool-project-entry">{content}</section> : content
 }
 
 export function Applications() {
   const workspaceId = useWorkspaceId(), apps = useApps(workspaceId)
-  return <><PageHeading eyebrow="APPLICATIONS" title="Clear 工具" description="选择当前项目，再打开工具处理资料和生成输出。" />
+  const [params] = useSearchParams(), taskId = params.get('task_return')
+  const task = useQuery({ queryKey: ['audit-task', taskId], enabled: !!taskId && !!workspaceId,
+    queryFn: () => agentRequest<AuditTask>(`/agent/sessions/${encodeURIComponent(taskId!)}/task`) })
+  return <><PageHeading eyebrow="APPLICATIONS" title="手动工具" description="打开工具处理资料、保存结果，再按需带回智能审计。" />
+    {task.data?.workspace_id === workspaceId && !!(task.data.result_refs?.length || task.data.initial_refs?.length || task.data.job_refs?.length) && <section className="panel"><Title level={3}>当前任务已有结果</Title><ReferenceLinks taskId={taskId || undefined} refs={[...task.data.result_refs, ...task.data.initial_refs, ...task.data.job_refs]} /></section>}
     <div className="app-grid" aria-label="Clear 应用目录"><DataApplicationCard />
       <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()}>
         {apps.data?.map(app => <ApplicationCard key={app.app_id} app={app} workspaceId={workspaceId} projectMode={!!workspaceId} />)}
@@ -180,7 +223,7 @@ export function Application() {
   const validId = !!appId && /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(appId)
   const safeId = encodeURIComponent(appId || '')
   const info = useQuery({ queryKey: ['app', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppManifest>(`/api/platform/v1/apps/${safeId}`, signal) })
-  const health = useQuery({ queryKey: ['app-health', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal) })
+  const health = useQuery({ queryKey: ['app-health', workspaceId, appId], enabled: validId, queryFn: ({ signal }) => read<AppHealth>(`/api/platform/v1/apps/${safeId}/health`, signal), refetchInterval: 15_000 })
   if (!validId) return <Missing />
   return <><PageHeading eyebrow="APPLICATION / STATUS" title={info.data ? brandName(info.data.app_id, info.data.display_name) : '应用状态'} description="核实本机实例后打开工具。无需先建立工作空间。" />
     <QueryState pending={info.isPending || health.isPending} error={info.isError || health.isError}
@@ -188,8 +231,8 @@ export function Application() {
       <div className="panel"><div className="section-head"><Title level={3}>{info.data && brandName(info.data.app_id, info.data.display_name)}</Title><Tag>{info.data?.app_version}</Tag></div>
         <div className="status-list">{(['service', 'ui', 'cpu', 'gpu', 'models'] as const).map(key => <div key={key}>
           <Text>{({ service: '服务', ui: '界面', cpu: 'CPU', gpu: 'GPU', models: '模型' })[key]}</Text>
-          <Tag color={health.data?.[key].state === 'ready' ? 'success' : 'default'}>{health.data?.[key].state || 'unknown'}</Tag>
-          <Text type="secondary">{health.data?.[key].reason}</Text></div>)}</div></div>
+          <Tag color={health.data?.[key].state === 'ready' ? 'success' : 'default'}>{healthStateText(health.data?.[key].state)}</Tag>
+          <Text type="secondary">{healthReasonText(health.data?.[key].reason)}</Text></div>)}</div></div>
       {info.data && <ApplicationCard key={info.data.app_id} app={info.data} workspaceId={workspaceId} />}
     </QueryState><div className="back-link"><ScopeLink to="/apps">← 返回应用目录</ScopeLink></div></>
 }

@@ -1,10 +1,12 @@
+import { ToolIdentity } from '../catalog/ToolIdentity'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Card, Checkbox, Empty, Form, Image, Input, Pagination, Select, Space, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Checkbox, Form, Image, Input, Pagination, Select, Space, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Asset, ForensicEvidenceSelection, Inspection, InspectionCreate, InspectionPage, InspectionReview } from '../../../../../packages/contracts/types.generated'
-import { useWorkspaceId } from '../../App'
+import { useWorkspaceId, Workspaces } from '../../App'
 import { brands, applicationDescriptions } from '../../clear-ui/theme'
+import { ApplicationDeclaration, forensicsDeclaration } from '../catalog/ApplicationDeclaration'
 import { API, localReviewer, newRequestId, post, request } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
 import './forensics.css'
@@ -20,12 +22,14 @@ const path = (workspace: string) => `/workspaces/${encodeURIComponent(workspace)
 
 export function ForensicApplicationCard() {
   const workspaceId = useWorkspaceId()
-  const linked = `/apps/forensics${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`
-  return <Card className="application-card" title={<Link to={linked}>{brands.forensics}</Link>}>
+  const [params] = useSearchParams()
+  const linked = `/apps/forensics${params.size ? `?${params}` : ''}`
+  return <Card className="application-card" title={<ToolIdentity appId="forensics" to={linked} label={brands.forensics} />}>
     <Text className="application-purpose">{applicationDescriptions.forensics.purpose}</Text>
     <Paragraph className="application-description" type="secondary">{applicationDescriptions.forensics.description}</Paragraph>
-    <div className="application-state"><Tag>经典取证工具</Tag><Text type="secondary">{workspaceId ? '使用当前工作空间' : '进入后选择工作空间'}</Text></div>
-    <Link to={linked}><Button type="primary">打开图像取证</Button></Link>
+    <div className="application-state"><Tag>经典取证工具</Tag><Text type="secondary">{workspaceId ? '使用当前项目' : '选择或新建项目后开始'}</Text></div>
+    <Link className="application-actions" to={linked}><Button type="primary">打开图像取证</Button></Link>
+    <ApplicationDeclaration declaration={forensicsDeclaration} />
   </Card>
 }
 
@@ -158,7 +162,8 @@ function Workspace({ workspaceId }: { workspaceId: string }) {
 
 export function ForensicWorkbench() {
   const workspaceId = useWorkspaceId()
+  const [params] = useSearchParams()
   return <><div className="page-heading"><div className="eyebrow">APPLICATION / IMAGE FORENSICS</div><Title level={1}>{brands.forensics}</Title><Paragraph>选择或上传图片，开始检查，直接查看和下载报告。</Paragraph></div>
-    {workspaceId ? <Workspace key={workspaceId} workspaceId={workspaceId} /> : <Empty description="先选择项目" />}
-    <div className="back-link"><Link to={`/apps${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`}>← 返回应用目录</Link></div></>
+    {workspaceId ? <Workspace key={workspaceId} workspaceId={workspaceId} /> : <Workspaces continueTo="/apps/forensics" />}
+    <div className="back-link"><Link to={`/apps${params.size ? `?${params}` : ''}`}>← 返回应用目录</Link></div></>
 }

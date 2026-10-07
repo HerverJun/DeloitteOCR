@@ -1,11 +1,13 @@
 // @vitest-environment-options {"url":"http://127.0.0.1:8765/"}
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, configure, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider } from 'antd'
 import { routes, theme } from '../src/router'
+import type { AppHealth } from '../../../packages/contracts/types.generated'
+import { ApplicationDeclaration } from '../src/features/catalog/ApplicationDeclaration'
 
 beforeAll(() => {
   configure({ asyncUtilTimeout: 10000 })
@@ -19,6 +21,20 @@ beforeEach(() => {
   vi.spyOn(window, 'getComputedStyle').mockImplementation(element => computed(element))
 })
 afterEach(cleanup)
+
+test('GPU support stays distinct from runtime readiness and preserves probe results', () => {
+  const declared = { capabilities: ['gpu' as const], resources: ['cpu' as const, 'gpu' as const],
+    input_types: ['image/jpeg'], output_types: ['application/json'] }
+  const probed = health('ready', 'Service identity verified') as AppHealth
+  probed.gpu = { schema_version: '1.0', state: 'unknown', reason: 'GPU has not been probed' }
+  const { rerender } = render(<ApplicationDeclaration declaration={declared} health={probed} />)
+  expect(screen.getByText(/支持资源：CPU、GPU/)).toBeInTheDocument()
+  expect(screen.getByText(/GPU 状态：未确认 · GPU 运行状态尚未检测/)).toBeInTheDocument()
+  expect(screen.queryByText(/GPU 状态：已就绪/)).not.toBeInTheDocument()
+  rerender(<ApplicationDeclaration declaration={declared} health={{ ...probed,
+    gpu: { schema_version: '1.0', state: 'unavailable', reason: 'GPU 正被其他任务占用' } }} />)
+  expect(screen.getByText(/GPU 状态：不可用 · GPU 正被其他任务占用/)).toBeInTheDocument()
+})
 
 const page = (items: unknown[]) => ({ schema_version: '1.0', items, next_cursor: null, snapshot_revision: 2 })
 const app = { schema_version: '1.0', app_id: 'ocr', display_name: '文档识别', app_version: '1.0',
@@ -64,7 +80,7 @@ test('unregistered bundle has a stable disabled state despite unfamiliar reason 
   expect(fetcher.mock.calls.every(([input]) => !String(input).includes('/launches/launch'))).toBe(true)
 })
 
-test('verification keeps launch disabled and refreshes to ready without reloading the page', async () => {
+test('verification keeps launch disabled and refreshes to awaiting startup without reloading the page', async () => {
   let ready = false
   const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
     if (input.endsWith('/installation')) return { ok: true, json: async () => ({
@@ -83,8 +99,75 @@ test('verification keeps launch disabled and refreshes to ready without reloadin
   expect(screen.queryByText('未安装')).not.toBeInTheDocument()
   ready = true
   await waitFor(() => expect(screen.getByRole('button', { name: '启动并打开' })).toBeEnabled(), { timeout: 5000 })
-  expect(await screen.findByText('Service has not been probed')).toBeInTheDocument()
+  expect(await screen.findByText('待启动')).toBeInTheDocument()
+  expect(screen.getByText('按需启动，打开时检查运行状态')).toBeInTheDocument()
   expect(fetcher.mock.calls.every(([, options]) => (options as RequestInit | undefined)?.method !== 'POST')).toBe(true)
+})
+
+test.each([
+  { appId: 'ocr', brand: 'ClearOCR' },
+  { appId: 'classification', brand: 'ClearClassify' },
+])('$brand cold start is presented as awaiting startup without launching the service', async ({ appId, brand }) => {
+  const appPath = `/api/platform/v1/apps/${appId}`
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.startsWith('/api/platform/v1/apps?')) return { ok: true, json: async () => page([{ ...app, app_id: appId }]) }
+    if (input === `${appPath}/installation`) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: appId, installed: true, launch_ready: true, state: 'registered',
+    }) }
+    if (input === `${appPath}/health`) return { ok: true, json: async () => health('unknown', 'Service has not been probed') }
+    if (input === `${appPath}/launches/current`) return { ok: false, status: 404 }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  mount()
+  const card = (await screen.findByRole('link', { name: brand })).closest('.application-card')
+  expect(card).not.toBeNull()
+  const tool = within(card as HTMLElement)
+  expect(await tool.findByText('待启动')).toBeInTheDocument()
+  expect(tool.getByText('按需启动，打开时检查运行状态')).toBeInTheDocument()
+  expect(tool.getByRole('button', { name: '启动并打开' })).toBeEnabled()
+  expect(tool.queryByText('已就绪')).not.toBeInTheDocument()
+  expect(tool.queryByText('实例已核实')).not.toBeInTheDocument()
+  for (const path of [`${appPath}/installation`, `${appPath}/health`, `${appPath}/launches/current`]) {
+    expect(fetcher.mock.calls.some(([input, options]) => input === path && (options?.method || 'GET') === 'GET')).toBe(true)
+  }
+  expect(fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(0)
+})
+
+test.each([
+  { appId: 'ocr', brand: 'ClearOCR' },
+  { appId: 'classification', brand: 'ClearClassify' },
+])('$brand cached file verification does not hide an unavailable service or its failure reason', async ({ appId, brand }) => {
+  const appPath = `/api/platform/v1/apps/${appId}`
+  const failureReason = '本机服务身份核验失败：端口已被其他进程占用'
+  const cachedMessage = '已复用首次完整校验记录'
+  const fetcher = vi.fn(async (input: string, _options?: RequestInit) => {
+    if (input.startsWith('/api/platform/v1/apps?')) return { ok: true, json: async () => page([{ ...app, app_id: appId }]) }
+    if (input === `${appPath}/installation`) return { ok: true, json: async () => ({
+      schema_version: '1.0', app_id: appId, installed: true, launch_ready: true, state: 'registered',
+      verification: {
+        schema_version: '1.0', phase: 'cached', checked_files: 0, total_files: 1000,
+        elapsed_seconds: 65, current_file: null, message: cachedMessage,
+      },
+    }) }
+    if (input === `${appPath}/health`) return { ok: true, json: async () => health('unavailable', failureReason) }
+    if (input === `${appPath}/launches/current`) return { ok: false, status: 404 }
+    return baseFetch(input)
+  })
+  vi.stubGlobal('fetch', fetcher)
+  mount()
+  const card = (await screen.findByRole('link', { name: brand })).closest('.application-card')
+  expect(card).not.toBeNull()
+  const tool = within(card as HTMLElement)
+  expect(await tool.findByText('暂不可用')).toBeInTheDocument()
+  const state = within(card!.querySelector('.application-state') as HTMLElement)
+  expect(state.getByText(failureReason)).toBeInTheDocument()
+  expect(state.queryByText(cachedMessage)).not.toBeInTheDocument()
+  expect(state.queryByText('已校验')).not.toBeInTheDocument()
+  expect(state.queryByText('待启动')).not.toBeInTheDocument()
+  expect(tool.queryByText('已就绪')).not.toBeInTheDocument()
+  expect(tool.queryByText('实例已核实')).not.toBeInTheDocument()
+  expect(fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(0)
 })
 
 test('failed verification becomes visible and keeps launch disabled', async () => {

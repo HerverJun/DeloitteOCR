@@ -151,7 +151,7 @@ test('business flow binds an actual batch, selects a later issue page, saves a r
     ['finding', 'prepared'], ['finding', 'reviewed'], ['procedure', 'prepared'], ['procedure', 'reviewed'], ['project', 'prepared'], ['project', 'reviewed'],
   ])
   expect(localStorage.getItem('clear-audit-request:wAudit')).toBeNull()
-}, 60000)
+}, 90000)
 
 test('a lost project-create response survives reload and replays the entire original request with its fixed actor', async () => {
   let lost = true

@@ -1,0 +1,214 @@
+.agent-workbench { display: flex; flex: 1; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+.agent-workbench > :not(.agent-layout) { flex: none; }
+.agent-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-width: 0; }
+.agent-heading-title { min-width: 0; }
+.audit-eyebrow { display: block; margin-bottom: 5px; font-size: 11px; letter-spacing: .1em; color: var(--clear-muted); }
+.agent-heading-identity { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.agent-heading h2.ant-typography { margin: 0; font-size: var(--clear-title-size); line-height: 1.25; letter-spacing: -.025em; }
+.agent-model-state.ant-tag { max-width: 240px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agent-current-task.ant-typography { display: block; max-width: 560px; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--clear-caption-size); }
+.audit-context-bar { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex: none; }
+.agent-layout { display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid var(--clear-border); border-radius: var(--clear-panel-radius); background: var(--clear-panel); }
+.agent-conversation { display: grid; flex: 1; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
+.agent-history { min-width: 0; min-height: 0; padding: 28px 32px; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.agent-timeline { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 960px; min-height: 100%; margin-inline: auto; }
+.agent-timeline > [data-timeline-id] { min-width: 0; }
+.agent-message { padding: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.agent-stable-message { white-space: normal; }
+.agent-message-user { max-width: 88%; margin-left: auto; padding: 14px 18px; border-radius: var(--clear-panel-radius); background: var(--clear-subtle); }
+.agent-message .ant-typography { margin-bottom: 0; }
+.agent-message-label { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: var(--clear-caption-size); }
+.agent-message-label > .ant-typography { font-size: var(--clear-caption-size); font-weight: 500; }
+.agent-message-label .ant-tag { margin: 0; }
+.agent-message-body { min-width: 0; }
+.agent-user-text { white-space: pre-wrap; font-size: 15px; line-height: 1.65; }
+.agent-message-delivery { padding: 20px 24px; border: 1px solid var(--clear-border); border-top: 2px solid var(--clear-success); border-radius: var(--clear-panel-radius); }
+.agent-delivery-title.ant-typography { margin: 0 0 14px; font-size: var(--clear-panel-title-size); line-height: 1.4; }
+.agent-delivery-bundle { margin-top: 16px; }
+.agent-delivery-bundle > .ant-typography { font-size: 14px; }
+.agent-downloads { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.agent-downloads .ant-btn { max-width: 100%; height: auto; min-height: var(--clear-control-height); padding-block: 8px; white-space: normal; text-align: left; overflow-wrap: anywhere; }
+.agent-downloads .ant-btn > span { min-width: 0; }
+.agent-composer { display: grid; grid-template-columns: minmax(0, 960px); justify-content: center; gap: 10px; min-width: 0; padding: 16px 32px; border-top: 1px solid var(--clear-border); background: var(--clear-panel); }
+.agent-composer > .ant-tag { justify-self: start; margin: 0; }
+.agent-composer textarea.ant-input { padding: 12px 14px; font-size: 15px; line-height: 1.6; background: var(--clear-subtle); border-color: transparent; resize: none; }
+.agent-composer textarea.ant-input:hover { border-color: var(--clear-border); }
+.agent-composer textarea.ant-input:focus { border-color: var(--clear-focus); background: var(--clear-panel); box-shadow: none; }
+.audit-composer-actions, .audit-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.audit-composer-actions { width: 100%; }
+.agent-return-latest.ant-btn { justify-self: center; height: auto; min-height: var(--clear-control-height); white-space: normal; }
+.agent-control-actions { font-size: 14px; }
+.agent-control-actions .ant-btn { font-size: 14px; }
+.agent-cancel-options summary { cursor: pointer; padding: 8px 4px; color: var(--clear-muted); font-size: var(--clear-caption-size); }
+.agent-cancel-options[open] .ant-btn { margin-top: 6px; }
+.agent-secondary-action summary { cursor: pointer; padding: 8px 4px; color: var(--clear-muted); font-size: var(--clear-caption-size); }
+.agent-secondary-action .ant-btn { margin-top: 8px; }
+.agent-run-status { display: flex; flex-direction: column; gap: 6px; width: 100%; font-size: var(--clear-caption-size); }
+.agent-run-status:empty { display: none; }
+.agent-run-status .ant-typography { font-size: var(--clear-caption-size); }
+.agent-phase-line { min-width: 0; }
+.agent-status-mark { display: inline-flex; align-items: center; gap: 3px; min-width: 20px; }
+.agent-status-mark i { width: 4px; height: 4px; border-radius: 50%; background: var(--clear-primary); opacity: .6; }
+.agent-run-status[data-phase="failed"] .agent-status-mark i { background: var(--clear-error); }
+.agent-run-status[data-phase="stopped"] .agent-status-mark i,
+.agent-run-status[data-phase="manual"] .agent-status-mark i { background: var(--clear-muted); }
+.agent-status-mark.is-moving i { animation: agent-status-pulse 1.2s ease-in-out infinite; }
+.agent-status-mark.is-moving i:nth-child(2) { animation-delay: .15s; }
+.agent-status-mark.is-moving i:nth-child(3) { animation-delay: .3s; }
+@keyframes agent-status-pulse { 50% { opacity: 1; transform: translateY(-2px); } }
+.agent-markdown { color: var(--clear-text); line-height: 1.75; overflow-wrap: anywhere; font-size: 16px; }
+.agent-markdown > :first-child { margin-top: 0; }
+.agent-markdown > :last-child { margin-bottom: 0; }
+.agent-markdown p, .agent-markdown ul, .agent-markdown ol { margin: 0 0 14px; }
+.agent-markdown h1, .agent-markdown h2, .agent-markdown h3, .agent-markdown h4 { font-size: 19px; margin: 24px 0 12px; line-height: 1.5; }
+.agent-markdown li + li { margin-top: 5px; }
+.agent-markdown blockquote { margin: 16px 0; border-left: 2px solid var(--clear-border); padding-left: 16px; color: var(--clear-muted); }
+.agent-markdown code { background: var(--clear-subtle); border-radius: 4px; padding: 2px 5px; font-size: 13px; }
+.agent-code-block { position: relative; margin: 16px 0; border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius); background: var(--clear-subtle); overflow: hidden; }
+.agent-code-block > .ant-btn { margin: 8px 12px; }
+.agent-code-block pre { margin: 0; padding: 12px 16px 16px; max-width: 100%; overflow-x: auto; white-space: pre; font-size: 13px; line-height: 1.7; }
+.agent-code-block pre code { padding: 0; background: none; }
+.agent-code-block > [role="status"] { display: block; padding: 0 16px 12px; font-size: var(--clear-caption-size); color: var(--clear-muted); }
+.agent-markdown-table { max-width: 100%; overflow-x: auto; margin: 16px 0; }
+.agent-markdown table { border-collapse: collapse; min-width: 100%; font-size: 14px; }
+.agent-markdown th, .agent-markdown td { border-bottom: 1px solid var(--clear-border); padding: 10px 14px; text-align: left; white-space: nowrap; }
+.agent-markdown th { background: var(--clear-subtle); font-weight: 600; }
+.agent-tool-activity { padding: 4px 0; font-size: var(--clear-caption-size); color: var(--clear-muted); }
+.agent-activity-overview { padding-bottom: 10px; font-size: var(--clear-caption-size); }
+.agent-tool-activity ol { list-style: none; padding: 0; margin: 0; }
+.agent-tool-activity li { padding: 12px 0; border-top: 1px solid var(--clear-border); }
+.agent-tool-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+.agent-tool-heading .ant-tag { margin: 0; font-size: var(--clear-caption-size); }
+.agent-tool-description { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.agent-tool-description > .ant-typography { font-size: 14px; line-height: 1.6; }
+.agent-tool-name, .agent-tool-duration { color: var(--clear-muted); font-size: var(--clear-caption-size); line-height: 1.6; overflow-wrap: anywhere; }
+.agent-tool-duration { white-space: nowrap; }
+.agent-tool-activity details { margin-top: 8px; }
+.agent-tool-activity summary, .agent-step summary { cursor: pointer; font-size: var(--clear-caption-size); }
+.agent-tool-activity pre, .agent-step pre { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.65; }
+.agent-tool-details[open] { padding: 12px; border-radius: var(--clear-control-radius); background: var(--clear-subtle); }
+.agent-tool-details > .ant-typography { margin: 10px 0 0; font-size: var(--clear-caption-size); }
+.agent-job-progress { display: grid; gap: 12px; margin: 8px 0; }
+.agent-native-job { padding: 10px 14px; border-left: 2px solid var(--clear-border); background: var(--clear-subtle); border-radius: 0 var(--clear-control-radius) var(--clear-control-radius) 0; }
+.agent-native-job .ant-typography { font-size: var(--clear-caption-size); }
+.agent-native-job .ant-alert, .agent-tool-activity > .ant-alert { margin-top: 12px; }
+.agent-diagnostics > div { margin-top: 12px; }
+.agent-step details { margin-top: 8px; color: var(--clear-muted); font-size: var(--clear-caption-size); }
+.audit-welcome { margin: auto; width: 100%; max-width: 680px; padding: 20px 0; }
+.audit-welcome-kicker { display: block; margin-bottom: 16px; color: var(--clear-primary); font-size: var(--clear-caption-size); letter-spacing: .04em; }
+.audit-welcome h2.ant-typography { font-size: clamp(24px, 2.4vw, 32px); margin: 0 0 12px; line-height: 1.35; letter-spacing: -.025em; }
+.audit-welcome > .ant-typography-secondary { max-width: 540px; margin-bottom: 0; font-size: 15px; line-height: 1.75; }
+.audit-examples { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 28px; }
+.audit-example { text-align: left; background: transparent; border: 0; border-top: 1px solid var(--clear-border); border-radius: 0; padding: 14px 8px 12px 0; cursor: pointer; font: inherit; transition: background var(--clear-motion-fast); }
+.audit-example:hover { background: var(--clear-subtle); }
+.audit-example:focus-visible { outline: 2px solid var(--clear-focus); outline-offset: 3px; }
+.audit-example strong { display: block; color: var(--clear-text); font-size: 14px; margin-bottom: 5px; font-weight: 500; }
+.audit-example span { color: var(--clear-muted); font-size: var(--clear-caption-size); line-height: 1.6; }
+.audit-task-panel { padding: 0; min-width: 0; overflow-y: auto; }
+.audit-task-panel h4 { margin: 20px 0 8px; overflow-wrap: anywhere; }
+.audit-task-goal { max-height: 140px; overflow: auto; white-space: pre-wrap; font-size: 14px; line-height: 1.7; }
+.audit-task-meta { display: flex; align-items: center; justify-content: space-between; font-size: var(--clear-caption-size); color: var(--clear-muted); }
+.audit-task-section { border-top: 1px solid var(--clear-border); padding: 20px 0; }
+.audit-task-section > .ant-typography + .ant-typography { margin-top: 10px; font-size: var(--clear-caption-size); }
+.audit-plan-item { align-items: flex-start !important; justify-content: flex-start !important; gap: 8px; }
+.audit-plan-item small { display: block; color: var(--clear-muted); font-size: var(--clear-caption-size); margin: 6px 0; }
+.audit-reference-links { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; font-size: var(--clear-caption-size); overflow-wrap: anywhere; }
+.audit-reference-links:empty { display: none; }
+.audit-reference-links small { color: var(--clear-muted); }
+.audit-manual-links { display: flex; justify-content: space-between; padding: 16px 0; }
+.audit-asset-picker { display: flex; flex-direction: column; gap: 16px; max-height: 45vh; overflow: auto; padding: 8px 0; }
+.audit-asset-picker small { display: block; color: var(--clear-muted); font-size: var(--clear-caption-size); margin-top: 4px; }
+.audit-field { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.audit-period { display: flex; gap: 20px; }
+.audit-period > * { flex: 1; }
+.audit-settings { max-width: 900px; }
+.audit-settings-section { padding: 28px 0; border-top: 1px solid var(--clear-border); }
+.audit-settings-links { display: flex; gap: 24px; margin-top: 20px; }
+.audit-findings-entry { display: block; margin: 0 0 20px; }
+.audit-return-bar { margin-bottom: 20px; }
+.audit-findings > .ant-space { margin-bottom: 24px; }
+.audit-evidence-sources { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.audit-evidence-json { max-height: 45vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--clear-caption-size); }
+.audit-project-home { margin-bottom: 48px; }
+.audit-project-context { border-left: 3px solid var(--clear-primary); padding: 12px 20px; margin-bottom: 24px; }
+.audit-project-context > span { margin-left: 20px; color: var(--clear-muted); }
+.audit-project-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--clear-border); margin-bottom: 24px; }
+.audit-project-stats > a { padding: 20px; color: var(--clear-muted); }
+.audit-project-stats > a + a { border-left: 1px solid var(--clear-border); }
+.audit-project-stats strong { display: block; font-size: 28px; color: var(--clear-text); margin-bottom: 4px; }
+.audit-project-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 32px 0; }
+.audit-project-artifact { padding: 12px 0; border-bottom: 1px solid var(--clear-border); }
+.audit-capability-status { padding: 10px 16px; background: var(--clear-subtle); border-radius: var(--clear-control-radius); font-size: var(--clear-caption-size); }
+.agent-context-summary { display: flex; flex-direction: column; gap: 5px; font-size: var(--clear-caption-size); }
+.agent-context-budget details, .agent-environment, .agent-skill-rejected { margin-top: 12px; color: var(--clear-muted); font-size: var(--clear-caption-size); }
+.agent-context-budget summary, .agent-environment summary, .agent-skill-rejected summary { cursor: pointer; }
+.agent-context-components { margin: 12px 0; }
+.agent-context-components > div { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--clear-border); padding: 7px 0; }
+.agent-context-components dd { margin: 0; }
+.agent-context-tools { display: flex; flex-wrap: wrap; gap: 4px; overflow-wrap: anywhere; }
+.agent-context-budget > .ant-alert { margin-top: 10px; }
+.agent-skill-item { padding: 16px 0; border-bottom: 1px solid var(--clear-border); }
+.agent-skill-item .ant-typography { margin-bottom: 8px; }
+.agent-skill-item .ant-alert { margin-bottom: 12px; }
+.agent-skill-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.agent-skill-reader { padding: 16px 0; margin-top: 16px; border-block: 1px solid var(--clear-border); }
+.agent-skill-reader .ant-select { margin: 12px 0; }
+.agent-skill-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; padding: 14px; background: var(--clear-subtle); border-radius: var(--clear-control-radius); font-size: var(--clear-caption-size); }
+.project-navigation { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--clear-border); padding-bottom: 16px; }
+.project-navigation nav, .project-related-links { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+.project-navigation [aria-current="page"] { color: var(--clear-text); font-weight: 600; }
+.project-navigation summary, .agent-connection-advanced summary, .agent-connection-diagnostics summary, .audit-return-sources summary { cursor: pointer; color: var(--clear-muted); }
+.project-related-links { padding-top: 14px; }
+.agent-connection-advanced, .agent-connection-diagnostics { margin-bottom: 20px; }
+.agent-connection-advanced[open] > summary, .agent-connection-diagnostics[open] > summary { margin-bottom: 16px; }
+.audit-return-sources { margin: 20px 0; }
+.audit-return-sources[open] > summary { margin-bottom: 16px; }
+.audit-return-sources > .ant-checkbox-wrapper { display: flex; margin-bottom: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .agent-status-mark.is-moving i { animation: none; transform: none; }
+  .audit-example { transition: none; }
+}
+[data-reduced-motion="true"] .agent-status-mark i { animation: none; transform: none; }
+@media (max-width: 850px) {
+  .agent-heading { gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+  .agent-heading-title { flex: 1 1 220px; }
+  .agent-heading h2.ant-typography { font-size: 26px; }
+  .agent-history { padding: 24px; }
+  .agent-composer { padding: 14px 24px; }
+  .agent-current-task.ant-typography { max-width: 420px; }
+  .agent-model-state.ant-tag { max-width: 180px; }
+  .agent-control-actions .ant-btn { white-space: normal; height: auto; min-height: var(--clear-control-height); padding-block: 7px; }
+}
+@media (max-width: 480px) {
+  .agent-workbench { gap: 12px; }
+  .agent-heading { gap: 8px; }
+  .agent-heading-title { flex-basis: 100%; }
+  .audit-eyebrow { margin-bottom: 4px; font-size: 10px; }
+  .agent-heading h2.ant-typography { font-size: 24px; }
+  .agent-heading-identity { gap: 10px; }
+  .agent-model-state.ant-tag { max-width: 160px; }
+  .agent-current-task.ant-typography { max-width: 100%; }
+  .audit-context-bar { justify-content: flex-start; width: 100%; gap: 4px; }
+  .audit-context-bar .ant-btn { min-height: 44px; padding-inline: 12px; }
+  .agent-history { padding: 20px 16px; }
+  .agent-timeline { gap: 20px; }
+  .agent-composer { gap: 8px; padding: 12px 16px; }
+  .audit-composer-actions .ant-btn { min-height: 44px; }
+  .agent-message-user { max-width: 94%; padding: 12px 14px; }
+  .agent-message-delivery { padding: 16px; }
+  .agent-message-label { gap: 6px; }
+  .agent-markdown { font-size: 15px; }
+  .agent-control-actions { gap: 6px !important; }
+  .agent-control-actions .ant-btn, .agent-cancel-options summary, .agent-secondary-action summary { min-height: 44px; }
+  .agent-tool-heading { grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
+  .agent-tool-duration { grid-column: 2; }
+  .audit-welcome { padding: 12px 0; }
+  .audit-welcome-kicker { margin-bottom: 12px; }
+  .audit-welcome h2.ant-typography { font-size: 24px; }
+  .audit-welcome > .ant-typography-secondary { font-size: 14px; }
+  .audit-examples { margin-top: 20px; gap: 8px 16px; }
+  .audit-example { min-height: 64px; padding: 12px 0; }
+  .audit-project-columns { grid-template-columns: 1fr; }
+  .audit-project-stats { grid-template-columns: 1fr 1fr; }
+  .audit-period { flex-direction: column; gap: 0; }
+}

@@ -39,6 +39,7 @@ function kindName(bundle: Bundle) {
   if (isReview(bundle)) return bundle.delivery_kind === 'final' ? '正式复核成果' : '中间复核材料'
   if (isForensic(bundle)) return '图像取证报告'
   if (bundle.kind === 'image_forensics') return '图像取证报告'
+  if (bundle.kind === 'audit_draft') return '审计底稿草稿'
   if (bundle.kind === 'classification_result') return '分类结果'
   if (bundle.kind === 'ocr_result') return bundle.items?.some(item => item.page_number) ? '文档提取' : 'OCR 识别'
   return bundle.result_id ? '差异结果' : '清洗表'
@@ -176,7 +177,8 @@ function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | n
       {detail.isPending && <Text>正在读取成果…</Text>}
       {detail.isError && <Alert type="error" title={detail.error.message}
         action={<Button onClick={() => void detail.refetch()}>重试</Button>} />}
-      {detail.data && <BundleDetails bundle={detail.data} workspaceId={workspaceId} base={base} />}
+      {detail.data && <><Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(detail.data.bundle_id)}`}><Button>交给 Agent 继续处理</Button></Link>
+        <BundleDetails bundle={detail.data} workspaceId={workspaceId} base={base} /></>}
     </> : <>
       <ProjectDataOutputs key={workspaceId} workspaceId={workspaceId} />
       <ProjectNativeOutputs workspaceId={workspaceId} />
@@ -194,6 +196,7 @@ function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | n
           {bundle.files.filter(file => file.availability === 'available' && /\.(xlsx|csv|parquet|pdf|html|md|txt|zip)$/i.test(file.name)).slice(0, 6).map(file =>
             <a key={file.artifact_id} href={`${base}/${encodeURIComponent(bundle.bundle_id)}/files/${encodeURIComponent(file.name)}`} download>{file.name}</a>)}
           <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(bundle.bundle_id)}`}>全部文件与详情</Link></Space>
+        <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(bundle.bundle_id)}`}>交给 Agent</Link>
       </article>)}</div>
       {(list.data?.total || 0) > 20 && <Pagination current={page} pageSize={20} total={list.data?.total}
         onChange={setPage} showSizeChanger={false} />}

@@ -1,30 +1,30 @@
 .data-workbench { min-width: 0; }
-.data-workbench .page-heading { margin-bottom: 12px; padding-bottom: 12px; }
+.data-workbench .page-heading { margin-bottom: 24px; }
 .data-title-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .data-workbench .ant-alert { margin: 12px 0; }
-.data-session-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px; background: var(--clear-panel); border: 1px solid var(--clear-border); border-radius: var(--clear-panel-radius); flex-wrap: wrap; }
+.data-session-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 16px; background: var(--clear-panel); border: 1px solid var(--clear-border); border-radius: var(--clear-panel-radius); flex-wrap: wrap; }
 .data-session-bar > .ant-select { min-width: 220px; flex: 1; }
 .data-session-bar > .ant-space-compact { flex: 1; min-width: 260px; }
 .data-session-bar > .ant-space-compact .ant-input { min-width: 0; }
 .data-session-context { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; width: 100%; border-top: 1px solid var(--clear-border); padding-top: 8px; }
-.data-session-context > .ant-typography { font-size: 12px; overflow-wrap: anywhere; }
-.data-flow-nav { display: flex; gap: 12px; flex-wrap: wrap; margin-left: auto; font-size: 12px; }
-.data-input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.data-session-context > .ant-typography { font-size: var(--clear-caption-size); overflow-wrap: anywhere; }
+.data-flow-nav { display: flex; gap: 12px; flex-wrap: wrap; margin-left: auto; font-size: var(--clear-caption-size); }
+.data-input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 .data-input { min-width: 0; }
-.data-input h3 .ant-typography { font-size: 12px; margin-left: 4px; }
+.data-input h3 .ant-typography { font-size: var(--clear-caption-size); margin-left: 4px; }
 .data-input > .ant-typography { margin-bottom: 8px; }
 .data-upload { display: inline-flex; align-items: center; min-height: var(--clear-control-height); border: 1px solid var(--clear-link); border-radius: var(--clear-control-radius); color: var(--clear-link); padding: 6px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .data-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .data-upload:focus-within { outline: 2px solid var(--clear-focus); outline-offset: 2px; }
 .data-upload.disabled { opacity: .5; cursor: default; }
 .data-options { border-top: 1px solid var(--clear-border); margin: 8px 0; }
-.data-options summary { padding: 8px 0; cursor: pointer; color: var(--clear-text); font-size: 12px; }
+.data-options summary { padding: 8px 0; cursor: pointer; color: var(--clear-text); font-size: var(--clear-caption-size); }
 .data-options summary span { color: var(--clear-muted); margin-left: 8px; }
 .data-options summary:focus-visible { border-radius: 3px; }
 .data-import-settings, .data-step-controls, .data-recipe { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
 .data-import-settings .ant-select { min-width: 110px; }
 .data-import-settings .ant-input-number { width: 68px; }
-.data-import-settings label { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }
+.data-import-settings label { display: inline-flex; gap: 8px; align-items: center; font-size: var(--clear-caption-size); }
 .data-step-controls { border-top: 1px solid var(--clear-border); padding-top: 12px; }
 .data-step-controls .ant-select { min-width: 130px; flex: 1; }
 .data-step-controls .ant-input { width: 130px; flex: 1; }
@@ -39,15 +39,15 @@
 .data-policies { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--clear-border); }
 .data-policies label { display: inline-flex; align-items: center; gap: 8px; }
 .data-counts { display: flex; gap: 1px; background: var(--clear-border); border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius); overflow: hidden; margin-bottom: 12px; }
-.data-counts > div { flex: 1; padding: 10px 16px; background: var(--clear-workspace); min-width: 0; }
-.data-counts .ant-typography { font-size: 12px; }
-.data-counts strong { display: block; font-size: 23px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.data-counts > div { flex: 1; padding: 10px 16px; background: var(--clear-panel); min-width: 0; }
+.data-counts .ant-typography { font-size: var(--clear-caption-size); }
+.data-counts strong { display: block; font-size: 26px; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .data-downloads { margin-top: 16px; border-top: 1px solid var(--clear-border); padding-top: 12px; }
 .data-downloads h4.ant-typography { font-size: 16px; margin: 0 0 12px; }
 .data-download-row { display: grid; grid-template-columns: 100px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--clear-border); }
-.data-download-row a { font-size: 12px; overflow-wrap: anywhere; }
+.data-download-row a { font-size: var(--clear-caption-size); overflow-wrap: anywhere; }
 .data-download-row small { color: var(--clear-muted); }
-.data-downloads > .ant-typography:last-child { display: block; margin-top: 8px; font-size: 12px; }
+.data-downloads > .ant-typography:last-child { display: block; margin-top: 8px; font-size: var(--clear-caption-size); }
 .data-workbench .ant-space-item { min-width: 0; max-width: 100%; }
 #data-inputs, #data-compare, #data-results { scroll-margin-top: 12px; }
 @media (max-width: 1100px) {
@@ -69,3 +69,11 @@
   .data-workbench .page-heading { margin-bottom: 8px; padding-bottom: 8px; }
   .data-input .ant-table-body { max-height: 180px !important; }
 }
+
+.data-cell { display: block; font-variant-numeric: tabular-nums; }
+.data-cell-number { text-align: right; }
+.data-workbench .ant-table-thead > tr > th { background: var(--clear-subtle); color: var(--clear-muted); font-weight: 500; }
+.data-workbench .ant-table-wrapper { overflow-x: auto; }
+.data-options summary { min-height: 36px; }
+.data-input .ant-table-cell { line-height: 1.5; }
+@media (max-width: 680px) { .data-upload, .data-options summary { min-height: 44px; } }

@@ -5,6 +5,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import './ocr.css'
 import { useNativeWindow } from '../catalog/nativeWindow'
 import { nativeReviewReturn } from '../catalog/nativeReviewReturn'
+import { FixedNativeEvidence } from '../agent/FixedNativeEvidence'
+import { NativeResultPreview } from '../agent/NativeResultPreview'
 
 const { Title, Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null }
@@ -24,6 +26,11 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function OcrWorkflow() {
+  const [params] = useSearchParams()
+  return params.get('native_binding') ? <NativeResultPreview /> : <OcrHandoffWorkflow />
+}
+
+function OcrHandoffWorkflow() {
   const [params, setParams] = useSearchParams()
   const workspaceId = params.get('workspace')
   const reviewReturn = nativeReviewReturn(params.get('return_to'), workspaceId)
@@ -50,6 +57,12 @@ export function OcrWorkflow() {
   const handoff = useQuery({ queryKey: ['ocr-handoff', workspaceId, handoffId], enabled: !!workspaceId && !!handoffId,
     queryFn: ({ signal }) => json<Handoff>(`${handoffBase}/${encodeURIComponent(handoffId || '')}`, { signal }),
     refetchInterval: query => query.state.data?.state === 'completed' ? false : 5000 })
+  useEffect(() => {
+    if (handoff.data && !projectId) {
+      const project = projects.data?.items.find(item => item.link_id === handoff.data.link_id)
+      if (project) { const next = new URLSearchParams(params); next.set('project', project.project_id); setParams(next, { replace: true }) }
+    }
+  }, [handoff.data?.link_id, projects.data, projectId])
   const capabilities = useQuery({ queryKey: ['ocr-handoff-capabilities', workspaceId, handoffId],
     enabled: !!workspaceId && !!handoffId && handoff.data?.state === 'completed',
     queryFn: ({ signal }) => json<OcrCapabilities>(`${handoffBase}/${encodeURIComponent(handoffId || '')}/capabilities`, { signal }) })
@@ -89,7 +102,7 @@ export function OcrWorkflow() {
       return { url: result.url, kind: 'ticket' }
     })
   }
-  return <div className="ocr-workflow"><div className="page-heading"><Text className="eyebrow">CLEAROCR / 文档识别与校对</Text>
+  return <div className="ocr-workflow"><FixedNativeEvidence /><div className="page-heading"><Text className="eyebrow">CLEAROCR / 文档识别与校对</Text>
     <Title level={1}>ClearOCR</Title></div>
     {reviewReturn && <Paragraph><Link to={reviewReturn}>返回原待办事项</Link></Paragraph>}
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>

@@ -35,10 +35,9 @@ function mount(url: string) {
 test('project and tool selection enter processing without audit setup', async () => {
   const fetcher = vi.fn(async (input: string) => base(input))
   vi.stubGlobal('fetch', fetcher)
-  const { router, view } = mount('/?workspace=a')
-  expect(await screen.findByRole('heading', { name: '选择项目，开始处理' })).toBeInTheDocument()
-  expect(view.container.querySelector('.ant-menu-submenu-open')).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: /ClearData/ }))
+  const { router, view } = mount('/manual?workspace=a')
+  expect(await screen.findByRole('heading', { name: '手动工具' })).toBeInTheDocument()
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('手动工具')
   fireEvent.click(await screen.findByRole('button', { name: '打开数据工作台' }))
   expect(await screen.findByRole('button', { name: '开始新的比对' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/apps/data')
@@ -103,7 +102,7 @@ test('lost native creation reply refreshes the linked job instead of creating an
   expect(creates[0][1]?.body).toBe(creates[1][1]?.body)
 })
 
-test('ready native tool enters its project page without an intermediate popup or relaunch', async () => {
+test('legacy selected native tool reaches the same project page and preserves its context without relaunch', async () => {
   const open = vi.spyOn(window, 'open')
   const manifest = { app_id: 'ocr', display_name: 'OCR', input_types: [], output_types: [], capabilities: [], resources: [] }
   const receipt = { launch_id: 'launchA', instance_id: 'instanceA', base_url: 'http://127.0.0.1:49000/' }
@@ -116,11 +115,10 @@ test('ready native tool enters its project page without an intermediate popup or
     return base(input)
   })
   vi.stubGlobal('fetch', fetcher)
-  const { router } = mount('/?workspace=a&tool=ocr')
-  fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
+  const { router } = mount('/manual?workspace=a&tool=ocr')
   expect(await screen.findByRole('heading', { name: 'ClearOCR', level: 1 })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/apps/ocr/start')
-  expect(router.state.location.search).toBe('?workspace=a')
+  expect(router.state.location.search).toBe('?workspace=a&tool=ocr')
   expect(open).not.toHaveBeenCalled()
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0)
 })

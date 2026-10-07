@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Empty, Input, Select, Space, Typography } from 'antd'
+import { Alert, Button, Input, Select, Space, Typography } from 'antd'
 import { Link } from 'react-router-dom'
-import { useWorkspaceId, useWorkspaces } from '../../App'
+import { useWorkspaceId, useWorkspaces, Workspaces } from '../../App'
 import { applicationDescriptions, brandName } from '../../clear-ui/theme'
 import { useNativeWindow } from '../catalog/nativeWindow'
 
@@ -19,7 +19,7 @@ export function QuickNativeWorkbench({ appId }: { appId: 'ocr' | 'classification
   const workspaceId = useWorkspaceId()
   return <><div className="page-heading"><Text className="eyebrow">CLEAR / PROCESS</Text><Title level={1}>{brandName(appId)}</Title>
     <Paragraph>{applicationDescriptions[appId].purpose} · 在工具内导入资料、处理并下载输出。</Paragraph></div>
-    {workspaceId ? <NativeProject key={`${workspaceId}:${appId}`} workspaceId={workspaceId} appId={appId} /> : <Empty description="先选择项目" />}</>
+    {workspaceId ? <NativeProject key={`${workspaceId}:${appId}`} workspaceId={workspaceId} appId={appId} /> : <Workspaces continueTo={`/apps/${appId}/start`} />}</>
 }
 
 function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'ocr' | 'classification' }) {
