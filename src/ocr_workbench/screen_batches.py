@@ -182,12 +182,15 @@ class ScreenBatches:
             raise ValueError('请选择 1–1000 个不同的图片版本')
         if not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,120}', request_id):
             raise ValueError('批次缺少有效请求编号')
-        policy = validate_policy(body.get('policy'), self.defaults())
-        signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': body.get('export_options'), 'parent_batch_id': parent_batch_id})
+        if body.get('export_options') is not None:
+            raise ValueError('请在下载时明确选择导出选项；创建批次不接受导出参数')
         self.store.one('projects', project_id)
         with self.guard, self.store.file_lock, self.store.transaction() as db:
             db.execute('BEGIN IMMEDIATE')
             previous = db.execute('SELECT * FROM screen_batches WHERE project_id=? AND request_id=?', (project_id, request_id)).fetchone()
+            # Recover the original policy after defaults change for future batches.
+            policy = validate_policy(body.get('policy'), json.loads(previous['policy']) if previous else self.defaults())
+            signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': None, 'parent_batch_id': parent_batch_id})
             if previous:
                 if previous['payload_hash'] != signature:
                     raise Conflict('请求编号已绑定不同的批次范围或策略')

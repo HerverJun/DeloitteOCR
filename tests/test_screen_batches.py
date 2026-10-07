@@ -119,6 +119,22 @@ class ScreenBatchTests(unittest.TestCase):
             self.submit(versions[:1])
         self.assertEqual(self.manager.lookup(self.project, 'request-screen-1')['batch_id'], first)
 
+    def test_lost_submission_recovers_frozen_defaults_after_policy_update(self):
+        versions = self.images(1)
+        self.manager.defaults = lambda: {'primary_engine': 'hunyuan', 'max_upgrades': 0, 'group_size': 32,
+                                        'strategy_version': 'measured-first'}
+        body = {'version_ids': versions, 'request_id': 'request-default-recovery', 'policy': {'primary_engine': 'auto'}}
+        first = self.manager.submit(self.project, body)
+        self.manager.defaults = lambda: {'primary_engine': 'glm', 'max_upgrades': 2, 'group_size': 16,
+                                        'strategy_version': 'measured-next'}
+        recovered = self.manager.submit(self.project, body)
+        self.assertEqual(recovered['batch_id'], first['batch_id'])
+        self.assertEqual(recovered['policy'], first['policy'])
+        with self.assertRaises(Conflict):
+            self.manager.submit(self.project, {**body, 'policy': {'primary_engine': 'glm'}})
+        with self.assertRaisesRegex(ValueError, '下载时'):
+            self.manager.submit(self.project, {**body, 'request_id': 'other-export-options', 'export_options': {'numeric': True}})
+
     def test_failed_only_retry_preserves_prior_failure_and_completed_result(self):
         versions = self.images(2)
         batch = self.submit(versions)
