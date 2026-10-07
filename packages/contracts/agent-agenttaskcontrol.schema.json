@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "take_over",
+        "return_to_agent"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "expected_revision",
+    "action"
+  ],
+  "title": "AgentTaskControl",
+  "type": "object"
+}

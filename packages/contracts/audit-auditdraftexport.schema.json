@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "draft_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Draft Ids",
+      "type": "array"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "title": {
+      "default": "审计工作底稿草稿",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "draft_ids"
+  ],
+  "title": "AuditDraftExport",
+  "type": "object"
+}

@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "content": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Content",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "content",
+    "revision",
+    "request_id"
+  ],
+  "title": "AgentReply",
+  "type": "object"
+}

@@ -54,7 +54,13 @@ class OcrHandoff:
                     engines_json TEXT NOT NULL, request_id TEXT NOT NULL,
                     version_ids_json TEXT NOT NULL, native_task_ids_json TEXT,
                     platform_job_id TEXT, created_at TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS ocr_page_submission (
+                    handoff_id TEXT PRIMARY KEY REFERENCES ocr_handoff(handoff_id),
+                    document_id TEXT NOT NULL,request_id TEXT NOT NULL,
+                    parameters_json TEXT NOT NULL,created_at TEXT NOT NULL);
             """)
+            if 'processing_json' not in {row[1] for row in db.execute('PRAGMA table_info(ocr_submission)')}:
+                db.execute("ALTER TABLE ocr_submission ADD COLUMN processing_json TEXT NOT NULL DEFAULT '{\"preprocess\":[]}'")
 
     def _connect(self):
         db = sqlite3.connect(self.db_path, timeout=15, isolation_level=None)
@@ -114,7 +120,7 @@ class OcrHandoff:
                           "page_count": native.get("page_count"),
                           "page_numbers": native.get("page_numbers")})
         with closing(self._connect()) as db:
-            processing = db.execute("SELECT engines_json,platform_job_id,native_task_ids_json "
+            processing = db.execute("SELECT engines_json,platform_job_id,native_task_ids_json,processing_json "
                                     "FROM ocr_submission WHERE handoff_id=?",
                                     (row["handoff_id"],)).fetchone()
         return {"handoff_id": row["handoff_id"], "workspace_id": row["workspace_id"],
@@ -124,6 +130,7 @@ class OcrHandoff:
                 "state": status["state"] if reachable and status else "unknown",
                 "availability": "ready" if reachable else "unreachable",
                 "processing": ({"engines": json.loads(processing["engines_json"]),
+                                **json.loads(processing['processing_json']),
                                 "platform_job_id": processing["platform_job_id"],
                                 "request_state": "registered" if processing["platform_job_id"]
                                     else "sent" if processing["native_task_ids_json"] else "unknown"}
@@ -238,12 +245,16 @@ class OcrHandoff:
         return {"recognition": available.recognition, "reason": available.reason,
                 "engines": engines if available.recognition else []}
 
-    def submit(self, workspace_id: str, handoff_id: str, engines: list[str], *, allow_new=True):
+    def submit(self, workspace_id: str, handoff_id: str, engines: list[str], *, allow_new=True, preprocess=None):
         if (not isinstance(engines, list) or not 1 <= len(engines) <= 16
                 or any(not isinstance(item, str) or not ID.fullmatch(item) for item in engines)
                 or len(set(engines)) != len(engines)):
             raise ValueError("Invalid OCR engine selection")
         normalized = sorted(engines)
+        preprocess = preprocess or []
+        from workbench_platform.jobs.native_ocr import validate_preprocess
+        validate_preprocess(preprocess)
+        processing = _json({'preprocess': preprocess})
         with self.lock:
             row = self._row(workspace_id, handoff_id)
             if any(Path(item["name"]).suffix.lower() == ".pdf"
@@ -257,18 +268,19 @@ class OcrHandoff:
             version_ids = [item["target_version_id"] for item in native["items"]]
             if any(not isinstance(item, str) for item in version_ids):
                 raise AssetSetConflict("Imported version is missing")
-            digest = hashlib.sha256(_json([handoff_id, normalized]).encode()).hexdigest()
+            digest = hashlib.sha256(_json([handoff_id, normalized, processing] if preprocess else [handoff_id, normalized]).encode()).hexdigest()
             request_id = "r" + digest[:32]
             with closing(self._connect()) as db:
                 submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
                                         (handoff_id,)).fetchone()
                 if submission is None:
-                    db.execute("INSERT INTO ocr_submission VALUES(?,?,?,?,?,?,?)",
+                    db.execute("INSERT INTO ocr_submission(handoff_id,engines_json,request_id,version_ids_json,native_task_ids_json,platform_job_id,created_at,processing_json) VALUES(?,?,?,?,?,?,?,?)",
                                (handoff_id, _json(normalized), request_id,
-                                _json(version_ids), None, None, _utc()))
+                                _json(version_ids), None, None, _utc(), processing))
                     submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
                                             (handoff_id,)).fetchone()
             if (submission["engines_json"] != _json(normalized)
+                    or submission['processing_json'] != processing
                     or submission["version_ids_json"] != _json(version_ids)):
                 raise AssetSetConflict("OCR processing request is already bound to other inputs")
             task_ids = (json.loads(submission["native_task_ids_json"])
@@ -280,7 +292,8 @@ class OcrHandoff:
                         return {"not_submitted": True}
                     if not adapter.capabilities().recognition:
                         raise OcrUnavailable()
-                    task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id))
+                    task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id,
+                        **({'preprocess': preprocess} if preprocess else {})))
                 with closing(self._connect()) as db:
                     db.execute("UPDATE ocr_submission SET native_task_ids_json=? WHERE handoff_id=?",
                                (_json(task_ids), handoff_id))
@@ -337,6 +350,7 @@ class OcrHandoff:
                            "blob_hash": asset.blob_hash,
                            "source_locator": member.source_locator.model_dump(mode="json")})
         results = adapter.results(task_ids)
+        native_tasks = {item['id']: item for item in adapter.snapshot()['tasks']}
         succeeded = {task.native_task_id: task for task in batch.tasks
                      if task.native_status == "succeeded"}
         if len(results) != len(succeeded):
@@ -344,7 +358,7 @@ class OcrHandoff:
         pinned, items = [], []
         for result in results:
             task = succeeded.pop(result.native_task_id, None)
-            key = (result.image_id, result.version_id)
+            key = (result.image_id, native_tasks[result.native_task_id].get('input_version_id') or result.version_id)
             if (task is None or task.result_id != result.native_result_id
                     or key not in sources or result.image_id != task.image_id
                     or result.version_id != task.version_id):
@@ -390,6 +404,18 @@ class OcrHandoff:
         documents = {item["id"]: item for item in snapshot["documents"]}
         images = snapshot["images"]
         tasks = snapshot["tasks"]
+        with closing(self._connect()) as db:
+            page_submission = db.execute('SELECT * FROM ocr_page_submission WHERE handoff_id=?', (row['handoff_id'],)).fetchone()
+        explicit = None
+        requested_results = {}
+        if page_submission:
+            receipt = adapter.page_request(page_submission['document_id'], page_submission['request_id'])
+            if not receipt['submitted'] or receipt['parameters'] != json.loads(page_submission['parameters_json']):
+                raise AssetSetConflict('PDF page request identity changed')
+            if any(stage['status'] != 'succeeded' for stage in receipt['stages']):
+                raise AssetSetConflict('Selected PDF pages are not fully processed; read page coverage before exporting')
+            explicit = {(page_submission['document_id'], stage['page_number']) for stage in receipt['stages']}
+            requested_results = {(page_submission['document_id'], stage['page_number']): stage['output']['result_id'] for stage in receipt['stages']}
         sources, inputs = {}, []
         for member, source, native in zip(asset_set.items, manifest["items"], imported["items"]):
             document_id = native.get("target_document_id")
@@ -418,13 +444,23 @@ class OcrHandoff:
             if document_id not in sources:
                 continue
             page = image.get("page_number")
+            if explicit is not None and (document_id, page) not in explicit:
+                continue
             result_id = image.get("selected_result")
+            if explicit is not None:
+                result_id = requested_results.get((document_id, page))
+                image = {**image, 'selected_result': result_id}
             if (type(page) is not int or not 1 <= page <= sources[document_id][1]
                     or (document_id, page) in selected or not result_id):
                 raise AssetSetConflict("OCR document page result is missing or repeated")
             selected[(document_id, page)] = image
         expected = {(document_id, page) for document_id, (_, count) in sources.items()
                     for page in range(1, count + 1)}
+        if explicit is not None:
+            expected = explicit
+            for source in inputs:
+                source['requested_pages'] = sorted(page for document_id, page in explicit
+                    if sources[document_id][0].asset_id == source['asset_id'])
         if set(selected) != expected:
             raise AssetSetConflict("OCR document pages are not fully processed")
         native_tasks, items = [], []

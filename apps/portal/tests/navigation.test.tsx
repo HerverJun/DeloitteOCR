@@ -41,7 +41,8 @@ test('deep links, context-aware navigation and history reach distinct pages', as
     { service: 'ready' } })))
   const { router } = mount('/assets?workspace=a')
   expect(await screen.findByRole('heading', { name: '资料库' })).toBeInTheDocument()
-  fireEvent.click(screen.getByText('运行任务', { selector: '.ant-menu-title-content' }))
+  fireEvent.click(screen.getByText('正式档案与运行详情'))
+  fireEvent.click(screen.getByRole('link', { name: '运行任务' }))
   expect(await screen.findByText('此工作空间还没有已跟踪任务')).toBeInTheDocument()
   expect(router.state.location.search).toBe('?workspace=a')
   await router.navigate(-1)
@@ -49,7 +50,23 @@ test('deep links, context-aware navigation and history reach distinct pages', as
   await router.navigate('/absent?workspace=b')
   expect(await screen.findByText('页面不存在')).toBeInTheDocument()
   fireEvent.click(screen.getByText('返回首页 →'))
-  expect(await screen.findByText('选择项目，开始处理')).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { name: '从一个审计目标开始' })).toBeInTheDocument()
+  expect(screen.getByPlaceholderText('输入审计目标，或向大模型提问…')).toBeInTheDocument()
+}, 15000)
+
+test('project sections keep source identities and hashes on legacy deep links without changing task scope', async () => {
+  const writes: string[] = []
+  vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
+    if (init?.method) writes.push(input)
+    return { ok: true, json: async () => input.includes('/workspaces?') ? page([{ workspace_id: 'a', name: '甲' }]) : input.includes('/assets?') ? { items: [], total: 0, next_offset: null, facets: { media_types: [], tags: [] } } : { id: 'task', workspace_id: 'a', manual: false, title: '任务' } }
+  }))
+  const query = '?workspace=a&session=task&bundle=fixed&task_return=task&revision=3'
+  const { view } = mount(`/assets${query}#source`)
+  const project = await screen.findByRole('navigation', { name: '项目内容' })
+  for (const [label, path] of [['项目概况', '/projects'], ['资料', '/assets'], ['发现', '/findings'], ['成果', '/artifacts']]) expect(within(project).getByRole('link', { name: label })).toHaveAttribute('href', path + query + '#source')
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('审计项目')
+  expect(screen.getAllByRole('combobox', { name: '当前项目' })).toHaveLength(1)
+  expect(writes).toHaveLength(0)
 })
 
 test('Clear tools share one directory and workflow groups preserve workspace navigation', async () => {
@@ -69,18 +86,20 @@ test('Clear tools share one directory and workflow groups preserve workspace nav
   }
   expect(directory.querySelectorAll('.application-card')).toHaveLength(4)
   const navigation = screen.getByRole('menu', { name: '主导航' })
-  for (const entry of ['开始处理', '项目', 'Clear 工具', '输出', '高级功能']) expect(within(navigation).getByText(entry)).toBeInTheDocument()
+  for (const entry of ['智能审计', '审计项目', '手动工具']) expect(within(navigation).getByText(entry)).toBeInTheDocument()
+  expect(within(navigation).getAllByRole('menuitem')).toHaveLength(3)
+  expect(within(navigation).queryByText('成果文件')).not.toBeInTheDocument()
   expect(within(navigation).queryByText('图像取证')).not.toBeInTheDocument()
   expect(within(navigation).queryByText('ClearForensics')).not.toBeInTheDocument()
   fireEvent.click(within(directory).getByRole('button', { name: '打开图像取证' }))
   expect(await screen.findByRole('heading', { name: 'ClearForensics', level: 1 })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/apps/forensics')
   expect(router.state.location.search).toBe('?workspace=a')
-  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('Clear 工具')
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('手动工具')
   fireEvent.click(screen.getByRole('link', { name: '← 返回应用目录' }))
   await waitFor(() => expect(router.state.location.pathname).toBe('/apps'))
   expect(router.state.location.search).toBe('?workspace=a')
-})
+}, 15000)
 
 test('legacy forensic report links retain all context when redirected to the application', async () => {
   vi.stubGlobal('fetch', vi.fn(async (input: string) => {
@@ -95,7 +114,7 @@ test('legacy forensic report links retain all context when redirected to the app
   expect(router.state.location.search).toBe(query)
   expect(router.state.location.hash).toBe('#heatmap')
   expect(router.state.historyAction).toBe('REPLACE')
-  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('Clear 工具')
+  expect(view.container.querySelector('.ant-menu-item-selected')).toHaveTextContent('手动工具')
 })
 
 test('narrow navigation opens by keyboard-accessible button and closes after page selection', async () => {
@@ -107,7 +126,7 @@ test('narrow navigation opens by keyboard-accessible button and closes after pag
   expect(open).toHaveAttribute('aria-expanded', 'false')
   fireEvent.click(open)
   expect(screen.getByRole('button', { name: '收起导航' })).toHaveAttribute('aria-expanded', 'true')
-  fireEvent.click(screen.getByText('项目', { selector: '.ant-menu-title-content' }))
+  fireEvent.click(screen.getByText('审计项目', { selector: '.ant-menu-title-content' }))
   expect(await screen.findByRole('heading', { name: '项目' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/projects')
   expect(screen.getByRole('button', { name: '展开导航' })).toHaveAttribute('aria-expanded', 'false')

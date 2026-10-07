@@ -1,6 +1,1294 @@
 {
   "components": {
     "schemas": {
+      "AgentCall": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "additionalProperties": true,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "call_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Call Id",
+            "type": "string"
+          },
+          "tool": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "call_id",
+          "tool",
+          "arguments"
+        ],
+        "title": "AgentCall",
+        "type": "object"
+      },
+      "AgentCancel": {
+        "additionalProperties": false,
+        "properties": {
+          "cancel_owned_jobs": {
+            "default": false,
+            "title": "Cancel Owned Jobs",
+            "type": "boolean"
+          }
+        },
+        "title": "AgentCancel",
+        "type": "object"
+      },
+      "AgentError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "default": false,
+            "title": "Retryable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "AgentError",
+        "type": "object"
+      },
+      "AgentJobProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "application": {
+            "anyOf": [
+              {
+                "enum": [
+                  "platform",
+                  "data",
+                  "ocr",
+                  "classification",
+                  "forensics"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Application"
+          },
+          "availability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Availability"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "pause",
+                "resume",
+                "cancel",
+                "retry_failed"
+              ],
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "coverage": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Coverage",
+            "type": "object"
+          },
+          "execution_complete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Execution Complete"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "hard_cancel": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hard Cancel"
+          },
+          "has_error": {
+            "default": false,
+            "title": "Has Error",
+            "type": "boolean"
+          },
+          "index_complete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Index Complete"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Job Id"
+          },
+          "job_ref": {
+            "$ref": "#/components/schemas/AgentRef"
+          },
+          "native_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Native Kind"
+          },
+          "needs_resume": {
+            "default": false,
+            "title": "Needs Resume",
+            "type": "boolean"
+          },
+          "observation": {
+            "default": "native",
+            "enum": [
+              "native",
+              "unavailable"
+            ],
+            "title": "Observation",
+            "type": "string"
+          },
+          "progress_done": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Progress Done"
+          },
+          "progress_total": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Progress Total"
+          },
+          "resume_message": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Resume Message",
+            "type": "string"
+          },
+          "review_complete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Review Complete"
+          },
+          "sampled_at": {
+            "title": "Sampled At",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stage"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "const": 1,
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generation",
+          "job_ref",
+          "status",
+          "sampled_at"
+        ],
+        "title": "AgentJobProgress",
+        "type": "object"
+      },
+      "AgentManualReturn": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "include_asset_ids": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Include Asset Ids",
+            "type": "array"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 50,
+            "title": "References",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision",
+          "summary"
+        ],
+        "title": "AgentManualReturn",
+        "type": "object"
+      },
+      "AgentMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "request_id"
+        ],
+        "title": "AgentMessage",
+        "type": "object"
+      },
+      "AgentNativeAttach": {
+        "additionalProperties": false,
+        "properties": {
+          "application": {
+            "enum": [
+              "ocr",
+              "classification"
+            ],
+            "title": "Application",
+            "type": "string"
+          },
+          "link_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "object_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Object Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "application",
+          "link_id",
+          "object_id"
+        ],
+        "title": "AgentNativeAttach",
+        "type": "object"
+      },
+      "AgentPublicActivity": {
+        "additionalProperties": false,
+        "properties": {
+          "call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Call Id"
+          },
+          "display_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Id"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "job_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "title": "Job Refs",
+            "type": "array"
+          },
+          "phase": {
+            "enum": [
+              "preparing_request",
+              "model_wait",
+              "receiving_response",
+              "validating_calls",
+              "tool_dispatch",
+              "waiting_job",
+              "waiting_user",
+              "needs_verification",
+              "finalizing",
+              "completed",
+              "stopped",
+              "failed"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reason"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Status"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool"
+          },
+          "version": {
+            "const": 1,
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generation",
+          "phase"
+        ],
+        "title": "AgentPublicActivity",
+        "type": "object"
+      },
+      "AgentRef": {
+        "additionalProperties": false,
+        "properties": {
+          "application": {
+            "default": "platform",
+            "enum": [
+              "platform",
+              "data",
+              "ocr",
+              "classification",
+              "forensics"
+            ],
+            "title": "Application",
+            "type": "string"
+          },
+          "coverage": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Coverage",
+            "type": "object"
+          },
+          "kind": {
+            "enum": [
+              "asset",
+              "asset_set",
+              "table",
+              "result",
+              "artifact",
+              "job",
+              "evidence"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "native_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Native Id"
+          },
+          "object_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Object Id",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Id"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Revision"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sha256"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 100,
+            "title": "Sources",
+            "type": "array"
+          },
+          "workspace_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "workspace_id",
+          "object_id",
+          "revision"
+        ],
+        "title": "AgentRef",
+        "type": "object"
+      },
+      "AgentReferenceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "artifact",
+              "table",
+              "result"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "object_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Object Id",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Id"
+          }
+        },
+        "required": [
+          "kind",
+          "object_id"
+        ],
+        "title": "AgentReferenceRequest",
+        "type": "object"
+      },
+      "AgentReply": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "content",
+          "revision",
+          "request_id"
+        ],
+        "title": "AgentReply",
+        "type": "object"
+      },
+      "AgentResponsePreview": {
+        "additionalProperties": false,
+        "properties": {
+          "call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Call Id"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "display_id": {
+            "title": "Display Id",
+            "type": "string"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "snapshot",
+              "append",
+              "replace"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "offset": {
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "provisional": {
+            "const": true,
+            "default": true,
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "text",
+              "answer",
+              "delivery"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "version": {
+            "const": 1,
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generation",
+          "request_id",
+          "display_id",
+          "revision",
+          "mode",
+          "offset",
+          "content",
+          "source"
+        ],
+        "title": "AgentResponsePreview",
+        "type": "object"
+      },
+      "AgentResponseState": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "display_id": {
+            "title": "Display Id",
+            "type": "string"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "text",
+              "answer",
+              "delivery"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "generated",
+              "confirmed",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "const": 1,
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generation",
+          "request_id",
+          "display_id",
+          "revision",
+          "status",
+          "source",
+          "content"
+        ],
+        "title": "AgentResponseState",
+        "type": "object"
+      },
+      "AgentSessionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "initial_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 20,
+            "title": "Initial Refs",
+            "type": "array"
+          },
+          "name": {
+            "default": "新任务",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "selected_assets": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Selected Assets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "title": "AgentSessionCreate",
+        "type": "object"
+      },
+      "AgentSkillActivate": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Name",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Request Id",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Version"
+          }
+        },
+        "required": [
+          "name",
+          "request_id"
+        ],
+        "title": "AgentSkillActivate",
+        "type": "object"
+      },
+      "AgentSkillDeactivate": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Name",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "request_id"
+        ],
+        "title": "AgentSkillDeactivate",
+        "type": "object"
+      },
+      "AgentTaskControl": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "take_over",
+              "return_to_agent"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 1,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision",
+          "action"
+        ],
+        "title": "AgentTaskControl",
+        "type": "object"
+      },
+      "AgentTaskWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "maxLength": 16000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Goal"
+          },
+          "initial_refs": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AgentRef"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Initial Refs"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "selected_assets": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected Assets"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision"
+        ],
+        "title": "AgentTaskWrite",
+        "type": "object"
+      },
+      "AgentToolActivity": {
+        "additionalProperties": false,
+        "properties": {
+          "call_id": {
+            "title": "Call Id",
+            "type": "string"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "job_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "title": "Job Refs",
+            "type": "array"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Operation Id"
+          },
+          "phase": {
+            "enum": [
+              "started",
+              "restored",
+              "pending",
+              "finished",
+              "blocked"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          },
+          "version": {
+            "const": 1,
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generation",
+          "call_id",
+          "tool",
+          "phase",
+          "status",
+          "summary"
+        ],
+        "title": "AgentToolActivity",
+        "type": "object"
+      },
+      "AgentToolResult": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 100,
+            "title": "Artifact Refs",
+            "type": "array"
+          },
+          "coverage": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Coverage",
+            "type": "object"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentError"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "job_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 100,
+            "title": "Job Refs",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Offset"
+          },
+          "result_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRef"
+            },
+            "maxItems": 100,
+            "title": "Result Refs",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "success",
+              "pending",
+              "error",
+              "needs_user",
+              "needs_verification",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "title": "Summary",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "summary"
+        ],
+        "title": "AgentToolResult",
+        "type": "object"
+      },
       "AppHealth": {
         "additionalProperties": false,
         "properties": {
@@ -713,6 +2001,241 @@
         "title": "AuditBatchSelection",
         "type": "object"
       },
+      "AuditDirectEvidenceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "captured_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Captured At",
+            "type": "string"
+          },
+          "evidence_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "scenario": {
+            "const": "direct_tool",
+            "default": "direct_tool",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "source_assets": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocator"
+            },
+            "maxItems": 10000,
+            "title": "Source Assets",
+            "type": "array"
+          },
+          "source_count": {
+            "maximum": 1000000000,
+            "minimum": 0,
+            "title": "Source Count",
+            "type": "integer"
+          },
+          "source_evidence_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Source Evidence Id",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocator"
+            },
+            "maxItems": 200,
+            "title": "Sources",
+            "type": "array"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "source_evidence_id",
+          "snapshot_hash",
+          "evidence_id",
+          "project_id",
+          "workspace_id",
+          "captured_at",
+          "sources",
+          "source_assets",
+          "source_count"
+        ],
+        "title": "AuditDirectEvidenceRef",
+        "type": "object"
+      },
+      "AuditDirectEvidenceSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "snapshot_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "source_evidence_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Source Evidence Id",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "source_evidence_id",
+          "snapshot_hash"
+        ],
+        "title": "AuditDirectEvidenceSelection",
+        "type": "object"
+      },
+      "AuditDraftExport": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_ids": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Draft Ids",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "title": {
+            "default": "审计工作底稿草稿",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "draft_ids"
+        ],
+        "title": "AuditDraftExport",
+        "type": "object"
+      },
+      "AuditDraftWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Draft Id"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "facts": {
+            "default": "",
+            "maxLength": 12000,
+            "title": "Facts",
+            "type": "string"
+          },
+          "interpretation": {
+            "default": "",
+            "maxLength": 12000,
+            "title": "Interpretation",
+            "type": "string"
+          },
+          "missing_information": {
+            "default": "",
+            "maxLength": 8000,
+            "title": "Missing Information",
+            "type": "string"
+          },
+          "recommendations": {
+            "default": "",
+            "maxLength": 8000,
+            "title": "Recommendations",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "rule": {
+            "default": "",
+            "maxLength": 8000,
+            "title": "Rule",
+            "type": "string"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "confirmed",
+              "dismissed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision",
+          "title"
+        ],
+        "title": "AuditDraftWrite",
+        "type": "object"
+      },
       "AuditEvidenceKeep": {
         "additionalProperties": false,
         "properties": {
@@ -863,6 +2386,9 @@
           },
           {
             "$ref": "#/components/schemas/ForensicEvidenceSnapshot"
+          },
+          {
+            "$ref": "#/components/schemas/DirectEvidenceSnapshot"
           }
         ],
         "title": "AuditEvidenceSnapshot"
@@ -894,6 +2420,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ForensicEvidenceRef"
+                },
+                {
+                  "$ref": "#/components/schemas/AuditDirectEvidenceRef"
                 }
               ]
             },
@@ -909,6 +2438,30 @@
             "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
             "title": "Finding Id",
             "type": "string"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuditFindingOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "outdated": {
+            "default": false,
+            "title": "Outdated",
+            "type": "boolean"
+          },
+          "outdated_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Outdated Reasons",
+            "type": "array"
           },
           "procedure_id": {
             "maxLength": 64,
@@ -996,6 +2549,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/AuditEvidenceKeep"
+                },
+                {
+                  "$ref": "#/components/schemas/AuditDirectEvidenceSelection"
                 }
               ]
             },
@@ -1009,7 +2565,15 @@
             "type": "integer"
           },
           "finding": {
-            "$ref": "#/components/schemas/AuditFindingFields"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuditFindingFields"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "procedure_id": {
             "maxLength": 64,
@@ -1027,6 +2591,17 @@
             "const": "1.0",
             "title": "Schema Version",
             "type": "string"
+          },
+          "source_draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DraftTransferSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -1034,9 +2609,7 @@
           "request_id",
           "actor",
           "expected_revision",
-          "procedure_id",
-          "finding",
-          "evidence"
+          "procedure_id"
         ],
         "title": "AuditFindingCreate",
         "type": "object"
@@ -1086,6 +2659,50 @@
           "title"
         ],
         "title": "AuditFindingFields",
+        "type": "object"
+      },
+      "AuditFindingOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "additionalProperties": true,
+            "title": "Author",
+            "type": "object"
+          },
+          "content": {
+            "additionalProperties": true,
+            "title": "Content",
+            "type": "object"
+          },
+          "source": {
+            "$ref": "#/components/schemas/DraftTransferSource"
+          },
+          "transfer_actor": {
+            "$ref": "#/components/schemas/LocalActor"
+          },
+          "transfer_kind": {
+            "enum": [
+              "human",
+              "agent"
+            ],
+            "title": "Transfer Kind",
+            "type": "string"
+          },
+          "transferred_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "title": "Transferred At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "content",
+          "author",
+          "transfer_actor",
+          "transfer_kind",
+          "transferred_at"
+        ],
+        "title": "AuditFindingOrigin",
         "type": "object"
       },
       "AuditFindingPage": {
@@ -1182,6 +2799,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/AuditEvidenceKeep"
+                },
+                {
+                  "$ref": "#/components/schemas/AuditDirectEvidenceSelection"
                 }
               ]
             },
@@ -1924,6 +3544,57 @@
           "items"
         ],
         "title": "AuditProjectPage",
+        "type": "object"
+      },
+      "AuditProjectProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_object": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Audit Object",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "objective": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Objective",
+            "type": "string"
+          },
+          "period_end": {
+            "default": "",
+            "maxLength": 10,
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "default": "",
+            "maxLength": 10,
+            "title": "Period Start",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "rules": {
+            "default": "",
+            "maxLength": 8000,
+            "title": "Rules",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_revision"
+        ],
+        "title": "AuditProjectProfile",
         "type": "object"
       },
       "AuditProjectWrite": {
@@ -3275,6 +4946,151 @@
         "title": "ContextIssueRequest",
         "type": "object"
       },
+      "ControllerDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Api Key",
+            "type": "string"
+          },
+          "base_url": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Base Url",
+            "type": "string"
+          },
+          "context_cap": {
+            "default": 16384,
+            "maximum": 200000,
+            "minimum": 4096,
+            "title": "Context Cap",
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "default": 2048,
+            "maximum": 8192,
+            "minimum": 256,
+            "title": "Max Output Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "openai_chat_completions",
+              "anthropic_messages"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "streaming": {
+            "default": true,
+            "title": "Streaming",
+            "type": "boolean"
+          },
+          "token_parameter": {
+            "default": "max_completion_tokens",
+            "enum": [
+              "max_tokens",
+              "max_completion_tokens"
+            ],
+            "title": "Token Parameter",
+            "type": "string"
+          },
+          "total_seconds": {
+            "default": 180,
+            "maximum": 600,
+            "minimum": 10,
+            "title": "Total Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protocol",
+          "base_url",
+          "model"
+        ],
+        "title": "ControllerDraft",
+        "type": "object"
+      },
+      "ControllerModelsDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Api Key",
+            "type": "string"
+          },
+          "base_url": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Base Url",
+            "type": "string"
+          },
+          "context_cap": {
+            "default": 16384,
+            "maximum": 200000,
+            "minimum": 4096,
+            "title": "Context Cap",
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "default": 2048,
+            "maximum": 8192,
+            "minimum": 256,
+            "title": "Max Output Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "default": "",
+            "maxLength": 256,
+            "title": "Model",
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "openai_chat_completions",
+              "anthropic_messages"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "streaming": {
+            "default": true,
+            "title": "Streaming",
+            "type": "boolean"
+          },
+          "token_parameter": {
+            "default": "max_completion_tokens",
+            "enum": [
+              "max_tokens",
+              "max_completion_tokens"
+            ],
+            "title": "Token Parameter",
+            "type": "string"
+          },
+          "total_seconds": {
+            "default": 180,
+            "maximum": 600,
+            "minimum": 10,
+            "title": "Total Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protocol",
+          "base_url"
+        ],
+        "title": "ControllerModelsDraft",
+        "type": "object"
+      },
       "Counts": {
         "additionalProperties": false,
         "properties": {
@@ -3358,6 +5174,173 @@
           "currency"
         ],
         "title": "DecimalValue",
+        "type": "object"
+      },
+      "DirectEvidenceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/AgentRef"
+          }
+        },
+        "required": [
+          "reference"
+        ],
+        "title": "DirectEvidenceRequest",
+        "type": "object"
+      },
+      "DirectEvidenceSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "location_url": {
+            "title": "Location Url",
+            "type": "string"
+          },
+          "observation": {
+            "additionalProperties": true,
+            "title": "Observation",
+            "type": "object"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/AgentRef"
+          },
+          "scenario": {
+            "const": "direct_tool",
+            "default": "direct_tool",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "snapshot_version": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Snapshot Version",
+            "type": "integer"
+          },
+          "source_assets": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocator"
+            },
+            "maxItems": 10000,
+            "title": "Source Assets",
+            "type": "array"
+          },
+          "source_count": {
+            "minimum": 0,
+            "title": "Source Count",
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLocator"
+            },
+            "maxItems": 200,
+            "title": "Sources",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 4000,
+            "title": "Summary",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "workspace_id",
+          "task_id",
+          "reference",
+          "snapshot_hash",
+          "summary",
+          "source_count",
+          "observation",
+          "created_at",
+          "location_url"
+        ],
+        "title": "DirectEvidenceSnapshot",
+        "type": "object"
+      },
+      "DraftTransferSource": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "project_context_revision": {
+            "minimum": 0,
+            "title": "Project Context Revision",
+            "type": "integer"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "scope_revision": {
+            "minimum": 1,
+            "title": "Scope Revision",
+            "type": "integer"
+          },
+          "snapshot_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "draft_id",
+          "revision",
+          "snapshot_hash",
+          "scope_revision",
+          "project_context_revision"
+        ],
+        "title": "DraftTransferSource",
         "type": "object"
       },
       "Error": {
@@ -7381,6 +9364,1197 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/platform/v1/agent/connection": {
+      "delete": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "put": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControllerDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/connection/models": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControllerModelsDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/connection/probe": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControllerDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/decisions/{decision_id}/reply": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentReply"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/health": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/runs/{run_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/runs/{run_id}/cancel": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentCancel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/runs/{run_id}/resume": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/events": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/evidence": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DirectEvidenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/evidence/{evidence_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/findings": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditDraftWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/manual-results": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "schema": {
+              "default": "",
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/manual-return": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentManualReturn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/messages": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentMessage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/native-results": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "application",
+            "schema": {
+              "enum": [
+                "ocr",
+                "classification"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "link_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/native-results/attach": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentNativeAttach"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/skills/activate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentSkillActivate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/skills/deactivate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentSkillDeactivate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/skills/{name}/resources": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "path",
+            "schema": {
+              "default": "SKILL.md",
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 4000,
+              "maximum": 16000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/stream": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/task": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentTaskWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/task/control": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentTaskControl"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/workpaper": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditDraftExport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/skills": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "session_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "schema": {
+              "default": "",
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
     "/api/platform/v1/apps": {
       "get": {
         "operationId": "listAppManifests",
@@ -10483,6 +13657,167 @@
         }
       }
     },
+    "/api/platform/v1/workspaces/{workspace_id}/agent/capabilities": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/agent/references": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentReferenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/agent/sessions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
     "/api/platform/v1/workspaces/{workspace_id}/artifacts/{bundle_id}": {
       "get": {
         "description": "Ready review bundles return bounded metadata; complete history and unresolved items are immutable bundle files. Current status is evaluated against the live batch snapshot.",
@@ -10779,6 +14114,107 @@
         }
       }
     },
+    "/api/platform/v1/workspaces/{workspace_id}/audit-overview": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/audit-profile": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditProjectProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
     "/api/platform/v1/workspaces/{workspace_id}/audit-projects": {
       "get": {
         "operationId": "listAuditProjects",
@@ -10963,6 +14399,37 @@
             "description": "Store unavailable"
           }
         }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/audit-tasks": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
       }
     },
     "/api/platform/v1/workspaces/{workspace_id}/forensics": {
@@ -11402,6 +14869,73 @@
             "description": "OK"
           }
         }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/native-results/{binding_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "session_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
       }
     },
     "/api/platform/v1/workspaces/{workspace_id}/open-contexts": {

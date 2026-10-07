@@ -513,7 +513,8 @@ class Supervisor:
             self.registry.observe_health(app_id, AppHealth(schema_version="1.0",
                 service=health("ready", "Service identity verified"),
                 ui=health("unknown", "UI has not been probed"), cpu=health("unknown", "CPU has not been probed"),
-                gpu=health("unknown" if "gpu" in manifest.resources else "disabled", "GPU has not been probed"),
+                gpu=health("unknown" if "gpu" in manifest.resources else "disabled",
+                           "GPU has not been probed" if "gpu" in manifest.resources else "GPU is not declared"),
                 models=health("unknown", "Model files have not been probed")), snapshot_revision=revision)
             self._current[app_id] = (revision, instance_id)
 
@@ -531,7 +532,8 @@ class Supervisor:
                 service=health("unknown" if monitoring_stopped else "unavailable",
                                "Supervisor stopped monitoring" if monitoring_stopped else "Service exited or was stopped"),
                 ui=health("unknown", "UI has not been probed"), cpu=health("unknown", "CPU has not been probed"),
-                gpu=health("unknown" if "gpu" in manifest.resources else "disabled", "GPU has not been probed"),
+                gpu=health("unknown" if "gpu" in manifest.resources else "disabled",
+                           "GPU has not been probed" if "gpu" in manifest.resources else "GPU is not declared"),
                 models=health("unknown", "Model files have not been probed"))
             try:
                 self.registry.observe_health(app_id, observation, snapshot_revision=revision)

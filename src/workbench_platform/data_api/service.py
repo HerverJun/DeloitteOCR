@@ -45,6 +45,7 @@ class DataWorkbenchService:
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.python = python.resolve() if python else None
+        self.asset_registry = None
         self.db_path = self.root / 'sessions.sqlite3'
         self.project_root = Path(__file__).resolve().parents[3]
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='data-workbench')
@@ -168,7 +169,10 @@ class DataWorkbenchService:
             return {'items': items, 'total': total, 'offset': offset, 'limit': limit}
 
     def upload(self, session_id, upload_id, name, suffix, path, sha256, size, *, source_asset=None):
-        self.get(session_id)
+        session = self.get(session_id)
+        if source_asset is None and session['workspace_id'] and self.asset_registry is not None:
+            from workbench_platform.application_services.data import register_manual_source
+            source_asset = register_manual_source(self.asset_registry, session['workspace_id'], name, path, sha256, size)
         source_asset = source_asset or {}
         with closing(self.db()) as db, db:
             db.execute('INSERT INTO uploads (id,session_id,name,format,relative,sha256,size,'
@@ -178,7 +182,53 @@ class DataWorkbenchService:
                         path.relative_to(self.session_dir(session_id)).as_posix(), sha256, size,
                         source_asset.get('workspace_id'), source_asset.get('asset_id'),
                         source_asset.get('revision'), source_asset.get('blob_hash')))
-        return {'id': upload_id, 'name': name, 'format': suffix.lstrip('.'), 'sha256': sha256, 'size': size}
+        return {'id': upload_id, 'name': name, 'format': suffix.lstrip('.'), 'sha256': sha256, 'size': size,
+                'source_asset': source_asset or None}
+
+    def register_upload_source(self, session_id, upload_id):
+        """Map a verified legacy manual upload when the user opens its results."""
+        upload = self.upload_source(session_id, upload_id)
+        workspace_id = self.get(session_id)['workspace_id']
+        if upload['source_asset_id'] or not workspace_id or self.asset_registry is None:
+            return upload
+        from workbench_platform.application_services.data import register_manual_source
+        source = register_manual_source(self.asset_registry, workspace_id, upload['name'],
+            self.session_dir(session_id) / upload['relative'], upload['sha256'], upload['size'])
+        with closing(self.db()) as db, db:
+            db.execute('UPDATE uploads SET source_workspace_id=?,source_asset_id=?,source_asset_revision=?,source_blob_hash=? '
+                'WHERE session_id=? AND id=? AND source_asset_id IS NULL',
+                (source['workspace_id'], source['asset_id'], source['revision'], source['blob_hash'], session_id, upload_id))
+        return self.upload_source(session_id, upload_id)
+
+    def inspect_input(self, path, format, options=None):
+        if not self.ready():
+            raise DataError('数据分析环境尚未配置', 503)
+        path = Path(path).resolve(strict=True)
+        if path.drive.upper() != 'F:':
+            raise DataError('资料必须位于受控 F 盘存储')
+        folder = self.root / 'inspection' / ('p' + uuid.uuid4().hex)
+        folder.mkdir(parents=True)
+        request, response = folder / 'request.json', folder / 'response.json'
+        request.write_text(encode({'path': str(path), 'format': format, 'options': options or {}}), encoding='utf-8')
+        environment = {key: value for key, value in os.environ.items() if key.upper() in
+                       {'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATH', 'SYSTEMDRIVE'}}
+        environment.update({name: str(folder) for name in ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'XDG_CACHE_HOME')})
+        environment.update(PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1')
+        bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('modules.data_workbench.inspect_input',run_name='__main__')"
+        try:
+            with (folder / 'process.log').open('wb') as log:
+                completed = subprocess.run([str(self.python), '-B', '-c', bootstrap, str(self.project_root),
+                    str(request), str(response)], cwd=self.project_root, env=environment,
+                    stdout=log, stderr=log, timeout=30,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            if not response.is_file() or response.stat().st_size > 256 * 1024:
+                raise DataError('资料探查未返回有效摘要')
+            result = json.loads(response.read_text(encoding='utf-8'))
+            if completed.returncode or not result.get('ok'):
+                raise DataError('无法探查资料；请检查格式、编码和工作表大小')
+            return result['data']
+        except (OSError, subprocess.TimeoutExpired, ValueError):
+            raise DataError('资料探查未完成或格式不受支持') from None
 
     def submit(self, session_id, action, payload, version, request_key=None):
         if not self.ready():

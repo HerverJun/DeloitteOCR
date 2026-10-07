@@ -11,7 +11,8 @@ import { auditArtifacts, auditCommand, auditProjectPath, auditRequestStatus, pen
   type AuditProject, type AuditProjectFields, type AuditProjectPage, type AuditReceipt, type AuditRecord,
   type PendingAudit, type ReviewBundle, type WorkpaperBundle } from './api'
 import './audit.css'
-import type { ForensicEvidenceSelection, ForensicEvidenceRef } from '../../../../../packages/contracts/types.generated'
+import type { ForensicEvidenceSelection, ForensicEvidenceRef, AuditDirectEvidenceRef } from '../../../../../packages/contracts/types.generated'
+import { FormalDraftOrigin, FormalDirectEvidence } from './FormalDraftOrigin'
 import { ForensicPicker } from '../forensics/ForensicWorkbench'
 
 const { Title, Text, Paragraph } = Typography
@@ -153,16 +154,18 @@ function FindingEditor({ finding, procedure, project, workspaceId, writer }: {
   const [form] = Form.useForm<AuditFindingFields>()
   const [selected, setSelected] = useState<AuditEvidenceSelection[]>([])
   const [forensic, setForensic] = useState<ForensicEvidenceSelection[]>([])
-  const [kept, setKept] = useState<(AuditEvidenceRef | ForensicEvidenceRef)[]>(finding?.evidence_refs || [])
+  const [kept, setKept] = useState<(AuditEvidenceRef | ForensicEvidenceRef | AuditDirectEvidenceRef)[]>(finding?.evidence_refs || [])
   useEffect(() => {
     const editPath = `${auditProjectPath(project.project_id)}/findings${finding ? '/' + encodeURIComponent(finding.finding_id) : ''}`
     const draft = writer.pending?.path === editPath && writer.pending.payload
-    form.setFieldsValue(draft && 'finding' in draft ? draft.finding : finding?.finding || findingFields)
-    setSelected(draft && 'evidence' in draft ? draft.evidence.filter((item): item is AuditEvidenceSelection => 'batch_id' in item) : [])
-    setForensic(draft && 'evidence' in draft ? draft.evidence.filter((item): item is ForensicEvidenceSelection => 'inspection_id' in item) : [])
-    setKept(draft && 'evidence' in draft ? (finding?.evidence_refs || []).filter(item => draft.evidence.some(value => 'evidence_id' in value && value.evidence_id === item.evidence_id)) : finding?.evidence_refs || [])
+    form.setFieldsValue(draft && 'finding' in draft && draft.finding ? draft.finding : finding?.finding || findingFields)
+    setSelected(draft && 'evidence' in draft ? (draft.evidence || []).filter((item): item is AuditEvidenceSelection => 'batch_id' in item) : [])
+    setForensic(draft && 'evidence' in draft ? (draft.evidence || []).filter((item): item is ForensicEvidenceSelection => 'inspection_id' in item) : [])
+    setKept(draft && 'evidence' in draft ? (finding?.evidence_refs || []).filter(item => draft.evidence?.some(value => 'evidence_id' in value && value.evidence_id === item.evidence_id)) : finding?.evidence_refs || [])
   }, [finding?.finding_id, form])
-  return <><Form form={form} layout="vertical" disabled={writer.blocked} onFinish={fields => writer.submit(
+  return <>{finding?.outdated && <Alert type="warning" title="来源已有更新，正式档案保留原固定版本" description={finding.outdated_reasons?.join('；')} />}
+    {finding?.origin && <FormalDraftOrigin origin={finding.origin} />}
+    <Form form={form} layout="vertical" disabled={writer.blocked} onFinish={fields => writer.submit(
     `${auditProjectPath(project.project_id)}/findings${finding ? '/' + encodeURIComponent(finding.finding_id) : ''}`,
     { ...auditCommand(writer.actor), expected_revision: project.revision, ...(!finding ? { procedure_id: procedure.procedure_id } : {}),
       finding: fields, evidence: [...kept.map(item => ({ evidence_id: item.evidence_id })), ...selected, ...forensic] }, finding ? '保存调查说明与结论' : '生成调查事项')}>
@@ -171,7 +174,7 @@ function FindingEditor({ finding, procedure, project, workspaceId, writer }: {
       <Form.Item label="调查状态" name="status"><Select aria-label="调查状态" options={[{ value: 'draft', label: '尚未解决' }, { value: 'resolved', label: '已解决' }]} /></Form.Item></div>
     <Form.Item label="调查解释" name="explanation" rules={[{ max: 4000 }]}><Input.TextArea aria-label="调查解释" rows={3} /></Form.Item>
     <Form.Item label="调查结论" name="conclusion" rules={[{ max: 4000 }]}><Input.TextArea aria-label="调查结论" rows={3} /></Form.Item>
-    {!!kept.length && <><Text strong>已固定的证据引用</Text><ul className="audit-evidence-list">{kept.map(item => <li key={item.evidence_id}>{'inspection_id' in item ? `图像取证 ${item.inspection_id} · 审阅版本 ${item.inspection_revision}` : `${item.item_id} · 批次 ${item.batch_id} 版本 ${item.batch_revision}`}
+    {!!kept.length && <><Text strong>已固定的证据引用</Text><ul className="audit-evidence-list">{kept.map(item => <li key={item.evidence_id}>{'source_evidence_id' in item ? <FormalDirectEvidence evidence={item} /> : 'inspection_id' in item ? `图像取证 ${item.inspection_id} · 审阅版本 ${item.inspection_revision}` : `${item.item_id} · 批次 ${item.batch_id} 版本 ${item.batch_revision}`}
       {' · '}来源 {item.source_count} 处 <Space wrap>{item.sources.map((source, index) => <Link key={index} to={`/assets?workspace=${encodeURIComponent(workspaceId)}&asset=${encodeURIComponent(source.asset_id)}`}>查看原件{index + 1}</Link>)}</Space>
       {' '}<Button size="small" onClick={() => setKept(values => values.filter(value => value.evidence_id !== item.evidence_id))}>取消引用</Button></li>)}</ul></>}
     <IssuePicker key={procedure.procedure_id} procedure={procedure} workspaceId={workspaceId} writer={writer} selected={selected} onSelected={setSelected} />

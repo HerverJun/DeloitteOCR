@@ -27,6 +27,8 @@ from .jobs.classification_handoff import configure_classification_handoff, route
 from .batches.routes import configure_batches, router as batches_router
 from .audit.routes import configure_audit, router as audit_router
 from .forensics.routes import configure_forensics, router as forensics_router
+from .agent.routes import configure_agent, router as agent_router
+from .agent.skills_routes import router as agent_skills_router
 
 
 @asynccontextmanager
@@ -36,7 +38,10 @@ async def lifespan(app: FastAPI):
     configure_assets(app)
     configured = os.environ.get("WORKBENCH_DATA_DIR")
     data_root = Path(configured).resolve() if configured else None
-    supervisor = Supervisor(get_registry(), handshake_timeout=20.0, data_root=data_root)
+    startup_seconds = float(os.environ.get('WORKBENCH_NATIVE_STARTUP_SECONDS', '20'))
+    if not 1 <= startup_seconds <= 120:
+        raise ValueError('原生启动等待配置无效')
+    supervisor = Supervisor(get_registry(), handshake_timeout=startup_seconds, data_root=data_root)
     try:
         app.state.recent_store = RecentWorkStore(data_root / "recent-work.sqlite3") if data_root else None
         app.state.supervisor = supervisor
@@ -50,8 +55,13 @@ async def lifespan(app: FastAPI):
         configure_batches(app)
         configure_audit(app)
         configure_forensics(app)
+        await configure_agent(app)
         yield
     finally:
+        agent = getattr(app.state, 'agent', None)
+        if agent is not None:
+            await agent.close()
+        app.state.agent = None
         forensic_service = getattr(app.state, "forensic_service", None)
         if forensic_service is not None:
             forensic_service.close()
@@ -91,6 +101,8 @@ app.include_router(classification_handoff_router)
 app.include_router(batches_router)
 app.include_router(audit_router)
 app.include_router(forensics_router)
+app.include_router(agent_router)
+app.include_router(agent_skills_router)
 
 
 @app.exception_handler(DataError)

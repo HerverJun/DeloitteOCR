@@ -78,15 +78,28 @@ class ArtifactCenter:
                     request_id TEXT NOT NULL UNIQUE,payload_hash TEXT NOT NULL,snapshot_hash TEXT NOT NULL,
                     snapshot TEXT NOT NULL,files_json TEXT NOT NULL,status TEXT NOT NULL,
                     predecessor_bundle_id TEXT,created_at TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS audit_draft_bundle(bundle_id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL,request_id TEXT NOT NULL UNIQUE,payload_hash TEXT NOT NULL,
+                    snapshot_hash TEXT NOT NULL,snapshot TEXT NOT NULL,files_json TEXT NOT NULL,status TEXT NOT NULL);
                 CREATE INDEX IF NOT EXISTS audit_bundle_workspace
                     ON audit_workpaper_bundle(workspace_id,status,created_at);
             """)
+
+        self.configure_native_exports()
 
     def _connect(self):
         db = sqlite3.connect(self.store.db_path, timeout=15, isolation_level=None)
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA busy_timeout=15000")
         return db
+
+    def configure_native_exports(self):
+        from .native_exports import configure
+        configure(self)
+
+    def publish_audit_draft(self, bundle_id, request_id, payload_hash, snapshot):
+        from workbench_platform.audit.draft_artifacts import publish
+        return publish(self, bundle_id, request_id, payload_hash, snapshot)
 
     def _row(self, workspace_id: str, bundle_id: str):
         with closing(self._connect()) as db:
@@ -117,8 +130,10 @@ class ArtifactCenter:
     def list(self, workspace_id: str, offset: int, limit: int):
         parts = ["SELECT 'data' kind,bundle_id,created_at FROM data_artifact_bundle "
                  "WHERE workspace_id=? AND status='ready'"]
+        parts.append("SELECT 'native_export' kind,bundle_id,created_at FROM native_export_bundles WHERE workspace_id=? AND json_extract(payload,'$.status')='ready'")
         parts.append("SELECT 'review' kind,bundle_id,created_at FROM batch_review_bundle WHERE workspace_id=? AND status='ready'")
         parts.append("SELECT 'audit' kind,bundle_id,created_at FROM audit_workpaper_bundle WHERE workspace_id=? AND status='ready'")
+        parts.append("SELECT 'draft' kind,bundle_id,json_extract(snapshot,'$.created_at') created_at FROM audit_draft_bundle WHERE workspace_id=? AND status='ready'")
         if self.classification is not None:
             parts.append("SELECT 'classification' kind,bundle_id,created_at "
                          "FROM classification_artifact_bundle WHERE workspace_id=? AND status='ready'")
@@ -138,6 +153,12 @@ class ArtifactCenter:
             if row["kind"] == "forensics":
                 from workbench_platform.forensics.artifacts import get
                 items.append(get(self, workspace_id, bundle_id))
+            elif row['kind'] == 'native_export':
+                from .native_exports import get as get_native
+                items.append(get_native(self, workspace_id, bundle_id))
+            elif row['kind'] == 'draft':
+                from workbench_platform.audit.draft_artifacts import row as draft_row, display
+                items.append(display(self, draft_row(self, workspace_id, bundle_id)))
             elif row["kind"] == "classification":
                 items.append(self.classification.get(workspace_id, bundle_id))
             elif row["kind"] == "ocr":
@@ -152,6 +173,18 @@ class ArtifactCenter:
                 "next_offset": offset + limit if offset + limit < total else None}
 
     def get(self, workspace_id: str, bundle_id: str):
+        from .native_exports import get as get_native
+        try:
+            return get_native(self, workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
+        from workbench_platform.audit.draft_artifacts import row as draft_row, display
+        try:
+            return display(self, draft_row(self, workspace_id, bundle_id))
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
         from workbench_platform.forensics.artifacts import get
         try:
             return get(self, workspace_id, bundle_id)
@@ -183,6 +216,28 @@ class ArtifactCenter:
         raise ArtifactUnavailable("NOT_FOUND")
 
     def file(self, workspace_id: str, bundle_id: str, name: str):
+        from .native_exports import get as get_native
+        try:
+            native = get_native(self, workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
+        else:
+            item = next((item for item in native['files'] if item['name'] == name), None)
+            if item is None:
+                raise ArtifactUnavailable('NOT_FOUND')
+            return self.store.get(workspace_id, item['artifact_id'])
+        from workbench_platform.audit.draft_artifacts import row as draft_row
+        try:
+            draft = draft_row(self, workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
+        else:
+            identifier = json.loads(draft['files_json']).get(name)
+            if not identifier:
+                raise ArtifactUnavailable('NOT_FOUND')
+            return self.store.get(workspace_id, identifier)
         from workbench_platform.forensics.artifacts import get
         try:
             bundle = get(self, workspace_id, bundle_id)
@@ -450,7 +505,9 @@ class ArtifactCenter:
             files = render_workpaper(operation)
             refs = []
             for evidence in snapshot['evidence']:
-                for source in evidence['snapshot']['sources']:
+                value = evidence['snapshot']
+                sources = value.get('source_assets') or value['sources']
+                for source in sources:
                     if source not in refs:
                         refs.append(source)
             refs = [SourceLocator.model_validate(source) for source in refs]

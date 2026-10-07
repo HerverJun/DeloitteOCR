@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Modal, Select, Space, Table, Tag, Typography } from 'antd'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import './assets.css'
 
 const { Title, Text } = Typography
@@ -93,7 +93,9 @@ export function AssetLibrary() {
         action={<Button onClick={() => void listing.refetch()}>重试</Button>} className="asset-alert" />}
       <div className="asset-table-head"><Title level={3}>已登记资料 <Text type="secondary">{listing.data?.total ?? 0}</Text></Title>
         <Space><Text type="secondary">已选 {selected.length}</Text><Button disabled={!selected.length} loading={makeSet.isPending}
-          onClick={() => makeSet.mutate()}>固定输入集合</Button></Space></div>
+          onClick={() => makeSet.mutate()}>固定输入集合</Button>
+          <Button disabled={!selected.length}><Link to={`/agent?workspace=${encodeURIComponent(workspaceId || '')}&assets=${encodeURIComponent(selected.join(','))}`}>交给 Agent</Link></Button>
+        </Space></div>
       {makeSet.isError && <Alert type="error" showIcon title={makeSet.error.message} className="asset-alert" />}
       <Table<Asset> size="small" rowKey="asset_id" loading={listing.isPending} dataSource={listing.data?.items || []}
         scroll={{ x: 850 }} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true,

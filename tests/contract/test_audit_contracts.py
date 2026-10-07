@@ -130,6 +130,7 @@ def workpaper():
             file("workpaper.json", "jsonA", "application/json"),
         ],
         "review_refs": [review_ref()],
+        "forensic_refs": [],
         "unresolved_count": 0,
         "unresolved_reasons": [],
     }

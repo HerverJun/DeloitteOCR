@@ -13,7 +13,9 @@
     "antd": "6.6.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-router-dom": "7.9.1"
+    "react-markdown": "10.1.0",
+    "react-router-dom": "7.9.1",
+    "remark-gfm": "4.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",

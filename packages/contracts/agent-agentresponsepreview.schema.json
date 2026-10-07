@@ -1,0 +1,103 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "call_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Call Id"
+    },
+    "content": {
+      "title": "Content",
+      "type": "string"
+    },
+    "display_id": {
+      "title": "Display Id",
+      "type": "string"
+    },
+    "generation": {
+      "minimum": 1,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "mode": {
+      "enum": [
+        "snapshot",
+        "append",
+        "replace"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "offset": {
+      "minimum": 0,
+      "title": "Offset",
+      "type": "integer"
+    },
+    "provisional": {
+      "const": true,
+      "default": true,
+      "title": "Provisional",
+      "type": "boolean"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "source": {
+      "enum": [
+        "text",
+        "answer",
+        "delivery"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "tool": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool"
+    },
+    "truncated": {
+      "default": false,
+      "title": "Truncated",
+      "type": "boolean"
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "generation",
+    "request_id",
+    "display_id",
+    "revision",
+    "mode",
+    "offset",
+    "content",
+    "source"
+  ],
+  "title": "AgentResponsePreview",
+  "type": "object"
+}

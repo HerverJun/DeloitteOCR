@@ -1,6 +1,7 @@
 param(
     [string]$DevelopmentRoot = (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent),
     [string]$Data = 'F:\OCR\output\audit-platform-dev-20261002\workspace\M2-business-preview',
+    [string]$AgentLayer = 'F:\OCR\output\platform-agent-dev-20261004\dependencies\agent',
     [int]$Port = 8879
 )
 $ErrorActionPreference = 'Stop'
@@ -20,5 +21,5 @@ $env:PYTHONIOENCODING = 'utf-8'
 Set-Location -LiteralPath $taskDevRoot
 & (Join-Path $taskDevRoot 'program\runtimes\platform\python.exe') -I -B -u `
     (Join-Path $taskDevRoot 'worktrees\platform\scripts\local_development.py') `
-    --development-root $taskDevRoot --data $Data --port $Port
+    --development-root $taskDevRoot --data $Data --port $Port --agent-layer $AgentLayer
 if ($LASTEXITCODE -ne 0) { throw "Development server exited with code $LASTEXITCODE" }

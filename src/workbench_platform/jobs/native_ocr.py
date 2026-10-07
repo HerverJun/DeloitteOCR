@@ -280,6 +280,40 @@ class OcrAdapter:
                             export_formats=("txt", "md", "json", "xlsx", "pdf"),
                             reason=None if recognition else "review_only" if review_only else "recognition_unavailable")
 
+    def document_pages(self, document_id: str, *, offset=0, limit=50):
+        if (not _is_native_id(document_id) or not 0 <= offset <= 1000 or not 1 <= limit <= 100
+                or document_id not in {doc['id'] for doc in self.snapshot()['documents']}):
+            raise OcrUnavailable()
+        value = self._request('GET', f'/api/documents/{document_id}/pages?offset={offset}&limit={limit}')
+        if (value.get('document', {}).get('id') != document_id or value['document'].get('project_id') != self.context.module_project_id
+                or not isinstance(value.get('pages'), list) or len(value['pages']) > limit
+                or any(page.get('document_id') != document_id for page in value['pages'])):
+            raise OcrUnavailable()
+        return value
+
+    def page_request(self, document_id: str, request_id: str, *, body=None, action=None):
+        if (self.context.role == 'viewer' and (body is not None or action)
+                or not _is_native_id(document_id) or not REQUEST_ID.fullmatch(request_id)
+                or action not in {None, 'cancel', 'resume'}
+                or document_id not in {doc['id'] for doc in self.snapshot()['documents']}):
+            raise OcrUnavailable()
+        route = f'/api/platform/documents/{document_id}/requests/{request_id}'
+        value = self._request('POST' if body is not None or action else 'GET',
+                              route + ('/' + action if action else ''), body, max_body=32768)
+        if (value.get('document_id') != document_id or value.get('project_id') != self.context.module_project_id
+                or value.get('request_id') != request_id or type(value.get('submitted')) is not bool):
+            raise OcrUnavailable()
+        if value['submitted']:
+            stages = value.get('stages')
+            parameters = value.get('parameters')
+            if (not isinstance(stages, list) or not isinstance(parameters, dict)
+                    or len(stages) != len(parameters.get('page_numbers', []))
+                    or sorted(stage.get('page_number', 0) for stage in stages) != parameters['page_numbers']
+                    or any(not _is_native_id(stage.get('stage_id')) or not _is_native_id(stage.get('page_id'))
+                           or type(stage.get('owned')) is not bool for stage in stages)):
+                raise OcrUnavailable()
+        return value
+
     def snapshot(self) -> dict:
         project_id = self.context.module_project_id
         value = self._request("GET", f"/api/projects/{project_id}")
@@ -305,7 +339,9 @@ class OcrAdapter:
             raise OcrUnavailable()
         return value
 
-    def submit(self, version_ids: list[str], engines: list[str], *, request_id: str) -> tuple[str, ...]:
+    def submit(self, version_ids: list[str], engines: list[str], *, request_id: str, preprocess=None) -> tuple[str, ...]:
+        preprocess = preprocess or []
+        validate_preprocess(preprocess)
         if self.context.role == "viewer" or not self.capabilities().recognition:
             raise OcrUnavailable()
         if (not isinstance(version_ids, list) or not 1 <= len(version_ids) <= 1000
@@ -322,7 +358,7 @@ class OcrAdapter:
             raise OcrUnavailable()
         result = self._request("POST", f"/api/projects/{self.context.module_project_id}/tasks",
                                {"version_ids": version_ids, "engines": engines,
-                                "preprocess": [], "request_id": request_id})
+                                "preprocess": preprocess, "request_id": request_id}, max_body=65536)
         ids = result.get("task_ids")
         if (not isinstance(ids, list) or not ids or len(set(ids)) != len(ids)
                 or any(not _is_native_id(value) for value in ids)):
@@ -429,6 +465,28 @@ class OcrAdapter:
                 or not re.fullmatch(r"[0-9a-f]{64}", value["original_sha256"])
                 or (value["available"] and not isinstance(value.get("edited"), dict))
                 or (not value["available"] and value.get("reason") != "legacy_revision_unavailable")):
+            raise OcrUnavailable()
+        return value
+
+    def result_tables(self, result: ResultArtifact, revision: int) -> dict:
+        snapshot = self.result_snapshot(result, revision)
+        if not snapshot['available']:
+            raise OcrUnavailable()
+        value = self._request('GET', f'/api/results/{result.native_result_id}/revisions/{revision}/tables')
+        if ((value.get('id'), value.get('project_id'), value.get('revision')) !=
+                (result.native_result_id, self.context.module_project_id, revision)
+                or value.get('source') not in {'revision', 'pdf-native-candidate', 'none'}
+                or not isinstance(value.get('tables'), list) or not isinstance(value.get('warnings'), list)
+                or any(not isinstance(value.get(key), str) or not re.fullmatch(r'[0-9a-f]{64}', value[key])
+                       for key in ('content_sha256', 'tables_sha256'))):
+            raise OcrUnavailable()
+        def fingerprint(body):
+            return hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                separators=(',', ':'), allow_nan=False).encode('utf-8')).hexdigest()
+        content = {'id': result.native_result_id, 'revision': revision, 'original': snapshot['original'],
+                   'edited': snapshot['edited'], 'table_projection_version': 1,
+                   'tables': value['tables'], 'source': value['source']}
+        if value['content_sha256'] != fingerprint(content) or value['tables_sha256'] != fingerprint(value['tables']):
             raise OcrUnavailable()
         return value
 
@@ -585,10 +643,26 @@ def _is_native_id(value: object) -> bool:
     return isinstance(value, str) and NATIVE_ID.fullmatch(value) is not None
 
 
+def validate_preprocess(operations):
+    if not isinstance(operations, list) or len(operations) > 2:
+        raise ValueError('预处理仅支持一次旋转与一次对比度调整')
+    seen = set()
+    for operation in operations:
+        if not isinstance(operation, dict) or operation.get('kind') in seen:
+            raise ValueError('预处理参数重复或无效')
+        kind = operation.get('kind'); seen.add(kind)
+        if kind == 'rotate' and set(operation) == {'kind', 'degrees'} and type(operation['degrees']) is int and operation['degrees'] in {90, 180, 270, -90}:
+            continue
+        if kind == 'contrast' and set(operation) == {'kind', 'factor'} and type(operation['factor']) in {int, float} and .2 <= operation['factor'] <= 3:
+            continue
+        raise ValueError('预处理参数无效')
+
+
 def _task(row: dict) -> TaskStatus:
     status = row.get("status")
     result_id = row.get("result_id")
-    if (status not in KNOWN_STATES or (status == "succeeded") != (result_id is not None)
+    if (status not in KNOWN_STATES or
+            ((status == "succeeded") != (result_id is not None) and not (row.get('kind') == 'multimodal' and result_id is None))
             or (result_id is not None and not _is_native_id(result_id))
             or not isinstance(row.get("phase"), str)
             or not _is_native_id(row.get("image_id")) or not _is_native_id(row.get("version_id"))):
