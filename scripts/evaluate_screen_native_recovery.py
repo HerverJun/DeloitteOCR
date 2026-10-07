@@ -344,6 +344,52 @@ def validate_success_retention(store, batch_id, pins, old_attempts, workspace):
     return rows
 
 
+def check_source_index(sheet, name, item, actual, store, table_count):
+    """Read actual DB identities; never derive expectations from export keys."""
+    image = store.one('images', item['image_id'])
+    version = store.one('versions', item['input_version_id'])
+    task = store.one('tasks', actual['task_id'])
+    version_path = f_path(store.file(version['path']))
+    if (not isinstance(image.get('name'), str) or not image['name']
+            or image['name'] != item['source_name']
+            or image['active_version'] != item['input_version_id']
+            or version['image_id'] != image['id']
+            or task['image_id'] != image['id']
+            or actual['original'].get('project_image_version', task['version_id']) != version['id']
+            or not re.fullmatch('[0-9a-f]{64}', version.get('sha256', ''))
+            or version['sha256'] != item['source_hash']
+            or sha(version_path) != version['sha256']
+            or not actual['id'] or actual['id'] != item['result_id']
+            or type(actual['revision']) is not int or actual['revision'] < 0
+            or actual['revision'] != item['result_revision']):
+        raise ValueError('Source index expected identity disagrees with actual DB/file state')
+    engine = actual['original'].get('engine')
+    if not isinstance(engine, str) or not engine:
+        raise ValueError('Source index requires a nonempty actual engine identity')
+    # These labels are the independent readback contract, not SOURCE_COLUMNS.
+    common = {'工作簿': name, '原图': image['name'], '图片 ID': image['id'],
+        '图像版本': version['id'], '输入 SHA-256': version['sha256'], '引擎': engine,
+        '结果 ID': actual['id'], '校对 revision': str(actual['revision'])}
+    headers = [cell.value for cell in sheet[1]]
+    required = (*common, '工作表', '表格序号')
+    if (sheet.title != '来源索引' or sheet.max_row != table_count + 1
+            or any(headers.count(label) != 1 for label in required)
+            or any(not isinstance(value, str) or not value for value in common.values())):
+        raise ValueError('Source index omits/duplicates actual nonempty source identities')
+    columns = {label: headers.index(label) + 1 for label in required}
+    rows = []
+    for index in range(1, table_count + 1):
+        expected = {**common, '工作表': f'Table {index}', '表格序号': str(index)}
+        for label, value in expected.items():
+            cell = sheet.cell(index + 1, columns[label])
+            if cell.value != value or cell.data_type != 's' or cell.number_format != '@':
+                raise ValueError('Source index changed actual DB identity or cell type: ' + label)
+        rows.append(expected)
+    return {'oracle': 'actual images/versions/tasks/results DB and hashed version file',
+        'source_index_rows': table_count, 'required_columns': list(required),
+        'input_file_sha256_verified': True, 'rows': rows}
+
+
 def check_export(path, manifest, store, batch_id, evidence_root):
     from openpyxl import load_workbook
     from ocr_workbench.tables import export_xlsx
@@ -354,9 +400,10 @@ def check_export(path, manifest, store, batch_id, evidence_root):
     names = [item["file_name"] for item in manifest["items"] if item.get("file_name")]
     if len(set(names)) != len(names):
         raise ValueError("Export duplicates a workbook filename")
-    # Compare exported cell values/types/spans with a fresh standard exporter
-    # rendering of the same actual selected result. This is fidelity checking,
-    # not OCR accuracy: no offline truth is opened by this harness.
+    # Compare table values/types/spans with a fresh standard rendering. Source
+    # identity is checked separately against actual DB/file state, avoiding the
+    # same export-key mistake becoming both actual and expected blank cells.
+    # This is fidelity checking, not OCR accuracy; offline truth is not opened.
     checks = []
     with zipfile.ZipFile(f_path(path)) as archive:
         if archive.testzip() is not None or len(archive.namelist()) != len(set(archive.namelist())):
@@ -375,20 +422,19 @@ def check_export(path, manifest, store, batch_id, evidence_root):
                 continue
             actual = store.result(item["result_id"])
             actual_tables = actual["edited"].get("tables", [])
-            if not actual_tables or entry["result_id"] != actual["id"]:
+            if (not actual_tables or entry["result_id"] != actual["id"]
+                    or entry.get('image_id') != item['image_id']
+                    or entry.get('result_revision') != actual['revision']):
                 raise ValueError("Workbook belongs to a nonfinal/no-table result")
             exported = load_workbook(io.BytesIO(archive.read(name)), data_only=False)
             reference_root = f_path(evidence_root) / "export-fidelity"
             reference_root.mkdir(exist_ok=True)
             reference = reference_root / name
-            export_xlsx(actual_tables, reference, source_rows=[{
-                "image": item["source_name"], "result_id": actual["id"],
-                "engine": actual["original"].get("engine", ""),
-                "version_id": item["input_version_id"], "revision": actual["revision"]}])
+            export_xlsx(actual_tables, reference)
             expected = load_workbook(reference, data_only=False)
             try:
                 metadata = actual["original"].get("screen", {}).get("business_metadata", [])
-                if len(exported.worksheets) != len(expected.worksheets) + bool(metadata):
+                if len(exported.worksheets) != len(expected.worksheets) + 1 + bool(metadata):
                     raise ValueError("Workbook missed/duplicated a table/source/metadata sheet")
                 table_checks = []
                 for index in range(len(expected.worksheets)):
@@ -403,6 +449,8 @@ def check_export(path, manifest, store, batch_id, evidence_root):
                     table_checks.append({"sheet_index": index, "sheet": left.title,
                         "rows": left.max_row, "columns": left.max_column,
                         "values_types_and_merged_ranges_match": True})
+                source_identity = check_source_index(exported.worksheets[len(expected.worksheets)],
+                    name, item, actual, store, len(actual_tables))
                 if metadata:
                     sheet = exported.worksheets[-1]
                     if sheet.title != "业务说明" or sheet.max_row != len(metadata) + 1:
@@ -414,6 +462,7 @@ def check_export(path, manifest, store, batch_id, evidence_root):
                             raise ValueError("Business metadata text/type changed")
                 checks.append({"input_version_id": item["input_version_id"], "result_id": actual["id"],
                     "file_name": name, "sheets": table_checks,
+                    "source_identity": source_identity,
                     "business_metadata_rows": len(metadata), "human_review": "not_performed"})
             finally:
                 exported.close()
