@@ -22,6 +22,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+import zipfile
 from types import SimpleNamespace
 from urllib.parse import urlsplit
 
@@ -210,13 +211,34 @@ async def execute(args,root,mapping,binding):
                         sample=next(entry for entry in mapping if entry.get('asset_id')==item['asset_id'])
                         detail.update(sample_id=sample['sample_id'],source_image_sha256=sample['source_image_sha256'])
                         save(receipts/(sample['sample_id']+'.json'),detail);items.append(item)
+                export_receipt=None
                 if summary['counts']['completed']+summary['counts']['needs_review']:
                     bundle=await asyncio.to_thread(value.screen_batches.export,'wreplay',batch_id,ScreenExport(include_pending_review=True))
                     artifact=value.artifact_center.file('wreplay',bundle['bundle_id'],'ocr-results.zip')
                     with value.artifact_center.store.stage_download('wreplay',artifact.artifact_id,
                         expected_revision=artifact.revision,expected_hash=artifact.blob_hash) as source:
                         shutil.copyfile(source,root/(batch_id+'.zip'))
-                native_batches.append({'batch_id':batch_id,'counts':summary['counts'],'status':summary['status'],'items':items})
+                        with zipfile.ZipFile(source) as archive:
+                            manifest=json.loads(archive.read('manifest.json'))
+                            files=[name for name in archive.namelist() if name.endswith('.xlsx')]
+                    export_receipt={'bundle_id':bundle['bundle_id'],'zip_sha256':artifact.blob_hash,
+                        'xlsx_files':len(files),'manifest_success_files':manifest['success_files'],
+                        'manifest_items':len(manifest['items']),
+                        'exported_needs_review':sum(item.get('status')=='needs_review' and bool(item.get('file_name')) for item in manifest['items'])}
+                actual_policy=summary.get('policy',{})
+                policy_fields={'strategy_version','primary_engine','group_size','max_upgrades','layout_evidence',
+                    'budget_seconds','batch_budget_seconds','mode','perspective','allow_text_fixes','visual_review'}
+                policy_comparison={key:{'expected':expected,'actual':actual_policy.get(key),
+                    'matches':actual_policy.get(key)==expected} for key,expected in binding['screen_policy'].items() if key in policy_fields}
+                if 'fallback_engines' in binding['screen_policy']:
+                    expected=[engine for engine in binding['screen_policy']['fallback_engines'] if engine!=actual_policy.get('primary_engine')]
+                    policy_comparison['fallback_engines']={'expected':expected,'actual':actual_policy.get('fallback_engines'),
+                        'matches':actual_policy.get('fallback_engines')==expected}
+                native_batches.append({'batch_id':batch_id,'counts':summary['counts'],'status':summary['status'],'items':items,
+                    'policy':actual_policy,'resolved_policy_sha256':summary.get('resolved_policy_sha256'),
+                    'frozen_policy_comparison':policy_comparison,
+                    'frozen_policy_settings_match':all(field['matches'] for field in policy_comparison.values()),
+                    'export_receipt':export_receipt,'human_review':'not_performed'})
             events=runtime.store.events(session['id'],limit=10000)['items']
             usage=[item['payload'] for item in events if item['kind']=='usage']
             delivered=[json.loads(item['result']) for item in operations if item['tool']=='delivery_publish' and item['result']]
@@ -232,7 +254,8 @@ async def execute(args,root,mapping,binding):
                 'thinking_seconds':None,'thinking_measurement':'供应商未提供独立思考计时',
                 'waiting_controller_count_stable':all(a['model_requests']==b['model_requests'] for a,b in zip(wait_samples,wait_samples[1:])),
                 'wait_samples':wait_samples,'native_batches':native_batches,
-                'verified_delivery':bool(delivered and delivered[-1].get('data',{}).get('verified'))}
+                'verified_delivery':bool(delivered and delivered[-1].get('data',{}).get('verified')),
+                'delivery_completeness':delivered[-1].get('data',{}).get('completeness') if delivered else None}
             save(root/'agent-native-summary.json',summary);save(root/'usage.json',usage)
             print(json.dumps({key:summary[key] for key in ('status','scope_inputs','model_rounds','tool_calls','verified_delivery')},ensure_ascii=False))
         finally:

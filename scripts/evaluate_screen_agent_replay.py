@@ -421,6 +421,23 @@ async def evaluate(args,root,mapping,replay,value,fixed,link):
         events=runtime.store.events(session['id'],limit=10000)['items']
         usages=[item['payload'] for item in events if item['kind']=='usage']
         delivery_rows=[json.loads(item['result']) for item in operations if item['tool']=='delivery_publish' and item['result']]
+        export_receipts=[]
+        for operation in operations:
+            if operation['tool']!='ocr_screen_batch_export' or not operation['result']:continue
+            result=json.loads(operation['result'])
+            if result['status']!='success':continue
+            for reference in result.get('artifact_refs',[]):
+                artifact=value.artifact_center.file('wreplay',reference['object_id'],'ocr-results.zip')
+                with value.artifact_center.store.stage_download('wreplay',artifact.artifact_id,
+                    expected_revision=artifact.revision,expected_hash=artifact.blob_hash) as source:
+                    with zipfile.ZipFile(source) as archive:
+                        manifest=json.loads(archive.read('manifest.json'))
+                        files=[name for name in archive.namelist() if name.endswith('.xlsx')]
+                export_receipts.append({'bundle_id':reference['object_id'],'zip_sha256':artifact.blob_hash,
+                    'xlsx_files':len(files),'manifest_success_files':manifest['success_files'],
+                    'manifest_items':len(manifest['items']),
+                    'exported_needs_review':sum(item.get('status')=='needs_review' and bool(item.get('file_name')) for item in manifest['items']),
+                    'human_review':'not_performed'})
         native_submits=[item for item in replay.calls if item['method']=='POST' and item['path']=='/api/projects/replayProject/screen-batches']
         model_count=len(runtime.store.rows('SELECT id FROM model_requests WHERE run_id=?',(run['id'],)))
         wait_stable=all(b['model_requests']==a['model_requests'] for a,b in zip(wait_samples,wait_samples[1:]) if a['phase']==b['phase'])
@@ -448,6 +465,7 @@ async def evaluate(args,root,mapping,replay,value,fixed,link):
                 'original_operation_retained':all(item.get('original_operation_pending',True) for item in directive_trace)} if args.exercise_directives else None,
             'verified_delivery':bool(delivery_rows and delivery_rows[-1].get('data',{}).get('verified')),
             'delivery_completeness':delivery_rows[-1].get('data',{}).get('completeness') if delivery_rows else None,
+            'export_receipts':export_receipts,
             'targets_apply_to_no_directive_baseline':not args.exercise_directives,
             'target_rounds_le_5':model_count<=5 if not args.exercise_directives else None,
             'target_tools_le_8':len(operations)<=8 if not args.exercise_directives else None,
