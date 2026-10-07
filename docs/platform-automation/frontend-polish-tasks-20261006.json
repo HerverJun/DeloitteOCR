@@ -1,0 +1,909 @@
+{
+  "format": "clear-frontend-polish-plan-v1",
+  "date": "2026-10-06",
+  "revision": 7,
+  "status": "complete",
+  "plan": "前端精修开发计划-20261006.md",
+  "status_authority": "本文件是本轮唯一动态任务状态及检查证据来源；不另建state.json或并行进度账本",
+  "authorization_scope": "2026-10-06用户明确授权『实现该计划。』；按计划开发、验证、候选交付及固定入口更新。关机安排保持取消。",
+  "baseline": {
+    "product_version": "0.8.1",
+    "platform_source": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+    "ocr_source": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+    "classification_source": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
+    "shared_program": "F:/OCR/output/clear-automation-dev-20261002/program",
+    "candidate": "F:/OCR/output/application-declarations-fix-20261006/candidate-final",
+    "candidate_manifest_sha256": "71e14c0550407a2318ebf755f9fc7164acd7624fb95b1277cb39c4cd018ce24b",
+    "user_data": "F:/OCR/output/ai-audit-product-dev-20261004/workspace",
+    "product_entry": "F:/OCR/release/Clear",
+    "preview_url": "http://127.0.0.1:8879/",
+    "recapture_on_implementation": true
+  },
+  "planned_run_root": "F:/OCR/output/frontend-polish-dev-20261006",
+  "source_roots": {
+    "platform": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+    "ocr": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+    "classification": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification"
+  },
+  "path_resolution": "write_scope/source_scope以platform/、ocr/、classification/开头的路径按source_roots解析；其他绝对路径必须位于本机F盘；引用及真实链接目标均需核对；checks.existing_tests相对platform源码根；candidate_dist相对新候选根解析",
+  "default_execution_order": [
+    "FP01",
+    "FP02",
+    "FP03",
+    "FP04",
+    "FP05",
+    "FP06",
+    "FP07",
+    "FP08",
+    "FP09",
+    "FP10"
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "实时基线与统一视觉规范",
+      "tasks": [
+        "FP01",
+        "FP02"
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "外壳、Agent首页与工具目录可见样板",
+      "tasks": [
+        "FP03",
+        "FP04",
+        "FP05"
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "项目配套与四专业工具推广",
+      "tasks": [
+        "FP06",
+        "FP07",
+        "FP08",
+        "FP09"
+      ]
+    },
+    {
+      "id": "M4",
+      "title": "有限集成与候选交付",
+      "tasks": [
+        "FP10"
+      ]
+    }
+  ],
+  "execution_rules": [
+    "保留现有源码脏改动和已完成历史记录",
+    "公共主题/App/router/Agent状态滚动/打包脚本由主执行者顺序集成",
+    "FP04/FP05样板完成后再推广；独立页面和仓库可并行",
+    "纯样式不补照抄实现的测试；结构和行为变化补有意义回归",
+    "状态及进度来自真实事件，不伪造思考或百分比",
+    "FP01盘点与开发预览不停止当前8879服务",
+    "候选完整可审阅后按实施授权切换；切换前核实自有进程及用户作业",
+    "所有文件及子进程临时缓存都在F盘；不改HOME/CODEX_HOME",
+    "取消关机安排继续有效"
+  ],
+  "scope_limits": [
+    "不新增业务模块/Agent框架/调度层/通用设计系统包",
+    "不改Agent提示/上下文预算/模型策略/数据库结构/原生算法",
+    "不重放用户旧聊天、不调用保存的远程模型、不运行GPU推理或训练",
+    "不覆盖共享PROGRAM前端、不复制或搬迁模型/运行时",
+    "不恢复闭环评分评测或全量资格任务"
+  ],
+  "native_frontend_delivery": {
+    "portal": {
+      "source_dist": "platform/apps/portal/dist",
+      "binding": "WORKBENCH_PORTAL_DIST指向候选内门户dist",
+      "candidate_dist": "platform/apps/portal/dist"
+    },
+    "ocr": {
+      "source_dist": "ocr/frontend/dist",
+      "candidate_dist": "ocr/frontend/dist",
+      "binding": "新增显式静态根目录绑定；模型bundle仍复用共享PROGRAM",
+      "current_gap": null,
+      "baseline_gap": "现有打包不复制原生前端；服务指向共享bundle/web"
+    },
+    "classification": {
+      "source_dist": "classification/apps/web/dist",
+      "candidate_dist": "classification/apps/web/dist",
+      "binding": "以候选模块实际导入根定位apps/web/dist",
+      "current_gap": null,
+      "baseline_gap": "现有打包不复制原生前端；当前候选静态目录不存在"
+    },
+    "required": [
+      "三个index.html均存在",
+      "JS/CSS及入口纳入manifest哈希",
+      "实际HTTP入口及每套至少一份JS/CSS来自新候选",
+      "原生深层路由刷新/接管/带回正确"
+    ],
+    "manifest_binding": "沿用现有复制完成后递归哈希机制，原生dist在生成manifest前装入；不新增manifest系统"
+  },
+  "verification_scope": {
+    "viewports": [
+      {
+        "width": 1366,
+        "height": 768
+      },
+      {
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "states": [
+      "empty",
+      "loading",
+      "streaming",
+      "long_conversation",
+      "long_filename",
+      "financial_table",
+      "waiting_gpu",
+      "paused",
+      "failed",
+      "completed"
+    ],
+    "data_policy": "固定合成资料及隔离工作区；用户工作区只做必要连续性核对",
+    "controller": "本地可控控制器；测试数据工具真实执行；状态样例与生产事件来源隔离",
+    "browser_policy": "单执行者；截图前停止其他线程浏览器活动；profile/下载/缓存/临时/截图都在F盘；截图后先结束浏览器活动并等待稳定"
+  },
+  "checks": [
+    {
+      "id": "FC01",
+      "tasks": [
+        "FP01"
+      ],
+      "kind": "read_only_baseline",
+      "required": [
+        "实时当前登记与源码差异保全",
+        "三前端构建/服务/候选映射",
+        "F盘及子进程写入边界"
+      ]
+    },
+    {
+      "id": "FC02",
+      "tasks": [
+        "FP02"
+      ],
+      "kind": "visual_contract",
+      "required": [
+        "三组件库样例与tokens对应",
+        "中文排版和正文/焦点对比度",
+        "减少动态及键盘焦点"
+      ]
+    },
+    {
+      "id": "FC03",
+      "tasks": [
+        "FP03"
+      ],
+      "kind": "affected_tests_and_browser",
+      "existing_tests": [
+        "apps/portal/tests/navigation.test.tsx"
+      ],
+      "required": [
+        "三尺寸外壳/动作/滚动",
+        "旧路由及参数"
+      ]
+    },
+    {
+      "id": "FC04",
+      "tasks": [
+        "FP04"
+      ],
+      "kind": "affected_tests_and_browser",
+      "existing_tests": [
+        "apps/portal/tests/agent-streaming-ui.test.tsx",
+        "apps/portal/tests/agent-invocation.test.tsx",
+        "apps/portal/tests/agent-context-skills.test.tsx"
+      ],
+      "required": [
+        "空/长对话及真实执行状态",
+        "草稿/输入法/刷新/阅读位置",
+        "来源版本/接管/成果"
+      ]
+    },
+    {
+      "id": "FC05",
+      "tasks": [
+        "FP05"
+      ],
+      "kind": "affected_tests_and_browser",
+      "existing_tests": [
+        "apps/portal/tests/catalog.test.tsx",
+        "apps/portal/tests/native-window.test.tsx",
+        "apps/portal/tests/native-review-return.test.ts"
+      ],
+      "required": [
+        "四卡及声明/资源/故障语义",
+        "键盘/点击及当前任务上下文"
+      ]
+    },
+    {
+      "id": "FC06",
+      "tasks": [
+        "FP06"
+      ],
+      "kind": "affected_tests_and_browser",
+      "existing_tests": [
+        "apps/portal/tests/finding-transfer.test.tsx",
+        "apps/portal/tests/item-evidence.test.tsx",
+        "apps/portal/tests/audit-workflow.test.tsx"
+      ],
+      "required": [
+        "长名称/来源/版本/导出",
+        "项目/会话切换与设置不建项目"
+      ]
+    },
+    {
+      "id": "FC07",
+      "tasks": [
+        "FP07"
+      ],
+      "kind": "affected_tests_and_browser",
+      "existing_tests": [
+        "apps/portal/tests/forensics-workflow.test.tsx"
+      ],
+      "required": [
+        "金额/长表格/横向滚动",
+        "图像与来源对照",
+        "保存/导出/带回"
+      ]
+    },
+    {
+      "id": "FC08",
+      "tasks": [
+        "FP08"
+      ],
+      "kind": "build_static_binding_and_browser",
+      "existing_tests": [
+        "tests/integration/test_native_opening.py"
+      ],
+      "required": [
+        "OCR生产构建及受影响既有测试",
+        "原图/校对/专业动作",
+        "候选静态根与新资源哈希/深链接"
+      ]
+    },
+    {
+      "id": "FC09",
+      "tasks": [
+        "FP09"
+      ],
+      "kind": "build_static_binding_and_browser",
+      "existing_tests": [
+        "tests/integration/test_native_opening.py"
+      ],
+      "required": [
+        "分类类型/生产构建与有限现有Playwright场景",
+        "缩略图/标签/批量选择",
+        "候选import/静态根与新资源哈希/深链接"
+      ]
+    },
+    {
+      "id": "FC10",
+      "tasks": [
+        "FP10"
+      ],
+      "kind": "bounded_integration_delivery",
+      "required": [
+        "三前端生产构建和资源manifest身份",
+        "Agent到成果与手动带回",
+        "原生新资源及历史来源访问",
+        "原工作区连续性/固定入口/回退说明"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "FP01",
+      "phase": "A",
+      "priority": "P0",
+      "title": "实时基线、路径与静态服务盘点",
+      "owner": "主执行者；只读盘点",
+      "depends_on": [],
+      "write_scope": [
+        "F:/OCR/output/frontend-polish-dev-20261006/environment.ps1",
+        "F:/OCR/output/frontend-polish-dev-20261006/baseline"
+      ],
+      "source_scope": [
+        "platform/scripts/package_agent_candidate.py",
+        "platform/scripts/agent_native_preview.py",
+        "ocr/src/ocr_workbench/service.py",
+        "classification/src/image_platform/api.py",
+        "classification/src/image_platform/settings.py"
+      ],
+      "deliverables": [
+        "实时源码改动与当前产品/进程身份基线",
+        "三前端构建、导入、静态服务和候选装入映射",
+        "实施环境脚本与F盘真实路径核对"
+      ],
+      "acceptance": [
+        "保全已有未提交改动，历史SC任务保持complete",
+        "记录当前绑定而不固定旧PID；盘点不停止现有服务",
+        "确认依赖、缓存、临时、浏览器及全部写入实际位于F盘",
+        "明确OCR共享bundle/web与分类候选dist缺失的交付边界"
+      ],
+      "checks": [
+        "FC01"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\baseline\\baseline.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\baseline\\runtime.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\environment.ps1"
+      ],
+      "check_results": {
+        "FC01": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\baseline\\baseline.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\baseline\\runtime.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\environment.ps1"
+          ],
+          "notes": "已有改动及实时基线保全，三前端路径和F盘写入环境已登记。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP02",
+      "phase": "A",
+      "priority": "P0",
+      "title": "语义tokens与组件规范",
+      "owner": "主执行者统一规范；各前端映射可独立适配",
+      "depends_on": [
+        "FP01"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/clear-ui",
+        "platform/apps/portal/src/router.tsx",
+        "ocr/frontend/src/clear-ui",
+        "ocr/frontend/src/theme.ts",
+        "classification/apps/web/src/clear-ui"
+      ],
+      "deliverables": [
+        "语义颜色、排版、间距、状态、焦点与动效tokens",
+        "Ant Design 6/5及Fluent UI的静态映射",
+        "有限中文组件样例与对比度核对"
+      ],
+      "acceptance": [
+        "沿用现有组件库及本地字体，不引入跨仓库运行时依赖",
+        "正文和主要操作可读，正文对比度至少4.5:1",
+        "品牌绿与深色操作/链接分工明确，不只靠颜色表达状态",
+        "焦点可见；减少动态关闭非必要位移和循环动画",
+        "最终值在现有主题文件固定，后续页面复用"
+      ],
+      "checks": [
+        "FC02"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\theme-contract.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\sample-02-checks.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-classification-checks.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-agent-states.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json"
+      ],
+      "check_results": {
+        "FC02": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\theme-contract.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-classification-checks.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-agent-states.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json"
+          ],
+          "notes": "统一tokens/对比度；分类、Agent焦点/减少动态及OCR实际样例通过。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP03",
+      "phase": "B",
+      "priority": "P0",
+      "title": "全局外壳与公共组件",
+      "owner": "门户；App/router及公共样式由主执行者集成",
+      "depends_on": [
+        "FP02"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/App.tsx",
+        "platform/apps/portal/src/router.tsx",
+        "platform/apps/portal/src/style.css",
+        "platform/apps/portal/src/clear-ui"
+      ],
+      "deliverables": [
+        "紧凑页头/导航/页面标题及剩余高度布局",
+        "一致的按钮、表单、空状态和浮层",
+        "桌面及窄屏公共交互"
+      ],
+      "acceptance": [
+        "三个主导航及次级设置清楚，深链接和workspace/session等参数保留",
+        "1366x768、1920x1080、390x844下主要动作可见",
+        "公共控件和焦点一致，移动关键触控目标至少44px",
+        "明确页面及工具内部滚动责任，不使用多重固定高度补丁",
+        "无关文件不批量格式化"
+      ],
+      "checks": [
+        "FC03"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/platform-directory-tests-final-02-0.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/browser/browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-02-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json"
+      ],
+      "check_results": {
+        "FC03": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-02-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json"
+          ],
+          "notes": "导航9项通过；门户三尺寸沿用明确已通过子场景；最后窄屏关键目标全部44px。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP04",
+      "phase": "B",
+      "priority": "P0",
+      "title": "Agent首页及流式交互精修",
+      "owner": "门户Agent；状态和滚动组件由主执行者集成",
+      "depends_on": [
+        "FP03"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
+        "platform/apps/portal/src/features/agent/AgentMessage.tsx",
+        "platform/apps/portal/src/features/agent/ToolActivity.tsx",
+        "platform/apps/portal/src/features/agent/RunStatus.tsx",
+        "platform/apps/portal/src/features/agent/agent.css",
+        "platform/apps/portal/src/features/agent/TaskPanel.tsx",
+        "platform/apps/portal/src/features/agent/ManualReturn.tsx"
+      ],
+      "deliverables": [
+        "对话优先的首页和稳定输入区",
+        "消息/工具/成果的轻量视觉层级",
+        "真实运行阶段反馈与阅读位置保持"
+      ],
+      "acceptance": [
+        "空状态可直接输入目标/加资料/发送；详情和高级信息按需展开",
+        "长对话和长工具结果可读，输入区不遮挡末条消息",
+        "复用现有事件和动画，不伪造内部思维或进度",
+        "上翻保持位置，新内容提示与原有跟随条件正确",
+        "草稿隔离、刷新、输入法、发送、停止、接管和来源版本保持",
+        "无真实百分比的资源等待使用不定进度，暂停/失败/完成可区分"
+      ],
+      "checks": [
+        "FC04"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp04-agent-tests-final.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp04-implementation.md",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/browser/browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp04-agent-tests-final.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-agent-states.json"
+      ],
+      "check_results": {
+        "FC04": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp04-agent-tests-final.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-agent-states.json"
+          ],
+          "notes": "Agent37项及真实Data工具主流程；长对话/上翻保持、四状态、长详情、中文草稿及减少动态通过。状态夹具与真实业务分别记录。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP05",
+      "phase": "B",
+      "priority": "P0",
+      "title": "四类手动工具目录",
+      "owner": "门户catalog；复用现有声明",
+      "depends_on": [
+        "FP03"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/features/catalog",
+        "platform/apps/portal/src/style.css"
+      ],
+      "deliverables": [
+        "四工具统一卡片样板",
+        "可读的真实可用状态和折叠能力声明",
+        "一致的键盘/点击进入行为"
+      ],
+      "acceptance": [
+        "名称、图标、用途、状态和按钮位置一致；390px单列",
+        "资源/格式/导入导出/控制声明完整，默认展开信息克制",
+        "CPU/GPU支持与实际就绪分开，经典取证按CPU据实呈现",
+        "404可准备，503/410等故障仍不可用",
+        "独立手动进入及当前任务接管/带回参数正确，整卡点击不吞按钮"
+      ],
+      "checks": [
+        "FC05"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/platform-directory-tests-final-0.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/browser/browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-02-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json"
+      ],
+      "check_results": {
+        "FC05": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-directory-tests-final-02-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json"
+          ],
+          "notes": "目录/原生三个文件已通过，导航独立补齐；四工具上下文、真实人工带回、键盘焦点及点击目标通过。首批整体失败不改写。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP06",
+      "phase": "C",
+      "priority": "P1",
+      "title": "项目、资料、发现、成果及设置",
+      "owner": "门户配套页",
+      "depends_on": [
+        "FP04",
+        "FP05"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/features/agent/ProjectHome.tsx",
+        "platform/apps/portal/src/features/agent/PlatformSettings.tsx",
+        "platform/apps/portal/src/features/agent/ControllerSettings.tsx",
+        "platform/apps/portal/src/features/assets",
+        "platform/apps/portal/src/features/artifacts",
+        "platform/apps/portal/src/features/audit",
+        "platform/apps/portal/src/features/jobs",
+        "platform/apps/portal/src/features/batches",
+        "platform/apps/portal/src/features/todos"
+      ],
+      "deliverables": [
+        "沿用样板的项目概况与配套页面",
+        "长名称/来源/版本/导出的可读布局",
+        "简洁设置和高级选项层级"
+      ],
+      "acceptance": [
+        "既有配套页及高级操作可达，不新增一级导航",
+        "长文件名不覆盖操作；项目/会话身份、来源和版本可辨",
+        "草稿与正式档案关联清楚，导出链接有效",
+        "设置浏览不创建项目，保存与Skills使用保持原行为"
+      ],
+      "checks": [
+        "FC06"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/platform-support-tests-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp06-fp07-tests.md",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-support-tests-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-audit-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp04-agent-tests-final.log"
+      ],
+      "check_results": {
+        "FC06": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp06-fp07-tests.md",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-support-tests-final-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-audit-final-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp04-agent-tests-final.log"
+          ],
+          "notes": "受影响17项分次全部有通过证据；固定来源/转档/项目/长名称/设置保存及三尺寸配套页通过。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP07",
+      "phase": "C",
+      "priority": "P1",
+      "title": "Data与经典Forensics专业工作区",
+      "owner": "门户专业工具；保持业务行为",
+      "depends_on": [
+        "FP04",
+        "FP05"
+      ],
+      "write_scope": [
+        "platform/apps/portal/src/features/data",
+        "platform/apps/portal/src/features/forensics"
+      ],
+      "deliverables": [
+        "统一的专业工具条、表格和状态展示",
+        "清楚的原图/分析结果/结论对照",
+        "桌面密度与窄屏访问适配"
+      ],
+      "acceptance": [
+        "金额对齐和小数位保持准确，长列名及工具内横向滚动可用",
+        "选中/过滤/批量操作/保存/导出行为保持",
+        "原图、热图与结论来源清楚，不把取证线索改成真假结论",
+        "窄屏不强制将专业表格改成卡片，不压缩原图至不可辨认",
+        "任务/版本/带回和实际状态保持"
+      ],
+      "checks": [
+        "FC07"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/platform-support-tests-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-support-tests-final-0.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-tail-01.json"
+      ],
+      "check_results": {
+        "FC07": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\platform-support-tests-final-0.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-extended-03.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-tail-01.json"
+          ],
+          "notes": "金额、小数/编号、真实人工带回；三尺寸图像/热图、390工具内横滚、取证说明保存/版本读回/真实ZIP下载通过。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP08",
+      "phase": "C",
+      "priority": "P1",
+      "title": "原生OCR适配及候选静态绑定",
+      "owner": "OCR前端；静态参数与打包脚本由主执行者集成",
+      "depends_on": [
+        "FP04",
+        "FP05"
+      ],
+      "write_scope": [
+        "ocr/frontend/src",
+        "ocr/src/ocr_workbench/service.py",
+        "platform/scripts/package_agent_candidate.py",
+        "platform/scripts/agent_native_preview.py",
+        "ocr/tests/test_static_frontend_binding.py"
+      ],
+      "deliverables": [
+        "Fluent UI主题与原图/校对工作区精修",
+        "基础/专业/编辑器CSS责任收敛",
+        "独立装入候选的OCR dist及静态根目录绑定"
+      ],
+      "acceptance": [
+        "原图/识别结果/编辑对照、缩放与专业操作可用",
+        "资源支持/实际就绪/真实进度/暂停/失败保持",
+        "候选复制OCR/frontend/dist并校验index.html存在",
+        "静态根目录与模型bundle分离，既有独立启动默认方式兼容",
+        "候选私有绑定读回新index及JS/CSS，资源哈希纳入manifest",
+        "共享PROGRAM前端/模型/运行时不被覆盖或复制"
+      ],
+      "checks": [
+        "FC08"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp08-implementation.md",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp08-tests.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/ocr-static-tests.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-tests.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\ocr-static-tests.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-mobile-build-final.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-mobile-implementation.md",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\complete-candidate-independent.log"
+      ],
+      "check_results": {
+        "FC08": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-tests.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\ocr-static-tests.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-mobile-build-final.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp08-mobile-implementation.md",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\complete-candidate-independent.log"
+          ],
+          "notes": "OCR80项及静态根3项通过；修复390校对不可见后重新构建，三尺寸两行实际可见/命中与新HTTP资源通过；最终OCRdist与已验证候选完全相同。旧native-04可视漏检不作最终窄屏依据。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP09",
+      "phase": "C",
+      "priority": "P1",
+      "title": "原生分类适配及候选静态装入",
+      "owner": "分类前端；打包脚本由主执行者集成",
+      "depends_on": [
+        "FP04",
+        "FP05"
+      ],
+      "write_scope": [
+        "classification/apps/web/src",
+        "platform/scripts/package_agent_candidate.py"
+      ],
+      "deliverables": [
+        "Ant Design 5映射与缩略图/标签布局精修",
+        "一致的任务与模型管理状态",
+        "候选classification/apps/web/dist和静态服务核验"
+      ],
+      "acceptance": [
+        "缩略图、标签、置信信息、批量选择和必要模型管理清楚可用",
+        "真实任务状态与CPU/GPU信息保持，不触发训练或推理",
+        "候选复制apps/web/dist并校验index.html存在",
+        "实际导入根目录/静态根目录与候选绑定一致",
+        "候选读回新index及JS/CSS，资源哈希纳入manifest",
+        "深层路由刷新和原生接管/带回入口可用"
+      ],
+      "checks": [
+        "FC09"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp09-classification-implementation.md",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp09-build-artifacts.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-build-artifacts.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-classification-checks.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-remaining-04.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-playwright-tail-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-playwright-protocol-02.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-409-selector-syntax.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json"
+      ],
+      "check_results": {
+        "FC09": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-build-artifacts.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\remaining-04-classification-checks.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-remaining-04.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-playwright-tail-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-playwright-protocol-02.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp09-409-selector-syntax.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json"
+          ],
+          "notes": "分类三尺寸/批选/模型/设备/未知进度/返链通过；限定3个协议用例分次2+1通过，GPU用例排除。只修409测试图标名称匹配，产品行为和最终dist未变。"
+        }
+      },
+      "blocker": null
+    },
+    {
+      "id": "FP10",
+      "phase": "D",
+      "priority": "P0",
+      "title": "有限集成检查与候选交付",
+      "owner": "主执行者集中浏览器/打包/固定入口交付",
+      "depends_on": [
+        "FP06",
+        "FP07",
+        "FP08",
+        "FP09"
+      ],
+      "write_scope": [
+        "platform/scripts/package_agent_candidate.py",
+        "platform/scripts/agent_native_preview.py",
+        "F:/OCR/output/frontend-polish-dev-20261006/candidate",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence",
+        "F:/OCR/output/frontend-polish-dev-20261006/screenshots",
+        "F:/OCR/output/frontend-polish-dev-20261006/完成报告.md",
+        "F:/OCR/release/Clear"
+      ],
+      "deliverables": [
+        "三前端实际装入且哈希覆盖的完整候选",
+        "有限功能/视觉/资源身份检查与连续性记录",
+        "固定入口候选登记、实际服务说明和回退说明"
+      ],
+      "acceptance": [
+        "三前端类型/生产构建通过，受影响已有测试通过",
+        "1366x768、1920x1080、390x844有限场景核对通过",
+        "一次Agent到成果、一次手动修改带回、OCR/分类新资源可读、历史来源/版本可访问",
+        "样例与用户数据隔离，无旧聊天重放、远程连接调用或GPU推理/训练",
+        "原工作区和设置保留；数据库未改动时复用适用历史证据",
+        "候选完整可审阅后再按实施授权切换，先核实运行中的用户作业与进程身份",
+        "所有新增文件在F盘，关机安排保持取消"
+      ],
+      "checks": [
+        "FC10"
+      ],
+      "status": "complete",
+      "evidence": [
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/candidate-final-package.json",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/final-candidate-independent.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/fp10-static-preflight-tests.log",
+        "F:/OCR/output/frontend-polish-dev-20261006/evidence/browser/browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-package.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\complete-candidate-independent.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp10-static-preflight-tests.log",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-tail-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\active-before-switch.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-status-before-switch.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-stop-before-switch.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\product-registration.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-start-after-switch.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-status-after-switch.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\final-running-http.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\preview-before.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\preview-after.json",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\交付与回退.md",
+        "F:\\OCR\\output\\frontend-polish-dev-20261006\\完成报告.md"
+      ],
+      "check_results": {
+        "FC10": {
+          "result": "passed",
+          "evidence": [
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-package.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\complete-candidate-independent.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\candidate-complete-delta.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\fp10-static-preflight-tests.log",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\browser-convergence-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-tail-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\extended-mobile-final-01.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\browser\\controls-diagnostic-04-controls.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\active-before-switch.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-status-before-switch.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-stop-before-switch.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\product-registration.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-start-after-switch.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\entry-status-after-switch.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\final-running-http.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\preview-before.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\evidence\\preview-after.json",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\交付与回退.md",
+            "F:\\OCR\\output\\frontend-polish-dev-20261006\\完成报告.md"
+          ],
+          "notes": "最终2075哈希/三dist/8共享引用通过，实际8879已运行0.9.0；先核实无活动任务再停止旧自有服务，原工作区7/3/5及设置哈希保持。入口时间比较兼容字符串/DateTime；浏览器已结束；关机继续取消。"
+        }
+      },
+      "blocker": null
+    }
+  ],
+  "implementation_baseline": "F:\\OCR\\output\\frontend-polish-dev-20261006\\baseline\\baseline.json",
+  "verification_note": "十项原计划完成。分次及失败批次的独立通过子场景如实引用；OCR窄屏可视漏检已修复并重新验证。最终0.9.0 candidate-complete已切固定入口，原用户工作区连续性与实际HTTP资源通过。关机安排保持取消。",
+  "completed_at": "2026-10-06T07:01:18.261114+00:00",
+  "delivery": {
+    "product_version": "0.9.0",
+    "candidate": "F:\\OCR\\output\\frontend-polish-dev-20261006\\candidate-complete",
+    "manifest_sha256": "ac663199363e4608a48c584939aa42f5d104cbb752717a73eb8d7fd6f182e8ec",
+    "product_entry": "F:/OCR/release/Clear/启动智能审计.cmd",
+    "url": "http://127.0.0.1:8879/",
+    "pid_at_delivery": 21716,
+    "data": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\workspace",
+    "report": "F:\\OCR\\output\\frontend-polish-dev-20261006\\完成报告.md",
+    "rollback": "F:\\OCR\\output\\frontend-polish-dev-20261006\\交付与回退.md",
+    "shutdown_cancelled": true
+  }
+}
