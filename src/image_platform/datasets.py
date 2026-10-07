@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from .images import decode, file_sha
-from .store import dump, now, uid
+from .store import dump, now, uid, fingerprint
 
 
 def register_asset(store, project_id, path, label_id=None, source_id="upload", group_id=None,
@@ -123,16 +123,30 @@ def grouped_split(items, labels, seed=42, prior_items=None):
     return output
 
 
-def publish_dataset(store, project_id, name, seed=42):
+def publish_dataset(store, project_id, name, seed=42, *, asset_ids=None, request_id=None):
     project = store.project(project_id)
+    binding = {'name': name, 'seed': seed, 'asset_ids': sorted(asset_ids) if asset_ids is not None else None}
+    if request_id:
+        previous = store.one('SELECT * FROM idempotency WHERE scope=? AND key=?', (project_id+':dataset', request_id))
+        if previous:
+            if previous['request_hash'] != fingerprint(binding):
+                raise ValueError('数据版本请求身份与原参数不同')
+            saved, _ = load_dataset(store, previous['job_id'])
+            return {'id': saved['id'], 'name': saved['name'], 'stats': json.loads(saved['stats']), 'created_at': saved['created_at']}
     assets = store.rows("SELECT * FROM assets WHERE project_id=? AND archived=0 AND label_id IS NOT NULL ORDER BY id", (project_id,))
+    if asset_ids is not None:
+        if not isinstance(asset_ids, list) or not 1 <= len(asset_ids) <= 5000 or len(set(asset_ids)) != len(asset_ids):
+            raise ValueError('数据版本资料范围无效')
+        assets = [item for item in assets if item['id'] in set(asset_ids)]
+        if {item['id'] for item in assets} != set(asset_ids):
+            raise ValueError('资料未标注、不存在或超出当前项目')
     prior = store.one("SELECT id FROM datasets WHERE project_id=? ORDER BY created_at DESC LIMIT 1", (project_id,))
     prior_items = load_dataset(store, prior["id"])[1]["items"] if prior else None
     items = grouped_split(assets, [x["label_id"] for x in project["labels"]], seed, prior_items)
     return save_snapshot(store, project, name, items, seed, {
         "prior_dataset_id": prior["id"] if prior else None,
         "holdout_policy": "preserve_existing_splits_new_groups_to_train" if prior else "initial_group_split",
-    })
+    }, request_id=request_id, binding=binding)
 
 
 def validate_fixed_splits(items, label_ids):
@@ -168,25 +182,38 @@ def publish_fixed_dataset(store, project_id, name, splits_by_asset, provenance):
     })
 
 
-def save_snapshot(store, project, name, items, seed, extra_stats):
+def save_snapshot(store, project, name, items, seed, extra_stats, *, request_id=None, binding=None):
     project_id = project["id"]
     dataset_id = uid("dataset")
     destination = store.settings.data_dir / "datasets" / f"{dataset_id}.json"
     # Store an immutable snapshot: paths, hashes, labels and source groups at publication time.
     snapshot = {"id": dataset_id, "project_id": project_id, "labels": project["labels"], "seed": seed, "items": items, "provenance": extra_stats.get("provenance")}
     destination.write_text(dump(snapshot), encoding="utf-8")
-    stats = {"total": len(items), "splits": dict(Counter(x["split"] for x in items)),
-             "classes": {label["label_id"]: dict(Counter(x["split"] for x in items if x["label_id"] == label["label_id"])) for label in project["labels"]},
-             "seed": seed, **extra_stats,
-             "warning": "测试集仅用于最终报告；样本少时不能证明低错误率。"}
-    with store.connect(write=True) as con:
-        con.execute("INSERT INTO datasets VALUES(?,?,?,?,?,?,?,?)", (dataset_id, project_id, name, dump(project["labels"]), str(destination), file_sha(destination), dump(stats), now()))
+    # Complete both files before committing the replay receipt. A failed write
+    # must never publish a dataset whose CSV is missing.
     csv_path = destination.with_suffix(".csv")
     with csv_path.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=["item_id", "path", "content_sha256", "label_id", "group_id", "split", "source_id"])
         writer.writeheader()
         for item in items:
             writer.writerow({"item_id": item["id"], "path": item["path"], "content_sha256": item["sha256"], "label_id": item["label_id"], "group_id": item["group_id"], "split": item["split"], "source_id": item["source_id"]})
+    stats = {"total": len(items), "splits": dict(Counter(x["split"] for x in items)),
+             "classes": {label["label_id"]: dict(Counter(x["split"] for x in items if x["label_id"] == label["label_id"])) for label in project["labels"]},
+             "seed": seed, **extra_stats,
+             "warning": "测试集仅用于最终报告；样本少时不能证明低错误率。"}
+    with store.connect(write=True) as con:
+        if request_id:
+            previous = con.execute('SELECT * FROM idempotency WHERE scope=? AND key=?', (project_id+':dataset', request_id)).fetchone()
+            if previous:
+                destination.unlink(missing_ok=True)
+                csv_path.unlink(missing_ok=True)
+                if previous['request_hash'] != fingerprint(binding):
+                    raise ValueError('数据版本请求身份与原参数不同')
+                saved = con.execute('SELECT * FROM datasets WHERE id=?', (previous['job_id'],)).fetchone()
+                return {'id': saved['id'], 'name': saved['name'], 'stats': json.loads(saved['stats']), 'created_at': saved['created_at']}
+        con.execute("INSERT INTO datasets VALUES(?,?,?,?,?,?,?,?)", (dataset_id, project_id, name, dump(project["labels"]), str(destination), file_sha(destination), dump(stats), now()))
+        if request_id:
+            con.execute('INSERT INTO idempotency VALUES(?,?,?,?)', (project_id+':dataset', request_id, fingerprint(binding), dataset_id))
     return {"id": dataset_id, "name": name, "stats": stats, "created_at": now()}
 
 

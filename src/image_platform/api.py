@@ -4,6 +4,7 @@ from importlib import metadata as package_metadata
 import io
 import json
 import os
+import re
 from pathlib import Path
 import secrets
 import shutil
@@ -25,7 +26,7 @@ from .runtime import validate_package
 from .settings import REPO, Settings
 from .platform_navigation import NavigationTickets
 from .platform_imports import register_platform_import_routes
-from .store import Store, dump, now, uid
+from .store import Store, dump, now, uid, fingerprint
 
 
 class Label(BaseModel):
@@ -60,6 +61,8 @@ class ImportRequest(BaseModel):
 class DatasetRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
+    asset_ids: list[str] | None = Field(default=None, min_length=1, max_length=5000)
+    request_id: str | None = Field(default=None, pattern=r'^[A-Za-z0-9_-]{8,120}$')
 
 
 class TrainingRequest(BaseModel):
@@ -87,6 +90,27 @@ class AnnotationRequest(BaseModel):
     asset_ids: list[str] = Field(min_length=1, max_length=500)
     label_id: str | None
     group_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class AgentAnnotation(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    asset_id: str = Field(pattern=r'^[A-Za-z0-9_-]{1,64}$')
+    expected_hash: str = Field(pattern=r'^[a-f0-9]{64}$')
+    label_id: str | None
+    group_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class AgentAnnotations(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    items: list[AgentAnnotation] = Field(min_length=1, max_length=500)
+    actor_id: str = Field(pattern=r'^[A-Za-z0-9_-]{1,81}$')
+
+
+class AgentModelActivation(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    model_id: str
+    expected_active_model_id: str | None
+    actor_id: str = Field(pattern=r'^[A-Za-z0-9_-]{1,81}$')
 
 
 class JobAction(BaseModel):
@@ -127,6 +151,9 @@ def public_job(store, row):
 def create_app(settings=None):
     settings = settings or Settings.from_env()
     store = Store(settings)
+    with store.connect(write=True) as con:
+        con.execute('CREATE TABLE IF NOT EXISTS agent_annotation_requests (project_id TEXT, operation_id TEXT, payload_hash TEXT, receipt TEXT, PRIMARY KEY(project_id,operation_id))')
+        con.execute('CREATE TABLE IF NOT EXISTS agent_model_requests (project_id TEXT, operation_id TEXT, payload_hash TEXT, receipt TEXT, PRIMARY KEY(project_id,operation_id))')
 
     @asynccontextmanager
     async def lifespan(app):
@@ -373,6 +400,41 @@ def create_app(settings=None):
                 con.execute("UPDATE assets SET label_id=?,group_id=COALESCE(?,group_id) WHERE id=?", (body.label_id, body.group_id, asset_id))
         return {"updated": len(set(body.asset_ids)), "note": "旧数据版本保持不变，请发布新版本以用于下一轮训练。"}
 
+    @app.get('/api/v1/projects/{project_id}/agent-annotations/{operation_id}')
+    def agent_annotation_receipt(project_id: str, operation_id: str):
+        store.project(project_id)
+        row = store.one('SELECT receipt FROM agent_annotation_requests WHERE project_id=? AND operation_id=?', (project_id, operation_id))
+        return {'committed': row is not None, 'receipt': json.loads(row['receipt']) if row else None}
+
+    @app.post('/api/v1/projects/{project_id}/agent-annotations/{operation_id}')
+    def agent_annotate(project_id: str, operation_id: str, body: AgentAnnotations):
+        if not re.fullmatch(r'[A-Za-z0-9_-]{8,120}', operation_id):
+            raise ValueError('操作标识无效')
+        labels = {label['label_id'] for label in store.project(project_id)['labels']}
+        if len({item.asset_id for item in body.items}) != len(body.items):
+            raise ValueError('资料重复')
+        payload_hash = fingerprint(body.model_dump())
+        with store.connect(write=True) as con:
+            old = con.execute('SELECT * FROM agent_annotation_requests WHERE project_id=? AND operation_id=?', (project_id, operation_id)).fetchone()
+            if old:
+                if old['payload_hash'] != payload_hash:
+                    raise HTTPException(409, '操作身份已绑定其他参数')
+                return json.loads(old['receipt'])
+            updated = []
+            for item in body.items:
+                row = con.execute('SELECT * FROM assets WHERE id=? AND project_id=? AND archived=0', (item.asset_id, project_id)).fetchone()
+                if not row or item.label_id is not None and item.label_id not in labels:
+                    raise ValueError('资料或类别不属于项目')
+                current = {key: row[key] for key in ('id', 'sha256', 'label_id', 'group_id')}
+                if fingerprint(current) != item.expected_hash or file_sha(row['path']) != row['sha256']:
+                    raise HTTPException(409, '标注或源资料已变化，请重新读取')
+                con.execute('INSERT INTO annotations VALUES(?,?,?,?,?,?)', (uid('annotation'), item.asset_id, row['label_id'], item.label_id, 'agent:'+body.actor_id, now()))
+                con.execute('UPDATE assets SET label_id=?,group_id=COALESCE(?,group_id) WHERE id=?', (item.label_id, item.group_id, item.asset_id))
+                updated.append({'asset_id': item.asset_id, 'label_id': item.label_id, 'group_id': item.group_id or row['group_id']})
+            receipt = {'operation_id': operation_id, 'project_id': project_id, 'payload_hash': payload_hash, 'state': 'committed', 'actor': {'kind': 'agent', 'id': body.actor_id}, 'items': updated}
+            con.execute('INSERT INTO agent_annotation_requests VALUES(?,?,?,?)', (project_id, operation_id, payload_hash, dump(receipt)))
+            return receipt
+
     @app.get("/api/v1/assets/{asset_id}/image")
     def original_image(asset_id: str):
         asset = store.one("SELECT * FROM assets WHERE id=?", (asset_id,))
@@ -395,7 +457,27 @@ def create_app(settings=None):
 
     @app.post("/api/v1/projects/{project_id}/dataset-versions", status_code=201)
     def dataset_create(project_id: str, body: DatasetRequest):
-        return publish_dataset(store, project_id, body.name, body.seed)
+        return publish_dataset(store, project_id, body.name, body.seed, asset_ids=body.asset_ids, request_id=body.request_id)
+
+    @app.get('/api/v1/projects/{project_id}/dataset-versions/{dataset_id}')
+    def dataset_read(project_id: str, dataset_id: str):
+        dataset, manifest = load_dataset(store, dataset_id)
+        if dataset['project_id'] != project_id:
+            raise LookupError('数据版本不属于此项目')
+        return {'id': dataset_id, 'project_id': project_id, 'manifest_sha256': dataset['manifest_sha256'],
+                'items': [{key: item[key] for key in ('id', 'sha256', 'label_id', 'group_id', 'split')} for item in manifest['items']]}
+
+    @app.get('/api/v1/projects/{project_id}/dataset-requests/{request_id}')
+    def dataset_request(project_id: str, request_id: str):
+        store.project(project_id)
+        row = store.one('SELECT job_id FROM idempotency WHERE scope=? AND key=?', (project_id+':dataset', request_id))
+        return {'submitted': row is not None, 'dataset_id': row['job_id'] if row else None}
+
+    @app.get('/api/v1/projects/{project_id}/training-requests/{request_id}')
+    def training_request(project_id: str, request_id: str):
+        store.project(project_id)
+        row = store.one('SELECT job_id FROM idempotency WHERE scope=? AND key=?', (project_id+':train', request_id))
+        return {'submitted': row is not None, 'job_id': row['job_id'] if row else None}
 
     @app.post("/api/v1/projects/{project_id}/experiments", status_code=202)
     def train(project_id: str, body: TrainingRequest, idempotency_key: str | None = Header(default=None)):
@@ -423,6 +505,36 @@ def create_app(settings=None):
         with store.connect(write=True) as con:
             con.execute("UPDATE projects SET active_model_id=? WHERE id=?", (row["id"], project_id))
         return {"active_model_id": row["id"]}
+
+    @app.get('/api/v1/projects/{project_id}/agent-models/{operation_id}')
+    def agent_model_receipt(project_id: str, operation_id: str):
+        store.project(project_id)
+        row = store.one('SELECT receipt FROM agent_model_requests WHERE project_id=? AND operation_id=?', (project_id, operation_id))
+        return {'committed': row is not None, 'receipt': json.loads(row['receipt']) if row else None}
+
+    @app.post('/api/v1/projects/{project_id}/agent-models/{operation_id}')
+    def agent_activate_model(project_id: str, operation_id: str, body: AgentModelActivation):
+        if not re.fullmatch(r'[A-Za-z0-9_-]{8,120}', operation_id):
+            raise ValueError('操作标识无效')
+        signature = fingerprint(body.model_dump())
+        with store.connect(write=True) as con:
+            prior = con.execute('SELECT * FROM agent_model_requests WHERE project_id=? AND operation_id=?', (project_id, operation_id)).fetchone()
+            if prior:
+                if prior['payload_hash'] != signature:
+                    raise HTTPException(409, '操作身份已绑定其他参数')
+                return json.loads(prior['receipt'])
+            project = con.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()
+            model = con.execute('SELECT * FROM models WHERE id=? AND project_id=?', (body.model_id, project_id)).fetchone()
+            if not project or not model:
+                raise LookupError('项目或模型不存在')
+            if project['active_model_id'] != body.expected_active_model_id:
+                raise HTTPException(409, '活动模型已变化，请重新读取')
+            validate_package(model['package_path'])
+            con.execute('UPDATE projects SET active_model_id=? WHERE id=?', (body.model_id, project_id))
+            receipt = {'operation_id': operation_id, 'project_id': project_id, 'active_model_id': body.model_id,
+                       'previous_model_id': body.expected_active_model_id, 'actor': {'kind': 'agent', 'id': body.actor_id}, 'state': 'committed'}
+            con.execute('INSERT INTO agent_model_requests VALUES(?,?,?,?)', (project_id, operation_id, signature, dump(receipt)))
+            return receipt
 
     @app.get("/api/v1/models/{model_id}/download")
     def download_model(model_id: str):
@@ -474,9 +586,9 @@ def create_app(settings=None):
         return {"submitted": row is not None, "job_id": row["job_id"] if row else None}
 
     @app.get("/api/v1/projects/{project_id}/jobs")
-    def jobs(project_id: str, limit: int = Query(50, ge=1, le=200)):
+    def jobs(project_id: str, limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
         store.project(project_id)
-        return [public_job(store, row) for row in store.rows("SELECT * FROM jobs WHERE project_id=? ORDER BY created_at DESC LIMIT ?", (project_id, limit))]
+        return [public_job(store, row) for row in store.rows("SELECT * FROM jobs WHERE project_id=? ORDER BY created_at DESC,id LIMIT ? OFFSET ?", (project_id, limit, offset))]
 
     @app.get("/api/v1/jobs/{job_id}")
     def get_job(job_id: str):
