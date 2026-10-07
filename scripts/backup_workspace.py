@@ -171,7 +171,9 @@ def _copy_member(source: Path, target: Path) -> dict:
     before = source.stat()
     is_db = source.name.endswith(".sqlite3")
     if is_db:
-        with closing(sqlite3.connect(source)) as input_db, closing(sqlite3.connect(target)) as output_db:
+        # A writable source connection can checkpoint residual WAL on close and
+        # mutate a stopped workspace. Read-only still includes committed WAL.
+        with closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True)) as input_db, closing(sqlite3.connect(target)) as output_db:
             input_db.backup(output_db)
         _check_db(target)
     else:

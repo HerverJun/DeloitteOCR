@@ -1,12 +1,15 @@
 """A stopped platform workspace reopens from a verified new-directory restore."""
 
 import hashlib
+from contextlib import closing
 import io
 import json
 import os
 from pathlib import Path
 import sqlite3
 import subprocess
+import sys
+import shutil
 
 import pytest
 from fastapi.testclient import TestClient
@@ -93,6 +96,101 @@ def test_ocr_cold_backup_keeps_project_files_and_omits_runtime_state(tmp_path):
         assert db.execute("SELECT name FROM projects WHERE id='projectA'").fetchone()[0] == "Original"
     assert (recovered / "projects/projectA/source.pdf").read_bytes() == b"pdf-source"
     assert not (recovered / "service.lock").exists()
+
+
+@pytest.mark.parametrize('kind,database_name', [('ocr', 'workbench.sqlite3'), ('platform', 'assets.sqlite3')])
+def test_cold_backup_reads_committed_residual_wal_without_changing_source(tmp_path, kind, database_name, record_property):
+    source, archive, recovered = (tmp_path / name for name in ('wal-source', 'wal-archive', 'wal-restored'))
+    source.mkdir()
+    database = source / database_name
+    # Exit without sqlite close, as after a stopped/crashed writer. The baseline
+    # is checkpointed; the second committed row exists only in the residual WAL.
+    script = '''import os,sqlite3,sys
+db=sqlite3.connect(sys.argv[1])
+assert db.execute('PRAGMA journal_mode=WAL').fetchone()[0]=='wal'
+db.execute('PRAGMA wal_autocheckpoint=0')
+db.execute('CREATE TABLE projects(id TEXT PRIMARY KEY,name TEXT)')
+db.execute("INSERT INTO projects VALUES('baseline','checkpointed')")
+db.commit()
+db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
+db.execute("INSERT INTO projects VALUES('wal-only','committed before writer exit')")
+db.commit()
+os._exit(0)
+'''
+    subprocess.run([sys.executable, '-I', '-B', '-u', '-X', 'utf8', '-c', script, str(database)],
+                   cwd=source, check=True, timeout=20,
+                   creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    wal = database.with_name(database.name + '-wal')
+    assert wal.is_file() and wal.stat().st_size > 0
+    if kind == 'platform':
+        with closing(sqlite3.connect(source / 'workspaces.sqlite3')) as db:
+            db.execute('CREATE TABLE workspaces(id TEXT PRIMARY KEY)')
+            db.commit()
+    # A standalone copy of only the DB proves the latest row needs the WAL.
+    baseline = tmp_path / 'main-file-only.sqlite3'
+    shutil.copyfile(database, baseline)
+    with closing(sqlite3.connect(baseline.as_uri() + '?mode=ro', uri=True)) as db:
+        assert db.execute('SELECT id FROM projects').fetchall() == [('baseline',)]
+
+    def identity(path):
+        stat = path.stat()
+        return {'bytes': stat.st_size, 'mtime_ns': stat.st_mtime_ns,
+                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+
+    before = {'database': identity(database), 'wal': identity(wal)}
+    record_property('source_persistent_before', json.dumps(before, sort_keys=True))
+    try:
+        manifest = create(source, archive, kind=kind)
+    finally:
+        after = {'database': identity(database), 'wal': identity(wal) if wal.exists() else None}
+        record_property('source_persistent_after', json.dumps(after, sort_keys=True))
+    # SHM is transient reader coordination and is deliberately not claimed
+    # byte-identical. DB and WAL are the persistent source content checked here.
+    assert after == before
+    assert verify(archive) == manifest
+    restore(archive, recovered)
+    with closing(sqlite3.connect((recovered / database_name).as_uri() + '?mode=ro', uri=True)) as db:
+        assert db.execute('SELECT id,name FROM projects ORDER BY id').fetchall() == [
+            ('baseline', 'checkpointed'), ('wal-only', 'committed before writer exit')]
+        assert db.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+    assert not any(name.endswith(('.sqlite3-wal', '.sqlite3-shm')) for name in manifest['files'])
+
+
+def test_cold_backup_corrupt_source_still_fails_without_publication_or_source_change(tmp_path):
+    source, archive = tmp_path / 'corrupt-source', tmp_path / 'unpublished-backup'
+    source.mkdir()
+    database = source / 'workbench.sqlite3'
+    original = b'not a SQLite database; preserve this failed source'
+    database.write_bytes(original)
+    with pytest.raises(sqlite3.DatabaseError):
+        create(source, archive, kind='ocr')
+    assert database.read_bytes() == original
+    assert not archive.exists()
+    assert not list(tmp_path.glob('unpublished-backup.pending-*'))
+
+
+def test_cold_backup_still_rejects_a_genuine_source_change(tmp_path, monkeypatch):
+    from scripts import backup_workspace as backup_module
+    source, archive = tmp_path / 'changed-source', tmp_path / 'unpublished-backup'
+    source.mkdir()
+    database = source / 'workbench.sqlite3'
+    with closing(sqlite3.connect(database)) as db:
+        db.execute('CREATE TABLE projects(id TEXT PRIMARY KEY)')
+        db.commit()
+    original = database.read_bytes()
+    check_database = backup_module._check_db
+
+    def external_change_after_copy(target):
+        check_database(target)
+        with database.open('ab') as writer:
+            writer.write(b'external modification during the cold backup')
+
+    monkeypatch.setattr(backup_module, '_check_db', external_change_after_copy)
+    with pytest.raises(ValueError, match='Source changed during backup'):
+        create(source, archive, kind='ocr')
+    assert database.read_bytes() == original + b'external modification during the cold backup'
+    assert not archive.exists()
+    assert not list(tmp_path.glob('unpublished-backup.pending-*'))
 
 
 def test_platform_cold_backup_keeps_batch_templates_receipts_and_decisions(tmp_path, monkeypatch):
