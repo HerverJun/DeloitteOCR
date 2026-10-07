@@ -96,6 +96,73 @@ class ScreenQualityReportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Saved context changed'):
             self.replay()
 
+    def recovery_fixture(self):
+        binding={**self.binding,'inputs_sha256':'frozen-inputs','worker_source_sha256':'same-worker',
+            'engine':'glm','engine_config_sha256':'same-config','preprocess_module_sha256':'same-preparation',
+            'request_timeout_seconds':120,'first_pass':True,'labels_or_ideal_regions_provided':False}
+        failed={**self.record,'image_sha256':self.sample['image_sha256'],'status':'failed','engine':'glm','error_type':'FileNotFoundError',
+            'error':f"[Errno 2] No such file or directory: {str(self.image)!r}"}
+        self.write(self.runroot/'sample/record.json',failed)
+        recovery_root=self.root/'recovery'
+        replacement_attempt=recovery_root/'sample/attempt-0001'
+        replacement_attempt.mkdir(parents=True)
+        self.write(recovery_root/'binding.json',{**binding,'include_sample_ids':['sample']})
+        self.write(replacement_attempt/'preprocess.json',self.preparation)
+        result_path=recovery_root/'sample/result.json'
+        self.write(result_path,self.raw)
+        replacement={**self.record,'image_sha256':self.sample['image_sha256'],'engine':'glm','output':str(replacement_attempt),
+            'result_sha256':self.digest(result_path),'inference_seconds':3,'wall_seconds':5}
+        self.write(recovery_root/'sample/record.json',replacement)
+        self.write(self.runroot/'run-summary.json',{'completed':1,'total':1,'attempt_wall_seconds':11})
+        self.write(recovery_root/'run-summary.json',{'completed':1,'total':1,'attempt_wall_seconds':7})
+        truth={**self.sample,'tables':deepcopy(self.raw['tables']),'cohort':'chinese','level':'normal'}
+        score=self.driver['load_module'](TOOLS/'score.py')
+        kwargs={'runroot':self.runroot,'binding':binding,'samples':{'sample':self.sample},'truths':[truth],
+            'original_records':[failed],'original_results':{'sample':{}},'score':score,'runtime':self.runtime}
+        return {'run':str(recovery_root),'sample_ids':['sample']},kwargs,recovery_root,replacement
+
+    def test_input_failure_recovery_preserves_original_receipt_and_separates_wall_time(self):
+        spec,kwargs,recovery_root,_=self.recovery_fixture()
+        source_hash=self.digest(self.runroot/'sample/record.json')
+        recovery_hash=self.digest(recovery_root/'sample/record.json')
+        output=self.driver['recovered_content'](spec,**kwargs)
+        self.assertEqual(output['restored_successes'],1)
+        self.assertEqual(output['source_input_failures_remaining'],[])
+        self.assertIs(output['content_measurement_complete'],True)
+        self.assertEqual(output['quality']['ratios']['whole_image_correct_rate'],1)
+        self.assertEqual(output['quality']['totals']['images'],1)
+        self.assertEqual(output['timing']['first_pass']['recorded_attempt_wall_seconds'],11)
+        self.assertEqual(output['timing']['independent_recovery']['recorded_attempt_wall_seconds'],7)
+        self.assertEqual(self.digest(self.runroot/'sample/record.json'),source_hash)
+        self.assertEqual(self.digest(recovery_root/'sample/record.json'),recovery_hash)
+        self.assertEqual(kwargs['original_records'][0]['status'],'failed')
+
+    def test_recovery_rejects_original_success_real_model_failure_and_changed_binding(self):
+        spec,kwargs,recovery_root,_=self.recovery_fixture()
+        for status,error_type in (('success','FileNotFoundError'),('failed','RuntimeError')):
+            with self.subTest(status=status,error_type=error_type):
+                kwargs['original_records'][0].update(status=status,error_type=error_type)
+                with self.assertRaisesRegex(ValueError,'Only an ended FileNotFoundError'):
+                    self.driver['recovered_content'](spec,**kwargs)
+        kwargs['original_records'][0].update(status='failed',error_type='FileNotFoundError')
+        binding=json.loads((recovery_root/'binding.json').read_text('utf-8'))
+        binding['request_timeout_seconds']=180
+        self.write(recovery_root/'binding.json',binding)
+        with self.assertRaisesRegex(ValueError,'binding differs'):
+            self.driver['recovered_content'](spec,**kwargs)
+
+    def test_unsuccessful_recovery_does_not_replace_the_original_input_failure(self):
+        spec,kwargs,recovery_root,replacement=self.recovery_fixture()
+        replacement.update(status='failed',error_type='RuntimeError',error='actual model recovery failure')
+        self.write(recovery_root/'sample/record.json',replacement)
+        output=self.driver['recovered_content'](spec,**kwargs)
+        self.assertEqual(output['restored_successes'],0)
+        self.assertEqual(output['source_input_failures_remaining'],['sample'])
+        self.assertIs(output['content_measurement_complete'],False)
+        self.assertEqual(output['quality']['ratios']['whole_image_correct_rate'],0)
+        self.assertEqual(output['receipts'][0]['recovery_status'],'failed')
+        self.assertFalse(output['receipts'][0]['substituted'])
+
 
 if __name__=='__main__':
     unittest.main()
