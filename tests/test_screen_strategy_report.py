@@ -93,6 +93,35 @@ class ScreenStrategyReportTests(unittest.TestCase):
         self.assertEqual(route['conditional_observed_cost']['extra_secondary_inference_timing_unknown_attempts'], 1)
         self.assertIn('0.00（1）', self.driver['markdown'](report))
 
+    def test_offline_breakdown_separates_failed_large_table_from_successful_primary_gain(self):
+        large = {'text':'100 200 300','tables':[{'rows':3,'columns':1,'cells':[
+            {'row':r,'column':0,'row_span':1,'column_span':1,'text':value}
+            for r,value in enumerate(['100','200','300'])]}]}
+        recovery = self.row('secondary','100')
+        recovery['result'] = deepcopy(large)
+        models = {'primary': {'failure': self.row('primary','',status='failed'),
+                              'success': self.row('primary','100',warnings=[{'code':'table_structure_invalid'}])},
+                  'secondary': {'failure': recovery, 'success': self.row('secondary','200')}}
+        receipt = self.driver['freeze_selections']({'failure':{},'success':{}}, models,
+                                                   self.runtime,[('primary','secondary')])
+        before = deepcopy(receipt)
+        truth = [{'id':'failure','tables':large['tables'],'cohort':'public','level':'normal'},
+                 {**self.truth('200'),'id':'success'}]
+        report = self.driver['score_frozen'](receipt,truth,self.scorer)
+        delta = report['strategies']['primary→secondary']['change_vs_primary']
+        technical = delta['by_primary_status']['primary_technical_failure']
+        successful = delta['by_primary_status']['successful_primary']
+        self.assertEqual(technical['delta']['fixed_critical_error_cells'],3)
+        self.assertEqual(successful['delta']['fixed_critical_error_cells'],1)
+        self.assertEqual(technical['conditional_observed_cost']['primary_inference_timing_unknown_attempts'],1)
+        self.assertEqual(technical['conditional_observed_cost']['extra_secondary_known_inference_seconds'],2)
+        self.assertEqual(delta['by_cohort']['public']['delta']['critical_exact_cells_net'],3)
+        self.assertEqual(delta['by_cohort']['chinese']['delta']['critical_exact_cells_net'],1)
+        self.assertEqual(delta['by_cohort_and_primary_status']['public/primary_technical_failure']['images'],1)
+        self.assertEqual(sum(p['delta']['fixed_critical_error_cells'] for p in delta['by_primary_status'].values()),
+                         delta['counts']['fixed_critical_error_cells'])
+        self.assertEqual(receipt,before)
+
     def test_selection_receives_only_observed_native_arguments_and_report_scores_are_removed(self):
         class ForbiddenScore:
             def __deepcopy__(self, memo):

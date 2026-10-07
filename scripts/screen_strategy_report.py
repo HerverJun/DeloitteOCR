@@ -341,6 +341,7 @@ def score_frozen(receipt, truths, scorer):
         if not strategy['secondary']:
             continue
         baseline = {row['id']: row for row in scored[strategy['primary']]}
+        frozen_by_id = {row['id']: row for row in strategy['rows']}
         counts = Counter()
         examples = []
         for row in scored[name]:
@@ -348,8 +349,37 @@ def score_frozen(receipt, truths, scorer):
             counts.update(delta)
             if any(delta.values()):
                 examples.append({'id': row['id'], **delta, 'remaining_errors': row['errors'][:5]})
-        output[name]['change_vs_primary'] = {'counts': dict(counts), 'examples': examples}
-    return {'strategies': output,
+        def partition(rows):
+            deltas, costs, activity = Counter(), Counter(), Counter()
+            before = [baseline[row['id']] for row in rows]
+            for row in rows:
+                old = baseline[row['id']]
+                deltas.update(error_delta(old, row))
+                for metric in ('perfect_images', 'critical_exact_cells', 'visible_exact_cells', 'extra_cells', 'extra_tables'):
+                    deltas[metric + '_net'] += row['metrics'].get(metric, 0)-old['metrics'].get(metric, 0)
+                frozen = frozen_by_id[row['id']]
+                activity['upgrades_attempted'] += frozen['upgrade_triggered']
+                activity['selected_secondary'] += frozen['selection']['selected_id'] == strategy['secondary']
+                for index, attempt in enumerate(frozen['attempts']):
+                    prefix = 'primary' if index == 0 else 'extra_secondary'
+                    costs[prefix + '_known_inference_seconds'] += attempt['inference_seconds'] or 0
+                    costs[prefix + '_inference_timing_unknown_attempts'] += attempt['inference_seconds'] is None
+            return {'images': len(rows), 'baseline_quality': scorer.summarize(before),
+                    'actual_quality': scorer.summarize(rows), 'delta': dict(deltas),
+                    'activity': dict(activity), 'conditional_observed_cost': dict(costs)}
+        def primary_status(row):
+            return ('successful_primary' if frozen_by_id[row['id']]['attempts'][0]['status'] == 'success'
+                    else 'primary_technical_failure')
+        partitions = {
+            'by_primary_status': {key: partition([row for row in scored[name] if primary_status(row) == key])
+                for key in sorted({primary_status(row) for row in scored[name]})},
+            'by_cohort': {str(key): partition([row for row in scored[name] if row['cohort'] == key])
+                for key in sorted({row['cohort'] for row in scored[name]}, key=str)},
+            'by_cohort_and_primary_status': {str(cohort) + '/' + status: partition([
+                row for row in scored[name] if row['cohort'] == cohort and primary_status(row) == status])
+                for cohort, status in sorted({(row['cohort'], primary_status(row)) for row in scored[name]}, key=str)}}
+        output[name]['change_vs_primary'] = {'counts': dict(counts), 'examples': examples, **partitions}
+    return {'version': 'screen-fixed-strategy-report-v2', 'strategies': output,
         'timing_interpretation': 'Conditional sums of actual recorded inference times for the fixed trigger. Not a measured consecutive strategy batch wall time. Cold loads, independent source-input recovery and original first-pass attempts remain separately recorded in provenance; unknown failure inference time is never imputed as zero.',
         'error_delta_interpretation': 'Fixed/new cells compare errors at the same expected offline truth positions; table matching is offline scoring only. Shape, extra table/cell and context errors also affect whole-image changes. No per-image truth-optimal selection.',
         'default_strategy_selected': False}
@@ -372,6 +402,16 @@ def markdown(data):
         delta = row.get('change_vs_primary', {}).get('counts', {})
         timing = row['conditional_observed_cost']
         lines.append(f"|{name}|{ratios['whole_image_correct_rate']:.2%}|{ratios['critical_exact_rate']:.2%}|{row['counts'].get('upgrades_attempted', 0)}|{delta.get('new_critical_error_cells', 0)}|{counts.get('automatic_delivered_images', 0)}/{counts.get('automatic_error_images', 0)}/{counts.get('automatic_critical_error_images', 0)}|{timing.get('extra_secondary_known_inference_seconds', 0):.2f}（{timing.get('extra_secondary_inference_timing_unknown_attempts', 0)}）|")
+    lines += ['', '首轮技术失败兜底与成功首轮的质量增益单列，来源分组同时保留其失败尝试；净收益不能解释为每张图都变好。', '',
+              '|策略 / 分组|图片|整图净增正确|关键格净增正确|新增关键错格|升级次数|额外OCR秒（未知次数）|',
+              '|---|---:|---:|---:|---:|---:|---:|']
+    labels = {'primary_technical_failure': '首轮技术失败', 'successful_primary': '首轮成功'}
+    for name, row in data['strategies'].items():
+        change = row.get('change_vs_primary', {})
+        for dimension in ('by_primary_status', 'by_cohort'):
+            for key, part in change.get(dimension, {}).items():
+                delta, cost = part['delta'], part['conditional_observed_cost']
+                lines.append(f"|{name} / {labels.get(key, key)}|{part['images']}|{delta['perfect_images_net']:+d}|{delta['critical_exact_cells_net']:+d}|{delta['new_critical_error_cells']}|{part['activity']['upgrades_attempted']}|{cost.get('extra_secondary_known_inference_seconds', 0):.2f}（{cost.get('extra_secondary_inference_timing_unknown_attempts', 0)}）|")
     lines += ['', '耗时是质量触发后实际已有识别记录的条件求和，不是已实测的连续策略批次墙钟；冷加载、缺输入恢复及失败未知耗时均单列。', '']
     return '\n'.join(lines)
 
@@ -405,6 +445,7 @@ def main():
     scorer = quality_report.load_module(fpath(args.tools) / 'score.py', 'fixed_strategy_offline_score')
     data = score_frozen(receipt, truth_data['samples'], scorer)
     data.update(created=datetime.now(timezone.utc).isoformat(),
+        report_driver_sha256=digest(Path(__file__)),
         selection_receipt={'path': str(receipt_path), 'sha256': digest(receipt_path)},
         truth_sha256=digest(args.truth), scorer_sha256=digest(fpath(args.tools) / 'score.py'),
         provenance=provenance, image_count=len(samples))
