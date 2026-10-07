@@ -103,6 +103,9 @@ def compare(truth,runs):
             context_summary=json.loads(context_summary_path.read_text('utf-8')) if context_summary_path.exists() else None
             context_records=[json.loads(p.read_text('utf-8')) for p in context_root.glob('*/record.json')]
         report={'binding':binding,'score':score,'performance':{'is_finished':score['completed_snapshot_is_final'],'run_summary':summary,**performance(records,summary,context_summary,context_records)},'xlsx_readback':run_readbacks(path)}
+        if binding.get('include_sample_ids') is not None and context_summary is not None:
+            report['performance'].update(full_sequential_route_wall_seconds=None,
+                note='Explicit diagnostic subset reuses a larger recorded context run. OCR invocation and full recorded context costs are separate; their sum is not a freshly measured subset or full-dataset route wall time.')
         reports[name]=report
         metric=score['summary'];rows.append({'name':name,'complete':score['completed_snapshot_is_final'],'images':metric['totals']['images'],'failed':metric['totals'].get('failed_images',0),'missing':metric['totals'].get('missing_images',0),'whole_image_exact':metric['ratios']['whole_image_correct_rate'],'critical_exact':metric['ratios']['critical_exact_rate'],'ocr_p95_seconds':report['performance']['ocr_p95_seconds'],'xlsx_passed':report['xlsx_readback']['passed'],'xlsx_failed':report['xlsx_readback']['failed']})
     return {'scope':'Real model outputs on frozen screen simulations; engineering readback never proves recognition accuracy. No truth injected into inference or export.', 'comparison':rows,'runs':reports}

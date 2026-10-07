@@ -59,6 +59,20 @@ def aggregate_results(results, prepared):
             'warnings':[warning for r in results for warning in r.get('warnings',[])],
             'elapsed_seconds':sum(r.get('elapsed_seconds',0) for r in results)}
 
+def select_input_samples(samples, *, include_ids=None, offset=0, limit=None):
+    """Explicit diagnostic IDs filter only the full input manifest, never truth."""
+    if include_ids is None:return samples[offset:offset+limit if limit else None]
+    if offset or limit is not None:raise ValueError('Sample IDs cannot be combined with offset/limit')
+    if not isinstance(include_ids,list) or not include_ids or any(not isinstance(key,str) for key in include_ids):
+        raise ValueError('Sample IDs must be a nonempty string list')
+    if len(set(include_ids))!=len(include_ids):raise ValueError('Duplicate requested sample IDs')
+    available=[sample['id'] for sample in samples]
+    if len(set(available))!=len(available):raise ValueError('Duplicate sample IDs in input manifest')
+    unknown=set(include_ids)-set(available)
+    if unknown:raise ValueError('Unknown sample IDs: '+', '.join(sorted(unknown)))
+    requested=set(include_ids)
+    return [sample for sample in samples if sample['id'] in requested]
+
 def validate_context_binding(context_binding,binding,source_policy='exact'):
     if source_policy not in {'exact','recorded'}:raise ValueError('Unsupported context source policy')
     fields=('inputs_sha256','engine_config_sha256') if source_policy=='recorded' else ('inputs_sha256','worker_source_sha256','engine_config_sha256')
@@ -77,11 +91,14 @@ def main():
     p.add_argument('--worker-source',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--engine',choices=['hunyuan','paddlevl','glm','ppocr'],required=True)
     p.add_argument('--limit',type=int);p.add_argument('--offset',type=int,default=0);p.add_argument('--retry-failed',action='store_true')
+    p.add_argument('--sample-id',action='append',help='Repeat to select diagnostic input IDs in manifest order; cannot combine with offset/limit; full input/context hashes remain bound')
+    p.add_argument('--request-timeout-seconds',type=int,help='Explicit inference request timeout, 10..900 seconds; default 900; cold model load is recorded separately')
     p.add_argument('--preprocess-module',help='Optional module name or .py path; prepare_screen_image(image, output, evidence=None, perspective=True); receives no truth')
     p.add_argument('--evidence-run',type=Path,help='Verified real context.py output on exactly these inputs and worker source')
     p.add_argument('--context-source-policy',choices=['exact','recorded'],default='exact',help='recorded explicitly reuses old real context across a new CPU/worker source; keeps both source identities, requires identical inputs/config')
     a=p.parse_args();a.output=fpath(a.output);a.bundle=fpath(a.bundle);a.worker_source=fpath(a.worker_source);a.inputs=fpath(a.inputs)
     if a.offset<0 or a.limit is not None and a.limit<1:raise ValueError('Offset must be nonnegative and limit positive')
+    if a.request_timeout_seconds is not None and not 10<=a.request_timeout_seconds<=900:raise ValueError('Request timeout must be 10..900 seconds')
     if a.evidence_run and not a.preprocess_module:raise ValueError('Context evidence requires screen preprocessing')
     a.output.mkdir(parents=True,exist_ok=True)
     # Explicitly redirect all supported process and child cache/temp locations.
@@ -90,7 +107,7 @@ def main():
     from ocr_workbench.adapter import EngineAdapter
     inputs=json.loads(a.inputs.read_text('utf-8'))
     if inputs.get('truth_available_to_inference') is not False:raise ValueError('Only isolated model-input manifest permitted')
-    samples=inputs['samples'][a.offset:a.offset+a.limit if a.limit else None]
+    samples=select_input_samples(inputs['samples'],include_ids=a.sample_id,offset=a.offset,limit=a.limit)
     if len({s['id'] for s in samples})!=len(samples):raise ValueError('Duplicate sample IDs')
     for s in samples:
         fpath(s['image'])
@@ -109,6 +126,8 @@ def main():
              'engine_config_sha256':digest(a.bundle/'config/engines.json'),'bundle':str(a.bundle),
              'offset':a.offset,'limit':a.limit,'preprocess_module_sha256':digest(preprocess_file) if preprocess_file else None,
              'first_pass':True,'labels_or_ideal_regions_provided':False}
+    if a.sample_id is not None:binding['include_sample_ids']=[sample['id'] for sample in samples]
+    if a.request_timeout_seconds is not None:binding['request_timeout_seconds']=a.request_timeout_seconds
     if a.evidence_run:
         a.evidence_run=fpath(a.evidence_run)
         sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -155,7 +174,9 @@ def main():
                     tick=time.perf_counter();prepared_info=preprocess(prepared,attempt/'preprocess',evidence=evidence,perspective=True);prepared_items=first_pass_images(prepared_info,selector);quality=prepared_info.get('quality');preprocessing_seconds=time.perf_counter()-tick
                     write(attempt/'preprocess.json',prepared_info)
                 if adapter is None:
-                    adapter=EngineAdapter(a.bundle,a.engine,a.output/'sessions',worker_source=a.worker_source);tick=time.perf_counter();adapter.load();loads.append({'session_id':adapter.ipc.name,'wall_seconds':time.perf_counter()-tick,'reported_load_seconds':adapter.load_seconds})
+                    adapter=EngineAdapter(a.bundle,a.engine,a.output/'sessions',worker_source=a.worker_source)
+                    if a.request_timeout_seconds is not None:adapter.recognition_timeout=a.request_timeout_seconds
+                    tick=time.perf_counter();adapter.load();loads.append({'session_id':adapter.ipc.name,'wall_seconds':time.perf_counter()-tick,'reported_load_seconds':adapter.load_seconds})
                 results=[];tick=time.perf_counter()
                 for index,item in enumerate(prepared_items):
                     prepared=fpath(item['path']);destination=attempt/f'region-{index:02d}';destination.mkdir()

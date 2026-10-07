@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from context import verify_context_record
-from run import digest, fpath, validate_context_binding, write
+from run import digest, fpath, select_input_samples, validate_context_binding, write
 
 
 def signature(tables):
@@ -35,7 +35,8 @@ def validate_run(inputs_path, runroot):
             raise ValueError('Consumed context binding changed')
         validate_context_binding(json.loads(context_binding_path.read_text('utf-8')), binding,source_policy=binding.get('context_source_policy','exact'))
     rows = []
-    for sample in inputs['samples']:
+    samples=select_input_samples(inputs['samples'],include_ids=binding.get('include_sample_ids'))
+    for sample in samples:
         folder = runroot/sample['id']
         record_path = folder/'record.json'
         if not record_path.exists():
@@ -83,12 +84,16 @@ def validate_run(inputs_path, runroot):
         rows.append({'id': sample['id'], 'status': 'success', 'raw_regions': len(raw_results),
                      'image_prepared_output_context_identity_verified': True,
                      'transcription_matches_actual_engine_output': True})
-    return {'scope': 'Independent provenance and literal transcription checks; no truth read and no accuracy claim.',
+    report = {'scope': 'Independent provenance and literal transcription checks; no truth read and no accuracy claim.',
             'binding': binding, 'total': len(rows), 'success': sum(r['status'] == 'success' for r in rows),
             'failed': sum(r['status'] == 'failed' for r in rows),
             'missing': sum(r['status'] == 'missing' for r in rows),
             'running': sum(r['status'] == 'running' for r in rows),
             'is_final': all(r['status'] in {'success', 'failed'} for r in rows), 'records': rows}
+    if binding.get('include_sample_ids') is not None:
+        report.update(scope='Independent provenance for explicitly bound diagnostic subset; no truth read or full-dataset accuracy claim.',
+                      include_sample_ids=[sample['id'] for sample in samples])
+    return report
 
 
 def main():

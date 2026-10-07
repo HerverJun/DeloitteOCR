@@ -11,12 +11,12 @@ from PIL import Image
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts/screen_benchmark'))
 from generate import homography,points,corners,render_screen,chinese,DEVELOPMENT_FAMILIES,TEST_FAMILIES
-from score import score_sample,summarize
-from run import first_pass_images,aggregate_results,validate_context_binding,digest,write
+from score import score_sample,score_run,summarize
+from run import first_pass_images,aggregate_results,select_input_samples,validate_context_binding,digest,write
 from context import verify_context_record
 from review_context import coverage,inspect_preparation
 from validate_run import validate_run
-from acceptance import readback,performance
+from acceptance import compare,readback,performance
 
 def truth():
     return {'id':'test','cohort':'chinese','level':'normal','group_id':'templateA','source_id':'sourceA','tables':[
@@ -221,3 +221,119 @@ def test_independent_provenance_validator_rejects_posthoc_transcription(tmp_path
     value['tables'][0]['cells'][1]['text']='00001';write(folder/'result.json',value)
     record['result_sha256']=digest(folder/'result.json');write(folder/'record.json',record)
     with pytest.raises(ValueError,match='transcription/structure differs'):validate_run(manifest,runroot)
+
+def test_explicit_sample_selection_retains_manifest_order_and_rejects_ambiguous_ranges():
+    samples=[{'id':key} for key in ['first','middle','last']]
+    assert select_input_samples(samples,include_ids=['last','first'])==[samples[0],samples[2]]
+    assert select_input_samples(samples,offset=1,limit=1)==[samples[1]]
+    assert select_input_samples(samples)==samples
+    for include_ids,message in [(['first','first'],'Duplicate requested'),(['absent'],'Unknown sample'),([], 'nonempty')]:
+        with pytest.raises(ValueError,match=message):select_input_samples(samples,include_ids=include_ids)
+    with pytest.raises(ValueError,match='Duplicate sample IDs in input'):select_input_samples([samples[0],samples[0]],include_ids=['first'])
+    for arguments in [{'offset':1},{'limit':1}]:
+        with pytest.raises(ValueError,match='offset/limit'):select_input_samples(samples,include_ids=['first'],**arguments)
+
+def test_bound_subset_score_and_provenance_keep_missing_selected_items_in_denominator(tmp_path):
+    image=tmp_path/'image.png';Image.new('RGB',(10,10),'white').save(image)
+    samples=[{'id':key,'image':str(image),'image_sha256':digest(image)} for key in ['one','two','three']]
+    inputs=tmp_path/'inputs.json';write(inputs,{'truth_available_to_inference':False,'samples':samples})
+    references=[{**truth(),'id':sample['id']} for sample in samples]
+    truth_path=tmp_path/'truth.json';write(truth_path,{'samples':references})
+    runroot=tmp_path/'run';binding={'inputs_sha256':digest(inputs),'labels_or_ideal_regions_provided':False,'include_sample_ids':['three','one']}
+    write(runroot/'binding.json',binding)
+    write(runroot/'one'/'record.json',{'id':'one','status':'failed','image_sha256':digest(image),'error':'deliberate test failure'})
+    report=score_run(truth_path,runroot)
+    assert report['include_sample_ids']==['one','three']
+    assert report['summary']['totals']['images']==2
+    assert report['summary']['totals']['missing_images']==1
+    assert report['summary']['totals']['failed_images']==1
+    assert not report['completed_snapshot_is_final']
+    provenance=validate_run(inputs,runroot)
+    assert provenance['total']==2 and provenance['failed']==1 and provenance['missing']==1 and not provenance['is_final']
+    assert 'diagnostic subset' in provenance['scope']
+    for invalid in [['one','one'],['unknown']]:
+        write(runroot/'binding.json',{**binding,'include_sample_ids':invalid})
+        with pytest.raises(ValueError):score_run(truth_path,runroot)
+        with pytest.raises(ValueError):validate_run(inputs,runroot)
+
+def test_runner_sample_cli_binds_full_manifest_reuses_one_session_and_preserves_legacy_binding(tmp_path,monkeypatch):
+    import types
+    import run as runner
+    worker=tmp_path/'src';worker.mkdir()
+    bundle=tmp_path/'bundle';write(bundle/'config'/'engines.json',{})
+    samples=[]
+    for key in ['one','two','three']:
+        image=tmp_path/(key+'.png');Image.new('RGB',(10,10),'white').save(image)
+        samples.append({'id':key,'image':str(image),'image_sha256':digest(image)})
+    inputs=tmp_path/'inputs.json';write(inputs,{'truth_available_to_inference':False,'samples':samples})
+    calls=[];timeouts=[]
+    class FakeAdapter:
+        def __init__(self,*args,**kwargs):self.ipc=types.SimpleNamespace(name='one-resident-session');self.load_seconds=2;self.recognition_timeout=900
+        def load(self):calls.append('load')
+        def recognize(self,image,output,**kwargs):
+            calls.append(image.stem);timeouts.append(self.recognition_timeout)
+            if self.recognition_timeout==180 and image.stem=='two':raise TimeoutError('test request timeout')
+            value={'status':'success','text':'recognized','tables':[],'engine_session':{'id':self.ipc.name}}
+            write(output/'result.json',value)
+            return value
+        def unload(self):calls.append('unload')
+    monkeypatch.setitem(sys.modules,'ocr_workbench.adapter',types.SimpleNamespace(EngineAdapter=FakeAdapter))
+    monkeypatch.setattr(runner,'gpu_sample',lambda:{'test_stub':True})
+    # Runtime isolation is verified separately; this fixture creates no child processes.
+    monkeypatch.setattr(runner,'isolate_runtime',lambda output:None)
+    runroot=tmp_path/'subset-run'
+    base=['run.py','--inputs',str(inputs),'--bundle',str(bundle),'--worker-source',str(worker),'--engine','hunyuan']
+    monkeypatch.setattr(sys,'argv',base+['--output',str(runroot),'--sample-id','three','--sample-id','one'])
+    runner.main()
+    binding=json.loads((runroot/'binding.json').read_text('utf-8'))
+    assert binding['inputs_sha256']==digest(inputs) and binding['include_sample_ids']==['one','three']
+    assert calls==['load','one','three','unload']
+    assert not (runroot/'two').exists() and validate_run(inputs,runroot)['is_final']
+    calls.clear();runner.main()
+    assert not calls and json.loads((runroot/'run-summary.json').read_text('utf-8'))['resumed_records']==2
+    monkeypatch.setattr(sys,'argv',base+['--output',str(runroot),'--sample-id','two'])
+    with pytest.raises(ValueError,match='immutable'):runner.main()
+    legacy=tmp_path/'legacy-run'
+    monkeypatch.setattr(sys,'argv',base+['--output',str(legacy)])
+    runner.main()
+    assert json.loads((legacy/'binding.json').read_text('utf-8'))=={
+        'inputs_sha256':digest(inputs),'worker_source_sha256':runner.source_hash(worker),'engine':'hunyuan',
+        'engine_config_sha256':digest(bundle/'config/engines.json'),'bundle':str(bundle),
+        'offset':0,'limit':None,'preprocess_module_sha256':None,'first_pass':True,'labels_or_ideal_regions_provided':False}
+    assert all(timeout==900 for timeout in timeouts)
+    calls.clear();timeouts.clear();bounded=tmp_path/'bounded-run'
+    bounded_arguments=base+['--output',str(bounded),'--request-timeout-seconds','180',
+                           '--sample-id','three','--sample-id','two','--sample-id','one']
+    monkeypatch.setattr(sys,'argv',bounded_arguments)
+    runner.main()
+    assert timeouts==[180,180,180]
+    assert calls==['load','one','two','unload','load','three','unload']
+    assert json.loads((bounded/'binding.json').read_text('utf-8'))['request_timeout_seconds']==180
+    provenance=validate_run(inputs,bounded)
+    assert provenance['total']==3 and provenance['success']==2 and provenance['failed']==1 and provenance['is_final']
+    truth_path=tmp_path/'truth.json';write(truth_path,{'samples':[{**truth(),'id':sample['id']} for sample in samples]})
+    score=score_run(truth_path,bounded)
+    assert score['summary']['totals']['images']==3 and score['summary']['totals']['failed_images']==1
+    monkeypatch.setattr(sys,'argv',[part if part!='180' else '181' for part in bounded_arguments])
+    with pytest.raises(ValueError,match='immutable'):runner.main()
+    for timeout in ['9','901']:
+        monkeypatch.setattr(sys,'argv',base+['--output',str(tmp_path/'invalid-run'),'--request-timeout-seconds',timeout])
+        with pytest.raises(ValueError,match='10..900'):runner.main()
+
+def test_subset_reusing_larger_context_keeps_costs_separate_from_route_wall(tmp_path):
+    references=[{**truth(),'id':key} for key in ['one','two','three']]
+    truth_path=tmp_path/'truth.json';write(truth_path,{'samples':references})
+    inputs=tmp_path/'inputs.json';write(inputs,{'truth_available_to_inference':False,'samples':[{'id':key} for key in ['one','two','three']]})
+    runroot=tmp_path/'run';contextroot=tmp_path/'context'
+    write(contextroot/'binding.json',{'inputs_sha256':digest(inputs)})
+    write(contextroot/'run-summary.json',{'attempt_wall_seconds':15,'completed':3,'total':3,'loads':[]})
+    write(runroot/'binding.json',{'inputs_sha256':digest(inputs),'include_sample_ids':['one','three'],
+          'context_run':str(contextroot),'context_binding_sha256':digest(contextroot/'binding.json')})
+    for key in ['one','three']:
+        write(runroot/key/'record.json',{'id':key,'status':'failed','wall_seconds':4,'error':'test only'})
+    write(runroot/'run-summary.json',{'attempt_wall_seconds':8,'completed':2,'total':2,'loads':[]})
+    report=compare(truth_path,{'subset':runroot})['runs']['subset']
+    assert report['score']['summary']['totals']['images']==2
+    assert report['performance']['primary_stage_invocation_wall_seconds']==8
+    assert report['performance']['context_stage_invocation_wall_seconds']==15
+    assert report['performance']['full_sequential_route_wall_seconds'] is None

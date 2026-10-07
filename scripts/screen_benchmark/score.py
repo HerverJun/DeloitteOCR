@@ -9,6 +9,7 @@ import re
 import random
 import hashlib
 import unicodedata
+from run import select_input_samples
 
 def text(value):
     # Report exact NFC text with whitespace folded, but never repair digits/punctuation.
@@ -129,10 +130,12 @@ def clustered_interval(records,repetitions=1000):
 
 def score_run(truth_path,runroot):
     samples=json.loads(Path(truth_path).read_text('utf-8'))['samples'];runroot=Path(runroot);records=[]
-    input_path=Path(truth_path).parent/'inputs.json';binding_path=runroot/'binding.json'
+    input_path=Path(truth_path).parent/'inputs.json';binding_path=runroot/'binding.json';binding={}
     if input_path.exists() and binding_path.exists():
         expected_hash=hashlib.sha256(input_path.read_bytes()).hexdigest();binding=json.loads(binding_path.read_text('utf-8'))
         if binding['inputs_sha256']!=expected_hash:raise ValueError('Run inputs do not match the truth set; never mix dataset versions')
+    include_ids=binding.get('include_sample_ids')
+    if include_ids is not None:samples=select_input_samples(samples,include_ids=include_ids)
     for sample in samples:
         output=runroot/sample['id'];record_path=output/'record.json';result_path=output/'result.json'
         try:
@@ -147,7 +150,9 @@ def score_run(truth_path,runroot):
         keys=sorted({str(r[field]) for r in records if r[field] is not None})
         stratified[field]={key:summarize([r for r in records if str(r[field])==key]) for key in keys}
     completed=[r for r in records if r['status'] not in {'missing','running'}]
-    return {'scope':'frozen simulated regression, not real smartphone or independent blind generalization','normalization':'NFC and whitespace removal only; punctuation, signs, leading zeros, digits never repaired','whole_image_denominator_includes_missing_failed_truncated':True,'summary':summarize(records),'completed_snapshot_only':summarize(completed),'completed_snapshot_is_final':len(completed)==len(records),'cluster_interval':clustered_interval(records),'grouped':{key:summarize([r for r in records if r['group_id']==key]) for key in sorted({r['group_id'] for r in records})},'source_grouped':{key:summarize([r for r in records if r['source_id']==key]) for key in sorted({r['source_id'] for r in records})},'stratified':stratified,'records':records}
+    report={'scope':'frozen simulated regression, not real smartphone or independent blind generalization','normalization':'NFC and whitespace removal only; punctuation, signs, leading zeros, digits never repaired','whole_image_denominator_includes_missing_failed_truncated':True,'summary':summarize(records),'completed_snapshot_only':summarize(completed),'completed_snapshot_is_final':len(completed)==len(records),'cluster_interval':clustered_interval(records),'grouped':{key:summarize([r for r in records if r['group_id']==key]) for key in sorted({r['group_id'] for r in records})},'source_grouped':{key:summarize([r for r in records if r['source_id']==key]) for key in sorted({r['source_id'] for r in records})},'stratified':stratified,'records':records}
+    if include_ids is not None:report.update(scope='explicit diagnostic subset of frozen simulated regression; not a full dataset or independent accuracy claim',include_sample_ids=[sample['id'] for sample in samples])
+    return report
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--truth',type=Path,required=True);p.add_argument('--runs',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
