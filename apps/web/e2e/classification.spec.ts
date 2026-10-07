@@ -264,11 +264,11 @@ test.describe('v2 UI protocol fixture', () => {
       const reads = fixture.resultsReads(page);
       Object.assign(fixture.rows[0], { disposition_revision: 1, disposition_state: 'confirmed',
         human_label_id: 'class_b', confirmed_label: 'class_b', disposition_note: '另一窗口已确认 B' });
-      await page.getByRole('button', { name: '保存并下一项', exact: true }).click();
+      await page.getByRole('button', { name: /保存并下一项$/ }).click();
       await expect(page.getByText('处置记录已变化，请刷新后重试', { exact: true })).toBeVisible();
       await expect(page.getByRole('textbox', { name: '人工处置说明' })).toHaveValue(note);
       await expect(page.getByRole('dialog').locator('.ant-select-selection-item')).toHaveText('类别 A');
-      await expect(page.getByRole('button', { name: '保存并下一项', exact: true })).toBeEnabled();
+      await expect(page.getByRole('button', { name: /保存并下一项$/ })).toBeEnabled();
       expect(fixture.requests).toHaveLength(1);
       expect(fixture.requests[0].outcome).toBe('revision_conflict');
       expect(fixture.resultsReads(page)).toBe(reads);
@@ -284,7 +284,7 @@ test.describe('v2 UI protocol fixture', () => {
       await expect(page.getByRole('dialog').locator('.ant-select-selection-item')).toHaveText('类别 B');
       await expect(page.getByRole('textbox', { name: '人工处置说明' })).toHaveValue('另一窗口已确认 B');
       await page.getByRole('textbox', { name: '人工处置说明' }).fill('刷新核对后明确保存 B');
-      await page.getByRole('button', { name: '保存并下一项', exact: true }).click();
+      await page.getByRole('button', { name: /保存并下一项$/ }).click();
       await expect(page.getByRole('dialog').getByRole('img', { name: '第二张.svg', exact: true })).toBeVisible();
       expect(fixture.requests).toHaveLength(2);
       expect(fixture.requests[1].body.expected_revisions).toEqual({ item_1: 1 });
