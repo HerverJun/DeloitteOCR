@@ -18,7 +18,7 @@ import zipfile
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import Response
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from starlette.concurrency import run_in_threadpool
 
 from packages.contracts.agent import AgentModel, Identity
@@ -31,7 +31,16 @@ router = APIRouter(prefix='/api/platform/v1/workspaces/{workspace_id}/ocr/screen
 TERMINAL = {'completed', 'succeeded', 'partial', 'failed', 'cancelled', 'needs_review'}
 
 
+def _omit_policy_schema_defaults(schema):
+    # These are API compatibility values, not the native measured route.
+    # Omitted fields are never sent, so advertising them as defaults would
+    # encourage a controller to explicitly overwrite frozen native settings.
+    for value in schema.get('properties',{}).values():
+        value.pop('default',None)
+
+
 class ScreenPolicy(AgentModel):
+    model_config=ConfigDict(json_schema_extra=_omit_policy_schema_defaults)
     primary_engine: Identity = 'auto'
     fallback_engines: list[Identity] | None = Field(default=None, max_length=3)
     max_upgrades: int = Field(default=2, ge=0, le=2)

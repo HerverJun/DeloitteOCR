@@ -149,6 +149,21 @@ def test_native_defaults_are_resolved_once_and_lost_submit_recovers_after_defaul
     with pytest.raises(OcrUnavailable):service.status(workspace,'batchA')
 
 
+@pytest.mark.parametrize('bridge',[4],indirect=True)
+def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridge):
+    from workbench_platform.agent.tools.screen_batches import Run
+    properties=Run.model_json_schema()['$defs']['ScreenPolicy']['properties']
+    assert all('default' not in field for field in properties.values())
+    assert properties['group_size']['minimum']==1 and properties['max_upgrades']['maximum']==2
+    client,workspace,fixed,state,_,_=bridge
+    body=arguments(fixed)
+    body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None}
+    response=client.post(f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches',headers=LOCAL,json=body)
+    assert response.status_code==201,response.text
+    assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False}
+    assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False}
+
+
 def test_export_240_unique_workbooks_and_manifest_is_managed(bridge):
     client,workspace,fixed,state,_,_=bridge
     route=f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches'
