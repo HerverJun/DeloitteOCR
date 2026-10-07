@@ -1,0 +1,456 @@
+{
+  "plan_id": "ai-audit-product-20261004",
+  "version": 2,
+  "status": "complete",
+  "plan_document": "AI驱动智能审计平台下一阶段规划-20261004.md",
+  "goal": "把平台建成以审计对话和Agent执行为中心的智能自动化审计工作台，保留现有手动工具，并打通任务、证据、发现和底稿。",
+  "scope_of_this_turn": "AI01–AI12 产品实施与受影响功能检查完成；真实模型未配置，未执行旧计分评测",
+  "supersedes_priorities": [
+    "手动选择工具作为默认首页",
+    "Agent作为附加菜单、审计业务作为高级功能",
+    "PA08和PA16计分评测作为下一阶段开发主线或前置"
+  ],
+  "retained_foundation": [
+    "现有LangGraph运行时、checkpoint、操作账本和39个注册工具",
+    "四个Clear应用、原生服务、资料和成果中心",
+    "已有历史数据、手动入口、来源与版本规则"
+  ],
+  "paths": {
+    "platform": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+    "ocr": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+    "classification": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
+    "shared_program": "F:/OCR/output/clear-automation-dev-20261002/program",
+    "proposed_run_root": "F:/OCR/output/ai-audit-product-dev-20261004",
+    "all_project_writes_volume": "F:/"
+  },
+  "execution_policy": {
+    "first_delivery": "AI01-AI05，统一入口的对话首页、附件、轻量任务和模型设置",
+    "single_existing_graph": true,
+    "preserve_manual_workflows": true,
+    "shared_business_services": true,
+    "ordinary_processing_requires_step_approval": false,
+    "model_configuration_blocks_independent_product_work": false,
+    "fixed_scored_evaluation_required": false,
+    "verification": "仅检查新增或受影响功能的实际行为；已通过且未变的检查不重跑",
+    "runtime_status": "实施时另存state.json/NEXT.md；本任务清单保留规格，不继承历史成绩"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "outcome": "打开平台就能开始审计对话",
+      "tasks": [
+        "AI01",
+        "AI02",
+        "AI03",
+        "AI04",
+        "AI05"
+      ]
+    },
+    {
+      "id": "M2",
+      "outcome": "任务可见，人工与Agent接续，结果可追来源",
+      "tasks": [
+        "AI06",
+        "AI07",
+        "AI08"
+      ]
+    },
+    {
+      "id": "M3",
+      "outcome": "形成审计发现、底稿和项目成果",
+      "tasks": [
+        "AI09",
+        "AI10",
+        "AI11"
+      ]
+    },
+    {
+      "id": "M4",
+      "outcome": "统一入口与日常使用收口",
+      "tasks": [
+        "AI12"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "AI01",
+      "priority": "P0",
+      "status": "complete",
+      "depends_on": [],
+      "title": "智能审计默认首页与导航",
+      "code_areas": [
+        "apps/portal/src/App.tsx",
+        "apps/portal/src/router.tsx",
+        "apps/portal/src/features/agent/",
+        "apps/portal/src/features/start/",
+        "scripts/agent_native_preview.py"
+      ],
+      "work": [
+        "将根路由改为审计对话工作台，复用已有会话组件并去掉重复项目侧栏",
+        "提供目标输入、资料入口、当前任务区域和始终可见的手动工具入口",
+        "兼容旧/agent与手动工具深链接并保留上下文",
+        "登记实际主启动入口，第一切片就提供可访问版本"
+      ],
+      "done_when": [
+        "从主入口进入第一屏即看到目标输入与添加资料入口",
+        "窄屏可输入和打开任务区，手动工具可以找到",
+        "已有链接打开时不丢项目、会话或带入成果"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\screenshots\\home-laptop.png",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\screenshots\\task-mobile.png"
+      ]
+    },
+    {
+      "id": "AI02",
+      "priority": "P0",
+      "status": "complete",
+      "depends_on": [
+        "AI01"
+      ],
+      "title": "自然对话与执行任务语义",
+      "code_areas": [
+        "src/workbench_platform/agent/graph.py",
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/providers.py",
+        "packages/contracts/agent.py",
+        "apps/portal/src/features/agent/"
+      ],
+      "work": [
+        "支持讨论目标、资料问答、解释结果及执行任务的不同结束语义",
+        "将正常助手回复与执行成果状态分开保存和展示",
+        "补受理/进行中状态和消息渐进呈现；支持的流式协议完整校验工具参数后再调度",
+        "恢复会话与SSE时去重，保留原停止和追加行为"
+      ],
+      "done_when": [
+        "普通问答不会因未导出文件被替换成未形成交付",
+        "执行类任务仍以真实任务与成果判断完成",
+        "用户收到回应且能分清等待模型、等待工具和等待补充信息"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\product-final-checks.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\registry-product-final.log"
+      ]
+    },
+    {
+      "id": "AI03",
+      "priority": "P0",
+      "status": "complete",
+      "depends_on": [
+        "AI01"
+      ],
+      "title": "对话附件与资料范围",
+      "code_areas": [
+        "src/workbench_platform/assets/routes.py",
+        "apps/portal/src/features/assets/",
+        "apps/portal/src/features/agent/",
+        "src/workbench_platform/agent/routes.py",
+        "packages/contracts/agent.py"
+      ],
+      "work": [
+        "复用可恢复上传，在对话添加本地文件或选择已有项目资料",
+        "首次添加资料或发送目标时建立必要的轻量工作项目",
+        "展示文件名、状态及任务范围，保留上传/目标草稿",
+        "新增中途补资料和范围版本变更，在操作边界生效"
+      ],
+      "done_when": [
+        "用户不用离开对话即可选资料或补文件",
+        "重复提交不会创建重复资料，失败可查询恢复",
+        "后续执行使用明确范围，旧结果仍保留其原输入版本"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI04",
+      "priority": "P0",
+      "status": "complete",
+      "depends_on": [
+        "AI02",
+        "AI03"
+      ],
+      "title": "轻量审计任务与会话运行关联",
+      "code_areas": [
+        "src/workbench_platform/audit/",
+        "src/workbench_platform/agent/store.py",
+        "src/workbench_platform/application_services/",
+        "packages/contracts/audit.py",
+        "apps/portal/src/features/agent/"
+      ],
+      "work": [
+        "新增AuditTask业务对象并关联现有session/run/job、资料与成果",
+        "建立任务状态投影，不引入第二个执行调度器",
+        "提供最近任务、重命名、查找、继续及当前任务面板",
+        "项目背景允许渐进填写，兼容现有workspace与audit project关系"
+      ],
+      "done_when": [
+        "一个目标及其追加执行持续归属同一项审计任务",
+        "刷新后可找回资料、会话、当前状态和成果",
+        "无须先填写完整正式审计项目表单即可开始"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\native-return-routes.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI05",
+      "priority": "P0",
+      "status": "complete",
+      "depends_on": [
+        "AI01"
+      ],
+      "title": "全局模型设置与就地引导",
+      "code_areas": [
+        "apps/portal/src/features/agent/ControllerSettings.tsx",
+        "apps/portal/src/features/settings/",
+        "src/workbench_platform/agent/connection.py",
+        "src/workbench_platform/agent/routes.py"
+      ],
+      "work": [
+        "将主控配置接入正式设置页和首页状态入口",
+        "复用现有协议、模型列表、连接测试和独立凭据存储",
+        "区分主控模型与OCR/分类专业模型，显示可用状态",
+        "配置过程中保留目标和资料；主控不可用时保留手动入口"
+      ],
+      "done_when": [
+        "用户在首页可直接找到模型连接配置",
+        "缺连接时有明确下一操作且草稿不丢失",
+        "手动工具不依赖主控连接状态"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\native-return-routes.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI06",
+      "priority": "P1",
+      "status": "complete",
+      "depends_on": [
+        "AI04"
+      ],
+      "title": "动态安排与项目任务上下文",
+      "code_areas": [
+        "src/workbench_platform/agent/tools/audit.py",
+        "src/workbench_platform/agent/context.py",
+        "src/workbench_platform/audit/",
+        "apps/portal/src/features/agent/"
+      ],
+      "work": [
+        "注册项目背景读取和工作安排更新工具",
+        "展示当前步骤、已做事项、后续安排与相关产物",
+        "将用户确定的口径与范围版本持久化，并在追加目标后更新",
+        "保持模型根据工具返回选择下一步，计划对象只记录和展示"
+      ],
+      "done_when": [
+        "任务区解释当前在处理什么，并随实际进展变化",
+        "追加业务条件后能看到安排与影响范围更新",
+        "用户已确定的背景在后续轮次可继续引用"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\registry-product-final.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\native-return-routes.log"
+      ]
+    },
+    {
+      "id": "AI07",
+      "priority": "P1",
+      "status": "complete",
+      "depends_on": [
+        "AI04"
+      ],
+      "title": "手动接管与返回Agent",
+      "code_areas": [
+        "apps/portal/src/features/data/",
+        "apps/portal/src/features/ocr/",
+        "apps/portal/src/features/classification/",
+        "apps/portal/src/features/forensics/",
+        "src/workbench_platform/jobs/",
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/application_services/references.py"
+      ],
+      "work": [
+        "从任务定位现有工具的正确项目、输入和结果",
+        "接管时在操作边界暂停Agent新动作并说明仍在运行的原生任务",
+        "手动保存使用原业务版本机制，带回新引用及改动摘要",
+        "返回Agent后读取最新结果并重排受影响步骤"
+      ],
+      "done_when": [
+        "四类工具仍可独立手动使用",
+        "用户能在同一任务内从自动切换到手动，再继续自动",
+        "人工新版本不会被迟到的Agent动作静默覆盖"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\native-return-routes.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI08",
+      "priority": "P1",
+      "status": "complete",
+      "depends_on": [
+        "AI04"
+      ],
+      "title": "直接工具结果的审计证据接入",
+      "code_areas": [
+        "packages/contracts/audit.py",
+        "src/workbench_platform/audit/evidence.py",
+        "src/workbench_platform/application_services/references.py",
+        "src/workbench_platform/agent/tools/audit.py",
+        "apps/portal/src/features/audit/"
+      ],
+      "work": [
+        "扩展证据契约，兼容旧batch引用并接纳直接数据/OCR/分类/取证结果",
+        "统一验证项目、版本、内容与来源位置",
+        "实现证据读取、固定引用和来源定位工具",
+        "在会话与发现界面打开相应行、页或区域"
+      ],
+      "done_when": [
+        "Agent和手动工具结果都可直接绑定审计事项",
+        "证据不要求伪造或补建固定批次",
+        "点击来源能定位到对应版本的原资料"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\product-final-checks.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\screenshots\\fixed-source.png",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\screenshots\\finding-source.png"
+      ]
+    },
+    {
+      "id": "AI09",
+      "priority": "P1",
+      "status": "complete",
+      "depends_on": [
+        "AI08"
+      ],
+      "title": "首批审计算子与资料规则检索",
+      "code_areas": [
+        "modules/data_workbench/",
+        "src/workbench_platform/data_api/",
+        "src/workbench_platform/application_services/",
+        "src/workbench_platform/agent/tools/",
+        "apps/portal/src/features/agent/"
+      ],
+      "work": [
+        "增加类型化比较/区间筛选、分组计数和金额汇总算子",
+        "以当前项目原文/OCR结果建立有来源的检索读取，不依赖独立向量数据库",
+        "保存用户提供的规则口径、适用范围和资料版本",
+        "提供台账核对、重复候选、结构化凭证核对和取证目标示例，由模型自主组合工具"
+      ],
+      "done_when": [
+        "条件和计算口径可读，金额由业务算子精确计算",
+        "引用的制度与资料有实际文件和位置来源",
+        "界面展示真实支持范围，缺少结构化表格时可转手动处理"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\product-final-checks.log"
+      ]
+    },
+    {
+      "id": "AI10",
+      "priority": "P1",
+      "status": "complete",
+      "depends_on": [
+        "AI06",
+        "AI08"
+      ],
+      "title": "审计发现与可编辑底稿草稿",
+      "code_areas": [
+        "src/workbench_platform/audit/service.py",
+        "src/workbench_platform/audit/render.py",
+        "packages/contracts/audit.py",
+        "src/workbench_platform/artifacts/",
+        "src/workbench_platform/agent/tools/audit.py",
+        "apps/portal/src/features/audit/"
+      ],
+      "work": [
+        "注册发现草拟/修订、证据关联及底稿生成工具",
+        "兼容人工作者模型并记录Agent生成来源、模型配置与结果版本",
+        "分别展示事实、解释、待补信息和人工编辑",
+        "生成可编辑底稿及Markdown/HTML与数据附件，沿用成果中心下载"
+      ],
+      "done_when": [
+        "实际结果能自动组织成发现及底稿草稿",
+        "用户可编辑或要求Agent修订，来源可继续查看",
+        "普通草稿与文件下载不要求先完成编制复核，正式人工署名仍由明确操作产生"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\registry-product-final.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\product-final-checks.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI11",
+      "priority": "P2",
+      "status": "complete",
+      "depends_on": [
+        "AI10"
+      ],
+      "title": "审计项目主页与成果汇总",
+      "code_areas": [
+        "apps/portal/src/features/projects/",
+        "apps/portal/src/features/audit/",
+        "src/workbench_platform/audit/",
+        "src/workbench_platform/agent/tools/audit.py"
+      ],
+      "work": [
+        "聚合项目背景、任务、资料、发现与底稿",
+        "从项目直接开始或继续智能审计任务",
+        "支持引用现有任务成果生成项目摘要",
+        "资料或结果修订后标明受影响的发现和成果"
+      ],
+      "done_when": [
+        "项目内可以看到审计工作全貌并继续具体任务",
+        "汇总来自已有结果，缺失与过期内容明确可见",
+        "历史正式项目与新轻量项目可以清楚区分和关联"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\product-final-checks.log",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    },
+    {
+      "id": "AI12",
+      "priority": "P2",
+      "status": "complete",
+      "depends_on": [
+        "AI05",
+        "AI07",
+        "AI09",
+        "AI11"
+      ],
+      "title": "统一启动与日常使用交付",
+      "code_areas": [
+        "scripts/local_development.py",
+        "scripts/agent_native_preview.py",
+        "scripts/package_agent_candidate.py",
+        "apps/portal/",
+        "docs/agent/"
+      ],
+      "work": [
+        "统一主启动入口、根路由、配置、帮助和已实现页面",
+        "保留共享F盘运行时与模型，避免重复大包复制",
+        "明确业务数据目录、版本迁移和已有工作保全",
+        "完成受影响的启动、对话/附件恢复、手动接续与下载检查，并记录实际支持能力"
+      ],
+      "done_when": [
+        "用户按同一个主入口启动即可看到本阶段功能",
+        "新旧深链接、项目和文件资料可继续使用",
+        "使用说明反映实际能力，未实现的导出格式或审计能力不冒充可用"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\verification.json",
+        "F:\\OCR\\output\\ai-audit-product-dev-20261004\\evidence\\browser\\checks.json"
+      ]
+    }
+  ],
+  "runtime_record": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\state.json",
+  "delivery_document": "F:\\OCR\\output\\clear-automation-dev-20261002\\worktrees\\platform\\docs\\agent\\product-delivery-20261004.md",
+  "real_model_calls": 0
+}
