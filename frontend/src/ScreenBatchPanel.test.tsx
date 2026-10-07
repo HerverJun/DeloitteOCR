@@ -34,4 +34,20 @@ describe("ordinary OCR batch entry", () => {
     expect(markup).toContain("采用前请先保存或清除");
     expect(markup).not.toContain("填入当前格草稿");
   });
+  it("starts with the adopted whole candidate and otherwise the first candidate with a table", () => {
+    const empty: ScreenCandidate = { id:"empty",engine:"hunyuan",raw:{project_image_version:"v-a",tables:[]} };
+    const glm: ScreenCandidate = { id:"glm",engine:"glm",raw:{project_image_version:"v-a",tables:[
+      {rows:1,columns:1,cells:[{row:0,column:0,row_span:1,column_span:1,text:"保留当前表格"}]}]} };
+    const render = (selectedCandidateId?: string) => renderToStaticMarkup(<ScreenCandidatePreview candidates={[empty,glm]}
+      inputVersionId="v-a" currentTables={glm.raw.tables} tableIndex={0} row={0} column={0} currentValue="draft"
+      selectedCandidateId={selectedCandidateId} issues={[{code:"no_table",candidate_id:"empty"}]}
+      busy={false} hasDraft={true} canAdopt={true} onFill={() => {}} onAdopt={() => {}} />);
+    for (const preferred of ["glm","stale-candidate",undefined]) {
+      expect(render(preferred)).toContain("保留当前表格");
+      expect(render(preferred)).toContain('aria-label="GLM-OCR 表 1 候选预览"');
+      expect(render(preferred)).toContain("含待保存修改");
+    }
+    // An explicit current candidate remains inspectable even when it is empty.
+    expect(render("empty")).toContain("此候选未提供表格");
+  });
 });

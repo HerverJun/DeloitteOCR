@@ -14,7 +14,9 @@ import "./screen-batches.css";
 type PreparedImage = { id: string; kind: string; width: number; height: number; region_id?: string; path?: string };
 type ScreenDetail = ScreenItem & {
   preparation?: { width: number; height: number; prepared_images: PreparedImage[]; warnings?: { message: string }[] };
-  result?: Result | null;
+  result?: (Result & { original: Result["original"] & {
+    screen?: { selection?: { selected_id?: string } }; screen_selection?: { candidate_id?: string };
+  } }) | null;
   candidate_results?: ScreenCandidate[];
 };
 type BatchListing = { batches: ScreenBatch[] } | ScreenBatch[];
@@ -290,6 +292,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       {cell ? <label>当前单元格<textarea aria-label="当前单元格内容" value={cellValue} onChange={e => editValue(e.target.value)} rows={2} /></label> : <p>该格位没有独立单元格，请在完整表格编辑器核对结构。</p>}
                       {!!detail.candidate_results?.length && <ScreenCandidatePreview key={`${detail.input_version_id}:${detail.result.id}:${detail.result.revision}`}
                         candidates={detail.candidate_results} inputVersionId={detail.input_version_id} currentTables={tables}
+                        selectedCandidateId={detail.result.original.screen?.selection?.selected_id || detail.result.original.screen_selection?.candidate_id}
                         tableIndex={tableIndex} row={row} column={column} currentValue={cellValue} issues={detail.issues}
                         busy={busy} hasDraft={!!editedCount} canAdopt={detail.status === "completed" || detail.status === "needs_review"} onFill={editValue} onAdopt={adoptCandidate} />}
                       <p className="screen-batch-small">待保存修改：{editedCount} 格 · 保存前按结果版本检查，防止覆盖新编辑。</p>

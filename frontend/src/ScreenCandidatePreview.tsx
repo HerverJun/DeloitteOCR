@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@fluentui/react-components";
 import type { Table } from "./types";
 import { screenCandidateCell, screenIssueTitle, type ScreenCandidate, type ScreenIssue } from "./screenBatchWorkflow";
@@ -7,15 +7,16 @@ const engineName = (engine: string) => ({ glm: "GLM-OCR", hunyuan: "HunyuanOCR",
 
 /** Preview complete image candidates, never individual crop task results. */
 export function ScreenCandidatePreview({ candidates, inputVersionId, currentTables, tableIndex, row, column,
-  currentValue, issues, busy, hasDraft, canAdopt, onFill, onAdopt }: {
+  currentValue, selectedCandidateId, issues, busy, hasDraft, canAdopt, onFill, onAdopt }: {
   candidates: ScreenCandidate[]; inputVersionId: string; currentTables: Table[]; tableIndex: number; row: number; column: number;
   currentValue: string; issues: ScreenIssue[]; busy: boolean; hasDraft: boolean; canAdopt: boolean;
+  selectedCandidateId?: string;
   onFill: (value: string) => void; onAdopt: (candidateId: string) => void;
 }) {
-  const preferredId = issues.find(issue => issue.candidate_id)?.candidate_id;
-  const [candidateId, setCandidateId] = useState(preferredId || candidates[0]?.id || "");
+  const [candidateId, setCandidateId] = useState(() =>
+    candidates.find(candidate => candidate.id === selectedCandidateId)?.id
+    || candidates.find(candidate => candidate.raw.tables.length > 0)?.id || candidates[0]?.id || "");
   const [previewTable, setPreviewTable] = useState(0), [offset, setOffset] = useState(0);
-  useEffect(() => { if (preferredId && candidates.some(candidate => candidate.id === preferredId)) { setCandidateId(preferredId); setPreviewTable(0); setOffset(0); } }, [preferredId]);
   const candidate = candidates.find(value => value.id === candidateId);
   if (!candidate) return null;
   const sameImage = candidate.raw.project_image_version === inputVersionId;
