@@ -58,15 +58,51 @@ def quantile(values,q):
     values=sorted(values);position=(len(values)-1)*q;low=int(position);high=min(len(values)-1,low+1)
     return values[low]+(values[high]-values[low])*(position-low)
 
+def performance(records, summary=None, context_summary=None, context_records=None):
+    complete=[r for r in records if r['status'] in {'success','failed'}]
+    durations=[r['inference_seconds'] for r in complete if r.get('inference_seconds') is not None]
+    sessions={}
+    for record in complete:
+        session=record.get('engine_session')
+        if isinstance(session,dict) and session.get('id'):
+            sessions[session['id']]=session.get('load_seconds',record.get('model_load_seconds'))
+    loads=summary.get('loads',[]) if summary else []
+    primary_model_load=sum(r.get('reported_load_seconds',0) for r in loads) if summary else sum(s or 0 for s in sessions.values())
+    context_records=context_records or []
+    context_durations=[r['inference_seconds'] for r in context_records if r.get('inference_seconds') is not None]
+    resumed=bool(summary and summary.get('cache_resume_separate')) or bool(context_summary and context_summary.get('cache_resume_separate'))
+    stage_wall=summary.get('attempt_wall_seconds') if summary else None
+    context_wall=context_summary.get('attempt_wall_seconds') if context_summary else None
+    context_done=context_summary and context_summary.get('completed')==context_summary.get('total')
+    primary_done=summary and summary.get('completed')==summary.get('total')
+    route_wall=(stage_wall+(context_wall or 0)) if primary_done and (context_summary is None or context_done) and not resumed else None
+    return {'completed_records':len(complete),'ocr_p50_seconds':quantile(durations,.5),'ocr_p95_seconds':quantile(durations,.95),
+            'ocr_sum_seconds':sum(durations),'preprocessing_sum_seconds':sum(r.get('preprocessing_seconds',0) for r in complete),
+            'primary_model_load_seconds':primary_model_load,'primary_worker_start_wall_seconds':sum(r.get('wall_seconds',0) for r in loads),
+            'context_inference_sum_seconds':sum(context_durations),'context_inference_p50_seconds':quantile(context_durations,.5),
+            'context_inference_p95_seconds':quantile(context_durations,.95),
+            'context_model_load_seconds':sum(r.get('model_load_seconds') or 0 for r in context_records),
+            'primary_stage_invocation_wall_seconds':stage_wall,'context_stage_invocation_wall_seconds':context_wall,
+            'full_sequential_route_wall_seconds':route_wall,'resumed_invocation_wall_is_not_full_batch':resumed,
+            'context_reused_once_per_route':bool(context_summary),
+            'note':'Resident model loads are counted once per session, never multiplied by images. Shared context is charged once per route. Fresh completed sequential invocation wall time represents the batch; resumed/unfinished runs do not provide whole-batch wall time.'}
+
 def compare(truth,runs):
     reports={};rows=[]
     for name,path in runs.items():
         score=score_run(truth,path);files=list(path.glob('*/record.json'));records=[json.loads(p.read_text('utf-8')) for p in files]
         complete=[r for r in records if r['status'] in {'success','failed'}]
-        durations=[r['inference_seconds'] for r in complete if r.get('inference_seconds') is not None]
         summary_path=path/'run-summary.json';summary=json.loads(summary_path.read_text('utf-8')) if summary_path.exists() else None
         binding=json.loads((path/'binding.json').read_text('utf-8'))
-        report={'binding':binding,'score':score,'performance':{'is_finished':score['completed_snapshot_is_final'],'run_summary':summary,'completed_records':len(complete),'ocr_p50_seconds':quantile(durations,.5),'ocr_p95_seconds':quantile(durations,.95),'ocr_sum_seconds':sum(durations),'preprocessing_sum_seconds':sum(r.get('preprocessing_seconds',0) for r in complete),'model_load_seconds':sum(r.get('model_load_seconds') or 0 for r in complete),'note':'Stage sums are diagnostics; batch wall time comes from run-summary, not sum of potentially overlapping stages'},'xlsx_readback':run_readbacks(path)}
+        context_summary=None;context_records=[]
+        if binding.get('context_run'):
+            context_root=Path(binding['context_run']);context_binding_path=context_root/'binding.json'
+            import hashlib
+            if hashlib.sha256(context_binding_path.read_bytes()).hexdigest()!=binding['context_binding_sha256']:raise ValueError('Consumed context binding changed')
+            context_summary_path=context_root/'run-summary.json'
+            context_summary=json.loads(context_summary_path.read_text('utf-8')) if context_summary_path.exists() else None
+            context_records=[json.loads(p.read_text('utf-8')) for p in context_root.glob('*/record.json')]
+        report={'binding':binding,'score':score,'performance':{'is_finished':score['completed_snapshot_is_final'],'run_summary':summary,**performance(records,summary,context_summary,context_records)},'xlsx_readback':run_readbacks(path)}
         reports[name]=report
         metric=score['summary'];rows.append({'name':name,'complete':score['completed_snapshot_is_final'],'images':metric['totals']['images'],'failed':metric['totals'].get('failed_images',0),'missing':metric['totals'].get('missing_images',0),'whole_image_exact':metric['ratios']['whole_image_correct_rate'],'critical_exact':metric['ratios']['critical_exact_rate'],'ocr_p95_seconds':report['performance']['ocr_p95_seconds'],'xlsx_passed':report['xlsx_readback']['passed'],'xlsx_failed':report['xlsx_readback']['failed']})
     return {'scope':'Real model outputs on frozen screen simulations; engineering readback never proves recognition accuracy. No truth injected into inference or export.', 'comparison':rows,'runs':reports}

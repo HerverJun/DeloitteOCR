@@ -15,7 +15,8 @@ from score import score_sample,summarize
 from run import first_pass_images,aggregate_results,validate_context_binding,digest,write
 from context import verify_context_record
 from review_context import coverage,inspect_preparation
-from acceptance import readback
+from validate_run import validate_run
+from acceptance import readback,performance
 
 def truth():
     return {'id':'test','cohort':'chinese','level':'normal','group_id':'templateA','source_id':'sourceA','tables':[
@@ -177,3 +178,32 @@ def test_offline_crop_review_preserves_full_field_identity_and_ui():
     assert report['metrics']['images_with_context_crop_loss']==1
     assert report['metrics']['images_with_ui_geometry']==1
     assert report['lost_cells'][0]['geometric_coverage']==.5
+
+def test_resident_load_is_counted_once_and_context_charged_once():
+    records=[{'status':'success','inference_seconds':4,'model_load_seconds':20,'engine_session':{'id':'resident','load_seconds':20}} for _ in range(3)]
+    summary={'loads':[{'session_id':'resident','wall_seconds':21,'reported_load_seconds':20}],'attempt_wall_seconds':40,'completed':3,'total':3,'cache_resume_separate':False}
+    context={'loads':[],'attempt_wall_seconds':15,'completed':3,'total':3,'cache_resume_separate':False}
+    report=performance(records,summary,context,[{'inference_seconds':2,'model_load_seconds':5},{'inference_seconds':2,'model_load_seconds':0}])
+    assert report['primary_model_load_seconds']==20
+    assert report['context_model_load_seconds']==5
+    assert report['full_sequential_route_wall_seconds']==55
+    assert performance(records)['primary_model_load_seconds']==20
+    summary['cache_resume_separate']=True
+    assert performance(records,summary,context)['full_sequential_route_wall_seconds'] is None
+
+def test_independent_provenance_validator_rejects_posthoc_transcription(tmp_path):
+    assert tmp_path.resolve().drive.upper()=='F:'
+    input_image=tmp_path/'image.png';Image.new('RGB',(10,10),'white').save(input_image)
+    manifest=tmp_path/'inputs.json';sample={'id':'sample','image':str(input_image),'image_sha256':digest(input_image)}
+    write(manifest,{'truth_available_to_inference':False,'samples':[sample]})
+    runroot=tmp_path/'run';folder=runroot/'sample';attempt=folder/'attempt-0001';region=attempt/'region-00'
+    write(runroot/'binding.json',{'inputs_sha256':digest(manifest),'labels_or_ideal_regions_provided':False})
+    value={**result(),'status':'success','text':'000001 -1,234.56'}
+    write(region/'result.json',value);write(folder/'result.json',value)
+    record={'id':'sample','status':'success','image_sha256':sample['image_sha256'],'output':str(attempt),
+            'prepared_images':[{'path':str(input_image),'sha256':digest(input_image)}],'result_sha256':digest(folder/'result.json')}
+    write(folder/'record.json',record)
+    assert validate_run(manifest,runroot)['is_final']
+    value['tables'][0]['cells'][1]['text']='00001';write(folder/'result.json',value)
+    record['result_sha256']=digest(folder/'result.json');write(folder/'record.json',record)
+    with pytest.raises(ValueError,match='transcription/structure differs'):validate_run(manifest,runroot)

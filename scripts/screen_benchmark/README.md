@@ -83,6 +83,25 @@ Hunyuan、PaddleOCR-VL、GLM 分开顺序执行。runner 首位加载指定新�
 
 该报告用真实 `result.json` 计分，并独立打开真实引擎生成的 XLSX，与其原始 OCR 结果逐格/类型/合并关系比较；不把真值注入识别或导出来制造正确工作簿。正确读回只能证明导出忠实，OCR 准确率仍由独立真值评分决定。主批次 ZIP 文件名与输入映射属于产品导出验收，另列检查。尚在运行时报告明确列出 missing/running 与已完成快照，不把已完成样本冒作全量成绩。
 
+计时将常驻模型加载按会话去重，上下文只计入每条整批路线一次。完整、未恢复的顺序运行才提供路线总墙钟；恢复或未完成的快照不以本次调用时间代表整个批次。
+
+独立证据检查与裁剪保留诊断：
+
+```powershell
+& $py -B -X utf8 F:/OCR/scripts/screen_benchmark/validate_run.py `
+  --inputs F:/OCR/output/ocr-screen-benchmark-20261007/dataset-v2/pilot/inputs.json `
+  --run F:/OCR/output/ocr-screen-benchmark-20261007/runs/pilot-v2-hunyuan-context `
+  --output F:/OCR/output/ocr-screen-benchmark-20261007/evidence/pilot-v2-hunyuan-provenance.json --require-complete
+& $py -B -X utf8 F:/OCR/scripts/screen_benchmark/review_context.py `
+  --inputs F:/OCR/output/ocr-screen-benchmark-20261007/dataset-v2/pilot/inputs.json `
+  --truth F:/OCR/output/ocr-screen-benchmark-20261007/dataset-v2/pilot/truth.json `
+  --context-run F:/OCR/output/ocr-screen-benchmark-20261007/runs/pilot-v2-context `
+  --worker-source F:/OCR/output/ocr-screen-benchmark-20261007/source-snapshots/pilot-v2/src `
+  --output F:/OCR/output/ocr-screen-benchmark-20261007/evidence/pilot-v2-context-retention.json
+```
+
+证据检查不读取真值，核验输入、实际预处理图、原始区域输出、聚合文字/跨度及已消耗上下文是否一致。裁剪诊断仅在真实自动预处理完成后离线对照真值，统计几何保留和 UI 交叠；面积覆盖不是文字可读或识别正确的证明。输出文件采用新名称，保留已有验证。
+
 回归检查：
 
 ```powershell
