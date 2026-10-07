@@ -105,6 +105,67 @@ class ScreenQualityTests(unittest.TestCase):
         self.assertFalse(selected["automatic_delivery"])
         self.assertIn("candidate_structure_conflict",{c["code"] for c in selected["conflicts"]})
 
+    def test_equal_risk_extra_ui_table_does_not_beat_primary(self):
+        primary = result([["项目", "金额"], ["A", "100.00"]], boxes=False)
+        secondary = deepcopy(primary)
+        secondary["tables"].insert(0, result([["A", "B", "C"]], boxes=False)["tables"][0])
+        original = deepcopy(secondary)
+        selection = select_screen_candidates([{"id":"primary", "result":primary},
+                                              {"id":"secondary", "result":secondary}])
+        self.assertEqual([a["risk"] for a in selection["assessments"]], [0, 0])
+        self.assertEqual(selection["selected_id"], "primary")
+        self.assertEqual(secondary, original)
+        self.assertEqual(selection["policy_version"], "screen-quality-v2")
+
+    def test_extra_table_without_reliable_business_region_support_is_reviewed(self):
+        raw = result([["A", "B"]], boxes=False)
+        raw["tables"].append(deepcopy(raw["tables"][0]))
+        image = {"business_regions":[{"id":"business", "box":[0,0,200,30],
+                                      "sources":["layout_table"], "score":.95}]}
+        original = deepcopy(raw)
+        assessment = assess_screen_result(raw, image)
+        self.assertIn("unsupported_extra_table", self.codes(assessment))
+        self.assertFalse(assessment["automatic_delivery"])
+        self.assertEqual(raw, original)
+
+    def test_genuine_missing_second_business_table_can_choose_secondary(self):
+        primary = result([["项目", "金额"], ["A", "100.00"]])
+        second = result([["项目", "金额"], ["B", "200.00"]])
+        for item in [second["tables"][0]] + second["tables"][0]["cells"]:
+            item["box"] = [item["box"][0]+300, item["box"][1], item["box"][2]+300, item["box"][3]]
+        secondary = deepcopy(primary)
+        secondary["tables"].extend(second["tables"])
+        image = {"business_regions":[{"id":"left", "box":[0,0,200,60], "grid_reliable":True},
+                                      {"id":"right", "box":[300,0,500,60], "grid_reliable":True}]}
+        selection = select_screen_candidates([{"id":"primary", "result":primary},
+                                              {"id":"secondary", "result":secondary}], image)
+        self.assertEqual(selection["selected_id"], "secondary")
+        self.assertIn("missing_table", self.codes(selection["assessments"][0]))
+        self.assertNotIn("unsupported_extra_table", self.codes(selection["assessments"][1]))
+
+    def test_successful_table_wins_over_failed_or_empty_at_saturated_risk(self):
+        image = {"quality":{"flags":[{"code":str(i), "severity":"high"} for i in range(3)]}}
+        success = {**result([["项目", "金额"], ["A", "100.00"]]), "status":"success"}
+        for unavailable in ({"status":"failed", "tables":[]}, {"status":"success", "tables":[]}):
+            with self.subTest(status=unavailable["status"]):
+                selection = select_screen_candidates([{"id":"primary", "result":unavailable},
+                                                      {"id":"secondary", "result":success}], image)
+                self.assertEqual([a["risk"] for a in selection["assessments"]], [100,100])
+                self.assertEqual(selection["selected_id"], "secondary")
+                self.assertTrue(selection["review_required"])
+
+    def test_weak_overlapping_or_capped_regions_do_not_assert_extra_table_count(self):
+        raw = result([["A", "B"]], boxes=False)
+        raw["tables"].append(deepcopy(raw["tables"][0]))
+        strong = {"box":[0,0,200,30], "sources":["layout_table"], "score":.95}
+        for image in ({"business_regions":[{"box":[0,0,200,30], "sources":["aligned_text"], "score":.99}]},
+                      {"business_regions":[strong, {**strong, "box":[10,0,210,30]}]},
+                      {"business_regions":[strong], "warnings":[{"code":"region_limit"}]}):
+            with self.subTest(image=image):
+                assessment = assess_screen_result(raw, image)
+                self.assertNotIn("unsupported_extra_table", self.codes(assessment))
+                self.assertEqual(assessment["checks"]["region_table_count"], "unavailable")
+
     def test_local_text_fix_requires_unique_geometry_and_keeps_provenance(self):
         raw = result([["姓名","部门"],["Alce","Sales"]])
         cell = raw["tables"][0]["cells"][2]

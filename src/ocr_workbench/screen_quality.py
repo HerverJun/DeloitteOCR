@@ -14,7 +14,7 @@ import re
 from ocr_workbench.coordinates import bounds, polygon
 from ocr_workbench.tables import parse_tables
 
-POLICY_VERSION = "screen-quality-v1"
+POLICY_VERSION = "screen-quality-v2"
 ID_WORDS = re.compile(r"编号|账号|账户|代码|流水|证件|序号|identifier|\b(id|code|account|reference)\b", re.I)
 NUMBER_WORDS = re.compile(r"金额|数量|单价|余额|税额|税率|百分|amount|quantity|price|balance|total|rate", re.I)
 TOTAL_WORDS = re.compile(r"^(合计|总计|小计|总额|total|subtotal|grand total)[:：]?\s*$", re.I)
@@ -53,6 +53,32 @@ def _evidence(text_evidence):
     if isinstance(text_evidence, dict):
         return text_evidence.get("blocks",text_evidence.get("text",text_evidence.get("text_boxes",[])))
     return text_evidence or []
+
+
+def _reliable_region_count(image_info):
+    """An observed, uncapped set of distinct strong business regions only.
+
+    Weak text clusters and overlapping or capped detections cannot establish an
+    output table count. This is a review signal, never permission to delete data.
+    """
+    regions = image_info.get("business_regions", [])
+    if not isinstance(regions, list) or not regions or any(w.get("code") in {"region_limit", "roi_uncertain"}
+                          for w in image_info.get("warnings", []) if isinstance(w, dict)):
+        return None
+    boxes = []
+    for region in regions:
+        if not isinstance(region, dict):
+            return None
+        box = _box({"box": region.get("table_box", region.get("box"))})
+        score = region.get("score", region.get("confidence"))
+        sources = region.get("sources") or []
+        strong = region.get("grid_reliable") is True or (
+            isinstance(sources, list) and "layout_table" in sources
+            and type(score) in {int, float} and math.isfinite(score) and score >= .8)
+        if not box or not strong or any(_intersection(box, old)/min(_area(box), _area(old)) > .1 for old in boxes):
+            return None
+        boxes.append(box)
+    return len(boxes)
 
 
 def _raw(raw):
@@ -251,6 +277,11 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
     regions = image_info.get("business_regions",[])
     if len(tables) < len(regions):
         issue("missing_table","high","检测到的业务表区多于输出表格。","structure",detected=len(regions),returned=len(tables))
+    region_count = _reliable_region_count(image_info)
+    checks["region_table_count"] = "checked" if region_count is not None else "unavailable"
+    if region_count is not None and len(tables) > region_count:
+        issue("unsupported_extra_table","high","输出表格数量多于可靠独立业务表区，额外表格缺少表区支持，保留原结果待复核。","structure",
+              detected=region_count, returned=len(tables), region_ids=[r.get("id") for r in regions])
     geometry_tables = [(ti,_box(table)) for ti,table in enumerate(tables) if isinstance(table,dict) and _box(table)]
     for region in regions:
         rb = region.get("table_box",region.get("box"))
@@ -348,7 +379,15 @@ def select_screen_candidates(candidates, image_info=None, text_evidence=None, *,
         raise ValueError("候选 ID 必须唯一")
     results = [_raw(c.get("result",c.get("raw",c))) for c in candidates]
     assessments = {key:assess_screen_result(result,image_info,text_evidence) for key,result in zip(ids,results)}
-    chosen = min(range(len(ids)),key=lambda i:(assessments[ids[i]]["risk"],-assessments[ids[i]]["summary"]["tables"],i))
+    def available(result):
+        tables = result.get("tables")
+        return (result.get("status") not in {"failed", "error", "cancelled", "timeout"}
+                and isinstance(tables, list)
+                and any(isinstance(table, dict) and isinstance(table.get("cells"), list) and table["cells"]
+                        for table in tables))
+    # A successful table remains usable for review even when risk saturates.
+    # Equal observed risk retains input order; more tables are not evidence of quality.
+    chosen = min(range(len(ids)),key=lambda i:(not available(results[i]),assessments[ids[i]]["risk"],i))
     selected = deepcopy(results[chosen])
     conflicts,modifications = [],[]
     for index,result in enumerate(results):
@@ -428,6 +467,7 @@ def select_screen_candidates(candidates, image_info=None, text_evidence=None, *,
         selected["screen_text_modifications"] = modifications
     selected["screen_selection"] = {"policy_version":POLICY_VERSION,"candidate_id":ids[chosen],"human_review":"not_performed"}
     return {"policy_version":POLICY_VERSION,"selected_id":ids[chosen],"selected_result":selected,
+            "selection_basis":"successful_table_then_lowest_risk_then_input_order",
             "assessments":[{"id":key,**assessments[key]} for key in ids],"assessment_by_id":assessments,
             "selected_assessment":assessment,"conflicts":conflicts,"modifications":modifications,
             "automatic_delivery":assessment["automatic_delivery"] and not unresolved,"review_required":assessment["review_required"] or bool(unresolved),
