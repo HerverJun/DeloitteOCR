@@ -27,8 +27,11 @@ from ocr_workbench.editing import present_result, export_text
 from ocr_workbench.platform_navigation import NavigationTickets
 
 
-def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None):
+def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None, web_root=None):
     bundle = Path(bundle).resolve()
+    web = Path(web_root).resolve() if web_root is not None else bundle / "web"
+    if web_root is not None and not (web / "index.html").is_file():
+        raise ValueError("Configured OCR static build is missing index.html")
     store = Store(data)
     from ocr_workbench.engine_packages import EnginePackages
 
@@ -365,6 +368,19 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 await upload.close()
         return {"images": imported, "errors": errors}
 
+    @app.get('/api/projects/{project_id}/sources/{kind}/{source_id}')
+    def original_source(project_id: str, kind: str, source_id: str):
+        if kind not in {'image', 'document'}:
+            raise ValueError('原资料类型无效')
+        row = store.one('images' if kind == 'image' else 'documents', source_id)
+        if row['project_id'] != project_id or kind == 'image' and row.get('document_id'):
+            raise ValueError('原资料不属于此项目，文档页需读取原始文档')
+        path = store.file(row['original_path'])
+        with path.open('rb') as stream:
+            if __import__('hashlib').file_digest(stream, 'sha256').hexdigest() != row['sha256']:
+                raise Conflict('原资料字节变化')
+        return FileResponse(path, filename=row['name'], media_type='application/octet-stream')
+
     @app.get("/api/versions/{key}/image")
     def image(key: str):
         version = store.one("versions", key)
@@ -414,6 +430,13 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         from ocr_workbench.fusion import load_policy
         return {kind: {mode: load_policy(bundle, kind, mode) for mode in ("conservative", "aggressive")}
                 for kind in ("table", "print", "handwriting")}
+
+    @app.get('/api/projects/{key}/fusion-requests/{request_id}')
+    def fusion_request(key: str, request_id: str):
+        store.one('projects', key)
+        with store.transaction() as db:
+            row = db.execute('SELECT task_ids FROM fusion_submissions WHERE project_id=? AND request_id=?', (key, request_id)).fetchone()
+        return {'submitted': row is not None, 'task_ids': json.loads(row['task_ids']) if row else []}
 
     @app.post("/api/projects/{key}/fusion")
     def create_fusion(key: str, body: dict):
@@ -468,6 +491,11 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     @app.get("/api/results/{key}/revisions/{revision}")
     def result_revision(key: str, revision: int):
         return store.result_snapshot(key, revision)
+
+    @app.get("/api/results/{key}/revisions/{revision}/tables")
+    def result_revision_tables(key: str, revision: int):
+        from ocr_workbench.result_tables import table_snapshot
+        return table_snapshot(store, key, revision)
 
     @app.get("/api/results/{key}/revisions")
     def result_revisions(key: str, offset: int = 0, limit: int = 50):
@@ -541,6 +569,59 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         with store.transaction() as db:
             db.execute('INSERT OR IGNORE INTO review_timings VALUES(?,?,?,?,?,?,?)', (event_id,key,result['revision'],encoded(body.get('target', {})),milliseconds,body['action'],now()))
         return {'saved': True, 'local_only': True}
+
+    @app.get('/api/platform/edits/{operation_id}')
+    def edit_receipt(operation_id: str, project_id: str):
+        receipt = store.edit_operation(operation_id)
+        if receipt and receipt['project_id'] != project_id:
+            raise Conflict('编辑操作不属于当前项目')
+        return {'committed': receipt is not None, 'receipt': receipt}
+
+    @app.post('/api/platform/edits/{operation_id}')
+    def agent_edit(operation_id: str, body: dict):
+        from copy import deepcopy
+        from ocr_workbench.geometry_contract import fingerprint
+        if set(body) != {'project_id', 'result_id', 'revision', 'changes', 'actor'} or body.get('actor', {}).get('kind') != 'agent':
+            raise ValueError('编辑请求或作者无效')
+        payload_hash = fingerprint(body)
+        previous = store.edit_operation(operation_id)
+        if previous:
+            if previous['payload_hash'] != payload_hash:
+                raise Conflict('编辑操作身份变化')
+            return previous
+        result = store.result_snapshot(body['result_id'])
+        if result['project_id'] != body['project_id'] or result['revision'] != body['revision']:
+            raise Conflict('结果项目或版本变化')
+        changes = body['changes']
+        if not isinstance(changes, list) or not 1 <= len(changes) <= 100:
+            raise ValueError('需提供有限的逐项文字修改')
+        edited = deepcopy(result['edited'])
+        for change in changes:
+            if not isinstance(change, dict) or change.get('kind') not in {'text', 'cell', 'caption'} or not isinstance(change.get('before'), str) or not isinstance(change.get('after'), str) or len(change['after']) > 100000:
+                raise ValueError('文字修改格式无效')
+            if change['kind'] == 'text':
+                start, end = change.get('start'), change.get('end')
+                if type(start) is not int or type(end) is not int or not 0 <= start <= end <= len(edited['text']) or edited['text'][start:end] != change['before']:
+                    raise Conflict('原文字段已变化')
+                edited['text'] = edited['text'][:start]+change['after']+edited['text'][end:]
+            else:
+                table_index = change.get('table_index')
+                if type(table_index) is not int or not 0 <= table_index < len(edited['tables']):
+                    raise ValueError('表格位置无效')
+                table = edited['tables'][table_index]
+                if change['kind'] == 'caption':
+                    target, key = table, 'caption'
+                else:
+                    cells = [cell for cell in table['cells'] if cell['row'] == change.get('row') and cell['column'] == change.get('column')]
+                    if len(cells) != 1:
+                        raise ValueError('单元格位置无效')
+                    target, key = cells[0], 'text'
+                if target.get(key, '') != change['before']:
+                    raise Conflict('原单元格内容已变化')
+                target[key] = change['after']
+        with maintenance.guard:
+            return store.save(body['result_id'], edited, body['revision'], operation={'operation_id': operation_id,
+                'project_id': body['project_id'], 'payload_hash': payload_hash, 'actor': body['actor']})
 
     @app.put("/api/results/{key}")
     def save_result(key: str, body: dict):
@@ -649,7 +730,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         app.state.shutdown()
         return {"status": "stopping"}
 
-    web = bundle / "web"
+    app.state.web_root = web
     if web.is_dir():
         app.mount("/", StaticFiles(directory=web, html=True), name="workbench")
     return app
@@ -661,6 +742,7 @@ def main():
 
     p = argparse.ArgumentParser()
     p.add_argument("--bundle", type=Path, default=Path(__file__).resolve().parents[2])
+    p.add_argument("--web-root", type=Path, help="Serve a separately packaged frontend without changing model assets")
     p.add_argument(
         "--data",
         type=Path,
@@ -704,7 +786,7 @@ def main():
             )
             if report["status"] != "passed":
                 raise SystemExit(2)
-        app = create_app(args.bundle, args.data, token, review_only=args.review_only)
+        app = create_app(args.bundle, args.data, token, review_only=args.review_only, web_root=args.web_root)
         # A reset loopback socket must not hold shutdown forever (observed under WFP).
         platform_port = os.environ.get("WORKBENCH_PORT") == "0"
         listener = None
