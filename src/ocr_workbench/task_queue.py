@@ -419,11 +419,22 @@ class TaskQueue:
         except Exception as error:
             from ocr_workbench.errors import friendly_engine_error
 
+            # A stopped worker may report process exit before its adapter sees
+            # cancellation. Budget expiry and real request timeouts still fail;
+            # an explicit service stop or user cancel must remain resumable or
+            # cancelled. Already settled DB states are protected by the WHERE.
+            if budget_expired.is_set():
+                state, phase, reason = 'failed', '预算已用尽', '本图或整批处理预算已用尽，保留已生成结果待复核'
+            elif not isinstance(error, TimeoutError) and self.stopping.is_set():
+                state, phase, reason = 'interrupted', '等待继续', None
+            elif not isinstance(error, TimeoutError) and self.cancel_event.is_set():
+                state, phase, reason = 'cancelled', '已取消', None
+            else:
+                state, phase, reason = 'failed', '审校失败' if task.get('kind') == 'multimodal' else '识别失败', friendly_engine_error(error)
             with self.store.transaction() as db:
                 db.execute(
-                    "UPDATE tasks SET status='failed',phase=?,error=?,finished=? WHERE id=? AND status='running'",
-                    ("审校失败" if task.get("kind") == "multimodal" else "识别失败",
-                     friendly_engine_error(error), now(), task["id"]),
+                    "UPDATE tasks SET status=?,phase=?,error=?,finished=? WHERE id=? AND status='running'",
+                    (state, phase, reason, now(), task["id"]),
                 )
             self.unload()
         finally:

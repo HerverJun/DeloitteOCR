@@ -289,6 +289,53 @@ class ScreenBatchTests(unittest.TestCase):
         self.assertEqual([task['engine'] for task in self.store.rows(
             'SELECT t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id WHERE s.batch_id=?', (batch,))], ['hunyuan'])
 
+    def test_initial_precision_checkbox_uses_glm_without_upgrading_only_for_human_review(self):
+        self.manager.defaults = self.measured_defaults
+        version = self.images(1)[0]
+        body = {'version_ids': [version], 'request_id': 'initial-precision-checkbox',
+                'policy': {'primary_engine': 'auto', 'mode': 'accuracy'}}
+        first = self.manager.submit(self.project, body)
+        policy = first['policy']
+        self.assertEqual((policy['primary_engine'], policy['fallback_engines'], policy['max_upgrades']),
+                         ('glm', ['hunyuan'], 1))
+        self.assertEqual((policy['upgrade_trigger'], policy['require_human_review']), ('quality', True))
+        self.assertEqual(policy['strategy_version'], 'screen-glm-quality-human-v1-20261007')
+        self.assertEqual(self.manager.submit(self.project, body)['batch_id'], first['batch_id'])
+        # The measured defaults first require independent layout context. This
+        # deterministic payload tests routing only, not recognition quality.
+        self.manager.step()
+        context = self.store.claim()
+        self.assertEqual(context['kind'], 'screen_context')
+        raw = {'status': 'success', 'image': {'width': 100, 'height': 70},
+               'regions': [{'box': [0, 0, 100, 70]}], 'ocr_blocks': []}
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET status='succeeded',finished=started WHERE id=?", (context['id'],))
+            db.execute('UPDATE screen_contexts SET raw=? WHERE task_id=?', (json.dumps(raw), context['id']))
+        self.manager.step(); self.finish(); self.manager.step()
+        tasks = self.store.rows('''SELECT t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+            WHERE s.batch_id=? ORDER BY s.pass_index''', (first['batch_id'],))
+        self.assertEqual([task['engine'] for task in tasks], ['glm'])
+        detail = self.manager.detail(self.project, first['batch_id'], version)
+        self.assertEqual((detail['status'], detail['stage']), ('needs_review', 'human_confirmation'))
+
+    def test_precision_resolution_preserves_explicit_and_legacy_policy_choices(self):
+        defaults = self.measured_defaults()
+        for value, expected in [
+            ({'mode': 'accuracy'}, ('glm', 'quality')),
+            ({'mode': 'accuracy', 'primary_engine': 'hunyuan'}, ('hunyuan', 'failure_only')),
+            ({'mode': 'accuracy', 'primary_engine': 'auto', 'upgrade_trigger': 'failure_only'}, ('hunyuan', 'failure_only')),
+        ]:
+            with self.subTest(value=value):
+                policy = validate_policy(value, defaults)
+                self.assertEqual((policy['primary_engine'], policy['upgrade_trigger']), expected)
+        legacy = {key: value for key, value in defaults.items()
+                  if key not in {'upgrade_trigger', 'require_human_review'}}
+        policy = validate_policy({'primary_engine': 'auto', 'mode': 'accuracy'}, legacy)
+        self.assertEqual((policy['primary_engine'], policy['require_human_review']), ('hunyuan', False))
+        frozen = validate_policy({'primary_engine': 'auto', 'mode': 'accuracy'}, defaults,
+                                 resolve_precision=False)
+        self.assertEqual((frozen['primary_engine'], frozen['upgrade_trigger']), ('hunyuan', 'failure_only'))
+
     def test_failure_only_uses_one_glm_fallback_after_a_technical_failure(self):
         version = self.images(1)[0]
         batch = self.submit([version], primary_engine='hunyuan', fallback_engines=['glm'], max_upgrades=1,

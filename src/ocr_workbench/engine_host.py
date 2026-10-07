@@ -15,6 +15,24 @@ def publish(path, data):
     write_json(path, data)
 
 
+def consume_request(path, stop_path):
+    """Claim one request before inference, tolerating brief Windows read locks."""
+    data = json.loads(path.read_text(encoding='utf-8'))
+    deadline = time.monotonic() + 1
+    while True:
+        if stop_path.exists():
+            return None
+        try:
+            path.unlink()
+            return data
+        except PermissionError as error:
+            if getattr(error, 'winerror', None) not in {32, 33} or time.monotonic() >= deadline:
+                raise
+            # No model call occurs until ownership was consumed. Persistent
+            # sharing errors still fail within the bounded one-second window.
+            time.sleep(.025)
+
+
 class Resident:
     def __init__(self, bundle, engine, ipc, geometry_provider='paddle'):
         self.bundle, self.engine = bundle, engine
@@ -155,8 +173,9 @@ def main():
             if not request.exists():
                 time.sleep(0.05)
                 continue
-            data = json.loads(request.read_text(encoding="utf-8"))
-            request.unlink()
+            data = consume_request(request, args.ipc / 'stop.json')
+            if data is None:
+                break
             try:
                 from ocr_workbench.worker import run_image
 
