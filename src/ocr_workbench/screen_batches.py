@@ -39,7 +39,7 @@ def screen_seconds_spent(store, batch_id, version_id, attempt=0):
     return spent
 
 
-def validate_policy(value, defaults=None):
+def validate_policy(value, defaults=None, *, resolve_precision=True):
     value = value or {}
     if not isinstance(value, dict):
         raise ValueError('批次策略必须是对象')
@@ -92,6 +92,18 @@ def validate_policy(value, defaults=None):
         raise ValueError('局部视觉审校仍在评测中，请通过复核工作流调用；批次自动审校尚未启用')
     if not isinstance(result['strategy_version'], str) or not 1 <= len(result['strategy_version']) <= 120:
         raise ValueError('策略版本无效')
+    # The existing checkbox submits accuracy + auto. Give new requests the
+    # measured precision route, while explicit model/trigger choices and frozen
+    # requests retain their original meaning.
+    if (resolve_precision and 'upgrade_trigger' in (defaults or {})
+            and value.get('mode') == 'accuracy'
+            and value.get('primary_engine', 'auto') == 'auto'
+            and 'upgrade_trigger' not in value):
+        alternatives = [engine for engine in [result['primary_engine'], *result['fallback_engines']]
+                        if engine != 'glm']
+        result.update(primary_engine='glm', fallback_engines=alternatives,
+            max_upgrades=min(1, len(alternatives)), upgrade_trigger='quality',
+            require_human_review=True, strategy_version='screen-glm-quality-human-v1-20261007')
     return result
 
 
@@ -199,7 +211,8 @@ class ScreenBatches:
             previous = db.execute('SELECT * FROM screen_batches WHERE project_id=? AND request_id=?', (project_id, request_id)).fetchone()
             # Recover the original policy after defaults change for future batches.
             saved_policy = json.loads(previous['policy']) if previous else None
-            policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults())
+            policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults(),
+                                     resolve_precision=not bool(previous))
             if previous:
                 for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review'):
                     if key not in saved_policy and key not in (body.get('policy') or {}):
