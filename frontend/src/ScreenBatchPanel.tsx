@@ -211,7 +211,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   return <>
     <Button icon={<ScanLine size={16} />} disabled={!projectId} onClick={() => { setScope(selectedImageIds.length ? "selected" : "project"); setOpen(true); }}>拍屏表格批量转 Excel</Button>
     <Dialog open={open} onOpenChange={(_, data) => { if (!data.open) close(); }}>
-      <DialogSurface className="screen-batch-dialog">
+      <DialogSurface className="screen-batch-dialog" style={{ width: "min(1260px, calc(100vw - 24px))", maxWidth: "min(1260px, calc(100vw - 24px))", maxHeight: "calc(100dvh - 36px)" }}>
         <DialogBody>
           <DialogTitle action={<Button appearance="subtle" aria-label="关闭批量表格处理" icon={<X size={18} />} disabled={busy} onClick={close} />}>拍屏表格批量转 Excel</DialogTitle>
           <DialogContent className="screen-batch-content">
