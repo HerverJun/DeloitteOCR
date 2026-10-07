@@ -4,7 +4,8 @@ import { Alert, Button, Checkbox, Empty, Input, Modal, Progress, Select, Space, 
 import { Link, useSearchParams } from 'react-router-dom'
 
 type Item = { input_version_id: string; image_id: string; asset_id: string; name: string; status: string; stage: string; review_state?: string; result_id?: string; result_revision?: number; issues: { code?: string; message?: string; reason?: string }[] }
-type Batch = { batch_id: string; status: string; counts: { total: number; completed: number; needs_review: number; failed: number; cancelled: number; pending: number }; items: Item[]; total?: number; filtered_total?: number; capabilities: string[] }
+type StageEta = { remaining_seconds: number | null; stage?: { label?: string } | null; sample_count: number; scope: string; reason?: string; not_included?: string[] }
+type Batch = { batch_id: string; status: string; counts: { total: number; completed: number; needs_review: number; failed: number; cancelled: number; pending: number }; items: Item[]; total?: number; filtered_total?: number; capabilities: string[]; eta?: StageEta }
 type Cell = { row?: number; column?: number; row_index?: number; col_index?: number; text?: string; content?: string }
 type BusinessTable = { cells?: Cell[]; columns?: number; caption?: string }
 type Detail = Item & { original_url: string; result?: { tables?: BusinessTable[] }; tables?: BusinessTable[]; candidates?: { result_id?: string; engine?: string; tables?: BusinessTable[] }[]; preparation?: { prepared_images?: { id: string; kind: string; url: string }[] } }
@@ -71,12 +72,16 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
     setReview(null); setEdits({}); refresh()
   } })
   const counts = batch.data?.counts
+  const eta = batch.data?.eta
+  const estimated = batch.data?.status === 'running' && eta?.scope === 'current_queued_stage' && eta.reason === 'estimated' && eta.sample_count >= 3 && typeof eta.remaining_seconds === 'number' && Number.isFinite(eta.remaining_seconds) && eta.remaining_seconds >= 0
+  const remaining = estimated ? (eta!.remaining_seconds! < 60 ? `${Math.ceil(eta!.remaining_seconds!)} 秒` : `${Math.ceil(eta!.remaining_seconds! / 60)} 分钟`) : undefined
   return <section className="panel ocr-screen-batch"><div className="section-head"><Typography.Title level={3}>批量图片转 Excel</Typography.Title><Tag>每张图片一个文件</Tag></div>
     {!batchId ? <><Typography.Paragraph type="secondary">一次处理最多 1000 张图片，先定位业务表区，再识别和集中复核疑点，最后下载 ZIP。</Typography.Paragraph>
       <Space wrap><Typography.Text>{count} 张</Typography.Text><Select aria-label="批次处理策略" value={mode} onChange={setMode} options={[{ value: 'auto', label: '自动处理' }, { value: 'accuracy', label: '提高精度' }]} />
         <Button type="primary" disabled={!ready || !linkId || !count || count > 1000} loading={start.isPending} onClick={() => start.mutate()}>开始整批转 Excel</Button></Space></> : <>
       {counts && <><Space wrap>{(['total', 'completed', 'pending', 'needs_review', 'failed', 'cancelled'] as const).map(key => <Typography.Text key={key}>{({ total: '总数', completed: '完成', pending: '处理中', needs_review: '待复核', failed: '失败', cancelled: '取消' })[key]} {counts[key]}</Typography.Text>)}<Tag>{labels[batch.data!.status] || batch.data!.status}</Tag></Space>
         <Progress percent={Math.round((counts.total - counts.pending) * 100 / Math.max(counts.total, 1))} status={counts.pending ? 'active' : counts.failed ? 'exception' : 'normal'} />
+        {!!counts.pending && eta && <Typography.Paragraph type="secondary">{estimated ? `当前阶段预计还需约 ${remaining}${eta.stage?.label ? `（${eta.stage.label}）` : ''}` : batch.data?.status === 'paused' ? '已暂停，继续后更新当前阶段估计' : '当前阶段剩余时间暂无法估计'}。仅估计已排队的当前阶段；后续表区处理、精度升级、模型切换、导出和人工复核另计。</Typography.Paragraph>}
         <Space wrap>{batch.data?.capabilities.map(action => <Button key={action} loading={control.isPending} onClick={() => control.mutate(action)}>{({ pause: '暂停', resume: '继续', cancel: '取消', retry_failed: '仅重试失败项' } as Record<string, string>)[action] || action}</Button>)}
           <Button disabled={!selected.length || control.isPending} onClick={() => control.mutate('upgrade')}>对所选图片提高精度（{selected.length}）</Button>
           <Button onClick={() => void batch.refetch()}>刷新状态</Button><Checkbox checked={includeReview} onChange={e => setIncludeReview(e.target.checked)}>包含待复核文件</Checkbox>

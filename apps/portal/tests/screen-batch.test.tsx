@@ -37,6 +37,23 @@ test('240-image progress can export confirmed files while outstanding inputs rem
   expect(screen.getByText('处理中 8')).toBeInTheDocument()
 })
 
+test('stage estimate is bounded to the current queue and remains unknown when paused or unsupported', async () => {
+  const eta = { remaining_seconds: 125, stage: { label: 'Hunyuan 首轮识别' }, sample_count: 5, scope: 'current_queued_stage', reason: 'estimated', not_included: ['future_upgrades', 'export', 'human_review'] }
+  let value = { ...batch(), eta }
+  vi.stubGlobal('fetch', vi.fn(async () => ok(value)))
+  mount()
+  await screen.findByText(/当前阶段预计还需约 3 分钟（Hunyuan 首轮识别）/)
+  expect(screen.getByText(/导出和人工复核另计/)).toBeInTheDocument()
+  value = { ...batch(), status: 'paused', eta }
+  fireEvent.click(screen.getByRole('button', { name: '刷新状态' }))
+  await screen.findByText(/已暂停，继续后更新当前阶段估计/)
+  expect(screen.queryByText(/预计还需约/)).not.toBeInTheDocument()
+  value = { ...batch(), eta: { ...eta, scope: 'whole_batch' } }
+  fireEvent.click(screen.getByRole('button', { name: '刷新状态' }))
+  await screen.findByText(/当前阶段剩余时间暂无法估计/)
+  expect(screen.queryByText(/预计还需约/)).not.toBeInTheDocument()
+})
+
 test('lost submission response preserves the exact request identity on retry', async () => {
   const submitted: any[] = []
   vi.stubGlobal('fetch', vi.fn(async (_path: string, init?: RequestInit) => {
