@@ -402,6 +402,11 @@ def select_screen_candidates(candidates, image_info=None, text_evidence=None, *,
                                  and _intersection(ob,_box(item))/_area(_box(item)) >= .2]
                 current = str(cell.get("text",""))
                 value = str(item.get("text",""))
+                # Mixed codes are still numeric evidence even when the column
+                # classifier calls them text. Protect both existing and proposed
+                # Unicode digits, including superscripts, from automatic edits.
+                if any(char.isdigit() for char in current) or any(char.isdigit() for char in value):
+                    continue
                 if other_matches or not value.strip() or _field_kind(table,{**cell,"text":value}) != "text" or _normal(value) == _normal(current):
                     continue
                 if current.strip() and not (isinstance(cell.get("confidence"),(int,float)) and cell["confidence"] < .5):

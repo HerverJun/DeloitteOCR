@@ -137,6 +137,21 @@ class ScreenQualityTests(unittest.TestCase):
         selected = select_screen_candidates([{"id":"a","result":raw}],text_evidence=evidence,allow_text_fixes=True)
         self.assertEqual(selected["modifications"],[])
 
+    def test_local_text_fix_protects_digits_in_existing_and_proposed_mixed_codes(self):
+        for before, after in (("AB100","AB1000"), ("Alpha","AB100"),
+                              ("AB１２","AB１３"), ("AB١٢","AB١٣"),
+                              ("AB¹","AB²"), ("AB¹","Alpha")):
+            with self.subTest(before=before, after=after):
+                raw = result([["项目","部门"],[before,"Sales"]])
+                raw["tables"][0]["cells"][2].update(confidence=.1,geometry_origin="direct_detection")
+                original = deepcopy(raw)
+                evidence = [{"text":after,"box":[5,32,85,54],"confidence":.99,"source":"independent-crop-ocr"}]
+                selected = select_screen_candidates([{"id":"a","result":raw}],
+                    text_evidence=evidence,allow_text_fixes=True)
+                self.assertEqual(selected["modifications"],[])
+                self.assertEqual(selected["selected_result"]["tables"][0]["cells"][2]["text"],before)
+                self.assertEqual(raw,original)
+
     def test_unreadable_source_abstains_even_if_model_returns_valid_table(self):
         raw = result([["A","B"],["123","456"]])
         assessment = assess_screen_result(raw,{"quality":{"unreadable":True,"flags":[]}})
