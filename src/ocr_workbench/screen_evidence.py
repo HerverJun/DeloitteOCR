@@ -14,7 +14,7 @@ import re
 
 from ocr_workbench.coordinates import IDENTITY, bounds, box_polygon, polygon
 
-POLICY_VERSION = "screen-evidence-v1"
+POLICY_VERSION = "screen-evidence-v2"
 LABELS = {"table":"table", "doc_title":"title", "paragraph_title":"title", "figure_title":"caption",
           "table_title":"caption", "footnote":"note", "footer":"note", "header":"note", "page_number":"page_number",
           "text":"text", "unit":"unit", "caption":"caption", "note":"note", "title":"title",
@@ -56,7 +56,95 @@ def _mapped(item, transform, width, height):
             "coordinate_space":"exif_normalized_original", "partially_clipped":clipped != box}
 
 
-def _sequential_rulers(layout, texts):
+def classify_screen_ui(layout, texts, width, height):
+    """Infer chrome only from multiple semantic anchors and external geometry.
+
+    A business 'Excel', 'Save', number, or formula is insufficient. A detected
+    table protects overlapping text. Broad strips require independent observed
+    chrome categories and may never cross a business table's vertical extent.
+    """
+    layout,texts = deepcopy(layout),deepcopy(texts)
+    tables = [_box(item) for item in layout if item.get('kind') == 'table' and _box(item)]
+    protected=[]
+    for item in layout:
+        box=_box(item);confidence=item.get('confidence',item.get('score'))
+        semantic=item.get('kind') in {'title','caption','unit'} or item.get('original_label') in {'footnote','table_title','doc_title'}
+        if box and semantic and isinstance(confidence,(int,float)) and confidence>=.85:
+            protected.append(box)
+    anchors=[]
+    for item in texts:
+        box=_box(item)
+        if not box or any(_intersection(box,tb)/_area(box)>.15 for tb in tables+protected):
+            continue
+        value=re.sub(r'\s+','',str(item.get('text','')))
+        category=None
+        if re.search(r'\.(?:xlsx?|csv|ods).{0,12}(?:Excel|WPS)',value,re.I):
+            category='window_border'
+        elif sum(token in value for token in ('文件','开始','插入','页面布局','公式','数据','审阅','视图'))>=4:
+            category='toolbar'
+        elif sum(token in value for token in ('粘贴','剪切','复制','合并后居中','排序和筛选','自动求和','Calibri'))>=2:
+            category='toolbar'
+        elif re.search(r'fx[=:：]?=.*(?:\(|\d)',value,re.I):
+            category='formula_bar'
+        elif re.search(r'状态[:：]?就绪|status[:：]?ready',value,re.I):
+            category='taskbar'
+        if category:
+            anchors.append((category,box,item))
+    categories={kind for kind,_,_ in anchors}
+    screen_confirmed='window_border' in categories and bool(categories&{'toolbar','formula_bar'}) or {'toolbar','formula_bar'}<=categories
+    groups=[]
+    if screen_confirmed:
+        top=[box for kind,box,_ in anchors if kind!='taskbar' and box[3] <= min((tb[1] for tb in tables),default=height*.6)]
+        if top:
+            y0=min(b[1] for b in top);y1=max(b[3] for b in top)
+            pad=max(3,min(14,float(np_median([b[3]-b[1] for b in top]))*.45))
+            y1=min(y1+pad,min((tb[1] for tb in tables),default=height))
+            groups.append({'kind':'toolbar','box':[0,max(0,y0-pad),width,y1],'orientation':'horizontal'})
+        bottom=[box for kind,box,_ in anchors if kind=='taskbar' and box[1]>=max((tb[3] for tb in tables),default=height*.65)]
+        if bottom:
+            y0=min(b[1] for b in bottom)
+            groups.append({'kind':'taskbar','box':[0,max(max((tb[3] for tb in tables),default=0),y0-8),width,height],'orientation':'horizontal'})
+    for group in groups:
+        if any(_intersection(group['box'],box)>0 for box in protected):
+            # A trusted title/unit/note contradicts a broad strip. Preserve the
+            # observed content and let region ambiguity select the original.
+            continue
+        group.update(polygon=box_polygon(group['box']),source='observed_screen_chrome',confidence=None,
+                     inference_basis='multiple_application_anchors_outside_detected_tables')
+        if not any(item.get('source')=='observed_screen_chrome' and _box(item)==group['box'] for item in layout):
+            layout.append(group)
+        for item in texts:
+            box=_box(item)
+            if box and _intersection(box,group['box'])/_area(box)>=.8 and not any(_intersection(box,tb)/_area(box)>.15 for tb in tables+protected):
+                item.setdefault('business_original_kind',item.get('kind','text'))
+                item['kind']=group['kind'];item['orientation']=group['orientation']
+                item['classification_basis']=group['inference_basis']
+    return layout,texts,screen_confirmed
+
+
+def np_median(values):
+    # Keep normalization usable without numpy in lightweight control processes.
+    values=sorted(values);middle=len(values)//2
+    return values[middle] if len(values)%2 else (values[middle-1]+values[middle])/2
+
+
+def reconcile_screen_evidence(evidence, *, width, height):
+    """Reclassify actual old/new evidence, preserving every observed reading."""
+    evidence=deepcopy(evidence or {})
+    layout=evidence.get('layout',evidence.get('regions',[]))
+    texts=evidence.get('text',evidence.get('blocks',evidence.get('text_boxes',[])))
+    if isinstance(layout,dict):layout=layout.get('regions',layout.get('blocks',[]))
+    if isinstance(texts,dict):texts=texts.get('blocks',texts.get('text_boxes',[]))
+    layout=[{**item,'box':box} for item in layout if isinstance(item,dict) and (box:=_box(item))]
+    texts=[{**item,'box':box} for item in texts if isinstance(item,dict) and (box:=_box(item))]
+    layout,texts,confirmed=classify_screen_ui(layout,texts,width,height)
+    rulers=_sequential_rulers(layout,texts,screen_confirmed=confirmed)
+    layout.extend(rulers)
+    return {**evidence,'layout':layout,'text':texts,'screen_chrome_confirmed':confirmed,
+            'region_reconciliation_policy':POLICY_VERSION}
+
+
+def _sequential_rulers(layout, texts, *, screen_confirmed=False):
     """Classify only ordered ruler tokens outside every detected business table.
 
     A business number column inside a detected table is never classified as UI.
@@ -65,7 +153,7 @@ def _sequential_rulers(layout, texts):
     tables = [item["box"] for item in layout if item["kind"]=="table"]
     if not tables:
         return []
-    candidates = [item for item in texts if not any(_intersection(item["box"],box)>0 for box in tables)
+    candidates = [item for item in texts if item.get('kind') not in UI_KINDS and not any(_intersection(item["box"],box)>0 for box in tables)
                   and re.fullmatch(r"\d{1,5}|[A-Z]{1,2}",str(item.get("text","")).strip())]
     groups = []
     for axis in (0,1):
@@ -90,24 +178,28 @@ def _sequential_rulers(layout, texts):
                 numbers = [sum((ord(ch)-64)*26**n for n,ch in enumerate(reversed(value))) for value in values]
             else:
                 continue
-            if any(b-a != 1 for a,b in zip(numbers,numbers[1:])):
+            steps=[b-a for a,b in zip(numbers,numbers[1:])]
+            if any(step not in (1,2) for step in steps):
                 continue
             centers = [(i["box"][axis]+i["box"][axis+2])/2 for i in items]
-            spacing = [b-a for a,b in zip(centers,centers[1:])]
+            spacing = [(b-a)/step for a,b,step in zip(centers,centers[1:],steps)]
             if min(spacing) <= 0 or max(spacing)/min(spacing) > 1.35:
                 continue
             box = [min(i["box"][0] for i in items),min(i["box"][1] for i in items),max(i["box"][2] for i in items),max(i["box"][3] for i in items)]
             # Ordered tokens must border a real table, rather than an arbitrary
             # list elsewhere in the document. This is a geometric association.
+            reach=max(100,(box[3]-box[1])*4) if screen_confirmed and axis==0 else max(35,(box[3]-box[1])*3)
             nearby = any((axis==1 and box[2] <= tb[0] and tb[0]-box[2] < max(35,(box[2]-box[0])*3)
                           and min(box[3],tb[3])-max(box[1],tb[1]) > (box[3]-box[1])*.7)
-                         or (axis==0 and box[3] <= tb[1] and tb[1]-box[3] < max(35,(box[3]-box[1])*3)
+                         or (axis==0 and box[3] <= tb[1] and tb[1]-box[3] < reach
                              and min(box[2],tb[2])-max(box[0],tb[0]) > (box[2]-box[0])*.7) for tb in tables)
             if nearby:
                 groups.append({"kind":"ruler","box":box,"polygon":box_polygon(box),"source":"ordered_tokens_outside_table",
-                               "confidence":None,"inference_basis":"sequence_alignment_spacing_and_table_adjacency"})
+                               "confidence":None,"orientation":"horizontal" if axis==0 else "vertical",
+                               "inference_basis":"sequence_alignment_spacing_and_table_adjacency"})
                 for item in items:
                     item["kind"] = "ruler"
+                    item['orientation']='horizontal' if axis==0 else 'vertical'
                     item["classification_basis"] = "sequence_alignment_spacing_and_table_adjacency"
     return groups
 
@@ -150,7 +242,8 @@ def normalize_screen_context(context, *, width=None, height=None, candidate=None
             if kind == "text":
                 mapped["text"] = str(item.get("text",""))
             target.append(mapped)
-    layout.extend(_sequential_rulers(layout,text))
+    layout,text,screen_confirmed=classify_screen_ui(layout,text,width,height)
+    layout.extend(_sequential_rulers(layout,text,screen_confirmed=screen_confirmed))
     return {"policy_version":POLICY_VERSION,"layout":layout,"text":text,"warnings":warnings,
             "provenance":{"component":context.get("component"),"ocr_source":context.get("ocr_source"),
                           "image_version":context.get("image_version"),"source_candidate_id":candidate.get("id") if candidate else "original",

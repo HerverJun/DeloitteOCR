@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from ocr_workbench.coordinates import point
-from ocr_workbench.screen_imaging import prepare_screen_image, detect_business_regions
+from ocr_workbench.screen_imaging import prepare_screen_image, detect_business_regions, select_screen_first_pass
 
 
 class ScreenImagingTests(unittest.TestCase):
@@ -139,6 +139,55 @@ class ScreenImagingTests(unittest.TestCase):
         self.assertEqual(len(result["business_regions"]),2)
         self.assertEqual(result["primary_id"],"original")
         self.assertIn("region_limit",[w["code"] for w in result["warnings"]])
+
+    def test_overlapping_partial_text_candidate_does_not_duplicate_layout_table(self):
+        image=Image.new('RGB',(900,800),'white')
+        text=[{'text':f'{row}-{col}','box':[100+col*200,300+row*40,180+col*200,322+row*40]} for row in range(6) for col in range(3)]
+        regions,_,_=detect_business_regions(image,{'layout':[{'kind':'table','box':[95,220,700,525],'confidence':.95}],'text':text})
+        self.assertEqual(len(regions),1)
+        self.assertIn('aligned_text',regions[0]['sources'])
+
+    def test_vertical_ruler_above_table_never_cuts_caption(self):
+        image=Image.new('RGB',(900,900),'white')
+        self.grid(image,(160,300,800,800))
+        evidence={'layout':[{'kind':'table','box':[160,300,800,800],'confidence':.95},
+                            {'kind':'ruler','box':[120,200,142,850],'orientation':'vertical'},
+                            {'kind':'ruler','box':[125,260,140,282],'orientation':'vertical'},
+                            {'kind':'caption','box':[155,250,700,280],'text':'Amounts unit yuan'}]}
+        region=self.run_image(image,evidence,perspective=False)['business_regions'][0]
+        self.assertLessEqual(region['box'][1],250)
+        self.assertGreaterEqual(region['box'][0],142)
+
+    def test_shared_selection_falls_back_for_overlap_and_budget_but_keeps_real_multitables(self):
+        original={'id':'original','kind':'original'}
+        first={'id':'one','kind':'table_crop','source_polygon':[[100,100],[500,100],[500,400],[100,400]]}
+        second={'id':'two','kind':'table_crop','source_polygon':[[100,350],[500,350],[500,650],[100,650]]}
+        prepared={'primary_id':'original','prepared_images':[original,first,second],'warnings':[]}
+        self.assertEqual(select_screen_first_pass(prepared),[original])
+        second['source_polygon']=[[100,450],[500,450],[500,700],[100,700]]
+        self.assertEqual(select_screen_first_pass(prepared),[first,second])
+        prepared['warnings']=[{'code':'region_limit'}]
+        self.assertEqual(select_screen_first_pass(prepared),[original])
+
+    def test_window_grid_crossing_two_chrome_bands_cannot_enlarge_real_layout_table(self):
+        image=Image.new('RGB',(900,800),'white')
+        evidence={'layout':[{'kind':'table','box':[150,250,750,600],'confidence':.76},
+                            {'kind':'toolbar','box':[0,0,900,180]},
+                            {'kind':'taskbar','box':[0,700,900,800]}]}
+        with patch('ocr_workbench.screen_imaging._line_regions',return_value=[{'box':[10,10,890,790],'sources':['pixel_grid'],'score':.78}]):
+            regions,_,_=detect_business_regions(image,evidence)
+        self.assertEqual(len(regions),1)
+        self.assertEqual(regions[0]['table_box'],[150.,250.,750.,600.])
+
+    def test_aligned_text_bridge_does_not_merge_two_tables_or_remove_duplicate_business_values(self):
+        image=Image.new('RGB',(900,700),'white')
+        text=[{'text':'0001','box':[100+x,250+r*45,145+x,275+r*45]} for r in range(4) for x in (0,180,450,630)]
+        evidence={'layout':[{'kind':'table','box':[90,200,340,470],'confidence':.95},
+                            {'kind':'table','box':[540,200,790,470],'confidence':.95}], 'text':text}
+        regions,_,_=detect_business_regions(image,evidence)
+        self.assertEqual(len(regions),2)
+        self.assertEqual(len(evidence['text']),16)
+        self.assertTrue(all(item['text']=='0001' for item in evidence['text']))
 
 
 if __name__ == "__main__":

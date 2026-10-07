@@ -92,6 +92,37 @@ class ScreenEvidenceTests(unittest.TestCase):
         self.assertEqual(len(evidence["text"]),1)
         self.assertEqual(evidence["warnings"][0]["code"],"invalid_or_outside_context_box")
 
+    def test_application_chrome_needs_multiple_anchors_and_preserves_business_keywords(self):
+        blocks=[{'text':'report.xlsx - Excel','box':[30,20,260,40]},
+                {'text':'文件 开始 插入 页面布局 公式 数据 审阅 视图','box':[30,60,650,85]},
+                {'text':'fx =SUM(C2:C11)','box':[30,120,400,140]},
+                {'text':'文件开始插入页面布局公式数据','box':[120,200,420,225]},
+                {'text':'Save','box':[120,240,220,265]},
+                {'text':'状态：就绪 合计300.00','box':[30,500,450,525]}]
+        evidence=normalize_screen_context(context(blocks,[{'label':'table','box':[100,180,600,400],'confidence':.95}]))
+        self.assertTrue(all(item['kind']=='toolbar' for item in evidence['text'][:3]))
+        self.assertEqual(evidence['text'][3]['kind'],'text')
+        self.assertEqual(evidence['text'][4]['text'],'Save')
+        self.assertEqual(evidence['text'][5]['kind'],'taskbar')
+        self.assertTrue(all(item['kind']=='text' for item in normalize_screen_context(context([blocks[4]]))['text']))
+
+    def test_regular_external_ruler_allows_one_ocr_gap_without_erasing_business_numbers(self):
+        blocks=[{'text':letter,'box':[100+n*80,75,115+n*80,90]} for n,letter in enumerate('AB一DEF')]
+        blocks += [{'text':str(n+1),'box':[120,130+n*45,140,145+n*45]} for n in range(4)]
+        evidence=normalize_screen_context(context(blocks))
+        self.assertEqual(sum(item['kind']=='ruler' for item in evidence['text'][:6]),5)
+        self.assertTrue(all(item['kind']=='text' for item in evidence['text'][6:]))
+
+    def test_trusted_business_caption_containing_application_name_is_preserved(self):
+        blocks=[{'text':'file.xlsx - Excel','box':[30,20,250,40]},
+                {'text':'文件开始插入页面布局公式数据审阅视图','box':[30,60,650,80]},
+                {'text':'业务底稿.xlsx - Excel','box':[120,120,500,145]}]
+        layout=[{'label':'table','box':[100,200,600,450],'confidence':.95},
+                {'label':'table_title','box':[110,115,550,150],'confidence':.95}]
+        evidence=normalize_screen_context(context(blocks,layout))
+        self.assertEqual(evidence['text'][-1]['kind'],'text')
+        self.assertEqual(evidence['text'][-1]['text'],'业务底稿.xlsx - Excel')
+
     def test_local_tiles_preserve_conflicts_and_distinct_repeated_values(self):
         a = {"candidate":{"id":"a","kind":"tile","prepared_to_source":[1,0,0,0,1,0,0,0,1]},
              "context":context([{"text":"0.10","box":[110,100,150,125]},{"text":"0.10","box":[210,100,250,125]}])}

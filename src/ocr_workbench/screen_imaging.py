@@ -22,7 +22,7 @@ try:
 except ImportError:  # numpy/Pillow-only service deployments remain usable.
     cv2 = None
 
-POLICY_VERSION = "screen-cpu-v1"
+POLICY_VERSION = "screen-cpu-v2"
 UI_KINDS = {"toolbar", "taskbar", "formula_bar", "ruler", "window_border", "scrollbar", "ui"}
 TABLE_KINDS = {"table", "spreadsheet", "table_region"}
 ANCILLARY_KINDS = {"title", "caption", "unit", "note", "footnote", "text"}
@@ -217,10 +217,17 @@ def _pixel_ancillary(image, table_box):
 
 def detect_business_regions(image, evidence=None, *, max_regions=8):
     width, height = image.size
+    from ocr_workbench.screen_evidence import reconcile_screen_evidence
+    evidence=reconcile_screen_evidence(evidence,width=width,height=height)
     layout, text = _evidence_items(evidence)
-    ui = [{"box": b, "kind": item.get("kind", item.get("label", "ui")), "source": "layout"}
+    observed_ui = [{"box": b, "kind": item.get("kind", item.get("label", "ui")), "source": item.get('source','layout'),
+                   'orientation':item.get('orientation') or ('vertical' if item.get('kind')=='ruler' and b[3]-b[1]>(b[2]-b[0])*3 else None)}
           for item in layout + text
           if item.get("kind", item.get("label")) in UI_KINDS and (b := _box(item, width, height))]
+    ui=[]
+    for item in sorted(observed_ui,key=lambda item:-_area(item['box'])):
+        if not any(item['kind']==old['kind'] and _overlap(item['box'],old['box'])/_area(item['box'])>.98 for old in ui):
+            ui.append(item)
     candidates = _line_regions(image) + _text_regions(text, width, height)
     for item in layout:
         kind = item.get("kind", item.get("label"))
@@ -228,13 +235,30 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
         box = _box(item, width, height)
         if kind in TABLE_KINDS and box and isinstance(score, (int, float)) and score >= .55:
             candidates.append({"box": box, "sources": ["layout_table"], "score": float(score)})
+    anchors=[c for c in candidates if c['sources']==['layout_table']]
+    candidates=[c for c in candidates if not (
+        c['sources']==['pixel_grid'] and any(_area(a['box'])<_area(c['box'])*.8 and _overlap(a['box'],c['box'])/_area(a['box'])>.97 for a in anchors)
+        and sum(_overlap(c['box'],u['box'])>0 for u in ui if u['kind'] in {'toolbar','taskbar','formula_bar'})>=2)]
     # UI exclusion is spatial and explicit. Do not erase business strings by keywords.
     candidates = [c for c in candidates if not any(_overlap(c["box"], u["box"]) / _area(c["box"]) > .65 for u in ui)]
     merged = []
     for candidate in sorted(candidates, key=lambda c: (-c["score"], -_area(c["box"]))):
-        match = next((r for r in merged if _overlap(r["box"], candidate["box"]) / min(_area(r["box"]), _area(candidate["box"])) > .75), None)
+        weak=candidate['sources']==['aligned_text']
+        matches=[r for r in merged if _overlap(r['box'],candidate['box'])/min(_area(r['box']),_area(candidate['box']))>
+                 (.15 if weak and set(r['sources'])&{'layout_table','pixel_grid'} else .75)]
+        # A text cluster can bridge adjacent real tables. It is supporting text,
+        # not a third table and must not merge those independent detections.
+        if weak and len(matches)>1:
+            continue
+        match=matches[0] if matches else None
         if match:
-            match["box"] = _union(match["box"], candidate["box"])
+            combined=_union(match['box'],candidate['box'])
+            # Layout/pixel anchors retain geometry when a weaker text cluster
+            # continues into rulers, captions or chrome. Small corroborating
+            # grid differences may expand the anchor, never an enclosing window.
+            strong_anchor=bool(set(match['sources'])&{'layout_table','pixel_grid'})
+            if not strong_anchor or not weak and _area(combined)<=_area(match['box'])*1.35:
+                match['box']=combined
             match["sources"] = sorted(set(match["sources"] + candidate["sources"]))
             match["score"] = min(.99, max(match["score"], candidate["score"]) + .05)
             for key in ("observed_grid_rows", "observed_grid_columns", "grid_reliable", "observed_text_rows"):
@@ -262,7 +286,10 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
             if horizontal > .45 and gap <= max(30, min(height * .08, th * .22)):
                 expanded = _union(expanded, box)
                 nearby.append({"kind": kind, "box": box, "text": item.get("text", ""),
-                               "source":item.get("source","layout_or_text_evidence")})
+                               "source":item.get("source","layout_or_text_evidence"),
+                               'confidence':item.get('confidence',item.get('score')),
+                               'classification_basis':item.get('classification_basis'),
+                               'human_review':'not_performed'})
         # A small margin retains neighbouring unclassified caption pixels.
         pad_x, pad_y = max(8, tw * .018), max(12, min(40, th * .055))
         expanded = [max(0., expanded[0]-pad_x), max(0., expanded[1]-pad_y),
@@ -271,7 +298,14 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
             ub = exclusion["box"]
             # Shrink only the margin, never the detected table itself.
             if _overlap(expanded, ub) and _overlap(table_box, ub) == 0:
-                if ub[3] <= table_box[1]:
+                # A vertical ruler is a side boundary even when an individual
+                # label lies above the table; it cannot truncate a real caption.
+                vertical=exclusion.get('orientation')=='vertical'
+                if vertical and ub[2]<=table_box[0]:
+                    expanded[0]=max(expanded[0],ub[2])
+                elif vertical and ub[0]>=table_box[2]:
+                    expanded[2]=min(expanded[2],ub[0])
+                elif ub[3] <= table_box[1]:
                     expanded[1] = max(expanded[1], ub[3])
                 elif ub[1] >= table_box[3]:
                     expanded[3] = min(expanded[3], ub[1])
@@ -283,6 +317,31 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
     if not regions:
         warnings.append({"code": "roi_uncertain", "message": "尚无可靠表区，使用原图并等待布局/文字证据。"})
     return regions, ui, warnings
+
+
+def select_screen_first_pass(preparation, *, maximum_overlap=.03):
+    """One shared bounded policy for native batches and benchmark runners.
+
+    Only separate, complete regions may be aggregated. A cap, ambiguous region
+    or meaningful crop overlap uses the original once instead of duplicating
+    table rows. Tiles/perspective alternates never become independent tables.
+    """
+    images=preparation['prepared_images']
+    original=next(item for item in images if item['kind']=='original')
+    if any(w.get('code') in {'region_limit','roi_uncertain','overlapping_regions','ui_table_conflict'} for w in preparation.get('warnings',[])):
+        return [original]
+    crops=[item for item in images if item['kind']=='table_crop']
+    if len(crops)>1:
+        for index,a in enumerate(crops):
+            if not a.get('source_polygon'):return [original]
+            ab=bounds(a['source_polygon'])
+            for b in crops[index+1:]:
+                if not b.get('source_polygon'):return [original]
+                bb=bounds(b['source_polygon'])
+                if min(_area(ab),_area(bb))<=0 or _overlap(ab,bb)/min(_area(ab),_area(bb))>maximum_overlap:
+                    return [original]
+        return crops
+    return [next((item for item in images if item['id']==preparation.get('primary_id')),original)]
 
 
 def _quality(image, evidence, regions):
@@ -438,6 +497,9 @@ def prepare_screen_image(input_path, output_dir, evidence=None, *, max_regions=8
         mapping = [1.,0.,-box[0],0.,1.,-box[1],0.,0.,1.]
         item = save(cropped, region["id"]+"-crop", "table_crop", mapping, region_id=region["id"], role="complete_region")
         region_images.append((cropped,item))
+    if any(_overlap(a['box'],b['box'])/min(_area(a['box']),_area(b['box']))>.03
+           for index,a in enumerate(regions) for b in regions[index+1:]):
+        warnings.append({'code':'overlapping_regions','message':'候选表区有重叠，首轮仅识别整图以免重复拼接。'})
     if len(regions) == 1 and regions[0]["score"] >= .82 and not warnings:
         result["primary_id"] = regions[0]["id"]+"-crop"
     if perspective:
@@ -470,5 +532,6 @@ def prepare_screen_image(input_path, output_dir, evidence=None, *, max_regions=8
             save(cropped.crop((x,y,min(x+tile_size,cropped.width),min(y+tile_size,cropped.height))),
                  item["region_id"]+f"-tile-{number}", "tile", mapping, region_id=item["region_id"],
                  role="local_evidence", overlap=overlap, parent_candidate=item["id"])
+    result['first_pass_ids']=[item['id'] for item in select_screen_first_pass(result)]
     (output_dir/"screen-preparation.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
