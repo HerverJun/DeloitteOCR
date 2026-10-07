@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Checkbox, Empty, Form, Input, Modal, Pagination, Select, Space, Spin, Tag, Typography } from 'antd';
-import { FolderOpenOutlined, PlusOutlined, UploadOutlined, ExperimentOutlined, CheckOutlined } from '@ant-design/icons';
+import { FolderOpenOutlined, PlusOutlined, UploadOutlined, ExperimentOutlined, CheckOutlined, PictureOutlined } from '@ant-design/icons';
 import { api, post, base, type Asset } from '../api';
 import { useCommand, QueryError, type PanelProps } from '../workbench';
 
@@ -49,22 +49,22 @@ export function AssetsPanel({ project, navigate, focusAssetId }: PanelProps & { 
     {focusAssetId && <Alert type={focus.error ? 'warning' : 'info'} showIcon
       message={focus.data ? `平台定位图片：${focus.data.name}` : focus.error ? '平台定位的图片已不可用' : '正在定位平台图片'}
       description={focus.data ? <Space align="center" wrap>
-        <img src={`${base}/assets/${focus.data.id}/thumbnail`} alt={focus.data.name} width={72} height={72} style={{ objectFit: 'contain' }} />
+        <img src={`${base}/assets/${focus.data.id}/thumbnail`} alt={focus.data.name} width={72} height={72} className="platform-focus-image" />
         <span>当前人工标签：{project.labels.find(label => label.label_id === focus.data?.label_id)?.display_name || '未标注'}。仅定位，不会自动选择、修改标签或接受预测。</span>
       </Space> : '仅显示定位信息，不会自动选择图片、修改人工标签或接受预测结果。'} />}
     <input ref={uploadRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.bmp" className="visually-hidden" aria-label="上传图片文件" onChange={event => void upload(event.target.files)} />
     <div className="data-toolbar"><Space wrap><Select aria-label="筛选类别" value={filter} options={[{ label: '全部类别', value: 'all' }, { label: '未标注', value: 'unlabeled' }, ...labels]} style={{ width: 160 }} onChange={value => { setFilter(value); setPage(1); setSelected([]); }} /><Input.Search allowClear placeholder="搜索图片名称" aria-label="搜索图片" style={{ width: 250 }} onSearch={value => { setSearch(value); setPage(1); }} /><Text type="secondary">{query.data?.total ?? 0} 张图片</Text></Space><Button icon={<ExperimentOutlined />} onClick={() => navigate('train')}>准备训练</Button></div>
     <QueryError error={query.error} />
-    {selected.length > 0 && <div className="selection-toolbar"><Text>已选 {selected.length} 张</Text><Select aria-label="设置选中图片类别" placeholder="设置类别" options={[...labels, { label: '移至未标注', value: 'unlabeled' }]} value={assign} onChange={setAssign} style={{ width: 160 }} /><Input placeholder="来源分组（可选）" aria-label="来源分组" value={group} onChange={event => setGroup(event.target.value)} style={{ width: 180 }} /><Button type="primary" icon={<CheckOutlined />} disabled={assign === undefined} loading={command.busy} onClick={annotate}>保存标注</Button><Button type="text" onClick={() => setSelected([])}>取消选择</Button></div>}
+    {selected.length > 0 && <div className="selection-toolbar" role="group" aria-label="批量标注操作"><Text>已选 {selected.length} 张</Text><Select aria-label="设置选中图片类别" placeholder="设置类别" options={[...labels, { label: '移至未标注', value: 'unlabeled' }]} value={assign} onChange={setAssign} style={{ width: 160 }} /><Input placeholder="来源分组（可选）" aria-label="来源分组" value={group} onChange={event => setGroup(event.target.value)} style={{ width: 180 }} /><Button type="primary" icon={<CheckOutlined />} disabled={assign === undefined} loading={command.busy} onClick={annotate}>保存标注</Button><Button type="text" onClick={() => setSelected([])}>取消选择</Button></div>}
     {query.isPending ? <div className="center-loading" role="status" aria-live="polite"><Spin /><Text type="secondary">正在读取图片…</Text></div> : query.data?.items.length ? <><div className="asset-grid">{query.data.items.map(asset => <article key={asset.id} className={`asset-card ${selected.includes(asset.id) ? 'selected' : ''}`}>
-      <div className="asset-image"><img loading="lazy" src={`${base}/assets/${asset.id}/thumbnail`} alt={asset.name} onError={event => { event.currentTarget.style.opacity = '0.15'; }} /><Checkbox className="asset-check" aria-label={`选择 ${asset.name}`} checked={selected.includes(asset.id)} onChange={event => setSelected(previous => event.target.checked ? [...previous, asset.id] : previous.filter(id => id !== asset.id))} /></div>
-      <div className="asset-caption"><Text ellipsis title={asset.name}>{asset.name}</Text><div><Tag bordered={false} color={asset.label_id ? 'green' : 'default'}>{project.labels.find(label => label.label_id === asset.label_id)?.display_name || '未标注'}</Tag><Text type="secondary">{asset.width} × {asset.height}</Text></div></div>
+      <div className="asset-image"><AssetThumbnail asset={asset} /><Checkbox className="asset-check" aria-label={`选择 ${asset.name}`} checked={selected.includes(asset.id)} onChange={event => setSelected(previous => event.target.checked ? [...previous, asset.id] : previous.filter(id => id !== asset.id))} /></div>
+      <div className="asset-caption"><Text ellipsis title={asset.name}>{asset.name}</Text><div><Tag bordered={false} color={asset.label_id ? 'success' : 'default'} title={project.labels.find(label => label.label_id === asset.label_id)?.display_name || '未标注'}>{project.labels.find(label => label.label_id === asset.label_id)?.display_name || '未标注'}</Tag><Text type="secondary">{asset.width} × {asset.height}</Text></div></div>
     </article>)}</div><div className="pagination"><Pagination current={page} pageSize={24} total={query.data.total} showSizeChanger={false} onChange={value => { setPage(value); setSelected([]); }} /></div></> : <div className="empty-panel"><Empty description={search || filter !== 'all' ? '没有符合条件的图片' : '还没有图片，导入你的第一组样本'} /><Button type="primary" icon={<PlusOutlined />} onClick={() => setImportOpen(true)}>导入图片</Button></div>}
     <div className="small-note">相同文档的不同截图、连拍或近重复图请设置相同来源分组。系统会保持整组不跨训练、验证与测试集合。</div>
     <Modal open={importOpen} title="从本机文件夹导入" onCancel={() => setImportOpen(false)} footer={null} width={590}>
       <Alert type="info" showIcon message="使用服务器上的文件夹路径，原图保持只读。支持 JPEG、PNG、静态 WebP 和 BMP。" />
       <Form form={form} layout="vertical" className="spaced-form" initialValues={{ infer_labels: true }} onFinish={importDirectory}>
-        <Form.Item name="path" label="文件夹完整路径" rules={[{ required: true, message: '请输入文件夹路径' }]}><Input placeholder="E:/datasets/my-images" /></Form.Item>
+        <Form.Item name="path" label="文件夹完整路径" rules={[{ required: true, message: '请输入文件夹路径' }]}><Input placeholder="F:/datasets/my-images" /></Form.Item>
         <Form.Item name="source_id" label="来源名称" extra="例如客户批次、采集设备或截图来源。"><Input placeholder="可选，默认使用文件夹名称" /></Form.Item>
         <Form.Item name="infer_labels" valuePropName="checked"><Checkbox>根据第一级子文件夹名称匹配类别</Checkbox></Form.Item>
         <Paragraph type="secondary">可匹配：{project.labels.slice(0, 12).map(label => `${label.label_id} 或 ${label.display_name}`).join('；')}{project.labels.length > 12 ? `；共 ${project.labels.length} 类，其余可在类别筛选中查看` : ''}。未匹配的图片进入未标注池。</Paragraph>
@@ -72,4 +72,10 @@ export function AssetsPanel({ project, navigate, focusAssetId }: PanelProps & { 
       </Form>
     </Modal>
   </>;
+}
+
+function AssetThumbnail({ asset }: { asset: Asset }) {
+  const [unavailable, setUnavailable] = useState(false);
+  return unavailable ? <div className="thumbnail-unavailable" role="img" aria-label={`${asset.name}，缩略图不可用`}><PictureOutlined aria-hidden="true" /><span>缩略图不可用</span></div> :
+    <img loading="lazy" src={`${base}/assets/${asset.id}/thumbnail`} alt={asset.name} onError={() => setUnavailable(true)} />;
 }
