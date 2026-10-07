@@ -20,6 +20,7 @@ from workbench_platform.agent.context import _history_summary
 from workbench_platform.agent.store import digest
 from workbench_platform.agent.providers import normalize_response,ProviderFault
 from workbench_platform.agent.graph import terminal_screen_delivery
+from workbench_platform.agent.tools.context import Delivery, delivery
 from workbench_platform.application_services.job_lifecycle import ADAPTERS, Lifecycle
 from workbench_platform.store import WorkspaceStore
 
@@ -191,6 +192,107 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(self.observed,[0,1,2])
                     self.assertEqual(self.state['posts'],1)
                 finally:await runtime.close()
+
+    async def test_missing_table_files_publish_actual_counts_without_an_extra_model_round(self):
+        bundle = {'bundle_id': 'bundleA', 'handoff_id': 'batchA', 'files': [{'name': 'screen.zip'}],
+                  'items': [{'input_version_id': f'image{index}', 'status': 'needs_review',
+                             'file_name': f'image{index}.xlsx' if index < 238 else None,
+                             'export_error': None if index < 238 else '没有结构化表格，不生成空白 Excel'}
+                            for index in range(240)]}
+        self.services.artifact_center = SimpleNamespace(
+            file=lambda *args: SimpleNamespace(artifact_id='artifactA', revision=1, blob_hash='a' * 64),
+            store=SimpleNamespace(stage_download=lambda *args, **kwargs: nullcontext()))
+
+        async def provider(state, schemas):
+            self.observed.append(state['step'])
+            if state['step'] == 0:
+                return response(state, 'ocr_screen_batch_run',
+                                {'link_id': 'linkA', 'asset_set_id': 'setA', 'asset_set_revision': 1})
+            if state['step'] == 1:
+                return response(state, 'ocr_screen_batch_export',
+                                {'batch_id': 'batchA', 'include_pending_review': True})
+            if state['step'] == 2:
+                return response(state, 'delivery_publish',
+                                {'summary': '已完整交付240本Excel，无需复核',
+                                 'artifact_refs': state['messages'][-1]['result']['artifact_refs']})
+            self.fail('A fully accounted partial export must not require another controller round')
+
+        def settle(ref, ctx):
+            if self.state['pending']:
+                return None
+            return AgentToolResult(status='success', summary='候选已结束',
+                coverage={'total': 240, 'completed': 0, 'needs_review': 240, 'pending': 0}).model_dump()
+
+        with patch.dict(ADAPTERS, {('ocr', 'screen_batch'): Lifecycle(
+                read=lambda ref, ctx: {}, settle=settle, cancel=lambda ref, ctx: {}, progress=lambda ref, ctx: {})}):
+            runtime = await self.runtime(provider)
+
+            def export(args, ctx):
+                return AgentToolResult(status='success', summary='已生成238本候选文件',
+                    artifact_refs=[AgentRef(kind='artifact', workspace_id='wtest', object_id='bundleA',
+                                           revision=1, application='ocr', parent_id='batchA')]).model_dump()
+
+            runtime.registry.tools['ocr_screen_batch_export'] = replace(
+                runtime.registry.tools['ocr_screen_batch_export'], execute=export,
+                availability=None, resource_keys=None)
+            session = runtime.store.create_session('wtest', 'missing tables', [], 'session_request')
+            with patch('workbench_platform.application_services.references.verify', return_value=bundle):
+                try:
+                    run = await runtime.submit(session['id'], '整批转Excel，包含待复核版本', 'run_request')
+                    await self.wait_for(lambda: runtime.store.run(run['id'])['status'] == 'waiting_job', runtime)
+                    self.state['pending'] = False
+                    await self.wait_for(lambda: runtime.store.run(run['id'])['status'] == 'partial', runtime)
+                    self.assertEqual(self.observed, [0, 1, 2])
+                    self.assertEqual(self.state['posts'], 1)
+                    event = json.loads(runtime.store.rows(
+                        "SELECT payload FROM events WHERE run_id=? AND kind='delivery' ORDER BY seq DESC LIMIT 1",
+                        (run['id'],))[0]['payload'])
+                    self.assertIn('238个XLSX', event['content'])
+                    self.assertIn('2项未生成XLSX', event['content'])
+                    self.assertIn('待复核240项', event['content'])
+                    self.assertNotIn('无需复核', event['content'])
+                    self.assertEqual(event['delivery']['data']['screen_batch_coverage'][0]['settled_without_file'], 2)
+                finally:
+                    await runtime.close()
+
+    def test_ordinary_delivery_preserves_analysis_summary_and_completeness(self):
+        bundle = {'bundle_id': 'bundleA', 'files': [{'name': 'analysis.txt'}], 'items': []}
+        center = SimpleNamespace(
+            file=lambda *args: SimpleNamespace(artifact_id='artifactA', revision=1, blob_hash='a' * 64),
+            store=SimpleNamespace(stage_download=lambda *args, **kwargs: nullcontext()))
+        ctx = SimpleNamespace(workspace_id='wtest', run_id='runA',
+                              services=SimpleNamespace(artifact_center=center),
+                              store=SimpleNamespace(rows=lambda *args: []))
+        args = Delivery(summary='具体审计结论与分析依据', artifact_refs=[
+            AgentRef(kind='artifact', workspace_id='wtest', object_id='bundleA', revision=1)])
+        with patch('workbench_platform.application_services.references.verify', return_value=bundle):
+            result = delivery(args, ctx)
+        self.assertEqual(result['summary'], args.summary)
+        self.assertEqual(result['data']['completeness'], 'complete')
+        self.assertEqual(result['data']['screen_batch_coverage'], [])
+
+    def test_missing_file_without_an_explicit_reason_cannot_end_a_batch(self):
+        bundle = {'bundle_id': 'bundleA', 'handoff_id': 'batchA', 'files': [{'name': 'screen.zip'}],
+                  'items': [{'input_version_id': 'imageA', 'status': 'needs_review', 'file_name': None}]}
+        center = SimpleNamespace(
+            file=lambda *args: SimpleNamespace(artifact_id='artifactA', revision=1, blob_hash='a' * 64),
+            store=SimpleNamespace(stage_download=lambda *args, **kwargs: nullcontext()))
+        ctx = SimpleNamespace(workspace_id='wtest', run_id='runA',
+                              services=SimpleNamespace(artifact_center=center),
+                              store=SimpleNamespace(rows=lambda *args: []))
+        args = Delivery(summary='已交付', artifact_refs=[AgentRef(kind='artifact', workspace_id='wtest',
+            object_id='bundleA', revision=1, application='ocr', parent_id='batchA')])
+        with patch('workbench_platform.application_services.references.verify', return_value=bundle):
+            result = delivery(args, ctx)
+        coverage = result['data']['screen_batch_coverage'][0]
+        self.assertEqual(coverage['settled_without_file'], 0)
+        self.assertEqual(coverage['unexplained_without_file'], 1)
+        self.assertIn('缺少明确原因', result['summary'])
+        state = {'background_jobs': [], 'messages': [{'role': 'tool', 'result': AgentToolResult(
+            status='success', summary='已结束', coverage={'total': 1, 'completed': 0, 'needs_review': 1, 'pending': 0},
+            job_refs=[AgentRef(kind='job', workspace_id='wtest', object_id='batchA', revision=1,
+                application='ocr', coverage={'kind': 'screen_batch'})]).model_dump()}]}
+        self.assertFalse(terminal_screen_delivery(state, result))
 
     async def wait_for(self, predicate, runtime, seconds=90):
         async with asyncio.timeout(seconds):

@@ -183,6 +183,28 @@ def artifacts(args, ctx):
         data=ctx.services.artifact_center.list(ctx.workspace_id, args.offset, args.limit)).model_dump()
 
 
+def screen_delivery_summary(coverage):
+    lines = []
+    for index, item in enumerate(coverage[:12], 1):
+        prefix = f'第{index}份成果：' if len(coverage) > 1 else ''
+        line = f"{prefix}范围共{item['total']}张图片，已导出{item['file_count']}个XLSX。"
+        if item['total'] != item['file_count']:
+            line += f"{item['total'] - item['file_count']}项未生成XLSX，原因见ZIP清单。"
+        if item.get('unexplained_without_file'):
+            line += f"其中{item['unexplained_without_file']}项缺少明确原因，需检查。"
+        line += f"待复核{item['needs_review']}项。"
+        if item['pending']:
+            line += f"仍在处理{item['pending']}项。"
+        if item['failed']:
+            line += f"失败{item['failed']}项。"
+        if item['cancelled']:
+            line += f"取消{item['cancelled']}项。"
+        lines.append(line)
+    if len(coverage) > 12:
+        lines.append(f'另有{len(coverage) - 12}份拍屏成果，完整范围见各ZIP清单。')
+    return '\n'.join(lines)
+
+
 def delivery(args, ctx):
     if not args.artifact_refs and not args.result_refs:
         raise ValueError('交付必须引用实际结果或成果')
@@ -207,7 +229,14 @@ def delivery(args, ctx):
             isinstance(item,dict) and item.get('input_version_id') for item in items):
             screen_coverage.append({'batch_id':reference.parent_id,'bundle_id':bundle['bundle_id'],'total':len(items),
                 'pending':sum(item.get('status') not in {'completed','needs_review','failed','cancelled'} for item in items),
-                'file_count':sum(bool(item.get('file_name')) for item in items)})
+                'file_count':sum(bool(item.get('file_name')) for item in items),
+                'settled_without_file':sum(item.get('status') in {'completed','needs_review'} and not item.get('file_name')
+                                           and bool(str(item.get('export_error') or '').strip()) for item in items),
+                'unexplained_without_file':sum(item.get('status') in {'completed','needs_review'} and not item.get('file_name')
+                                               and not str(item.get('export_error') or '').strip() for item in items),
+                'needs_review':sum(item.get('status') == 'needs_review' for item in items),
+                'failed':sum(item.get('status') == 'failed' for item in items),
+                'cancelled':sum(item.get('status') == 'cancelled' for item in items)})
     for reference in args.result_refs:
         verify(reference.model_dump(), ctx)
     calls = ctx.store.rows('SELECT result FROM operations WHERE run_id=? AND result IS NOT NULL', (ctx.run_id,))
@@ -224,8 +253,12 @@ def delivery(args, ctx):
               any('未处理区域' in warning or '提取失败' in warning for warning in value.get('warnings', [])) or
               any(isinstance(value.get('coverage', {}).get(key), int) and value['coverage'][key] > 0
                   for key in ('failed', 'cancelled', 'pending', 'needs_review'))]
-    return AgentToolResult(status='success', summary=args.summary, artifact_refs=args.artifact_refs,
-        result_refs=args.result_refs, data={'delivery': published, 'completeness': 'partial' if failed or outstanding else 'complete',
+    partial_screen = any(item['pending'] or item['needs_review'] or item['failed'] or item['cancelled'] or
+                         item['file_count'] != item['total'] for item in screen_coverage)
+    summary = screen_delivery_summary(screen_coverage) if (screen_coverage and not args.result_refs and
+                len(screen_coverage) == len(args.artifact_refs)) else args.summary
+    return AgentToolResult(status='success', summary=summary, artifact_refs=args.artifact_refs,
+        result_refs=args.result_refs, data={'delivery': published, 'completeness': 'partial' if failed or outstanding or partial_screen else 'complete',
         'verified': True, 'limitations': [value['summary'] for value in [*failed, *outstanding]],
         'screen_batch_coverage':screen_coverage,
         'continuing_job_refs': [ref for value in outstanding for ref in value.get('job_refs', [])]}).model_dump()

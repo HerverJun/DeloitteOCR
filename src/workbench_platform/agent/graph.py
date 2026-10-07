@@ -14,7 +14,7 @@ def screen_pending(result):
 
 
 def terminal_screen_delivery(state,delivery):
-    """Only complete export scope over settled screen jobs can end directly."""
+    """Only a fully accounted export scope over settled jobs can end directly."""
     data=delivery.get('data',{})
     if state.get('background_jobs') or not data.get('verified') or data.get('continuing_job_refs'):
         return False
@@ -32,7 +32,8 @@ def terminal_screen_delivery(state,delivery):
     if not jobs:return False
     exports={item['batch_id']:item for item in data.get('screen_batch_coverage',[])}
     return all(batch_id in exports and exports[batch_id].get('pending')==0 and
-        exports[batch_id].get('total')==coverage['total'] and exports[batch_id].get('file_count')==
+        exports[batch_id].get('total')==coverage['total'] and
+        exports[batch_id].get('file_count', 0)+exports[batch_id].get('settled_without_file', 0)==
         coverage.get('completed',0)+coverage.get('needs_review',0) for batch_id,coverage in jobs.items())
 
 
