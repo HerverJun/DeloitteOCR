@@ -8,6 +8,7 @@ from pathlib import Path
 import runpy
 import tempfile
 import threading
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -68,6 +69,7 @@ class ScreenQueueTests(unittest.TestCase):
         self.events, self.calls = [], []
         self.failure = None
         self.block_context = False
+        self.load_cost = 0
         self.entered = threading.Event()
         self.released = threading.Event()
         owner = self
@@ -84,6 +86,11 @@ class ScreenQueueTests(unittest.TestCase):
             def load(self):
                 self.ready = True
                 owner.events.append(('load', self.engine, self.geometry_provider))
+                if owner.load_cost:
+                    # Simulate elapsed cold loading without waiting or touching a GPU.
+                    with owner.store.transaction() as db:
+                        db.execute('UPDATE tasks SET started=? WHERE id=?',
+                            ((datetime.now(timezone.utc)-timedelta(seconds=owner.load_cost)).isoformat(), owner.queue.current))
 
             def recognize(self, image, output, geometry_request=None):
                 owner.calls.append({'engine': self.engine, 'provider': self.geometry_provider,
@@ -207,6 +214,43 @@ class ScreenQueueTests(unittest.TestCase):
         call = next(call for call in self.calls if call['engine'] == 'glm')
         self.assertGreaterEqual(call['timeout'], 1)
         self.assertLessEqual(call['timeout'], 5)
+
+    def test_context_ipc_timeout_subtracts_cold_load_and_requests_full_layout(self):
+        version = self.images()[0]
+        self.submit([version], budget_seconds=20)
+        self.load_cost = 6
+        self.manager.step()
+        self.queue.step()
+        call = self.calls[0]
+        self.assertEqual(call['engine'],'geometry')
+        self.assertEqual(call['provider'],'context')
+        self.assertLessEqual(call['timeout'],14)
+        self.assertGreaterEqual(call['timeout'],1)
+        self.assertEqual(call['request']['image_version'],version)
+        self.assertIs(call['request']['include_all_layout'],True)
+        self.assertIs(call['request']['allow_auxiliary_ocr'],True)
+
+    def test_context_ipc_timeout_uses_shorter_batch_deadline(self):
+        version = self.images()[0]
+        batch = self.submit([version],budget_seconds=100,batch_budget_seconds=20)
+        self.manager.step()
+        with self.store.transaction() as db:
+            db.execute('UPDATE screen_batches SET deadline=? WHERE id=?',(time.time()+4,batch))
+        self.queue.step()
+        self.assertGreaterEqual(self.calls[0]['timeout'],1)
+        self.assertLessEqual(self.calls[0]['timeout'],4)
+
+    def test_expired_budget_after_context_cold_load_never_dispatches_inference(self):
+        version = self.images()[0]
+        self.submit([version],budget_seconds=10)
+        self.load_cost = 11
+        self.manager.step()
+        self.queue.step()
+        self.assertEqual(self.calls,[])
+        task = self.store.rows("SELECT * FROM tasks WHERE kind='screen_context'")[0]
+        self.assertEqual(task['status'],'failed')
+        self.assertIsNone(self.queue.adapter)
+        self.assertIn(('unload','geometry','context'),self.events)
 
     def test_multiple_disjoint_crop_cells_map_once_to_original(self):
         def crops(source, folder, **kwargs):
