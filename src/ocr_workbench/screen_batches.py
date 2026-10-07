@@ -504,7 +504,8 @@ class ScreenBatches:
             sources.append({'result_id': result['id'], 'revision': result['revision'], 'engine': row['engine'],
                             'task_id': row['task_id'], 'prepared_id': row['prepared_id'],
                             'transform': metadata.get('prepared_to_source'), 'prepared_metadata': metadata,
-                            'warnings': raw.get('warnings', []), 'finish_reason': raw.get('finish_reason')})
+                            'warnings': raw.get('warnings', []), 'finish_reason': raw.get('finish_reason'),
+                            'cache_hit': deepcopy(raw.get('cache_hit'))})
         return {'id': fingerprint([x['result_id'] for x in sources]), 'engine': rows[0]['engine'],
                 'raw': {'status': 'success', 'engine': rows[0]['engine'], 'text': '\n\n'.join(texts), 'tables': tables,
                         'blocks': blocks, 'warnings': warnings, 'truncated': truncated,
@@ -512,7 +513,8 @@ class ScreenBatches:
                         'elapsed_seconds': elapsed, 'project_image_version': item['input_version_id'],
                         'origin': 'screen_batch', 'screen': {'version': VERSION, 'batch_id': batch['id'],
                         'input_sha256': item['source_hash'], 'strategy_version': batch['policy']['strategy_version'],
-                        'sources': sources, 'prepared': preparation, 'business_metadata': ancillary}}}
+                        'sources': sources, 'prepared': preparation, 'business_metadata': ancillary,
+                        'context_provenance': deepcopy(evidence.get('provenance'))}}}
 
     def _final_result(self, batch, item, raw):
         content = fingerprint(raw)

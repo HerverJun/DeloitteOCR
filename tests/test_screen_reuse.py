@@ -78,6 +78,7 @@ class ScreenReuseTests(unittest.TestCase):
         cached = self.store.result(cached_task['result_id'])['original']
         self.assertEqual(cached['screen_input']['input_version_id'], versions[1])
         self.assertEqual(cached['cache_hit']['source_task_id'], source['id'])
+        self.assertEqual(results[1]['original']['screen']['sources'][0]['cache_hit']['source_task_id'], source['id'])
         self.assertNotIn('old_source_marker', cached['screen_input'])
         path, manifest = self.manager.export(self.fixture.project, batch)
         self.assertEqual(manifest['success_files'], 2)
@@ -150,6 +151,9 @@ class ScreenReuseTests(unittest.TestCase):
         self.complete(ocr)
         self.manager.step()
         self.assertEqual(self.manager.get(self.fixture.project, batch)['counts']['completed'], 2)
+        detail = self.manager.detail(self.fixture.project,batch,versions[1])
+        self.assertEqual(detail['result']['original']['screen']['context_provenance']['image_version'], versions[1])
+        self.assertEqual(detail['result']['original']['screen']['context_provenance']['cache_hit']['source_task_id'], context['id'])
 
     def test_failed_context_source_is_not_successfully_cloned(self):
         versions = self.duplicates()
