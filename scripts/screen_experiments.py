@@ -98,11 +98,26 @@ def load_inputs(path, limit):
         candidate = f_path(item['result']) if item.get('result') else None
         if candidate and not candidate.is_file():
             raise ValueError('保存的实际 OCR 候选不存在：' + str(candidate))
+        candidate_hash = digest(candidate) if candidate else None
+        if item.get('result_sha256') and item['result_sha256'] != candidate_hash:
+            raise ValueError('保存的实际 OCR 候选与输入清单 hash 不一致')
+        source_record = f_path(item['source_record']) if item.get('source_record') else None
+        source_record_hash = digest(source_record) if source_record else None
+        if item.get('source_record_sha256') and item['source_record_sha256'] != source_record_hash:
+            raise ValueError('实际 OCR 来源记录与输入清单 hash 不一致')
+        if source_record:
+            record = json.loads(source_record.read_text('utf-8'))
+            if (not candidate or record.get('status') != 'success' or record.get('id') != ident
+                    or record.get('image_sha256') != image_hash or record.get('result_sha256') != candidate_hash
+                    or item.get('result_image_sha256') != image_hash):
+                raise ValueError('实际 OCR 来源记录未绑定当前图片与候选')
         # This whitelist deliberately drops any benchmark labels/ideal ROIs.
         selected.append({'id': ident, 'image': str(image), 'image_sha256': image_hash,
                          'result': str(candidate) if candidate else None,
-                         'result_sha256': digest(candidate) if candidate else None,
-                         'result_image_sha256': item.get('result_image_sha256')})
+                         'result_sha256': candidate_hash,
+                         'result_image_sha256': item.get('result_image_sha256'),
+                         'source_record': str(source_record) if source_record else None,
+                         'source_record_sha256': source_record_hash})
     return selected
 
 
@@ -269,6 +284,7 @@ def run(args, *, adapter_factory=EngineAdapter, review_factory=ReviewSession):
                         return verified_saved_context(args,row,folder)
                     result = collect_screen_context(row['normalized_image'], folder, obj,
                         image_version=row['normalized_sha256'], prepare=False)
+                    write_json(folder/'context.json',result['context'],durable=True)
                     result['preparation'] = prepare_screen_image(row['normalized_image'],folder/'prepared',
                         result['evidence'],tile_size=args.tile_size,max_tiles=args.max_tiles)
                     return result
@@ -329,14 +345,24 @@ def run(args, *, adapter_factory=EngineAdapter, review_factory=ReviewSession):
                         capture = contexts.get(row['id'])
                         if not capture:
                             continue
-                        regions = capture['context'].get('regions', [])[:4]
+                        # The current CPU policy rejects false UI tables using actual
+                        # pixels/layout/OCR. Geometry must consume that business
+                        # selection, not all raw table labels from the context model.
+                        prepared_regions = capture['preparation'].get('business_regions', [])
+                        regions = [{'id':region['id'], 'box':region.get('table_box',region['box']),
+                            'sources':region.get('sources',[]), 'score':region.get('score'),
+                            'coordinate_space':'exif_normalized_original'} for region in prepared_regions[:4]]
                         if not regions:
                             receipt['stages'].append({'stage':'geometry-'+provider,'id':row['id'],
-                                'status':'skipped','reason':'actual context detected no table region'})
+                                'status':'skipped','reason':'actual CPU policy selected no business table region'})
                             continue
                         request = {'regions':regions, 'ocr_blocks':capture['context'].get('ocr_blocks',[]),
                             'ocr_source':capture['context'].get('ocr_source'), 'allow_auxiliary_ocr':False,
-                            'image_version':row['normalized_sha256'], 'image_sha256':row['normalized_sha256']}
+                            'image_version':row['normalized_sha256'], 'image_sha256':row['normalized_sha256'],
+                            'regions_source':'actual_prepared_business_regions',
+                            'region_policy_version':capture['preparation'].get('policy_version'),
+                            'preparation_manifest_sha256':digest(output/row['directory']/'context/prepared/screen-preparation.json'),
+                            'actual_context_sha256':digest(output/row['directory']/'context/context.json')}
                         folder = output / row['directory'] / ('geometry-'+provider)
                         folder.mkdir()
                         write_json(folder / 'actual-input-request.json', request, durable=True)
