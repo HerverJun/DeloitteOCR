@@ -1,0 +1,525 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-10-04",
+  "timezone": "Asia/Hong_Kong",
+  "indexed_utc": "2026-10-04T07:51:56.644642+00:00",
+  "scope": "Read-only research and planning; no framework installation or model calls.",
+  "sources": [
+    {
+      "id": "deepagents-overview",
+      "url": "https://docs.langchain.com/oss/python/deepagents/overview.md",
+      "retrieved_utc": "2026-10-04T07:26:16.7659545Z",
+      "status": 200,
+      "path": "snapshots/deepagents-overview.md",
+      "sha256": "bc767aaa7ebb7c8774c8352cef51f19e13cfffd9c84580326c2c1f17f4c5562d",
+      "bytes": 77548,
+      "observed_title": "Deep Agents overview"
+    },
+    {
+      "id": "langchain-sql-agent",
+      "url": "https://docs.langchain.com/oss/python/langchain/sql-agent.md",
+      "retrieved_utc": "2026-10-04T07:26:17.4499809Z",
+      "status": 200,
+      "path": "snapshots/langchain-sql-agent.md",
+      "sha256": "9789072a97b39d46cb3baa025580135e9366c3c3da7232616f82b93c0724f59a",
+      "bytes": 40668,
+      "observed_title": "Build a SQL agent"
+    },
+    {
+      "id": "pydantic-ai-tools",
+      "url": "https://ai.pydantic.dev/tools/",
+      "retrieved_utc": "2026-10-04T07:26:19.0378825Z",
+      "status": 200,
+      "path": "snapshots/pydantic-ai-tools.html",
+      "sha256": "1da7fe7bdc29f030944f61091165d8d00afcbc2912bd242d510be94c39077f4e",
+      "bytes": 23706,
+      "observed_title": "Function Tools"
+    },
+    {
+      "id": "langchain-overview",
+      "url": "https://docs.langchain.com/oss/python/langchain/overview.md",
+      "retrieved_utc": "2026-10-04T07:26:16.3963755Z",
+      "status": 200,
+      "path": "snapshots/langchain-overview.md",
+      "sha256": "c3f4a48f3e62fd5c018b4d11805a0ae7b7689bbe6f39fe6b1844d49e4eb2e5ee",
+      "bytes": 11145,
+      "observed_title": "LangChain overview"
+    },
+    {
+      "id": "langchain-agents",
+      "url": "https://docs.langchain.com/oss/python/langchain/agents.md",
+      "retrieved_utc": "2026-10-04T07:26:17.0527127Z",
+      "status": 200,
+      "path": "snapshots/langchain-agents.md",
+      "sha256": "83c2c3d9813600091d43c37954d1c319e5224f218a6ee91efa1173dc7a8ef8e3",
+      "bytes": 69789,
+      "observed_title": "Agents"
+    },
+    {
+      "id": "langchain-tools",
+      "url": "https://docs.langchain.com/oss/python/langchain/tools.md",
+      "retrieved_utc": "2026-10-04T07:26:17.7099076Z",
+      "status": 200,
+      "path": "snapshots/langchain-tools.md",
+      "sha256": "58c7623fa4c0dc6a4c890c94fbb7d97ce138de3ce66adf2580b2804b00fddf00",
+      "bytes": 52103,
+      "observed_title": "Tools"
+    },
+    {
+      "id": "langchain-middleware",
+      "url": "https://docs.langchain.com/oss/python/langchain/middleware/custom.md",
+      "retrieved_utc": "2026-10-04T07:26:18.3765555Z",
+      "status": 200,
+      "path": "snapshots/langchain-middleware.md",
+      "sha256": "64a6045dfe66ba721c67b4ddb653e9aeaca54e535cd69ef85953848d9bd1f45a",
+      "bytes": 37934,
+      "observed_title": "Custom middleware"
+    },
+    {
+      "id": "langgraph-overview",
+      "url": "https://docs.langchain.com/oss/python/langgraph/overview.md",
+      "retrieved_utc": "2026-10-04T07:26:16.5654378Z",
+      "status": 200,
+      "path": "snapshots/langgraph-overview.md",
+      "sha256": "45ea31be884e1d2656c7118b76969e72d5dfdd5ddbefc0c23ecd8a440da76fb9",
+      "bytes": 8463,
+      "observed_title": "LangGraph overview"
+    },
+    {
+      "id": "langgraph-workflows-agents",
+      "url": "https://docs.langchain.com/oss/python/langgraph/workflows-agents.md",
+      "retrieved_utc": "2026-10-04T07:26:17.2308903Z",
+      "status": 200,
+      "path": "snapshots/langgraph-workflows-agents.md",
+      "sha256": "299d6510c698598565903956a662e2f339c335562ffc050c8be18ffeacfade14",
+      "bytes": 40517,
+      "observed_title": "Workflows and agents"
+    },
+    {
+      "id": "langgraph-durable-execution",
+      "url": "https://docs.langchain.com/oss/python/langgraph/durable-execution.md",
+      "retrieved_utc": "2026-10-04T07:26:18.3938277Z",
+      "status": 200,
+      "path": "snapshots/langgraph-durable-execution.md",
+      "sha256": "eb1eaceb1fd817a2cbb4546c6fa4f4a8cd8a13a9c037138c6dda54efb235c1d7",
+      "bytes": 5265,
+      "observed_title": "Persistence"
+    },
+    {
+      "id": "langgraph-interrupts",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts.md",
+      "retrieved_utc": "2026-10-04T07:26:18.9963723Z",
+      "status": 200,
+      "path": "snapshots/langgraph-interrupts.md",
+      "sha256": "2c64598d1009bafe9849d71662130341e8d01902724760f09a30175db8ec8c2e",
+      "bytes": 47311,
+      "observed_title": "Interrupts"
+    },
+    {
+      "id": "langgraph-checkpointers",
+      "url": "https://docs.langchain.com/oss/python/langgraph/checkpointers.md",
+      "retrieved_utc": "2026-10-04T07:28:40.3906330Z",
+      "status": 200,
+      "path": "snapshots/langgraph-checkpointers.md",
+      "sha256": "3881beeb186af756c6f5495c89effa821fd654957c63584341b91861e6677b6a",
+      "bytes": 46197,
+      "observed_title": "Checkpointers"
+    },
+    {
+      "id": "pydantic-ai-durable",
+      "url": "https://ai.pydantic.dev/durable_execution/",
+      "retrieved_utc": "2026-10-04T07:28:41.1080940Z",
+      "status": 200,
+      "path": "snapshots/pydantic-ai-durable.html",
+      "sha256": "537e156410f5e9e968ee6de401f6dfd3588f3d89b599483d1cf9d05449971d49",
+      "bytes": 3379,
+      "observed_title": "Durable Execution"
+    },
+    {
+      "id": "langchain-pinned-source",
+      "url": "https://raw.githubusercontent.com/langchain-ai/langchain/57236d55d9ffc8634bda987861e6fce460aff268/libs/langchain_v1/langchain/agents/factory.py",
+      "commit_url": "https://api.github.com/repos/langchain-ai/langchain/commits/master",
+      "commit": "57236d55d9ffc8634bda987861e6fce460aff268",
+      "source_path": "libs/langchain_v1/langchain/agents/factory.py",
+      "retrieved_utc": "2026-10-04T07:28:42.1355737Z",
+      "status": 200,
+      "path": "snapshots/langchain-pinned-source.py",
+      "sha256": "cc4a7d9a620224558c4eddd4e13edc988a9ac9e328b7a67deeb71ed2c5ec5174",
+      "bytes": 87471,
+      "observed_title": "No `response_format`: there is no structured output, so `ResponseT` resolves to `Any`."
+    },
+    {
+      "id": "langgraph-pinned-source",
+      "url": "https://raw.githubusercontent.com/langchain-ai/langgraph/9a0394d88b2211f299dcd69df92db3480c69ee61/libs/prebuilt/langgraph/prebuilt/tool_node.py",
+      "commit_url": "https://api.github.com/repos/langchain-ai/langgraph/commits/main",
+      "commit": "9a0394d88b2211f299dcd69df92db3480c69ee61",
+      "source_path": "libs/prebuilt/langgraph/prebuilt/tool_node.py",
+      "retrieved_utc": "2026-10-04T07:28:43.1496901Z",
+      "status": 200,
+      "path": "snapshots/langgraph-pinned-source.py",
+      "sha256": "e13ea6317164c823eae8512f94eeaea28c43731cf0a7ed1d9de9fca4a95f1782",
+      "bytes": 79179,
+      "observed_title": "right now we use a dict as the default, can change this to AgentState, but depends"
+    },
+    {
+      "id": "deepagents-pinned-source",
+      "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/f57c6f383b7018024ca5cde2dc565048ea83202a/libs/deepagents/deepagents/graph.py",
+      "commit_url": "https://api.github.com/repos/langchain-ai/deepagents/commits/main",
+      "commit": "f57c6f383b7018024ca5cde2dc565048ea83202a",
+      "source_path": "libs/deepagents/deepagents/graph.py",
+      "retrieved_utc": "2026-10-04T07:28:44.9231198Z",
+      "status": 200,
+      "path": "snapshots/deepagents-pinned-source.py",
+      "sha256": "1972d98908a6d061128b3b260458f04637d38f70a4afbe0a71687aae1b303be8",
+      "bytes": 49174
+    },
+    {
+      "id": "langchain-pypi",
+      "url": "https://pypi.org/pypi/langchain/1.4.3/json",
+      "version": "1.4.3",
+      "retrieved_utc": "2026-10-04T07:28:45.9333668Z",
+      "status": 200,
+      "path": "snapshots/langchain-pypi.json",
+      "sha256": "ad49de53826f8bc187e198dcef3ba5132a97869f403873c7f33181ca418b1922",
+      "bytes": 7797
+    },
+    {
+      "id": "langchain-core-pypi",
+      "url": "https://pypi.org/pypi/langchain-core/1.6.6/json",
+      "version": "1.6.6",
+      "retrieved_utc": "2026-10-04T07:28:46.6190581Z",
+      "status": 200,
+      "path": "snapshots/langchain-core-pypi.json",
+      "sha256": "b874f1e0edb0fd16a22b854bb5127807780a51c1e94cfe7e78892b6afafff39e",
+      "bytes": 6824
+    },
+    {
+      "id": "langgraph-pypi",
+      "url": "https://pypi.org/pypi/langgraph/1.2.12/json",
+      "version": "1.2.12",
+      "retrieved_utc": "2026-10-04T07:28:47.3694409Z",
+      "status": 200,
+      "path": "snapshots/langgraph-pypi.json",
+      "sha256": "c913bcd7e4a77acf95ca4baedd9878c7fd6ac9793ae34fc9869be71f9d989fe9",
+      "bytes": 6913
+    },
+    {
+      "id": "langgraph-checkpoint-sqlite-pypi",
+      "url": "https://pypi.org/pypi/langgraph-checkpoint-sqlite/3.1.1/json",
+      "version": "3.1.1",
+      "retrieved_utc": "2026-10-04T07:28:48.0728341Z",
+      "status": 200,
+      "path": "snapshots/langgraph-checkpoint-sqlite-pypi.json",
+      "sha256": "3c79e09ad72f6a46ab769dea206bd1199af0002a7ce890d35a34fd44bb893b36",
+      "bytes": 7597
+    },
+    {
+      "id": "langchain-openai-pypi",
+      "url": "https://pypi.org/pypi/langchain-openai/1.6.7/json",
+      "version": "1.6.7",
+      "retrieved_utc": "2026-10-04T07:28:48.7344290Z",
+      "status": 200,
+      "path": "snapshots/langchain-openai-pypi.json",
+      "sha256": "3e3c1473211e7caacefc02c9f8201116ae0e569a2887a80895e20d1723cd7413",
+      "bytes": 5686
+    },
+    {
+      "id": "langchain-anthropic-pypi",
+      "url": "https://pypi.org/pypi/langchain-anthropic/1.7.5/json",
+      "version": "1.7.5",
+      "retrieved_utc": "2026-10-04T07:28:49.3495246Z",
+      "status": 200,
+      "path": "snapshots/langchain-anthropic-pypi.json",
+      "sha256": "d4eb940a5d28ca8a79f90516b21fcc2d8c4f9bc6ac5665a666ce2e05e71a67b0",
+      "bytes": 7321
+    },
+    {
+      "id": "langchain-repository",
+      "url": "https://api.github.com/repos/langchain-ai/langchain",
+      "retrieved_utc": "2026-10-04T07:26:16.8253052Z",
+      "status": 200,
+      "path": "snapshots/langchain-repository.json",
+      "sha256": "285ec273d578f8cde471e0775eb5c27aab1e5116765d290d83e4832062eadac4",
+      "bytes": 6695
+    },
+    {
+      "id": "langgraph-repository",
+      "url": "https://api.github.com/repos/langchain-ai/langgraph",
+      "retrieved_utc": "2026-10-04T07:26:17.3477695Z",
+      "status": 200,
+      "path": "snapshots/langgraph-repository.json",
+      "sha256": "257555241fffa64b4e63938e98c65870bfb26da756d6f02aa9d1b2b5bfbc2742",
+      "bytes": 6664
+    },
+    {
+      "id": "deepagents-repository",
+      "url": "https://api.github.com/repos/langchain-ai/deepagents",
+      "retrieved_utc": "2026-10-04T07:26:17.8504426Z",
+      "status": 200,
+      "path": "snapshots/deepagents-repository.json",
+      "sha256": "3c3f36bb7755e079a8f8de441b4779c9760f665561bb8aebe6cabff4a1bb59f7",
+      "bytes": 6618
+    },
+    {
+      "id": "pydantic-ai-repository",
+      "url": "https://api.github.com/repos/pydantic/pydantic-ai",
+      "retrieved_utc": "2026-10-04T07:26:18.3403557Z",
+      "status": 200,
+      "path": "snapshots/pydantic-ai-repository.json",
+      "sha256": "4c2f63c6090c9d7239b089e42502aa877012ccc8deaaa040b1776e4f4b1c869d",
+      "bytes": 6464
+    }
+  ],
+  "repositories": {
+    "planning": {
+      "path": "F:/OCR",
+      "actual_toplevel": "F:/OCR",
+      "git_directory": "F:/OCR/.git",
+      "head": "51930dcbce4569d5f8407af40b04eba500dad929",
+      "status_at_index": [
+        " M docs/platform-automation/README.md",
+        "?? docs/platform-automation/platform-agent-development-tasks-20261004.json",
+        "?? \"docs/platform-automation/\\345\\271\\263\\345\\217\\260Agent\\345\\274\\200\\345\\217\\221\\350\\256\\241\\345\\210\\222-20261004.md\"",
+        "?? research/platform-agent-20261004/"
+      ]
+    },
+    "platform": {
+      "path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+      "actual_toplevel": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+      "git_directory": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git",
+      "head": "cabba39e255c35ff1ac001b6401f7d699bc4cb35",
+      "status_at_index": []
+    },
+    "ocr": {
+      "path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+      "actual_toplevel": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
+      "git_directory": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr/.git",
+      "head": "fc53aabe77ef9139691a0880d7dfa4f4b9e037b1",
+      "status_at_index": []
+    },
+    "classification": {
+      "path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
+      "actual_toplevel": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
+      "git_directory": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification/.git",
+      "head": "0b559288d45875372336c6bd945de009b1b5507e",
+      "status_at_index": []
+    }
+  },
+  "local_sources": [
+    {
+      "repo": "planning",
+      "path": "docs/platform-automation/审计平台自动化开发执行计划-20261002.md",
+      "sha256": "5b08309474cfeae8f3ca05667259252219eb3be89a8d79b9ad5ff98deb3383e2",
+      "bytes": 32673
+    },
+    {
+      "repo": "planning",
+      "path": "docs/platform-automation/原开发顺序-20260927-存档.md",
+      "sha256": "56296e77acd6554633189c29836655752cd820162fe189dd8c858a7e4bdee042",
+      "bytes": 9165
+    },
+    {
+      "repo": "planning",
+      "path": "docs/ocr-agent-langgraph-adr-20260921.md",
+      "sha256": "ed1bdba5e69afcab124ebfc7c8c9cc8edb0a4b8d02a0b51166624bd67265d21b",
+      "bytes": 8425
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/app.py",
+      "sha256": "d6eaf617e4adbd398f076fa6bbd427e15d7e03f7fcf119e7e7c97ccb72f689b3",
+      "bytes": 5587
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/batches/service.py",
+      "sha256": "b4a2824dd1daf2e5c755b523ef1aa465ccc3d0e795b6741ed75f1a635b1dd8c3",
+      "bytes": 15577
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/catalog/registry.py",
+      "sha256": "619b449251bbb358d45f28458692278d9763e75b0853660a82240719efd74fec",
+      "bytes": 17743
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/data_api/service.py",
+      "sha256": "6a4453560190b36e61635e6ffeb9af737f954fcc176e1d3126e58c698772252f",
+      "bytes": 26788
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/data_api/routes.py",
+      "sha256": "b6ce0ff241cf8f49c957b8d474a48aa9b2b6e488d007a63794363df4c54b6770",
+      "bytes": 9556
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/jobs/native_ocr.py",
+      "sha256": "80fe7df423a124d70ba0c2d4eaf64b0faf064c902578324ac99c68ea8f5a915d",
+      "bytes": 32810
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/jobs/ocr_handoff.py",
+      "sha256": "b5754815b37f5ad653ba4471638484b7eb0c35525bd46fbcef6efff50f2f53fb",
+      "bytes": 34383
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/jobs/native_classification.py",
+      "sha256": "56f7f2651dc4424594b7c8052338b155fafbf102e31ad725d1a8c73f7bd08ef2",
+      "bytes": 27864
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/jobs/classification_handoff.py",
+      "sha256": "68be88c05c505c8d126285a9157ae3ce9d132405569af3a778afb8bb97434280",
+      "bytes": 26771
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/forensics/service.py",
+      "sha256": "c9be39693325dbb8977d71c83ad30bcf23a6cc728bd01609d618cb76c0d33699",
+      "bytes": 17468
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/artifacts/center.py",
+      "sha256": "e15584f9fdba9ffb1474db1b31d8ca63c7d361451d173893a6f6f7de6eaeef16",
+      "bytes": 40089
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/assets/registry.py",
+      "sha256": "2d68555d80d597c1741ff008b27b86c848d8be3a82f83ea4d60ba842cac17e4a",
+      "bytes": 28152
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/assets/sets.py",
+      "sha256": "15920c6acd4800a6d4ed340aa068821dce5e6742d60cd3bc3ab4b43485c32f95",
+      "bytes": 13326
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/resources/gpu.py",
+      "sha256": "463d7b689d711c88088b4a23ba43a3a1e038fe1818f92565f75d0859596f7a37",
+      "bytes": 12298
+    },
+    {
+      "repo": "platform",
+      "path": "src/workbench_platform/bridge/context.py",
+      "sha256": "6f3bd049056215fe0fb3c4443f1dfc355232a07abebf3e5b939d9ba743faa059",
+      "bytes": 11233
+    },
+    {
+      "repo": "platform",
+      "path": "modules/data_workbench/recipes/engine.py",
+      "sha256": "52e2f663eeec3be9b1123f4b3f9d6e613a6215f6a48b42121abc44f9b9b3b34f",
+      "bytes": 16573
+    },
+    {
+      "repo": "platform",
+      "path": "modules/data_workbench/interactive_worker.py",
+      "sha256": "9cf241f7ffd923637d1edff43396d66877291b20e94700a8d5b7322b3b254ccd",
+      "bytes": 16631
+    },
+    {
+      "repo": "platform",
+      "path": "modules/data_workbench/exporting/results.py",
+      "sha256": "ccc6ae5065a93f2addab94104b7166b3206a833ffa857543184b2c801ecccc6f",
+      "bytes": 32247
+    },
+    {
+      "repo": "platform",
+      "path": "modules/image_forensics/forensic_toolbox/catalog.py",
+      "sha256": "50cfabb95612f10c1dd5045befd4646241a0a800fae1736efaea74a35dcbc597",
+      "bytes": 2073
+    },
+    {
+      "repo": "platform",
+      "path": "packages/contracts/forensics.py",
+      "sha256": "b629e09f151767ccf1f67b4d03b4d50dd6195d4cc2172549551bcdd308f423ef",
+      "bytes": 5491
+    },
+    {
+      "repo": "platform",
+      "path": "packages/contracts/automation.py",
+      "sha256": "6c1ac02281afb5266a45a935d1c2a27df8f9f52bf716939ebbd5fdee09efbc10",
+      "bytes": 11229
+    },
+    {
+      "repo": "platform",
+      "path": "docs/local-development.md",
+      "sha256": "1e337db0d621cc0a2ace78aea7bdb9d26be7e2df43bbccc07e516261ad5d3782",
+      "bytes": 4647
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/graph.py",
+      "sha256": "4a6900bf4cd9dc92156f6de0c3e0ca550301e3fe6b2e047366b68aaf1c133ed4",
+      "bytes": 26816
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/contracts.py",
+      "sha256": "b48e369d9e4a765ca3b5e8857801e32ed8c46adfa84ef8753812e9b04dd451ff",
+      "bytes": 13273
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/registry.py",
+      "sha256": "c5480e7a46e4e9a889f71678c59c84b26ce6aa20833b711a212a49236682fe24",
+      "bytes": 1694
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/runtime.py",
+      "sha256": "cf5ad0086915dabc67eec742000db084034c72dc08e2faa658ec1b28dde08823",
+      "bytes": 44816
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/tools.py",
+      "sha256": "9c7ae285b21caf35d338db89895b5085ab220b27b9237557936c4c35148ad01d",
+      "bytes": 6791
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/providers.py",
+      "sha256": "d1ef4e8c5f6324b11daeb279926beef0d11572a8063857f4891c8dd1dfd6007b",
+      "bytes": 14969
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/agent/checkpoints.py",
+      "sha256": "1ccef61c8f532bc616a72da17fa93e0060526dcdf6b54bc801bf725576d8a3c6",
+      "bytes": 10788
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/document_routes.py",
+      "sha256": "3e1a22302349b27579d2b1e7023d3375fbfebd0201a24c70bd508c1543cc8d30",
+      "bytes": 5845
+    },
+    {
+      "repo": "ocr",
+      "path": "src/ocr_workbench/application_services.py",
+      "sha256": "6b3a5dc8c0425f9820e8866cef8ab0c433550a1c1722fd1c12997a574b444616",
+      "bytes": 8119
+    },
+    {
+      "repo": "ocr",
+      "path": "config/runtime-locks/agent.json",
+      "sha256": "138d8d7e13e8b552f7b92491a19c69eef6577c5051560e05601c2510089de5a0",
+      "bytes": 33504
+    }
+  ],
+  "notes": [
+    "Online docs are retrieval-time snapshots; pinned GitHub source commits are independent of PyPI candidate versions.",
+    "The legacy durable-execution documentation URL returned Persistence; use separately captured checkpointers/interrupts pages for runtime semantics.",
+    "Repository status for planning includes this task’s new planning/research artifacts."
+  ]
+}

@@ -32,6 +32,8 @@ audit/tableformer-expanded-20260914/** -text
 audit/tableformer-next-20260915/** -text
 audit/tableformer-review-20260916/** -text
 research/multimodal-review-20260917/** -text
+# Retrieval snapshots retain the exact bytes recorded by their source index.
+research/platform-agent-20261004/snapshots/** -text -whitespace
 config/geometry-evaluation-legacy-v1.json -text
 config/geometry-evaluation-v3.json -text
 config/geometry-matching-policy.json -text

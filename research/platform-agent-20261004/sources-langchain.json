@@ -1,0 +1,38 @@
+[
+  {
+    "id": "langchain-overview",
+    "url": "https://docs.langchain.com/oss/python/langchain/overview.md",
+    "retrieved_utc": "2026-10-04T07:26:16.3963755Z",
+    "status": 200,
+    "path": "snapshots/langchain-overview.md",
+    "sha256": "c3f4a48f3e62fd5c018b4d11805a0ae7b7689bbe6f39fe6b1844d49e4eb2e5ee",
+    "bytes": 11145
+  },
+  {
+    "id": "langchain-agents",
+    "url": "https://docs.langchain.com/oss/python/langchain/agents.md",
+    "retrieved_utc": "2026-10-04T07:26:17.0527127Z",
+    "status": 200,
+    "path": "snapshots/langchain-agents.md",
+    "sha256": "83c2c3d9813600091d43c37954d1c319e5224f218a6ee91efa1173dc7a8ef8e3",
+    "bytes": 69789
+  },
+  {
+    "id": "langchain-tools",
+    "url": "https://docs.langchain.com/oss/python/langchain/tools.md",
+    "retrieved_utc": "2026-10-04T07:26:17.7099076Z",
+    "status": 200,
+    "path": "snapshots/langchain-tools.md",
+    "sha256": "58c7623fa4c0dc6a4c890c94fbb7d97ce138de3ce66adf2580b2804b00fddf00",
+    "bytes": 52103
+  },
+  {
+    "id": "langchain-middleware",
+    "url": "https://docs.langchain.com/oss/python/langchain/middleware/custom.md",
+    "retrieved_utc": "2026-10-04T07:26:18.3765555Z",
+    "status": 200,
+    "path": "snapshots/langchain-middleware.md",
+    "sha256": "64a6045dfe66ba721c67b4ddb653e9aeaca54e535cd69ef85953848d9bd1f45a",
+    "bytes": 37934
+  }
+]

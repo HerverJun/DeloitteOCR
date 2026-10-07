@@ -1,0 +1,116 @@
+[
+  {
+    "id": "langgraph-checkpointers",
+    "url": "https://docs.langchain.com/oss/python/langgraph/checkpointers.md",
+    "retrieved_utc": "2026-10-04T07:28:40.3906330Z",
+    "status": 200,
+    "path": "snapshots/langgraph-checkpointers.md",
+    "sha256": "3881beeb186af756c6f5495c89effa821fd654957c63584341b91861e6677b6a",
+    "bytes": 46197
+  },
+  {
+    "id": "pydantic-ai-durable",
+    "url": "https://ai.pydantic.dev/durable_execution/",
+    "retrieved_utc": "2026-10-04T07:28:41.1080940Z",
+    "status": 200,
+    "path": "snapshots/pydantic-ai-durable.html",
+    "sha256": "537e156410f5e9e968ee6de401f6dfd3588f3d89b599483d1cf9d05449971d49",
+    "bytes": 3379
+  },
+  {
+    "id": "langchain-pinned-source",
+    "url": "https://raw.githubusercontent.com/langchain-ai/langchain/57236d55d9ffc8634bda987861e6fce460aff268/libs/langchain_v1/langchain/agents/factory.py",
+    "commit_url": "https://api.github.com/repos/langchain-ai/langchain/commits/master",
+    "commit": "57236d55d9ffc8634bda987861e6fce460aff268",
+    "source_path": "libs/langchain_v1/langchain/agents/factory.py",
+    "retrieved_utc": "2026-10-04T07:28:42.1355737Z",
+    "status": 200,
+    "path": "snapshots/langchain-pinned-source.py",
+    "sha256": "cc4a7d9a620224558c4eddd4e13edc988a9ac9e328b7a67deeb71ed2c5ec5174",
+    "bytes": 87471
+  },
+  {
+    "id": "langgraph-pinned-source",
+    "url": "https://raw.githubusercontent.com/langchain-ai/langgraph/9a0394d88b2211f299dcd69df92db3480c69ee61/libs/prebuilt/langgraph/prebuilt/tool_node.py",
+    "commit_url": "https://api.github.com/repos/langchain-ai/langgraph/commits/main",
+    "commit": "9a0394d88b2211f299dcd69df92db3480c69ee61",
+    "source_path": "libs/prebuilt/langgraph/prebuilt/tool_node.py",
+    "retrieved_utc": "2026-10-04T07:28:43.1496901Z",
+    "status": 200,
+    "path": "snapshots/langgraph-pinned-source.py",
+    "sha256": "e13ea6317164c823eae8512f94eeaea28c43731cf0a7ed1d9de9fca4a95f1782",
+    "bytes": 79179
+  },
+  {
+    "id": "deepagents-pinned-source",
+    "url": "https://raw.githubusercontent.com/langchain-ai/deepagents/f57c6f383b7018024ca5cde2dc565048ea83202a/libs/deepagents/deepagents/graph.py",
+    "commit_url": "https://api.github.com/repos/langchain-ai/deepagents/commits/main",
+    "commit": "f57c6f383b7018024ca5cde2dc565048ea83202a",
+    "source_path": "libs/deepagents/deepagents/graph.py",
+    "retrieved_utc": "2026-10-04T07:28:44.9231198Z",
+    "status": 200,
+    "path": "snapshots/deepagents-pinned-source.py",
+    "sha256": "1972d98908a6d061128b3b260458f04637d38f70a4afbe0a71687aae1b303be8",
+    "bytes": 49174
+  },
+  {
+    "id": "langchain-pypi",
+    "url": "https://pypi.org/pypi/langchain/1.4.3/json",
+    "version": "1.4.3",
+    "retrieved_utc": "2026-10-04T07:28:45.9333668Z",
+    "status": 200,
+    "path": "snapshots/langchain-pypi.json",
+    "sha256": "ad49de53826f8bc187e198dcef3ba5132a97869f403873c7f33181ca418b1922",
+    "bytes": 7797
+  },
+  {
+    "id": "langchain-core-pypi",
+    "url": "https://pypi.org/pypi/langchain-core/1.6.6/json",
+    "version": "1.6.6",
+    "retrieved_utc": "2026-10-04T07:28:46.6190581Z",
+    "status": 200,
+    "path": "snapshots/langchain-core-pypi.json",
+    "sha256": "b874f1e0edb0fd16a22b854bb5127807780a51c1e94cfe7e78892b6afafff39e",
+    "bytes": 6824
+  },
+  {
+    "id": "langgraph-pypi",
+    "url": "https://pypi.org/pypi/langgraph/1.2.12/json",
+    "version": "1.2.12",
+    "retrieved_utc": "2026-10-04T07:28:47.3694409Z",
+    "status": 200,
+    "path": "snapshots/langgraph-pypi.json",
+    "sha256": "c913bcd7e4a77acf95ca4baedd9878c7fd6ac9793ae34fc9869be71f9d989fe9",
+    "bytes": 6913
+  },
+  {
+    "id": "langgraph-checkpoint-sqlite-pypi",
+    "url": "https://pypi.org/pypi/langgraph-checkpoint-sqlite/3.1.1/json",
+    "version": "3.1.1",
+    "retrieved_utc": "2026-10-04T07:28:48.0728341Z",
+    "status": 200,
+    "path": "snapshots/langgraph-checkpoint-sqlite-pypi.json",
+    "sha256": "3c79e09ad72f6a46ab769dea206bd1199af0002a7ce890d35a34fd44bb893b36",
+    "bytes": 7597
+  },
+  {
+    "id": "langchain-openai-pypi",
+    "url": "https://pypi.org/pypi/langchain-openai/1.6.7/json",
+    "version": "1.6.7",
+    "retrieved_utc": "2026-10-04T07:28:48.7344290Z",
+    "status": 200,
+    "path": "snapshots/langchain-openai-pypi.json",
+    "sha256": "3e3c1473211e7caacefc02c9f8201116ae0e569a2887a80895e20d1723cd7413",
+    "bytes": 5686
+  },
+  {
+    "id": "langchain-anthropic-pypi",
+    "url": "https://pypi.org/pypi/langchain-anthropic/1.7.5/json",
+    "version": "1.7.5",
+    "retrieved_utc": "2026-10-04T07:28:49.3495246Z",
+    "status": 200,
+    "path": "snapshots/langchain-anthropic-pypi.json",
+    "sha256": "d4eb940a5d28ca8a79f90516b21fcc2d8c4f9bc6ac5665a666ce2e05e71a67b0",
+    "bytes": 7321
+  }
+]

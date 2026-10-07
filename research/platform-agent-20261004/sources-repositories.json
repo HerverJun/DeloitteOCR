@@ -1,0 +1,38 @@
+[
+  {
+    "id": "langchain-repository",
+    "url": "https://api.github.com/repos/langchain-ai/langchain",
+    "retrieved_utc": "2026-10-04T07:26:16.8253052Z",
+    "status": 200,
+    "path": "snapshots/langchain-repository.json",
+    "sha256": "285ec273d578f8cde471e0775eb5c27aab1e5116765d290d83e4832062eadac4",
+    "bytes": 6695
+  },
+  {
+    "id": "langgraph-repository",
+    "url": "https://api.github.com/repos/langchain-ai/langgraph",
+    "retrieved_utc": "2026-10-04T07:26:17.3477695Z",
+    "status": 200,
+    "path": "snapshots/langgraph-repository.json",
+    "sha256": "257555241fffa64b4e63938e98c65870bfb26da756d6f02aa9d1b2b5bfbc2742",
+    "bytes": 6664
+  },
+  {
+    "id": "deepagents-repository",
+    "url": "https://api.github.com/repos/langchain-ai/deepagents",
+    "retrieved_utc": "2026-10-04T07:26:17.8504426Z",
+    "status": 200,
+    "path": "snapshots/deepagents-repository.json",
+    "sha256": "3c3f36bb7755e079a8f8de441b4779c9760f665561bb8aebe6cabff4a1bb59f7",
+    "bytes": 6618
+  },
+  {
+    "id": "pydantic-ai-repository",
+    "url": "https://api.github.com/repos/pydantic/pydantic-ai",
+    "retrieved_utc": "2026-10-04T07:26:18.3403557Z",
+    "status": 200,
+    "path": "snapshots/pydantic-ai-repository.json",
+    "sha256": "4c2f63c6090c9d7239b089e42502aa877012ccc8deaaa040b1776e4f4b1c869d",
+    "bytes": 6464
+  }
+]

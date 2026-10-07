@@ -1,0 +1,29 @@
+[
+  {
+    "id": "deepagents-overview",
+    "url": "https://docs.langchain.com/oss/python/deepagents/overview.md",
+    "retrieved_utc": "2026-10-04T07:26:16.7659545Z",
+    "status": 200,
+    "path": "snapshots/deepagents-overview.md",
+    "sha256": "bc767aaa7ebb7c8774c8352cef51f19e13cfffd9c84580326c2c1f17f4c5562d",
+    "bytes": 77548
+  },
+  {
+    "id": "langchain-sql-agent",
+    "url": "https://docs.langchain.com/oss/python/langchain/sql-agent.md",
+    "retrieved_utc": "2026-10-04T07:26:17.4499809Z",
+    "status": 200,
+    "path": "snapshots/langchain-sql-agent.md",
+    "sha256": "9789072a97b39d46cb3baa025580135e9366c3c3da7232616f82b93c0724f59a",
+    "bytes": 40668
+  },
+  {
+    "id": "pydantic-ai-tools",
+    "url": "https://ai.pydantic.dev/tools/",
+    "retrieved_utc": "2026-10-04T07:26:19.0378825Z",
+    "status": 200,
+    "path": "snapshots/pydantic-ai-tools.html",
+    "sha256": "1da7fe7bdc29f030944f61091165d8d00afcbc2912bd242d510be94c39077f4e",
+    "bytes": 23706
+  }
+]

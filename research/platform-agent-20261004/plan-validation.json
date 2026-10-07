@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "tasks": 18,
+  "required_for_v1": 17,
+  "acyclic": true,
+  "all_tasks_planned": true,
+  "source_snapshots_hashed": 26,
+  "local_source_files_hashed": 35,
+  "local_document_links_checked": 8,
+  "repository_heads": {
+    "planning": "51930dcbce4569d5f8407af40b04eba500dad929",
+    "platform": "cabba39e255c35ff1ac001b6401f7d699bc4cb35",
+    "ocr": "fc53aabe77ef9139691a0880d7dfa4f4b9e037b1",
+    "classification": "0b559288d45875372336c6bd945de009b1b5507e"
+  },
+  "limitations": "Document/JSON/source integrity only; no product implementation, runtime tests, or real-model evaluation."
+}
