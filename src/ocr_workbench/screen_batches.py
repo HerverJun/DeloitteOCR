@@ -903,9 +903,8 @@ class ScreenBatches:
                         stem = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '_', Path(item['source_name']).stem).strip(' .') or 'image'
                         name = f'{item["position"] + 1:04d}-{stem[:100]}.xlsx'
                         target = folder / name
-                        export_xlsx(result['edited']['tables'], target, source_rows=[
-                            {'image': item['source_name'], 'result_id': result['id'], 'engine': result['original'].get('engine', ''),
-                             'version_id': item['input_version_id'], 'revision': result['revision']}])
+                        export_xlsx(result['edited']['tables'], target,
+                                    source_rows=self._export_source_rows(batch, item, result, name))
                         metadata = result['original'].get('screen', {}).get('business_metadata', [])
                         if metadata:
                             self._export_metadata(target, metadata)
@@ -930,6 +929,26 @@ class ScreenBatches:
             archive.writestr('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=2))
         (folder / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
         return archive_path, manifest
+
+    @staticmethod
+    def _export_source_rows(batch, item, result, workbook):
+        original = result['original']
+        engine_info = original.get('engine_info') or {}
+        engine_package = original.get('engine_package') or {}
+        metadata = {'workbook': workbook, 'image_name': item['source_name'],
+            'image_id': item['image_id'], 'image_version': item['input_version_id'],
+            'input_sha256': item['source_hash'], 'engine': original.get('engine', ''),
+            'engine_name': engine_info.get('name', ''), 'engine_package': engine_package.get('id', 'builtin'),
+            'model_revisions': encoded(original.get('model_revisions', {})),
+            'result_id': result['id'], 'revision': result['revision'],
+            'origin': original.get('origin', 'screen_batch'),
+            'policy_version': batch['policy']['strategy_version'], 'policy_sha256': fingerprint(batch['policy']),
+            'review_summary': encoded({'review_state': item['review_state'], 'status': item['status']})}
+        return [{**metadata, 'sheet': f'Table {index+1}', 'table_index': index+1,
+                 'structure_review': encoded(table.get('structure_review', {})),
+                 'header_cells': encoded([[c['row'], c['column'], c['row_span'], c['column_span']]
+                                          for c in table['cells'] if c.get('is_header')])}
+                for index, table in enumerate(result['edited']['tables'])]
 
     @staticmethod
     def _export_metadata(path, metadata):

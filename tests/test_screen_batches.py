@@ -301,6 +301,49 @@ class ScreenBatchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.manager.export(self.project, batch, {'numeric_columns': {'0': [1]}})
 
+    def test_workbook_source_index_matches_actual_database_identity_for_every_table(self):
+        versions = self.images(2)
+        batch = self.submit(versions)
+        self.manager.step()
+        while task := self.store.claim():
+            tables = [deepcopy(TABLE)]
+            if task['version_id'] == versions[0]:
+                tables.append(deepcopy(TABLE))
+            self.store.complete(task['id'], {'status':'success','engine':'glm','text':'业务数据',
+                'tables':tables,'blocks':[],'project_image_version':task['version_id']})
+        self.manager.step()
+        archive_path, manifest = self.manager.export(self.project, batch)
+        identities = {row['version_id']: row for row in self.store.rows('''
+            SELECT i.id image_id,i.name,v.id version_id,v.sha256,s.result_id,r.revision,
+                   json_extract(r.original,'$.engine') engine
+            FROM screen_items s JOIN images i ON i.id=s.image_id
+            JOIN versions v ON v.id=s.input_version_id JOIN results r ON r.id=s.result_id
+            WHERE s.batch_id=?''', (batch,))}
+        with zipfile.ZipFile(archive_path) as archive:
+            for item in manifest['items']:
+                identity = identities[item['input_version_id']]
+                book = load_workbook(io.BytesIO(archive.read(item['file_name'])))
+                try:
+                    index = book['来源索引']
+                    headers = [cell.value for cell in index[1]]
+                    data = [{headers[n]:cell.value for n,cell in enumerate(row)}
+                            for row in index.iter_rows(min_row=2)]
+                    result = self.store.result(identity['result_id'])
+                    self.assertEqual(len(data),len(result['edited']['tables']))
+                    for number, source in enumerate(data,1):
+                        expected = {'工作簿':item['file_name'], '工作表':f'Table {number}',
+                            '原图':identity['name'], '图片 ID':identity['image_id'],
+                            '图像版本':identity['version_id'], '输入 SHA-256':identity['sha256'],
+                            '引擎':identity['engine'], '结果 ID':identity['result_id'],
+                            '校对 revision':str(identity['revision']), '表格序号':str(number)}
+                        for label,value in expected.items():
+                            self.assertEqual(source[label],value,label)
+                            self.assertIsNotNone(source[label],label)
+                        self.assertIn(source['工作表'],book.sheetnames)
+                        self.assertEqual(book[source['工作表']]['A3'].value,'00123456789012345678')
+                finally:
+                    book.close()
+
     def test_context_stage_finishes_before_any_primary_task_and_recovers(self):
         versions = self.images(2)
         batch = self.submit(versions, layout_evidence=True)
