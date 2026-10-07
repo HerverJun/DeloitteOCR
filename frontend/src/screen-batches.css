@@ -42,4 +42,8 @@
 .screen-batch-review textarea { width: 100%; resize: vertical; }
 .screen-review-actions { padding-top: 8px; }
 .screen-batch-empty { color: var(--muted); padding: 30px 0; }
+.screen-numeric-export { margin-top: 18px; padding-top: 14px; border-top: 1px solid #dde1da; }
+.screen-numeric-export summary { cursor: pointer; font-weight: 600; }
+.screen-numeric-columns { max-height: 220px; overflow: auto; margin: 12px 0; }
+.screen-numeric-columns small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
 @media (max-width: 800px) { .screen-batch-dialog { width: calc(100vw - 24px); } .screen-batch-workspace { grid-template-columns: 1fr; } .screen-batch-review { padding-left: 0; border-left: 0; border-top: 1px solid #dde1da; padding-top: 18px; } .screen-item-list { max-height: 250px; } .screen-batch-progress dl { gap: 15px; } }

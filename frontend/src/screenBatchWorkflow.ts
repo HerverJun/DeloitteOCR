@@ -60,3 +60,30 @@ export function screenProgress(counts: ScreenCounts) {
   const terminal = counts.completed + counts.needs_review + counts.failed + counts.cancelled;
   return { terminal, percent: counts.total ? Math.min(100, Math.round(terminal / counts.total * 100)) : 0 };
 }
+
+export function screenNumericColumnOptions(table: Table) {
+  const idHeader = /编号|账号|账户|代码|流水|证件|序号|identifier|\b(id|code|account|reference)\b/i;
+  return Array.from({ length: table.columns }, (_, column) => {
+    const headers = table.cells.filter(cell => (cell.is_header || cell.row === 0) && cell.column <= column && column < cell.column + cell.column_span);
+    const title = headers.map(cell => cell.text).filter(Boolean).join(" / ") || `第 ${column + 1} 列`;
+    const samples = table.cells.filter(cell => cell.column === column && cell.row > 0 && !cell.is_header).slice(0, 3).map(cell => cell.text);
+    return { column, title, samples, identifier: idHeader.test(title) };
+  });
+}
+
+export function screenNumericExport(item: ScreenItem & { result?: { revision: number; edited: { tables: Table[] } } | null }, selections: Record<string, number[]>, confirmed: boolean) {
+  const chosen = Object.entries(selections).filter(([, columns]) => columns.length > 0);
+  if (!chosen.length) return undefined;
+  if (!confirmed || !item.human_confirmed || item.status !== "completed" || !item.result || item.result.revision !== item.result_revision)
+    throw Error("请先保存并完成本图核对，再确认需要计算的金额或数量列。");
+  const tables: Record<string, number[]> = {};
+  for (const [tableIndex, columns] of chosen) {
+    if (!/^\d+$/.test(tableIndex) || !item.result.edited.tables[Number(tableIndex)]) throw Error("数值列对应的表格已变化。");
+    const table = item.result.edited.tables[Number(tableIndex)];
+    const options = screenNumericColumnOptions(table);
+    if (columns.some(column => !Number.isInteger(column) || column < 0 || column >= table.columns || options[column].identifier))
+      throw Error("编号列不能转换为数值，请重新选择金额或数量列。");
+    tables[tableIndex] = [...new Set(columns)].sort((a, b) => a - b);
+  }
+  return { [item.input_version_id]: tables };
+}

@@ -5,6 +5,7 @@ import { api, request } from "./api";
 import { RegionPreview } from "./RegionPreview";
 import type { Photo, Result, Table, Version } from "./types";
 import { screenCell, screenCellEdit, screenEditKey, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
+  screenNumericColumnOptions, screenNumericExport,
   type ScreenBatch, type ScreenCellEdit, type ScreenItem } from "./screenBatchWorkflow";
 import "./screen-batches.css";
 
@@ -56,6 +57,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   const [edits, setEdits] = useState<Record<string, ScreenCellEdit>>({});
   const [previewId, setPreviewId] = useState("original");
   const [includeReview, setIncludeReview] = useState(false);
+  const [numericColumns, setNumericColumns] = useState<Record<string, number[]>>({});
+  const [numericConfirmed, setNumericConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const projectRef = useRef(projectId);
@@ -123,6 +126,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     return () => { active = false; };
   }, [open, detailId, batchId, loadDetail, report]);
 
+  useEffect(() => { setNumericColumns({}); setNumericConfirmed(false); }, [projectId, batchId, detailId, detail?.result?.id, detail?.result?.revision]);
+
   const issue = detail?.issues[issueIndex];
   const tables = detail?.result?.edited.tables || [];
   const cell = screenCell(tables[tableIndex], row, column);
@@ -177,7 +182,10 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     void batchAction("review", body).then(success => { if (success) setEdits({}); });
   };
   const exportBatch = () => run(async () => {
-    const response = await request(`${base}/${encodeURIComponent(batchId)}/export`, { method: "POST", body: JSON.stringify({ include_pending_review: includeReview }) });
+    if (editedCount) throw Error("请先保存或清除当前单元格修改，再导出。");
+    const numeric = detail ? screenNumericExport(detail, numericColumns, numericConfirmed) : undefined;
+    const response = await request(`${base}/${encodeURIComponent(batchId)}/export`, { method: "POST", body: JSON.stringify({ include_pending_review: includeReview,
+      ...(numeric ? { numeric_columns: numeric } : {}) }) });
     const url = URL.createObjectURL(await response.blob());
     const anchor = document.createElement("a");
     anchor.href = url; anchor.download = "screen-tables.zip"; anchor.click();
@@ -276,6 +284,23 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       {editedCount > 0 && <Button size="small" disabled={busy} onClick={() => setEdits({})}>清除待保存修改</Button>}
                       <div className="screen-review-actions"><Button appearance="primary" disabled={busy || !detail.result_id || editedCount > 100 || activeStates.has(detail.status)} onClick={() => review("accepted")}>保存并标记核对完成</Button>
                         <Button disabled={busy || editedCount > 100 || activeStates.has(detail.status)} onClick={() => review("retain")}>保留当前内容，仍待核对</Button><Button disabled={busy || editedCount > 0 || activeStates.has(detail.status)} onClick={() => review("deferred")}>稍后核对</Button></div>
+                      <details className="screen-numeric-export">
+                        <summary>本图数值列可计算（可选）</summary>
+                        <p className="screen-batch-small">仅作用于当前图片的已选列。请先完成人工核对，再选择金额或数量列；编号、前导零和超长数字继续保留原文。</p>
+                        {!detail.human_confirmed || detail.status !== "completed" ? <p>保存并标记本图核对完成后，可选择数值列。</p> : <>
+                          <label>选择表格<select aria-label="本图数值列所属表格" value={tableIndex} onChange={e => setTableIndex(Number(e.target.value))}>{tables.map((_, index) => <option key={index} value={index}>表 {index + 1}</option>)}</select></label>
+                          <div className="screen-numeric-columns">{tables[tableIndex] && screenNumericColumnOptions(tables[tableIndex]).map(option => <label key={option.column} className="screen-batch-check">
+                            <input type="checkbox" aria-label={`数值列 ${option.column + 1} ${option.title}`} disabled={busy || !!editedCount || option.identifier} checked={(numericColumns[String(tableIndex)] || []).includes(option.column)} onChange={e => {
+                              const checked = e.target.checked;
+                              setNumericColumns(current => ({ ...current, [String(tableIndex)]: checked ? [...new Set([...(current[String(tableIndex)] || []), option.column])] : (current[String(tableIndex)] || []).filter(column => column !== option.column) }));
+                              setNumericConfirmed(false);
+                            }} />
+                            <span>第 {option.column + 1} 列 · {option.title}{option.identifier ? "（编号，保留原文）" : ""}<small>示例：{option.samples.join(" / ") || "空白"}</small></span>
+                          </label>)}</div>
+                          <label className="screen-batch-check"><input type="checkbox" checked={numericConfirmed} onChange={e => setNumericConfirmed(e.target.checked)} disabled={busy || !!editedCount || !Object.values(numericColumns).some(columns => columns.length)} />我已确认所选列是可计算的金额或数量</label>
+                          <p className="screen-batch-small">将转换 {Object.values(numericColumns).reduce((count, columns) => count + columns.length, 0)} 列；其他图片保持原文格式。切换图片或结果版本后重新选择。</p>
+                        </>}
+                      </details>
                     </>}
                   </>}
                 </section>

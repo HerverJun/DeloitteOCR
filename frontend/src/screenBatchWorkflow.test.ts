@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screenCell, screenCellEdit, screenEditKey, screenProgress, screenReviewBody, selectedScreenVersions, type ScreenItem } from "./screenBatchWorkflow";
+import { screenCell, screenCellEdit, screenEditKey, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, type ScreenItem } from "./screenBatchWorkflow";
 import type { Photo, Table } from "./types";
 
 const item: ScreenItem = { input_version_id: "version-a", image_id: "image-a", source_name: "财务.png", status: "needs_review", stage: "review",
@@ -57,5 +57,25 @@ describe("screen batch workflow", () => {
     expect(screenProgress(counts)).toEqual({ terminal: 210, percent: 88 });
     expect(counts.completed).toBe(180);
     expect(screenProgress({ total: 0, completed: 0, needs_review: 0, failed: 0, cancelled: 0, pending: 0 })).toEqual({ terminal: 0, percent: 0 });
+  });
+
+  it("leaves the export unchanged by default and scopes chosen numeric columns to one reviewed image", () => {
+    const numericTable: Table = { rows: 2, columns: 3, cells: [
+      { row: 0, column: 0, row_span: 1, column_span: 1, text: "编号" },
+      { row: 0, column: 1, row_span: 1, column_span: 1, text: "金额" },
+      { row: 0, column: 2, row_span: 1, column_span: 1, text: "数量" },
+      { row: 1, column: 0, row_span: 1, column_span: 1, text: "0001" },
+      { row: 1, column: 1, row_span: 1, column_span: 1, text: "-10.05" },
+      { row: 1, column: 2, row_span: 1, column_span: 1, text: "2" },
+    ] };
+    const reviewed = { ...item, status: "completed", human_confirmed: true, result: { revision: 7, edited: { tables: [numericTable] } } };
+    expect(screenNumericExport(reviewed, {}, false)).toBeUndefined();
+    expect(screenNumericExport(reviewed, { "0": [2, 1, 1] }, true)).toEqual({ "version-a": { "0": [1, 2] } });
+    expect(screenNumericColumnOptions(numericTable)[0].identifier).toBe(true);
+    expect(() => screenNumericExport(reviewed, { "0": [0] }, true)).toThrow("编号");
+    expect(() => screenNumericExport(reviewed, { "0": [1] }, false)).toThrow("确认");
+    expect(() => screenNumericExport({ ...reviewed, human_confirmed: false }, { "0": [1] }, true)).toThrow();
+    expect(() => screenNumericExport({ ...reviewed, result_revision: 6 }, { "0": [1] }, true)).toThrow();
+    expect(numericTable.cells[3].text).toBe("0001");
   });
 });
