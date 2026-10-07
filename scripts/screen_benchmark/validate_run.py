@@ -33,7 +33,7 @@ def validate_run(inputs_path, runroot):
         context_binding_path = context_root/'binding.json'
         if digest(context_binding_path) != binding['context_binding_sha256']:
             raise ValueError('Consumed context binding changed')
-        validate_context_binding(json.loads(context_binding_path.read_text('utf-8')), binding)
+        validate_context_binding(json.loads(context_binding_path.read_text('utf-8')), binding,source_policy=binding.get('context_source_policy','exact'))
     rows = []
     for sample in inputs['samples']:
         folder = runroot/sample['id']

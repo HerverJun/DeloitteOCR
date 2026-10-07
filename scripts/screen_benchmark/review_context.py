@@ -44,8 +44,8 @@ def coverage(target, selected):
     return min(1., max((intersection(points, shape(item))/size for item in selected), default=0.))
 
 
-def inspect_preparation(truth, preparation):
-    selected = first_pass_images(preparation)
+def inspect_preparation(truth, preparation, selected=None):
+    selected = first_pass_images(preparation) if selected is None else selected
     counts = Counter({'images': 1})
     lost_cells, lost_context = [], []
     for index, table in enumerate(truth.get('tables', [])):

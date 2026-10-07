@@ -165,6 +165,20 @@ def test_context_mismatched_worker_or_dataset_cannot_mix():
         with pytest.raises(ValueError,match=field):validate_context_binding({**context,field:'wrong'},binding)
     with pytest.raises(ValueError,match='inference context'):validate_context_binding({**context,'labels_or_ideal_regions_provided':True},binding)
 
+def test_explicit_context_reuse_retains_old_source_and_still_requires_input_config_identity():
+    binding={'inputs_sha256':'inputs','worker_source_sha256':'new_worker','engine_config_sha256':'config','context_worker_source_sha256':'old_worker'}
+    context={'inputs_sha256':'inputs','worker_source_sha256':'old_worker','engine_config_sha256':'config',
+             'stage':'screen-context','geometry_provider':'context','labels_or_ideal_regions_provided':False}
+    validate_context_binding(context,binding,source_policy='recorded')
+    with pytest.raises(ValueError,match='worker_source_sha256'):validate_context_binding(context,binding)
+    with pytest.raises(ValueError,match='inputs_sha256'):validate_context_binding({**context,'inputs_sha256':'wrong'},binding,source_policy='recorded')
+    with pytest.raises(ValueError,match='Recorded context worker source'):validate_context_binding({**context,'worker_source_sha256':'fake'},binding,source_policy='recorded')
+
+def test_runner_uses_shared_policy_when_available_and_frozen_legacy_fallback_otherwise():
+    meta={'primary_id':'original','prepared_images':[{'id':'original','kind':'original'},{'id':'one','kind':'table_crop'},{'id':'two','kind':'table_crop'}]}
+    assert [item['id'] for item in first_pass_images(meta)]==['one','two']
+    assert [item['id'] for item in first_pass_images(meta,selector=lambda value:[value['prepared_images'][0]])]==['original']
+
 def test_offline_crop_review_preserves_full_field_identity_and_ui():
     selected=[{'id':'crop','kind':'table_crop','source_polygon':[[10,10],[80,10],[80,80],[10,80]]}]
     assert coverage({'polygon':[[20,20],[30,20],[30,30],[20,30]]},selected)==1

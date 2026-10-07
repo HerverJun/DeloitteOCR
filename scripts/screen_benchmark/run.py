@@ -40,7 +40,8 @@ def gpu_sample():
         return {'time':time.time(),'observed':p.stdout.strip(),'exit_code':p.returncode}
     except Exception as e:return {'time':time.time(),'unavailable':str(e)}
 
-def first_pass_images(metadata):
+def first_pass_images(metadata, selector=None):
+    if selector is not None:return selector(metadata)
     images=metadata['prepared_images'];crops=[p for p in images if p['kind']=='table_crop']
     if len(crops)>1:return crops
     selected=[p for p in images if p['id']==metadata['primary_id']]
@@ -58,9 +59,15 @@ def aggregate_results(results, prepared):
             'warnings':[warning for r in results for warning in r.get('warnings',[])],
             'elapsed_seconds':sum(r.get('elapsed_seconds',0) for r in results)}
 
-def validate_context_binding(context_binding,binding):
-    for field in ('inputs_sha256','worker_source_sha256','engine_config_sha256'):
+def validate_context_binding(context_binding,binding,source_policy='exact'):
+    if source_policy not in {'exact','recorded'}:raise ValueError('Unsupported context source policy')
+    fields=('inputs_sha256','engine_config_sha256') if source_policy=='recorded' else ('inputs_sha256','worker_source_sha256','engine_config_sha256')
+    for field in fields:
         if context_binding.get(field)!=binding[field]:raise ValueError(f'Context {field} differs')
+    if source_policy=='recorded':
+        if not context_binding.get('worker_source_sha256'):raise ValueError('Context source identity missing')
+        if binding.get('context_worker_source_sha256') is not None and binding['context_worker_source_sha256']!=context_binding['worker_source_sha256']:
+            raise ValueError('Recorded context worker source differs')
     if context_binding.get('stage')!='screen-context' or context_binding.get('geometry_provider')!='context' or context_binding.get('labels_or_ideal_regions_provided') is not False:
         raise ValueError('Only verified inference context permitted')
 
@@ -72,6 +79,7 @@ def main():
     p.add_argument('--limit',type=int);p.add_argument('--offset',type=int,default=0);p.add_argument('--retry-failed',action='store_true')
     p.add_argument('--preprocess-module',help='Optional module name or .py path; prepare_screen_image(image, output, evidence=None, perspective=True); receives no truth')
     p.add_argument('--evidence-run',type=Path,help='Verified real context.py output on exactly these inputs and worker source')
+    p.add_argument('--context-source-policy',choices=['exact','recorded'],default='exact',help='recorded explicitly reuses old real context across a new CPU/worker source; keeps both source identities, requires identical inputs/config')
     a=p.parse_args();a.output=fpath(a.output);a.bundle=fpath(a.bundle);a.worker_source=fpath(a.worker_source);a.inputs=fpath(a.inputs)
     if a.offset<0 or a.limit is not None and a.limit<1:raise ValueError('Offset must be nonnegative and limit positive')
     if a.evidence_run and not a.preprocess_module:raise ValueError('Context evidence requires screen preprocessing')
@@ -88,12 +96,13 @@ def main():
         fpath(s['image'])
         if digest(s['image'])!=s['image_sha256']:raise ValueError('Input hash mismatch')
         if Path(s['id']).name!=s['id'] or s['id'] in ('','.','..'):raise ValueError('Unsafe sample ID')
-    preprocess=None;preprocess_file=None;assess=None;map_result=None;normalize=None;verify_context=None;context_binding=None
+    preprocess=None;preprocess_file=None;assess=None;map_result=None;normalize=None;verify_context=None;context_binding=None;selector=None
     if a.preprocess_module:
         if a.preprocess_module.endswith('.py'):
             preprocess_file=fpath(a.preprocess_module);spec=importlib.util.spec_from_file_location('reviewed_screen_preprocess',preprocess_file);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
         else:module=importlib.import_module(a.preprocess_module);preprocess_file=Path(module.__file__)
         preprocess=module.prepare_screen_image
+        selector=getattr(module,'select_screen_first_pass',None)
         assess=importlib.import_module('ocr_workbench.screen_quality').assess_screen_result
         map_result=importlib.import_module('ocr_workbench.screen_quality').map_screen_result_to_source
     binding={'inputs_sha256':digest(a.inputs),'worker_source_sha256':source_hash(a.worker_source),'engine':a.engine,
@@ -105,10 +114,14 @@ def main():
         sys.path.insert(0,str(Path(__file__).resolve().parent))
         from context import verify_context_record
         verify_context=verify_context_record
-        normalize=importlib.import_module('ocr_workbench.screen_evidence').normalize_screen_context
+        normalize=importlib.import_module('ocr_workbench.screen_evidence').normalize_screen_context if a.context_source_policy=='exact' else None
         context_path=a.evidence_run/'binding.json';context_binding=json.loads(context_path.read_text('utf-8'))
-        validate_context_binding(context_binding,binding)
+        validate_context_binding(context_binding,binding,source_policy=a.context_source_policy)
         binding.update(context_binding_sha256=digest(context_path),context_run=str(a.evidence_run))
+        if a.context_source_policy=='recorded':
+            binding.update(context_source_policy='recorded',context_worker_source_sha256=context_binding['worker_source_sha256'],
+                           context_evidence_policy='stored normalized evidence hash verified; new CPU preparation reconciles it independently',
+                           runner_sha256=digest(__file__))
     previous=a.output/'binding.json'
     if previous.exists() and json.loads(previous.read_text('utf-8'))!=binding:raise ValueError('Cannot mix immutable benchmark/model/source identities; select a new output directory')
     if not previous.exists():write(previous,binding)
@@ -139,7 +152,7 @@ def main():
                     record.update(context_sha256=context_record['context_sha256'],context_evidence_sha256=context_record['evidence_sha256'],context_wall_seconds=context_record['wall_seconds'],context_inference_seconds=context_record.get('inference_seconds'),context_model_load_seconds=context_record.get('model_load_seconds'))
                     write(attempt/'consumed-context.json',{'binding':context_binding,'record':context_record,'evidence':evidence})
                 if preprocess:
-                    tick=time.perf_counter();prepared_info=preprocess(prepared,attempt/'preprocess',evidence=evidence,perspective=True);prepared_items=first_pass_images(prepared_info);quality=prepared_info.get('quality');preprocessing_seconds=time.perf_counter()-tick
+                    tick=time.perf_counter();prepared_info=preprocess(prepared,attempt/'preprocess',evidence=evidence,perspective=True);prepared_items=first_pass_images(prepared_info,selector);quality=prepared_info.get('quality');preprocessing_seconds=time.perf_counter()-tick
                     write(attempt/'preprocess.json',prepared_info)
                 if adapter is None:
                     adapter=EngineAdapter(a.bundle,a.engine,a.output/'sessions',worker_source=a.worker_source);tick=time.perf_counter();adapter.load();loads.append({'session_id':adapter.ipc.name,'wall_seconds':time.perf_counter()-tick,'reported_load_seconds':adapter.load_seconds})
