@@ -1,0 +1,17 @@
+{
+  "primary_engine": "hunyuan",
+  "fallback_engines": ["glm"],
+  "max_upgrades": 1,
+  "upgrade_trigger": "failure_only",
+  "require_human_review": true,
+  "mode": "auto",
+  "group_size": 32,
+  "budget_seconds": 360,
+  "request_timeout_seconds": 180,
+  "batch_budget_seconds": 36000,
+  "perspective": true,
+  "layout_evidence": true,
+  "allow_text_fixes": false,
+  "visual_review": false,
+  "strategy_version": "screen-hunyuan-failure-glm-human-v1-20261007"
+}

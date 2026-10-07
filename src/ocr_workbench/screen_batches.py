@@ -45,7 +45,8 @@ def validate_policy(value, defaults=None):
         raise ValueError('批次策略必须是对象')
     permitted = {'primary_engine', 'fallback_engines', 'max_upgrades', 'mode',
                  'group_size', 'budget_seconds', 'request_timeout_seconds', 'perspective', 'allow_text_fixes',
-                 'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds'}
+                 'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds',
+                 'upgrade_trigger', 'require_human_review'}
     if set(value) - permitted:
         raise ValueError('未知的屏拍批次策略参数')
     result = {**(defaults or {}), **value}
@@ -64,6 +65,10 @@ def validate_policy(value, defaults=None):
     result.setdefault('visual_review', False)
     result.setdefault('layout_evidence', False)
     result.setdefault('strategy_version', VERSION + '-provisional')
+    # Missing keys keep pre-existing persisted batches' interpretation. New
+    # measured defaults explicitly opt in through config/screen-policy.json.
+    result.setdefault('upgrade_trigger', 'quality')
+    result.setdefault('require_human_review', False)
     if result['primary_engine'] not in ENGINES:
         raise ValueError('首轮模型必须具备表格结构输出能力')
     choices = result['fallback_engines']
@@ -78,7 +83,9 @@ def validate_policy(value, defaults=None):
             raise ValueError('批次预算或分组大小无效')
     if result['mode'] not in {'auto', 'accuracy'}:
         raise ValueError('未知处理模式')
-    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence'):
+    if not isinstance(result['upgrade_trigger'], str) or result['upgrade_trigger'] not in {'failure_only', 'quality'}:
+        raise ValueError('升级触发条件无效')
+    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence', 'require_human_review'):
         if type(result[key]) is not bool:
             raise ValueError('处理开关必须为布尔值')
     if result['visual_review']:
@@ -193,9 +200,10 @@ class ScreenBatches:
             # Recover the original policy after defaults change for future batches.
             saved_policy = json.loads(previous['policy']) if previous else None
             policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults())
-            if (previous and 'request_timeout_seconds' not in saved_policy
-                    and 'request_timeout_seconds' not in (body.get('policy') or {})):
-                policy.pop('request_timeout_seconds')
+            if previous:
+                for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review'):
+                    if key not in saved_policy and key not in (body.get('policy') or {}):
+                        policy.pop(key)
             signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': None, 'parent_batch_id': parent_batch_id})
             if previous:
                 if previous['payload_hash'] != signature:
@@ -587,24 +595,38 @@ class ScreenBatches:
         raw = selected['selected_result']
         raw.setdefault('screen', {})['selection'] = {key: selected.get(key) for key in
             ('selected_id', 'conflicts', 'modifications', 'automatic_delivery', 'review_required', 'upgrade_kind')}
+        checks_passed = bool(selected.get('automatic_delivery', False))
+        human_required = batch['policy'].get('require_human_review', False) and item['review_state'] != 'accepted'
+        raw['screen']['selection'].update(automatic_checks_passed=checks_passed,
+            human_review_required=human_required)
         chosen_assessment = selected.get('selected_assessment') or next((a for a in selected.get('assessments', []) if a['id'] == selected.get('selected_id')), {})
         issues = list(chosen_assessment.get('issues', []))
         if selected.get('conflicts'):
             issues.extend(selected['conflicts'])
         result_id = self._final_result(batch, item, raw)
-        needs_upgrade = (not selected.get('automatic_delivery', False) or batch['policy']['mode'] == 'accuracy' and item['pass_index'] == 0)
+        legacy_accuracy_pass = ('upgrade_trigger' not in batch['policy']
+            and batch['policy']['mode'] == 'accuracy' and item['pass_index'] == 0)
+        needs_upgrade = (batch['policy'].get('upgrade_trigger', 'quality') == 'quality'
+            and (not checks_passed or legacy_accuracy_pass))
         can_upgrade = (item['pass_index'] < batch['policy']['max_upgrades']
                        and item['pass_index'] < len(batch['policy']['fallback_engines'])
                        and spent < batch['policy']['budget_seconds'])
         if needs_upgrade and can_upgrade:
             state, stage = 'awaiting_upgrade', selected.get('upgrade_kind') or 'accuracy_check'
         else:
-            state = 'completed' if selected.get('automatic_delivery', False) else 'needs_review'
-            stage = 'completed' if state == 'completed' else 'review'
+            state = 'completed' if checks_passed and not human_required else 'needs_review'
+            stage = 'completed' if state == 'completed' else 'quality_review' if not checks_passed else 'human_confirmation'
+            if not checks_passed:
+                issues.append({'code': 'quality_review_required', 'category': 'quality',
+                    'message': '自动质量检查存在问题，请对照原图复核；该状态不代表技术失败'})
+            if human_required:
+                issues.append({'code': 'human_confirmation_required', 'category': 'human_confirmation',
+                    'message': '候选 Excel 尚未经人工确认；自动检查通过不等于已复核通过'})
             if needs_upgrade and not can_upgrade:
                 issues.append({'code': 'upgrade_budget_reached', 'message': '已达到本图升级预算，保留最佳结果待核对'})
         self._update(batch['id'], item['input_version_id'], candidates=encoded(candidates), issues=encoded(issues),
-                     result_id=result_id, result_revision=self.store.result(result_id)['revision'], status=state, stage=stage)
+                     result_id=result_id, result_revision=self.store.result(result_id)['revision'], status=state, stage=stage,
+                     error=None)
         return True
 
     def step(self):
@@ -763,10 +785,10 @@ class ScreenBatches:
                 if any(i['status'] not in TERMINAL for i in items):
                     raise Conflict('请等待指定图片的当前尝试结束')
                 policy = deepcopy(batch['policy'])
-                engines = [policy['primary_engine'], *policy['fallback_engines']]
-                if len(engines) > 1:
-                    policy['primary_engine'], policy['fallback_engines'] = engines[1], [engines[0], *engines[2:]]
-                policy.update(mode='accuracy', max_upgrades=min(2, len(policy['fallback_engines'])))
+                alternatives = [engine for engine in [policy['primary_engine'], *policy['fallback_engines']] if engine != 'glm']
+                policy.update(primary_engine='glm', fallback_engines=alternatives,
+                    mode='accuracy', upgrade_trigger='quality', require_human_review=True,
+                    max_upgrades=min(1, len(alternatives)))
                 receipt = self.submit(project_id, {'version_ids': [i['input_version_id'] for i in items],
                     'request_id': 'upgrade-' + fingerprint([batch_id, request_id])[:64], 'policy': policy}, parent_batch_id=batch_id)
                 with self.store.transaction() as db:
@@ -858,8 +880,13 @@ class ScreenBatches:
                 db.execute('INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id', (item['image_id'], result_id))
             self.store.set_review(item['image_id'], 'confirmed' if state == 'accepted' else 'question',
                                   result_id, result['revision'], item['input_version_id'])
+        issues = json.loads(item['issues'])
+        if state == 'accepted':
+            issues = [issue for issue in issues if issue.get('code') not in {
+                'human_confirmation_required', 'quality_review_required'}]
         self._update(batch['id'], item['input_version_id'], result_id=result_id, result_revision=result['revision'],
-                     review_state=state, status='completed' if state == 'accepted' else 'needs_review', stage='completed' if state == 'accepted' else 'review')
+                     issues=encoded(issues), review_state=state,
+                     status='completed' if state == 'accepted' else 'needs_review', stage='completed' if state == 'accepted' else 'review')
 
     def file(self, project_id, batch_id, version_id, file_id):
         detail = self.detail(project_id, batch_id, version_id)

@@ -61,6 +61,10 @@ class ScreenBatchTests(unittest.TestCase):
         self.project = self.store.project('屏拍批次')['id']
         self.queue = Queue(self.store)
         self.manager = ScreenBatches(self.store, self.queue, self.root, prepare=prepare, select=select)
+        self.measured_defaults = self.manager.defaults
+        # Existing engineering scenarios intentionally exercise the legacy
+        # route. Measured-default tests opt into the real frozen config below.
+        self.manager.defaults = lambda: {}
 
     def tearDown(self):
         self.manager.stop()
@@ -245,6 +249,122 @@ class ScreenBatchTests(unittest.TestCase):
         self.assertNotIn('request_timeout_seconds', self.manager.get(self.project, batch)['policy'])
         with self.assertRaises(Conflict):
             self.submit(versions, request_timeout_seconds=180)
+
+    def test_measured_policy_is_frozen_and_new_flags_are_strict(self):
+        self.manager.defaults = self.measured_defaults
+        version = self.images(1)[0]
+        first = self.manager.submit(self.project, {'version_ids': [version],
+            'request_id': 'measured-default-route', 'policy': {}})
+        policy = first['policy']
+        self.assertEqual(policy, self.measured_defaults())
+        self.assertEqual((policy['primary_engine'], policy['fallback_engines'], policy['max_upgrades']),
+                         ('hunyuan', ['glm'], 1))
+        self.assertEqual((policy['upgrade_trigger'], policy['require_human_review']), ('failure_only', True))
+        self.assertEqual((policy['group_size'], policy['budget_seconds'], policy['request_timeout_seconds'],
+                          policy['batch_budget_seconds']), (32, 360, 180, 36000))
+        self.assertTrue(policy['layout_evidence'] and policy['perspective'])
+        self.assertFalse(policy['allow_text_fixes'] or policy['visual_review'])
+        for invalid in ('always', True, [], None):
+            with self.subTest(trigger=invalid), self.assertRaises(ValueError):
+                validate_policy({'upgrade_trigger': invalid})
+        for invalid in (0, 1, 'true', None):
+            with self.subTest(human=invalid), self.assertRaises(ValueError):
+                validate_policy({'require_human_review': invalid})
+
+    def test_failure_only_does_not_upgrade_a_quality_warning(self):
+        def questionable(candidates, *args, **kwargs):
+            value = select(candidates)
+            value.update(automatic_delivery=False, review_required=True, upgrade_kind='low_quality')
+            value['assessments'][0]['issues'] = [{'code': 'low_quality', 'message': '测试质量问题'}]
+            return value
+        self.manager.select_override = questionable
+        version = self.images(1)[0]
+        batch = self.submit([version], primary_engine='hunyuan', fallback_engines=['glm'], max_upgrades=1,
+            upgrade_trigger='failure_only', require_human_review=True)
+        self.manager.step(); self.finish(); self.manager.step()
+        detail = self.manager.detail(self.project, batch, version)
+        self.assertEqual((detail['status'], detail['stage']), ('needs_review', 'quality_review'))
+        self.assertEqual({issue['category'] for issue in detail['issues'] if 'category' in issue},
+                         {'quality', 'human_confirmation'})
+        self.assertEqual([task['engine'] for task in self.store.rows(
+            'SELECT t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id WHERE s.batch_id=?', (batch,))], ['hunyuan'])
+
+    def test_failure_only_uses_one_glm_fallback_after_a_technical_failure(self):
+        version = self.images(1)[0]
+        batch = self.submit([version], primary_engine='hunyuan', fallback_engines=['glm'], max_upgrades=1,
+            upgrade_trigger='failure_only', require_human_review=True)
+        self.manager.step(); self.finish(failure=True); self.manager.step()
+        self.finish(); self.manager.step()
+        detail = self.manager.detail(self.project, batch, version)
+        self.assertEqual((detail['status'], detail['stage']), ('needs_review', 'human_confirmation'))
+        self.assertIsNone(detail['error'])
+        tasks = self.store.rows('''SELECT t.engine,t.status FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+            WHERE s.batch_id=? ORDER BY s.pass_index''', (batch,))
+        self.assertEqual([(task['engine'], task['status']) for task in tasks], [('hunyuan', 'failed'), ('glm', 'succeeded')])
+        self.assertFalse(detail['human_confirmed'])
+
+    def test_automatic_checks_still_require_explicit_human_confirmation(self):
+        version = self.images(1)[0]
+        batch = self.submit([version], upgrade_trigger='failure_only', require_human_review=True)
+        self.manager.step(); self.finish(); self.manager.step()
+        detail = self.manager.detail(self.project, batch, version)
+        self.assertEqual((detail['status'], detail['stage']), ('needs_review', 'human_confirmation'))
+        self.assertEqual([issue['code'] for issue in detail['issues']], ['human_confirmation_required'])
+        self.assertFalse(detail['human_confirmed'])
+        with self.assertRaises(ValueError):
+            self.manager.export(self.project, batch)
+        _, manifest = self.manager.export(self.project, batch, {'include_pending_review': True})
+        self.assertEqual(manifest['items'][0]['status'], 'needs_review')
+        self.assertFalse(manifest['items'][0]['human_confirmed'])
+        self.manager.action(self.project, batch, {'action': 'review', 'version_ids': [version],
+            'result_id': detail['result_id'], 'expected_revision': detail['result_revision'], 'state': 'accepted'})
+        confirmed = self.manager.detail(self.project, batch, version)
+        self.assertEqual(confirmed['status'], 'completed')
+        self.assertTrue(confirmed['human_confirmed'])
+        self.assertNotIn('human_confirmation_required', [issue['code'] for issue in confirmed['issues']])
+
+    def test_old_persisted_policy_keeps_fingerprint_and_legacy_accuracy_pass(self):
+        versions = self.images(1)
+        body = {'version_ids': versions, 'request_id': 'old-persisted-policy', 'policy': {
+            'primary_engine': 'hunyuan', 'fallback_engines': ['glm'], 'max_upgrades': 1, 'mode': 'accuracy'}}
+        batch = self.manager.submit(self.project, body)['batch_id']
+        with self.store.transaction() as db:
+            previous = json.loads(db.execute('SELECT policy FROM screen_batches WHERE id=?', (batch,)).fetchone()['policy'])
+            for key in ('upgrade_trigger', 'require_human_review'):
+                previous.pop(key)
+            signature = fingerprint({'version_ids': versions, 'policy': previous,
+                'export_options': None, 'parent_batch_id': None})
+            db.execute('UPDATE screen_batches SET policy=?,payload_hash=? WHERE id=?', (json.dumps(previous), signature, batch))
+        self.manager.defaults = self.measured_defaults
+        recovered = self.manager.submit(self.project, body)
+        self.assertEqual(recovered['batch_id'], batch)
+        self.assertEqual(recovered['policy'], previous)
+        self.assertEqual(self.store.rows('SELECT payload_hash FROM screen_batches WHERE id=?', (batch,))[0]['payload_hash'], signature)
+        with self.assertRaises(Conflict):
+            self.manager.submit(self.project, {**body, 'policy': {**body['policy'], 'require_human_review': False}})
+        self.manager.step(); self.finish(); self.manager.step()
+        self.assertEqual([task['engine'] for task in self.store.rows('''SELECT t.engine FROM screen_tasks s
+            JOIN tasks t ON t.id=s.task_id WHERE s.batch_id=? ORDER BY s.pass_index''', (batch,))], ['hunyuan', 'glm'])
+        self.finish(); self.manager.step()
+        self.assertEqual(self.manager.get(self.project, batch)['counts']['completed'], 1)
+
+    def test_precision_subset_explicitly_uses_glm_quality_and_human_review(self):
+        version = self.images(1)[0]
+        parent = self.submit([version], primary_engine='hunyuan', fallback_engines=['glm'], max_upgrades=1,
+            upgrade_trigger='failure_only', require_human_review=True)
+        self.manager.step(); self.finish(); self.manager.step()
+        command = {'action': 'upgrade', 'version_ids': [version], 'request_id': 'manual-glm-precision'}
+        child = self.manager.action(self.project, parent, command)
+        self.assertEqual((child['policy']['primary_engine'], child['policy']['upgrade_trigger'],
+                          child['policy']['require_human_review']), ('glm', 'quality', True))
+        self.assertEqual(child['parent_batch_id'], parent)
+        self.assertEqual(self.manager.action(self.project, parent, command)['batch_id'], child['batch_id'])
+        self.manager.step(); self.finish(); self.manager.step()
+        tasks = self.store.rows('''SELECT t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+            WHERE s.batch_id=? ORDER BY s.pass_index''', (child['batch_id'],))
+        self.assertEqual([task['engine'] for task in tasks], ['glm'])
+        self.assertEqual(self.manager.get(self.project, child['batch_id'])['counts']['needs_review'], 1)
+        self.assertEqual(self.manager.get(self.project, parent)['counts']['needs_review'], 1)
 
     def test_selected_precision_attempt_has_lineage_and_is_idempotent(self):
         versions = self.images(2)
