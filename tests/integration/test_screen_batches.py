@@ -40,7 +40,8 @@ def bridge(tmp_path,monkeypatch,request):
             ids.append(client.post(assets+'/uploads?name=same.png',headers=LOCAL,content=b'image-'+str(index).encode()).json()['asset_id'])
         fixed=client.post(assets+'/sets',headers=LOCAL,json={'asset_ids':ids}).json()
         handoff=app.state.ocr_handoff
-        state={'submitted':False,'posts':0,'status':'running','pending':amount,'fail_once':False,'wrong_image':False,'upgrades':{}}
+        state={'submitted':False,'posts':0,'status':'running','pending':amount,'fail_once':False,'wrong_image':False,'upgrades':{},
+            'defaults':{'primary_engine':'glm','group_size':32,'max_upgrades':1},'policy':None}
         original={'handoff_id':'handoffA','link_id':'linkA','asset_set_id':fixed['asset_set_id'],'asset_set_revision':1}
         imported=[{'item_id':item['item_id'],'asset_id':item['asset_id'],'name':'same.png',
             'target_version_id':'version'+str(index),'target_asset_id':'image'+str(index)} for index,item in enumerate(fixed['items'])]
@@ -57,6 +58,7 @@ def bridge(tmp_path,monkeypatch,request):
                     return {'submitted':state['submitted'],'batch_id':'batchA' if state['submitted'] else None}
                 if method=='POST' and parsed.path.endswith('/screen-batches'):
                     state['posts']+=1;state['submitted']=True
+                    state['policy']={**state['defaults'],**body['policy']};state['specified_policy']=body['policy']
                     assert len(body['version_ids'])==amount
                     if state['fail_once']:
                         state['fail_once']=False
@@ -83,7 +85,8 @@ def bridge(tmp_path,monkeypatch,request):
                 pending=len(positions) if upgraded else state['pending']
                 return {'batch_id':'batchUpgrade' if upgraded else 'batchA','project_id':'projectA','status':'running' if upgraded else state['status'],
                     'counts':{'total':len(positions),'completed':len(positions)-pending-cancelled,'needs_review':0,'failed':0,'cancelled':cancelled,'pending':pending},
-                    'items':selected[offset:offset+limit],'filtered_total':len(selected),'policy':{'primary_engine':'glm'}}
+                    'items':selected[offset:offset+limit],'filtered_total':len(selected),
+                    'policy':{'primary_engine':'hunyuan'} if upgraded else state['policy']}
             def screen_export(self,project_id,batch_id,options):
                 output=io.BytesIO();items=[]
                 with zipfile.ZipFile(output,'w') as archive:
@@ -127,6 +130,23 @@ def test_lost_submit_recovers_original_request_without_new_task(bridge):
     with pytest.raises(OcrUnavailable):service.submit(workspace,args)
     restored=service.submit(workspace,args,allow_new=False)
     assert restored['batch_id']=='batchA' and state['posts']==1
+
+
+@pytest.mark.parametrize('bridge',[4],indirect=True)
+def test_native_defaults_are_resolved_once_and_lost_submit_recovers_after_defaults_change(bridge):
+    _,workspace,fixed,state,service,_=bridge
+    state['fail_once']=True
+    args=ScreenSubmit.model_validate(arguments(fixed))
+    with pytest.raises(OcrUnavailable):service.submit(workspace,args)
+    assert state['specified_policy']=={}
+    state['defaults']={'primary_engine':'hunyuan','group_size':16,'max_upgrades':2}
+    restored=service.submit(workspace,args,allow_new=False)
+    assert restored['policy']=={'primary_engine':'glm','group_size':32,'max_upgrades':1}
+    pinned=restored['resolved_policy_sha256']
+    assert service.submit(workspace,args)['resolved_policy_sha256']==pinned
+    assert state['posts']==1
+    state['policy']['primary_engine']='hunyuan'
+    with pytest.raises(OcrUnavailable):service.status(workspace,'batchA')
 
 
 def test_export_240_unique_workbooks_and_manifest_is_managed(bridge):

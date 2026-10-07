@@ -102,7 +102,10 @@ class ScreenBatches:
                 bundle_id TEXT NOT NULL,PRIMARY KEY(workspace_id,batch_id,payload_hash));
                 CREATE TABLE IF NOT EXISTS screen_batch_subsets(
                 workspace_id TEXT NOT NULL,batch_id TEXT NOT NULL,asset_set_id TEXT NOT NULL,
-                asset_set_revision INTEGER NOT NULL,PRIMARY KEY(workspace_id,batch_id));''')
+                asset_set_revision INTEGER NOT NULL,PRIMARY KEY(workspace_id,batch_id));
+                CREATE TABLE IF NOT EXISTS screen_batch_policy_receipts(
+                workspace_id TEXT NOT NULL,batch_id TEXT NOT NULL,policy_hash TEXT NOT NULL,
+                policy_json TEXT NOT NULL,PRIMARY KEY(workspace_id,batch_id));''')
 
     def _connect(self):
         db = sqlite3.connect(self.path, timeout=30, isolation_level=None)
@@ -138,6 +141,9 @@ class ScreenBatches:
 
     def submit(self, workspace, args: ScreenSubmit, *, allow_new=True):
         body = args.model_dump(mode='json',exclude_none=True)
+        # Native frozen defaults own omitted options. Pydantic display defaults
+        # must not silently override a measured native policy on submission.
+        body['policy']=args.policy.model_dump(mode='json',exclude_unset=True,exclude_none=True)
         identity = hashlib.sha256(_json(body).encode()).hexdigest()
         with self.lock:
             with closing(self._connect()) as db:
@@ -202,9 +208,21 @@ class ScreenBatches:
             items.append({**item, **source})
         if len(items) > limit:
             raise OcrUnavailable()
+        policy=value.get('policy')
+        if not isinstance(policy,dict):raise OcrUnavailable()
+        policy_json=_json(policy);policy_hash=hashlib.sha256(policy_json.encode()).hexdigest()
+        with self.lock,closing(self._connect()) as db:
+            recorded=db.execute('SELECT policy_hash FROM screen_batch_policy_receipts WHERE workspace_id=? AND batch_id=?',
+                (workspace,batch_id)).fetchone()
+            if recorded and recorded['policy_hash']!=policy_hash:
+                raise OcrUnavailable()
+            if recorded is None:
+                db.execute('INSERT INTO screen_batch_policy_receipts VALUES(?,?,?,?)',
+                    (workspace,batch_id,policy_hash,policy_json))
         return {**value, 'items': items, 'filtered_total':value.get('total_items',value.get('filtered_total',counts['total'])), 'workspace_id': workspace, 'link_id': original['link_id'],
             'handoff_id': row['handoff_id'], 'asset_set_id': fixed.asset_set_id,
             'asset_set_revision': fixed.revision, 'offset': offset, 'limit': limit,
+            'resolved_policy_sha256':policy_hash,
             'capabilities': ['resume','cancel'] if value['status'] == 'paused' else
                 ['pause','cancel'] if counts['pending'] else ['retry_failed'] if counts['failed'] else [],
             'stage': value.get('stage', 'screen_batch'), 'progress_done': counts['total']-counts['pending'], 'progress_total': counts['total']}
