@@ -6,6 +6,7 @@ Only ended success/failed records enter quality denominators; failures count.
 """
 import argparse
 from collections import Counter, defaultdict
+from copy import deepcopy
 import hashlib
 import importlib.util
 import json
@@ -36,11 +37,77 @@ def quantile(values, fraction):
     return values[lower]+(values[upper]-values[lower])*(index-lower)
 
 
-def load_module(path):
-    spec = importlib.util.spec_from_file_location('formal_screen_offline_score',fpath(path))
+def load_module(path, name='formal_screen_offline_score'):
+    path=fpath(path)
+    sys.path.insert(0,str(path.parent))
+    spec = importlib.util.spec_from_file_location(name,path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def production_runtime(source_root, tools_root):
+    source_root,tools_root=fpath(source_root),fpath(tools_root)
+    source=source_root/'src'
+    sys.path.insert(0,str(source))
+    evidence=__import__('ocr_workbench.screen_evidence',fromlist=['normalize_screen_context'])
+    quality=__import__('ocr_workbench.screen_quality',fromlist=['assess_screen_result'])
+    imaging=__import__('ocr_workbench.screen_imaging',fromlist=['POLICY_VERSION'])
+    modules=(evidence,quality,imaging)
+    if any(not fpath(module.__file__).is_relative_to(source) for module in modules):
+        raise ValueError('Production replay modules came from another source root')
+    return {'normalize':evidence.normalize_screen_context,'reconcile':evidence.reconcile_screen_evidence,
+        'assess':quality.assess_screen_result,'verify':load_module(tools_root/'context.py','production_context_verifier').verify_context_record,
+        'preparation_policy':imaging.POLICY_VERSION,'quality_policy':quality.POLICY_VERSION,
+        'identity':{'source_root':str(source_root),'files':{Path(module.__file__).name:digest(module.__file__) for module in modules},
+                    'context_verifier_sha256':digest(tools_root/'context.py')}}
+
+
+def replay_production_quality(record, raw, sample, binding, runroot, runtime):
+    """Assess unchanged actual OCR using current evidence and exact saved crops."""
+    runroot=fpath(runroot)
+    context_root=fpath(binding['context_run'])
+    if digest(context_root/'binding.json')!=binding['context_binding_sha256']:
+        raise ValueError('Consumed context binding changed')
+    context_record,context,_=runtime['verify'](context_root/sample['id'],sample,normalize=None)
+    if (record.get('context_sha256')!=context_record['context_sha256']
+            or record.get('context_evidence_sha256')!=context_record['evidence_sha256']):
+        raise ValueError('Consumed context record differs from inference')
+    attempt=fpath(record['output'])
+    if not attempt.is_relative_to(runroot/sample['id']):
+        raise ValueError('Preparation attempt belongs to another run/image')
+    prepared_path=attempt/'preprocess.json'
+    prepared=json.loads(prepared_path.read_text('utf-8'))
+    if (prepared.get('input_sha256')!=sample['image_sha256']
+            or prepared.get('policy_version')!=runtime['preparation_policy']
+            or any(prepared.get(key)!=sample[key] for key in ('width','height'))):
+        raise ValueError('Exact preparation is not the current ROI v2 image/policy')
+    if digest(fpath(sample['image']))!=sample['image_sha256']:
+        raise ValueError('Production replay source image changed')
+    candidates={item['id']:item for item in prepared['prepared_images']}
+    selected=record.get('prepared_images',[])
+    if not selected:
+        raise ValueError('Successful record has no bound inference images')
+    for image in selected:
+        saved=candidates.get(image['id'])
+        if (saved!={key:value for key,value in image.items() if key!='sha256'}
+                or digest(fpath(image['path']))!=image.get('sha256')):
+            raise ValueError('Consumed crop metadata/pixels differ from exact saved preparation')
+    effective=runtime['reconcile'](runtime['normalize'](context),width=prepared['width'],height=prepared['height'])
+    before=deepcopy(raw)
+    quality=runtime['assess'](raw,image_info=prepared,
+        text_evidence={'blocks':effective['text'],'provenance':effective['provenance']})
+    if raw!=before:
+        raise ValueError('Quality replay modified model output')
+    return {'id':sample['id'],'original_record_quality':deepcopy(record.get('quality')),
+        'original_result_quality':deepcopy(raw.get('quality')),'effective_quality':quality,
+        'preparation_manifest':str(prepared_path),'preparation_manifest_sha256':digest(prepared_path),
+        'context_sha256':context_record['context_sha256'],'stored_context_evidence_sha256':context_record['evidence_sha256'],
+        'effective_evidence_sha256':hashlib.sha256(json.dumps(effective,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest(),
+        'effective_evidence_policy':effective.get('policy_version'),'reconciliation_policy':effective.get('region_reconciliation_policy'),
+        'effective_text_counts':dict(Counter(item.get('kind') for item in effective['text'])),
+        'result_sha256':record['result_sha256'],'model_values_unchanged':True,
+        'note':'CPU quality-rule replay only. Exact saved preparation is consumed without creating new crops. Its full manifest hash is captured at replay time; inference-selected metadata/pixels are checked against the original record.'}
 
 
 def performance(records):
@@ -126,7 +193,7 @@ def routing(scored,records,results,score):
         'interpretation':'Any signal only means the image is routed for review; UI warnings do not prove its numeric errors were identified. Local coverage requires actual table/row/column signal correspondence. Numeric differences can include shifted content caused by structure errors; they are not all digit substitutions.'}
 
 
-def report(inputs_path,truth_path,runs,tools_root):
+def report(inputs_path,truth_path,runs,tools_root,*,production_source=None,required_preprocess_sha256=None):
     inputs_path,truth_path = fpath(inputs_path),fpath(truth_path)
     inputs = json.loads(inputs_path.read_text('utf-8'))
     if inputs.get('truth_available_to_inference') is not False:
@@ -136,6 +203,9 @@ def report(inputs_path,truth_path,runs,tools_root):
     if set(samples)!={sample['id'] for sample in truths}:
         raise ValueError('Inputs and offline truth differ')
     score = load_module(fpath(tools_root)/'score.py')
+    runtime=production_runtime(production_source,tools_root) if production_source else None
+    if runtime and not required_preprocess_sha256:
+        raise ValueError('Production v2 replay requires a frozen ROI v2 preprocess hash')
     result = {'scope':'Offline-only ended-record formal dataset-v2 pilot summary; no annotated truth supplied to inference.',
         'created':datetime.now(timezone.utc).isoformat(),'inputs_sha256':digest(inputs_path),'truth_sha256':digest(truth_path),
         'scorer_sha256':digest(fpath(tools_root)/'score.py'),'models':{},
@@ -149,7 +219,10 @@ def report(inputs_path,truth_path,runs,tools_root):
         binding = json.loads(binding_path.read_text('utf-8'))
         if binding['inputs_sha256']!=digest(inputs_path) or binding.get('labels_or_ideal_regions_provided') is not False or not binding.get('first_pass'):
             raise ValueError('Not the frozen formal first-pass run: '+str(runroot))
+        if required_preprocess_sha256 and binding.get('preprocess_module_sha256')!=required_preprocess_sha256:
+            raise ValueError('Cannot mix ROI v1/other preparation with ROI v2 replay: '+str(runroot))
         scored,records,results,identities = [],[],{},[]
+        replay_rows,replay_records=[],[]
         progress = Counter(total=len(truths))
         for truth in truths:
             folder = runroot/truth['id']
@@ -172,6 +245,7 @@ def report(inputs_path,truth_path,runs,tools_root):
                 if hashlib.sha256(raw_bytes).hexdigest()!=record['result_sha256']:
                     raise ValueError('Completed result changed: '+truth['id'])
                 raw = json.loads(raw_bytes)
+            source_raw=raw
             if record.get('quality') is not None:
                 raw = {**raw,'quality':record['quality']}
             rowscore = score.score_sample(truth,raw,record['status'])
@@ -179,6 +253,12 @@ def report(inputs_path,truth_path,runs,tools_root):
             scored.append(rowscore)
             records.append(record)
             results[truth['id']] = raw
+            if runtime and record['status']=='success':
+                replay=replay_production_quality(record,source_raw,samples[truth['id']],binding,runroot,runtime)
+                replay_rows.append(replay)
+                replay_records.append({**record,'quality':replay['effective_quality']})
+            else:
+                replay_records.append(record)
             identities.append({'id':truth['id'],'record_sha256':hashlib.sha256(record_bytes).hexdigest(),
                                'result_sha256':record.get('result_sha256'),'status':record['status']})
         groups = {field:{str(key):{'quality':score.summarize([row for row in scored if row[field]==key]),
@@ -188,11 +268,23 @@ def report(inputs_path,truth_path,runs,tools_root):
             'performance':performance([record for row,record in zip(scored,records) if row['cohort']==cohort and row['level']==level])}
             for cohort,level in sorted({(row['cohort'],row['level']) for row in scored})}
         route = routing(scored,records,results,score)
+        replay_route=routing(scored,replay_records,results,score) if runtime else None
         for row in scored:
             del row['_expected_tables']
         result['models'][label] = {'run':str(runroot),'binding':binding,'binding_sha256':digest(binding_path),
             'progress':dict(progress),'is_final':progress['completed']==len(truths),'quality':score.summarize(scored),
             'performance':performance(records),'stratified':groups,'cohort_level':cross,'routing':route,'record_identities':identities}
+        if runtime:
+            result['models'][label]['production_v2_quality_replay']={
+                'scope':'生产 v2 质量规则 CPU 回放；原始 quality 与 OCR 内容不覆盖，不产生新推理准确率。',
+                'source':runtime['identity'],'required_preprocess_sha256':required_preprocess_sha256,
+                'preparation_policy':runtime['preparation_policy'],'quality_policy':runtime['quality_policy'],
+                'successes_replayed':len(replay_rows),'failed_records_not_replayed':progress.get('failed',0),
+                'routing':replay_route,'rows':replay_rows,'ocr_metrics_unchanged':True,
+                'delivery_transitions':dict(Counter(
+                    ('auto' if row['original_record_quality'].get('automatic_delivery') else 'review')+'→'+
+                    ('auto' if row['effective_quality'].get('automatic_delivery') else 'review')
+                    for row in replay_rows if isinstance(row['original_record_quality'],dict)))}
     return result
 
 
@@ -222,6 +314,18 @@ def markdown(data):
         lines.append(f"- {label}：{c.get('error_images',0)} 张错误图中，{c.get('error_images_routed_by_any_signal',0)} 张有任意提示；关键错误图分流召回 {percent(r['critical_error_image_any_signal_recall'])}。{c.get('critical_error_cells',0)} 个关键字段错误中，{c.get('critical_error_cells_with_local_signal',0)} 个有局部标记；{c.get('numeric_value_difference_cells_without_local_signal',0)} 个数字串差异没有对应局部标记。自动交付 {c.get('automatic_images',0)} 张，错误 {c.get('automatic_error_images',0)} 张，其中关键错误 {c.get('automatic_critical_error_images',0)} 张。")
         for example in route['examples']['automatic_errors'][:3]:
             lines.append(f"  - 自动错误示例：{example['id']}；关键错误={example['critical']}；{json.dumps(example['errors'],ensure_ascii=False)}")
+    if any(model.get('production_v2_quality_replay') for model in data['models'].values()):
+        lines += ['','## 生产 v2 质量规则回放','',
+            '对实际 ROI v2 结果，使用当前 normalize/reconcile 从已冻结真实上下文重建有效证据，读取同次推理保存的完整预处理信息与选中裁剪，不重跑模型、不改数字、文字、结构或原 quality。上面的 OCR 内容成绩仍按原始实际结果计算。','',
+            '|模型|成功结果回放数|错误图有任意提示|关键错误图有提示|关键错误格局部标记|自动交付/错误/关键错误|',
+            '|---|---:|---:|---:|---:|---:|']
+        for label,model in data['models'].items():
+            replay=model.get('production_v2_quality_replay')
+            if not replay:
+                continue
+            c=replay['routing']['counts']
+            lines.append(f"|{label}|{replay['successes_replayed']}|{c.get('error_images_routed_by_any_signal',0)}/{c.get('error_images',0)}|{c.get('critical_error_images_routed_by_any_signal',0)}/{c.get('critical_error_images',0)}|{c.get('critical_error_cells_with_local_signal',0)}/{c.get('critical_error_cells',0)}|{c.get('automatic_images',0)}/{c.get('automatic_error_images',0)}/{c.get('automatic_critical_error_images',0)}|")
+        lines += ['','回放使用的完整预处理 manifest 哈希在回放时采集；选中裁剪的原始元数据和像素哈希与推理记录逐项校验。失败记录留在 OCR 质量分母，不调用质量回放。来源版本、原始与回放 quality、逐图状态变化均保存在 JSON 中。']
     lines += ['','数字串差异中可能包含结构错位导致的差异，不能全部称为单个字符误识别。完整样本身份、信号分布及少量逐格示例保存在同名 JSON 中。当前结果属于屏拍模拟试验，不是实际手机照片的泛化准确率。','']
     return '\n'.join(lines)
 
@@ -233,12 +337,15 @@ def main():
     parser.add_argument('--run',action='append',required=True,help='label=F:/formal/run')
     parser.add_argument('--benchmark-tools',type=Path,default=Path('F:/OCR/scripts/screen_benchmark'))
     parser.add_argument('--output',type=Path,required=True,help='New .json path; sibling .md also written')
+    parser.add_argument('--production-quality-source',type=Path,help='Current F-drive source root for CPU production v2 quality replay')
+    parser.add_argument('--required-preprocess-sha256',help='Frozen ROI v2 preprocess identity; rejects any ROI v1/other run')
     args=parser.parse_args()
     output=fpath(args.output)
     if output.exists() or output.with_suffix('.md').exists():
         raise ValueError('Preserve old evidence; select a new report filename')
     runs=dict(value.split('=',1) for value in args.run)
-    data=report(args.inputs,args.truth,runs,args.benchmark_tools)
+    data=report(args.inputs,args.truth,runs,args.benchmark_tools,
+        production_source=args.production_quality_source,required_preprocess_sha256=args.required_preprocess_sha256)
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n','utf-8')
     output.with_suffix('.md').write_text(markdown(data),'utf-8')
