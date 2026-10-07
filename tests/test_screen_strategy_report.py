@@ -91,6 +91,7 @@ class ScreenStrategyReportTests(unittest.TestCase):
         route = report['strategies']['primary→secondary']
         self.assertEqual(route['counts']['secondary_failed_attempts'], 1)
         self.assertEqual(route['conditional_observed_cost']['extra_secondary_inference_timing_unknown_attempts'], 1)
+        self.assertIn('0.00（1）', self.driver['markdown'](report))
 
     def test_selection_receives_only_observed_native_arguments_and_report_scores_are_removed(self):
         class ForbiddenScore:

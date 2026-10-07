@@ -28,7 +28,8 @@ RECOVERY_BINDINGS = (
 PAIRED_BINDINGS = (
     'inputs_sha256', 'preprocess_module_sha256', 'context_binding_sha256',
     'context_run', 'context_source_policy', 'context_worker_source_sha256',
-    'runner_sha256', 'bundle', 'labels_or_ideal_regions_provided',
+    'runner_sha256', 'worker_source_sha256', 'request_timeout_seconds',
+    'bundle', 'labels_or_ideal_regions_provided',
 )
 FRAME_FIELDS = ('policy_version', 'input_sha256', 'width', 'height',
                 'coordinate_space', 'quality', 'business_regions',
@@ -364,12 +365,13 @@ def write_new(path, value):
 def markdown(data):
     lines = ['# 固定质量触发策略离线对比', '',
         '选择回执先于真值读取落盘；仅使用实际原生质量信号，最多一次升级，不自动改任何识别文字或数字。未选择默认策略。', '',
-        '|策略|整图正确|关键字段精确|升级次数|新增关键错误格|自动交付/错误/关键错误|额外OCR秒|',
+        '|策略|整图正确|关键字段精确|升级次数|新增关键错误格|自动交付/错误/关键错误|额外OCR秒（未知耗时次数）|',
         '|---|---:|---:|---:|---:|---:|---:|']
     for name, row in data['strategies'].items():
         q = row['quality']; ratios = q['ratios']; counts = q['totals']
         delta = row.get('change_vs_primary', {}).get('counts', {})
-        lines.append(f"|{name}|{ratios['whole_image_correct_rate']:.2%}|{ratios['critical_exact_rate']:.2%}|{row['counts'].get('upgrades_attempted', 0)}|{delta.get('new_critical_error_cells', 0)}|{counts.get('automatic_delivered_images', 0)}/{counts.get('automatic_error_images', 0)}/{counts.get('automatic_critical_error_images', 0)}|{row['conditional_observed_cost'].get('extra_secondary_known_inference_seconds', 0):.2f}|")
+        timing = row['conditional_observed_cost']
+        lines.append(f"|{name}|{ratios['whole_image_correct_rate']:.2%}|{ratios['critical_exact_rate']:.2%}|{row['counts'].get('upgrades_attempted', 0)}|{delta.get('new_critical_error_cells', 0)}|{counts.get('automatic_delivered_images', 0)}/{counts.get('automatic_error_images', 0)}/{counts.get('automatic_critical_error_images', 0)}|{timing.get('extra_secondary_known_inference_seconds', 0):.2f}（{timing.get('extra_secondary_inference_timing_unknown_attempts', 0)}）|")
     lines += ['', '耗时是质量触发后实际已有识别记录的条件求和，不是已实测的连续策略批次墙钟；冷加载、缺输入恢复及失败未知耗时均单列。', '']
     return '\n'.join(lines)
 
