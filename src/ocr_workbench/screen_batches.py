@@ -44,7 +44,7 @@ def validate_policy(value, defaults=None):
     if not isinstance(value, dict):
         raise ValueError('批次策略必须是对象')
     permitted = {'primary_engine', 'fallback_engines', 'max_upgrades', 'mode',
-                 'group_size', 'budget_seconds', 'perspective', 'allow_text_fixes',
+                 'group_size', 'budget_seconds', 'request_timeout_seconds', 'perspective', 'allow_text_fixes',
                  'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds'}
     if set(value) - permitted:
         raise ValueError('未知的屏拍批次策略参数')
@@ -57,6 +57,7 @@ def validate_policy(value, defaults=None):
     result.setdefault('mode', 'auto')
     result.setdefault('group_size', 32)
     result.setdefault('budget_seconds', 300)
+    result.setdefault('request_timeout_seconds', 180)
     result.setdefault('batch_budget_seconds', 36000)
     result.setdefault('perspective', True)
     result.setdefault('allow_text_fixes', False)
@@ -71,7 +72,8 @@ def validate_policy(value, defaults=None):
         raise ValueError('升级模型清单无效')
     result['fallback_engines'] = [x for x in choices if x != result['primary_engine']]
     for key, lower, upper in [('max_upgrades', 0, 2), ('group_size', 1, 64),
-                              ('budget_seconds', 10, 1800), ('batch_budget_seconds', 10, 864000)]:
+                              ('budget_seconds', 10, 1800), ('request_timeout_seconds', 10, 900),
+                              ('batch_budget_seconds', 10, 864000)]:
         if type(result[key]) is not int or not lower <= result[key] <= upper:
             raise ValueError('批次预算或分组大小无效')
     if result['mode'] not in {'auto', 'accuracy'}:
@@ -189,7 +191,11 @@ class ScreenBatches:
             db.execute('BEGIN IMMEDIATE')
             previous = db.execute('SELECT * FROM screen_batches WHERE project_id=? AND request_id=?', (project_id, request_id)).fetchone()
             # Recover the original policy after defaults change for future batches.
-            policy = validate_policy(body.get('policy'), json.loads(previous['policy']) if previous else self.defaults())
+            saved_policy = json.loads(previous['policy']) if previous else None
+            policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults())
+            if (previous and 'request_timeout_seconds' not in saved_policy
+                    and 'request_timeout_seconds' not in (body.get('policy') or {})):
+                policy.pop('request_timeout_seconds')
             signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': None, 'parent_batch_id': parent_batch_id})
             if previous:
                 if previous['payload_hash'] != signature:
@@ -437,6 +443,7 @@ class ScreenBatches:
                                 'prepared_pixel_sha256':pixel_hash,
                                 'strategy_version': batch['policy']['strategy_version'],
                                 'timeout_seconds': batch['policy']['budget_seconds'],
+                                'request_timeout_seconds': batch['policy'].get('request_timeout_seconds', 900),
                                 'attempt': item['attempt'],
                                 'cache_key': fingerprint([pixel_hash,
                                                           engine, self.model_identity, batch['policy']['strategy_version']])}

@@ -13,7 +13,7 @@ from PIL import Image
 from openpyxl import load_workbook
 
 from ocr_workbench.imaging import add_image
-from ocr_workbench.screen_batches import ScreenBatches, validate_policy
+from ocr_workbench.screen_batches import ScreenBatches, fingerprint, validate_policy
 from ocr_workbench.store import Conflict, Store
 
 
@@ -217,6 +217,34 @@ class ScreenBatchTests(unittest.TestCase):
         batch = self.submit(self.images(1))
         with self.assertRaises(ValueError):
             self.manager.export(self.project, batch)
+
+    def test_request_timeout_is_strict_and_frozen_in_new_batch(self):
+        for value in [True, False, 9, 901, 180.0, '180']:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                validate_policy({'request_timeout_seconds': value})
+        self.assertEqual(validate_policy({})['request_timeout_seconds'], 180)
+        for value in (10, 900):
+            self.assertEqual(validate_policy({'request_timeout_seconds': value})['request_timeout_seconds'], value)
+        batch = self.submit(self.images(1))
+        self.assertEqual(self.manager.get(self.project, batch)['policy']['request_timeout_seconds'], 180)
+        self.manager.step()
+        metadata = json.loads(self.store.rows('SELECT metadata FROM screen_tasks')[0]['metadata'])
+        self.assertEqual(metadata['request_timeout_seconds'], 180)
+
+    def test_pre_cap_submission_recovers_original_frozen_policy(self):
+        versions = self.images(1)
+        batch = self.submit(versions)
+        with self.store.transaction() as db:
+            policy = json.loads(db.execute('SELECT policy FROM screen_batches WHERE id=?', (batch,)).fetchone()['policy'])
+            policy.pop('request_timeout_seconds')
+            signature = fingerprint({'version_ids': versions, 'policy': policy,
+                                     'export_options': None, 'parent_batch_id': None})
+            db.execute('UPDATE screen_batches SET policy=?,payload_hash=? WHERE id=?',
+                       (json.dumps(policy), signature, batch))
+        self.assertEqual(self.submit(versions), batch)
+        self.assertNotIn('request_timeout_seconds', self.manager.get(self.project, batch)['policy'])
+        with self.assertRaises(Conflict):
+            self.submit(versions, request_timeout_seconds=180)
 
     def test_selected_precision_attempt_has_lineage_and_is_idempotent(self):
         versions = self.images(2)

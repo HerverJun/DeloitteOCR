@@ -178,7 +178,7 @@ class TaskQueue:
         self.wake.set()
         return self.status()
 
-    def _screen_budget_remaining(self, task):
+    def _screen_budget_remaining(self, task, *, for_request=False):
         import json
         rows = self.store.rows('''SELECT s.batch_id,s.input_version_id,s.attempt,b.policy,b.deadline,i.preparation
             FROM screen_tasks s JOIN screen_batches b ON b.id=s.batch_id
@@ -193,12 +193,17 @@ class TaskQueue:
             return None
         from ocr_workbench.screen_batches import screen_seconds_spent
         row = rows[0]
-        remaining = json.loads(row['policy'])['budget_seconds'] - screen_seconds_spent(
+        policy = json.loads(row['policy'])
+        remaining = policy['budget_seconds'] - screen_seconds_spent(
             self.store, row['batch_id'], row['input_version_id'], row['attempt'])
         if row['attempt'] == 0 and row['preparation']:
             remaining -= json.loads(row['preparation']).get('preparation_seconds', 0)
         if row['deadline']:
             remaining = min(remaining, row['deadline'] - time.time())
+        if for_request:
+            # Keep pre-cap persisted policies unchanged. New batches freeze their
+            # explicit per-call cap, separately from the whole-image budget.
+            remaining = min(remaining, policy.get('request_timeout_seconds', 900))
         return remaining
 
     def step(self):
@@ -322,7 +327,7 @@ class TaskQueue:
                 input_image = self.store.file(screen_input[0]['prepared_path'])
                 screen_metadata = json.loads(screen_input[0]['metadata'])
             if hasattr(self.adapter, 'recognition_timeout'):
-                remaining = self._screen_budget_remaining(task)
+                remaining = self._screen_budget_remaining(task, for_request=True)
                 if remaining is not None:
                     if remaining <= 0:
                         raise TimeoutError('本图处理预算已用尽，保留已生成结果待复核')

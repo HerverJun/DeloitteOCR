@@ -248,6 +248,51 @@ class ScreenQueueTests(unittest.TestCase):
         self.assertGreaterEqual(self.calls[0]['timeout'],1)
         self.assertLessEqual(self.calls[0]['timeout'],4)
 
+    def test_each_context_and_ocr_call_uses_frozen_request_timeout(self):
+        version = self.images()[0]
+        self.submit([version], budget_seconds=600, request_timeout_seconds=17)
+        self.drain()
+        self.assertEqual([call['engine'] for call in self.calls], ['geometry', 'glm'])
+        self.assertEqual([call['timeout'] for call in self.calls], [17, 17])
+
+    def test_new_batch_default_request_timeout_is_180(self):
+        version = self.images()[0]
+        self.submit([version], budget_seconds=600)
+        self.drain()
+        self.assertEqual([call['timeout'] for call in self.calls], [180, 180])
+
+    def test_request_cap_does_not_reset_remaining_image_budget(self):
+        version = self.images()[0]
+        self.submit([version], budget_seconds=20, request_timeout_seconds=17)
+        self.load_cost = 8
+        self.manager.step()
+        self.queue.step()
+        self.assertGreaterEqual(self.calls[0]['timeout'], 1)
+        self.assertLessEqual(self.calls[0]['timeout'], 12)
+
+    def test_ordinary_ocr_keeps_900_after_a_capped_screen_call(self):
+        version = self.images()[0]
+        self.submit([version], layout_evidence=False, budget_seconds=600, request_timeout_seconds=17)
+        self.manager.step()
+        self.queue.step()
+        self.store.enqueue(self.project, [version], ['glm'])
+        self.queue.step()
+        self.assertEqual([call['timeout'] for call in self.calls], [17, 900])
+
+    def test_pre_cap_persisted_policy_keeps_original_request_behavior(self):
+        version = self.images()[0]
+        batch = self.submit([version], layout_evidence=False, budget_seconds=600)
+        with self.store.transaction() as db:
+            policy = json.loads(db.execute('SELECT policy FROM screen_batches WHERE id=?', (batch,)).fetchone()['policy'])
+            policy.pop('request_timeout_seconds')
+            db.execute('UPDATE screen_batches SET policy=? WHERE id=?', (json.dumps(policy), batch))
+        self.manager.step()
+        self.queue.step()
+        self.assertGreater(self.calls[0]['timeout'], 180)
+        self.assertLessEqual(self.calls[0]['timeout'], 600)
+        metadata = json.loads(self.store.rows('SELECT metadata FROM screen_tasks')[0]['metadata'])
+        self.assertEqual(metadata['request_timeout_seconds'], 900)
+
     def test_expired_budget_after_context_cold_load_never_dispatches_inference(self):
         version = self.images()[0]
         self.submit([version],budget_seconds=10)
