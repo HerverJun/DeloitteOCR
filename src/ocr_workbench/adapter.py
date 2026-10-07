@@ -144,6 +144,11 @@ class EngineAdapter:
             if path.exists():
                 return read_json(path)
             if self.process is None or self.process.poll() is not None:
+                # Cancellation can arrive after the loop's first event check
+                # while the owned process exits. Preserve cancellation rather
+                # than report that shutdown as a model failure.
+                if self.cancelled.is_set():
+                    raise Cancelled("任务已取消")
                 raise RuntimeError(f'引擎异常退出，请查看 {self.ipc / "engine.log"}')
             self.cancelled.wait(0.05)
         raise TimeoutError("识别超时，请缩小图片或换用其他引擎")
