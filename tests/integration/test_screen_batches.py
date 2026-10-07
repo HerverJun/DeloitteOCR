@@ -67,7 +67,8 @@ def bridge(tmp_path,monkeypatch,request):
                 if method=='POST':
                     if body['action']=='upgrade':
                         state['upgrades'].setdefault(body['request_id'],body['version_ids'])
-                        return {'batch_id':'batchUpgrade','parent_batch_id':'batchA','policy':{'primary_engine':'hunyuan'}}
+                        return {'batch_id':'batchUpgrade','parent_batch_id':'batchA',
+                            'policy':{'primary_engine':'glm','upgrade_trigger':'quality','require_human_review':True}}
                     state['status']='paused' if body['action']=='pause' else 'cancelled' if body['action']=='cancel' else 'running'
                     if body['action']=='cancel':state['pending']=0
                 query=parse_qs(parsed.query);offset=int(query.get('offset',['0'])[0]);limit=int(query.get('limit',['30'])[0])
@@ -86,7 +87,7 @@ def bridge(tmp_path,monkeypatch,request):
                 return {'batch_id':'batchUpgrade' if upgraded else 'batchA','project_id':'projectA','status':'running' if upgraded else state['status'],
                     'counts':{'total':len(positions),'completed':len(positions)-pending-cancelled,'needs_review':0,'failed':0,'cancelled':cancelled,'pending':pending},
                     'items':selected[offset:offset+limit],'filtered_total':len(selected),
-                    'policy':{'primary_engine':'hunyuan'} if upgraded else state['policy']}
+                    'policy':{'primary_engine':'glm','upgrade_trigger':'quality','require_human_review':True} if upgraded else state['policy']}
             def screen_export(self,project_id,batch_id,options):
                 output=io.BytesIO();items=[]
                 with zipfile.ZipFile(output,'w') as archive:
@@ -157,14 +158,21 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
     assert properties['group_size']['minimum']==1 and properties['max_upgrades']['maximum']==2
     client,workspace,fixed,state,_,_=bridge
     body=arguments(fixed)
-    body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None,'request_timeout_seconds':180}
+    body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None,'request_timeout_seconds':180,
+        'upgrade_trigger':'failure_only','require_human_review':True}
     response=client.post(f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches',headers=LOCAL,json=body)
     assert response.status_code==201,response.text
-    assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180}
-    assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180}
+    assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
+        'upgrade_trigger':'failure_only','require_human_review':True}
+    assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
+        'upgrade_trigger':'failure_only','require_human_review':True}
     from workbench_platform.jobs.screen_batches import ScreenPolicy
     for invalid in (True,'180',9,901):
         with pytest.raises(ValueError):ScreenPolicy(request_timeout_seconds=invalid)
+    for invalid in ('always',True):
+        with pytest.raises(ValueError):ScreenPolicy(upgrade_trigger=invalid)
+    for invalid in (0,1,'true'):
+        with pytest.raises(ValueError):ScreenPolicy(require_human_review=invalid)
 
 
 def test_export_240_unique_workbooks_and_manifest_is_managed(bridge):
@@ -210,6 +218,7 @@ def test_upgrade_preserves_original_and_fixes_a_derived_input_subset(bridge):
     assert upgraded.status_code==200,upgraded.text
     value=upgraded.json()
     assert value['batch_id']=='batchUpgrade' and value['counts']['total']==2
+    assert value['policy']=={'primary_engine':'glm','upgrade_trigger':'quality','require_human_review':True}
     assert value['asset_set_id']!=fixed['asset_set_id']
     derived=service.fixed(workspace,service._row(workspace,'batchUpgrade'))
     assert len(derived.items)==2

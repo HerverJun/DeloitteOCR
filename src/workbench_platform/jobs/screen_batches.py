@@ -49,6 +49,8 @@ class ScreenPolicy(AgentModel):
     budget_seconds: int | None = Field(default=None, ge=10, le=1800)
     request_timeout_seconds: int | None = Field(default=None, strict=True, ge=10, le=900)
     layout_evidence: bool | None = None
+    upgrade_trigger: Literal['failure_only', 'quality'] | None = None
+    require_human_review: bool | None = Field(default=None, strict=True)
 
 
 class ScreenSubmit(AgentModel):
