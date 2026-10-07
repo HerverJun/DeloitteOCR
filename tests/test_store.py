@@ -12,6 +12,14 @@ from ocr_workbench.imaging import add_image
 from PIL import Image
 
 
+def drop_post_v15_tables(db):
+    # Build a real legacy schema rather than retaining later-version tables.
+    for table in ('screen_cache', 'screen_contexts', 'screen_actions',
+                  'screen_final_tasks', 'screen_tasks', 'screen_items',
+                  'screen_batches', 'platform_page_requests'):
+        db.execute('DROP TABLE IF EXISTS ' + table)
+
+
 class StoreTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -148,6 +156,7 @@ class StoreTests(unittest.TestCase):
         self.store.save(key, {"text": "old second", "tables": []}, 1)
         self.store.history(key, -1, 2)
         with self.store.transaction() as db:
+            drop_post_v15_tables(db)
             for name in ("result_revision_initial", "result_revision_guard", "result_revision_snapshot",
                          "result_revision_immutable", "platform_adoption_immutable"):
                 db.execute("DROP TRIGGER " + name)
@@ -320,6 +329,7 @@ class StoreTests(unittest.TestCase):
         key = self.completed()
         self.store.save(key, {"text": "旧版人工校对", "tables": []}, 0)
         with self.store.transaction() as db:
+            drop_post_v15_tables(db)
             for row in db.execute(
                 "SELECT name FROM sqlite_master WHERE type='trigger'"
             ).fetchall():

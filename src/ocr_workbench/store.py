@@ -14,7 +14,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 17
+SCHEMA_VERSION = 18
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -263,6 +263,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 request_id TEXT NOT NULL,payload_hash TEXT NOT NULL,body TEXT NOT NULL,
                 stage_ids TEXT NOT NULL,owned_stage_ids TEXT NOT NULL,created TEXT NOT NULL,
                 PRIMARY KEY(document_id,request_id))''')
+        elif version == 18:
+            from ocr_workbench.screen_schema import migrate_screen_schema
+            migrate_screen_schema(db)
 
     @staticmethod
     def _revision_triggers(db, table):
