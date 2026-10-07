@@ -1,0 +1,385 @@
+{
+  "format": "clear-platform-convergence-plan-v1",
+  "date": "2026-10-05",
+  "revision": 15,
+  "status": "complete",
+  "plan": "平台收束开发计划-20261005.md",
+  "status_authority": "本文件是本轮唯一动态任务状态来源；实施目录不另建并行进度state.json",
+  "baseline": {
+    "product_version": "0.7.0",
+    "source_root": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+    "candidate": "F:/OCR/output/agent-streaming-ux-dev-20261005/candidate-final",
+    "shared_program": "F:/OCR/output/clear-automation-dev-20261002/program",
+    "user_data": "F:/OCR/output/ai-audit-product-dev-20261004/workspace",
+    "preview_url": "http://127.0.0.1:8879/",
+    "recapture_on_implementation": true
+  },
+  "planned_run_root": "F:/OCR/output/platform-convergence-dev-20261005",
+  "planned_product_entry_root": "F:/OCR/release/Clear",
+  "default_execution_order": [
+    "SC01",
+    "SC02",
+    "SC03",
+    "SC04",
+    "SC05",
+    "SC06",
+    "SC07",
+    "SC08"
+  ],
+  "scope_freeze": [
+    "不新增业务模块、Agent框架或通用workflow/审批引擎",
+    "不删除四类专业能力、手动操作或按需工具发现",
+    "不复制或搬迁共享模型和运行时",
+    "本轮不做事件双轨迁移、兼容接口退役或全量业务表合并",
+    "不自动调用保存的远程模型连接或重放用户旧聊天"
+  ],
+  "tasks": [
+    {
+      "id": "SC01",
+      "phase": "A",
+      "priority": "P0",
+      "status": "complete",
+      "title": "三主导航与项目内组织",
+      "owner": "门户；共享导航由主执行者集成",
+      "depends_on": [],
+      "paths": [
+        "apps/portal/src/App.tsx",
+        "apps/portal/src/router.tsx",
+        "apps/portal/src/features/agent/ProjectHome.tsx",
+        "apps/portal/src/features/assets",
+        "apps/portal/src/features/artifacts",
+        "apps/portal/src/features/audit"
+      ],
+      "deliverables": [
+        "三个主导航",
+        "项目内资料/发现/成果入口",
+        "旧路由归属与返回链接映射"
+      ],
+      "acceptance": [
+        "主导航为智能审计、审计项目、手动工具；设置为次级入口",
+        "原资料、发现、成果、正式档案、待办、批次和作业页面及操作仍可达",
+        "旧深链接保留workspace/session/bundle/task_return及来源版本",
+        "项目归集视图不自动扩大当前任务授权范围"
+      ],
+      "checks": [
+        "CC01"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\portal-final-receipt.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\browser\\browser-convergence-attempt-05.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\tests-test_manual_related-test_routes.json"
+      ]
+    },
+    {
+      "id": "SC02",
+      "phase": "A",
+      "priority": "P0",
+      "status": "complete",
+      "title": "首页操作与高级项后置",
+      "owner": "门户；技能只读目录接口按需由后端配合",
+      "depends_on": [
+        "SC01"
+      ],
+      "paths": [
+        "apps/portal/src/features/agent/AgentWorkbench.tsx",
+        "apps/portal/src/features/agent/TaskPanel.tsx",
+        "apps/portal/src/features/agent/SkillsPanel.tsx",
+        "apps/portal/src/features/agent/ControllerSettings.tsx",
+        "apps/portal/src/features/agent/agent.css",
+        "src/workbench_platform/agent/skills_routes.py"
+      ],
+      "deliverables": [
+        "唯一项目选择与主要发送动作",
+        "可折叠任务详情",
+        "技能/连接高级项后置",
+        "无项目技能浏览不写业务对象"
+      ],
+      "acceptance": [
+        "目标输入、添加资料、发送可直接开始；草稿自动保存和次级保存目标保留",
+        "首页不重复项目选择；空计划/空成果不占默认空间",
+        "浏览技能或设置不创建空项目；自动和用户指定技能仍有效",
+        "跨任务草稿与阅读位置、发送幂等和未知回包恢复保持",
+        "真实错误/超限/来源更新可见，高级参数与诊断可展开"
+      ],
+      "checks": [
+        "CC02"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\tests-test_manual_related-test_routes.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\portal-final-receipt.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\browser\\browser-convergence-attempt-05.json"
+      ]
+    },
+    {
+      "id": "SC03",
+      "phase": "A",
+      "priority": "P0",
+      "status": "complete",
+      "title": "人工接管与带回路径统一",
+      "owner": "门户；复用现有手动应用服务",
+      "depends_on": [
+        "SC01",
+        "SC02"
+      ],
+      "paths": [
+        "apps/portal/src/features/agent/TaskPanel.tsx",
+        "apps/portal/src/features/agent/ManualReturn.tsx",
+        "apps/portal/src/features/catalog",
+        "apps/portal/src/features/start",
+        "src/workbench_platform/application_services/manual.py"
+      ],
+      "deliverables": [
+        "统一手动工具目录",
+        "唯一任务接管入口",
+        "当前任务相关成果优先的带回视图"
+      ],
+      "acceptance": [
+        "数据/OCR/分类/取证均可接管、保存、选择成果带回同一任务",
+        "独立导入原生结果入口仍存在，推荐结果不等于自动采用",
+        "用户明确选择结果/版本并确认新增资料范围；固定来源和回执保留",
+        "取消带回不自动恢复Agent，浏览结果不隐式接管",
+        "已启动原生任务与不可读/未知回包状态据实展示"
+      ],
+      "checks": [
+        "CC03"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\tests-test_manual_related-test_routes.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\portal-final-receipt.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\browser\\browser-convergence-attempt-05.json"
+      ]
+    },
+    {
+      "id": "SC04",
+      "phase": "B",
+      "priority": "P1",
+      "status": "complete",
+      "title": "集中取消与接管事务操作",
+      "owner": "Agent后端；store/runtime/tasks由主执行者集成",
+      "depends_on": [],
+      "paths": [
+        "src/workbench_platform/agent/store.py",
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/tasks.py"
+      ],
+      "deliverables": [
+        "支持调用方现有事务的取消操作",
+        "两入口取消/接管语义一致"
+      ],
+      "acceptance": [
+        "runtime与任务控制不再各自维护重复取消SQL",
+        "接管manual/scope/revision/generation保持原子更新，冲突完整回滚",
+        "重复取消不反复增加代际；已完成run不变为stopped",
+        "停止后的迟到模型回复和原生settle不能提交或恢复任务",
+        "默认接管保留原生job和成果；原生取消按实际能力另行表达"
+      ],
+      "checks": [
+        "CC04"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\tests-test_convergence_control-test_tool_progress.SettleFenceTests.json"
+      ]
+    },
+    {
+      "id": "SC05",
+      "phase": "B",
+      "priority": "P1",
+      "status": "complete",
+      "title": "每轮请求快照与Skill责任收敛",
+      "owner": "Agent上下文与Skills；共享runtime由主执行者集成",
+      "depends_on": [],
+      "paths": [
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/context.py",
+        "src/workbench_platform/agent/environment.py",
+        "src/workbench_platform/agent/skills.py",
+        "src/workbench_platform/agent/providers.py",
+        "config/skills"
+      ],
+      "deliverables": [
+        "保持正文语义的单轮固定请求快照与一次扫描",
+        "随后迁移重复专业提示并单独验证",
+        "旧received提示版本兼容"
+      ],
+      "acceptance": [
+        "每模型轮最多一次Skill来源扫描，同轮环境/目录/激活版本/权限/账本一致",
+        "保留固定Skill字节、14核心工具、按需加载、预算和原始历史",
+        "下一轮激活/停用/升级生效；received恢复核对原提示/契约及固定输入，未知响应不因来源变化自动重发",
+        "结构重构与提示迁移顺序实施；不放宽目标/范围/权限/契约实质变化的冲突校验",
+        "通用提示保留执行规则，详细专业流程由已有Skill承担",
+        "训练/模型切换对应用户明确目标；不增加意图服务、跨轮缓存或逐工具确认"
+      ],
+      "checks": [
+        "CC05"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc05-completion.md",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc05-snapshot-tests.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc05-prompt-tests.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc05-native_retry-tests.json"
+      ]
+    },
+    {
+      "id": "SC06",
+      "phase": "B",
+      "priority": "P1",
+      "status": "complete",
+      "title": "原生作业观察与控制适配集中",
+      "owner": "工具/应用适配；runtime/jobs/progress由主执行者集成",
+      "depends_on": [
+        "SC04"
+      ],
+      "paths": [
+        "src/workbench_platform/agent/runtime.py",
+        "src/workbench_platform/agent/progress.py",
+        "src/workbench_platform/agent/tools/jobs.py",
+        "src/workbench_platform/agent/tools/ocr.py",
+        "src/workbench_platform/agent/tools/classification.py",
+        "src/workbench_platform/application_services"
+      ],
+      "deliverables": [
+        "application/native_kind的轻量生命周期登记",
+        "暂停与冷恢复语义调查及据证据修复"
+      ],
+      "acceptance": [
+        "已有job_ref的read/settle/cancel/progress集中选择，公共入口不分别维护工具族分支",
+        "调查原生入口的暂停来源；人工暂停保持，确认冷恢复沿原机制，历史原因未知保留job只读并提示原工具恢复",
+        "原任务恢复不新建提交；未知提交仍沿用原账本机制；失败子集retry保持独立attempt",
+        "等待不增加模型轮，进度来自真实原生状态，取消fence及整批验证保留",
+        "不新增调度/插件框架，不合并批次与Agent顶层业务事务"
+      ],
+      "checks": [
+        "CC04",
+        "CC06"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\native-pause-and-lifecycle.md",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\tests-lifecycle_checks.json"
+      ]
+    },
+    {
+      "id": "SC07",
+      "phase": "C",
+      "priority": "P1",
+      "status": "complete",
+      "title": "统一草稿与正式档案衔接",
+      "owner": "审计业务与契约；用户表达由门户配合",
+      "depends_on": [
+        "SC01"
+      ],
+      "paths": [
+        "packages/contracts/audit.py",
+        "src/workbench_platform/audit/service.py",
+        "src/workbench_platform/audit/drafts.py",
+        "src/workbench_platform/audit/direct.py",
+        "src/workbench_platform/audit/render.py",
+        "src/workbench_platform/audit/routes.py",
+        "src/workbench_platform/agent/tools/platform_management.py",
+        "src/workbench_platform/artifacts",
+        "apps/portal/src/features/audit",
+        "apps/portal/src/features/agent/ProjectHome.tsx"
+      ],
+      "deliverables": [
+        "统一项目/发现查询和来源关联",
+        "固定版本的显式转档命令与回执",
+        "正式直接证据的阅读/导出/过期检查"
+      ],
+      "acceptance": [
+        "workspace项目和正式档案关系清楚，允许一个工作区多个正式档案且明确选择目标",
+        "复用AuditStore、正式实体/evidence_snapshots/回执/历史；保留现有表与ID，不建第三套存储",
+        "现有正式创建接口/工具接受固定源草稿身份/修订/哈希，版本保护和重放幂等",
+        "保留源证据身份/hash/origin及完整文字和来源；各目标档案使用其正式快照身份，支持同源转入多档案且互不覆盖",
+        "保留任务范围/背景版本、原作者及操作人，不重跑工具或伪造batch",
+        "正式查询、执行依据、渲染、导出及过期检查支持直接证据",
+        "转档不自动resolved或生成prepared/reviewed署名；日常底稿下载不受正式流程阻塞",
+        "源后续修改不暗中覆盖正式快照，旧档案仍可读取"
+      ],
+      "checks": [
+        "CC01",
+        "CC07"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc07-completion.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\browser\\browser-convergence-attempt-05.json"
+      ]
+    },
+    {
+      "id": "SC08",
+      "phase": "C",
+      "priority": "P1",
+      "status": "complete",
+      "title": "稳定启动入口、版本登记与最终交付",
+      "owner": "主执行者",
+      "depends_on": [
+        "SC03",
+        "SC04",
+        "SC05",
+        "SC06",
+        "SC07"
+      ],
+      "can_prepare_after": [
+        "SC01"
+      ],
+      "paths": [
+        "scripts/package_agent_candidate.py",
+        "scripts/agent_native_preview.py",
+        "src/workbench_platform/supervisor/processes.py",
+        "docs/agent/README.md"
+      ],
+      "planned_outputs": [
+        "F:/OCR/release/Clear/current.json",
+        "F:/OCR/release/Clear/启动智能审计.cmd",
+        "F:/OCR/release/Clear/product-entry.ps1",
+        "F:/OCR/release/Clear/使用说明.md",
+        "F:/OCR/output/platform-convergence-dev-20261005/candidate-final",
+        "F:/OCR/output/platform-convergence-dev-20261005/完成报告.md"
+      ],
+      "deliverables": [
+        "稳定F盘产品入口",
+        "候选/共享资产/工作区/端口/数据兼容登记",
+        "统一使用说明与最终候选"
+      ],
+      "acceptance": [
+        "稳定入口复用候选launch、哈希、数据锁、私有绑定与F盘storage_environment",
+        "当前登记只引用已验证资产，不复制/搬迁模型或合并Python环境",
+        "启动失败不改工作区、不自动下载/调用模型；停止核对自有进程身份",
+        "候选切换有回执；依据实际数据库结构/迁移版本/记录格式检查兼容，不仅比较产品版本，不用旧候选直接打开不兼容记录",
+        "实施时重新记录实时基线，原会话/设置/资料/成果保留，没有重放旧消息",
+        "主索引与使用说明指向当前候选；各任务真实证据齐全；所有新增文件在F盘"
+      ],
+      "checks": [
+        "CC01",
+        "CC02",
+        "CC03",
+        "CC04",
+        "CC05",
+        "CC06",
+        "CC07",
+        "CC08"
+      ],
+      "evidence": [
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\product-entry-integration.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\sc08-startup-admission.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\package-source-check-final.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\candidate-cold.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\browser\\browser-convergence-attempt-05.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\preview-after.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\data-after-switch.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\product-registration.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\evidence\\checks-summary.json",
+        "F:\\OCR\\output\\platform-convergence-dev-20261005\\完成报告.md"
+      ]
+    }
+  ],
+  "checks": {
+    "CC01": "入口、旧深链接、项目归属和原操作可达",
+    "CC02": "首页开始、草稿/阅读隔离、历史导航与无副作用浏览",
+    "CC03": "四类人工工具保存与带回及原生异常处理",
+    "CC04": "取消幂等、终态、接管原子性、迟到动作与代际",
+    "CC05": "单轮请求/Skill来源/权限/预算及固定输入恢复",
+    "CC06": "迁移作业族生命周期、暂停意图、真实进度与原回执恢复",
+    "CC07": "固定版本转档、正式直接证据、来源/作者及幂等",
+    "CC08": "稳定启动登记、路径/哈希/身份/数据兼容及工作区连续性"
+  },
+  "implementation_run_root": "F:\\OCR\\output\\platform-convergence-dev-20261005"
+}

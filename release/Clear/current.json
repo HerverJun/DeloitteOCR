@@ -1,0 +1,179 @@
+{
+  "format": "clear-current-product-v1",
+  "product_version": "0.9.3",
+  "candidate": "F:\\OCR\\output\\ocr-simplification-dev-20261006\\candidate-complete",
+  "candidate_manifest_sha256": "b65ad69cf909efbb6c4026fca65d14c5fe473be51e8be847bef81c8b68b5de39",
+  "shared_program": "F:\\OCR\\output\\clear-automation-dev-20261002\\program",
+  "data": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\workspace",
+  "port": 8879,
+  "data_compatibility": {
+    "format": "clear-data-compatibility-v1",
+    "reader_features": [
+      "agent-request-snapshot-v1",
+      "formal-direct-evidence-v1",
+      "fixed-draft-transfer-v1"
+    ],
+    "sqlite": {
+      "workspaces.sqlite3": {
+        "user_versions": [
+          0,
+          1,
+          2
+        ],
+        "tables": {},
+        "reject_nonempty_unversioned": true,
+        "ignore_internal_tables": true,
+        "require_versioned_tables": true,
+        "exact_table_versions": [
+          1
+        ],
+        "tables_by_version": {
+          "1": {
+            "workspace": [
+              "id",
+              "name"
+            ],
+            "module_project_link": [
+              "id",
+              "workspace_id",
+              "module_id",
+              "native_project_id",
+              "display_name"
+            ]
+          },
+          "2": {
+            "workspace": [
+              "workspace_id",
+              "name",
+              "revision",
+              "created_at",
+              "updated_at"
+            ],
+            "module_project_link": [
+              "link_id",
+              "workspace_id",
+              "app_id",
+              "module_project_id",
+              "role",
+              "revision"
+            ]
+          }
+        }
+      },
+      "agent/operations.sqlite3": {
+        "user_versions": [
+          0
+        ],
+        "tables": {
+          "sessions": [
+            "id",
+            "workspace_id",
+            "request_id"
+          ],
+          "runs": [
+            "id",
+            "status",
+            "generation"
+          ],
+          "events": [
+            "kind",
+            "payload"
+          ],
+          "model_requests": [
+            "id",
+            "state",
+            "response"
+          ]
+        }
+      },
+      "audit/audit.sqlite3": {
+        "user_versions": [
+          0,
+          1
+        ],
+        "tables": {
+          "projects": [
+            "project_id",
+            "workspace_id",
+            "revision",
+            "body"
+          ],
+          "evidence_snapshots": [
+            "evidence_id",
+            "project_id",
+            "body"
+          ]
+        }
+      },
+      "forensics/forensics.sqlite3": {
+        "user_versions": [
+          0,
+          1
+        ],
+        "reject_nonempty_unversioned": true,
+        "tables": {
+          "inspections": [
+            "inspection_id",
+            "workspace_id",
+            "request_id",
+            "payload_hash",
+            "body"
+          ],
+          "review_requests": [
+            "workspace_id",
+            "request_id",
+            "inspection_id",
+            "payload_hash",
+            "receipt"
+          ]
+        }
+      },
+      "native/ocr/workbench.sqlite3": {
+        "user_versions": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "tables": {}
+      },
+      "native/classification/platform.sqlite3": {
+        "user_versions": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "tables": {}
+      }
+    },
+    "records": {
+      "audit_evidence_versions": [
+        "1.0"
+      ],
+      "direct_evidence_snapshot_versions": [
+        1,
+        2
+      ],
+      "request_snapshot_formats": [
+        "clear-model-input-v1"
+      ]
+    }
+  }
+}

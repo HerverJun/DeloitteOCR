@@ -13,6 +13,9 @@ frontend/dist/
 /.pnpm-store/
 /temp/
 
+# Clear product entry is authored; its live locks, process receipts and logs stay local.
+/release/Clear/runtime/
+
 # Generated manuals and audit runs stay local. Commit curated evidence explicitly.
 /output/
 /audit/*/
