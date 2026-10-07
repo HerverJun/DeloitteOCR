@@ -14,7 +14,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 16
+SCHEMA_VERSION = 17
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -256,6 +256,13 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 BEGIN SELECT RAISE(ABORT,'immutable result revision'); END""")
             db.execute("""CREATE TRIGGER platform_adoption_immutable BEFORE UPDATE ON platform_adoptions
                 BEGIN SELECT RAISE(ABORT,'immutable adoption receipt'); END""")
+
+        elif version == 17:
+            db.execute('''CREATE TABLE platform_page_requests(
+                document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+                request_id TEXT NOT NULL,payload_hash TEXT NOT NULL,body TEXT NOT NULL,
+                stage_ids TEXT NOT NULL,owned_stage_ids TEXT NOT NULL,created TEXT NOT NULL,
+                PRIMARY KEY(document_id,request_id))''')
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -706,7 +713,15 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                        (operation_id, body["project_id"], body["instance_id"], digest, encoded(receipt), receipt["created"]))
         return receipt
 
-    def save(self, key, edit, expected_revision):
+    def edit_operation(self, operation_id):
+        if not isinstance(operation_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,120}', operation_id):
+            raise ValueError('编辑操作标识无效')
+        if not self.rows("SELECT name FROM sqlite_master WHERE type='table' AND name='platform_edits'"):
+            return None
+        rows = self.rows('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation_id,))
+        return json.loads(rows[0]['receipt']) if rows else None
+
+    def save(self, key, edit, expected_revision, *, operation=None):
         from ocr_workbench.editing import validate_edit
 
         if type(expected_revision) is not int or expected_revision < 0:
@@ -714,6 +729,14 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         validate_edit(edit)
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
+            if operation:
+                db.execute('CREATE TABLE IF NOT EXISTS platform_edits (operation_id TEXT PRIMARY KEY, receipt TEXT NOT NULL)')
+                old = db.execute('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation['operation_id'],)).fetchone()
+                if old:
+                    receipt = json.loads(old['receipt'])
+                    if receipt['payload_hash'] != operation['payload_hash'] or receipt['result_id'] != key:
+                        raise Conflict('编辑身份已绑定不同内容')
+                    return receipt
             row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
             if not row:
                 raise KeyError("识别结果不存在")
@@ -724,6 +747,10 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 from ocr_workbench.fusion_alignment import canonical_edit
                 edit = canonical_edit(edit)
             if json.loads(row["edited"]) == edit:
+                if operation:
+                    receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': row['revision']}
+                    db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+                    return receipt
                 return self.result(key)
             cursor = row["cursor"] + 1
             db.execute(
@@ -747,6 +774,11 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             reconcile_structure(db, key, json.loads(row['edited']), edit)
             from ocr_workbench.multimodal_store import reconcile_review
             reconcile_review(db, key)
+            if operation:
+                receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': expected_revision+1}
+                db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+        if operation:
+            return receipt
         return self.result(key)
 
     def history(self, key, direction, expected_revision):

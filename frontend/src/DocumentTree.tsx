@@ -7,7 +7,7 @@ import { Thumbnail } from "./PhotoList";
 import { DocumentReviewQueue, type DocumentReviewTask } from "./DocumentReviewQueue";
 import { currentDocumentPage, documentPageOffset, type ActiveDocumentPage, type PageSelection } from "./documentNavigation";
 
-const states: Record<string, string> = { pending: "尚未展开", ready: "可处理", processed: "已处理", blank: "空白页", queued: "等待处理", running: "处理中", succeeded: "已完成", waiting_gpu: "区域识别中", paused: "已暂停", interrupted: "等待继续", waiting_unlock: "等待解锁", failed: "失败", cancelled: "已取消" };
+const states: Record<string, string> = { pending: "尚未展开", ready: "可处理", processed: "已处理", blank: "空白页", queued: "等待处理", running: "处理中", succeeded: "已完成", waiting_gpu: "等待 GPU 结果", paused: "已暂停", interrupted: "等待继续", waiting_unlock: "等待解锁", failed: "失败", cancelled: "已取消" };
 
 export function DocumentTree({ documents, activeImage, activePage, reviewOnly, beforeOpen, onOpen, onRefresh, onError, onReview }:
   { documents: DocumentRecord[]; activeImage: string; activePage: ActiveDocumentPage | null; reviewOnly: boolean; beforeOpen: () => Promise<unknown>;
@@ -154,7 +154,7 @@ export function DocumentTree({ documents, activeImage, activePage, reviewOnly, b
       <div className="document-pages" aria-label="文档页面列表">{visiblePages.map(page => <button key={page.id} disabled={busy}
         aria-current={page.id === current?.id ? "page" : undefined}
         onClick={() => void act(() => openPage(page))}>{page.active_version ? <Thumbnail id={page.active_version} /> : <span>{page.page_number}</span>}<strong>第 {page.page_number} 页</strong>
-        <small>{states[page.stage_status || page.status] || page.status}</small></button>)}</div>
+        <small className={`document-stage-status ${page.stage_status || page.status}`}>{states[page.stage_status || page.status] || page.stage_status || page.status}</small></button>)}</div>
       {selectedDoc.page_count > 30 && <div className="document-page-batches"><Button size="small" disabled={!offset || busy} onClick={() => browsePages(Math.max(0, offset-30))}>前 30 页</Button><span>{offset+1}–{Math.min(offset+30, selectedDoc.page_count)}</span><Button size="small" disabled={offset+30 >= selectedDoc.page_count || busy} onClick={() => browsePages(offset+30)}>后 30 页</Button></div>}
       {current?.stage_error && <div className="document-stage-error" role="alert"><strong>第 {current.page_number} 页 · {current.stage_phase}</strong><p>{current.stage_error}</p>
         {!current.image_id && <><label>渲染 DPI <input aria-label="降低页面DPI" type="number" min="36" max="1200" value={dpi} onChange={e => setDpi(Number(e.target.value))} /></label><Button size="small" disabled={busy} onClick={() => void act(async () => {

@@ -417,7 +417,7 @@ export function ImageCanvas({
         </div>
       )}
       {version && mode !== "pan" && (
-        <details className="image-coordinate-editor" open>
+        <details className="image-coordinate-editor">
           <summary>坐标输入与微调 · 像素</summary>
           <fieldset disabled={busy}>
             <legend>{mode === "perspective" ? "透视四角" : "选区边界"}</legend>

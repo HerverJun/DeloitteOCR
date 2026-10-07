@@ -14,16 +14,12 @@ import {
   FolderPlus,
   Upload,
   Check,
-  ChevronDown,
   Download,
   Undo2,
   Redo2,
   Copy,
   Search,
   X,
-  LayoutList,
-  Table2,
-  Columns3,
   ScanLine,
   PenLine,
   CheckCircle2,
@@ -46,7 +42,6 @@ import { DocumentTree } from "./DocumentTree";
 import { documentReviewTab, type DocumentReviewTask } from "./DocumentReviewQueue";
 import { StructureReview } from "./StructureReview";
 import { MultimodalReview } from "./MultimodalReview";
-import { multimodalTargetLabel } from "./multimodalTypes";
 import { DocumentConflicts } from "./DocumentConflicts";
 import {
   usePreference,
@@ -60,6 +55,7 @@ import { brands } from "./clear-ui/theme";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { ResultViewNavigation } from "./ResultViewNavigation";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import type { DiagnosticsResponse } from "./diagnostics";
 import { QuickReview } from "./QuickReview";
@@ -778,20 +774,21 @@ export function App() {
             返回 {brands.platform} ↗
           </a>
         )}
-        {!reviewOnly && (
-          <EnginePackages
-            onError={onError}
-            onChange={async () => {
-              const value = await api("/state");
-              setEngines(value.engines);
-              notify("引擎版本已更新，已有任务仍使用原版本");
-            }}
-          />
-        )}
         <span className="offline-status">
           <span />
-          {reviewOnly ? "校对与导出 · 可配置 API 审校" : "本地 OCR · 可配置 API 审校"}
+          {reviewOnly ? "校对模式" : "本地 OCR"}
         </span>
+        <details className="ocr-system-settings">
+          <summary><Settings size={17} aria-hidden="true" />设置</summary>
+          <div className="ocr-system-settings__content">
+            {!reviewOnly && <EnginePackages
+              onError={onError}
+              onChange={async () => {
+                const value = await api("/state");
+                setEngines(value.engines);
+                notify("引擎版本已更新，已有任务仍使用原版本");
+              }}
+            />}
         <Button
           appearance="subtle"
           icon={<Settings size={17} />}
@@ -805,6 +802,8 @@ export function App() {
         >
           环境检查
         </Button>
+          </div>
+        </details>
       </BrandHeader>
       <WorkspaceLayout
         paneRequest={paneRequest}
@@ -973,30 +972,6 @@ export function App() {
             >
               导出所选 {selected.length ? `(${selected.length})` : ""}
             </Button>
-            <button
-              className={"queue-summary " + (showQueue ? "open" : "")}
-              onClick={toggleQueue}
-              aria-expanded={showQueue}
-              aria-controls="task-queue"
-            >
-              <LayoutList size={18} />
-              <span>
-                任务队列
-                <small>
-                  {reviewOnly ? "仅校对与导出 · CPU 融合可用" : !queueHealthy
-                    ? "队列异常，请查看恢复提示"
-                    : attention
-                      ? `${attention} 项失败或待恢复 · ${pending} 项处理中`
-                      : pending
-                        ? `${pending} 项等待或识别中`
-                        : `${completed} 项已完成`}
-                </small>
-              </span>
-              <ChevronDown
-                size={16}
-                style={{ transform: showQueue ? "rotate(180deg)" : undefined }}
-              />
-            </button>
             <div className="sidebar-footer">
               <Check size={13} />
               项目与校对自动保存在本机
@@ -1059,7 +1034,7 @@ export function App() {
             >
               任务队列 · {pending} 项处理中
               {attention
-                ? ` · ${attention} 项待处理`
+                ? ` · ${attention} 项失败或待恢复`
                 : ` · ${completed} 项完成`}
             </button>
           </>
@@ -1198,79 +1173,12 @@ export function App() {
             )}
           </div>
           <div className="result-view-bar">
-            <div
-              className="result-tabs"
-              role="tablist"
-              aria-label="结果视图"
-              onKeyDown={(e) => {
-                const choices = editor.result?.original.fusion ? ["table", "structure", "text", "compare", "multimodal", "review"] : ["table", "structure", "text", "compare", "multimodal"];
-                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
-                  return;
-                e.preventDefault();
-                const index =
-                  e.key === "Home"
-                    ? 0
-                    : e.key === "End"
-                      ? choices.length-1
-                      : (choices.indexOf(tab) +
-                          (e.key === "ArrowRight" ? 1 : choices.length-1)) % choices.length;
-                chooseTab(choices[index]);
-                (
-                  e.currentTarget.querySelectorAll("button")[
-                    index
-                  ] as HTMLButtonElement
-                ).focus();
-              }}
-            >
-              <button
-                role="tab"
-                aria-selected={tab === "table"}
-                tabIndex={tab === "table" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-table"
-                className={tab === "table" ? "active" : ""}
-                onClick={() => chooseTab("table")}
-              >
-                <Table2 size={15} />
-                表格
-                {editor.edit?.tables.length
-                  ? ` ${editor.edit.tables.length}`
-                  : ""}
-              </button>
-              <button role="tab" aria-selected={tab === "structure"} tabIndex={tab === "structure" ? 0 : -1}
-                aria-controls="result-content" id="tab-structure" className={tab === "structure" ? "active" : ""}
-                onClick={() => chooseTab("structure")}>结构复核</button>
-              <button
-                role="tab"
-                aria-selected={tab === "text"}
-                tabIndex={tab === "text" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-text"
-                className={tab === "text" ? "active" : ""}
-                onClick={() => chooseTab("text")}
-              >
-                <FileText size={15} />
-                文字
-              </button>
-              <button
-                role="tab"
-                aria-selected={tab === "compare"}
-                tabIndex={tab === "compare" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-compare"
-                className={tab === "compare" ? "active" : ""}
-                onClick={() => chooseTab("compare")}
-              >
-                <Columns3 size={15} />
-                模型对比
-              </button>
-              <button role="tab" aria-selected={tab === "multimodal"} tabIndex={tab === "multimodal" ? 0 : -1}
-                aria-controls="result-content" id="tab-multimodal" className={tab === "multimodal" ? "active" : ""}
-                onClick={() => chooseTab("multimodal")}><ScanLine size={15} />视觉审校</button>
-              {editor.result?.original.fusion && <button role="tab" aria-selected={tab === "review"}
-                tabIndex={tab === "review" ? 0 : -1} aria-controls="result-content" id="tab-review"
-                className={tab === "review" ? "active" : ""} onClick={() => chooseTab("review")}>快速校对</button>}
-            </div>
+            <ResultViewNavigation
+              tab={tab}
+              onSelect={chooseTab}
+              tableCount={editor.edit?.tables.length}
+              hasFusion={!!editor.result?.original.fusion}
+            />
             {editor.result && editor.edit && (
               <div className="edit-toolbar">
                 <Button
@@ -1524,10 +1432,6 @@ export function App() {
                     </button>
                   </div>
                 )}
-                {["table", "text"].includes(tab) && <div className="multimodal-entry">
-                  <div><strong>对照原图再核对一轮</strong><span>{geometryTarget?.resultId === editor.result.id ? `已选中：${multimodalTargetLabel(geometryTarget.target)}` : "可选中文字或表格单元格，也可复核本页。"}</span></div>
-                  <Button size="small" icon={<ScanLine size={15} />} disabled={busy} onClick={() => chooseTab("multimodal")}>视觉审校</Button>
-                </div>}
                 {tab === "text" && (
                   <div className="text-editor">
                     <div className="text-search">
