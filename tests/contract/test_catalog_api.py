@@ -96,7 +96,7 @@ def test_missing_uninstalled_and_independent_health_states(catalog):
         assert health.ui.state == "unavailable" and health.cpu.state == "unavailable"
         assert health.models.state == "unavailable"
     assert registry.health("classification").gpu.state == "unavailable"
-    assert registry.health("ocr").gpu.state == "disabled"
+    assert registry.health("ocr").gpu.state == "unavailable"
     observation = AppHealth.model_validate({"schema_version": "1.0", **{
         key: {"schema_version": "1.0", "state": state, "reason": reason}
         for key, state, reason in (("service", "unavailable", "Connection refused"),

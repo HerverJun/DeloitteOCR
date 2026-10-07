@@ -18,6 +18,7 @@ from packages.contracts.automation import (
 )
 
 from .forensics import ForensicEvidenceSelection, ForensicEvidenceRef, ForensicEvidenceSnapshot
+from .agent import AgentModel, AgentRef, Identity
 
 AuditScenario = Scenario | Literal['image_forensics']
 
@@ -117,6 +118,41 @@ class AuditEvidenceRef(AuditEvidenceSelection):
     source_count: Count
 
 
+class DraftTransferSource(AuditStrict):
+    task_id: Identity
+    draft_id: Identity
+    revision: Revision
+    snapshot_hash: Hash
+    scope_revision: Revision
+    project_context_revision: int = Field(ge=0)
+
+
+class AuditDirectEvidenceSelection(AuditStrict):
+    task_id: Identity
+    source_evidence_id: Identity
+    snapshot_hash: Hash
+
+
+class AuditDirectEvidenceRef(AuditDirectEvidenceSelection):
+    evidence_id: Id
+    project_id: Id
+    workspace_id: Id
+    scenario: Literal['direct_tool'] = 'direct_tool'
+    captured_at: Utc
+    sources: list[SourceLocator] = Field(max_length=200)
+    source_assets: list[SourceLocator] = Field(max_length=10000)
+    source_count: Count
+
+
+class AuditFindingOrigin(AuditStrict):
+    source: DraftTransferSource
+    content: dict
+    author: dict
+    transfer_actor: LocalActor
+    transfer_kind: Literal['human', 'agent']
+    transferred_at: Utc
+
+
 class AuditRecord(AuditStrict):
     record_id: Id
     entity_kind: EntityKind
@@ -172,13 +208,22 @@ class AuditProcedureWrite(AuditProcedureCreate):
 
 class AuditFindingCreate(AuditConditionalCommand):
     procedure_id: Id
-    finding: AuditFindingFields
-    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep] = Field(max_length=100)
+    finding: AuditFindingFields | None = None
+    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection] = Field(default_factory=list, max_length=100)
+    source_draft: DraftTransferSource | None = None
+
+    @model_validator(mode='after')
+    def one_source(self):
+        if self.source_draft is None and self.finding is None:
+            raise ValueError('finding or fixed source draft is required')
+        if self.source_draft is not None and (self.finding is not None or self.evidence):
+            raise ValueError('source draft supplies server-owned content and evidence')
+        return self
 
 
 class AuditFindingWrite(AuditConditionalCommand):
     finding: AuditFindingFields
-    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep] = Field(max_length=100)
+    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection] = Field(max_length=100)
 
 
 class AuditRecordCreate(AuditConditionalCommand):
@@ -235,7 +280,10 @@ class AuditFinding(AuditWire):
     content_revision: Revision
     project_context_revision: Revision
     finding: AuditFindingFields
-    evidence_refs: list[AuditEvidenceRef | ForensicEvidenceRef] = Field(max_length=100)
+    evidence_refs: list[AuditEvidenceRef | ForensicEvidenceRef | AuditDirectEvidenceRef] = Field(max_length=100)
+    origin: AuditFindingOrigin | None = None
+    outdated: bool = False
+    outdated_reasons: list[str] = Field(default_factory=list, max_length=100)
     records: list[AuditRecord] = Field(max_length=2)
     records_current: bool
     created_at: Utc
@@ -243,6 +291,8 @@ class AuditFinding(AuditWire):
 
     @model_validator(mode='after')
     def consistent_records(self):
+        if any(ref.project_id != self.project_id for ref in self.evidence_refs):
+            raise ValueError('finding evidence belongs to another project')
         return _check_records(self, 'finding', self.finding_id, self.project_revision)
 
 
@@ -539,11 +589,55 @@ class ItemEvidence(AuditWire):
     native_context_available: bool
 
 
-class AuditEvidenceSnapshot(RootModel[ItemEvidence | ForensicEvidenceSnapshot]):
+class DirectEvidenceRequest(AgentModel):
+    reference: AgentRef
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=20, ge=1, le=50)
+
+
+class DirectEvidenceSnapshot(AgentModel):
+    snapshot_version: Literal[1, 2] = 1
+    scenario: Literal['direct_tool'] = 'direct_tool'
+    evidence_id: Identity
+    workspace_id: Identity
+    task_id: Identity
+    reference: AgentRef
+    snapshot_hash: Hash
+    summary: str = Field(max_length=4000)
+    sources: list[SourceLocator] = Field(default_factory=list, max_length=200)
+    source_count: int = Field(ge=0)
+    source_assets: list[SourceLocator] = Field(default_factory=list, max_length=10000)
+    observation: dict
+    created_at: str
+    location_url: str
+
+
+class AuditDraftWrite(AgentModel):
+    request_id: Identity
+    expected_revision: int = Field(ge=0)
+    draft_id: Identity | None = None
+    title: str = Field(min_length=1, max_length=200)
+    facts: str = Field(default='', max_length=12000)
+    interpretation: str = Field(default='', max_length=12000)
+    missing_information: str = Field(default='', max_length=8000)
+    recommendations: str = Field(default='', max_length=8000)
+    rule: str = Field(default='', max_length=8000)
+    evidence_ids: list[Identity] = Field(default_factory=list, max_length=100)
+    status: Literal['draft', 'confirmed', 'dismissed'] = 'draft'
+
+
+class AuditDraftExport(AgentModel):
+    request_id: Identity
+    draft_ids: list[Identity] = Field(min_length=1, max_length=100)
+    title: str = Field(default='审计工作底稿草稿', min_length=1, max_length=200)
+
+
+class AuditEvidenceSnapshot(RootModel[ItemEvidence | ForensicEvidenceSnapshot | DirectEvidenceSnapshot]):
     pass
 
 
-AUDIT_MODELS = [AuditEvidenceSnapshot,
+AUDIT_MODELS = [AuditEvidenceSnapshot, DirectEvidenceRequest, DirectEvidenceSnapshot, AuditDraftWrite, AuditDraftExport,
+    DraftTransferSource, AuditDirectEvidenceSelection, AuditDirectEvidenceRef, AuditFindingOrigin,
     AuditProjectCreate, AuditProjectWrite, AuditProcedureCreate,
     AuditProcedureWrite, AuditFindingCreate, AuditFindingWrite, AuditRecordCreate,
     AuditProject, AuditProcedure, AuditFinding, AuditEvidenceRef, AuditWriteReceipt,

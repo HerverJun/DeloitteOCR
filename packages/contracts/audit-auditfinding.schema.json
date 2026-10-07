@@ -1,5 +1,90 @@
 {
   "$defs": {
+    "AuditDirectEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "evidence_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "project_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "scenario": {
+          "const": "direct_tool",
+          "default": "direct_tool",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "source_assets": {
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "maxItems": 10000,
+          "title": "Source Assets",
+          "type": "array"
+        },
+        "source_count": {
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Source Count",
+          "type": "integer"
+        },
+        "source_evidence_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Source Evidence Id",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "maxItems": 200,
+          "title": "Sources",
+          "type": "array"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "source_evidence_id",
+        "snapshot_hash",
+        "evidence_id",
+        "project_id",
+        "workspace_id",
+        "captured_at",
+        "sources",
+        "source_assets",
+        "source_count"
+      ],
+      "title": "AuditDirectEvidenceRef",
+      "type": "object"
+    },
     "AuditEvidenceRef": {
       "additionalProperties": false,
       "description": "Server-created immutable snapshot identity, retained after unlinking.",
@@ -145,6 +230,50 @@
       "title": "AuditFindingFields",
       "type": "object"
     },
+    "AuditFindingOrigin": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "additionalProperties": true,
+          "title": "Author",
+          "type": "object"
+        },
+        "content": {
+          "additionalProperties": true,
+          "title": "Content",
+          "type": "object"
+        },
+        "source": {
+          "$ref": "#/$defs/DraftTransferSource"
+        },
+        "transfer_actor": {
+          "$ref": "#/$defs/LocalActor"
+        },
+        "transfer_kind": {
+          "enum": [
+            "human",
+            "agent"
+          ],
+          "title": "Transfer Kind",
+          "type": "string"
+        },
+        "transferred_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Transferred At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "content",
+        "author",
+        "transfer_actor",
+        "transfer_kind",
+        "transferred_at"
+      ],
+      "title": "AuditFindingOrigin",
+      "type": "object"
+    },
     "AuditRecord": {
       "additionalProperties": false,
       "properties": {
@@ -219,6 +348,51 @@
         "created_at"
       ],
       "title": "AuditRecord",
+      "type": "object"
+    },
+    "DraftTransferSource": {
+      "additionalProperties": false,
+      "properties": {
+        "draft_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Draft Id",
+          "type": "string"
+        },
+        "project_context_revision": {
+          "minimum": 0,
+          "title": "Project Context Revision",
+          "type": "integer"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "scope_revision": {
+          "minimum": 1,
+          "title": "Scope Revision",
+          "type": "integer"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "draft_id",
+        "revision",
+        "snapshot_hash",
+        "scope_revision",
+        "project_context_revision"
+      ],
+      "title": "DraftTransferSource",
       "type": "object"
     },
     "ForensicEvidenceRef": {
@@ -565,6 +739,9 @@
           },
           {
             "$ref": "#/$defs/ForensicEvidenceRef"
+          },
+          {
+            "$ref": "#/$defs/AuditDirectEvidenceRef"
           }
         ]
       },
@@ -580,6 +757,30 @@
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
       "title": "Finding Id",
       "type": "string"
+    },
+    "origin": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuditFindingOrigin"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "outdated": {
+      "default": false,
+      "title": "Outdated",
+      "type": "boolean"
+    },
+    "outdated_reasons": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Outdated Reasons",
+      "type": "array"
     },
     "procedure_id": {
       "maxLength": 64,

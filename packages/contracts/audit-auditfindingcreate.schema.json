@@ -1,5 +1,32 @@
 {
   "$defs": {
+    "AuditDirectEvidenceSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "source_evidence_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Source Evidence Id",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "source_evidence_id",
+        "snapshot_hash"
+      ],
+      "title": "AuditDirectEvidenceSelection",
+      "type": "object"
+    },
     "AuditEvidenceKeep": {
       "additionalProperties": false,
       "properties": {
@@ -92,6 +119,51 @@
       "title": "AuditFindingFields",
       "type": "object"
     },
+    "DraftTransferSource": {
+      "additionalProperties": false,
+      "properties": {
+        "draft_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Draft Id",
+          "type": "string"
+        },
+        "project_context_revision": {
+          "minimum": 0,
+          "title": "Project Context Revision",
+          "type": "integer"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "scope_revision": {
+          "minimum": 1,
+          "title": "Scope Revision",
+          "type": "integer"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "draft_id",
+        "revision",
+        "snapshot_hash",
+        "scope_revision",
+        "project_context_revision"
+      ],
+      "title": "DraftTransferSource",
+      "type": "object"
+    },
     "ForensicEvidenceSelection": {
       "additionalProperties": false,
       "properties": {
@@ -178,6 +250,9 @@
           },
           {
             "$ref": "#/$defs/AuditEvidenceKeep"
+          },
+          {
+            "$ref": "#/$defs/AuditDirectEvidenceSelection"
           }
         ]
       },
@@ -191,7 +266,15 @@
       "type": "integer"
     },
     "finding": {
-      "$ref": "#/$defs/AuditFindingFields"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuditFindingFields"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "procedure_id": {
       "maxLength": 64,
@@ -209,6 +292,17 @@
       "const": "1.0",
       "title": "Schema Version",
       "type": "string"
+    },
+    "source_draft": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DraftTransferSource"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [
@@ -216,9 +310,7 @@
     "request_id",
     "actor",
     "expected_revision",
-    "procedure_id",
-    "finding",
-    "evidence"
+    "procedure_id"
   ],
   "title": "AuditFindingCreate",
   "type": "object"

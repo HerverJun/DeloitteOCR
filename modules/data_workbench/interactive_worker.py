@@ -179,9 +179,11 @@ def do_operation(request):
             for step in recipe['steps']:
                 parameters = dict(step['parameters'])
                 if 'column' in parameters:
-                    parameters['column'] = mapping[parameters['column']]
+                    parameters['column'] = mapping.get(parameters['column'], parameters['column'])
                 if 'columns' in parameters:
-                    parameters['columns'] = [mapping[column] for column in parameters['columns']]
+                    parameters['columns'] = [mapping.get(column, column) for column in parameters['columns']]
+                if 'amount_columns' in parameters:
+                    parameters['amount_columns'] = [mapping.get(column, column) for column in parameters['amount_columns']]
                 revision = store.apply(revision, Step(step['operator'], parameters))
         metadata = cache_table(root, store, revision)
         lineage = history(store, revision)
@@ -223,6 +225,10 @@ def do_operation(request):
                                    for column in snapshot['columns']]]
         rows = [[str(row['source_row']), *['' if cell['value'] is None else str(cell['value'])
                                          for cell in row['cells']]] for row in snapshot['rows']]
+        if any('source_rows' in row for row in snapshot['rows']):
+            headers.append('source_rows_json')
+            for output, original in zip(rows, snapshot['rows'], strict=True):
+                output.append(encoded(original.get('source_rows', [{'row_id': original['row_id'], 'source_row': original['source_row']}])) )
         files = {name: folder / name for name in
                  ('cleaned.csv', 'cleaned.xlsx', 'cleaned.parquet', 'summary.json', 'provenance.json')}
         _csv(files['cleaned.csv'], headers, rows)
@@ -258,12 +264,22 @@ def do_operation(request):
         folder.mkdir(parents=True, exist_ok=False)
         headers = _headers(left_snapshot, right_snapshot)
         rows, provenance = _rows(compared, left_snapshot, right_snapshot, descriptor(left), descriptor(right))
+        categories = payload.get('categories')
+        if categories is not None:
+            if (not isinstance(categories, list) or not categories or
+                    any(category not in {'same', 'different', 'only_left', 'only_right', 'ambiguous'}
+                        for category in categories)):
+                raise ValueError('导出结果类别无效')
+            selected = [(row, source) for row, source in zip(rows, provenance) if row[0] in categories]
+            rows = [row for row, _ in selected]
+            provenance = [source for _, source in selected]
         files = {name: folder / name for name in
                  ('results.csv', 'results.xlsx', 'results.parquet', 'summary.json', 'provenance.json')}
         _csv(files['results.csv'], headers, rows)
         _xlsx(files['results.xlsx'], headers, rows)
         _parquet(files['results.parquet'], headers, rows)
         write_json(files['summary.json'], {'comparison_id': identity, 'coverage': compared.coverage,
+                   'included_categories': categories,
                    'policy': compared.policy, 'left_source': left['source'], 'right_source': right['source'],
                    'left_revision': left['revision'], 'right_revision': right['revision'],
                    'left_recipe': left['history'], 'right_recipe': right['history'],

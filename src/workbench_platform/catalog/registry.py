@@ -316,7 +316,7 @@ class AppRegistry:
                              ui=status("unavailable", "UI bundle is not installed"),
                              cpu=status("unavailable", "CPU service is not installed"),
                              gpu=status("unavailable" if "gpu" in manifest.resources else "disabled",
-                                        "GPU is not available" if "gpu" in manifest.resources else "GPU is not declared"),
+                                        "GPU service is not installed" if "gpu" in manifest.resources else "GPU is not declared"),
                              models=status("unavailable", "Model files are not installed"))
         return AppHealth(schema_version="1.0", service=status("unknown", "Service has not been probed"),
                          ui=status("unknown", "UI has not been probed"),

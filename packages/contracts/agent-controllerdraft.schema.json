@@ -1,0 +1,73 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "api_key": {
+      "default": "",
+      "maxLength": 8192,
+      "title": "Api Key",
+      "type": "string"
+    },
+    "base_url": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "title": "Base Url",
+      "type": "string"
+    },
+    "context_cap": {
+      "default": 16384,
+      "maximum": 200000,
+      "minimum": 4096,
+      "title": "Context Cap",
+      "type": "integer"
+    },
+    "max_output_tokens": {
+      "default": 2048,
+      "maximum": 8192,
+      "minimum": 256,
+      "title": "Max Output Tokens",
+      "type": "integer"
+    },
+    "model": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "protocol": {
+      "enum": [
+        "openai_chat_completions",
+        "anthropic_messages"
+      ],
+      "title": "Protocol",
+      "type": "string"
+    },
+    "streaming": {
+      "default": true,
+      "title": "Streaming",
+      "type": "boolean"
+    },
+    "token_parameter": {
+      "default": "max_completion_tokens",
+      "enum": [
+        "max_tokens",
+        "max_completion_tokens"
+      ],
+      "title": "Token Parameter",
+      "type": "string"
+    },
+    "total_seconds": {
+      "default": 180,
+      "maximum": 600,
+      "minimum": 10,
+      "title": "Total Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "protocol",
+    "base_url",
+    "model"
+  ],
+  "title": "ControllerDraft",
+  "type": "object"
+}

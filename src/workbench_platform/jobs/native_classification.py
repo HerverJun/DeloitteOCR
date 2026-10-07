@@ -302,14 +302,39 @@ class ClassificationAdapter:
             raise ClassificationUnavailable()
         return tuple(result)
 
-    def train(self, dataset_id: str, *, key: str, epochs: int = 1, device: str = "cpu") -> str:
+    def dataset(self, dataset_id):
+        if not _id(dataset_id):
+            raise ClassificationUnavailable()
+        value = self._request('GET', f'/api/v1/projects/{self.project_id}/dataset-versions/{dataset_id}')
+        if not isinstance(value, dict) or value.get('project_id') != self.project_id or value.get('id') != dataset_id:
+            raise ClassificationUnavailable()
+        return value
+
+    def publish_dataset(self, name, seed, asset_ids, request_id):
+        if self.context.role == 'viewer' or not KEY.fullmatch(request_id):
+            raise ClassificationUnavailable()
+        return self._request('POST', f'/api/v1/projects/{self.project_id}/dataset-versions',
+                             {'name': name, 'seed': seed, 'asset_ids': asset_ids, 'request_id': request_id}, max_body=262144)
+
+    def lookup_training(self, request_id):
+        if not KEY.fullmatch(request_id):
+            raise ClassificationUnavailable()
+        return self._request('GET', f'/api/v1/projects/{self.project_id}/training-requests/{request_id}').get('job_id')
+
+    def agent_annotations(self, operation_id, body=None):
+        if not KEY.fullmatch(operation_id) or body is not None and self.context.role == 'viewer':
+            raise ClassificationUnavailable()
+        return self._request('GET' if body is None else 'POST', f'/api/v1/projects/{self.project_id}/agent-annotations/{operation_id}', body,
+                             conditional=True, max_body=262144)
+
+    def train(self, dataset_id: str, *, key: str, epochs: int = 1, device: str = "cpu", **parameters) -> str:
         if (self.context.role == "viewer" or not _id(dataset_id) or not isinstance(key, str)
                 or not KEY.fullmatch(key) or type(epochs) is not int or not 1 <= epochs <= 500
                 or device not in {"cpu", "cuda"}
                 or dataset_id not in {row["id"] for row in self.dataset_versions()}):
             raise ClassificationUnavailable()
         result = self._request("POST", f"/api/v1/projects/{self.project_id}/experiments",
-                               {"dataset_id": dataset_id, "epochs": epochs, "device": device}, key=key)
+                               {"dataset_id": dataset_id, "epochs": epochs, "device": device, **parameters}, key=key)
         if not isinstance(result, dict) or not _id(result.get("job_id")):
             raise ClassificationUnavailable()
         return result["job_id"]

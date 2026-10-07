@@ -16,7 +16,7 @@ import sqlite3
 from contextlib import closing
 from dataclasses import asdict, dataclass
 from datetime import date
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, localcontext
 from pathlib import Path
 from typing import Mapping
 
@@ -25,7 +25,7 @@ from modules.data_workbench.importing.tables import ImportedTable
 
 _REVISION = re.compile(r"v[0-9a-f]{64}\Z")
 _COLUMN = re.compile(r"c[1-9][0-9]{0,2}\Z")
-_OPERATORS = frozenset({"trim", "rename", "map", "cast", "filter", "duplicates"})
+_OPERATORS = frozenset({"trim", "rename", "map", "cast", "filter", "duplicates", "filter_compare", "group_summary"})
 _MAX_SNAPSHOT = 128 * 1024 * 1024
 _MAX_ERRORS = 20
 
@@ -104,6 +104,23 @@ def _parameters(step: Step, columns: list[dict]) -> dict:
         if "value" in parameters:
             result["value"] = parameters["value"]
         return result
+    if step.operator == 'filter_compare':
+        predicate = parameters.get('predicate')
+        expected = {'column', 'predicate', 'value_kind', 'value'} | ({'upper'} if predicate == 'between' else set())
+        if set(parameters) != expected or predicate not in {'gt', 'ge', 'lt', 'le', 'between'} or parameters.get('value_kind') not in {'decimal', 'date', 'text'}:
+            raise RecipeError('Invalid typed comparison')
+        for key in ('value', 'upper'):
+            if key in parameters:
+                _comparable(parameters['value_kind'], parameters[key])
+        if predicate == 'between' and _comparable(parameters['value_kind'], parameters['value']) > _comparable(parameters['value_kind'], parameters['upper']):
+            raise RecipeError('Reversed comparison interval')
+        return {**parameters, 'column': column(parameters['column'])}
+    if step.operator == 'group_summary':
+        if set(parameters) != {'columns', 'amount_columns'} or any(not isinstance(parameters[key], list) or len(set(parameters[key])) != len(parameters[key]) for key in ('columns', 'amount_columns')):
+            raise RecipeError('Invalid grouping parameters')
+        if not parameters['columns'] or len(parameters['columns']) + len(parameters['amount_columns']) + 1 > 256:
+            raise RecipeError('Grouping columns exceed limit')
+        return {key: [column(value) for value in parameters[key]] for key in ('columns', 'amount_columns')}
     selected = parameters.get("columns")
     if (set(parameters) != {"columns", "include_null"} or not isinstance(selected, list)
             or not selected or len(selected) > len(columns)
@@ -113,6 +130,25 @@ def _parameters(step: Step, columns: list[dict]) -> dict:
         raise RecipeError("Invalid duplicate parameters")
     return {"columns": [column(value) for value in selected],
             "include_null": parameters["include_null"]}
+
+
+def _comparable(kind, value):
+    if not isinstance(value, str) or len(value) > 4096:
+        raise RecipeError('Typed value must be a bounded literal')
+    if kind == 'decimal':
+        try:
+            number = Decimal(value)
+            if not number.is_finite() or abs(number.adjusted()) > 1024:
+                raise InvalidOperation()
+            return number
+        except InvalidOperation:
+            raise RecipeError('Invalid finite decimal') from None
+    if kind == 'date':
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            raise RecipeError('Invalid date') from None
+    return value
 
 
 def _cast(cell: dict, target: str) -> tuple[dict, str | None]:
@@ -173,6 +209,65 @@ def _operate(snapshot: dict, operator: str, parameters: dict) -> tuple[dict, dic
                                    "code": code, "raw": cell["raw"]})
                 else:
                     row["cells"][position] = converted
+    elif operator == 'filter_compare':
+        position = positions[parameters['column']]
+        kind = parameters['value_kind']
+        low = _comparable(kind, parameters['value'])
+        high = _comparable(kind, parameters['upper']) if 'upper' in parameters else None
+        kept = []
+        for row in rows:
+            cell = row['cells'][position]
+            compatible = cell['kind'] in {'integer', 'decimal'} if kind == 'decimal' else cell['kind'] == kind
+            include = False
+            try:
+                if not compatible:
+                    raise RecipeError('Cell type does not match comparison')
+                value = _comparable(kind, cell['value'])
+                predicate = parameters['predicate']
+                include = {'gt': value > low, 'ge': value >= low, 'lt': value < low, 'le': value <= low}.get(predicate, False) if predicate != 'between' else low <= value <= high
+            except RecipeError:
+                errors.append({'row_id': row['row_id'], 'column_id': parameters['column'], 'code': 'comparison_type_unknown', 'raw': cell['raw']})
+            if include:
+                kept.append(row)
+            else:
+                excluded.append(row['row_id'])
+        result['rows'] = kept
+    elif operator == 'group_summary':
+        group_positions = [positions[key] for key in parameters['columns']]
+        groups = {}
+        for row in rows:
+            key = _canonical([(row['cells'][position]['kind'], row['cells'][position]['value']) for position in group_positions])
+            groups.setdefault(key, []).append(row)
+        next_column = max(int(column['column_id'][1:]) for column in columns) + 1
+        if next_column + len(parameters['amount_columns']) > 999:
+            raise RecipeError('No column IDs available for summary')
+        result['columns'] = [copy.deepcopy(columns[position]) for position in group_positions] + [{'column_id': 'c' + str(next_column), 'header': '记录数量'}]
+        result['columns'] += [{'column_id': 'c' + str(next_column + i + 1), 'header': str(columns[positions[key]]['header'] or key) + ' · 合计'} for i, key in enumerate(parameters['amount_columns'])]
+        output = []
+        for key, members in groups.items():
+            cells = [copy.deepcopy(members[0]['cells'][position]) for position in group_positions]
+            cells.append({'kind': 'integer', 'raw': None, 'value': str(len(members))})
+            for column in parameters['amount_columns']:
+                values, invalid = [], False
+                for row in members:
+                    cell = row['cells'][positions[column]]
+                    try:
+                        if cell['kind'] not in {'integer', 'decimal'}:
+                            raise RecipeError('Amount is not typed numeric')
+                        values.append(_comparable('decimal', cell['value']))
+                    except RecipeError:
+                        invalid = True
+                        errors.append({'row_id': row['row_id'], 'column_id': column, 'code': 'amount_type_unknown', 'raw': cell['raw']})
+                if invalid:
+                    cells.append({'kind': 'error', 'raw': None, 'value': None, 'warning': '金额类型缺失；未生成不完整的合计'})
+                else:
+                    with localcontext() as context:
+                        context.prec = 4096
+                        total = sum(values, Decimal(0))
+                    cells.append({'kind': 'decimal', 'raw': None, 'value': str(total)})
+            sources = [source for member in members for source in member.get('source_rows', [{'row_id': member['row_id'], 'source_row': member['source_row']}])]
+            output.append({'row_id': 'r' + hashlib.sha256(key.encode('utf-8')).hexdigest()[:32], 'source_row': members[0]['source_row'], 'source_rows': sources, 'cells': cells})
+        result['rows'] = output
     elif operator == "filter":
         position = positions[parameters["column"]]
         predicate = parameters["predicate"]

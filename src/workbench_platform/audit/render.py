@@ -56,8 +56,30 @@ def render_workpaper(operation):
                       '所属程序：' + finding['procedure_id'], '状态：' + ('已解决' if value['status'] == 'resolved' else '草稿'),
                       '优先级：' + value['priority'], '', '解释：' + value['explanation'], '',
                       '结论：' + value['conclusion'], '', *_records(finding), ''])
+        origin = finding.get('origin')
+        if origin:
+            source, content = origin['source'], origin['content']
+            lines.extend(['#### 转档来源', '', '源任务：' + source['task_id'],
+                '源发现：' + source['draft_id'] + ' / ' + str(source['revision']),
+                '源发现 SHA256：' + source['snapshot_hash'],
+                '范围版本：' + str(source['scope_revision']) + '；背景版本：' + str(source['project_context_revision']),
+                '原作者：' + json.dumps(origin['author'], ensure_ascii=False, sort_keys=True),
+                '转档操作人：' + origin['transfer_actor']['display_name'] + '；来源 ' + origin['transfer_kind'],
+                '转档时间：' + origin['transferred_at'], ''])
+            for key, label in [('facts', '事实'), ('interpretation', '解释'), ('rule', '口径'),
+                               ('missing_information', '待补信息'), ('recommendations', '建议')]:
+                lines.extend(['##### ' + label, '', content.get(key, ''), ''])
         for ref in finding['evidence_refs']:
             item = evidence[ref['evidence_id']]
+            if ref.get('scenario') == 'direct_tool':
+                lines.extend(['#### 直接工具证据 ' + ref['evidence_id'], '',
+                    '源证据：' + ref['source_evidence_id'] + '；源任务：' + ref['task_id'],
+                    '证据 SHA256：' + ref['snapshot_hash'], '固定时间：' + ref['captured_at'],
+                    item['summary'], '', '固定观察：', '', '```json',
+                    json.dumps(item['observation'], ensure_ascii=False, sort_keys=True, indent=2), '```', '',
+                    '完整原件来源：', '', '```json',
+                    json.dumps(item.get('source_assets') or item['sources'], ensure_ascii=False, sort_keys=True, indent=2), '```', ''])
+                continue
             if ref.get('scenario') == 'image_forensics':
                 inspection = item['inspection']
                 review = inspection['review']

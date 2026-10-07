@@ -1,0 +1,27 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "source_evidence_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Source Evidence Id",
+      "type": "string"
+    },
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Task Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "source_evidence_id",
+    "snapshot_hash"
+  ],
+  "title": "AuditDirectEvidenceSelection",
+  "type": "object"
+}

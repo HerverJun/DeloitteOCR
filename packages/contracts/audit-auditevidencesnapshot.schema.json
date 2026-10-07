@@ -1,5 +1,224 @@
 {
   "$defs": {
+    "AgentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "default": "platform",
+          "enum": [
+            "platform",
+            "data",
+            "ocr",
+            "classification",
+            "forensics"
+          ],
+          "title": "Application",
+          "type": "string"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "asset",
+            "asset_set",
+            "table",
+            "result",
+            "artifact",
+            "job",
+            "evidence"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Id"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Revision"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/AgentRef"
+          },
+          "maxItems": 100,
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "workspace_id",
+        "object_id",
+        "revision"
+      ],
+      "title": "AgentRef",
+      "type": "object"
+    },
+    "DirectEvidenceSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "evidence_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "location_url": {
+          "title": "Location Url",
+          "type": "string"
+        },
+        "observation": {
+          "additionalProperties": true,
+          "title": "Observation",
+          "type": "object"
+        },
+        "reference": {
+          "$ref": "#/$defs/AgentRef"
+        },
+        "scenario": {
+          "const": "direct_tool",
+          "default": "direct_tool",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "snapshot_version": {
+          "default": 1,
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Snapshot Version",
+          "type": "integer"
+        },
+        "source_assets": {
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "maxItems": 10000,
+          "title": "Source Assets",
+          "type": "array"
+        },
+        "source_count": {
+          "minimum": 0,
+          "title": "Source Count",
+          "type": "integer"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "maxItems": 200,
+          "title": "Sources",
+          "type": "array"
+        },
+        "summary": {
+          "maxLength": 4000,
+          "title": "Summary",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "workspace_id",
+        "task_id",
+        "reference",
+        "snapshot_hash",
+        "summary",
+        "source_count",
+        "observation",
+        "created_at",
+        "location_url"
+      ],
+      "title": "DirectEvidenceSnapshot",
+      "type": "object"
+    },
     "EvidenceField": {
       "additionalProperties": false,
       "properties": {
@@ -856,6 +1075,9 @@
     },
     {
       "$ref": "#/$defs/ForensicEvidenceSnapshot"
+    },
+    {
+      "$ref": "#/$defs/DirectEvidenceSnapshot"
     }
   ],
   "title": "AuditEvidenceSnapshot"

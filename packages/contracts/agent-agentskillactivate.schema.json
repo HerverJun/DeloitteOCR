@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "title": "Name",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "version": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Version"
+    }
+  },
+  "required": [
+    "name",
+    "request_id"
+  ],
+  "title": "AgentSkillActivate",
+  "type": "object"
+}

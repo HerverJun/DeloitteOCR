@@ -42,6 +42,9 @@ def configure_assets(app) -> None:
         roots["data"] = data_root
     registry = AssetRegistry(root / "assets.sqlite3", blobs, roots)
     app.state.asset_library = (registry, AssetSetStore(registry), uploads)
+    data = getattr(app.state, 'data_workbench', None)
+    if data is not None:
+        data.asset_registry = registry
 
 
 def library(request: Request, workspace_id: str, *, write: bool = False):
