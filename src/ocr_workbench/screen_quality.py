@@ -167,7 +167,7 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
         tables = []
     for warning in raw.get("warnings",[]):
         code = warning.get("code","") if isinstance(warning,dict) else str(warning)
-        if code in {"table_parse_failed","invalid_result"}:
+        if code in {"table_parse_failed","table_structure_invalid","invalid_result"}:
             issue("invalid_or_truncated_table","high","输出表格无法完整解析。","structure",detail=warning)
     finish = raw.get("finish_reason", raw.get("raw",{}).get("finish_reason") if isinstance(raw.get("raw"),dict) else None)
     if finish in {"length","max_tokens","token_limit"} or raw.get("truncated"):
