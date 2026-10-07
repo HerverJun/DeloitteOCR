@@ -22,7 +22,7 @@ from workbench_platform.agent.environment import compose
 from workbench_platform.agent.providers import ProviderFault, SYSTEM, payload_for
 from workbench_platform.agent.registry import ToolRegistry, ToolSpec, compact_schema
 from workbench_platform.agent.store import AgentStore, canonical
-from workbench_platform.agent.tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents
+from workbench_platform.agent.tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, screen_batches
 
 
 ROOT = Path('F:/OCR/output/agent-context-skills-development-20261005/evidence/context-tests')
@@ -37,7 +37,7 @@ def full_registry():
     registry = ToolRegistry()
     for module in (context, data, ocr, classification, forensics, jobs, pdf, results, audit,
                    classification_management, ocr_management, ocr_processing, native_catalog,
-                   platform_management, documents):
+                   platform_management, documents, screen_batches):
         module.register(registry)
     return registry
 
@@ -79,7 +79,7 @@ class ContextBudgetTests(unittest.TestCase):
         from workbench_platform.agent.tools import skills, history
         skills.register(registry)
         history.register(registry)
-        self.assertEqual(len(core_tools(registry)), 14)
+        self.assertEqual(len(core_tools(registry)), 17)
         batch_id = value['data']['batch']['batch_id']
         arguments = {'template_id': value['data']['batch']['template_id'],
                      'template_version': value['data']['batch']['template_version'],
@@ -118,7 +118,7 @@ class ContextBudgetTests(unittest.TestCase):
         from workbench_platform.agent.tools import skills, history
         skills.register(registry)
         history.register(registry)
-        self.assertEqual(len(core_tools(registry)), 14)
+        self.assertEqual(len(core_tools(registry)), 17)
         batch = value['data']['batch']
         batch['template']['config']['large_internal_snapshot'] = '内部生成模板细节' * 18000
         batch['receipts']['index']['raw_snapshot'] = '内部结果回执' * 18000
@@ -196,9 +196,9 @@ class ContextBudgetTests(unittest.TestCase):
                 self.assertEqual(TokenEstimator('gpt-4o').method, 'utf8_bytes_div2_estimate')
                 self.assertEqual(loads, ['o200k_base'])
 
-    def test_real_101_tool_registry_first_user_sentence_fits_16k_for_both_protocols(self):
+    def test_real_105_business_tool_registry_first_user_sentence_fits_16k_for_both_protocols(self):
         registry = full_registry()
-        self.assertEqual(len(registry.tools), 101)
+        self.assertEqual(len(registry.tools), 105)
         for protocol in ('openai_chat_completions', 'anthropic_messages'):
             config = configuration(protocol)
             system, _, sections = compose('真实平台基础说明', config, workspace_id='wtest',
@@ -235,7 +235,7 @@ class ContextBudgetTests(unittest.TestCase):
             self.assertLessEqual(metrics['input_tokens_estimate'], metrics['available_input_tokens'])
             self.assertEqual(selected, core_tools(registry))
             offset = page['next_offset']
-        self.assertEqual(len(set(seen)), 101)
+        self.assertEqual(len(set(seen)), 105)
         result = context.describe_tools(context.ToolDescribe(names=['data_read_table']), ctx)
         self.assertEqual(result['data']['activated_tools'], ['data_read_table'])
         self.assertNotIn('input_schema', wire_json(result))

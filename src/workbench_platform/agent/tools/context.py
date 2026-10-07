@@ -36,8 +36,9 @@ class AssetDescribe(AgentModel):
     asset_ids: list[Identity] = Field(min_length=1, max_length=50)
 
 
-class AssetSetCreate(AssetDescribe):
-    pass
+class AssetSetCreate(AgentModel):
+    asset_ids: list[Identity] = Field(default_factory=list,max_length=1000)
+    selected_scope: bool = False
 
 
 class AskUser(AgentModel):
@@ -49,6 +50,7 @@ class Delivery(AgentModel):
     summary: str = Field(min_length=1, max_length=2000)
     artifact_refs: list[AgentRef] = Field(default_factory=list, max_length=50)
     result_refs: list[AgentRef] = Field(default_factory=list, max_length=50)
+    allow_partial_screen_batch: bool = False
 
 
 class ArtifactGet(AgentModel):
@@ -60,10 +62,11 @@ def safe_asset(asset):
 
 
 def context(args, ctx):
+    from workbench_platform.agent.scope import scope_summary
     project = ctx.services.workspace_store.get_workspace(ctx.workspace_id)
     registry = ctx.services.asset_library[0]
-    selected = [safe_asset(registry.describe(ctx.workspace_id, asset_id)) for asset_id in ctx.selected_assets]
-    data = {'workspace': asdict(project), 'selected_assets': selected,
+    selected = [safe_asset(registry.describe(ctx.workspace_id, asset_id)) for asset_id in ctx.selected_assets[:10]]
+    data = {'workspace': asdict(project), **scope_summary(ctx), 'selected_assets': selected,
             'initial_refs': ctx.store.session(ctx.session_id).get('initial_refs', []),
             'data_sessions': ctx.services.data_workbench.list_page(ctx.workspace_id, limit=20)['items'],
             'capabilities': [ctx.services.agent.registry.describe(name, ctx.services)['availability'] |
@@ -132,7 +135,19 @@ def describe_assets(args, ctx):
 
 
 def create_set(args, ctx):
-    describe_assets(args, ctx)
+    from workbench_platform.agent.scope import fixed_scope,set_summary
+    if args.selected_scope:
+        if args.asset_ids:
+            raise ValueError('固定选中范围不需要重复传入图片清单')
+        asset_set=fixed_scope(ctx)
+        if asset_set is None:
+            raise ValueError('当前任务尚未选择资料，请使用已固定的输入集合或选择范围')
+        return AgentToolResult(status='success',summary='已固定当前选中资料范围，后续使用集合引用',
+            data={key:value for key,value in set_summary(asset_set).items() if value is not None},
+            result_refs=[AgentRef(kind='asset_set',workspace_id=ctx.workspace_id,object_id=asset_set.asset_set_id,revision=asset_set.revision,sha256=asset_set.manifest_hash)]).model_dump()
+    from workbench_platform.application_services.references import asset_allowed
+    if not args.asset_ids or len(set(args.asset_ids))!=len(args.asset_ids) or any(not asset_allowed(ctx,identifier) for identifier in args.asset_ids):
+        raise ValueError('请选择范围内不重复的资料')
     registry, sets, _ = ctx.services.asset_library
     items = []
     for identifier in args.asset_ids:
@@ -142,7 +157,7 @@ def create_set(args, ctx):
         items.append(AssetSetItem(schema_version='1.0', item_id='i' + digest([ctx.operation_id, identifier])[:32],
             asset_id=identifier, asset_revision=asset.revision, blob_hash=asset.blob_hash, source_locator=locator))
     asset_set = sets.create(ctx.workspace_id, items, asset_set_id='s' + ctx.operation_id[1:])
-    return AgentToolResult(status='success', summary='已固定不可变资料集', data=asset_set.model_dump(mode='json'),
+    return AgentToolResult(status='success', summary='已固定不可变资料集', data={key:value for key,value in set_summary(asset_set).items() if value is not None},
         result_refs=[AgentRef(kind='asset_set', workspace_id=ctx.workspace_id, object_id=asset_set.asset_set_id,
                              revision=asset_set.revision, sha256=asset_set.manifest_hash)]).model_dump()
 
@@ -157,7 +172,9 @@ def ask_user(args, ctx):
 
 def get_artifact(args, ctx):
     bundle = ctx.services.artifact_center.get(ctx.workspace_id, args.bundle_id)
-    return AgentToolResult(status='success', summary='已读取真实成果', data=bundle,
+    bounded={key:value for key,value in bundle.items() if key not in {'inputs','items'}}
+    bounded.update(input_count=len(bundle.get('inputs',[])),result_count=len(bundle.get('items',[])))
+    return AgentToolResult(status='success', summary='已读取真实成果', data=bounded,
         artifact_refs=[AgentRef(kind='artifact', workspace_id=ctx.workspace_id, object_id=args.bundle_id, revision=1)]).model_dump()
 
 
@@ -169,7 +186,7 @@ def artifacts(args, ctx):
 def delivery(args, ctx):
     if not args.artifact_refs and not args.result_refs:
         raise ValueError('交付必须引用实际结果或成果')
-    published = []
+    published = [];screen_coverage=[]
     from workbench_platform.application_services.references import verify
     for reference in args.artifact_refs:
         if reference.workspace_id != ctx.workspace_id or reference.kind != 'artifact':
@@ -185,20 +202,33 @@ def delivery(args, ctx):
             files.append({**file, 'download_url': f'/api/platform/v1/workspaces/{ctx.workspace_id}/artifacts/'
                 f'{bundle["bundle_id"]}/files/{quote(file["name"])}'})
         published.append({'bundle_id': bundle['bundle_id'], 'title': bundle.get('title', '成果'), 'files': files})
+        items=bundle.get('items',[])
+        if reference.application=='ocr' and reference.parent_id and bundle.get('handoff_id')==reference.parent_id and items and all(
+            isinstance(item,dict) and item.get('input_version_id') for item in items):
+            screen_coverage.append({'batch_id':reference.parent_id,'bundle_id':bundle['bundle_id'],'total':len(items),
+                'pending':sum(item.get('status') not in {'completed','needs_review','failed','cancelled'} for item in items),
+                'file_count':sum(bool(item.get('file_name')) for item in items)})
     for reference in args.result_refs:
         verify(reference.model_dump(), ctx)
     calls = ctx.store.rows('SELECT result FROM operations WHERE run_id=? AND result IS NOT NULL', (ctx.run_id,))
     results = [json.loads(row['result']) for row in calls]
     outstanding = [value for value in results if value['status'] in {'pending', 'needs_verification'}]
     if outstanding:
-        raise ValueError('仍有未完成任务')
+        from workbench_platform.agent.graph import screen_pending
+        eligible = args.allow_partial_screen_batch and all(value['status'] == 'pending' and screen_pending(value)
+                                                          for value in outstanding)
+        batch_ids = {ref['object_id'] for value in outstanding for ref in value.get('job_refs', [])}
+        if not eligible or not any(ref.application == 'ocr' and ref.parent_id in batch_ids for ref in args.artifact_refs):
+            raise ValueError('仍有未完成任务；仅可显式交付当前拍屏批次的已核实部分成果')
     failed = [value for value in results if value['status'] in {'error', 'unsupported'} or
               any('未处理区域' in warning or '提取失败' in warning for warning in value.get('warnings', [])) or
               any(isinstance(value.get('coverage', {}).get(key), int) and value['coverage'][key] > 0
-                  for key in ('failed', 'cancelled', 'pending'))]
+                  for key in ('failed', 'cancelled', 'pending', 'needs_review'))]
     return AgentToolResult(status='success', summary=args.summary, artifact_refs=args.artifact_refs,
-        result_refs=args.result_refs, data={'delivery': published, 'completeness': 'partial' if failed else 'complete',
-        'verified': True, 'limitations': [value['summary'] for value in failed]}).model_dump()
+        result_refs=args.result_refs, data={'delivery': published, 'completeness': 'partial' if failed or outstanding else 'complete',
+        'verified': True, 'limitations': [value['summary'] for value in [*failed, *outstanding]],
+        'screen_batch_coverage':screen_coverage,
+        'continuing_job_refs': [ref for value in outstanding for ref in value.get('job_refs', [])]}).model_dump()
 
 
 def register(registry):

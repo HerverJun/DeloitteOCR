@@ -38,3 +38,6 @@ class AgentState(TypedDict, total=False):
     answer: dict | None
     answer_display_id: str | None
     delivery_display_id: str | None
+    # Screen batches remain durable native operations while a new user
+    # directive is handled. Other job families keep the normal blocking wait.
+    background_jobs: list[dict]

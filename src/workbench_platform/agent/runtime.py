@@ -18,7 +18,7 @@ from .graph import build_graph
 from .providers import payload_for, request, ProviderFault, SYSTEM, SYSTEM_VERSION, SYSTEM_PROMPTS
 from .registry import ToolContext, ToolRegistry, invoke, tool_activity
 from .store import AgentStore, Conflict, RunSuperseded, canonical, digest, now
-from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history
+from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history, screen_batches
 from workbench_platform.application_services.native import model_projection
 
 
@@ -32,6 +32,7 @@ class AgentRuntime:
         ocr.register(self.registry)
         ocr_management.register(self.registry)
         ocr_processing.register(self.registry)
+        screen_batches.register(self.registry)
         classification.register(self.registry)
         classification_management.register(self.registry)
         native_catalog.register(self.registry)
@@ -262,9 +263,17 @@ class AgentRuntime:
             'content': '[服务器工作事实；用户目标/规则是任务约束，操作状态为历史回执；继续前查询当前状态]\n' + canonical(facts)})
         allowed = skill_snapshot.allowed_tools(state['visible'], core=core_tools(self.registry))
         visible = [name for name in state['visible'] if name in allowed]
+        screen_calls={call['call_id'] for message in state['messages'] if message['role']=='assistant'
+            for call in message.get('calls',[]) if call['tool']=='ocr_screen_batch_run'}
+        has_screen_job=bool(state.get('background_jobs')) or any(message['role']=='tool' and
+            message.get('call_id') in screen_calls and message['result'].get('status') in {'success','pending'}
+            for message in state['messages'])
         payload, metrics, selected = prepare_request(config, messages, self.registry, visible,
             system=system, protected=[name for name in state.get('protected_tools', ()) if name in allowed],
-            system_components=components)
+            system_components=components,
+            reclaimable_core=tuple(name for name in core_tools(self.registry) if name not in {
+                'conversation_answer','tools_list','tools_describe','ask_user','session_read_history',
+                'delivery_publish','ocr_screen_batch_export'}) if has_screen_job else ())
         injection['tools'] = selected
         record, fresh = self.store.begin_model(run['id'], state['generation'], state['step'],
             digest({'payload': payload, 'connection_revision': config['revision']}))
@@ -389,12 +398,13 @@ class AgentRuntime:
                               '执行身份或配置版本已变化，请读取当前状态后继续')
         except ProviderFault as error:
             status = 'needs_verification' if error.code == 'response_unknown' else 'failed'
-            self.finish_error(run_id, generation, status, error.code, str(error), context_metrics=error.context_metrics)
+            self.finish_error(run_id, generation, status, error.code, str(error), context_metrics=error.context_metrics,
+                response_diagnostics=error.response_diagnostics)
         except Exception:
             self.finish_error(run_id, generation, 'failed', 'runtime_failed',
                               '运行未完成；请查看步骤与实际任务状态，已有成果保留')
 
-    def finish_error(self, run_id, generation, status, code, message, *, context_metrics=None):
+    def finish_error(self, run_id, generation, status, code, message, *, context_metrics=None,response_diagnostics=None):
         try:
             self.store.status(run_id, generation, status, message)
         except RunSuperseded:
@@ -402,6 +412,7 @@ class AgentRuntime:
         run = self.store.run(run_id)
         self.store.event(run['session_id'], run_id, run_id + ':error:' + code + ':' + str(generation),
                          'error', {'code': code, 'message': message,
+                                   **({'response_diagnostics': response_diagnostics} if response_diagnostics else {}),
                                    **({'context_metrics': context_metrics} if context_metrics else {})})
         self.store.finish_public(run_id, status, message, generation=generation)
 
@@ -429,8 +440,11 @@ class AgentRuntime:
                     continue
                 try:
                     state = snapshot.values
+                    from .graph import screen_pending
+                    background = state.get('background_jobs', []) if 'await_background' in snapshot.next else []
+                    waiting = [item['result'] for item in background] or [state['results'][-1]]
                     from .progress import progress_for
-                    for reference in state['results'][-1].get('job_refs', []):
+                    for reference in [ref for value in waiting for ref in value.get('job_refs', [])]:
                         try:
                             progress = await invoke(progress_for, reference, self.context(state))
                             stamp = digest(progress)
@@ -444,7 +458,17 @@ class AgentRuntime:
                             # their failure must not
                             # interrupt settling the original native operation.
                             pass
-                    if await self.settle(state['results'][-1], state) is not None:
+                    # Only screen-batch waits admit new user goals before
+                    # native settlement. The original durable operation stays
+                    # pending; other families preserve their blocking wait.
+                    directed = bool(self.inbox(state)[0]) and all(screen_pending(value) for value in waiting)
+                    ready = directed
+                    if not ready:
+                        for value in waiting:
+                            if await self.settle(value, state) is not None:
+                                ready = True
+                                break
+                    if ready:
                         self.schedule(run['id'], Command(resume={'observer': True}))
                 except Conflict:
                     continue
@@ -533,13 +557,15 @@ class AgentRuntime:
         if previous:
             inputs.insert(0, {'id': run['id'] + ':prior-delivery', 'role': 'user',
                              'content': '[上一轮服务器记录的交付]\n' + previous[0]['payload']})
+        from .scope import scope_summary
         inputs.insert(0, {'id': run['id'] + ':scope', 'role': 'user', 'content': '[服务器会话范围]\n' +
-            canonical({'workspace_id': session['workspace_id'], 'selected_assets': session['selected_assets'],
+            canonical({**scope_summary(ToolContext(session['workspace_id'],session['id'],run['id'],run['generation'],0,'',tuple(session['selected_assets']),self.services,self.store)),
                        'initial_refs': session['initial_refs']})})
         return {'run_id': run['id'], 'session_id': session['id'], 'workspace_id': session['workspace_id'],
             'generation': run['generation'], 'messages': inputs, 'step': 0, 'tool_count': 0,
             'visible': core_tools(self.registry), 'protected_tools': [],
-            'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0}
+            'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0,
+            'background_jobs': []}
 
     def session_facts(self, run, *, task=None):
         goals = self.store.rows("SELECT payload FROM events WHERE session_id=? AND (run_id IS NULL OR run_id!=?) AND kind='message' ORDER BY seq DESC LIMIT 30",
