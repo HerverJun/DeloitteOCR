@@ -1,3 +1,4 @@
+import { useId } from "react";
 import {
   Button,
   Popover,
@@ -87,6 +88,21 @@ export function RecognitionBar({
   const preprocessLabel =
     preprocessOptions.find((option) => option.value === preprocess)?.label ??
     "保留当前图像";
+  const recommendedEngine = modes.find((item) => item.id === mode)?.engine;
+  const engineLabel = engine === "all"
+    ? "四引擎顺序对比"
+    : engines[engine]?.name || engine;
+  const settingsSummary = [
+    mode === "compare" ? "模型对比" : "",
+    engine !== recommendedEngine ? `引擎：${engineLabel}` : "",
+    preprocess !== "none" ? preprocessLabel : "",
+  ].filter(Boolean).join(" · ");
+  const summaryId = useId();
+  const selectMode = (item: (typeof modes)[number]) => {
+    setMode(item.id);
+    setEngine(item.engine);
+    chooseTab(item.id === "compare" ? "compare" : item.id === "table" ? "table" : "text");
+  };
 
   return (
     <section className="recognition-bar ocr-recognition" aria-label="识别设置">
@@ -95,24 +111,14 @@ export function RecognitionBar({
         role="group"
         aria-label="识别模式"
       >
-        {modes.map((m) => (
+        {modes.filter((m) => m.id !== "compare").map((m) => (
           <button
             key={m.id}
             type="button"
             className={mode === m.id ? "active" : ""}
             title={m.description}
             aria-pressed={mode === m.id}
-            onClick={() => {
-              setMode(m.id);
-              setEngine(m.engine);
-              chooseTab(
-                m.id === "compare"
-                  ? "compare"
-                  : m.id === "table"
-                    ? "table"
-                    : "text",
-              );
-            }}
+            onClick={() => selectMode(m)}
           >
             <m.icon size={16} aria-hidden="true" />
             {m.name}
@@ -127,52 +133,64 @@ export function RecognitionBar({
               ? "当前图片 · 1 张"
               : "等待导入资料"}
         </span>
-        <label className="ocr-recognition__engine">
-          <span>引擎</span>
-          <select
-            aria-label="识别引擎"
-            value={engine}
-            onChange={(e) => setEngine(e.target.value)}
-          >
-            {Object.keys(engines).map((key) => (
-              <option key={key} value={key}>
-                {engines[key].name}
-              </option>
-            ))}
-            <option value="all">四引擎顺序对比</option>
-          </select>
-        </label>
         <Popover positioning="below-end">
           <PopoverTrigger disableButtonEnhancement>
             <Button
               type="button"
               appearance="subtle"
-              className="ocr-recognition__preprocess"
+              className="ocr-recognition__settings"
               icon={<SlidersHorizontal size={15} aria-hidden="true" />}
-              aria-label={`批次预处理设置，当前：${preprocessLabel}`}
-              title={`批次预处理：${preprocessLabel}`}
+              aria-label="识别设置"
+              aria-describedby={settingsSummary ? summaryId : undefined}
+              title={settingsSummary || "使用当前模式的推荐引擎，保留当前图像"}
             >
-              <span>{preprocessLabel}</span>
+              <span>识别设置</span>
               <ChevronDown size={12} aria-hidden="true" />
             </Button>
           </PopoverTrigger>
           <PopoverSurface
             className="ocr-recognition-popover"
-            aria-label="批次预处理设置"
+            aria-label="识别高级设置"
           >
-            <div className="ocr-recognition-popover__heading">批次预处理</div>
-            <p>选择本次识别使用的图像处理方式。</p>
-            <select
-              aria-label="批次预处理"
-              value={preprocess}
-              onChange={(e) => setPreprocess(e.target.value)}
-            >
-              {preprocessOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="ocr-recognition-popover__heading">识别设置</div>
+            <p>调整本次识别的引擎与图像处理方式。</p>
+            <label className="ocr-recognition-popover__field">
+              <span>识别引擎</span>
+              <select
+                aria-label="识别引擎"
+                value={engine}
+                onChange={(e) => setEngine(e.target.value)}
+              >
+                {Object.keys(engines).map((key) => (
+                  <option key={key} value={key}>{engines[key].name}</option>
+                ))}
+                <option value="all">四引擎顺序对比</option>
+              </select>
+            </label>
+            <label className="ocr-recognition-popover__field">
+              <span>批次预处理</span>
+              <select
+                aria-label="批次预处理"
+                value={preprocess}
+                onChange={(e) => setPreprocess(e.target.value)}
+              >
+                {preprocessOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <div className="ocr-recognition-popover__comparison">
+              <Button
+                type="button"
+                appearance={mode === "compare" ? "primary" : "secondary"}
+                icon={<Columns3 size={16} aria-hidden="true" />}
+                aria-pressed={mode === "compare"}
+                onClick={() => selectMode(modes.find((item) => item.id === "compare")!)}
+              >
+                模型对比
+              </Button>
+              <p>顺序运行四种引擎，分别查看和采用识别结果。</p>
+            </div>
           </PopoverSurface>
         </Popover>
         <Button
@@ -185,6 +203,7 @@ export function RecognitionBar({
         >
           {busy ? "处理中" : "开始识别"}
         </Button>
+        {settingsSummary && <span id={summaryId} className="ocr-recognition__summary">{settingsSummary}</span>}
       </div>
     </section>
   );
