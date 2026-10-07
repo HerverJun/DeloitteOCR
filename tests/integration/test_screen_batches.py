@@ -157,11 +157,14 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
     assert properties['group_size']['minimum']==1 and properties['max_upgrades']['maximum']==2
     client,workspace,fixed,state,_,_=bridge
     body=arguments(fixed)
-    body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None}
+    body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None,'request_timeout_seconds':180}
     response=client.post(f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches',headers=LOCAL,json=body)
     assert response.status_code==201,response.text
-    assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False}
-    assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False}
+    assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180}
+    assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180}
+    from workbench_platform.jobs.screen_batches import ScreenPolicy
+    for invalid in (True,'180',9,901):
+        with pytest.raises(ValueError):ScreenPolicy(request_timeout_seconds=invalid)
 
 
 def test_export_240_unique_workbooks_and_manifest_is_managed(bridge):
