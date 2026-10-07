@@ -92,11 +92,13 @@ class Documents:
         self.threads = []
         self.error = None
 
-    def import_document(self, project_id, name, temporary, dpi=300, password=None):
+    def import_document(self, project_id, name, temporary, dpi=300, password=None, *, on_accept=None):
         store = self.store
         store.one('projects', project_id)
         suffix = Path(name).suffix.lower()
         if suffix not in ('.pdf', '.tif', '.tiff'):
+            if on_accept is not None:
+                raise ValueError('Document acceptance requires a document source')
             image = add_image(store, project_id, name, temporary)
             return store.one('documents', image['id'])
         if type(dpi) not in (int, float) or not math.isfinite(dpi) or not 36 <= dpi <= 1200:
@@ -126,6 +128,8 @@ class Documents:
                     source_hash, len(metadata['pages']), 'waiting_unlock' if locked else 'ready',
                     encoded({**{k: v for k, v in metadata.items() if k != 'pages'}, 'dpi': dpi}), now(), now()))
                 self._insert_pages(db, key, metadata['pages'])
+                if on_accept is not None:
+                    on_accept(db, key)
                 publication.publish()
         if password:
             with self.guard:

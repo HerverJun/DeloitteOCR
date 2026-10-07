@@ -136,6 +136,9 @@ def publish_page(manager, stage, data):
         if manager.stopping.is_set():
             raise DocumentCancelled()
     agent_submitted = store.rows("SELECT 1 FROM agent_job_links WHERE job_kind='pdf_stage' AND job_id=? LIMIT 1", (stage['id'],))
+    if not agent_submitted:
+        agent_submitted = store.rows('SELECT 1 FROM platform_page_requests r, json_each(r.stage_ids) s '
+                                     'WHERE s.value=? LIMIT 1', (stage['id'],))
     # Agent processing grants cover the requested OCR/native work. Additional
     # model-based structure analysis needs its own explicit review permission.
     if not agent_submitted and manager.gpu is not None and not manager.review_only and not data['tables'] and sum(b.get('source') == 'pdf-native' for b in data.get('blocks', [])) >= 4:

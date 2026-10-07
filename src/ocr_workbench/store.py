@@ -3,6 +3,8 @@
 from contextlib import contextmanager, closing
 from datetime import datetime, timezone
 import json
+import hashlib
+import re
 from pathlib import Path
 import sqlite3
 import threading
@@ -12,7 +14,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 18
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -66,6 +68,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         if version < SCHEMA_VERSION:
             with closing(sqlite3.connect(path, timeout=15)) as db:
                 db.row_factory = sqlite3.Row
+                db.create_function("ocr_history", 1, lambda value: history_encoded(json.loads(value)))
                 if exists:
                     backups = self.root / "database-backups"
                     backups.mkdir(exist_ok=True)
@@ -210,6 +213,59 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         elif version == 14:
             from ocr_workbench.agent.migrations import migrate_v14
             migrate_v14(db)
+        elif version == 15:
+            from ocr_workbench.platform_imports import migrate_v15
+            migrate_v15(db)
+        elif version == 16:
+            db.execute("""CREATE TABLE result_revisions(
+                result_id TEXT REFERENCES results(id) ON DELETE CASCADE,
+                revision INTEGER NOT NULL CHECK(revision>=0), edited BLOB NOT NULL,
+                cursor INTEGER NOT NULL, parent_revision INTEGER, created TEXT NOT NULL,
+                origin TEXT NOT NULL, PRIMARY KEY(result_id,revision))""")
+            db.execute("""CREATE TABLE platform_adoptions(
+                operation_id TEXT PRIMARY KEY, project_id TEXT NOT NULL,
+                instance_id TEXT NOT NULL, payload_hash TEXT NOT NULL,
+                receipt TEXT NOT NULL, created TEXT NOT NULL)""")
+            db.execute("CREATE INDEX platform_adoptions_project ON platform_adoptions(project_id,created)")
+            # The undo cursor is not a revision. Legacy middle revisions cannot
+            # be reconstructed, especially after branching; only known values
+            # are migrated and gaps remain explicitly unavailable.
+            for row in db.execute("SELECT * FROM results"):
+                original = json.loads(row["original"])
+                initial = {"text": original["text"], "tables": original["tables"]}
+                db.execute("INSERT INTO result_revisions VALUES(?,?,?,?,?,?,?)",
+                           (row["id"], 0, history_encoded(initial), 0, None,
+                            now(), "migrated_original"))
+                if row["revision"]:
+                    db.execute("INSERT INTO result_revisions VALUES(?,?,?,?,?,?,?)",
+                               (row["id"], row["revision"], history_encoded(json.loads(row["edited"])),
+                                row["cursor"], None, row["updated"], "migrated_current"))
+            db.execute("""CREATE TRIGGER result_revision_initial AFTER INSERT ON results BEGIN
+                INSERT INTO result_revisions VALUES(NEW.id,NEW.revision,ocr_history(NEW.edited),
+                    NEW.cursor,NULL,NEW.updated,'initial'); END""")
+            db.execute("""CREATE TRIGGER result_revision_guard BEFORE UPDATE ON results
+                WHEN NEW.id IS NOT OLD.id OR NEW.task_id IS NOT OLD.task_id OR NEW.original IS NOT OLD.original
+                  OR ((NEW.edited IS NOT OLD.edited OR NEW.cursor IS NOT OLD.cursor OR NEW.revision IS NOT OLD.revision)
+                      AND NEW.revision != OLD.revision+1)
+                BEGIN SELECT RAISE(ABORT,'immutable result identity or nonmonotonic revision'); END""")
+            db.execute("""CREATE TRIGGER result_revision_snapshot AFTER UPDATE ON results
+                WHEN NEW.revision != OLD.revision BEGIN
+                INSERT INTO result_revisions VALUES(NEW.id,NEW.revision,ocr_history(NEW.edited),
+                    NEW.cursor,OLD.revision,NEW.updated,'revision'); END""")
+            db.execute("""CREATE TRIGGER result_revision_immutable BEFORE UPDATE ON result_revisions
+                BEGIN SELECT RAISE(ABORT,'immutable result revision'); END""")
+            db.execute("""CREATE TRIGGER platform_adoption_immutable BEFORE UPDATE ON platform_adoptions
+                BEGIN SELECT RAISE(ABORT,'immutable adoption receipt'); END""")
+
+        elif version == 17:
+            db.execute('''CREATE TABLE platform_page_requests(
+                document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+                request_id TEXT NOT NULL,payload_hash TEXT NOT NULL,body TEXT NOT NULL,
+                stage_ids TEXT NOT NULL,owned_stage_ids TEXT NOT NULL,created TEXT NOT NULL,
+                PRIMARY KEY(document_id,request_id))''')
+        elif version == 18:
+            from ocr_workbench.screen_schema import migrate_screen_schema
+            migrate_screen_schema(db)
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -290,6 +346,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         with self.lock:
             db = sqlite3.connect(self.root / "workbench.sqlite3", timeout=15)
             db.row_factory = sqlite3.Row
+            db.create_function("ocr_history", 1, lambda value: history_encoded(json.loads(value)))
             try:
                 db.execute("PRAGMA foreign_keys=ON")
                 db.execute("PRAGMA journal_mode=WAL")
@@ -323,15 +380,31 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             raise ValueError("无效的项目文件路径")
         return path
 
-    def project(self, name):
+    def project(self, name, request_id=None):
+        import re
+        if request_id is not None and (not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}', request_id)):
+            raise ValueError('创建请求无效')
         name = name.strip()
         if not name or len(name) > 120:
             raise ValueError("项目名称应为 1–120 个字符")
         key = uid()
         with self.transaction() as db:
+            db.execute('BEGIN IMMEDIATE')
+            db.execute('CREATE TABLE IF NOT EXISTS project_create_requests(request_id TEXT PRIMARY KEY, name TEXT NOT NULL, project_id TEXT NOT NULL)')
+            if request_id:
+                prior = db.execute('SELECT name,project_id FROM project_create_requests WHERE request_id=?', (request_id,)).fetchone()
+                if prior:
+                    if prior['name'] != name:
+                        raise ValueError('创建请求已用于其他内容')
+                    row = db.execute('SELECT * FROM projects WHERE id=?', (prior['project_id'],)).fetchone()
+                    if row is None:
+                        raise ValueError('原请求创建的项目已删除')
+                    return dict(row)
             db.execute(
                 "INSERT INTO projects VALUES(?,?,?,?)", (key, name, now(), now())
             )
+            if request_id:
+                db.execute('INSERT INTO project_create_requests VALUES(?,?,?)', (request_id, name, key))
         return self.one("projects", key)
 
     def queue_scope(self, fusion=False, external=False):
@@ -347,7 +420,8 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         with self.transaction() as db:
             scope = "" if fusion is None and not external else " AND " + self.queue_scope(fusion, external)
             db.execute(
-                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成' WHERE status='running'" + scope
+                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成',finished=COALESCE(finished,?) WHERE status='running'" + scope,
+                (now(),)
             )
             db.execute(
                 "UPDATE tasks SET status='paused',phase='等待继续' WHERE status='queued'" + scope
@@ -434,6 +508,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
             scope = self.queue_scope(fusion, external)
+            # The screen coordinator resolves persisted exact-cache dependencies.
+            # A resumed waiter must never dispatch its own model inference.
+            scope += " AND kind NOT IN ('screen_cached','screen_context_cached')"
             if fusion:
                 scope += " AND NOT EXISTS (SELECT 1 FROM fusion_dependencies d JOIN tasks p ON p.id=d.parent_task_id WHERE d.task_id=tasks.id AND p.status NOT IN ('succeeded','failed','cancelled'))"
             task = db.execute(
@@ -441,9 +518,17 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             ).fetchone()
             if not task:
                 return None
+            # Screen tasks retain prior active segments across resume/retry.
+            # Claim atomically accounts the old segment before replacing its start.
+            timestamp = now()
+            if task['started']:
+                for table in ('screen_tasks', 'screen_contexts'):
+                    db.execute('''UPDATE ''' + table + ''' SET spent_seconds=spent_seconds+
+                        MAX(0,(julianday(COALESCE(?,?))-julianday(?))*86400) WHERE task_id=?''',
+                        (task['finished'], timestamp, task['started'], task['id']))
             db.execute(
-                "UPDATE tasks SET status='running',phase=?,started=?,error=NULL WHERE id=? AND status='queued'",
-                ("融合计算中" if fusion else "加载引擎", now(), task["id"]),
+                "UPDATE tasks SET status='running',phase=?,started=?,finished=NULL,error=NULL WHERE id=? AND status='queued'",
+                ("融合计算中" if fusion else "加载引擎", timestamp, task["id"]),
             )
             return dict(task)
 
@@ -520,12 +605,153 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         )
         return data
 
-    def save(self, key, edit, expected_revision):
+    @staticmethod
+    def _result_identity(db, key):
+        row = db.execute("""SELECT r.*, t.project_id,t.image_id,t.status,
+                COALESCE(json_extract(r.original,'$.project_image_version'),t.version_id) version_id,
+                i.active_version,i.sha256 original_sha256,i.original_path
+                FROM results r JOIN tasks t ON t.id=r.task_id JOIN images i ON i.id=t.image_id
+                WHERE r.id=? AND i.project_id=t.project_id""", (key,)).fetchone()
+        if row is None:
+            raise KeyError("识别结果不存在或来源身份无效")
+        return row
+
+    def result_snapshot(self, key, revision=None):
+        if revision is not None and (type(revision) is not int or revision < 0):
+            raise ValueError("修订版本无效")
+        with self.transaction() as db:
+            db.execute("BEGIN")
+            result = self._result_identity(db, key)
+            revision = result["revision"] if revision is None else revision
+            if revision > result["revision"]:
+                raise KeyError("修订版本不存在")
+            row = db.execute("SELECT * FROM result_revisions WHERE result_id=? AND revision=?",
+                             (key, revision)).fetchone()
+            identity = {"id": key, "task_id": result["task_id"], "project_id": result["project_id"],
+                        "image_id": result["image_id"], "version_id": result["version_id"],
+                        "original_sha256": result["original_sha256"], "revision": revision,
+                        "current_revision": result["revision"], "available": row is not None}
+            if row is None:
+                return {**identity, "reason": "legacy_revision_unavailable"}
+            return {**identity, "edited": json.loads(history_decoded(row["edited"])),
+                    "original": json.loads(result["original"]), "cursor": row["cursor"],
+                    "parent_revision": row["parent_revision"], "created": row["created"],
+                    "origin": row["origin"]}
+
+    def result_history(self, key, offset=0, limit=50):
+        if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("修订历史分页无效")
+        with self.transaction() as db:
+            db.execute("BEGIN")
+            result = self._result_identity(db, key)
+            total = db.execute("SELECT COUNT(*) FROM result_revisions WHERE result_id=?", (key,)).fetchone()[0]
+            rows = db.execute("SELECT revision,parent_revision,cursor,created,origin FROM result_revisions "
+                              "WHERE result_id=? ORDER BY revision LIMIT ? OFFSET ?", (key, limit, offset)).fetchall()
+            return {"id": key, "task_id": result["task_id"], "project_id": result["project_id"],
+                    "image_id": result["image_id"], "version_id": result["version_id"],
+                    "current_revision": result["revision"], "total": total, "offset": offset,
+                    "limit": limit, "unavailable_revisions": result["revision"]+1-total,
+                    "items": [dict(row) for row in rows]}
+
+    @staticmethod
+    def _adoption_request(operation_id, body):
+        native_id = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
+        request_id = re.compile(r"[A-Za-z0-9_-]{8,120}\Z")
+        fields = {"project_id", "instance_id", "result_id", "task_id", "image_id", "version_id",
+                  "revision", "original_sha256", "actor", "note"}
+        actor = body.get("actor") if isinstance(body, dict) else None
+        if (not isinstance(operation_id, str) or not request_id.fullmatch(operation_id)
+                or not isinstance(body, dict) or set(body) != fields
+                or any(not isinstance(body[key], str) or not native_id.fullmatch(body[key])
+                       for key in ("project_id", "instance_id", "result_id", "task_id", "image_id", "version_id"))
+                or type(body["revision"]) is not int or body["revision"] < 0
+                or not isinstance(body["original_sha256"], str)
+                or not re.fullmatch(r"[0-9a-f]{64}", body["original_sha256"])
+                or not isinstance(actor, dict) or set(actor) != {"id", "display_name", "source"}
+                or not isinstance(actor["id"], str) or not native_id.fullmatch(actor["id"])
+                or not isinstance(actor["display_name"], str) or not 1 <= len(actor["display_name"]) <= 100
+                or actor["source"] != "local" or not isinstance(body["note"], str) or len(body["note"]) > 2000):
+            raise ValueError("采用操作必须提供明确版本、来源身份、本机操作人及稳定操作标识")
+        return hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True,
+                                        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+
+    def adoption_operation(self, operation_id, project_id, instance_id):
+        if (not isinstance(operation_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{8,120}", operation_id)):
+            raise ValueError("采用操作标识无效")
+        if any(not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", value)
+               for value in (project_id, instance_id)):
+            raise ValueError("原采用操作的项目或实例标识无效")
+        rows = self.rows("SELECT * FROM platform_adoptions WHERE operation_id=?", (operation_id,))
+        if not rows:
+            return None
+        if (rows[0]["project_id"], rows[0]["instance_id"]) != (project_id, instance_id):
+            raise Conflict("采用操作属于其他项目或实例")
+        return json.loads(rows[0]["receipt"])
+
+    def adopt_result(self, operation_id, body):
+        digest = self._adoption_request(operation_id, body)
+        with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            existing = db.execute("SELECT * FROM platform_adoptions WHERE operation_id=?", (operation_id,)).fetchone()
+            if existing:
+                if existing["payload_hash"] != digest:
+                    raise Conflict("同一采用操作标识已用于不同内容")
+                return json.loads(existing["receipt"])
+            row = self._result_identity(db, body["result_id"])
+            if (row["revision"] != body["revision"] or row["status"] != "succeeded"
+                    or any(row[key] != body[key] for key in
+                           ("task_id", "project_id", "image_id", "version_id", "original_sha256"))
+                    or row["active_version"] != body["version_id"]):
+                raise Conflict("采用的结果修订、图像版本或来源身份已变化")
+            version = db.execute("SELECT image_id,path,sha256 FROM versions WHERE id=?", (body["version_id"],)).fetchone()
+            if not version or version["image_id"] != body["image_id"]:
+                raise Conflict("采用的图像版本不属于当前原件")
+            try:
+                with self.file(row["original_path"]).open("rb") as source:
+                    actual_hash = hashlib.file_digest(source, "sha256").hexdigest()
+                with self.file(version["path"]).open("rb") as source:
+                    version_hash = hashlib.file_digest(source, "sha256").hexdigest()
+            except OSError:
+                raise Conflict("原件不可核对，未采用修订") from None
+            if actual_hash != body["original_sha256"] or version_hash != version["sha256"]:
+                raise Conflict("原件内容已变化，未采用修订")
+            previous = self._review_target(db, body["image_id"])
+            db.execute("INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id",
+                       (body["image_id"], body["result_id"]))
+            # Adoption records the selected revision. Native review confirmation
+            # remains its own deliberate action, including fusion issue checks.
+            receipt = {"operation_id": operation_id, "payload_hash": digest, "state": "committed",
+                       **body, "previous": {"result_id": previous["result_id"],
+                                            "revision": previous["revision"], "version_id": previous["version_id"]},
+                       "created": now()}
+            db.execute("INSERT INTO platform_adoptions VALUES(?,?,?,?,?,?)",
+                       (operation_id, body["project_id"], body["instance_id"], digest, encoded(receipt), receipt["created"]))
+        return receipt
+
+    def edit_operation(self, operation_id):
+        if not isinstance(operation_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,120}', operation_id):
+            raise ValueError('编辑操作标识无效')
+        if not self.rows("SELECT name FROM sqlite_master WHERE type='table' AND name='platform_edits'"):
+            return None
+        rows = self.rows('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation_id,))
+        return json.loads(rows[0]['receipt']) if rows else None
+
+    def save(self, key, edit, expected_revision, *, operation=None):
         from ocr_workbench.editing import validate_edit
 
+        if type(expected_revision) is not int or expected_revision < 0:
+            raise ValueError("必须提供用户所见的修订版本")
         validate_edit(edit)
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
+            if operation:
+                db.execute('CREATE TABLE IF NOT EXISTS platform_edits (operation_id TEXT PRIMARY KEY, receipt TEXT NOT NULL)')
+                old = db.execute('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation['operation_id'],)).fetchone()
+                if old:
+                    receipt = json.loads(old['receipt'])
+                    if receipt['payload_hash'] != operation['payload_hash'] or receipt['result_id'] != key:
+                        raise Conflict('编辑身份已绑定不同内容')
+                    return receipt
             row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
             if not row:
                 raise KeyError("识别结果不存在")
@@ -536,6 +762,10 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 from ocr_workbench.fusion_alignment import canonical_edit
                 edit = canonical_edit(edit)
             if json.loads(row["edited"]) == edit:
+                if operation:
+                    receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': row['revision']}
+                    db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+                    return receipt
                 return self.result(key)
             cursor = row["cursor"] + 1
             db.execute(
@@ -559,11 +789,18 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             reconcile_structure(db, key, json.loads(row['edited']), edit)
             from ocr_workbench.multimodal_store import reconcile_review
             reconcile_review(db, key)
+            if operation:
+                receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': expected_revision+1}
+                db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+        if operation:
+            return receipt
         return self.result(key)
 
     def history(self, key, direction, expected_revision):
-        if direction not in {-1, 1}:
+        if type(direction) is not int or direction not in {-1, 1}:
             raise ValueError("无效历史方向")
+        if type(expected_revision) is not int or expected_revision < 0:
+            raise ValueError("必须提供用户所见的修订版本")
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()

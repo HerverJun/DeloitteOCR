@@ -17,6 +17,13 @@ class Cancelled(Exception):
     pass
 
 
+def runtime_path(runtime, system_root):
+    site = runtime.parent / 'Lib' / 'site-packages' / 'nvidia'
+    bundled = sorted(path for path in site.glob('*/bin') if path.is_dir())
+    return os.pathsep.join([str(runtime.parent), *(str(path) for path in bundled),
+                            str(Path(system_root) / 'System32')])
+
+
 def check_recognition_result(result, *, allow_empty=False):
     """An empty, completed region is reviewable; a worker error never is."""
     if result.get('status') != 'success':
@@ -33,7 +40,7 @@ class EngineAdapter:
     def __init__(self, bundle, engine, session_root, *, worker_source=None):
         self.bundle = Path(bundle).resolve()
         self.engine = engine
-        self.worker_source = Path(worker_source).resolve() if worker_source else None
+        self.worker_source = Path(worker_source).resolve() if worker_source else Path(__file__).resolve().parents[1]
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
@@ -47,9 +54,11 @@ class EngineAdapter:
         self.job = None
         self.log = None
         self.gpu_lock = None
+        self.reservation = None
         self.cancelled = threading.Event()
         self.load_seconds = 0
         self.ready = False
+        self.recognition_timeout = 900
         self.geometry_provider = 'paddle'
 
     def configure_geometry(self, provider):
@@ -64,6 +73,55 @@ class EngineAdapter:
     def load(self):
         if self.cancelled.is_set():
             raise Cancelled()
+        # The raw RapidTable candidate is explicitly CPU-only. Shared context
+        # OCR is a separate EngineAdapter session and still obtains a grant.
+        gpu_required = not (self.engine == 'geometry' and self.geometry_provider == 'rapidtable')
+        if gpu_required:
+            from ocr_workbench.platform_resources import reserve
+            self.reservation = reserve(self.engine, self.cancelled)
+        try:
+            self._load()
+        except BaseException:
+            self.unload()
+            raise
+
+    def _load(self):
+        gpu_required = self.reservation is not None or not (
+            self.engine == 'geometry' and self.geometry_provider == 'rapidtable')
+        if gpu_required:
+            self._lock_legacy_gpu()
+        runtime_name = 'ppocr' if self.engine in {'dewarp', 'geometry'} else self.engine
+        if self.engine == 'geometry' and self.geometry_provider in ('tableformer-raw', 'rapidtable'):
+            from ocr_workbench.geometry_provider_config import provider_config
+            runtime_name = provider_config(self.geometry_provider)['runtime']
+        runtime = self.bundle / 'runtimes' / runtime_name / 'python.exe'
+        environment = os.environ.copy()
+        environment["PATH"] = runtime_path(runtime, os.environ["SystemRoot"])
+        for name in list(environment):
+            if name.upper() in {"PYTHONPATH", "PYTHONHOME", "CUDA_HOME", "CUDA_PATH"} or name.startswith("CUDA_PATH_V"):
+                del environment[name]
+        self.job = ProcessJob()
+        self.log = (self.ipc / "engine.log").open("w", encoding="utf-8")
+        command = [str(runtime), "-B", "-X", "utf8", "-I"]
+        if self.worker_source:
+            command += ["-c", "import sys,runpy;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('ocr_workbench.engine_host',run_name='__main__')", str(self.worker_source)]
+        else:
+            command += ["-m", "ocr_workbench.engine_host"]
+        command += ["--bundle", str(self.bundle), "--engine", self.engine, "--ipc", str(self.ipc)]
+        if self.engine == 'geometry':
+            command += ['--geometry-provider', self.geometry_provider]
+        self.process = subprocess.Popen(command, stdout=self.log, stderr=subprocess.STDOUT,
+                                        env=environment, creationflags=subprocess.CREATE_NO_WINDOW)
+        self.job.assign(self.process)
+        if self.reservation:
+            self.reservation.track(self.process, self.job)
+        status = self.wait_for(self.ipc / "status.json", 240)
+        if status["status"] != "ready":
+            raise RuntimeError(status.get("message", "引擎加载失败"))
+        self.load_seconds = status["load_seconds"]
+        self.ready = True
+
+    def _lock_legacy_gpu(self):
         lock_path = Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/gpu.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         self.gpu_lock = lock_path.open("a+b")
@@ -77,72 +135,6 @@ class EngineAdapter:
             self.gpu_lock.close()
             self.gpu_lock = None
             raise RuntimeError("另一个 OCR 实例正在使用 GPU，请稍后重试")
-        runtime_name = 'ppocr' if self.engine in {'dewarp', 'geometry'} else self.engine
-        if self.engine == 'geometry' and self.geometry_provider in ('tableformer-raw', 'rapidtable'):
-            from ocr_workbench.geometry_provider_config import provider_config
-            runtime_name = provider_config(self.geometry_provider)['runtime']
-        runtime = (
-            self.bundle
-            / "runtimes"
-            / runtime_name
-            / "python.exe"
-        )
-        environment = os.environ.copy()
-        environment["PATH"] = (
-            str(runtime.parent)
-            + os.pathsep
-            + str(Path(os.environ["SystemRoot"]) / "System32")
-        )
-        for name in list(environment):
-            if name.upper() in {
-                "PYTHONPATH",
-                "PYTHONHOME",
-                "CUDA_HOME",
-                "CUDA_PATH",
-            } or name.startswith("CUDA_PATH_V"):
-                del environment[name]
-        self.job = ProcessJob()
-        self.log = (self.ipc / "engine.log").open("w", encoding="utf-8")
-        try:
-            command = [
-                    str(runtime),
-                    "-B",
-                    "-X",
-                    "utf8",
-                    "-I",
-                ]
-            if self.worker_source:
-                # Evaluation runs can use reviewed workspace code with an
-                # immutable bundle runtime, without modifying the shipped copy.
-                command += ["-c", "import sys,runpy;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('ocr_workbench.engine_host',run_name='__main__')", str(self.worker_source)]
-            else:
-                command += ["-m", "ocr_workbench.engine_host"]
-            command += [
-                    "--bundle",
-                    str(self.bundle),
-                    "--engine",
-                    self.engine,
-                    "--ipc",
-                    str(self.ipc),
-                ]
-            if self.engine == 'geometry':
-                command += ['--geometry-provider', self.geometry_provider]
-            self.process = subprocess.Popen(
-                command,
-                stdout=self.log,
-                stderr=subprocess.STDOUT,
-                env=environment,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-            self.job.assign(self.process)
-            status = self.wait_for(self.ipc / "status.json", 240)
-            if status["status"] != "ready":
-                raise RuntimeError(status.get("message", "引擎加载失败"))
-            self.load_seconds = status["load_seconds"]
-            self.ready = True
-        except BaseException:
-            self.unload()
-            raise
 
     def wait_for(self, path, timeout):
         deadline = time.monotonic() + timeout
@@ -164,7 +156,7 @@ class EngineAdapter:
             self.ipc / "request.json",
             {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
         )
-        reply = self.wait_for(response, 900)
+        reply = self.wait_for(response, self.recognition_timeout)
         if reply.get("id") != key or reply["status"] != "success":
             raise RuntimeError(reply.get("message", "识别失败"))
         if self.engine == "geometry":
@@ -202,15 +194,28 @@ class EngineAdapter:
                     except subprocess.TimeoutExpired:
                         pass
                 if self.job:
-                    self.job.close()
+                    self.job.drain()
                 self.process.wait(timeout=15)
         finally:
             if self.job:
+                if not self.job.drained:
+                    try:
+                        self.job.drain()
+                    except Exception:
+                        pass  # Reservation.close refuses unproven Job cleanup.
                 self.job.close()
                 self.job = None
+            if self.process is not None and self.process.poll() is None:
+                try:
+                    self.process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass
             if self.log:
                 self.log.close()
                 self.log = None
             if self.gpu_lock:
                 self.gpu_lock.close()
                 self.gpu_lock = None
+            if self.reservation:
+                self.reservation.close()
+                self.reservation = None

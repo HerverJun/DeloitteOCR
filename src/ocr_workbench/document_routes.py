@@ -16,6 +16,23 @@ def register_document_routes(app, documents, maintenance, services=None):
     store = documents.store
     services = services or ApplicationServices(store, documents, maintenance)
 
+    @app.get('/api/platform/documents/{key}/requests/{request_id}')
+    def page_request(key: str, request_id: str):
+        from ocr_workbench.page_requests import read
+        return read(store, key, request_id)
+
+    @app.post('/api/platform/documents/{key}/requests/{request_id}')
+    def submit_page_request(key: str, request_id: str, body: dict):
+        from ocr_workbench.page_requests import submit
+        with maintenance.guard:
+            return submit(documents, key, request_id, body)
+
+    @app.post('/api/platform/documents/{key}/requests/{request_id}/{action}')
+    def page_request_action(key: str, request_id: str, action: str):
+        from ocr_workbench.page_requests import action as perform
+        with maintenance.guard:
+            return perform(documents, key, request_id, action)
+
     @app.post('/api/projects/{key}/documents')
     async def import_documents(key: str, files: list[UploadFile] = File(default=[]),
                                dpi: float = Form(300), password: str | None = Form(None),

@@ -178,6 +178,34 @@ class TaskQueue:
         self.wake.set()
         return self.status()
 
+    def _screen_budget_remaining(self, task, *, for_request=False):
+        import json
+        rows = self.store.rows('''SELECT s.batch_id,s.input_version_id,s.attempt,b.policy,b.deadline,i.preparation
+            FROM screen_tasks s JOIN screen_batches b ON b.id=s.batch_id
+            JOIN screen_items i ON i.batch_id=s.batch_id AND i.input_version_id=s.input_version_id
+            WHERE s.task_id=?''', (task['id'],))
+        if not rows and task.get('kind') == 'screen_context':
+            rows = self.store.rows('''SELECT c.batch_id,c.input_version_id,0 AS attempt,b.policy,b.deadline,i.preparation
+                FROM screen_contexts c JOIN screen_batches b ON b.id=c.batch_id
+                JOIN screen_items i ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
+                WHERE c.task_id=?''', (task['id'],))
+        if not rows:
+            return None
+        from ocr_workbench.screen_batches import screen_seconds_spent
+        row = rows[0]
+        policy = json.loads(row['policy'])
+        remaining = policy['budget_seconds'] - screen_seconds_spent(
+            self.store, row['batch_id'], row['input_version_id'], row['attempt'])
+        if row['attempt'] == 0 and row['preparation']:
+            remaining -= json.loads(row['preparation']).get('preparation_seconds', 0)
+        if row['deadline']:
+            remaining = min(remaining, row['deadline'] - time.time())
+        if for_request:
+            # Keep pre-cap persisted policies unchanged. New batches freeze their
+            # explicit per-call cap, separately from the whole-image budget.
+            remaining = min(remaining, policy.get('request_timeout_seconds', 900))
+        return remaining
+
     def step(self):
         task = self.store.claim(external=True) if self.external_only else self.store.claim()
         if task is None:
@@ -193,7 +221,20 @@ class TaskQueue:
                 self.current = None
                 self.recovery_task = None
                 return True
+        budget_timer, budget_expired = None, threading.Event()
         try:
+            remaining = self._screen_budget_remaining(task)
+            if remaining is not None:
+                if remaining <= 0:
+                    raise TimeoutError('本图或整批处理预算已用尽，保留已生成结果待复核')
+                task_cancel = self.cancel_event
+                def expire_budget():
+                    budget_expired.set()
+                    task_cancel.set()
+                # Includes GPU grant waits and cold model loading, not just inference.
+                budget_timer = threading.Timer(remaining, expire_budget)
+                budget_timer.daemon = True
+                budget_timer.start()
             if task.get("kind") == "multimodal":
                 self._run_multimodal(task)
                 return True
@@ -204,6 +245,8 @@ class TaskQueue:
             if prepared is None:
                 raise Cancelled()
             task = prepared
+            if task.get('kind') == 'screen_context':
+                geometry_provider = 'context'
             if task.get('kind') == 'geometry':
                 import json
                 import hashlib
@@ -223,7 +266,7 @@ class TaskQueue:
                 self.registry.resolve(
                     task["engine"], task.get("engine_package", "builtin")
                 )
-                if self.registry and task.get('kind') != 'geometry'
+                if self.registry and task.get('kind') not in {'geometry', 'screen_context'}
                 else self.bundle
             )
             if task.get('kind') == 'geometry' and geometry_provider != 'paddle':
@@ -244,7 +287,7 @@ class TaskQueue:
             if self.adapter and (
                 self.adapter.engine != task["engine"]
                 or getattr(self.adapter, "bundle", self.bundle) != resolved
-                or task.get('kind') == 'geometry' and getattr(self.adapter, 'geometry_provider', 'paddle') != geometry_provider
+                or task.get('kind') in {'geometry', 'screen_context'} and getattr(self.adapter, 'geometry_provider', 'paddle') != geometry_provider
             ):
                 self.unload()
             if self.adapter is None:
@@ -255,7 +298,7 @@ class TaskQueue:
                         self.store.root / "sessions",
                     )
                     self.adapter.cancelled = self.cancel_event
-                    if task.get('kind') == 'geometry' and hasattr(self.adapter, 'configure_geometry'):
+                    if task.get('kind') in {'geometry', 'screen_context'} and hasattr(self.adapter, 'configure_geometry'):
                         self.adapter.configure_geometry(geometry_provider)
                 self.adapter.load()
             else:
@@ -278,6 +321,19 @@ class TaskQueue:
             output = self.store.root / "task-results" / task["id"] / str(time.time_ns())
             output.mkdir(parents=True)
             input_image = self.store.file(version["path"])
+            screen_input = self.store.rows("SELECT prepared_path,metadata FROM screen_tasks WHERE task_id=?", (task['id'],)) if self.store.rows("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_tasks'") else []
+            if screen_input:
+                import json
+                input_image = self.store.file(screen_input[0]['prepared_path'])
+                screen_metadata = json.loads(screen_input[0]['metadata'])
+            if hasattr(self.adapter, 'recognition_timeout'):
+                remaining = self._screen_budget_remaining(task, for_request=True)
+                if remaining is not None:
+                    if remaining <= 0:
+                        raise TimeoutError('本图处理预算已用尽，保留已生成结果待复核')
+                    self.adapter.recognition_timeout = max(1, int(remaining))
+                else:
+                    self.adapter.recognition_timeout = 900
             if task.get('kind') == 'region_ocr':
                 import json
                 from PIL import Image
@@ -286,7 +342,9 @@ class TaskQueue:
                     cropped = source.crop(json.loads(crop['crop_box']))
                     input_image = output / 'region-input.png'
                     cropped.save(input_image)
-            if task.get('kind') == 'geometry':
+            if task.get('kind') == 'screen_context':
+                data = self.adapter.recognize(input_image, output, {'image_version': task['version_id'], 'allow_auxiliary_ocr': True, 'include_all_layout': True})
+            elif task.get('kind') == 'geometry':
                 import json
                 geometry_request = self.store.rows('SELECT snapshot,regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
                 snapshot = json.loads(geometry_request['snapshot'])
@@ -302,6 +360,8 @@ class TaskQueue:
                 data = self.adapter.recognize(input_image, output, allow_empty=True)
             else:
                 data = self.adapter.recognize(input_image, output)
+            if budget_expired.is_set():
+                raise TimeoutError('本图或整批处理预算已用尽，未采用超时结果')
             if task.get("kind") == "dewarp":
                 from ocr_workbench.imaging import save_version
                 from PIL import Image
@@ -318,6 +378,15 @@ class TaskQueue:
                         },
                         task_id=task["id"],
                     )
+            elif task.get('kind') == 'screen_context':
+                import json
+                with self.store.transaction() as db:
+                    if self.cancel_event.is_set() or self.stopping.is_set():
+                        raise Cancelled()
+                    changed = db.execute("UPDATE tasks SET status='succeeded',phase='业务表区已定位',finished=? WHERE id=? AND status='running'", (now(), task['id'])).rowcount
+                    if changed:
+                        db.execute('UPDATE screen_contexts SET raw=?,artifact=? WHERE task_id=?',
+                                   (json.dumps(data, ensure_ascii=False), str((output / 'geometry.json').relative_to(self.store.root)), task['id']))
             elif task.get('kind') == 'geometry':
                 from ocr_workbench.geometry import complete_geometry
                 complete_geometry(self.store, task, data, output / 'geometry.json')
@@ -326,6 +395,8 @@ class TaskQueue:
                 complete_region_task(self.store, task, data)
             else:
                 data["project_image_version"] = version["id"]
+                if screen_input:
+                    data['screen_input'] = screen_metadata
                 data["version_operations"] = version["operations"]
                 data["engine_package"] = {
                     "id": task.get("engine_package", "builtin"),
@@ -335,11 +406,12 @@ class TaskQueue:
         except Cancelled:
             with self.store.transaction() as db:
                 db.execute(
-                    "UPDATE tasks SET status=?,phase=?,finished=? WHERE id=? AND status='running'",
+                    "UPDATE tasks SET status=?,phase=?,finished=?,error=? WHERE id=? AND status='running'",
                     (
-                        ("interrupted" if self.stopping.is_set() else "cancelled"),
-                        "等待继续" if self.stopping.is_set() else "已取消",
+                        'failed' if budget_expired.is_set() else ("interrupted" if self.stopping.is_set() else "cancelled"),
+                        '预算已用尽' if budget_expired.is_set() else ("等待继续" if self.stopping.is_set() else "已取消"),
                         now(),
+                        '本图或整批处理预算已用尽，保留已生成结果待复核' if budget_expired.is_set() else None,
                         task["id"],
                     ),
                 )
@@ -355,6 +427,8 @@ class TaskQueue:
                 )
             self.unload()
         finally:
+            if budget_timer:
+                budget_timer.cancel()
             with self.guard:
                 self.current = None
                 self.recovery_task = None
@@ -436,7 +510,7 @@ class TaskQueue:
             ]
             for key in affected:
                 db.execute(
-                    "UPDATE tasks SET status=?,phase=?,error=NULL WHERE id=?",
+                    "UPDATE tasks SET status=?,phase=?,error=NULL,finished=CASE WHEN ?='cancelled' THEN COALESCE(finished,?) ELSE finished END WHERE id=?",
                     (
                         target,
                         {
@@ -444,6 +518,8 @@ class TaskQueue:
                             "queued": "等待识别",
                             "cancelled": "已取消",
                         }[target],
+                        target,
+                        now(),
                         key,
                     ),
                 )

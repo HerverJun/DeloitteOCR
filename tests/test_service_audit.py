@@ -38,6 +38,14 @@ class ServiceAuditTests(unittest.TestCase):
         return next(route.endpoint for route in (app or self.app).routes
                     if route.path == path and method in route.methods)
 
+    def test_lost_enqueue_reply_is_read_back_without_new_tasks(self):
+        lookup = self.route('/api/projects/{key}/task-requests/{request_id}')
+        project_id = self.project['id']
+        self.assertEqual(lookup(project_id, 'request-once'), {'submitted': False, 'task_ids': []})
+        ids = self.store.enqueue(project_id, [self.photo['active_version']], ['glm'], request_id='request-once')
+        self.assertEqual(lookup(project_id, 'request-once'), {'submitted': True, 'task_ids': ids})
+        self.assertEqual(self.store.enqueue(project_id, [self.photo['active_version']], ['glm'], request_id='request-once'), ids)
+
     def test_health_reports_worker_failure_and_review_mode_readiness(self):
         health = self.route('/api/health')
         with patch.object(self.app.state.queue, 'status', return_value={

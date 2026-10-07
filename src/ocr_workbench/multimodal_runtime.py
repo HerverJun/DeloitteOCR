@@ -428,7 +428,7 @@ class ReviewSession(ReviewPipeline):
         self.config = config or load_config(bundle)
         self.cancel_event = cancel_event or threading.Event()
         self.progress_callback = progress_callback
-        self.proc = self.job = self.log = self.gpu_lock = None
+        self.proc = self.job = self.log = self.gpu_lock = self.reservation = None
         self.loaded = 0
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
         self.token = secrets.token_hex(32)
@@ -445,22 +445,14 @@ class ReviewSession(ReviewPipeline):
             if not ready['ready']:
                 raise RuntimeError(ready['reason'] + ': ' + ', '.join(ready['missing'][:3]))
             self.output.mkdir(parents=True, exist_ok=True)
-            lock_path = Path(os.environ.get('LOCALAPPDATA', str(self.bundle))) / 'OfflineOCR/gpu.lock'
-            lock_path.parent.mkdir(parents=True, exist_ok=True)
-            self.gpu_lock = lock_path.open('a+b')
-            if self.gpu_lock.tell() == 0:
-                self.gpu_lock.write(b'0')
-                self.gpu_lock.flush()
-            self.gpu_lock.seek(0)
-            try:
-                if os.name == 'nt':
-                    import msvcrt
-                    msvcrt.locking(self.gpu_lock.fileno(), msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(self.gpu_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except OSError as error:
-                raise RuntimeError('另一个 OCR 实例正在使用 GPU，请稍后重试') from error
+            profile = self.config['profile']
+            gpu_required = profile.get('gpu_layers', 99) > 0 or profile.get('mmproj_offload', True)
+            if gpu_required:
+                from ocr_workbench.platform_resources import reserve
+                self.reservation = reserve('visual-review', self.cancel_event)
+            # CPU-only review does not reserve the GPU or block OCR workers.
+            if gpu_required:
+                self._lock_legacy_gpu()
             with socket.socket() as sock:
                 sock.bind(('127.0.0.1', 0))
                 port = sock.getsockname()[1]
@@ -496,6 +488,8 @@ class ReviewSession(ReviewPipeline):
                                          creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             if self.job:
                 self.job.assign(self.proc)
+            if self.reservation:
+                self.reservation.track(self.proc, self.job)
             deadline = time.monotonic() + c['limits']['startup_timeout_seconds']
             while time.monotonic() < deadline:
                 self._cancel()
@@ -515,6 +509,24 @@ class ReviewSession(ReviewPipeline):
         except BaseException:
             self.close()
             raise
+
+    def _lock_legacy_gpu(self):
+        lock_path = Path(os.environ.get('LOCALAPPDATA', str(self.bundle))) / 'OfflineOCR/gpu.lock'
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        self.gpu_lock = lock_path.open('a+b')
+        if self.gpu_lock.tell() == 0:
+            self.gpu_lock.write(b'0')
+            self.gpu_lock.flush()
+        self.gpu_lock.seek(0)
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                msvcrt.locking(self.gpu_lock.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(self.gpu_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            raise RuntimeError('另一个 OCR 实例正在使用 GPU，请稍后重试') from error
 
     def _headers(self):
         return {'Authorization': 'Bearer ' + self.token, 'Content-Type': 'application/json'}
@@ -574,6 +586,7 @@ class ReviewSession(ReviewPipeline):
     def close(self):
         try:
             if self.job:
+                self.job.drain()
                 self.job.close()
                 self.job = None
                 if self.proc is not None:
@@ -593,12 +606,23 @@ class ReviewSession(ReviewPipeline):
                     self.proc.kill()
                     self.proc.wait(timeout=5)
         finally:
+            if self.job:
+                if not self.job.drained:
+                    try:
+                        self.job.drain()
+                    except Exception:
+                        pass
+                self.job.close()
+                self.job = None
             if self.log:
                 self.log.close()
                 self.log = None
             if self.gpu_lock:
                 self.gpu_lock.close()
                 self.gpu_lock = None
+            if self.reservation:
+                self.reservation.close()
+                self.reservation = None
 
     def __exit__(self, *_):
         self.close()

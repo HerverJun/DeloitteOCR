@@ -40,7 +40,7 @@ export function GeometryPanel({ result, version, target, tasks, refreshKey, disa
   };
   const first = evidence[0];
   const location = locationOf(first, version);
-  return <details className="geometry-panel" open={!!target}>
+  return <><details className="geometry-panel">
     <summary>表格定位与人工绑定 · 实验性</summary>
     <p>选中表格单元格，或在文字编辑区选中一段文字，再框选原图绑定。结构修改后需要重新定位。</p>
     <div className="geometry-actions">
@@ -54,8 +54,11 @@ export function GeometryPanel({ result, version, target, tasks, refreshKey, disa
     <div className="geometry-actions"><Button size="small" disabled={disabled || working} onClick={() => void compute(false)}>补充表格定位</Button>
       <Button size="small" disabled={disabled || working} onClick={() => void compute(true)}>重新定位</Button>
       <Button size="small" disabled={!target || working} onClick={() => target && onBind(target)}>人工框选绑定</Button></div>
-    {message && <p role="status">{task ? task.phase : message}</p>}{task?.error && <p role="alert">{String(task.error)}</p>}{error && <p role="alert">{error}</p>}
     {target && <><p>{target.kind === "cell" ? `表 ${target.table+1} · 第 ${target.row+1} 行 / 第 ${target.column+1} 列` : `已选文字第 ${target.start+1}–${target.end} 字符`}</p>
       <RegionPreview version={version} location={location} tablePolygon={first?.details.table_polygon} /></>}
-  </details>;
+  </details>
+    {message && <p className="geometry-feedback" role="status">{task ? task.phase : message}</p>}
+    {task?.error && <p className="geometry-feedback" role="alert">{String(task.error)}</p>}
+    {error && <p className="geometry-feedback" role="alert">{error}</p>}
+  </>;
 }

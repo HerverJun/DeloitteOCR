@@ -5,8 +5,31 @@ from pathlib import Path
 import sys
 
 
+def _f_cache_path(path: Path):
+    requested = path.absolute()
+    resolved = requested.resolve()
+    if requested.drive.upper() != 'F:' or resolved.drive.upper() != 'F:':
+        raise ValueError('OCR cache paths must remain on the local F drive')
+    return resolved
+
+
 def configure(root: Path):
-    cache = root / 'cache'
+    root = _f_cache_path(Path(root))
+    cache = _f_cache_path(root / 'cache')
+    cache_paths = {
+        'HF_HOME': cache / 'hf', 'PADDLE_PDX_CACHE_HOME': cache / 'paddlex',
+        'PADDLE_HOME': cache / 'paddle', 'XDG_CACHE_HOME': cache,
+        'TORCHINDUCTOR_CACHE_DIR': cache / 'torchinductor',
+        'MODELSCOPE_CACHE': cache / 'modelscope',
+        'MODELSCOPE_HOME': cache / 'modelscope-home',
+        'MODELSCOPE_CREDENTIALS_PATH': cache / 'modelscope-home' / 'credentials',
+        'AISTUDIO_CACHE': cache / 'aistudio',
+        'AISTUDIO_CACHE_HOME': cache / 'aistudio-home',
+        'PADDLE_EXTENSION_DIR': cache / 'paddle-extension',
+    }
+    # Check every target before the first mkdir or environment update, including
+    # existing junctions inside an otherwise valid F session cache.
+    cache_paths = {key: _f_cache_path(path) for key, path in cache_paths.items()}
     cache.mkdir(parents=True, exist_ok=True)
     settings = {
         'HF_HUB_OFFLINE': '1', 'TRANSFORMERS_OFFLINE': '1',
@@ -14,8 +37,9 @@ def configure(root: Path):
         'PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK': 'True',
         'PADDLE_PDX_DISABLE_DEVICE_FALLBACK': 'True',
         'PADDLE_PDX_EAGER_INIT': 'False',
-        'HF_HOME': str(cache / 'hf'), 'PADDLE_PDX_CACHE_HOME': str(cache / 'paddlex'),
-        'PADDLE_HOME': str(cache / 'paddle'), 'XDG_CACHE_HOME': str(cache),
+        # Managed Windows workers have no username environment variables.
+        # Give PyTorch its session cache without falling back to getpass/pwd.
+        **{key: str(path) for key, path in cache_paths.items()},
         'NO_PROXY': '*', 'TOKENIZERS_PARALLELISM': 'false',
     }
     os.environ.update(settings)

@@ -24,10 +24,14 @@ from ocr_workbench.task_queue import TaskQueue, FusionQueue, ExternalReviewQueue
 from ocr_workbench.imaging import add_image, transform, thumbnail
 from ocr_workbench.exporting import build_export
 from ocr_workbench.editing import present_result, export_text
+from ocr_workbench.platform_navigation import NavigationTickets
 
 
-def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None):
+def create_app(bundle, data, token, *, start_queue=True, review_only=False, agent_enabled=None, web_root=None):
     bundle = Path(bundle).resolve()
+    web = Path(web_root).resolve() if web_root is not None else bundle / "web"
+    if web_root is not None and not (web / "index.html").is_file():
+        raise ValueError("Configured OCR static build is missing index.html")
     store = Store(data)
     from ocr_workbench.engine_packages import EnginePackages
 
@@ -38,6 +42,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 shutil.rmtree(folder)
     registry = EnginePackages(bundle, store.root)
     queue = TaskQueue(store, bundle, registry=registry)
+    from ocr_workbench.screen_batches import ScreenBatches
+    screen_batches = ScreenBatches(store, queue, bundle, hold_wal=False)
     fusion_queue = FusionQueue(store, bundle)
     from ocr_workbench.external_review import ExternalConnection
     external_connection = ExternalConnection(store)
@@ -51,9 +57,9 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     agent_policy = json.loads(agent_policy_path.read_text("utf-8")) if agent_policy_path.is_file() else {"feature_flags": {"agent_enabled": False}, "limits": {}}
     enable_agent = bool(agent_policy.get("feature_flags", {}).get("agent_enabled", False)) if agent_enabled is None else agent_enabled
 
-    def import_one(key, name, temporary):
+    def import_one(key, name, temporary, *, on_accept=None):
         with maintenance.guard:
-            return add_image(store, key, name, temporary)
+            return add_image(store, key, name, temporary, on_accept=on_accept)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -67,6 +73,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 app.state.agent_startup_error = "助手依赖或检查点不可用；请核对安装与诊断，普通工作台仍可使用"
         if start_queue and not review_only:
             queue.start()
+            screen_batches.start()
         if start_queue:
             fusion_queue.start()
             external_queue.start()
@@ -79,6 +86,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
             if start_queue:
                 documents.stop()
                 external_queue.stop()
+            screen_batches.stop()
             if start_queue and not review_only:
                 queue.stop()
             if start_queue:
@@ -93,6 +101,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     )
     app.state.store = store
     app.state.queue = queue
+    app.state.screen_batches = screen_batches
     app.state.fusion_queue = fusion_queue
     app.state.external_queue = external_queue
     app.state.external_connection = external_connection
@@ -100,10 +109,21 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     app.state.documents = documents
     app.state.shutdown = lambda: None
     app.state.review_only = review_only
+    platform_instance = os.environ.get("WORKBENCH_INSTANCE_ID", "")
+    platform_nonce = os.environ.get("WORKBENCH_NONCE", "")
+    navigation = (NavigationTickets(instance_id=platform_instance)
+                  if os.environ.get("WORKBENCH_APP_ID") == "ocr" and platform_instance
+                  and len(platform_nonce) >= 32 else None)
+    app.state.platform_navigation = navigation
 
     def require_recognition():
         if review_only:
             raise ValueError("当前为仅校对与导出模式，请在完整模式下使用识别与引擎启用功能")
+        from ocr_workbench.platform_resources import platform_mode, ResourceUnavailable
+        try:
+            platform_mode()
+        except ResourceUnavailable:
+            raise ValueError("平台 GPU 协调器不可用，暂不能提交识别任务") from None
         if start_queue and not queue.status().get("healthy", False):
             raise ValueError("队列正在恢复，请查看队列状态，恢复后再提交任务")
 
@@ -120,6 +140,10 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     register_structure_routes(app, store)
     from ocr_workbench.multimodal_routes import register_multimodal_routes
     register_multimodal_routes(app, store, bundle, queue, maintenance, require_recognition)
+    from ocr_workbench.platform_imports import register_platform_import_routes
+    register_platform_import_routes(app, store, import_one, documents.import_document)
+    from ocr_workbench.screen_routes import register_screen_routes
+    register_screen_routes(app, screen_batches, require_recognition)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):
@@ -129,7 +153,12 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         origin = request.headers.get("origin")
         if origin and origin != f"{request.url.scheme}://{request.url.netloc}":
             return JSONResponse({"message": "不允许跨站请求"}, status_code=403)
-        if request.url.path.startswith("/api/") and request.url.path != "/api/health":
+        issue_path = request.url.path == "/api/platform/navigation/issue" and navigation is not None
+        ticket_path = (request.url.path.startswith("/api/platform/navigation/tickets/")
+                       and navigation is not None)
+        identity_path = request.url.path == "/api/platform/v1/identity" and navigation is not None
+        if (request.url.path.startswith("/api/") and request.url.path != "/api/health"
+                and not issue_path and not ticket_path and not identity_path):
             supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
             if not secrets.compare_digest(supplied, token):
                 return JSONResponse(
@@ -165,13 +194,68 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
             {"message": "操作未完成，请重试或在托盘查看日志"}, status_code=500
         )
 
+    @app.get("/api/platform/v1/identity")
+    def platform_identity():
+        if navigation is None or not os.environ.get("WORKBENCH_LAUNCH_ID"):
+            raise HTTPException(status_code=404, detail="Platform identity unavailable")
+        return {"app_id": "ocr", "instance_id": platform_instance,
+                "nonce": platform_nonce, "version": __version__}
+
     @app.get("/api/health")
     def health():
+        from ocr_workbench.platform_resources import platform_mode, ResourceUnavailable
+        try:
+            resource_mode = "platform_shared" if platform_mode() else "legacy_single_app"
+        except ResourceUnavailable:
+            resource_mode = "unavailable"
         status = queue.status()
         cpu_status = fusion_queue.status()
         ready = (review_only or status.get("healthy", False)) and (not start_queue or
             (cpu_status.get("healthy", False) and external_queue.status()['healthy']))
-        return {"status": "ready" if ready else "degraded", "version": __version__, "review_only": review_only, "queue": status, "fusion_queue": cpu_status, "external_queue": external_queue.status()}
+        ready = ready and (review_only or resource_mode != "unavailable")
+        return {"status": "ready" if ready else "degraded", "version": __version__,
+                "review_only": review_only, "gpu_resource_mode": resource_mode,
+                "queue": status, "fusion_queue": cpu_status,
+                "external_queue": external_queue.status()}
+
+    @app.post("/api/platform/navigation/issue", status_code=201)
+    async def issue_platform_navigation(request: Request):
+        if navigation is None or not secrets.compare_digest(
+                request.headers.get("x-workbench-launch-nonce", ""), platform_nonce):
+            raise HTTPException(status_code=403, detail="Navigation unavailable")
+        if request.headers.get("content-type", "").split(";", 1)[0].lower().strip() != "application/json":
+            raise HTTPException(status_code=400, detail="JSON required")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 2048:
+                raise HTTPException(status_code=400, detail="Invalid navigation context")
+        try:
+            def unique(pairs):
+                result = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise ValueError("Duplicate field")
+                    result[key] = value
+                return result
+            ticket = navigation.issue(json.loads(body, object_pairs_hook=unique))
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid navigation context") from None
+        return {"ticket": ticket}
+
+    @app.get("/api/platform/navigation/tickets/{ticket}")
+    def consume_platform_navigation(ticket: str):
+        if navigation is None:
+            raise HTTPException(status_code=404, detail="Navigation unavailable")
+        try:
+            target = navigation.consume(ticket)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Navigation unavailable") from None
+        return {"app_id": target.app_id, "instance_id": target.instance_id,
+                "link_id": target.link_id, "workspace_id": target.workspace_id,
+                "project_id": target.project_id,
+                "session_token": token,
+                "return_url": target.return_url}
 
     @app.post('/api/multimodal/external/queue/recover')
     def recover_external_queue():
@@ -202,6 +286,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     @app.get("/api/state")
     def state():
         return {
+            "project_create_idempotency": "1.0",
             "projects": store.rows("SELECT * FROM projects ORDER BY updated DESC"),
             "engines": registry.engines(),
             "queue": queue.status(),
@@ -215,7 +300,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
 
     @app.post("/api/projects")
     def create_project(body: dict):
-        return store.project(body.get("name", ""))
+        return store.project(body.get("name", ""), request_id=body.get('request_id'))
 
     @app.patch("/api/projects/{key}")
     def rename_project(key: str, body: dict):
@@ -290,6 +375,19 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 await upload.close()
         return {"images": imported, "errors": errors}
 
+    @app.get('/api/projects/{project_id}/sources/{kind}/{source_id}')
+    def original_source(project_id: str, kind: str, source_id: str):
+        if kind not in {'image', 'document'}:
+            raise ValueError('原资料类型无效')
+        row = store.one('images' if kind == 'image' else 'documents', source_id)
+        if row['project_id'] != project_id or kind == 'image' and row.get('document_id'):
+            raise ValueError('原资料不属于此项目，文档页需读取原始文档')
+        path = store.file(row['original_path'])
+        with path.open('rb') as stream:
+            if __import__('hashlib').file_digest(stream, 'sha256').hexdigest() != row['sha256']:
+                raise Conflict('原资料字节变化')
+        return FileResponse(path, filename=row['name'], media_type='application/octet-stream')
+
     @app.get("/api/versions/{key}/image")
     def image(key: str):
         version = store.one("versions", key)
@@ -326,11 +424,26 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     def create_tasks(key: str, body: dict):
         return services.submit_ocr(key, body)
 
+    @app.get("/api/projects/{key}/task-requests/{request_id}")
+    def task_request(key: str, request_id: str):
+        store.one("projects", key)
+        with store.transaction() as db:
+            row = db.execute("SELECT task_ids FROM ocr_submissions WHERE project_id=? AND request_id=?",
+                             (key, request_id)).fetchone()
+        return {"submitted": row is not None, "task_ids": json.loads(row["task_ids"]) if row else []}
+
     @app.get("/api/fusion/policies")
     def fusion_policies():
         from ocr_workbench.fusion import load_policy
         return {kind: {mode: load_policy(bundle, kind, mode) for mode in ("conservative", "aggressive")}
                 for kind in ("table", "print", "handwriting")}
+
+    @app.get('/api/projects/{key}/fusion-requests/{request_id}')
+    def fusion_request(key: str, request_id: str):
+        store.one('projects', key)
+        with store.transaction() as db:
+            row = db.execute('SELECT task_ids FROM fusion_submissions WHERE project_id=? AND request_id=?', (key, request_id)).fetchone()
+        return {'submitted': row is not None, 'task_ids': json.loads(row['task_ids']) if row else []}
 
     @app.post("/api/projects/{key}/fusion")
     def create_fusion(key: str, body: dict):
@@ -377,6 +490,43 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     @app.get("/api/results/{key}")
     def result(key: str):
         return present_result(store.result(key))
+
+    @app.get("/api/results/{key}/snapshot")
+    def result_snapshot(key: str):
+        return store.result_snapshot(key)
+
+    @app.get("/api/results/{key}/revisions/{revision}")
+    def result_revision(key: str, revision: int):
+        return store.result_snapshot(key, revision)
+
+    @app.get("/api/results/{key}/revisions/{revision}/tables")
+    def result_revision_tables(key: str, revision: int):
+        from ocr_workbench.result_tables import table_snapshot
+        return table_snapshot(store, key, revision)
+
+    @app.get("/api/results/{key}/revisions")
+    def result_revisions(key: str, offset: int = 0, limit: int = 50):
+        return store.result_history(key, offset, limit)
+
+    def require_adoption_instance(instance_id):
+        if navigation is None or instance_id != platform_instance:
+            raise Conflict("采用操作必须来自当前受管 OCR 实例")
+
+    @app.post("/api/platform/adoptions/{operation_id}")
+    def adopt_revision(operation_id: str, body: dict):
+        require_adoption_instance(body.get("instance_id"))
+        with maintenance.guard:
+            return store.adopt_result(operation_id, body)
+
+    @app.get("/api/platform/adoptions/{operation_id}")
+    def adoption_operation(operation_id: str, project_id: str, instance_id: str,
+                           operation_instance_id: str | None = None):
+        require_adoption_instance(instance_id)
+        # The live transport instance can differ after a restart/restore. The
+        # historical operation identity remains pinned by the platform intent.
+        origin_instance = instance_id if operation_instance_id is None else operation_instance_id
+        receipt = store.adoption_operation(operation_id, project_id, origin_instance)
+        return {"operation_id": operation_id, "committed": receipt is not None, "receipt": receipt}
 
     @app.get("/api/results/{key}/text", response_class=PlainTextResponse)
     def result_text(key: str):
@@ -426,6 +576,59 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         with store.transaction() as db:
             db.execute('INSERT OR IGNORE INTO review_timings VALUES(?,?,?,?,?,?,?)', (event_id,key,result['revision'],encoded(body.get('target', {})),milliseconds,body['action'],now()))
         return {'saved': True, 'local_only': True}
+
+    @app.get('/api/platform/edits/{operation_id}')
+    def edit_receipt(operation_id: str, project_id: str):
+        receipt = store.edit_operation(operation_id)
+        if receipt and receipt['project_id'] != project_id:
+            raise Conflict('编辑操作不属于当前项目')
+        return {'committed': receipt is not None, 'receipt': receipt}
+
+    @app.post('/api/platform/edits/{operation_id}')
+    def agent_edit(operation_id: str, body: dict):
+        from copy import deepcopy
+        from ocr_workbench.geometry_contract import fingerprint
+        if set(body) != {'project_id', 'result_id', 'revision', 'changes', 'actor'} or body.get('actor', {}).get('kind') != 'agent':
+            raise ValueError('编辑请求或作者无效')
+        payload_hash = fingerprint(body)
+        previous = store.edit_operation(operation_id)
+        if previous:
+            if previous['payload_hash'] != payload_hash:
+                raise Conflict('编辑操作身份变化')
+            return previous
+        result = store.result_snapshot(body['result_id'])
+        if result['project_id'] != body['project_id'] or result['revision'] != body['revision']:
+            raise Conflict('结果项目或版本变化')
+        changes = body['changes']
+        if not isinstance(changes, list) or not 1 <= len(changes) <= 100:
+            raise ValueError('需提供有限的逐项文字修改')
+        edited = deepcopy(result['edited'])
+        for change in changes:
+            if not isinstance(change, dict) or change.get('kind') not in {'text', 'cell', 'caption'} or not isinstance(change.get('before'), str) or not isinstance(change.get('after'), str) or len(change['after']) > 100000:
+                raise ValueError('文字修改格式无效')
+            if change['kind'] == 'text':
+                start, end = change.get('start'), change.get('end')
+                if type(start) is not int or type(end) is not int or not 0 <= start <= end <= len(edited['text']) or edited['text'][start:end] != change['before']:
+                    raise Conflict('原文字段已变化')
+                edited['text'] = edited['text'][:start]+change['after']+edited['text'][end:]
+            else:
+                table_index = change.get('table_index')
+                if type(table_index) is not int or not 0 <= table_index < len(edited['tables']):
+                    raise ValueError('表格位置无效')
+                table = edited['tables'][table_index]
+                if change['kind'] == 'caption':
+                    target, key = table, 'caption'
+                else:
+                    cells = [cell for cell in table['cells'] if cell['row'] == change.get('row') and cell['column'] == change.get('column')]
+                    if len(cells) != 1:
+                        raise ValueError('单元格位置无效')
+                    target, key = cells[0], 'text'
+                if target.get(key, '') != change['before']:
+                    raise Conflict('原单元格内容已变化')
+                target[key] = change['after']
+        with maintenance.guard:
+            return store.save(body['result_id'], edited, body['revision'], operation={'operation_id': operation_id,
+                'project_id': body['project_id'], 'payload_hash': payload_hash, 'actor': body['actor']})
 
     @app.put("/api/results/{key}")
     def save_result(key: str, body: dict):
@@ -534,7 +737,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
         app.state.shutdown()
         return {"status": "stopping"}
 
-    web = bundle / "web"
+    app.state.web_root = web
     if web.is_dir():
         app.mount("/", StaticFiles(directory=web, html=True), name="workbench")
     return app
@@ -546,10 +749,11 @@ def main():
 
     p = argparse.ArgumentParser()
     p.add_argument("--bundle", type=Path, default=Path(__file__).resolve().parents[2])
+    p.add_argument("--web-root", type=Path, help="Serve a separately packaged frontend without changing model assets")
     p.add_argument(
         "--data",
         type=Path,
-        default=Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/Workspace",
+        default=None,
     )
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--token-file", type=Path, required=True)
@@ -561,6 +765,11 @@ def main():
     p.add_argument("--startup-check", choices=("auto", "full"), help="Reuse verified installation receipts, or force complete verification")
     p.add_argument("--review-only", action="store_true", help="Open existing projects for review and export without GPU inference")
     args = p.parse_args()
+    if args.data is None:
+        local = os.environ.get("LOCALAPPDATA")
+        if not local:
+            raise ValueError("Standalone OCR data directory is unavailable; pass --data")
+        args.data = Path(local) / "OfflineOCR/Workspace"
     token = args.token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
         raise ValueError("Session token is too short")
@@ -584,8 +793,15 @@ def main():
             )
             if report["status"] != "passed":
                 raise SystemExit(2)
-        app = create_app(args.bundle, args.data, token, review_only=args.review_only)
+        app = create_app(args.bundle, args.data, token, review_only=args.review_only, web_root=args.web_root)
         # A reset loopback socket must not hold shutdown forever (observed under WFP).
+        platform_port = os.environ.get("WORKBENCH_PORT") == "0"
+        listener = None
+        if platform_port:
+            import socket
+            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen(128)
         server = uvicorn.Server(
             uvicorn.Config(
                 app,
@@ -597,7 +813,11 @@ def main():
             )
         )
         app.state.shutdown = lambda: setattr(server, "should_exit", True)
-        server.run()
+        if listener is not None:
+            print(f"READY {listener.getsockname()[1]}", flush=True)
+            server.run(sockets=[listener])
+        else:
+            server.run()
 
 
 if __name__ == "__main__":

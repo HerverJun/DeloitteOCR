@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url';
 
 const baseline = process.argv.includes('--baseline');
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const output = fileURLToPath(new URL('../../build/navigation-audit/', import.meta.url));
+const output = process.env.OCR_NAVIGATION_OUTPUT || fileURLToPath(new URL('../../build/navigation-audit/', import.meta.url));
+if (!/^F:[/\\]/i.test(path.resolve(output))) throw Error('Navigation evidence must stay on F drive');
+for (const name of ['TEMP', 'TMP', 'APPDATA', 'LOCALAPPDATA']) {
+  if (!/^F:[/\\]/i.test(process.env[name] || '')) throw Error(`${name} must stay on F drive`);
+}
 await fs.mkdir(output, { recursive: true });
 const server = http.createServer(async (req, res) => {
   try {
@@ -51,16 +55,25 @@ const reviewTasks = [...structures, ...proposals].map(item => ({ id: `queue-${it
 const checks = [], errors = [], unexpected = [];
 let browser;
 try {
-  browser = await chromium.launch({ channel: 'msedge', headless: true, args: ['--disable-gpu', '--disable-gpu-compositing'] });
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  browser = await chromium.launchPersistentContext(path.join(output, 'profile'), {
+    executablePath: process.env.OCR_NAVIGATION_BROWSER || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    headless: true, viewport: { width: 1440, height: 1000 },
+    downloadsPath: path.join(output, 'downloads'),
+    args: ['--disable-gpu', '--disable-gpu-compositing', '--disable-component-update', '--disable-crash-reporter', '--disable-breakpad', '--no-first-run', '--no-default-browser-check',
+      `--disk-cache-dir=${path.join(output, 'cache')}`, `--crash-dumps-dir=${path.join(output, 'crashes')}`],
+  });
+  const context = browser;
   await context.addInitScript(() => localStorage.setItem('ocr-ui-sidebar', 'true'));
   const page = await context.newPage();
-  page.setDefaultTimeout(1800);
+  page.setDefaultTimeout(5000);
+  page.setDefaultNavigationTimeout(20000);
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/api/**', async route => {
     const url = new URL(route.request().url()), endpoint = url.pathname;
     let json;
     if (endpoint === '/api/state') json = { projects: [project], engines: { ppocr: { name: 'PP-OCRv6', capabilities: { tables: false, confidence: true } } } };
+    else if (endpoint === '/api/agent/status') json = { enabled: false, available: false };
+    else if (endpoint === '/api/multimodal/external') json = { configured: false, available: false, revision: 0 };
     else if (endpoint === '/api/projects/navigation-test') json = { project, images, versions, tasks, documents: [doc], queue: { healthy: true, loaded: false } };
     else if (endpoint === '/api/fusion/policies') json = { policies: {} };
     else if (endpoint === '/api/documents/doc/pages') { const start = Number(url.searchParams.get('offset') || 0); json = { pages: pages.slice(start, start + Number(url.searchParams.get('limit') || 30)) }; }
@@ -89,10 +102,74 @@ try {
   const check = async (name, work) => {
     try { await work(); checks.push({ name, passed: true }); console.log('PASS ' + name); }
     catch (error) {
-      checks.push({ name, passed: false, error: error.message }); console.log('FAIL ' + name);
-      await page.screenshot({ path: path.join(output, `${baseline ? 'before' : 'after'}-${checks.length}.png`) });
+      checks.push({ name, passed: false, error: error.message }); console.log('FAIL ' + name + ': ' + error.message);
+      await page.screenshot({ path: path.join(output, `${baseline ? 'before' : 'after'}-${checks.length}.png`), timeout: 15000 }).catch(() => {});
     }
   };
+  await check('recognition settings preserve custom options while collapsed', async () => {
+    await fresh();
+    await expect(page.getByRole('group', { name: '识别模式' }).getByRole('button')).toHaveCount(3);
+    await expect(page.getByRole('combobox', { name: '识别引擎', exact: true })).toBeHidden();
+    await expect(page.getByRole('button', { name: '引擎管理', exact: true })).toBeHidden();
+    await page.getByRole('button', { name: '识别设置', exact: true }).click();
+    await page.getByRole('combobox', { name: '批次预处理', exact: true }).selectOption('contrast');
+    await page.getByRole('combobox', { name: '识别引擎', exact: true }).selectOption('all');
+    await page.getByRole('combobox', { name: '批次预处理', exact: true }).press('Escape');
+    await expect(page.getByRole('combobox', { name: '识别引擎', exact: true })).toBeHidden();
+    await expect(page.locator('.ocr-recognition__summary')).toContainText('增强对比度');
+    await expect(page.locator('.ocr-recognition__summary')).toContainText('四引擎顺序对比');
+    await page.reload();
+    await expect(page.locator('.ocr-recognition__summary')).toContainText('四引擎顺序对比');
+    await page.getByRole('button', { name: '识别设置', exact: true }).click();
+    await expect(page.getByRole('combobox', { name: '识别引擎', exact: true })).toHaveValue('all');
+    await page.getByRole('combobox', { name: '批次预处理', exact: true }).selectOption('none');
+    await page.getByRole('button', { name: '模型对比', exact: true }).click();
+    await page.getByRole('combobox', { name: '批次预处理', exact: true }).press('Escape');
+    await expect(page.getByRole('tab', { name: '模型对比', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('.ocr-recognition__summary')).toHaveText('模型对比');
+    await page.getByRole('button', { name: '照片文字', exact: true }).click();
+    await expect(page.locator('.ocr-recognition__summary')).toHaveCount(0);
+    await expect(page.locator('.workspace-queue-toggle')).toHaveCount(1);
+    await expect(page.locator('.queue-summary')).toHaveCount(0);
+  });
+  await check('default result navigation keeps professional tools in a menu', async () => {
+    await fresh();
+    const tabs = page.getByRole('tablist', { name: '结果视图', exact: true });
+    await expect(tabs.getByRole('tab')).toHaveCount(2);
+    await expect(tabs.getByRole('tab', { name: /表格/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs.getByRole('tab', { name: '文字', exact: true })).toBeVisible();
+    await expect(tabs.getByRole('button', { name: '专业工具', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: '专业工具', exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: '结构复核', exact: true })).toBeVisible();
+    await page.getByRole('menuitem', { name: '模型对比', exact: true }).click();
+    await expect(tabs.getByRole('tab', { name: '模型对比', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs.getByRole('tab')).toHaveCount(3);
+    await tabs.getByRole('tab', { name: '文字', exact: true }).click();
+    await expect(tabs.getByRole('tab')).toHaveCount(2);
+  });
+  await check('result tab keyboard navigation only traverses visible views', async () => {
+    await fresh();
+    const tabs = page.getByRole('tablist', { name: '结果视图', exact: true });
+    const tableTab = tabs.getByRole('tab', { name: /表格/ });
+    const textTab = tabs.getByRole('tab', { name: '文字', exact: true });
+    await tableTab.focus();
+    await tableTab.press('ArrowRight');
+    await expect(textTab).toBeFocused();
+    await expect(textTab).toHaveAttribute('aria-selected', 'true');
+    await textTab.press('ArrowRight');
+    await expect(tableTab).toBeFocused();
+    await tableTab.press('End');
+    await expect(textTab).toBeFocused();
+    await textTab.press('Home');
+    await expect(tableTab).toBeFocused();
+    await page.getByRole('button', { name: '专业工具', exact: true }).click();
+    await page.getByRole('menuitem', { name: '结构复核', exact: true }).click();
+    const structureTab = tabs.getByRole('tab', { name: '结构复核', exact: true });
+    await structureTab.focus();
+    await structureTab.press('Home');
+    await expect(tableTab).toBeFocused();
+    await expect(tabs.getByRole('tab')).toHaveCount(2);
+  });
   await check('next review advances without requiring a decision', async () => {
     await fresh(); await review.getByRole('button', { name: '下一处', exact: true }).click();
     await expect(page.getByLabel('结构建议', { exact: true })).toHaveValue('structure-a');
@@ -133,6 +210,8 @@ try {
   await check('manual binding reveals the image and its binding controls', async () => {
     await fresh(1024, 600); await page.getByRole('button', { name: '收起资料栏', exact: true }).click();
     await page.locator('.editable-grid textarea').first().focus();
+    await expect(page.locator('.geometry-panel')).not.toHaveAttribute('open');
+    await page.locator('.geometry-panel summary').click();
     await page.getByRole('button', { name: '人工框选绑定', exact: true }).click();
     await expect(page.getByRole('region', { name: '图片工作区', exact: true })).toBeVisible();
     await expect(page.locator('.selection-bar')).toContainText('人工定位');
@@ -182,7 +261,7 @@ try {
     await expect(page.getByLabel('选择审校建议', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: '定位原图', exact: true }).click();
     await expect(page.getByRole('region', { name: '图片工作区', exact: true })).toBeVisible();
-    await page.screenshot({ path: path.join(output, 'visible-original.png') });
+    await page.screenshot({ path: path.join(output, 'visible-original.png'), timeout: 15000 });
   });
   await check('low-confidence text navigation reveals the original image', async () => {
     await fresh(1024, 600); await page.getByRole('button', { name: '收起资料栏', exact: true }).click();

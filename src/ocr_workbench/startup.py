@@ -327,7 +327,8 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                     code += ";import paddle;assert paddle.is_compiled_with_cuda() and paddle.device.cuda.device_count()>0"
                 if engine == "glm":
                     code += ";import torch;assert torch.cuda.is_available()"
-                probe = subprocess.run(
+                from ocr_workbench.platform_resources import run_startup_probe
+                probe = run_startup_probe(
                     [
                         str(runtime),
                         "-B",
@@ -339,6 +340,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                         str(output),
                         json.dumps(modules),
                     ],
+                    gpu_required=engine in {"ppocr", "paddlevl", "glm"},
                     env=env,
                     capture_output=True,
                     text=True,

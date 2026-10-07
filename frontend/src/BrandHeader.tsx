@@ -1,19 +1,24 @@
 import type { ReactNode } from "react";
-export function BrandHeader({ children }: { children: ReactNode }) {
+import { brands } from "./clear-ui/theme";
+export function BrandHeader({ children, homeUrl }: { children: ReactNode; homeUrl?: string | null }) {
+  const Brand = homeUrl ? 'a' : 'div';
   return (
-    <header className="app-header">
+    <header className="app-header" aria-label={brands.ocr}>
       <a className="skip-link" href="#workspace">
         跳到工作区
       </a>
-      <div className="brand">
+      <Brand className="brand" href={homeUrl || undefined}
+        title={homeUrl ? '返回审计平台首页' : undefined}
+        aria-label={homeUrl ? `${brands.ocr} · 返回审计平台首页` : undefined}>
         <img
-          src="./brand/deloitte-light.svg"
-          alt="Deloitte"
-          width="92"
-          height="18"
+          src="./brand/clear-mark.svg"
+          alt=""
+          width="24"
+          height="24"
         />
-        <span>OCR 工作台</span>
-      </div>
+        <strong>{brands.ocr}</strong>
+        <span>文档识别与校对</span>
+      </Brand>
       <div className="header-right">{children}</div>
     </header>
   );

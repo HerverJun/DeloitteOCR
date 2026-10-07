@@ -14,16 +14,12 @@ import {
   FolderPlus,
   Upload,
   Check,
-  ChevronDown,
   Download,
   Undo2,
   Redo2,
   Copy,
   Search,
   X,
-  LayoutList,
-  Table2,
-  Columns3,
   ScanLine,
   PenLine,
   CheckCircle2,
@@ -37,6 +33,7 @@ import {
 import { TaskQueue } from "./TaskQueue";
 import { RecognitionBar, modes } from "./RecognitionBar";
 import { BrandHeader } from "./BrandHeader";
+import { platformHomeFromLaunch, platformHomeUrl } from "./platformHome";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { AgentPanel } from "./AgentPanel";
 import { resolveAgentEvidence } from "./agentNavigation";
@@ -45,7 +42,6 @@ import { DocumentTree } from "./DocumentTree";
 import { documentReviewTab, type DocumentReviewTask } from "./DocumentReviewQueue";
 import { StructureReview } from "./StructureReview";
 import { MultimodalReview } from "./MultimodalReview";
-import { multimodalTargetLabel } from "./multimodalTypes";
 import { DocumentConflicts } from "./DocumentConflicts";
 import {
   usePreference,
@@ -54,9 +50,12 @@ import {
   validEngine,
 } from "./workspacePreferences";
 import { api, request, download } from "./api";
+import { navigationFromLaunch, safeReturnUrl, type PlatformNavigation } from "./platformNavigation";
+import { brands } from "./clear-ui/theme";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { ResultViewNavigation } from "./ResultViewNavigation";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import type { DiagnosticsResponse } from "./diagnostics";
 import { QuickReview } from "./QuickReview";
@@ -68,6 +67,7 @@ import { useEditor } from "./useEditor";
 import { copySavedResultText } from "./resultClipboard";
 import { changeDocumentTables, changeDocumentText, displayOffset, documentText } from "./documentText";
 import { ProjectStorage } from "./ProjectStorage";
+import { ScreenBatchPanel } from "./ScreenBatchPanel";
 import { EnginePackages } from "./EnginePackages";
 import { engineNames } from "./types";
 import type {
@@ -168,6 +168,25 @@ export function App() {
   }, []);
   const onError = useCallback((text: string) => notify(text, true), [notify]);
   const editor = useEditor(onError);
+  const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
+  const [platformHome, setPlatformHome] = useState<string | null>(null);
+  const [platformLaunchError, setPlatformLaunchError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setPlatformNavigation(null);
+    setPlatformHome(null);
+    const pending = navigationFromLaunch();
+    void Promise.resolve(pending).then(async value => {
+      if (active) setPlatformNavigation(value);
+      const returnUrl = value && safeReturnUrl(value);
+      const home = returnUrl ? platformHomeUrl(returnUrl)
+        : await platformHomeFromLaunch('ocr', () => api('/platform/v1/identity'));
+      if (active) setPlatformHome(home);
+    }).catch(() => {
+      if (active) { setPlatformLaunchError(true); onError("平台项目入口已失效，请从平台重新打开。"); }
+    });
+    return () => { active = false; };
+  }, [onError, connectionAttempt]);
   const textView = useMemo(() => editor.edit ? documentText(editor.edit).text : "", [editor.edit]);
   const [tablePositions, setTablePositions] = useState<Record<string, number>>({});
   const [documentReviewTarget, setDocumentReviewTarget] = useState<DocumentReviewTask | null>(null);
@@ -260,18 +279,21 @@ export function App() {
   }, []);
   useEffect(() => {
     let cancelled = false;
-    api("/state")
-      .then((value) => {
+    Promise.resolve(navigationFromLaunch())
+      .then(async (launch) => ({ value: await api("/state"), launch }))
+      .then(({ value, launch }) => {
         if (cancelled) return;
+        setPlatformLaunchError(false);
         setSessionExpired(false);
         setMessage("");
         setProjects(value.projects);
         setEngines(value.engines);
         setReviewOnly(value.review_only === true);
         const saved = localStorage.getItem("ocr-project");
-        const id =
-          value.projects.find((p: Project) => p.id === saved)?.id ||
-          value.projects[0]?.id;
+        const id = launch
+          ? value.projects.find((p: Project) => p.id === launch.project_id)?.id
+          : value.projects.find((p: Project) => p.id === saved)?.id || value.projects[0]?.id;
+        if (launch && !id) { onError("平台关联的 OCR 项目已不存在，请返回平台重新选择。"); return; }
         if (id) void (selectedProject.current === id ? refresh(id) : chooseProject(id)).catch(onError);
       })
       .catch(onError)
@@ -741,24 +763,33 @@ export function App() {
     >
       {sessionExpired && <div className="inline-warning" role="alert">
         <strong>工作台连接已失效</strong>
-        <p>请从系统托盘重新打开工作台，或重新运行「启动工作台.cmd」。新启动链接会恢复连接，当前页面中的校对草稿会保留。</p>
-        <Button onClick={() => setConnectionAttempt(n => n + 1)}>重新连接</Button>
+        <p>从 Clear Workbench 打开时，请返回平台重新点击“打开工具”或“打开原生项目”。独立运行时，请从系统托盘重新打开工作台。当前页面中的校对草稿会保留。</p>
+        <Button onClick={() => setConnectionAttempt(n => n + 1)}>检查当前连接</Button>
       </div>}
-      <BrandHeader>
-        {!reviewOnly && (
-          <EnginePackages
-            onError={onError}
-            onChange={async () => {
-              const value = await api("/state");
-              setEngines(value.engines);
-              notify("引擎版本已更新，已有任务仍使用原版本");
-            }}
-          />
+      {platformLaunchError && <div className="inline-warning" role="alert"><strong>平台项目入口已失效</strong>
+        <p>请返回平台重新打开所选项目；当前页面不会自动改开其他项目。</p></div>}
+      <BrandHeader homeUrl={platformHome}>
+        {platformNavigation && safeReturnUrl(platformNavigation) && (
+          <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
+            target="_blank" rel="noopener noreferrer" aria-label={`在新标签页返回 ${brands.platform}`}>
+            返回 {brands.platform} ↗
+          </a>
         )}
         <span className="offline-status">
           <span />
-          {reviewOnly ? "校对与导出 · 可配置 API 审校" : "本地 OCR · 可配置 API 审校"}
+          {reviewOnly ? "校对模式" : "本地 OCR"}
         </span>
+        <details className="ocr-system-settings">
+          <summary><Settings size={17} aria-hidden="true" />设置</summary>
+          <div className="ocr-system-settings__content">
+            {!reviewOnly && <EnginePackages
+              onError={onError}
+              onChange={async () => {
+                const value = await api("/state");
+                setEngines(value.engines);
+                notify("引擎版本已更新，已有任务仍使用原版本");
+              }}
+            />}
         <Button
           appearance="subtle"
           icon={<Settings size={17} />}
@@ -772,6 +803,8 @@ export function App() {
         >
           环境检查
         </Button>
+          </div>
+        </details>
       </BrandHeader>
       <WorkspaceLayout
         paneRequest={paneRequest}
@@ -940,30 +973,6 @@ export function App() {
             >
               导出所选 {selected.length ? `(${selected.length})` : ""}
             </Button>
-            <button
-              className={"queue-summary " + (showQueue ? "open" : "")}
-              onClick={toggleQueue}
-              aria-expanded={showQueue}
-              aria-controls="task-queue"
-            >
-              <LayoutList size={18} />
-              <span>
-                任务队列
-                <small>
-                  {reviewOnly ? "仅校对与导出 · CPU 融合可用" : !queueHealthy
-                    ? "队列异常，请查看恢复提示"
-                    : attention
-                      ? `${attention} 项失败或待恢复 · ${pending} 项处理中`
-                      : pending
-                        ? `${pending} 项等待或识别中`
-                        : `${completed} 项已完成`}
-                </small>
-              </span>
-              <ChevronDown
-                size={16}
-                style={{ transform: showQueue ? "rotate(180deg)" : undefined }}
-              />
-            </button>
             <div className="sidebar-footer">
               <Check size={13} />
               项目与校对自动保存在本机
@@ -1018,6 +1027,9 @@ export function App() {
             <FusionLauncher engines={engines} tasks={recognitionTasks} versionId={version?.id}
               selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
               onStart={runFusion} />
+            <ScreenBatchPanel projectId={projectId} images={project?.images || []} selectedImageIds={selected}
+              disabled={busy || reviewOnly || !queueHealthy} onError={onError} onRefresh={() => refresh(projectId)}
+              onOpenResult={previewResult} />
             <button
               className="workspace-queue-toggle"
               onClick={toggleQueue}
@@ -1026,7 +1038,7 @@ export function App() {
             >
               任务队列 · {pending} 项处理中
               {attention
-                ? ` · ${attention} 项待处理`
+                ? ` · ${attention} 项失败或待恢复`
                 : ` · ${completed} 项完成`}
             </button>
           </>
@@ -1165,79 +1177,12 @@ export function App() {
             )}
           </div>
           <div className="result-view-bar">
-            <div
-              className="result-tabs"
-              role="tablist"
-              aria-label="结果视图"
-              onKeyDown={(e) => {
-                const choices = editor.result?.original.fusion ? ["table", "structure", "text", "compare", "multimodal", "review"] : ["table", "structure", "text", "compare", "multimodal"];
-                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
-                  return;
-                e.preventDefault();
-                const index =
-                  e.key === "Home"
-                    ? 0
-                    : e.key === "End"
-                      ? choices.length-1
-                      : (choices.indexOf(tab) +
-                          (e.key === "ArrowRight" ? 1 : choices.length-1)) % choices.length;
-                chooseTab(choices[index]);
-                (
-                  e.currentTarget.querySelectorAll("button")[
-                    index
-                  ] as HTMLButtonElement
-                ).focus();
-              }}
-            >
-              <button
-                role="tab"
-                aria-selected={tab === "table"}
-                tabIndex={tab === "table" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-table"
-                className={tab === "table" ? "active" : ""}
-                onClick={() => chooseTab("table")}
-              >
-                <Table2 size={15} />
-                表格
-                {editor.edit?.tables.length
-                  ? ` ${editor.edit.tables.length}`
-                  : ""}
-              </button>
-              <button role="tab" aria-selected={tab === "structure"} tabIndex={tab === "structure" ? 0 : -1}
-                aria-controls="result-content" id="tab-structure" className={tab === "structure" ? "active" : ""}
-                onClick={() => chooseTab("structure")}>结构复核</button>
-              <button
-                role="tab"
-                aria-selected={tab === "text"}
-                tabIndex={tab === "text" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-text"
-                className={tab === "text" ? "active" : ""}
-                onClick={() => chooseTab("text")}
-              >
-                <FileText size={15} />
-                文字
-              </button>
-              <button
-                role="tab"
-                aria-selected={tab === "compare"}
-                tabIndex={tab === "compare" ? 0 : -1}
-                aria-controls="result-content"
-                id="tab-compare"
-                className={tab === "compare" ? "active" : ""}
-                onClick={() => chooseTab("compare")}
-              >
-                <Columns3 size={15} />
-                模型对比
-              </button>
-              <button role="tab" aria-selected={tab === "multimodal"} tabIndex={tab === "multimodal" ? 0 : -1}
-                aria-controls="result-content" id="tab-multimodal" className={tab === "multimodal" ? "active" : ""}
-                onClick={() => chooseTab("multimodal")}><ScanLine size={15} />视觉审校</button>
-              {editor.result?.original.fusion && <button role="tab" aria-selected={tab === "review"}
-                tabIndex={tab === "review" ? 0 : -1} aria-controls="result-content" id="tab-review"
-                className={tab === "review" ? "active" : ""} onClick={() => chooseTab("review")}>快速校对</button>}
-            </div>
+            <ResultViewNavigation
+              tab={tab}
+              onSelect={chooseTab}
+              tableCount={editor.edit?.tables.length}
+              hasFusion={!!editor.result?.original.fusion}
+            />
             {editor.result && editor.edit && (
               <div className="edit-toolbar">
                 <Button
@@ -1438,9 +1383,9 @@ export function App() {
                       !matchesVersion ||
                       editor.result.id !== currentAdopted
                     }
-                    onClick={() => void action(() => setReview("confirmed"))}
+                    onClick={() => void action(async () => { await setReview("confirmed"); await nextReview(); })}
                   >
-                    确认此结果
+                    确认并下一项
                   </Button>
                   <details>
                     <summary>复核操作</summary>
@@ -1454,14 +1399,14 @@ export function App() {
                         }
                         onClick={() => void action(() => setReview("question"))}
                       >
-                        标记有疑问
+                        暂缓：有疑问
                       </Button>
                       <Button
                         size="small"
                         disabled={busy || editor.result.id !== currentAdopted}
                         onClick={() => void action(() => setReview("pending"))}
                       >
-                        设为待校对
+                        重开为待校对
                       </Button>
                       <Button
                         size="small"
@@ -1491,10 +1436,6 @@ export function App() {
                     </button>
                   </div>
                 )}
-                {["table", "text"].includes(tab) && <div className="multimodal-entry">
-                  <div><strong>对照原图再核对一轮</strong><span>{geometryTarget?.resultId === editor.result.id ? `已选中：${multimodalTargetLabel(geometryTarget.target)}` : "可选中文字或表格单元格，也可复核本页。"}</span></div>
-                  <Button size="small" icon={<ScanLine size={15} />} disabled={busy} onClick={() => chooseTab("multimodal")}>视觉审校</Button>
-                </div>}
                 {tab === "text" && (
                   <div className="text-editor">
                     <div className="text-search">
@@ -1762,7 +1703,8 @@ export function App() {
         setPaneRequest({ pane: "result" });
       }} />
       {message && (
-        <div role="alert" className={"toast " + (error ? "error" : "")}>
+        <div role={error ? "alert" : "status"} aria-live={error ? "assertive" : "polite"}
+          className={"toast " + (error ? "error" : "")}>
           <span>
             {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
           </span>
@@ -1790,8 +1732,8 @@ export function App() {
         </div>
       )}
       {initial && (
-        <div className="boot-overlay">
-          <Spinner label="正在打开本机工作台" />
+        <div className="boot-overlay" role="status" aria-live="polite" aria-busy="true">
+          <Spinner label={`正在打开 ${brands.ocr}`} />
         </div>
       )}
       <Dialog

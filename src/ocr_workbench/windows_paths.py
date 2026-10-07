@@ -14,23 +14,26 @@ import tempfile
 
 @contextmanager
 def ascii_model_directory(models):
-    models=models.resolve()
+    requested=Path(models).absolute()
+    models=requested.resolve()
+    if requested.drive.upper()!='F:' or models.drive.upper()!='F:':
+        raise RuntimeError('Paddle model directory must remain on the local F drive')
     if str(models).isascii():
         yield models
         return
-    candidates=[Path(tempfile.gettempdir()),Path(os.environ['SystemRoot'])/'Temp',
-                Path(os.environ['ProgramData'])/'OfflineOCR'/'Temp']
-    temporary=None
-    for parent in candidates:
-        if not str(parent).isascii():continue
-        try:
-            parent.mkdir(parents=True,exist_ok=True)
-            temporary=Path(tempfile.mkdtemp(prefix='offlineocr-paddle-',dir=parent))
-            break
-        except OSError:
-            continue
-    if temporary is None:
-        raise RuntimeError('Paddle requires a writable ASCII temporary directory for Windows path compatibility')
+    configured=os.environ.get('CLEAR_PADDLE_TEMP') or os.environ.get('TEMP')
+    if not configured:
+        raise RuntimeError('Paddle requires an explicitly registered ASCII F drive temporary directory')
+    requested_parent=Path(configured).absolute()
+    parent=requested_parent.resolve()
+    if (requested_parent.drive.upper()!='F:' or parent.drive.upper()!='F:'
+            or not str(parent).isascii()):
+        raise RuntimeError('Paddle temporary directory must be an ASCII local F drive path')
+    try:
+        parent.mkdir(parents=True,exist_ok=True)
+        temporary=Path(tempfile.mkdtemp(prefix='offlineocr-paddle-',dir=parent))
+    except OSError as error:
+        raise RuntimeError('Registered F drive Paddle temporary directory is not writable; no fallback is allowed') from error
     junction=temporary/'models'
     junction.mkdir()
     api=ctypes.WinDLL('kernel32',use_last_error=True)
