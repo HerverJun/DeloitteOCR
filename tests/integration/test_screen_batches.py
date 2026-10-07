@@ -219,3 +219,73 @@ def test_upgrade_preserves_original_and_fixes_a_derived_input_subset(bridge):
     assert len(state['upgrades'])==1
     args['version_ids']=['version0']
     assert client.post(route+'/batchA/action',headers=LOCAL,json=args).status_code==409
+
+
+@pytest.mark.parametrize('bridge',[4],indirect=True)
+@pytest.mark.parametrize('existing_marker',[False,True])
+def test_cold_restore_keeps_screen_parent_subset_policy_and_export_identity(bridge,monkeypatch,existing_marker):
+    from copy import deepcopy
+    from contextlib import closing
+    import hashlib
+    from scripts.backup_workspace import create,restore,verify
+    from scripts.product_compatibility import DATA_COMPATIBILITY,check
+    from workbench_platform.jobs.screen_batches import ScreenAction,ScreenExport
+    client,workspace,fixed,state,service,_=bridge
+    route=f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches'
+    assert client.post(route,headers=LOCAL,json=arguments(fixed)).status_code==201
+    state.update(pending=0,status='completed')
+    bundle=service.export(workspace,'batchA',ScreenExport())
+    upgrade=ScreenAction(action='upgrade',request_id='coldUpgrade',version_ids=['version1','version3'])
+    child=service.action(workspace,'batchA',upgrade)
+    original=dict(service.handoff._row(workspace,'handoffA'))
+    native_context=service.handoff._context(workspace,'linkA');native=service.handoff._adapter(native_context)
+    source=service.path.parent;archive=source.with_name(source.name+'-archive');recovered=source.with_name(source.name+'-recovered')
+    if existing_marker:
+        (source/'product-reader-requirements.json').write_text(json.dumps({'format':'clear-product-reader-requirements-v1',
+            'reader_features':['fixed-draft-transfer-v1'],'note':'保留原读取能力'}),encoding='utf-8')
+    tables=('screen_batch_refs','screen_batch_actions','screen_batch_exports','screen_batch_subsets','screen_batch_policy_receipts')
+    with closing(service._connect()) as db:
+        before={table:[dict(row) for row in db.execute('SELECT * FROM '+table)] for table in tables}
+    old_artifact=app.state.artifact_center.file(workspace,bundle['bundle_id'],'ocr-results.zip')
+    old_hash=old_artifact.blob_hash
+    # Close the fixture's ASGI lifespan before the actual cold backup. Native
+    # HTTP is deterministic; reference, subset, policy and artifact stores are
+    # the production services. This is persistence evidence, not OCR quality.
+    client.__exit__(None,None,None)
+    manifest=create(source,archive)
+    assert 'screen-batches.sqlite3' in manifest['files']
+    assert 'product-reader-requirements.json' in manifest['files']
+    assert verify(archive)['files']==manifest['files']
+    if not existing_marker:
+        assert not (source/'product-reader-requirements.json').exists()
+    restore(archive,recovered)
+    marker=json.loads((recovered/'product-reader-requirements.json').read_text(encoding='utf-8'))
+    assert 'screen-batch-v1' in marker['reader_features']
+    if existing_marker:
+        assert 'fixed-draft-transfer-v1' in marker['reader_features'] and marker['note']=='保留原读取能力'
+    assert check(recovered,DATA_COMPATIBILITY)['compatible']
+    old=deepcopy(DATA_COMPATIBILITY);old['reader_features'].remove('screen-batch-v1')
+    with pytest.raises(ValueError,match='不能直接降级'):check(recovered,old)
+    monkeypatch.setenv('WORKBENCH_DATA_DIR',str(recovered))
+    with TestClient(app,base_url='http://127.0.0.1:8766'):
+        reopened=app.state.screen_batches
+        monkeypatch.setattr(reopened.handoff,'_row',lambda *_:original)
+        monkeypatch.setattr(reopened.handoff,'_context',lambda *_:native_context)
+        monkeypatch.setattr(reopened.handoff,'_adapter',lambda *_:native)
+        with closing(reopened._connect()) as db:
+            after={table:[dict(row) for row in db.execute('SELECT * FROM '+table)] for table in tables}
+        assert after==before
+        assert reopened.submit(workspace,ScreenSubmit.model_validate(arguments(fixed)),allow_new=False)['batch_id']=='batchA'
+        assert reopened.fixed(workspace,reopened._row(workspace,child['batch_id'])).asset_set_id==child['asset_set_id']
+        assert reopened.action(workspace,'batchA',upgrade)['batch_id']==child['batch_id']
+        assert reopened.export(workspace,'batchA',ScreenExport())['bundle_id']==bundle['bundle_id']
+        artifact=app.state.artifact_center.file(workspace,bundle['bundle_id'],'ocr-results.zip')
+        with app.state.artifact_center.store.stage_download(workspace,artifact.artifact_id,
+            expected_revision=artifact.revision,expected_hash=artifact.blob_hash) as path:
+            assert hashlib.sha256(path.read_bytes()).hexdigest()==old_hash
+    assert state['posts']==1 and len(state['upgrades'])==1
+    incomplete=json.loads((archive/'manifest.json').read_text(encoding='utf-8'))
+    incomplete['files'].pop('product-reader-requirements.json')
+    (archive/'manifest.json').write_text(json.dumps(incomplete),encoding='utf-8')
+    with pytest.raises(ValueError,match='capabilities are missing'):
+        verify(archive)
