@@ -72,6 +72,7 @@ export function AgentWorkbench() {
   const workspace = params.get('workspace'), sessionId = params.get('session')
   const [draftAssets, setDraftAssets] = useState<string[]>((params.get('assets') || '').split(',').filter(Boolean))
   const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session')
+  const assetSetSource = params.get('asset_set')
   const [settings, setSettings] = useState(false), [skills, setSkills] = useState(false), [goal, setGoal] = useState('')
   const [materials, setMaterials] = useState(false), [background, setBackground] = useState(false), [recent, setRecent] = useState(false), [keyword, setKeyword] = useState('')
   const [error, setError] = useState(''), [controlling, setControlling] = useState(false), [taskDrawer, setTaskDrawer] = useState(false)
@@ -83,10 +84,10 @@ export function AgentWorkbench() {
   const { projection, events, subscription, reconnect } = useAgentEvents(workspace, sessionId, !!health.data?.enabled)
   const connection = useQuery({ queryKey: ['agent-connection'], enabled: health.data?.enabled,
     queryFn: () => agentRequest<Controller>('/agent/connection') })
-  const source = useQuery({ queryKey: ['agent-source', workspace, bundle, sourceResult, sourceSession],
-    enabled: !!workspace && !!(bundle || sourceResult && sourceSession) && !sessionId && health.data?.enabled,
+  const source = useQuery({ queryKey: ['agent-source', workspace, bundle, sourceResult, sourceSession, assetSetSource],
+    enabled: !!workspace && !!(bundle || assetSetSource || sourceResult && sourceSession) && !sessionId && health.data?.enabled,
     queryFn: () => agentWrite<{ reference: AgentRef }>(`/workspaces/${workspace}/agent/references`,
-      bundle ? { kind: 'artifact', object_id: bundle } : { kind: 'result', object_id: sourceResult, parent_id: sourceSession }) })
+      assetSetSource ? { kind: 'asset_set', object_id: assetSetSource } : bundle ? { kind: 'artifact', object_id: bundle } : { kind: 'result', object_id: sourceResult, parent_id: sourceSession }) })
   const listing = useQuery({ queryKey: ['audit-tasks', workspace, keyword], enabled: !!workspace && health.data?.enabled,
     queryFn: () => agentRequest<{ items: AuditTask[] }>(`/workspaces/${workspace}/audit-tasks?keyword=${encodeURIComponent(keyword)}`), refetchInterval: 4000 })
   const task = useQuery({ queryKey: ['audit-task', sessionId], enabled: !!sessionId && health.data?.enabled,
@@ -103,7 +104,7 @@ export function AgentWorkbench() {
   const timelineIds = useMemo(() => projection.items.map(item => item.id), [projection.items])
   const scroll = useConversationScroll(`${workspace}:${sessionId}`, timelineIds, events.at(-1)?.seq || 0)
   const activity = active ? projection.activities[active.id] : Object.values(projection.activities).sort((a, b) => b.seq - a.seq)[0]
-  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session'].forEach(key => next.delete(key)) }
+  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session', 'asset_set'].forEach(key => next.delete(key)) }
   const choose = (id: string) => { const next = new URLSearchParams(params); next.set('session', id); clearSource(next); setGoal(''); setParams(next); setRecent(false) }
   const draftKey = `clear-audit-draft:${workspace || 'new'}:${sessionId || 'new'}`
   useEffect(() => {
@@ -161,7 +162,7 @@ export function AgentWorkbench() {
   }, [workspace, sessionId])
   const send = useMutation({ mutationFn: async ({ content, execute }: { content: string; execute: boolean }) => {
     if (mismatch) throw new Error('会话属于其他项目，请重新选择会话')
-    if ((bundle || sourceResult) && !sessionId && !source.data) throw new Error('先核实带入成果的来源和版本')
+    if ((bundle || sourceResult || assetSetSource) && !sessionId && !source.data) throw new Error('先核实带入成果的来源和版本')
     const references = source.data ? [source.data.reference] : []
     const stamp = JSON.stringify([workspace, sessionId, selectedAssets, content, references])
     const stored = sessionStorage.getItem('clear-agent-pending-send')

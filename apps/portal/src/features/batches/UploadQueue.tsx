@@ -59,7 +59,8 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
       for (const file of selected) {
         if (!file.size || file.size > 128 * 1024 * 1024) throw new Error(`${file.name}：请选择非空且不超过 128 MB 的文件`)
         const sha256 = await fileSha256(file)
-        const sameName = current.current.find(row => row.binding.name === file.name)
+        if (current.current.length >= 1000) throw new Error('一次最多登记 1000 个上传文件，请先清除已完成记录')
+        const sameName = current.current.find(row => row.binding.name === file.name && row.state !== 'committed')
         if (sameName) {
           if (sameName.binding.size_bytes !== file.size || sameName.binding.sha256 !== sha256) throw new Error(`${file.name}：名称相同但大小或 SHA256 不同，不能替换原恢复请求`)
           files.current.set(sameName.binding.request_id, file)
@@ -72,18 +73,19 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
     } catch (failure) { setError((failure as Error).message) }
     finally { loading(false) }
   }
-  async function upload() {
+  async function upload(onlyIds?: string[]) {
     if (busy || disabled) return
     loading(true); setError('')
     try {
-      for (const original of [...current.current]) {
-        if (original.state === 'committed') continue
+      const pending = current.current.filter(row => row.state !== 'committed' && (!onlyIds || onlyIds.includes(row.binding.request_id)))
+      let cursor = 0
+      const process = async (original: QueueItem) => {
         const binding = original.binding
         try {
           if (original.state !== 'queued') {
             try {
               const status = await request<UploadStatus>(path(binding))
-              if (committed(status, binding)) { await refreshAssets(); continue }
+              if (committed(status, binding)) return
               if (!matches(status.binding, binding)) throw new Error('服务保存的原请求元数据不一致，不能重复提交')
               if (status.status === 'rejected' && status.error?.details.effect !== 'no_registration') throw new Error('服务尚未证明未登记，请继续核实原请求')
             } catch (failure) { if (!(failure instanceof HttpError) || failure.status !== 404) throw failure }
@@ -94,19 +96,21 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
           const query = new URLSearchParams({ name: binding.name, sha256: binding.sha256, size_bytes: String(binding.size_bytes) })
           const status = await request<UploadStatus>(`${path(binding)}?${query}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file })
           if (!committed(status, binding)) throw new Error(status.error?.message || '上传尚未完成，请核实同一请求')
-          await refreshAssets()
         } catch (failure) {
           // A lost response may already have registered the asset. Query before presenting a retry.
           try {
             const status = await request<UploadStatus>(path(binding))
-            if (committed(status, binding)) { await refreshAssets(); continue }
+            if (committed(status, binding)) return
             update(binding.request_id, { state: status.status === 'rejected' ? 'failed' : 'uncertain', message: status.error?.message || (failure as Error).message })
           } catch (verification) {
             update(binding.request_id, { state: verification instanceof HttpError && verification.status === 404 ? 'failed' : 'uncertain', message: (failure as Error).message })
           }
-          break
         }
       }
+      await Promise.all(Array.from({ length: Math.min(3, pending.length) }, async () => {
+        while (cursor < pending.length) { const original = pending[cursor++]; await process(original) }
+      }))
+      await refreshAssets()
     } finally { loading(false) }
   }
   const success = rows.filter(row => row.state === 'committed').length
@@ -118,10 +122,10 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
     {!!rows.length && <Text>成功 {success} · 失败 / 待核实 {failed} · 未提交 {waiting}</Text>}
     {!!rows.length && success === rows.length && <Button disabled={busy || disabled} onClick={() => { remember([]); files.current.clear() }}>清除已完成上传记录</Button>}</Space>
     {error && <Alert type="error" title={error} />}
-    {!!rows.length && <><Table<QueueItem> size="small" rowKey={row => row.binding.request_id} dataSource={rows} pagination={false}
+    {!!rows.length && <><Table<QueueItem> size="small" rowKey={row => row.binding.request_id} dataSource={rows} pagination={{ pageSize: 30, showSizeChanger: false }}
       columns={[{ title: '文件', key: 'name', render: (_, row) => row.binding.name }, { title: '大小', key: 'size', render: (_, row) => `${row.binding.size_bytes.toLocaleString()} 字节` },
         { title: '上传状态', key: 'state', render: (_, row) => <Tag color={row.state === 'committed' ? 'success' : row.state === 'failed' ? 'error' : 'default'}>{labels[row.state]}</Tag> },
-        { title: '恢复说明', dataIndex: 'message' }]} />
-      <Paragraph type="secondary">{compact ? '上传成功的资料可直接加入当前任务。上传中断后可在这里继续。' : '成功项保留；发生问题时后续文件暂不提交。页面重载后，原文件需重新选择，名称、大小和 SHA256 必须一致。恢复先核实原请求，再只继续必要文件。'}</Paragraph></>}
+        { title: '恢复说明', dataIndex: 'message' }, { title: '操作', render: (_, row) => row.state !== 'committed' && <Button disabled={busy || disabled} size="small" onClick={() => void upload([row.binding.request_id])}>仅重试本文件</Button> }]} />
+      <Paragraph type="secondary">同时上传最多 3 个文件，单个文件失败后其它文件继续。成功项保留。页面重载后重选原文件，名称、大小和 SHA256 必须一致；恢复先核实原请求。</Paragraph></>}
   </div>
 }

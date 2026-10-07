@@ -36,7 +36,7 @@ function binding(path: string): UploadBinding {
   return { schema_version: '1.0', workspace_id: 'wUpload', request_id: url.pathname.split('/').at(-1)!, name: url.searchParams.get('name')!, sha256: url.searchParams.get('sha256')!, size_bytes: Number(url.searchParams.get('size_bytes')) }
 }
 
-test('ten files pause at the fourth failure, persist all states and receipts, then reload resumes only necessary files with the original metadata', async () => {
+test('ten files continue past a file failure, persist receipts, then reload retries only the failed file with its original metadata', async () => {
   const original = Array.from({ length: 10 }, (_, index) => new File([`编号,金额\n${index},01.10`], `file${index + 1}.csv`))
   const submitted: UploadBinding[] = []
   const registered = new Map<string, UploadStatus>()
@@ -55,22 +55,22 @@ test('ten files pause at the fourth failure, persist all states and receipts, th
   await screen.findByText('file10.csv')
   await waitFor(() => expect(screen.getByRole('button', { name: '上传未提交资料' })).toBeEnabled())
   fireEvent.click(screen.getByRole('button', { name: '上传未提交资料' }))
-  await screen.findByText('成功 3 · 失败 / 待核实 1 · 未提交 6')
+  await screen.findByText('成功 9 · 失败 / 待核实 1 · 未提交 0')
   const before = JSON.parse(localStorage.getItem('clear-upload-queue:wUpload')!)
-  expect(before.map((row: any) => row.state)).toEqual(['committed', 'committed', 'committed', 'failed', ...Array(6).fill('queued')])
+  expect(before.map((row: any) => row.state)).toEqual(['committed', 'committed', 'committed', 'failed', ...Array(6).fill('committed')])
   expect(before[0].receipt.asset.original_name).toBe('file1.csv')
-  expect(submitted).toHaveLength(4)
+  expect(submitted).toHaveLength(10)
   first.unmount(); mount()
   fireEvent.change(screen.getByLabelText('添加批次资料'), { target: { files: [new File(['别的内容'], 'file4.csv')] } })
   await screen.findByText('file4.csv：名称相同但大小或 SHA256 不同，不能替换原恢复请求')
   expect(JSON.parse(localStorage.getItem('clear-upload-queue:wUpload')!)[3].binding).toEqual(before[3].binding)
-  expect(submitted).toHaveLength(4)
-  fireEvent.change(screen.getByLabelText('添加批次资料'), { target: { files: original.slice(3) } })
+  expect(submitted).toHaveLength(10)
+  fireEvent.change(screen.getByLabelText('添加批次资料'), { target: { files: [original[3]] } })
   await waitFor(() => expect(screen.getByRole('button', { name: '核实并恢复失败与未提交' })).toBeEnabled())
   fireEvent.click(screen.getByRole('button', { name: '核实并恢复失败与未提交' }))
   await screen.findByText('成功 10 · 失败 / 待核实 0 · 未提交 0')
   expect(submitted).toHaveLength(11)
-  expect(submitted[4]).toEqual(submitted[3])
+  expect(submitted[10]).toEqual(submitted[3])
   expect(submitted.filter(value => ['file1.csv', 'file2.csv', 'file3.csv'].includes(value.name))).toHaveLength(3)
   expect(registered.size).toBe(10)
   const saved = JSON.parse(localStorage.getItem('clear-upload-queue:wUpload')!)
@@ -93,3 +93,27 @@ test('a lost upload response is recovered from its durable request without uploa
   expect(posts).toBe(1); expect(reads).toBe(1)
   expect(JSON.parse(localStorage.getItem('clear-upload-queue:wUpload')!)[0].receipt).toEqual(saved!.receipt)
 }, 15000)
+
+test('uploads are bounded to three concurrent bodies and every input eventually has a receipt', async () => {
+  const releases: (() => void)[] = [], saved = new Map<string, UploadStatus>()
+  let active = 0, maximum = 0, posts = 0
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (init?.method !== 'POST') return saved.has(path.split('/').at(-1)!) ? response(saved.get(path.split('/').at(-1)!)) : missing()
+    const value = binding(path); active++; posts++; maximum = Math.max(maximum, active)
+    await new Promise<void>(resolve => releases.push(resolve)); active--
+    saved.set(value.request_id, committed(value)); return response(saved.get(value.request_id))
+  }))
+  mount()
+  fireEvent.change(screen.getByLabelText('添加批次资料'), { target: { files: Array.from({ length: 8 }, (_, index) => new File([String(index)], `input${index}.png`)) } })
+  await screen.findByText('input7.png')
+  await waitFor(() => expect(screen.getByRole('button', { name: '上传未提交资料' })).toBeEnabled())
+  fireEvent.click(screen.getByRole('button', { name: '上传未提交资料' }))
+  await waitFor(() => expect(posts).toBe(3))
+  expect(active).toBe(3)
+  for (let index = 0; index < 8; index++) {
+    await waitFor(() => expect(releases.length).toBeGreaterThan(index))
+    releases[index]()
+  }
+  await screen.findByText('成功 8 · 失败 / 待核实 0 · 未提交 0')
+  expect(maximum).toBe(3); expect(posts).toBe(8); expect(saved.size).toBe(8)
+}, 30000)
