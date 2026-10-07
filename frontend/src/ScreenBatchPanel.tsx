@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner } from "@fluentui/react-components";
 import { Download, ScanLine, X } from "lucide-react";
 import { api, request } from "./api";
-import { RegionPreview } from "./RegionPreview";
+import { ImageCanvas } from "./ImageCanvas";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import type { Photo, Result, Table, Version } from "./types";
 import { screenCell, screenCellEdit, screenEditKey, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
@@ -282,7 +282,12 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                     </div>}
                     {detail.preparation && <>
                       <label>原图与处理图<select aria-label="核对图片范围" value={previewId} onChange={e => setPreviewId(e.target.value)}><option value="original">原图（支持局部核对）</option>{detail.preparation.prepared_images.filter(p => p.id !== "original").map(p => <option key={p.id} value={p.id}>{p.kind === "table_crop" ? "业务表区" : p.kind === "perspective" ? "透视校正候选" : "局部分块"} {p.region_id || ""}</option>)}</select></label>
-                      {previewId === "original" && version ? <RegionPreview version={version} location={{level:localized ? "cell" : "image",polygon:localized,version_id:version.id,reason:localized ? "原图局部定位" : "无可靠单格定位，显示全图"}} />
+                      {previewId === "original" && version ? <div className="screen-source-canvas">
+                        <ImageCanvas key={version.id} version={version} versions={[version]} blocks={[]} highlight={null} readOnly busy={false}
+                          onVersion={() => {}} onTransform={() => {}} onRegion={() => {}}
+                          reviewLocation={{level:localized ? "cell" : "image",polygon:localized,version_id:version.id,reason:localized ? "原图局部定位" : "无可靠单格定位，显示全图"}} />
+                        <p className="screen-batch-small">点击 100% 或放大后，拖动图片或使用滚动条查看原文。{!localized && "当前没有可靠单格定位，请在原图逐项核对。"}</p>
+                      </div>
                         : <PreparedPreview path={`${base}/${encodeURIComponent(batchId)}/items/${encodeURIComponent(detail.input_version_id)}/files/${encodeURIComponent(previewId)}`} name="业务处理图" />}
                     </>}
                     {detail.result && <>

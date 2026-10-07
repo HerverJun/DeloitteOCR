@@ -5,7 +5,9 @@ vi.mock("./api", () => ({ api: vi.fn(), request: vi.fn() }));
 vi.mock("./RegionPreview", () => ({ RegionPreview: () => null }));
 import { ScreenBatchPanel } from "./ScreenBatchPanel";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
+import { ImageCanvas } from "./ImageCanvas";
 import type { ScreenCandidate } from "./screenBatchWorkflow";
+import type { Version } from "./types";
 
 describe("ordinary OCR batch entry", () => {
   it("offers the business batch action without requiring a model choice", () => {
@@ -49,5 +51,24 @@ describe("ordinary OCR batch entry", () => {
     }
     // An explicit current candidate remains inspectable even when it is empty.
     expect(render("empty")).toContain("此候选未提供表格");
+  });
+  it("offers original-pixel zoom and panning in read-only review without image edit actions or guessed cell boxes", () => {
+    const version: Version = {id:"v-a",image_id:"image-a",width:1520,height:1708,parent_id:null,operations:"[]",created:""};
+    const render = (polygon: number[][] | null, versionId="v-a") => renderToStaticMarkup(<ImageCanvas
+      version={version} versions={[version]} blocks={[]} highlight={null} busy={false} readOnly
+      onVersion={() => {}} onTransform={() => {}} onRegion={() => {}}
+      reviewLocation={{level:polygon ? "cell" : "image",polygon,version_id:versionId,reason:"actual source"}} />);
+    const full=render(null);
+    expect(full).toContain("原图核对工作区");
+    expect(full).toContain("100%");
+    expect(full).toContain('aria-label="拖动图片"');
+    expect(full).toContain('aria-label="放大"');
+    expect(full).not.toContain('aria-label="裁剪"');
+    expect(full).not.toContain('aria-label="图片版本"');
+    expect(full).not.toContain('aria-label="增强对比度"');
+    expect(full).not.toContain("放大疑点区域");
+    const actual=[[10,10],[90,10],[90,50],[10,50]];
+    expect(render(actual)).toContain("放大疑点区域");
+    expect(render(actual,"other-version")).not.toContain("放大疑点区域");
   });
 });

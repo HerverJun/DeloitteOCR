@@ -36,7 +36,12 @@
 .screen-issue p { margin: 7px 0 0; }
 .screen-issue code { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--brand-ink); }
 .screen-prepared-image { display: block; max-width: 100%; max-height: 440px; margin: 12px auto; object-fit: contain; border: 1px solid #dde1da; }
-.screen-batch-review .region-preview svg { max-height: 440px; }
+.screen-source-canvas { margin-top: 12px; max-width: 100%; }
+.screen-source-canvas .image-workspace { border: 1px solid #dde1da; }
+.screen-source-canvas .canvas-panel-heading { flex-wrap: wrap; gap: 8px; }
+.screen-source-canvas .image-toolbar, .screen-source-canvas .zoom-tools { flex-wrap: wrap; }
+.screen-source-canvas .paper-stage { flex: none; height: 420px; max-height: 55dvh; min-height: 220px; }
+.screen-source-canvas .image-footnote { flex-wrap: wrap; }
 .screen-cell-position { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-top: 18px; }
 .screen-cell-position input { width: 80px; }
 .screen-cell-position select { min-width: 110px; }
