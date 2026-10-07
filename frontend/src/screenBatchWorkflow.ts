@@ -17,6 +17,12 @@ export type ScreenBatch = {
   total_items: number; next_offset: number | null; created: string; updated: string; worker_error?: string | null;
 };
 export type ScreenCellEdit = { table_index: number; row: number; column: number; before: string; after: string };
+export type ScreenCandidate = {
+  id: string; engine: string;
+  raw: { tables: Table[]; project_image_version?: string; elapsed_seconds?: number;
+    warnings?: { code: string; message?: string }[]; truncated?: boolean;
+    screen?: { sources?: { prepared_id?: string; engine?: string; revision?: number }[] } };
+};
 
 export const screenStatuses: Record<string, string> = {
   queued: "等待处理", prepared: "表区处理完成", running: "处理中", awaiting_upgrade: "提高识别精度",
@@ -86,4 +92,72 @@ export function screenNumericExport(item: ScreenItem & { result?: { revision: nu
     tables[tableIndex] = [...new Set(columns)].sort((a, b) => a - b);
   }
   return { [item.input_version_id]: tables };
+}
+
+function validTopology(table: Table) {
+  const slots = table.cells.map(cell => [cell.row, cell.column, cell.row_span, cell.column_span]);
+  if (slots.some(slot => slot.some(value => !Number.isInteger(value)) || slot[0] < 0 || slot[1] < 0
+    || slot[2] < 1 || slot[3] < 1 || slot[0] + slot[2] > table.rows || slot[1] + slot[3] > table.columns)) return null;
+  const anchors = slots.map(slot => `${slot[0]}:${slot[1]}`);
+  if (new Set(anchors).size !== anchors.length) return null;
+  if (table.rows * table.columns > 100000) return null;
+  const occupied = new Set<string>();
+  for (const [row, column, rows, columns] of slots) for (let r = row; r < row + rows; r++) for (let c = column; c < column + columns; c++) {
+    const key = `${r}:${c}`;
+    if (occupied.has(key)) return null;
+    occupied.add(key);
+  }
+  if (occupied.size !== table.rows * table.columns) return null;
+  return JSON.stringify([table.rows, table.columns, slots.map(slot => slot.join(":")).sort()]);
+}
+
+function samePolygon(left?: number[][] | null, right?: number[][] | null) {
+  if (!left || !right || left.length < 3 || left.length !== right.length
+    || [...left, ...right].some(point => point.length !== 2 || point.some(value => !Number.isFinite(value)))) return false;
+  const area = (points: number[][]) => Math.abs(points.reduce((sum, point, index) => {
+    const next = points[(index + 1) % points.length];
+    return sum + point[0] * next[1] - next[0] * point[1];
+  }, 0)) / 2;
+  if (area(left) < 1 || area(right) < 1) return false;
+  const xs = [...left, ...right].map(point => point[0]), ys = [...left, ...right].map(point => point[1]);
+  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+  if (side < 2) return false;
+  const tolerance = 1 + side * .02;
+  return [right, [...right].reverse()].some(points => points.some((_, offset) => left.every((point, index) => {
+    const other = points[(index + offset) % points.length];
+    return Math.hypot(point[0] - other[0], point[1] - other[1]) <= tolerance;
+  })));
+}
+
+/** Indexes alone never establish correspondence between model candidates. */
+export function screenCandidateCell(current: Table[], alternate: Table[], tableIndex: number, row: number, column: number) {
+  if (current.length !== alternate.length) return { cell: undefined, reason: "表格数量不同，请分别核对整图候选。" };
+  const left = current[tableIndex], right = alternate[tableIndex];
+  if (!left || !right || !validTopology(left) || validTopology(left) !== validTopology(right))
+    return { cell: undefined, reason: "行列或合并结构不同，无法可靠对应这个单元格。" };
+  const cell = screenCell(left, row, column), other = screenCell(right, row, column);
+  if (!cell || !other) return { cell: undefined, reason: "当前格位没有独立单元格。" };
+  const allLeft = current.flatMap(table => table.cells), allRight = alternate.flatMap(table => table.cells);
+  const geometry = samePolygon(cell.polygon, other.polygon)
+    && allRight.filter(candidate => samePolygon(cell.polygon, candidate.polygon)).length === 1
+    && allLeft.filter(candidate => samePolygon(other.polygon, candidate.polygon)).length === 1;
+  if (geometry) return { cell: other, reason: "相同行列及合并结构，原图单元格几何唯一对应。", basis: "geometry" as const };
+  const normal = (value: string) => value.replace(/\s/g, "");
+  const lookup = new Map(right.cells.map(value => [`${value.row}:${value.column}`, value]));
+  const agreement = left.cells.filter(value => normal(value.text) && normal(value.text) === normal(lookup.get(`${value.row}:${value.column}`)?.text || "")).length / Math.max(1, left.cells.length);
+  const uniqueAnchor = (value: Cell) => normal(value.text) && allLeft.filter(candidate => normal(candidate.text) === normal(value.text)).length === 1
+    && allRight.filter(candidate => normal(candidate.text) === normal(value.text)).length === 1
+    && normal(lookup.get(`${value.row}:${value.column}`)?.text || "") === normal(value.text);
+  const rowAnchor = left.cells.some(value => value.row === cell.row && value.column !== cell.column && uniqueAnchor(value));
+  const columnAnchor = left.cells.some(value => value.column === cell.column && value.row !== cell.row && uniqueAnchor(value));
+  if (agreement >= .6 && rowAnchor && columnAnchor)
+    return { cell: other, reason: "相同行列及合并结构，同一行和列均有唯一相同文字锚点。", basis: "unique_text_anchors" as const };
+  return { cell: undefined, reason: "单格几何或唯一文字锚点不足，请查看整表；无法仅凭行列编号填入另一转录。" };
+}
+
+export function screenCandidateReviewBody(item: ScreenItem, revision: number, candidateId: string, edits: ScreenCellEdit[], requestId: string) {
+  if (item.status !== "completed" && item.status !== "needs_review") throw Error("请等待当前图片处理结束后采用整图候选。");
+  if (edits.some(edit => edit.before !== edit.after)) throw Error("请先保存或清除当前修改，再采用整图候选。");
+  if (!item.candidates?.some(candidate => candidate.id === candidateId)) throw Error("当前图片没有这个整图候选，请重新加载。");
+  return { ...screenReviewBody(item, revision, "retain", [], requestId), candidate_id: candidateId };
 }

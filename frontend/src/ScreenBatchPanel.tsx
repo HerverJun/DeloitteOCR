@@ -3,17 +3,19 @@ import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface
 import { Download, ScanLine, X } from "lucide-react";
 import { api, request } from "./api";
 import { RegionPreview } from "./RegionPreview";
+import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import type { Photo, Result, Table, Version } from "./types";
 import { screenCell, screenCellEdit, screenEditKey, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
   screenNumericColumnOptions, screenNumericExport,
-  type ScreenBatch, type ScreenCellEdit, type ScreenItem } from "./screenBatchWorkflow";
+  screenCandidateReviewBody,
+  type ScreenBatch, type ScreenCandidate, type ScreenCellEdit, type ScreenItem } from "./screenBatchWorkflow";
 import "./screen-batches.css";
 
 type PreparedImage = { id: string; kind: string; width: number; height: number; region_id?: string; path?: string };
 type ScreenDetail = ScreenItem & {
   preparation?: { width: number; height: number; prepared_images: PreparedImage[]; warnings?: { message: string }[] };
   result?: Result | null;
-  candidate_results?: { id: string; engine: string; raw: { tables: Table[] } }[];
+  candidate_results?: ScreenCandidate[];
 };
 type BatchListing = { batches: ScreenBatch[] } | ScreenBatch[];
 
@@ -181,6 +183,13 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     const body = screenReviewBody(detail, detail.result.revision, state, Object.values(edits), requestId());
     void batchAction("review", body).then(success => { if (success) setEdits({}); });
   };
+  const adoptCandidate = (candidateId: string) => {
+    if (!detail?.result) return;
+    try {
+      const body = screenCandidateReviewBody(detail, detail.result.revision, candidateId, Object.values(edits), requestId());
+      void batchAction("review", body).then(success => { if (success) { setEdits({}); setNotice("已采用本图整图候选，请继续核对并保存。"); } });
+    } catch (error) { report(error); }
+  };
   const exportBatch = () => run(async () => {
     if (editedCount) throw Error("请先保存或清除当前单元格修改，再导出。");
     const numeric = detail ? screenNumericExport(detail, numericColumns, numericConfirmed) : undefined;
@@ -264,7 +273,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                     {detail.issues.length > 0 && <label>需要核对<select aria-label="本图疑点" value={issueIndex} onChange={e => chooseIssue(Number(e.target.value))}>{detail.issues.map((item,index) => <option key={index} value={index}>{index+1}. {screenIssueTitle(item)}</option>)}</select></label>}
                     {issue && <div className={"screen-issue " + (issue.severity === "high" ? "high" : "")}>
                       <strong>{screenIssueTitle(issue)}</strong>
-                      {issue.value !== undefined && <p>当前值：<code>{String(issue.value)}</code></p>}
+                      {issue.value !== undefined && <p>疑点记录值：<code>{String(issue.value)}</code></p>}
                       {issue.alternative !== undefined && <p>另一转录：<code>{String(issue.alternative)}</code></p>}
                       {issue.visible_text !== undefined && <p>文字证据：<code>{String(issue.visible_text)}</code></p>}
                       <p>请结合原图确认；模型一致或合计一致不能替代核对。</p>
@@ -279,7 +288,10 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                         <label>行<input aria-label="核对行" type="number" min={1} max={tables[tableIndex]?.rows || 1} value={row+1} onChange={e => setRow(Math.max(0,Number(e.target.value)-1))} /></label>
                         <label>列<input aria-label="核对列" type="number" min={1} max={tables[tableIndex]?.columns || 1} value={column+1} onChange={e => setColumn(Math.max(0,Number(e.target.value)-1))} /></label></div>
                       {cell ? <label>当前单元格<textarea aria-label="当前单元格内容" value={cellValue} onChange={e => editValue(e.target.value)} rows={2} /></label> : <p>该格位没有独立单元格，请在完整表格编辑器核对结构。</p>}
-                      {cell && issue?.alternative !== undefined && Number.isInteger(issue.table) && issue.table === tableIndex && issue.row === cell.row && issue.column === cell.column && <Button size="small" disabled={busy} onClick={() => editValue(String(issue.alternative))}>填入另一转录，等待保存核对</Button>}
+                      {!!detail.candidate_results?.length && <ScreenCandidatePreview key={`${detail.input_version_id}:${detail.result.id}:${detail.result.revision}`}
+                        candidates={detail.candidate_results} inputVersionId={detail.input_version_id} currentTables={tables}
+                        tableIndex={tableIndex} row={row} column={column} currentValue={cellValue} issues={detail.issues}
+                        busy={busy} hasDraft={!!editedCount} canAdopt={detail.status === "completed" || detail.status === "needs_review"} onFill={editValue} onAdopt={adoptCandidate} />}
                       <p className="screen-batch-small">待保存修改：{editedCount} 格 · 保存前按结果版本检查，防止覆盖新编辑。</p>
                       {editedCount > 0 && <Button size="small" disabled={busy} onClick={() => setEdits({})}>清除待保存修改</Button>}
                       <div className="screen-review-actions"><Button appearance="primary" disabled={busy || !detail.result_id || editedCount > 100 || activeStates.has(detail.status)} onClick={() => review("accepted")}>保存并标记核对完成</Button>

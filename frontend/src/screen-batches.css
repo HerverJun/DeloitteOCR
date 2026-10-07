@@ -46,4 +46,19 @@
 .screen-numeric-export summary { cursor: pointer; font-weight: 600; }
 .screen-numeric-columns { max-height: 220px; overflow: auto; margin: 12px 0; }
 .screen-numeric-columns small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.screen-candidate-preview { margin-top: 15px; padding: 13px 0; border-block: 1px solid #dde1da; }
+.screen-candidate-preview > summary { font-weight: 600; cursor: pointer; }
+.screen-candidate-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.screen-candidate-list button { text-align: left; background: white; border: 1px solid #dde1da; padding: 9px; color: var(--brand-ink); }
+.screen-candidate-list button[aria-pressed=true] { background: #edf3e5; border-color: #638345; }
+.screen-candidate-list span { display: block; max-width: 270px; margin-top: 5px; font-size: 12px; }
+.screen-candidate-cell dl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.screen-candidate-cell dt { color: var(--muted); font-size: 12px; }
+.screen-candidate-cell dd { margin: 7px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.screen-candidate-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 12px; margin: 14px 0; }
+.screen-candidate-table { max-height: 330px; max-width: 100%; overflow: auto; margin-top: 10px; }
+.screen-candidate-table table { border-collapse: collapse; font-size: 12px; width: max-content; min-width: 100%; }
+.screen-candidate-table td { border: 1px solid #d6dbd0; padding: 7px; min-width: 70px; max-width: 340px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.screen-candidate-table caption { text-align: left; padding-bottom: 8px; font-weight: 600; }
+.screen-candidate-reasons ul { max-height: 180px; overflow: auto; }
 @media (max-width: 800px) { .screen-batch-dialog { width: calc(100vw - 24px); } .screen-batch-workspace { grid-template-columns: 1fr; } .screen-batch-review { padding-left: 0; border-left: 0; border-top: 1px solid #dde1da; padding-top: 18px; } .screen-item-list { max-height: 250px; } .screen-batch-progress dl { gap: 15px; } }

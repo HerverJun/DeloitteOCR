@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screenCell, screenCellEdit, screenEditKey, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, type ScreenItem } from "./screenBatchWorkflow";
+import { screenCell, screenCellEdit, screenEditKey, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem } from "./screenBatchWorkflow";
 import type { Photo, Table } from "./types";
 
 const item: ScreenItem = { input_version_id: "version-a", image_id: "image-a", source_name: "财务.png", status: "needs_review", stage: "review",
@@ -77,5 +77,48 @@ describe("screen batch workflow", () => {
     expect(() => screenNumericExport({ ...reviewed, human_confirmed: false }, { "0": [1] }, true)).toThrow();
     expect(() => screenNumericExport({ ...reviewed, result_revision: 6 }, { "0": [1] }, true)).toThrow();
     expect(numericTable.cells[3].text).toBe("0001");
+  });
+
+  it("compares candidate cells only with the same valid topology and unique source geometry", () => {
+    const current = structuredClone(table);
+    current.cells[2].polygon = [[20,20],[40,20],[40,40],[20,40]];
+    const alternate = structuredClone(current);
+    alternate.cells[2].text = "-10.50";
+    const match = screenCandidateCell([current],[alternate],0,1,1);
+    expect(match.cell?.text).toBe("-10.50");
+    expect(match.basis).toBe("geometry");
+    alternate.cells[1].polygon = alternate.cells[2].polygon;
+    expect(screenCandidateCell([current],[alternate],0,1,1).cell).toBeUndefined();
+    expect(screenCandidateCell([current],[alternate,alternate],0,1,1).cell).toBeUndefined();
+    alternate.cells[0].column_span = 1;
+    expect(screenCandidateCell([current],[alternate],0,1,1).cell).toBeUndefined();
+  });
+
+  it("requires distinct row and column anchors without geometry and refuses repeated text matches", () => {
+    const current: Table = { rows: 2, columns: 2, cells: [
+      {row:0,column:0,row_span:1,column_span:1,text:"编号"},
+      {row:0,column:1,row_span:1,column_span:1,text:"金额"},
+      {row:1,column:0,row_span:1,column_span:1,text:"0001"},
+      {row:1,column:1,row_span:1,column_span:1,text:"-10.05"},
+    ] };
+    const alternate = structuredClone(current);
+    alternate.cells[3].text = "-10.50";
+    expect(screenCandidateCell([current],[alternate],0,1,1).basis).toBe("unique_text_anchors");
+    current.cells[0].text = alternate.cells[0].text = "0001";
+    expect(screenCandidateCell([current],[alternate],0,1,1).cell).toBeUndefined();
+    // A second identical table makes the textual anchors ambiguous across tables.
+    expect(screenCandidateCell([table,table],[table,table],0,1,1).cell).toBeUndefined();
+  });
+
+  it("adopts only a registered complete image candidate with the current result guard and no draft", () => {
+    const reviewed = {...item,candidates:[{id:"whole-image-candidate",engine:"glm",table_count:1}]};
+    const body = screenCandidateReviewBody(reviewed,7,"whole-image-candidate",[],"request-candidate");
+    expect(body.result_id).toBe("result-a");
+    expect(body.expected_revision).toBe(7);
+    expect(body.state).toBe("retain");
+    expect(body.candidate_id).toBe("whole-image-candidate");
+    expect(body.version_ids).toEqual(["version-a"]);
+    expect(() => screenCandidateReviewBody(reviewed,7,"raw-crop-result",[],"request-candidate")).toThrow();
+    expect(() => screenCandidateReviewBody(reviewed,7,"whole-image-candidate",[screenCellEdit(0,table.cells[2],"draft")],"request-candidate")).toThrow("先保存");
   });
 });
