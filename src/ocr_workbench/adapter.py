@@ -40,7 +40,7 @@ class EngineAdapter:
     def __init__(self, bundle, engine, session_root, *, worker_source=None):
         self.bundle = Path(bundle).resolve()
         self.engine = engine
-        self.worker_source = Path(worker_source).resolve() if worker_source else None
+        self.worker_source = Path(worker_source).resolve() if worker_source else Path(__file__).resolve().parents[1]
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
@@ -58,6 +58,7 @@ class EngineAdapter:
         self.cancelled = threading.Event()
         self.load_seconds = 0
         self.ready = False
+        self.recognition_timeout = 900
         self.geometry_provider = 'paddle'
 
     def configure_geometry(self, provider):
@@ -155,7 +156,7 @@ class EngineAdapter:
             self.ipc / "request.json",
             {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
         )
-        reply = self.wait_for(response, 900)
+        reply = self.wait_for(response, self.recognition_timeout)
         if reply.get("id") != key or reply["status"] != "success":
             raise RuntimeError(reply.get("message", "识别失败"))
         if self.engine == "geometry":

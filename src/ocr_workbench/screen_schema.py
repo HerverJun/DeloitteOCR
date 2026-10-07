@@ -54,3 +54,7 @@ def migrate_screen_schema(db):
     columns = {row['name'] for row in db.execute('PRAGMA table_info(screen_items)')}
     if 'evidence' not in columns:
         db.execute('ALTER TABLE screen_items ADD COLUMN evidence TEXT')
+    for table in ('screen_tasks', 'screen_contexts'):
+        columns = {row['name'] for row in db.execute('PRAGMA table_info(' + table + ')')}
+        if 'spent_seconds' not in columns:
+            db.execute('ALTER TABLE ' + table + ' ADD COLUMN spent_seconds REAL NOT NULL DEFAULT 0')

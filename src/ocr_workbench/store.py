@@ -420,7 +420,8 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         with self.transaction() as db:
             scope = "" if fusion is None and not external else " AND " + self.queue_scope(fusion, external)
             db.execute(
-                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成' WHERE status='running'" + scope
+                "UPDATE tasks SET status='interrupted',phase='等待继续',error='上次程序退出时任务未完成',finished=COALESCE(finished,?) WHERE status='running'" + scope,
+                (now(),)
             )
             db.execute(
                 "UPDATE tasks SET status='paused',phase='等待继续' WHERE status='queued'" + scope
@@ -514,9 +515,17 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             ).fetchone()
             if not task:
                 return None
+            # Screen tasks retain prior active segments across resume/retry.
+            # Claim atomically accounts the old segment before replacing its start.
+            timestamp = now()
+            if task['started']:
+                for table in ('screen_tasks', 'screen_contexts'):
+                    db.execute('''UPDATE ''' + table + ''' SET spent_seconds=spent_seconds+
+                        MAX(0,(julianday(COALESCE(?,?))-julianday(?))*86400) WHERE task_id=?''',
+                        (task['finished'], timestamp, task['started'], task['id']))
             db.execute(
-                "UPDATE tasks SET status='running',phase=?,started=?,error=NULL WHERE id=? AND status='queued'",
-                ("融合计算中" if fusion else "加载引擎", now(), task["id"]),
+                "UPDATE tasks SET status='running',phase=?,started=?,finished=NULL,error=NULL WHERE id=? AND status='queued'",
+                ("融合计算中" if fusion else "加载引擎", timestamp, task["id"]),
             )
             return dict(task)
 
