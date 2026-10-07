@@ -22,7 +22,7 @@ import uuid
 PLATFORM_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
                   "recent-work.sqlite3", "ocr-handoffs.sqlite3",
                   "classification-handoffs.sqlite3")
-PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics")
+PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics", "agent")
 REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
             "ocr": ("workbench.sqlite3",)}
 OCR_TRANSIENT_DIRS = frozenset({".image-staging", "pdf-ipc"})
@@ -91,6 +91,7 @@ def _members(root: Path, kind: str) -> list[Path]:
             raise FileNotFoundError(root / "workbench.sqlite3")
         return sorted(result)
     result = []
+    _check_agent_pair(root)
     for name in PLATFORM_FILES:
         path = root / name
         _safe(path)
@@ -118,6 +119,20 @@ def _members(root: Path, kind: str) -> list[Path]:
                     continue
                 result.append(source)
     return sorted(result)
+
+
+def _check_agent_pair(root: Path) -> None:
+    operations = root / 'agent/operations.sqlite3'
+    checkpoints = root / 'agent/checkpoints.sqlite3'
+    if checkpoints.exists() and not operations.is_file():
+        raise ValueError('Agent backup requires operations for its checkpoints')
+    if operations.is_file() and not checkpoints.is_file():
+        # Settings-only initialization can precede async saver creation. Once
+        # any run exists both stores are mandatory, including completed runs.
+        with closing(sqlite3.connect(operations.as_uri() + '?mode=ro', uri=True)) as db:
+            runs = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='runs'").fetchone()
+            if runs and db.execute('SELECT 1 FROM runs LIMIT 1').fetchone():
+                raise ValueError('Agent backup requires both operations and checkpoint databases')
 
 
 def _copy_member(source: Path, target: Path) -> dict:
@@ -195,6 +210,7 @@ def verify(backup: Path) -> dict:
             raise ValueError(f"Backup member changed: {name}")
         if recorded["sqlite"]:
             _check_db(target)
+    _check_agent_pair(backup)
     return manifest
 
 
@@ -214,8 +230,23 @@ def restore(backup: Path, destination: Path) -> dict:
         shutil.copy2(backup / "manifest.json", stage / "manifest.json")
         verify(stage)
         (stage / "manifest.json").unlink()
+        agent_db = stage / 'agent/operations.sqlite3'
+        relocated = 0
+        if agent_db.is_file():
+            with closing(sqlite3.connect(agent_db)) as db, db:
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='derived_inputs'").fetchone():
+                    for asset_id, old_path, sha in db.execute('SELECT asset_id,provenance_path,provenance_hash FROM derived_inputs').fetchall():
+                        old = Path(old_path)
+                        if old.is_absolute():
+                            relative = Path('bridges') / old.name
+                            member = stage / 'agent' / relative
+                            if not member.is_file() or _hash(member)[0] != sha:
+                                raise ValueError('Agent derived-source file is missing or changed')
+                            db.execute('UPDATE derived_inputs SET provenance_path=? WHERE asset_id=?', (relative.as_posix(), asset_id))
+                            relocated += 1
+            _check_db(agent_db)
         os.replace(stage, destination)
-        return {"destination": str(destination), "files": len(manifest["files"])}
+        return {"destination": str(destination), "files": len(manifest["files"]), 'agent_paths_relocated': relocated}
     except BaseException:
         shutil.rmtree(stage)
         raise

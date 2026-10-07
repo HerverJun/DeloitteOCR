@@ -13,6 +13,7 @@ def main():
     parser.add_argument('--development-root', type=Path, required=True)
     parser.add_argument('--data', type=Path, required=True)
     parser.add_argument('--port', type=int, default=8879)
+    parser.add_argument('--agent-layer', type=Path, default=Path('F:/OCR/output/platform-agent-dev-20261004/dependencies/agent'))
     args = parser.parse_args()
     root, data = args.development_root.resolve(), args.data.resolve()
     source, program, run = root / 'worktrees/platform', root / 'program', root / 'runs/local-development'
@@ -30,7 +31,13 @@ def main():
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', args.port))
     from scripts.candidate_bootstrap import _FileLease
-    from scripts.physical_development import configure
+    from workbench_platform.supervisor.processes import require_f_path, storage_environment
+    os.environ.update(storage_environment(data))
+    layer = require_f_path(args.agent_layer)
+    if not (layer / 'layer-receipt.json').is_file():
+        raise ValueError('Verified Agent dependency layer is missing')
+    os.environ['WORKBENCH_AGENT_LAYER'] = str(layer)
+    from scripts.agent_native_preview import configure
     lease = _FileLease(data / '.live-preview.lock')
     if not lease.acquire():
         raise RuntimeError('This business data directory is already in use')
@@ -42,7 +49,8 @@ def main():
             'pid': os.getpid(), 'started_at': datetime.now(timezone.utc).isoformat(),
             'url': f'http://127.0.0.1:{args.port}/', 'source': str(source), 'data': str(data),
             'program': str(program), 'python': sys.executable, 'platform_module': platform.__file__,
-            'native_registration': 'physical dependencies inside development root',
+            'native_registration': 'private launchers over shared F-drive dependencies',
+            'agent_layer': str(layer), 'product': 'clear-intelligent-audit',
         }, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         uvicorn.run(platform.app, host='127.0.0.1', port=args.port, access_log=False, log_level='info')
     finally:

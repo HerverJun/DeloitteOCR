@@ -7,9 +7,37 @@
   "min_platform_version": "0.1.0",
   "data_schema_version": "unverified",
   "entry_mode": "standalone_page",
-  "capabilities": ["export"],
-  "input_types": ["image/png", "application/pdf"],
-  "output_types": ["application/json"],
-  "resources": ["cpu"],
+  "capabilities": [
+    "import",
+    "export",
+    "cancel",
+    "pause",
+    "resume",
+    "retry_failed",
+    "gpu"
+  ],
+  "input_types": [
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/tiff",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "application/pdf"
+  ],
+  "output_types": [
+    "text/plain",
+    "text/markdown",
+    "application/json",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/pdf",
+    "application/zip"
+  ],
+  "resources": [
+    "cpu",
+    "gpu",
+    "network"
+  ],
   "license_refs": []
 }

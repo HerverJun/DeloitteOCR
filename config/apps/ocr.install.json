@@ -1,6 +1,6 @@
 {
   "app_id": "ocr",
-  "manifest_sha256": "c78ecec7c232c81c556762c8d1fd66527d32b9383d83daa8856290f1ddb5ae79",
+  "manifest_sha256": "f9a063c394ea501acf7ee5cf764deb840a3eea84f41d5749a6e67a2ae7cd9d25",
   "installed": false,
   "reason": "Application bundle is not registered"
 }
