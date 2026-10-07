@@ -135,8 +135,13 @@ def answer(args, ctx):
 
 
 def task(args, ctx):
-    return AgentToolResult(status='success', summary='已读取当前审计任务、范围与执行记录',
-        data=ctx.services.agent.tasks.get(ctx.session_id)).model_dump()
+    from workbench_platform.agent.scope import scope_summary
+    value=ctx.services.agent.tasks.get(ctx.session_id)
+    bounded={key:item for key,item in value.items() if key not in {'selected_assets','pending_scope'}}
+    bounded.update(scope_summary(ctx))
+    if value.get('pending_scope'):
+        bounded['pending_scope']={'pending':True,'selected_asset_count':len(value['pending_scope'].get('selected_assets',[]))}
+    return AgentToolResult(status='success', summary='已读取当前审计任务、范围与执行记录',data=bounded).model_dump()
 
 
 def profile(args, ctx):

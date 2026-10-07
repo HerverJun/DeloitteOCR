@@ -5,7 +5,8 @@
       "enum": [
         "artifact",
         "table",
-        "result"
+        "result",
+        "asset_set"
       ],
       "title": "Kind",
       "type": "string"
@@ -27,6 +28,19 @@
       ],
       "default": null,
       "title": "Parent Id"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Revision"
     }
   },
   "required": [

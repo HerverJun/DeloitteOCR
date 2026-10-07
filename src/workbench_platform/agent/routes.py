@@ -154,9 +154,15 @@ async def create_session(workspace_id: str, request: Request):
         from workbench_platform.application_services.references import verify
         context = ToolContext(workspace_id, '', '', 0, 0, '', tuple(payload.selected_assets), value.services, value.store)
         references = [ref.model_dump() for ref in payload.initial_refs]
+        selected=list(payload.selected_assets)
         for ref in references:
-            verify(ref, context)
-        return value.store.create_session(workspace_id, payload.name, payload.selected_assets, payload.request_id, references)
+            checked=verify(ref, context)
+            if ref['kind']=='asset_set':
+                selected.extend(item['asset_id'] for item in checked['asset_set']['items'])
+        selected=list(dict.fromkeys(selected))
+        if len(selected)>1000:
+            raise ValueError('会话输入范围超过1000项')
+        return value.store.create_session(workspace_id, payload.name, selected, payload.request_id, references)
     except Conflict:
         raise HTTPException(409, '创建请求与原会话不同') from None
     except ValueError:
@@ -171,7 +177,11 @@ async def resolve_reference(workspace_id: str, request: Request):
     context = ToolContext(workspace_id, '', '', 0, 0, '', (), value.services, value.store)
     from workbench_platform.application_services.references import verify, data_reference
     try:
-        if payload.kind == 'artifact':
+        if payload.kind == 'asset_set':
+            fixed=value.services.asset_library[1].get(workspace_id,payload.object_id,payload.revision or 1)
+            ref=AgentRef(kind='asset_set',workspace_id=workspace_id,object_id=fixed.asset_set_id,revision=fixed.revision,sha256=fixed.manifest_hash)
+            await invoke(verify,ref.model_dump(),context)
+        elif payload.kind == 'artifact':
             ref = AgentRef(kind='artifact', workspace_id=workspace_id, object_id=payload.object_id, revision=1)
             checked = await invoke(verify, ref.model_dump(), context)
             ref.sha256 = checked['content_sha256']
@@ -452,7 +462,7 @@ async def manual_return(session_id: str, request: Request):
         if session['selected_assets']:
             from dataclasses import replace
             selected = tuple(dict.fromkeys([*session['selected_assets'], *payload.include_asset_ids]))
-            if len(selected) > 100:
+            if len(selected) > 1000:
                 raise ValueError('资料范围过大')
             context = replace(context, selected_assets=selected)
         for reference in payload.references:

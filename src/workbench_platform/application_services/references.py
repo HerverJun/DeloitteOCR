@@ -28,7 +28,12 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
     elif ref.kind in {'asset', 'asset_set'}:
         query['asset' if ref.kind == 'asset' else 'set'] = ref.object_id; path = '/assets'
     elif ref.kind == 'job':
-        if ref.coverage.get('kind') == 'batch':
+        if ref.coverage.get('kind') == 'screen_batch':
+            query['screen_batch']=ref.object_id
+            if ref.coverage.get('asset_set_id'):query['set']=str(ref.coverage['asset_set_id'])
+            if ref.parent_id:query['handoff']=ref.parent_id
+            path='/apps/ocr/workflow'
+        elif ref.coverage.get('kind') == 'batch':
             query['batch'] = ref.object_id; path = '/batches'
         else:
             query['job'] = ref.object_id; path = '/jobs'
