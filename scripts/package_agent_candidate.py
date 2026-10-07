@@ -42,8 +42,12 @@ def skills_manifest(root, layer):
                 'scripts_supported': False, 'skills': catalog['items']}
 
 
-def package(source,program,layer,output):
+def package(source,program,layer,output,engineering=False,pdf_layer=None):
     source,program,layer,output=[require_f_path(p) for p in (source,program,layer,output)]
+    pdf_relative='build/public-quality-20260916/tool/site-packages/pdfplumber'
+    pdf_layer=require_f_path(pdf_layer if pdf_layer is not None else source.parent/'ocr'/pdf_relative)
+    if not (pdf_layer/'__init__.py').is_file():
+        raise ValueError('Verified PDF dependency missing; supply its read-only F-drive source with --pdf-layer')
     if output.exists():
         raise ValueError('Use one new candidate directory; existing candidates are never overwritten')
     if not (source/'apps/portal/dist/index.html').is_file():
@@ -56,10 +60,11 @@ def package(source,program,layer,output):
         copy_tree(source/name,output/'platform'/name)
     registered_skills = skills_manifest(output/'platform/config/skills', layer)
     (output/'skills.json').write_text(json.dumps(registered_skills,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    for family,names in [('ocr',('src','config','frontend/dist','build/public-quality-20260916/tool/site-packages/pdfplumber')),
+    for family,names in [('ocr',('src','config','frontend/dist')),
                          ('classification',('src','configs','apps/web/dist'))]:
         for name in names:
             copy_tree(source.parent/family/name,output/family/name)
+    copy_tree(pdf_layer,output/'ocr'/pdf_relative)
     copy_tree(layer,output/'dependencies/agent')
     receipt=output/'dependencies/agent/layer-receipt.json'
     declaration=json.loads(receipt.read_text(encoding='utf-8'))
@@ -113,6 +118,10 @@ main()
 原生模型/运行时来自 candidate.json 登记的共享 F 盘 program；该目录必须保留。未复制32GB模型，未改共享绑定。
 不要用旧版本直接打开新数据库。关闭Agent是功能回退，备份恢复到新目录是数据恢复。
 ''',encoding='utf-8')
+    if engineering:
+        readme=output/'README.md'
+        readme.write_text(readme.read_text(encoding='utf-8').replace('# Clear 智能审计',
+            '# Clear 智能审计 — 工程验证候选\n\n本候选未冻结最终 OCR 路线与质量评估，不登记为 current。最终交付须重新按冻结源码打包。',1),encoding='utf-8')
     identity={}
     for name in ('runtimes/platform/python.exe','runtimes/platform/python312._pth',
                  'runtimes/data/python.exe','runtimes/forensics/python.exe',
@@ -124,7 +133,10 @@ main()
     for family,path in [('platform',source),('ocr',source.parent/'ocr'),('classification',source.parent/'classification')]:
         head=subprocess.check_output(['git','-c','safe.directory='+path.as_posix(),'rev-parse','HEAD'],cwd=path,text=True).strip()
         sources[family]={'path':str(path),'base_head':head,'candidate_files_are_current_working_contents':True}
-    manifest={'format':1,'status':'intelligent_audit_product','product_version':'0.9.3','controller_configuration_required':True,'shared_program':str(program),'sources':sources,
+    manifest={'format':1,'status':'engineering_candidate' if engineering else 'intelligent_audit_product',
+        'release_stage':'engineering' if engineering else 'final','product_version':'0.9.4',
+        'controller_configuration_required':True,'shared_program':str(program),'sources':sources,
+        'readiness_features':['screen-batch-v1','screen-directives-v1','per-image-excel-zip-v1'],
         'data_compatibility': DATA_COMPATIBILITY,
         'skills_manifest': 'skills.json', 'skills_count': len(registered_skills['skills']),
         'frontend_roots': {'portal': 'platform/apps/portal/dist', 'ocr': 'ocr/frontend/dist', 'classification': 'classification/apps/web/dist'},
@@ -137,4 +149,6 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('source','program','layer','output'):
         parser.add_argument('--'+name,type=Path,required=True)
+    parser.add_argument('--engineering',action='store_true',help='Clearly label an unfrozen engineering candidate; never registers current')
+    parser.add_argument('--pdf-layer',type=Path,help='Read-only verified pdfplumber source on F: when isolated OCR source omits build dependencies')
     print(json.dumps(package(**vars(parser.parse_args())),ensure_ascii=False))

@@ -3,7 +3,7 @@ from pathlib import Path
 from contextlib import closing
 import argparse, json, sqlite3, sys
 
-READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1')
+READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','screen-batch-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -23,7 +23,7 @@ DATA_COMPATIBILITY = {
         'forensics/forensics.sqlite3': {'user_versions':[0,1], 'reject_nonempty_unversioned':True, 'tables':{
             'inspections':['inspection_id','workspace_id','request_id','payload_hash','body'],
             'review_requests':['workspace_id','request_id','inspection_id','payload_hash','receipt']}},
-        'native/ocr/workbench.sqlite3': {'user_versions':list(range(18)), 'tables':{}},
+        'native/ocr/workbench.sqlite3': {'user_versions':list(range(19)), 'tables':{}},
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},
     },
     'records': {'audit_evidence_versions':['1.0'], 'direct_evidence_snapshot_versions':[1,2],
