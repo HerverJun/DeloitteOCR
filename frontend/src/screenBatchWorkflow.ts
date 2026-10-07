@@ -15,6 +15,11 @@ export type ScreenItem = {
 export type ScreenBatch = {
   batch_id: string; project_id: string; status: string; counts: ScreenCounts; items: ScreenItem[];
   total_items: number; next_offset: number | null; created: string; updated: string; worker_error?: string | null;
+  eta?: ScreenEta;
+};
+export type ScreenEta = {
+  remaining_seconds: number | null; stage: { kind: string; engine: string; pass_index: number; label: string } | null;
+  sample_count: number; pending_tasks: number; cached_pending_tasks: number; reason: string;
 };
 export type ScreenCellEdit = { table_index: number; row: number; column: number; before: string; after: string };
 export type ScreenCandidate = {
@@ -29,6 +34,17 @@ export const screenStatuses: Record<string, string> = {
   completed: "可交付", needs_review: "待核对", failed: "失败", cancelled: "已取消", paused: "已暂停",
   succeeded: "已完成", partial: "处理结束，部分需核对",
 };
+
+export function screenEtaText(eta: ScreenEta) {
+  if (eta.remaining_seconds !== null && Number.isFinite(eta.remaining_seconds) && eta.remaining_seconds >= 0) {
+    const duration = eta.remaining_seconds < 60 ? `${Math.ceil(eta.remaining_seconds)} 秒` : `${Math.ceil(eta.remaining_seconds / 60)} 分钟`;
+    return `已排队的${eta.stage?.label || "当前阶段"}预计还需约 ${duration}。`;
+  }
+  if (eta.reason === "paused") return "已暂停，继续后再估计当前阶段剩余时间。";
+  if (eta.reason === "active_task_exceeds_observed_duration") return "当前识别耗时超出本批已完成样本，暂无法估计剩余时间。";
+  if (eta.reason === "no_queued_compute") return "正在准备或汇总当前阶段，暂无法估计剩余时间。";
+  return "正在积累本批识别耗时，暂无法估计剩余时间。";
+}
 
 export function selectedScreenVersions(images: Photo[], selectedIds: string[], scope: "selected" | "project") {
   const ids = new Set(selectedIds);

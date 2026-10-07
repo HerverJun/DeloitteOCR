@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screenCell, screenCellEdit, screenEditKey, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem } from "./screenBatchWorkflow";
+import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem, type ScreenEta } from "./screenBatchWorkflow";
 import type { Photo, Table } from "./types";
 
 const item: ScreenItem = { input_version_id: "version-a", image_id: "image-a", source_name: "财务.png", status: "needs_review", stage: "review",
@@ -11,6 +11,15 @@ const table: Table = { rows: 2, columns: 2, cells: [
 ] };
 
 describe("screen batch workflow", () => {
+  it("labels an ETA as the queued phase and keeps unknown or paused time explicit", () => {
+    const eta: ScreenEta = { remaining_seconds: 125, stage: { kind:"ocr",engine:"hunyuan",pass_index:0,label:"Hunyuan首轮识别" },
+      sample_count:3,pending_tasks:2,cached_pending_tasks:1,reason:"estimated" };
+    expect(screenEtaText(eta)).toBe("已排队的Hunyuan首轮识别预计还需约 3 分钟。");
+    expect(screenEtaText({...eta,remaining_seconds:null,reason:"insufficient_samples"})).toContain("暂无法估计");
+    expect(screenEtaText({...eta,remaining_seconds:null,reason:"active_task_exceeds_observed_duration"})).toContain("超出本批已完成样本");
+    expect(screenEtaText({...eta,remaining_seconds:null,reason:"paused"})).toContain("继续后再估计");
+    expect(screenEtaText({...eta,remaining_seconds:null})).not.toContain("0 秒");
+  });
   it("submits one batch reference list for 240 current-project images", () => {
     const images = Array.from({ length: 240 }, (_, index) => ({ id: `image-${index}`, active_version: `v-${index}` } as Photo));
     const ids = selectedScreenVersions(images, [], "project");

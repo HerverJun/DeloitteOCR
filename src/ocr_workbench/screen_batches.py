@@ -689,9 +689,15 @@ class ScreenBatches:
             raise ValueError('未知图片状态筛选')
         filtered = [item for item in items if not status or item['status'] == status or status == 'pending' and item['status'] not in TERMINAL]
         page = [self._display(item) for item in filtered[offset:offset + limit]]
+        from ocr_workbench.screen_eta import estimate_screen_eta
+        timed_tasks = self.store.rows('''SELECT t.id,t.kind,t.engine,t.status,t.started,t.finished,t.created,s.pass_index,s.spent_seconds
+            FROM screen_tasks s JOIN tasks t ON t.id=s.task_id WHERE s.batch_id=?
+            UNION ALL SELECT t.id,t.kind,t.engine,t.status,t.started,t.finished,t.created,-1,c.spent_seconds
+            FROM screen_contexts c JOIN tasks t ON t.id=c.task_id WHERE c.batch_id=?''',(batch_id,batch_id))
+        eta = estimate_screen_eta(timed_tasks,batch_status=batch['status'],pending_images=coverage['pending'])
         return {'batch_id': batch_id, 'project_id': project_id, 'status': 'partial' if stale and batch['status'] in {'succeeded', 'partial'} else batch['status'],
                 'parent_batch_id': batch.get('parent_batch_id'),
-                'counts': coverage, 'policy': batch['policy'], 'items': page, 'total_items': len(filtered),
+                'counts': coverage, 'policy': batch['policy'], 'items': page, 'total_items': len(filtered), 'eta':eta,
                 'next_offset': offset + limit if offset + limit < len(filtered) else None,
                 'created': batch['created'], 'updated': batch['updated'], 'worker_error': self.worker_error,
                 'task_ids': [r['task_id'] for r in self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=?', (batch_id,))][:100]}

@@ -5,7 +5,7 @@ import { api, request } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import type { Photo, Result, Table, Version } from "./types";
-import { screenCell, screenCellEdit, screenEditKey, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
+import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
   screenNumericColumnOptions, screenNumericExport,
   screenCandidateReviewBody,
   type ScreenBatch, type ScreenCandidate, type ScreenCellEdit, type ScreenItem } from "./screenBatchWorkflow";
@@ -240,6 +240,10 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                 <div><strong>{screenStatuses[batch.status] || batch.status}</strong><span>{progress?.terminal} / {batch.counts.total} 张已处理</span></div>
                 <progress max={100} value={progress?.percent} aria-label="批次处理进度" />
                 <dl>{[["可交付",batch.counts.completed],["处理中",batch.counts.pending],["待核对",batch.counts.needs_review],["失败",batch.counts.failed],["已取消",batch.counts.cancelled]].map(([label,count]) => <div key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
+                {batch.eta && batch.counts.pending > 0 && <p className="screen-batch-small" aria-label="当前阶段预计剩余时间">
+                  {screenEtaText(batch.eta)} 后续准备、模型切换、升级、导出和人工核对未计入。
+                  {batch.eta.cached_pending_tasks > 0 && ` ${batch.eta.cached_pending_tasks} 项等待完全重复图片的处理结果。`}
+                </p>}
               </div>
               {batch.worker_error && <p className="inline-warning" role="alert">处理服务正在恢复：{batch.worker_error}</p>}
               <div className="screen-batch-actions">
