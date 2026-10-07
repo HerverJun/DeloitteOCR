@@ -18,7 +18,7 @@ from PIL import Image
 
 from ocr_workbench.adapter import Cancelled
 from ocr_workbench.imaging import add_image
-from ocr_workbench.screen_batches import ScreenBatches
+from ocr_workbench.screen_batches import ScreenBatches, screen_seconds_spent
 from ocr_workbench.service import create_app
 from ocr_workbench.store import Conflict, Store
 from ocr_workbench.task_queue import TaskQueue
@@ -69,6 +69,9 @@ class ScreenQueueTests(unittest.TestCase):
         self.events, self.calls = [], []
         self.failure = None
         self.block_context = False
+        self.block_load = False
+        self.block_ocr = False
+        self.ignore_cancel = False
         self.load_cost = 0
         self.entered = threading.Event()
         self.released = threading.Event()
@@ -86,6 +89,11 @@ class ScreenQueueTests(unittest.TestCase):
             def load(self):
                 self.ready = True
                 owner.events.append(('load', self.engine, self.geometry_provider))
+                if owner.block_load:
+                    owner.entered.set()
+                    while not owner.released.wait(.01):
+                        if self.cancelled.is_set():
+                            raise Cancelled()
                 if owner.load_cost:
                     # Simulate elapsed cold loading without waiting or touching a GPU.
                     with owner.store.transaction() as db:
@@ -96,10 +104,10 @@ class ScreenQueueTests(unittest.TestCase):
                 owner.calls.append({'engine': self.engine, 'provider': self.geometry_provider,
                     'request': deepcopy(geometry_request), 'timeout': self.recognition_timeout,
                     'image': str(image)})
-                if self.engine == 'geometry' and owner.block_context:
+                if self.engine == 'geometry' and owner.block_context or self.engine != 'geometry' and owner.block_ocr:
                     owner.entered.set()
                     while not owner.released.wait(.01):
-                        if self.cancelled.is_set():
+                        if self.cancelled.is_set() and not owner.ignore_cancel:
                             raise Cancelled()
                 if owner.failure == self.engine:
                     owner.failure = None
@@ -252,6 +260,44 @@ class ScreenQueueTests(unittest.TestCase):
         self.assertIsNone(self.queue.adapter)
         self.assertIn(('unload','geometry','context'),self.events)
 
+    def test_batch_deadline_interrupts_blocked_context_load(self):
+        version = self.images()[0]
+        batch = self.submit([version],budget_seconds=20)
+        self.manager.step()
+        with self.store.transaction() as db:
+            db.execute('UPDATE screen_batches SET deadline=? WHERE id=?',(time.time()+.25,batch))
+        self.block_load = True
+        started = time.monotonic()
+        self.queue.step()
+        self.assertTrue(self.entered.is_set())
+        self.assertLess(time.monotonic()-started,3)
+        self.assertEqual(self.calls,[])
+        task = self.store.rows("SELECT * FROM tasks WHERE kind='screen_context'")[0]
+        self.assertEqual(task['status'],'failed')
+        self.assertIn('预算',task['error'])
+        self.assertIsNone(self.queue.adapter)
+
+    def test_late_ocr_raw_after_budget_cannot_publish_a_result(self):
+        version = self.images()[0]
+        batch = self.submit([version],layout_evidence=False,budget_seconds=20)
+        self.manager.step()
+        with self.store.transaction() as db:
+            db.execute('UPDATE screen_batches SET deadline=? WHERE id=?',(time.time()+1.5,batch))
+        self.block_ocr, self.ignore_cancel = True, True
+        release = threading.Timer(2,self.released.set)
+        release.daemon = True
+        release.start()
+        try:
+            self.queue.step()
+        finally:
+            release.cancel()
+        self.assertTrue(self.entered.is_set())
+        task = self.store.rows("SELECT * FROM tasks WHERE engine='glm'")[0]
+        self.assertEqual(task['status'],'failed')
+        self.assertIsNone(task['result_id'])
+        self.assertEqual(self.store.rows('SELECT * FROM results'),[])
+        self.assertIsNone(self.queue.adapter)
+
     def test_multiple_disjoint_crop_cells_map_once_to_original(self):
         def crops(source, folder, **kwargs):
             info = prepare(source, folder, **kwargs)
@@ -292,6 +338,54 @@ class ScreenQueueTests(unittest.TestCase):
         self.drain()
         self.assertEqual(len(self.store.rows('SELECT * FROM screen_contexts')), 1)
         self.assertEqual(self.manager.detail(self.project, batch, version)['status'], 'completed')
+
+    def test_resume_keeps_prior_active_segments_and_counts_new_segment(self):
+        for context in (False, True):
+            with self.subTest(context=context):
+                version = self.images()[0]
+                # Unique idempotency key keeps this pair independent in one store.
+                batch = self.manager.submit(self.project, {'version_ids':[version],
+                    'request_id':f'budget-resume-{context}',
+                    'policy':{'primary_engine':'glm','max_upgrades':0,
+                              'layout_evidence':context,'budget_seconds':100}})['batch_id']
+                self.manager.step()
+                claimed = self.store.claim()
+                self.assertIsNotNone(claimed)
+                task_id = claimed['id']
+                binding = 'screen_contexts' if context else 'screen_tasks'
+                self.assertEqual(len(self.store.rows(f'SELECT * FROM {binding} WHERE task_id=?',(task_id,))),1)
+                # Four active seconds followed by a long human pause. A resumed
+                # claim must accumulate the former and exclude the latter.
+                end = datetime.now(timezone.utc)-timedelta(seconds=60)
+                with self.store.transaction() as db:
+                    db.execute("UPDATE tasks SET status='interrupted',started=?,finished=? WHERE id=?",
+                        ((end-timedelta(seconds=4)).isoformat(),end.isoformat(),task_id))
+                self.assertAlmostEqual(screen_seconds_spent(self.store,batch,version),4,delta=.3)
+                self.queue.action(self.project,'resume',[task_id])
+                self.assertEqual(self.store.one('tasks',task_id)['finished'],end.isoformat())
+                self.assertEqual(self.store.claim()['id'],task_id)
+                self.assertIsNone(self.store.one('tasks',task_id)['finished'])
+                spent = self.store.rows(f'SELECT spent_seconds FROM {binding} WHERE task_id=?',(task_id,))[0]['spent_seconds']
+                self.assertAlmostEqual(spent,4,delta=.3)
+                second_end = datetime.now(timezone.utc)
+                with self.store.transaction() as db:
+                    db.execute('UPDATE tasks SET started=? WHERE id=?',
+                        ((second_end-timedelta(seconds=3)).isoformat(),task_id))
+                self.assertAlmostEqual(screen_seconds_spent(self.store,batch,version),7,delta=.3)
+                remaining = self.queue._screen_budget_remaining(self.store.one('tasks',task_id))
+                self.assertGreater(remaining,90)
+                self.assertLessEqual(remaining,93.1)
+                with self.store.transaction() as db:
+                    db.execute("UPDATE tasks SET status='interrupted',finished=? WHERE id=?",(second_end.isoformat(),task_id))
+                self.queue.action(self.project,'resume',[task_id])
+                self.assertEqual(self.store.claim()['id'],task_id)
+                spent = self.store.rows(f'SELECT spent_seconds FROM {binding} WHERE task_id=?',(task_id,))[0]['spent_seconds']
+                self.assertAlmostEqual(spent,7,delta=.3)
+                with self.store.transaction() as db:
+                    db.execute("UPDATE tasks SET status='cancelled',started=?,finished=? WHERE id=?",
+                        ((datetime.now(timezone.utc)-timedelta(seconds=2)).isoformat(),
+                         datetime.now(timezone.utc).isoformat(),task_id))
+                self.assertAlmostEqual(screen_seconds_spent(self.store,batch,version),9,delta=.3)
 
     def test_export_rejects_result_edit_during_workbook_generation(self):
         version = self.images()[0]
@@ -371,7 +465,8 @@ class ScreenQueueTests(unittest.TestCase):
                     return {'status':'success','image':{'width':width,'height':height},'coordinate_space':'exif_normalized_original',
                         'image_version':geometry_request['image_version'],'component':'mock-actual-context',
                         'layout_blocks':[{'label':'table','box':[10,10,width-10,height-10],'confidence':.99}],
-                        'regions':[{'box':[10,10,width-10,height-10],'confidence':.99}],
+                        'regions':[{'box':[10,10,width-10,height-10],'confidence':.99},
+                                   {'box':[0,0,100,20],'confidence':.99}],
                         'ocr_blocks':blocks,'ocr_source':'mock-ppocr'}
                 if self.engine == 'ppocr':
                     return {'status':'success','text':'12.50','blocks':blocks,'tables':[]}
@@ -403,12 +498,54 @@ class ScreenQueueTests(unittest.TestCase):
         for call in observed:
             if call[0]=='request' and call[3] is not None:
                 self.assertFalse({'truth','ideal_roi','reference'} & set(call[3]))
+                if call[2] in {'rapidtable','tableformer-raw','paddle'}:
+                    self.assertEqual(call[3]['regions_source'],'actual_prepared_business_regions')
+                    self.assertEqual(len(call[3]['regions']),1)
+                    self.assertEqual(call[3]['regions'][0]['id'],'region-1')
         visual = next(call[1] for call in observed if call[0]=='visual')
         self.assertTrue(all(target['before']=='' for target in visual['targets']))
         proposals = json.loads((args.output/'image-01/visual/proposals-only.json').read_text('utf-8'))
         self.assertEqual(proposals['proposals'][0]['before'],'12.50')
         self.assertFalse(proposals['proposals'][0]['automatic_apply'])
         self.assertEqual(proposals['proposals'][0]['human_review'],'not_performed')
+
+    def test_experiment_saved_candidate_rejects_tampering_and_stale_source_binding(self):
+        driver = runpy.run_path(str(Path(__file__).resolve().parents[1]/'scripts/screen_experiments.py'))
+        source = self.root/'candidate-input.png'
+        Image.new('RGB',(200,100),'white').save(source)
+        candidate = self.root/'candidate.json'
+        candidate.write_text(json.dumps({'text':'observed','tables':[deepcopy(TABLE)]}),'utf-8')
+        digest = driver['digest']
+        record = self.root/'source-record.json'
+        source_data = {'id':'sample','status':'success','image_sha256':digest(source),'result_sha256':digest(candidate)}
+        record.write_text(json.dumps(source_data),'utf-8')
+        item = {'id':'sample','image':str(source),'image_sha256':digest(source),
+                'result':str(candidate),'result_sha256':digest(candidate),'result_image_sha256':digest(source),
+                'source_record':str(record),'source_record_sha256':digest(record),
+                'truth':{'amount':'99'},'ideal_roi':[1,2,3,4]}
+        manifest = self.root/'candidate-manifest.json'
+        def save():
+            manifest.write_text(json.dumps({'items':[item]}),'utf-8')
+        save()
+        loaded = driver['load_inputs'](manifest,1)[0]
+        self.assertFalse({'truth','ideal_roi'} & set(loaded))
+        self.assertEqual(loaded['source_record_sha256'],digest(record))
+        self.assertEqual(driver['actual_candidate'](loaded['result'],loaded['image_sha256'],loaded['result_image_sha256'])['text'],'observed')
+        candidate.write_text(json.dumps({'text':'changed','tables':[deepcopy(TABLE)]}),'utf-8')
+        with self.assertRaisesRegex(ValueError,'候选.*hash'):
+            driver['load_inputs'](manifest,1)
+        # Updating one digest cannot silently relabel the old model record.
+        item['result_sha256'] = digest(candidate)
+        save()
+        with self.assertRaisesRegex(ValueError,'未绑定'):
+            driver['load_inputs'](manifest,1)
+        source_data['result_sha256'] = digest(candidate)
+        source_data['image_sha256'] = 'stale-image-hash'
+        record.write_text(json.dumps(source_data),'utf-8')
+        item['source_record_sha256'] = digest(record)
+        save()
+        with self.assertRaisesRegex(ValueError,'未绑定'):
+            driver['load_inputs'](manifest,1)
 
 
 if __name__ == '__main__':
