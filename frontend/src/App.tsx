@@ -67,6 +67,7 @@ import { useEditor } from "./useEditor";
 import { copySavedResultText } from "./resultClipboard";
 import { changeDocumentTables, changeDocumentText, displayOffset, documentText } from "./documentText";
 import { ProjectStorage } from "./ProjectStorage";
+import { ScreenBatchPanel } from "./ScreenBatchPanel";
 import { EnginePackages } from "./EnginePackages";
 import { engineNames } from "./types";
 import type {
@@ -1026,6 +1027,9 @@ export function App() {
             <FusionLauncher engines={engines} tasks={recognitionTasks} versionId={version?.id}
               selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
               onStart={runFusion} />
+            <ScreenBatchPanel projectId={projectId} images={project?.images || []} selectedImageIds={selected}
+              disabled={busy || reviewOnly || !queueHealthy} onError={onError} onRefresh={() => refresh(projectId)}
+              onOpenResult={previewResult} />
             <button
               className="workspace-queue-toggle"
               onClick={toggleQueue}
