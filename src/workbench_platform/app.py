@@ -22,6 +22,7 @@ from .assets.routes import configure_assets, router as assets_router
 from .artifacts.routes import configure_artifacts, router as artifacts_router
 from .jobs.ocr_projects import router as ocr_projects_router
 from .jobs.ocr_handoff import configure_ocr_handoff, router as ocr_handoff_router
+from .jobs.screen_batches import configure_screen_batches, router as screen_batches_router
 from .jobs.classification_projects import router as classification_projects_router
 from .jobs.classification_handoff import configure_classification_handoff, router as classification_handoff_router
 from .batches.routes import configure_batches, router as batches_router
@@ -52,6 +53,7 @@ async def lifespan(app: FastAPI):
         configure_ocr_handoff(app)
         configure_classification_handoff(app)
         configure_artifacts(app)
+        configure_screen_batches(app)
         configure_batches(app)
         configure_audit(app)
         configure_forensics(app)
@@ -76,6 +78,7 @@ async def lifespan(app: FastAPI):
             data_service.close()
         app.state.job_service = None
         app.state.ocr_handoff = None
+        app.state.screen_batches = None
         app.state.classification_handoff = None
         app.state.asset_library = None
         app.state.artifact_center = None
@@ -96,6 +99,7 @@ app.include_router(assets_router)
 app.include_router(artifacts_router)
 app.include_router(ocr_projects_router)
 app.include_router(ocr_handoff_router)
+app.include_router(screen_batches_router)
 app.include_router(classification_projects_router)
 app.include_router(classification_handoff_router)
 app.include_router(batches_router)

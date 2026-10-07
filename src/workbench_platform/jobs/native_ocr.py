@@ -581,6 +581,47 @@ class OcrAdapter:
             raise OcrUnavailable()
         return receipt
 
+    def screen_image(self, project_id: str, batch_id: str, version_id: str, file_id: str) -> tuple[bytes,str]:
+        if project_id != self.context.module_project_id or not all(_is_native_id(value) for value in (batch_id,version_id,file_id)):
+            raise OcrUnavailable()
+        connection=http.client.HTTPConnection('127.0.0.1',self.port,timeout=30)
+        try:
+            connection.request('GET',f'/api/projects/{project_id}/screen-batches/{batch_id}/items/{version_id}/files/{file_id}',headers={'Authorization':'Bearer '+self._credential(),'Accept':'image/*'})
+            response=connection.getresponse()
+            media=response.getheader('Content-Type','').split(';')[0]
+            if response.status!=200 or media not in {'image/png','image/jpeg','image/webp'}:
+                raise OcrUnavailable()
+            data=response.read(32*1024*1024+1)
+            if not data or len(data)>32*1024*1024:
+                raise OcrUnavailable()
+            return data,media
+        except (OSError,ValueError,http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
+
+    def screen_export(self, project_id: str, batch_id: str, options: dict) -> bytes:
+        if project_id != self.context.module_project_id or not _is_native_id(batch_id):
+            raise OcrUnavailable()
+        connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=120)
+        try:
+            connection.request('POST', f'/api/projects/{project_id}/screen-batches/{batch_id}/export',
+                body=json.dumps(options, separators=(',', ':')).encode(), headers={
+                    'Authorization': 'Bearer '+self._credential(), 'Content-Type':'application/json', 'Accept':'application/zip'})
+            response = connection.getresponse()
+            if response.status == 409:
+                raise OcrResultConflict()
+            if response.status != 200:
+                raise OcrUnavailable()
+            data = response.read(MAX_EXPORT+1)
+            if not data or len(data)>MAX_EXPORT or not zipfile.is_zipfile(io.BytesIO(data)):
+                raise OcrUnavailable()
+            return data
+        except (OSError, ValueError, http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
+
     def export_results(self, results: list[tuple[ResultArtifact, int]]) -> tuple[bytes, str]:
         if (not results or len(results) > 1000
                 or len({item.native_result_id for item, _ in results}) != len(results)
