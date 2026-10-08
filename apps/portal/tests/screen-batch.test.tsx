@@ -119,3 +119,34 @@ test('candidate review preserves the old result guard and confirmed numeric colu
   await waitFor(() => expect(exports).toHaveLength(1))
   expect(exports[0]).toEqual({ include_pending_review: false, numeric_columns: { versionA: { '0': [1] } } })
 }, 30000)
+
+test('external editing uses the actual revision for comparison and review while numeric consent remains stale', async () => {
+  const comparisons: any[] = [], actions: any[] = []
+  const tables = [{ columns: 2, cells: [{ row: 1, column: 0, text: '000001' }, { row: 1, column: 1, text: '01.20' }] }]
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith('/items/versionA')) return ok({ ...item, review_state: 'accepted', human_confirmed: false, review_stale: true,
+      current_result_revision: 4, result: { revision: 4, tables }, original_url: '/original.png', tables,
+      candidates: [{ result_id: 'candidateB', engine: 'glm', tables }] })
+    if (path.endsWith('/compare')) {
+      comparisons.push(JSON.parse(String(init?.body)))
+      return ok({ result_id: 'resultA', result_revision: 4, input_version_id: 'versionA', current_id: 'resultA', alternative_id: 'candidateB', recommended_candidate_id: 'resultA',
+        conflicts: [{ code: 'candidate_value_conflict' }], selection_applied: false, values_modified: false })
+    }
+    if (path.endsWith('/action')) { actions.push(JSON.parse(String(init?.body))); return ok(batch()) }
+    return ok(batch())
+  }))
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '核对原图与结果' }))
+  await screen.findByLabelText('复核候选结果')
+  expect(screen.getByLabelText('表1已确认数值列')).toBeDisabled()
+  fireEvent.mouseDown(screen.getByLabelText('复核候选结果'))
+  fireEvent.click(await screen.findByText('候选 1 · glm'))
+  fireEvent.click(screen.getByRole('button', { name: '比较候选差异' }))
+  await screen.findByText(/候选比较发现 1 项分歧/)
+  expect(comparisons).toEqual([{ result_id: 'resultA', expected_revision: 4, candidate_id: 'candidateB' }])
+  expect(actions).toHaveLength(0)
+  expect(screen.getByLabelText('表1已确认数值列')).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: '保存并确认本图' }))
+  await waitFor(() => expect(actions).toHaveLength(1))
+  expect(actions[0]).toMatchObject({ action: 'review', result_id: 'resultA', expected_revision: 4, state: 'accepted' })
+}, 30000)

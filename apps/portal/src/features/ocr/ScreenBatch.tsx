@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Checkbox, Empty, Input, Modal, Progress, Select, Space, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
+import { ScreenDiagnostics } from './ScreenDiagnostics'
+import { LocalCandidates } from './LocalCandidates'
+import { reliableDiagnosticBox, diagnosticRange, currentResultRevision, type Diagnostic, type Diagnostics, type CandidateComparison } from './screenDiagnosticWorkflow'
 
-type Item = { input_version_id: string; image_id: string; asset_id: string; name: string; status: string; stage: string; review_state?: string; result_id?: string; result_revision?: number; issues: { code?: string; message?: string; reason?: string }[] }
+type Item = { input_version_id: string; image_id: string; asset_id: string; name: string; status: string; stage: string; review_state?: string; result_id?: string; result_revision?: number; current_result_revision?: number; review_stale?: boolean; human_confirmed?: boolean; issues: { code?: string; message?: string; reason?: string }[] }
 type StageEta = { remaining_seconds: number | null; stage?: { label?: string } | null; sample_count: number; scope: string; reason?: string; not_included?: string[] }
-type Batch = { batch_id: string; status: string; counts: { total: number; completed: number; needs_review: number; failed: number; cancelled: number; pending: number }; items: Item[]; total?: number; filtered_total?: number; capabilities: string[]; eta?: StageEta }
+type Batch = { batch_id: string; status: string; counts: { total: number; completed: number; needs_review: number; failed: number; cancelled: number; pending: number }; items: Item[]; total?: number; filtered_total?: number; capabilities: string[]; eta?: StageEta; delivery_snapshot_id?: string; delivery_fresh?: boolean; stale_item_count?: number }
 type Cell = { row?: number; column?: number; row_index?: number; col_index?: number; text?: string; content?: string }
 type BusinessTable = { cells?: Cell[]; columns?: number; caption?: string }
-type Detail = Item & { original_url: string; result?: { tables?: BusinessTable[] }; tables?: BusinessTable[]; candidates?: { result_id?: string; engine?: string; tables?: BusinessTable[] }[]; preparation?: { prepared_images?: { id: string; kind: string; url: string }[] } }
+type Detail = Item & { diagnostics?: Diagnostics; original_url: string; result?: { revision?: number; tables?: BusinessTable[] }; tables?: BusinessTable[]; candidates?: { result_id?: string; engine?: string; tables?: BusinessTable[] }[]; preparation?: { width?: number; height?: number; prepared_images?: { id: string; kind: string; url: string }[] } }
 type Bundle = { bundle_id: string; files: { name: string }[] }
 type NumericColumns = Record<string, Record<string, number[]>>
 class ScreenError extends Error { constructor(message: string, readonly status: number) { super(message) } }
@@ -35,6 +38,8 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
   const [includeReview, setIncludeReview] = useState(false), [review, setReview] = useState<Item | null>(null), [edits, setEdits] = useState<Record<string, string>>({})
   const [crop, setCrop] = useState<string>()
   const [candidate, setCandidate] = useState<string>()
+  const [diagnostic, setDiagnostic] = useState<Diagnostic>()
+  const [diagnosticNotice, setDiagnosticNotice] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [numericByBatch, setNumericByBatch] = useState<Record<string, NumericColumns>>({})
   const numericColumns = batchId ? numericByBatch[batchId] || {} : {}
@@ -46,22 +51,35 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
   const start = useMutation({ mutationFn: () => identified<Batch>(`clear-screen-submit:${workspaceId}:${setId}:${revision}`, base,
     { link_id: linkId, asset_set_id: setId, asset_set_revision: revision, policy: { mode } }),
     onSuccess: value => { const next = new URLSearchParams(params); next.set('screen_batch', value.batch_id); setParams(next); refresh() } })
-  const control = useMutation({ mutationFn: (action: string) => identified<Batch>(`clear-screen-action:${workspaceId}:${batchId}`, `${base}/${batchId}/action`, { action, ...(action === 'upgrade' ? { version_ids: selected } : {}) }), onSuccess: value => {
+  const control = useMutation({ mutationFn: (command: string | { action: string; version_ids: string[] }) => {
+    const action = typeof command === 'string' ? command : command.action
+    return identified<Batch>(`clear-screen-action:${workspaceId}:${batchId}`, `${base}/${batchId}/action`, { action, ...(action === 'upgrade' ? { version_ids: typeof command === 'string' ? selected : command.version_ids } : {}) })
+  }, onSuccess: value => {
     if (value.batch_id !== batchId) { const next = new URLSearchParams(params); next.set('screen_batch', value.batch_id); setParams(next); setSelected([]); setPage(1); setStatus(undefined) }
     refresh()
   } })
   const publish = useMutation({ mutationFn: () => json<Bundle>(`${base}/${batchId}/export`, post({ include_pending_review: includeReview, ...(Object.keys(numericColumns).length ? { numeric_columns: numericColumns } : {}) })) })
   const detail = useQuery({ queryKey: ['ocr-screen-detail', workspaceId, batchId, review?.input_version_id], enabled: !!review,
     queryFn: ({ signal }) => json<Detail>(`${base}/${batchId}/items/${review!.input_version_id}`, { signal }) })
+  const comparison = useMutation({ mutationFn: () => {
+    const currentRevision = currentResultRevision(detail.data)
+    if (!candidate || !detail.data?.result_id || currentRevision === undefined || !detail.data.candidates?.some(value => value.result_id === candidate)) throw new Error('请先选择一个当前图片的候选结果')
+    return json<CandidateComparison>(`${base}/${batchId}/items/${detail.data.input_version_id}/compare`, post({ result_id: detail.data.result_id, expected_revision: currentRevision, candidate_id: candidate }))
+  }, onSuccess: () => setDiagnostic(undefined) })
+  const validComparison = comparison.data && comparison.data.result_revision === currentResultRevision(detail.data) && comparison.data.input_version_id === detail.data?.input_version_id && comparison.data.result_id === detail.data?.result_id ? comparison.data : undefined
+  const diagnosticData = validComparison?.diagnostics || detail.data?.diagnostics
+  const currentDiagnostic = diagnosticData?.items.find(value => value.id === diagnostic?.id) || diagnosticData?.items[0]
+  const reliableBox = reliableDiagnosticBox(currentDiagnostic)
   const tables = (candidate ? detail.data?.candidates?.find(value => value.result_id === candidate)?.tables : detail.data?.tables || detail.data?.result?.tables) || []
   const cells = tables.flatMap((table, tableIndex) => (table.cells || []).map(cell => ({
     key: `${tableIndex}:${cell.row ?? cell.row_index ?? 0}:${cell.column ?? cell.col_index ?? 0}`, table_index: tableIndex,
     row: cell.row ?? cell.row_index ?? 0, column: cell.column ?? cell.col_index ?? 0, before: cell.text ?? cell.content ?? '' })))
   const save = useMutation({ mutationFn: async (state: string) => {
     const selected = detail.data
-    if (!selected?.result_id || selected.result_revision === undefined) throw new Error('尚无可核实的最终结果')
+    const currentRevision = currentResultRevision(selected)
+    if (!selected?.result_id || currentRevision === undefined) throw new Error('尚无可核实的最终结果')
     return identified(`clear-screen-review:${workspaceId}:${batchId}:${selected.input_version_id}`, `${base}/${batchId}/action`, {
-      action: 'review', version_ids: [selected.input_version_id], result_id: selected.result_id, expected_revision: selected.result_revision, state,
+      action: 'review', version_ids: [selected.input_version_id], result_id: selected.result_id, expected_revision: currentRevision, state,
       ...(candidate ? { candidate_id: candidate } : {}),
       edits: cells.filter(cell => edits[cell.key] !== undefined && edits[cell.key] !== cell.before).map(({ key, ...cell }) => ({ ...cell, after: edits[key] })) })
   }, onSuccess: () => {
@@ -81,6 +99,8 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
         <Button type="primary" disabled={!ready || !linkId || !count || count > 1000} loading={start.isPending} onClick={() => start.mutate()}>开始整批转 Excel</Button></Space></> : <>
       {counts && <><Space wrap>{(['total', 'completed', 'pending', 'needs_review', 'failed', 'cancelled'] as const).map(key => <Typography.Text key={key}>{({ total: '总数', completed: '完成', pending: '处理中', needs_review: '待复核', failed: '失败', cancelled: '取消' })[key]} {counts[key]}</Typography.Text>)}<Tag>{labels[batch.data!.status] || batch.data!.status}</Tag></Space>
         <Progress percent={Math.round((counts.total - counts.pending) * 100 / Math.max(counts.total, 1))} status={counts.pending ? 'active' : counts.failed ? 'exception' : 'normal'} />
+        <Typography.Paragraph type="secondary">已处理包含待复核、失败和取消项。可先下载当前可导出范围，剩余 {counts.pending} 张继续处理。</Typography.Paragraph>
+        {batch.data?.delivery_fresh === false && <Alert type="warning" title={`已有导出是历史版本，${batch.data.stale_item_count || 0} 张图片版本已变化`} description="历史下载保留；确认当前范围后重新导出。" />}
         {!!counts.pending && eta && <Typography.Paragraph type="secondary">{estimated ? `当前阶段预计还需约 ${remaining}${eta.stage?.label ? `（${eta.stage.label}）` : ''}` : batch.data?.status === 'paused' ? '已暂停，继续后更新当前阶段估计' : '当前阶段剩余时间暂无法估计'}。仅估计已排队的当前阶段；后续表区处理、精度升级、模型切换、导出和人工复核另计。</Typography.Paragraph>}
         <Space wrap>{batch.data?.capabilities.map(action => <Button key={action} loading={control.isPending} onClick={() => control.mutate(action)}>{({ pause: '暂停', resume: '继续', cancel: '取消', retry_failed: '仅重试失败项' } as Record<string, string>)[action] || action}</Button>)}
           <Button disabled={!selected.length || control.isPending} onClick={() => control.mutate('upgrade')}>对所选图片提高精度（{selected.length}）</Button>
@@ -91,18 +111,31 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
       <Table<Item> size="small" rowKey="input_version_id" dataSource={batch.data?.items || []} loading={batch.isPending} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: keys => setSelected(keys.map(String)), getCheckboxProps: item => ({ disabled: !['completed', 'needs_review', 'failed', 'cancelled'].includes(item.status) }) }} pagination={{ current: page, pageSize: 30, total: batch.data?.filtered_total ?? batch.data?.total ?? counts?.total, showSizeChanger: false, onChange: setPage }}
         columns={[{ title: '原图', dataIndex: 'name', ellipsis: true }, { title: '状态', render: (_, item) => <Tag>{labels[item.status] || item.status}</Tag> }, { title: '阶段', dataIndex: 'stage' },
           { title: '疑点', render: (_, item) => item.issues?.slice(0, 3).map(issue => issue.message || issue.reason || issue.code).join('；') },
-          { title: '操作', render: (_, item) => item.result_id ? <Button type="link" onClick={() => { setEdits({}); setCrop(undefined); setCandidate(undefined); save.reset(); setReview(item) }}>核对原图与结果</Button> : <Typography.Text type="secondary">尚无结果</Typography.Text> }]} locale={{ emptyText: <Empty description="当前筛选没有图片" /> }} />
+          { title: '操作', render: (_, item) => item.result_id ? <Button type="link" onClick={() => { setEdits({}); setCrop(undefined); setCandidate(undefined); setDiagnostic(undefined); comparison.reset(); save.reset(); setReview(item) }}>核对原图与结果</Button> : <Typography.Text type="secondary">尚无结果</Typography.Text> }]} locale={{ emptyText: <Empty description="当前筛选没有图片" /> }} />
     </>}
     {[start.error, batch.error, control.error, publish.error].filter(Boolean).map((error, index) => <Alert key={index} type="error" title={(error as Error).message} />)}
     <Modal title={review ? `核对：${review.name}` : '集中复核'} open={!!review} width={1000} onCancel={() => setReview(null)} footer={<Space><Button disabled={!detail.data || save.isPending} onClick={() => save.mutate('deferred')}>稍后复核</Button><Button disabled={!detail.data || save.isPending} onClick={() => save.mutate('retain')}>保留当前结果</Button><Button type="primary" loading={save.isPending} disabled={!detail.data} onClick={() => save.mutate('accepted')}>保存并确认本图</Button></Space>}>
       {detail.data && <><Typography.Paragraph>{detail.data.issues?.map(issue => issue.message || issue.reason || issue.code).join('；')}</Typography.Paragraph>
+        {diagnosticData && <ScreenDiagnostics data={diagnosticData} selected={currentDiagnostic?.id} busy={control.isPending || save.isPending || comparison.isPending}
+          select={item => { setDiagnostic(item); setCrop(undefined) }} action={(item, name) => { setDiagnostic(item); setCrop(undefined); if (name === 'structure_compare') comparison.mutate(); if (name === 'precision_subbatch') control.mutate({ action: 'upgrade', version_ids: [detail.data!.input_version_id] }); if (name === 'request_better_source') setDiagnosticNotice('请补充这张图的清晰、完整照片；保留原结果，不猜测不可见内容。'); }} />}
+        {diagnosticNotice && <Alert type="info" title={diagnosticNotice} />}
+        {detail.data && batchId && diagnosticData && <LocalCandidates key={`${workspaceId}:${batchId}:${detail.data.input_version_id}`}
+          workspaceId={workspaceId} batchId={batchId} inputVersionId={detail.data.input_version_id}
+          resultId={detail.data.result_id} revision={currentResultRevision(detail.data)} diagnostic={currentDiagnostic}
+          remainingBudget={diagnosticData.budget.remaining_seconds} primaryPending={!!batch.data?.counts.pending}
+          currentValue={(detail.data.tables || detail.data.result?.tables || [])[currentDiagnostic?.location.table ?? -1]?.cells?.find(cell =>
+            (cell.row ?? cell.row_index) === currentDiagnostic?.location.row && (cell.column ?? cell.col_index) === currentDiagnostic?.location.column)?.text} />}
         <Space><a href={detail.data.original_url} target="_blank" rel="noreferrer">打开原图</a><Select aria-label="复核图像区域" value={crop || detail.data.original_url} onChange={setCrop} options={[{ value: detail.data.original_url, label: '原始图片' }, ...(detail.data.preparation?.prepared_images || []).map((image, index) => ({ value: image.url, label: `业务表区 ${index + 1}` }))]} /></Space>
-        <img className="ocr-review-image" src={crop || detail.data.original_url} alt={detail.data.name} />
+        <div style={{ position: 'relative', margin: '12px 0' }}><img className="ocr-review-image" style={{ margin: 0 }} src={crop || detail.data.original_url} alt={detail.data.name} />
+          {!crop && reliableBox && detail.data.preparation?.width && detail.data.preparation.height && <svg aria-label={`${diagnosticRange(currentDiagnostic!)}原图范围`} viewBox={`0 0 ${detail.data.preparation.width} ${detail.data.preparation.height}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}><rect x={reliableBox[0]} y={reliableBox[1]} width={reliableBox[2] - reliableBox[0]} height={reliableBox[3] - reliableBox[1]} fill="none" stroke="#b46c20" strokeWidth="3" /></svg>}</div>
         {!!detail.data.candidates?.length && <Space><Typography.Text>候选结果</Typography.Text><Select aria-label="复核候选结果" value={candidate || 'current'} style={{ minWidth: 220 }}
-          onChange={value => { setCandidate(value === 'current' ? undefined : value); setEdits({}) }} options={[{ value: 'current', label: '当前最终结果' }, ...detail.data.candidates.filter(value => value.result_id && value.tables?.length).map((value, index) => ({ value: value.result_id!, label: `候选 ${index + 1} · ${value.engine || '已保留结果'}` }))]} /></Space>}
+          onChange={value => { setCandidate(value === 'current' ? undefined : value); comparison.reset(); setEdits({}) }} options={[{ value: 'current', label: '当前最终结果' }, ...detail.data.candidates.filter(value => value.result_id).map((value, index) => ({ value: value.result_id!, label: `候选 ${index + 1} · ${value.engine || '已保留结果'}` }))]} />
+          <Button disabled={!candidate || Object.keys(edits).length > 0} loading={comparison.isPending} onClick={() => comparison.mutate()}>比较候选差异</Button></Space>}
+        {validComparison && <Typography.Paragraph>候选比较发现 {validComparison.conflicts.length} 项分歧；仅展示建议，未采用或修改结果。采用仍通过下方人工保存动作。</Typography.Paragraph>}
+        {comparison.error && <Alert type="error" title={comparison.error.message} />}
         <Typography.Paragraph type="secondary">默认按文本导出，保留编号、前导零和精确原值。保存并确认当前结果后，可选择金额、数量或比例列按数值导出；长编号仍按文本保留。</Typography.Paragraph>
         {tables.map((table, tableIndex) => <Space key={tableIndex} className="ocr-numeric-columns"><Typography.Text>表 {tableIndex + 1}：数值列</Typography.Text>
-          <Select mode="multiple" allowClear disabled={detail.data!.review_state !== 'accepted' || !!candidate || Object.keys(edits).length > 0} aria-label={`表${tableIndex + 1}已确认数值列`} style={{ minWidth: 260 }} value={numericColumns[detail.data!.input_version_id]?.[String(tableIndex)] || []}
+          <Select mode="multiple" allowClear disabled={detail.data!.review_state !== 'accepted' || detail.data!.review_stale || detail.data!.human_confirmed === false || (detail.data!.result_revision !== undefined && detail.data!.result_revision !== currentResultRevision(detail.data)) || !!candidate || Object.keys(edits).length > 0} aria-label={`表${tableIndex + 1}已确认数值列`} style={{ minWidth: 260 }} value={numericColumns[detail.data!.input_version_id]?.[String(tableIndex)] || []}
             options={Array.from({ length: table.columns ?? (table.cells || []).reduce((largest, cell) => Math.max(largest, (cell.column ?? cell.col_index ?? 0) + 1), 0) }, (_, column) => ({ value: column, label: `第 ${column + 1} 列` }))}
             onChange={columns => { const versionId = detail.data!.input_version_id; setNumericByBatch(old => ({ ...old, [batchId!]: { ...(old[batchId!] || {}), [versionId]: { ...(old[batchId!]?.[versionId] || {}), [String(tableIndex)]: columns } } })) }} /></Space>)}
         <Table size="small" rowKey="key" dataSource={cells} pagination={{ pageSize: 20 }} columns={[{ title: '表', dataIndex: 'table_index', render: value => value + 1 }, { title: '行', dataIndex: 'row', render: value => value + 1 }, { title: '列', dataIndex: 'column', render: value => value + 1 },

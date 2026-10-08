@@ -7,6 +7,7 @@ import { ProjectNativeOutputs } from '../start/ProjectNativeOutputs'
 import type { ReviewBundle } from '../batches/api'
 import type { ForensicBundle, WorkpaperBundle } from '../../../../../packages/contracts/types.generated'
 import './artifacts.css'
+import { ArtifactFreshness } from './ArtifactFreshness'
 
 const { Title, Text, Paragraph } = Typography
 type Input = { role: string; name: string; asset_id: string; revision: number }
@@ -178,6 +179,7 @@ function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | n
       {detail.isError && <Alert type="error" title={detail.error.message}
         action={<Button onClick={() => void detail.refetch()}>重试</Button>} />}
       {detail.data && <><Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(detail.data.bundle_id)}`}><Button>交给 Agent 继续处理</Button></Link>
+        <ArtifactFreshness workspaceId={workspaceId} bundleId={detail.data.bundle_id} inputSetId={'input_set_id' in detail.data ? detail.data.input_set_id : undefined} projectId={'project_id' in detail.data ? detail.data.project_id : undefined} handoffId={'handoff_id' in detail.data ? detail.data.handoff_id : undefined} />
         <BundleDetails bundle={detail.data} workspaceId={workspaceId} base={base} /></>}
     </> : <>
       <ProjectDataOutputs key={workspaceId} workspaceId={workspaceId} />

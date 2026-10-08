@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ControllerSettings } from './ControllerSettings'
 import { ContextBudgetContent, EnvironmentContent, ModelRequestContent, ModelUsageContent } from './ContextBudget'
 import { SkillsPanel } from './SkillsPanel'
+import { AgentPreferences } from './AgentPreferences'
 import { ManualReturn, hasPendingManualReturn } from './ManualReturn'
 import { AgentRequestError, agentRequest, agentWrite, requestId, type AgentEvent, type AgentRun, type AgentSession, type Controller, type AgentRef, type AuditTask, type AuditProfile, type ContextBudget } from './api'
 import { AgentMarkdown, AgentMessage } from './AgentMessage'
@@ -74,6 +75,7 @@ export function AgentWorkbench() {
   const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session')
   const assetSetSource = params.get('asset_set')
   const [settings, setSettings] = useState(false), [skills, setSkills] = useState(false), [goal, setGoal] = useState('')
+  const [preferences, setPreferences] = useState(false)
   const [materials, setMaterials] = useState(false), [background, setBackground] = useState(false), [recent, setRecent] = useState(false), [keyword, setKeyword] = useState('')
   const [error, setError] = useState(''), [controlling, setControlling] = useState(false), [taskDrawer, setTaskDrawer] = useState(false)
   const [pendingControl, setPendingControl] = useState<'take_over' | 'return_to_agent' | null>(null)
@@ -237,7 +239,7 @@ export function AgentWorkbench() {
         <Tag className="agent-model-state" title={connection.data?.model} color={connection.data?.available ? 'success' : 'default'}>{connection.data?.available ? connection.data.model : '模型待连接'}</Tag></div>
       {task.data?.title && <Typography.Text className="agent-current-task" type="secondary" title={task.data.title}>{task.data.title}</Typography.Text>}</div>
       <nav className="audit-context-bar" aria-label="审计任务操作"><Button onClick={newSession}>新任务</Button>
-        <Button type="text" onClick={() => setRecent(true)}>最近任务</Button><Button type="text" aria-expanded={taskDrawer} onClick={() => setTaskDrawer(true)}>任务详情</Button></nav></header>
+        <Button type="text" onClick={() => setRecent(true)}>最近任务</Button><Button type="text" aria-expanded={taskDrawer} onClick={() => setTaskDrawer(true)}>任务详情</Button><Button type="text" disabled={!workspace || !health.data?.enabled || mismatch} onClick={() => setPreferences(true)}>工作偏好</Button></nav></header>
     {health.data && !health.data.enabled && <Alert type="warning" title="Agent 当前不可用" description={health.data.reason} />}
     {health.error && <Alert type="error" title={health.error.message} />}
     {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
@@ -283,6 +285,7 @@ export function AgentWorkbench() {
     </div>
     <ControllerSettings open={settings} close={() => setSettings(false)} />
     <SkillsPanel open={skills} close={() => setSkills(false)} workspace={workspace} sessionId={sessionId} running={!!active && !task.data?.manual} />
+    <AgentPreferences open={preferences} close={() => setPreferences(false)} workspace={workspace} sessionId={sessionId} />
     <Materials open={materials} workspace={workspace} selected={selectedAssets} close={() => setMaterials(false)} save={saveScope} />
     <ProjectBackground open={background} profile={profile.data} close={() => setBackground(false)} save={async value => {
       const { revision, ...body } = value; await agentWrite(`/workspaces/${workspace}/audit-profile`, { ...body, expected_revision: revision, request_id: requestId() }, 'PUT'); void profile.refetch()
