@@ -2,7 +2,7 @@
 name: payment-reconciliation
 description: 核对付款或往来台账，保留业务编号、精确金额、实际差异和来源，生成可下载结果及证据底稿。
 compatibility: Clear Workbench；需要已登记的数据 worker，输入为已授权的 CSV、Excel 或 Parquet 台账。
-allowed-tools: assets_search assets_describe assets_create_set data_create_session data_inspect_input data_import data_read_table data_apply_step data_compare data_read_result data_export audit_bind_evidence audit_read_evidence audit_write_finding audit_read_finding audit_generate_workpaper audit_update_plan artifacts_list artifacts_get delivery_publish
+allowed-tools: assets_search assets_describe assets_create_set data_create_session data_inspect_input data_import data_read_table data_apply_step data_compare data_read_result data_export audit_bind_evidence audit_read_evidence audit_write_finding audit_read_finding audit_generate_workpaper audit_update_plan artifacts_list artifacts_get delivery_publish preferences_read preferences_update capabilities_read skills_match
 metadata:
   host: clear-workbench
   requires-tools: data_inspect_input data_import data_compare data_read_result data_export

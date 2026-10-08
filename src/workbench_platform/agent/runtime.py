@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 from contextlib import AsyncExitStack
 from dataclasses import asdict
 import json
@@ -9,8 +10,11 @@ import os
 from pathlib import Path
 import uuid
 
+from packages.contracts.agent import AgentToolResult
+
 from .connection import ControllerConnection
-from .context import prepare_request, core_tools
+from .context import prepare_request, core_tools, skill_control_tools
+from .preferences import TaskPreferences, task_overrides
 from .environment import compose, environment
 from .skills import SkillService, registration
 from .dependencies import load_dependencies
@@ -18,8 +22,13 @@ from .graph import build_graph
 from .providers import payload_for, request, ProviderFault, SYSTEM, SYSTEM_VERSION, SYSTEM_PROMPTS
 from .registry import ToolContext, ToolRegistry, invoke, tool_activity
 from .store import AgentStore, Conflict, RunSuperseded, canonical, digest, now
-from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history, screen_batches
+from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history, screen_batches, preferences
 from workbench_platform.application_services.native import model_projection
+
+
+CURRENT_FACTS_PREFIX = ('[服务器工作事实；目标、范围、规则是本次请求组装时的当前值，用户约束须完整遵守。'
+    '操作回执属历史，采用前核对相应原生作业或结果版本；没有新目标或背景版本变化时，'
+    '无需重复读取audit_get_task/audit_get_project]\n')
 
 
 class AgentRuntime:
@@ -28,6 +37,7 @@ class AgentRuntime:
         self.services = services
         self.registry = ToolRegistry()
         context.register(self.registry)
+        preferences.register(self.registry)
         data.register(self.registry)
         ocr.register(self.registry)
         ocr_management.register(self.registry)
@@ -47,8 +57,9 @@ class AgentRuntime:
         history.register(self.registry)
         load_dependencies()
         self.skills = SkillService(self.store, registry=self.registry, **registration())
+        self.preferences = TaskPreferences(self.store)
         self.registry.tool_guard = lambda call, ctx: call['tool'] in self.skills.allowed_tools(
-            ctx.session_id, [call['tool']], core=core_tools(self.registry))
+            ctx.session_id, [call['tool']], core=skill_control_tools(self.registry))
         self.connection = ControllerConnection(self.store, production_preflight=self.production_preflight)
         from .tasks import AuditTasks
         self.tasks = AuditTasks(self)
@@ -111,6 +122,124 @@ class AgentRuntime:
 
     def current(self, state):
         return self.store.assert_current(state['run_id'], state['generation'])
+
+    async def admit_tools(self, ctx, names, descriptions):
+        """Load only contracts that fit the actual next request and Skill scope.
+
+        The unchanged request arguments and full metadata remain in the tool
+        receipt. A deferred/denied name is never reported as activated, and
+        preflight does not send a model request or execute a business tool.
+        """
+        ctx.current()
+        run = self.store.assert_current(ctx.run_id, ctx.generation)
+        scope = self.skills.request_snapshot(ctx.workspace_id, ctx.session_id)
+        allowed = scope.allowed_tools(names, core=skill_control_tools(self.registry))
+        tools = deepcopy(descriptions)
+        for item in tools:
+            name = item['name']
+            if name not in self.registry.tools:
+                continue
+            item.update(allowed=name in allowed, loaded=False,
+                        schema_sha256=digest(self.registry.schemas([name])[name]))
+            if name not in allowed:
+                item['error'] = {'code': 'skill_tool_denied', 'message': '当前技能不允许该工具；请先停用或切换技能'}
+            elif item.get('availability', {}).get('state') == 'unavailable':
+                item['reason'] = 'service_unavailable'
+        activated = []
+        def result():
+            blocked = [item for item in tools if item.get('error')]
+            denied = any(item.get('error', {}).get('code') == 'skill_tool_denied' for item in blocked)
+            error = ({'code': 'skill_tool_denied' if denied else 'unknown_tool',
+                      'message': '请求含受当前技能限制或未注册工具；先处理逐项错误，未扩大权限'} if blocked else None)
+            data = {'format': 'platform-tool-activation-v1', 'requested_tools': list(names),
+                    'tools': tools, 'activated_tools': list(activated)}
+            if blocked:
+                data['reason'] = 'resolve_request_errors_first'
+            return AgentToolResult(status='error' if blocked else 'success',
+                summary=('当前技能不允许请求中的工具，尚未加载；使用原生结果前请停用或切换当前技能。'
+                         if denied else '请求含未注册工具，尚未加载；请按已登记目录修正名称并分次加载。'
+                         if blocked else '已按实际上下文预算加载工具；loaded=false 的项须分次 tools_describe，资料范围与窗口未变。'),
+                data=data, error=error).model_dump()
+        def finish():
+            ctx.current()
+            current_scope = self.skills.request_snapshot(ctx.workspace_id, ctx.session_id)
+            if current_scope.active != scope.active or current_scope.allowed_tools(
+                    names, core=skill_control_tools(self.registry)) != allowed:
+                raise Conflict('工具加载期间技能范围或固定版本已变化')
+            return result()
+        if any(item.get('error') for item in tools):
+            return finish()
+        if self.graph is None:
+            for item in tools:
+                item['reason'] = 'activation_context_unavailable'
+            return finish()
+        saved = await self.graph.aget_state(self.options(ctx.run_id))
+        state = deepcopy(saved.values)
+        if (state.get('workspace_id'), state.get('run_id'), state.get('session_id'), state.get('generation')) != (
+                ctx.workspace_id, ctx.run_id, ctx.session_id, ctx.generation):
+            raise Conflict('工具加载与当前运行检查点不同')
+        calls = state.get('calls', [])
+        if len(calls) != 1 or calls[0]['tool'] != 'tools_describe':
+            for item in tools:
+                item['reason'] = 'load_in_separate_tool_batch'
+            return finish()
+        call = calls[0]
+        rows = self.store.rows('SELECT call_id FROM operations WHERE id=? AND run_id=?', (ctx.operation_id, ctx.run_id))
+        if len(rows) != 1 or rows[0]['call_id'] != call['call_id']:
+            raise Conflict('工具加载与实际操作编号不同')
+        config = ({'protocol': 'openai_chat_completions', 'model': 'engineering-local',
+                   'revision': run['connection_revision'], 'context_cap': 16384,
+                   'max_output_tokens': 2048, 'streaming': False} if self.model_provider else
+                  self.connection.resolve(run['connection_revision'])[0])
+        task = self.tasks.get(ctx.session_id)
+        facts = self.session_facts(run, task=task, skill_snapshot=scope)
+        values = environment(config, workspace_id=ctx.workspace_id, session_id=ctx.session_id,
+            scope_revision=task['scope_revision'], manual=task['manual'],
+            families=(name.split('_', 1)[0] for name in self.registry.tools))
+        system, _, sections = compose(SYSTEM, config, environment_values=values,
+            skill_prompt='[登记技能精简名录；正文按需启用]\n' + canonical(scope.catalog) + '\n' + scope.instructions)
+        base = [message for message in state['messages']
+                if not message.get('id', '').endswith((':session-facts', ':current-facts'))]
+        base.insert(0, {'id': ctx.run_id + ':current-facts', 'role': 'user',
+            'content': CURRENT_FACTS_PREFIX + canonical(facts)})
+        visible = [name for name in state['visible'] if name in scope.allowed_tools(
+            state['visible'], core=skill_control_tools(self.registry))]
+        # Discovery/context contracts are already available or reloadable.
+        # Try requested business contracts first, so a small budget cannot
+        # spend all newly protected space on repeated context reads. Receipt
+        # item order and every original requested name remain unchanged.
+        core = set(core_tools(self.registry))
+        for item in sorted(tools, key=lambda item: item['name'] in core):
+            if item.get('reason') == 'service_unavailable':
+                continue
+            name = item['name']
+            item['loaded'] = True
+            activated.append(name)
+            trial = [*base, {'role': 'tool', 'call_id': call['call_id'], 'result': result()}]
+            try:
+                _, _, selected = prepare_request(config, trial, self.registry, [*visible, *activated],
+                    system=system, protected=activated, system_components=sections)
+                if name not in selected:
+                    raise Conflict('已加载工具未进入真实输入契约')
+            except ProviderFault as error:
+                if error.code != 'context_limit':
+                    raise
+                activated.pop(); item['loaded'] = False; item['reason'] = 'context_budget'
+        # Recheck the final receipt, including every deferred reason. A later
+        # fact growth must never invalidate a claimed protected activation.
+        while activated:
+            trial = [*base, {'role': 'tool', 'call_id': call['call_id'], 'result': result()}]
+            try:
+                prepare_request(config, trial, self.registry, [*visible, *activated], system=system,
+                    protected=activated, system_components=sections)
+                break
+            except ProviderFault as error:
+                if error.code != 'context_limit':
+                    raise
+                name = activated.pop()
+                item = next(item for item in tools if item['name'] == name)
+                item['loaded'] = False; item['reason'] = 'context_budget'
+        return finish()
 
     def status(self, state, status, error=None):
         self.store.status(state['run_id'], state['generation'], status, error)
@@ -192,16 +321,27 @@ class AgentRuntime:
             config, secret = self.connection.resolve(run['connection_revision'])
             self.connection.assert_current(run['connection_revision'])
         previous = self.store.model_record(run['id'], state['generation'], state['step'])
+        saved = {}
+        if previous:
+            events = self.store.rows('SELECT payload FROM events WHERE run_id=? AND identity=? AND kind=?',
+                (run['id'], run['id'] + ':' + previous['id'] + ':request', 'model_request'))
+            saved = json.loads(events[0]['payload']) if events else {}
         task = self.tasks.get(state['session_id'])
-        facts = self.session_facts(run, task=task)
         session = self.store.session(state['session_id'])
         skill_snapshot = self.skills.request_snapshot(state['workspace_id'], state['session_id'],
                                                      scan_sources=previous is None)
+        facts = self.session_facts(run, task=task, skill_snapshot=skill_snapshot)
+        saved_snapshot = saved.get('request_snapshot')
+        if previous and isinstance(saved_snapshot, dict) and 'task_matches' in saved_snapshot:
+            # The matching projection was bound to the transmitted request.
+            # Live source changes cannot replace it during exact reply replay;
+            # the host/input hashes still reject changed goals or permissions.
+            facts['task_matches'] = deepcopy(saved_snapshot['task_matches'])
         active_skills = skill_snapshot.active
         environment_values = environment(config, workspace_id=state['workspace_id'], session_id=state['session_id'],
             scope_revision=task['scope_revision'], manual=task['manual'],
             families=(name.split('_', 1)[0] for name in self.registry.tools))
-        host_contract = {'system': SYSTEM,
+        host_contract = {'system': SYSTEM, 'facts_message_prefix': CURRENT_FACTS_PREFIX,
             'environment': environment_values,
             'tool_schemas': self.registry.schemas(self.registry.tools),
             'tool_versions': {name: {'version': spec.version, 'effect': spec.effect,
@@ -217,13 +357,18 @@ class AgentRuntime:
             return digest({'state': input_state, 'config': config,
                 'session': session, 'facts': facts, 'host_contract': contract,
                 'skills': [{'name': item['name'], 'version': item['active_version']} for item in active_skills]})
+        def compatible_contracts(system):
+            current = {**host_contract, 'system': system}
+            # The previous registered request format did not fingerprint the
+            # facts header. Match that exact format; all other host and input
+            # fields remain checked before replaying a persisted response.
+            legacy = {key: value for key, value in current.items()
+                      if key != 'facts_message_prefix'}
+            return current, legacy
         input_state_version = input_version(host_contract)
         if previous:
             if SYSTEM_PROMPTS.get(SYSTEM_VERSION) != SYSTEM:
                 raise Conflict('当前模型提示契约未登记，不能兼容恢复原请求')
-            events = self.store.rows('SELECT payload FROM events WHERE run_id=? AND identity=? AND kind=?',
-                (run['id'], run['id'] + ':' + previous['id'] + ':request', 'model_request'))
-            saved = json.loads(events[0]['payload']) if events else {}
             snapshot = saved.get('request_snapshot')
             if snapshot is not None:
                 if not isinstance(snapshot, dict):
@@ -232,16 +377,17 @@ class AgentRuntime:
                 if (snapshot.get('format') != 'clear-model-input-v1' or system is None or
                         snapshot.get('system_sha256') != digest(system)):
                     raise Conflict('原模型请求的提示版本无法核实')
-                original_contract = {**host_contract, 'system': system}
-                if snapshot.get('host_contract_version') != digest(original_contract):
+                contracts = [contract for contract in compatible_contracts(system)
+                             if snapshot.get('host_contract_version') == digest(contract)]
+                if not contracts:
                     raise Conflict('模型请求与原工具或环境契约不同')
-                versions = [input_version(original_contract)]
+                versions = [input_version(contract) for contract in contracts]
             else:
                 # Older requests retain an input hash but no prompt-version
                 # field. Rebuild only explicitly known compatible prompts;
                 # every goal, scope, Skill, config and tool contract still hashes.
-                versions = [input_version({**host_contract, 'system': system})
-                            for system in SYSTEM_PROMPTS.values()]
+                versions = [input_version(contract) for system in SYSTEM_PROMPTS.values()
+                            for contract in compatible_contracts(system)]
             if saved.get('input_state_version') is None or saved['input_state_version'] not in versions:
                 raise Conflict('模型请求与原输入状态不同或原输入记录缺失')
             self.current(state)
@@ -260,8 +406,8 @@ class AgentRuntime:
         messages = [message for message in state['messages']
                     if not message.get('id', '').endswith((':session-facts', ':current-facts'))]
         messages.insert(0, {'id': run['id'] + ':current-facts', 'role': 'user',
-            'content': '[服务器工作事实；用户目标/规则是任务约束，操作状态为历史回执；继续前查询当前状态]\n' + canonical(facts)})
-        allowed = skill_snapshot.allowed_tools(state['visible'], core=core_tools(self.registry))
+            'content': CURRENT_FACTS_PREFIX + canonical(facts)})
+        allowed = skill_snapshot.allowed_tools(state['visible'], core=skill_control_tools(self.registry))
         visible = [name for name in state['visible'] if name in allowed]
         screen_calls={call['call_id'] for message in state['messages'] if message['role']=='assistant'
             for call in message.get('calls',[]) if call['tool']=='ocr_screen_batch_run'}
@@ -286,7 +432,8 @@ class AgentRuntime:
         self.event(state, record['id'] + ':request', 'model_request', {'step': state['step'],
             'input_state_version': input_state_version,
             'request_snapshot': {'format': 'clear-model-input-v1', 'system_version': SYSTEM_VERSION,
-                'system_sha256': digest(SYSTEM), 'host_contract_version': digest(host_contract)},
+                'system_sha256': digest(SYSTEM), 'host_contract_version': digest(host_contract),
+                'task_matches': deepcopy(facts['task_matches'])},
             'model': config['model'], 'configured_model': config['model'],
             'compressed': metrics['compressed'], 'token_estimate': metrics['input_tokens_estimate'],
             'is_estimate': True, 'context_metrics': metrics, 'injection': injection,
@@ -440,7 +587,7 @@ class AgentRuntime:
                     continue
                 try:
                     state = snapshot.values
-                    from .graph import screen_pending
+                    from .graph import screen_waiting
                     background = state.get('background_jobs', []) if 'await_background' in snapshot.next else []
                     waiting = [item['result'] for item in background] or [state['results'][-1]]
                     from .progress import progress_for
@@ -461,7 +608,7 @@ class AgentRuntime:
                     # Only screen-batch waits admit new user goals before
                     # native settlement. The original durable operation stays
                     # pending; other families preserve their blocking wait.
-                    directed = bool(self.inbox(state)[0]) and all(screen_pending(value) for value in waiting)
+                    directed = bool(self.inbox(state)[0]) and all(screen_waiting(value) for value in waiting)
                     ready = directed
                     if not ready:
                         for value in waiting:
@@ -548,6 +695,21 @@ class AgentRuntime:
 
     def initial_state(self, run, content):
         session = self.store.session(run['session_id'])
+        matching = self.skills.match(run['workspace_id'], session['id'], content)
+        workflow_tools = []
+        if matching['match'] == 'single':
+            workflow = matching['workflows'][0]
+            self.preferences.freeze(run['workspace_id'], session['id'], run['id'], workflow['id'],
+                                    task_overrides(content, workflow['id']))
+            candidate = matching.get('auto_skill_candidate')
+            active = self.skills.request_snapshot(run['workspace_id'], session['id']).active
+            if candidate and not active:
+                self.skills.activate(run['workspace_id'], session['id'], candidate,
+                    'task-match-' + digest([run['id'], candidate])[:32], version=workflow['skill_version'],
+                    context=self.context({'workspace_id': run['workspace_id'], 'session_id': session['id'],
+                        'run_id': run['id'], 'generation': run['generation']}))
+            if workflow['can_select']:
+                workflow_tools = workflow['tools']
         previous = self.store.rows("SELECT payload FROM events WHERE session_id=? AND kind='delivery' AND run_id!=? ORDER BY seq DESC LIMIT 1", (session['id'], run['id']))
         inputs = [{'id': run['request_id'], 'role': 'user', 'content': content}]
         history = self.session_facts(run)
@@ -563,11 +725,11 @@ class AgentRuntime:
                        'initial_refs': session['initial_refs']})})
         return {'run_id': run['id'], 'session_id': session['id'], 'workspace_id': session['workspace_id'],
             'generation': run['generation'], 'messages': inputs, 'step': 0, 'tool_count': 0,
-            'visible': core_tools(self.registry), 'protected_tools': [],
+            'visible': list(dict.fromkeys([*core_tools(self.registry), *workflow_tools])), 'protected_tools': [],
             'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0,
             'background_jobs': []}
 
-    def session_facts(self, run, *, task=None):
+    def session_facts(self, run, *, task=None, skill_snapshot=None):
         goals = self.store.rows("SELECT payload FROM events WHERE session_id=? AND (run_id IS NULL OR run_id!=?) AND kind='message' ORDER BY seq DESC LIMIT 30",
                                 (run['session_id'], run['id']))
         discussion = [json.loads(row['payload']) for row in reversed(goals)]
@@ -594,12 +756,20 @@ class AgentRuntime:
         task = self.tasks.get(run['session_id']) if task is None else task
         profile = self.tasks.profile(run['workspace_id'])
         facts = {'goals': goals, 'operations': operations, 'discussion': discussion,
+                 'task_matches': self.skills.match(run['workspace_id'], run['session_id'], task['goal'],
+                                                   snapshot=skill_snapshot) if task['goal'] else None,
+                 'preference_snapshots': self.preferences.snapshots(run['workspace_id'], run['session_id'], run['id']),
                  'audit_context': {key: str(profile.get(key, '')) for key in ('audit_object', 'period_start', 'period_end', 'objective', 'rules')},
                  'task': {key: task[key] for key in ('goal', 'scope_revision', 'manual', 'plan', 'plan_revision', 'revision')},
                  'profile_revision': profile.get('revision', 0),
                  'full_record_access': {'task': 'audit_get_task', 'project_rules': 'audit_get_project',
                                         'history': 'session_read_history'},
                  'omitted_history': {'discussion': 0, 'operations': 0, 'goals': 0}}
+        user_events = self.store.rows('SELECT seq,payload FROM events WHERE session_id=? AND run_id=? AND kind=? ORDER BY seq DESC LIMIT 8',
+                                     (run['session_id'], run['id'], 'message'))
+        facts['current_user_instructions'] = [{'event_seq': row['seq'], 'content': value['content'][:2000],
+            'preview_only': len(value['content']) > 2000} for row in reversed(user_events)
+            if (value := json.loads(row['payload'])).get('role') == 'user' and isinstance(value.get('content'), str)]
         while len(canonical(facts).encode('utf-8')) > 16000 and (operations or goals or discussion):
             if discussion:
                 discussion.pop(0)

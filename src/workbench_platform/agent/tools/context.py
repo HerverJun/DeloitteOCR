@@ -82,15 +82,26 @@ def list_tools(args, ctx):
         next_offset=page['next_offset']).model_dump()
 
 
-def describe_tools(args, ctx):
+async def describe_tools(args, ctx):
     # The actual input schema is included once, in the next native API tools
     # field. Output schema is enforced by the dispatcher rather than duplicated
     # in every subsequent historical tool message.
-    tools = [ctx.services.agent.registry.describe(name, ctx.services) for name in dict.fromkeys(args.names)]
-    return AgentToolResult(status='success', summary='已请求加载指定工具；下一轮原生工具字段提供准确输入契约',
-        data={'tools': [{key: value for key, value in item.items()
-                        if key not in {'input_schema', 'output_schema', 'examples'}} for item in tools],
-              'activated_tools': [item['name'] for item in tools]}).model_dump()
+    tools = []
+    registry = ctx.services.agent.registry
+    for name in dict.fromkeys(args.names):
+        if name not in registry.tools:
+            tools.append({'name': name, 'allowed': False, 'loaded': False,
+                          'error': {'code': 'unknown_tool', 'message': '工具未注册'}})
+            continue
+        item = registry.describe(name, ctx.services)
+        tools.append({key: value for key, value in item.items()
+                      if key not in {'input_schema', 'output_schema', 'examples'}})
+    admit = getattr(ctx.services.agent, 'admit_tools', None)
+    if admit is None:
+        return AgentToolResult(status='error', summary='工具契约尚未加载：当前调用没有可核实的运行时预算',
+            data={'requested_tools': args.names, 'tools': tools, 'activated_tools': []},
+            error={'code': 'activation_context_unavailable', 'message': '请在当前 Agent 运行中按需加载工具'}).model_dump()
+    return await admit(ctx, args.names, tools)
 
 
 def models(args, ctx):
@@ -174,6 +185,9 @@ def get_artifact(args, ctx):
     bundle = ctx.services.artifact_center.get(ctx.workspace_id, args.bundle_id)
     bounded={key:value for key,value in bundle.items() if key not in {'inputs','items'}}
     bounded.update(input_count=len(bundle.get('inputs',[])),result_count=len(bundle.get('items',[])))
+    batches = getattr(ctx.services, 'screen_batches', None)
+    if batches:
+        bounded['freshness'] = batches.bundle_freshness(ctx.workspace_id, args.bundle_id)
     return AgentToolResult(status='success', summary='已读取真实成果', data=bounded,
         artifact_refs=[AgentRef(kind='artifact', workspace_id=ctx.workspace_id, object_id=args.bundle_id, revision=1)]).model_dump()
 
@@ -227,7 +241,12 @@ def delivery(args, ctx):
         items=bundle.get('items',[])
         if reference.application=='ocr' and reference.parent_id and bundle.get('handoff_id')==reference.parent_id and items and all(
             isinstance(item,dict) and item.get('input_version_id') for item in items):
+            freshness = ctx.services.screen_batches.export_freshness(ctx.workspace_id, reference.parent_id, bundle['bundle_id'])
+            if not freshness['current']:
+                raise ValueError('该 ZIP 是历史成果，当前结果已变化；请重新导出后交付')
             screen_coverage.append({'batch_id':reference.parent_id,'bundle_id':bundle['bundle_id'],'total':len(items),
+                'current_verified': True, 'snapshot_id': freshness['current_snapshot_id'],
+                'export_options': freshness['export_options'],
                 'pending':sum(item.get('status') not in {'completed','needs_review','failed','cancelled'} for item in items),
                 'file_count':sum(bool(item.get('file_name')) for item in items),
                 'settled_without_file':sum(item.get('status') in {'completed','needs_review'} and not item.get('file_name')

@@ -33,6 +33,7 @@ class SkillRequestSnapshot:
     catalog: dict
     instructions: str
     allowed_tool_sets: tuple
+    matching_catalog: dict
 
     def allowed_tools(self, names, core=()):
         allowed = set(names)
@@ -344,6 +345,13 @@ class SkillService:
         page = self.catalog(workspace_id, session_id, limit=min(max(limit, 1), 4))
         return self._catalog_prompt(page)
 
+    def match(self, workspace_id, session_id, goal, *, snapshot=None):
+        """Read-only task matching cannot activate schemas, skills or grants."""
+        self._scope(workspace_id, session_id)
+        from .matching import match_goal
+        return match_goal(goal, self.registry, skills=self, workspace_id=workspace_id,
+                          session_id=session_id, snapshot=snapshot)
+
     @staticmethod
     def _catalog_prompt(page):
         return {'items': [{key: item[key] for key in ('name', 'description', 'compatible', 'active')}
@@ -355,12 +363,15 @@ class SkillService:
         live, rejected = self._scan(workspace_id) if scan_sources else (None, [])
         active, fixed = self._active_snapshot(session_id, live)
         catalog = self._catalog_prompt(self._catalog(live or {}, rejected, active, limit=4))
+        matching_sources = live if live is not None else {
+            row['name']: (metadata, files) for row, metadata, files in fixed}
+        matching_catalog = self._catalog(matching_sources, rejected, active, limit=50)
         parts, declarations = [], []
         for row, metadata, _ in fixed:
             parts.append(self._instruction(row, metadata))
             declared = metadata.get('allowed_tools')
             declarations.append(frozenset(declared) if declared is not None else None)
-        return SkillRequestSnapshot(active, catalog, '\n\n'.join(parts), tuple(declarations))
+        return SkillRequestSnapshot(active, catalog, '\n\n'.join(parts), tuple(declarations), matching_catalog)
 
     def _fence(self, db, session_id, workspace_id, context):
         row = db.execute('SELECT workspace_id FROM sessions WHERE id=?', (session_id,)).fetchone()

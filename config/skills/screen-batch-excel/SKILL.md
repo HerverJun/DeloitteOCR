@@ -1,0 +1,21 @@
+---
+name: screen-batch-excel
+description: 批量手机屏拍或截图转Excel，每图一个文件；使用整批后台、具体异常、选图精度和当前版本交付，保留原图及待复核边界。
+compatibility: Clear Workbench；需要已登记OCR服务及真实就绪引擎；专业视觉为可选，原生执行器核实模型文件和设备。
+allowed-tools: assets_search assets_describe assets_create_set ocr_prepare ocr_screen_batch_run ocr_screen_batch_status ocr_screen_batch_control ocr_screen_batch_inspect ocr_screen_batch_compare ocr_screen_batch_resolve ocr_screen_local_candidates ocr_screen_local_candidates_read ocr_screen_local_candidates_control ocr_screen_batch_export ocr_read_issues ocr_read_results ocr_list_processing_options ocr_edit_result ocr_read_history ocr_adopt_result ocr_list_visual_models ocr_visual_review ocr_read_visual_review results_describe preferences_read preferences_update capabilities_read artifacts_list artifacts_get delivery_publish
+metadata:
+  host: clear-workbench
+  requires-tools: ocr_prepare ocr_screen_batch_run ocr_screen_batch_export delivery_publish
+---
+
+围绕明确授权的图片集合调用平台现有工具。每张图片一个XLSX，同图多表分sheet，整批ZIP附范围清单。识别值、程序检查、人工确认分别记录；Agent不代签确认。
+
+1. 明确转换目标和固定输入即可进入批次。使用服务器核实的现有项目与集合提示；提示缺失时调用ocr_prepare，区分工具已注册、服务可启动及具体模型目录就绪。不能猜link_id或宣称目录就绪等于实际文件/GPU校验完成。
+2. 单次用户要求覆盖默认；只读取当前任务固定偏好快照。未覆盖策略使用原生冻结默认，不能因API兼容默认而推断路线。每次保存默认须有用户明确原文来源；数字列授权与人工确认不能保存为全局代签。
+3. 一次ocr_screen_batch_run提交全批，等待后台完成，不逐图反复思考或轮询主控。暂停/继续/取消/仅重试失败沿用原批次；提高明确所选图片精度创建子批次并保留旧结果。
+4. 异常先ocr_screen_batch_inspect分页读取真实问题，再ocr_screen_batch_compare比较已有候选；有适用能力和剩余预算才调用ocr_screen_batch_resolve，绑定输入/结果版本及问题IDs。它最多增加一次GLM精度候选，沿来源链扣累计成本和在途预留，相同像素策略不重复运行。没有可靠格位时标到表/图，不按索引替换。原图不可见、无法读清或关键值仍冲突时保留待核；候选及专业视觉建议不自动采用。
+   inspect返回可靠full_cell格位、对应当前问题ID且主批次完成后，可显式调用ocr_screen_local_candidates：一图最多12个疑点，总预算10–900秒，复用实际GLM文字模式，不接受主控自由坐标/模型/缩放。沿来源链扣累计成本与在途预留；后台完成后ocr_screen_local_candidates_read分页比较文字与原图。stale只作原版本的历史证据，不覆盖当前结果；控制沿原job和操作身份，不重跑整批。局部识别默认不自动开启，候选不改值、不采用、不代签。
+5. 导出核实当前选定结果版本、范围、文件数与待核数。每图文件不存在须报告原因，数量相同的历史ZIP也不能当作编辑后的当前成果。用户要求先下载已完成部分时明确剩余输入继续处理。
+6. 若目标追加金额核对或底稿，先匹配相应技能并读取实际结构；当前技能范围受限时明确切换，不能自行扩大权限。合并语义未明确或格位不完整时不补猜下游表。
+
+详细复核与衔接边界见references/review-boundaries.md。专业计算通过登记业务工具完成，不执行脚本或shell。

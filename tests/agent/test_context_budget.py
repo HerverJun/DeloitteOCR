@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import asyncio
 import hashlib
 import json
 import math
@@ -196,9 +197,11 @@ class ContextBudgetTests(unittest.TestCase):
                 self.assertEqual(TokenEstimator('gpt-4o').method, 'utf8_bytes_div2_estimate')
                 self.assertEqual(loads, ['o200k_base'])
 
-    def test_real_105_business_tool_registry_first_user_sentence_fits_16k_for_both_protocols(self):
+    def test_real_business_tool_registry_first_user_sentence_fits_16k_for_both_protocols(self):
         registry = full_registry()
-        self.assertEqual(len(registry.tools), 105)
+        self.assertGreaterEqual(len(registry.tools), 108)
+        self.assertTrue({'ocr_screen_local_candidates', 'ocr_screen_local_candidates_read',
+            'ocr_screen_local_candidates_control'} <= set(registry.tools))
         for protocol in ('openai_chat_completions', 'anthropic_messages'):
             config = configuration(protocol)
             system, _, sections = compose('真实平台基础说明', config, workspace_id='wtest',
@@ -235,9 +238,10 @@ class ContextBudgetTests(unittest.TestCase):
             self.assertLessEqual(metrics['input_tokens_estimate'], metrics['available_input_tokens'])
             self.assertEqual(selected, core_tools(registry))
             offset = page['next_offset']
-        self.assertEqual(len(set(seen)), 105)
-        result = context.describe_tools(context.ToolDescribe(names=['data_read_table']), ctx)
-        self.assertEqual(result['data']['activated_tools'], ['data_read_table'])
+        self.assertEqual(set(seen), set(registry.tools))
+        result = asyncio.run(context.describe_tools(context.ToolDescribe(names=['data_read_table']), ctx))
+        self.assertEqual(result['data']['activated_tools'], [])
+        self.assertEqual(result['error']['code'], 'activation_context_unavailable')
         self.assertNotIn('input_schema', wire_json(result))
         with self.assertRaises(ValueError):
             registry.validate_batch([{'call_id': 'a', 'tool': 'data_read_table', 'arguments': {}}], core_tools(registry))

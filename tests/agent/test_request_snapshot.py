@@ -11,9 +11,12 @@ import test_data_tools as data_tests
 from test_skills import skill_at
 from workbench_platform.agent.environment import environment
 from workbench_platform.agent.providers import ProviderFault, SYSTEM_PROMPTS
-from workbench_platform.agent.runtime import AgentRuntime
+from workbench_platform.agent.runtime import AgentRuntime, CURRENT_FACTS_PREFIX
 from workbench_platform.agent.skills import SkillService
-from workbench_platform.agent.store import Conflict, canonical
+from workbench_platform.agent.store import Conflict, canonical, digest
+
+
+LEGACY_FACTS_PREFIX = '[服务器工作事实；用户目标/规则是任务约束，操作状态为历史回执；继续前查询当前状态]\n'
 
 
 class RequestSnapshotTests(unittest.IsolatedAsyncioTestCase):
@@ -31,11 +34,11 @@ class RequestSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.services.agent = runtime
         return runtime
 
-    def start(self, runtime):
+    def start(self, runtime, goal='读取已注册工具'):
         session = runtime.store.create_session('wtest', 'Snapshot', [], 'snapshot-session')
-        runtime.tasks.record_goal(session['id'], '读取已注册工具')
-        run, _ = runtime.store.start_run(session['id'], '读取已注册工具', 'snapshot-run', 1)
-        return session, run, runtime.initial_state(run, '读取已注册工具')
+        runtime.tasks.record_goal(session['id'], goal)
+        run, _ = runtime.store.start_run(session['id'], goal, 'snapshot-run', 1)
+        return session, run, runtime.initial_state(run, goal)
 
     async def send(self, config, secret, payload, identity, **kwargs):
         self.wires.append(deepcopy(payload))
@@ -47,6 +50,178 @@ class RequestSnapshotTests(unittest.IsolatedAsyncioTestCase):
     def request_event(self, runtime):
         row = runtime.store.rows("SELECT * FROM events WHERE kind='model_request' ORDER BY seq DESC LIMIT 1")[0]
         return row, json.loads(row['payload'])
+
+    def legacy_facts_digest(self):
+        """Serialize the pre-prefix host contract when the original request is sent."""
+        recorded = {'contracts': [], 'inputs': []}
+        def old_digest(value):
+            value = deepcopy(value)
+            if isinstance(value, dict) and 'host_contract' in value:
+                value['host_contract'].pop('facts_message_prefix', None)
+                recorded['inputs'].append(deepcopy(value))
+            elif isinstance(value, dict) and {
+                    'system', 'environment', 'tool_schemas', 'tool_versions'} <= value.keys():
+                value.pop('facts_message_prefix', None)
+                recorded['contracts'].append(deepcopy(value))
+            return digest(value)
+        return old_digest, recorded
+
+    async def assert_legacy_input_changes_conflict(self, runtime, state, directory, skill_name='sample-skill'):
+        with patch.object(runtime.skills, '_scan', side_effect=AssertionError('recovery must not scan sources')):
+            for field, value in [
+                    ('messages', [*state['messages'], {'role': 'user', 'content': '原目标已改变'}]),
+                    ('visible', [*state['visible'], 'jobs_get']),
+                    ('protected_tools', ['jobs_get'])]:
+                with self.subTest(field=field), self.assertRaises(Conflict):
+                    await runtime.model({**deepcopy(state), field: value})
+            original = runtime.registry.tools['conversation_answer']
+            try:
+                runtime.registry.tools['conversation_answer'] = replace(original, version='changed-legacy-contract')
+                with self.assertRaises(Conflict):
+                    await runtime.model(deepcopy(state))
+            finally:
+                runtime.registry.tools['conversation_answer'] = original
+            profile = runtime.tasks.profile('wtest')
+            with patch.object(runtime.tasks, 'profile', return_value={**profile, 'rules': '已改变的审计规则'}):
+                with self.assertRaises(Conflict):
+                    await runtime.model(deepcopy(state))
+
+        fixed = runtime.skills.request_snapshot('wtest', state['session_id'], scan_sources=False).active[0]
+        path = directory / 'SKILL.md'
+        path.write_text(path.read_text(encoding='utf-8').replace('固定技能版本一', '固定技能版本二'),
+                        encoding='utf-8')
+        upgraded = runtime.skills.catalog('wtest', state['session_id'])['items'][0]['version']
+        self.assertNotEqual(upgraded, fixed['active_version'])
+        runtime.skills.activate('wtest', state['session_id'], skill_name, 'legacy-upgrade',
+                                version=upgraded, context=runtime.context(state))
+        with patch.object(runtime.skills, '_scan', side_effect=AssertionError('recovery must not scan sources')):
+            with self.assertRaises(Conflict):
+                await runtime.model(deepcopy(state))
+
+    async def assert_legacy_facts_contract_recovery(self, *, unknown):
+        name = 'legacy-facts-unknown' if unknown else 'legacy-facts-received'
+        source = Path(self.temporary.name) / (name + '-skills')
+        directory = skill_at(source, allowed='data_read_table', body='固定技能版本一')
+        runtime = self.make_runtime(name)
+        runtime.skills = SkillService(runtime.store, [source], registry=runtime.registry)
+        session, run, state = self.start(runtime)
+        runtime.skills.activate('wtest', session['id'], 'sample-skill', 'legacy-activate',
+                                context=runtime.context(state))
+        state['visible'] += ['data_read_table']
+        self.wires, sent = [], []
+        async def transport(config, secret, payload, identity, **kwargs):
+            sent.append(identity)
+            if unknown:
+                self.wires.append(deepcopy(payload))
+                raise ProviderFault('response_unknown', '旧契约的合成回包丢失')
+            return await self.send(config, secret, payload, identity, **kwargs)
+
+        old_digest, recorded = self.legacy_facts_digest()
+        original_event_handler = runtime.event
+        def old_event(checkpoint, identity, kind, payload):
+            payload = deepcopy(payload)
+            if kind == 'model_request':
+                payload['request_snapshot'].pop('task_matches', None)
+            return original_event_handler(checkpoint, identity, kind, payload)
+        with patch('workbench_platform.agent.runtime.request', transport):
+            # Produce the historical payload and hashes before transmission;
+            # the persisted request event is never rewritten to emulate age.
+            with patch('workbench_platform.agent.runtime.CURRENT_FACTS_PREFIX', LEGACY_FACTS_PREFIX), \
+                    patch('workbench_platform.agent.runtime.digest', old_digest), \
+                    patch.object(runtime, 'event', side_effect=old_event):
+                if unknown:
+                    with self.assertRaises(ProviderFault) as caught:
+                        await runtime.model(state)
+                    self.assertEqual(caught.exception.code, 'response_unknown')
+                    first = None
+                else:
+                    first = await runtime.model(state)
+            original_row, original_event = self.request_event(runtime)
+            original_models = runtime.store.rows('SELECT * FROM model_requests')
+            old_contract = recorded['contracts'][-1]
+            self.assertNotIn('facts_message_prefix', old_contract)
+            self.assertNotIn('task_matches', original_event['request_snapshot'])
+            self.assertEqual(original_event['request_snapshot']['host_contract_version'], digest(old_contract))
+            self.assertEqual(original_event['input_state_version'], digest(recorded['inputs'][-1]))
+            self.assertNotEqual(LEGACY_FACTS_PREFIX, CURRENT_FACTS_PREFIX)
+            self.assertIn({'role': 'user', 'content': LEGACY_FACTS_PREFIX + canonical(recorded['inputs'][-1]['facts'])},
+                          self.wires[0]['messages'])
+
+            reopened = self.make_runtime(name)
+            reopened.skills = SkillService(reopened.store, [source], registry=reopened.registry)
+            with patch.object(reopened.skills, '_scan', side_effect=AssertionError('cold recovery must not scan')):
+                for attempt in range(2):
+                    with self.subTest(attempt=attempt):
+                        if unknown:
+                            with self.assertRaises(ProviderFault) as caught:
+                                await reopened.model(deepcopy(state))
+                            self.assertEqual(caught.exception.code, 'response_unknown')
+                        else:
+                            self.assertEqual(await reopened.model(deepcopy(state)), first)
+            await self.assert_legacy_input_changes_conflict(reopened, state, directory)
+
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(len(self.wires), 1)
+        self.assertEqual(reopened.store.rows('SELECT * FROM model_requests'), original_models)
+        self.assertEqual(original_models[0]['state'], 'sent' if unknown else 'received')
+        self.assertEqual(self.request_event(reopened), (original_row, original_event))
+        self.assertEqual(len(reopened.store.rows("SELECT * FROM events WHERE kind='model_request'")), 1)
+
+    async def test_pre_prefix_received_request_recovers_original_reply_without_weakening_inputs(self):
+        await self.assert_legacy_facts_contract_recovery(unknown=False)
+
+    async def test_pre_prefix_unknown_request_never_resends_or_accepts_changed_inputs(self):
+        await self.assert_legacy_facts_contract_recovery(unknown=True)
+
+    async def matched_source_recovery(self, *, unknown):
+        name = 'matched-unknown' if unknown else 'matched-received'
+        source = Path(self.temporary.name) / (name + '-skills')
+        directory = skill_at(source, name='payment-reconciliation', allowed='', body='固定技能版本一')
+        runtime = self.make_runtime(name)
+        runtime.skills = SkillService(runtime.store, [source], registry=runtime.registry)
+        session, run, state = self.start(runtime, '请核对两份数据并导出差异')
+        self.wires = []
+        async def transport(config, secret, payload, identity, **kwargs):
+            if unknown:
+                self.wires.append(deepcopy(payload))
+                raise ProviderFault('response_unknown', '已匹配任务的合成回包丢失')
+            return await self.send(config, secret, payload, identity, **kwargs)
+        with patch('workbench_platform.agent.runtime.request', transport):
+            if unknown:
+                with self.assertRaises(ProviderFault) as caught:
+                    await runtime.model(state)
+                self.assertEqual(caught.exception.code, 'response_unknown')
+                first = None
+            else:
+                first = await runtime.model(state)
+            original_event = self.request_event(runtime)
+            original_models = runtime.store.rows('SELECT * FROM model_requests')
+            projection = original_event[1]['request_snapshot']['task_matches']
+            self.assertEqual(projection['match'], 'single')
+            self.assertEqual(projection['workflows'][0]['skill_state'], 'compatible')
+            self.assertEqual(projection['workflows'][0]['suggested_skill'], 'payment-reconciliation')
+            skill = directory / 'SKILL.md'
+            skill.write_text(skill.read_text('utf8').replace('本地业务指导', '未升级的新描述'), encoding='utf8')
+            reopened = self.make_runtime(name)
+            reopened.skills = SkillService(reopened.store, [source], registry=reopened.registry)
+            with patch.object(reopened.skills, '_scan', side_effect=AssertionError('matched recovery must not scan')):
+                if unknown:
+                    with self.assertRaises(ProviderFault) as caught:
+                        await reopened.model(deepcopy(state))
+                    self.assertEqual(caught.exception.code, 'response_unknown')
+                else:
+                    self.assertEqual(await reopened.model(deepcopy(state)), first)
+            await self.assert_legacy_input_changes_conflict(reopened, state, directory,
+                                                           skill_name='payment-reconciliation')
+        self.assertEqual(len(self.wires), 1)
+        self.assertEqual(reopened.store.rows('SELECT * FROM model_requests'), original_models)
+        self.assertEqual(self.request_event(reopened), original_event)
+
+    async def test_matched_received_task_uses_bound_source_projection_after_source_changes(self):
+        await self.matched_source_recovery(unknown=False)
+
+    async def test_matched_unknown_task_uses_bound_source_projection_without_resending(self):
+        await self.matched_source_recovery(unknown=True)
 
     async def test_one_source_scan_and_one_task_projection_survive_mid_scan_mutation(self):
         runtime = self.make_runtime()

@@ -16,6 +16,8 @@
 
 手机屏拍及截图的逐图 Excel ZIP、集中复核和运行中自然语言控制，见 [批量图片转 Excel](screen-batches-20261007.md)。
 
+专用 Agent 工程候选与最终候选的验收区别、真实报告及源码/策略/前端绑定格式，见 [候选包验收证据契约](package-qualification-20261007.md)。
+
 ## 启动与数据
 
 本机主启动文件：`F:\OCR\output\clear-automation-dev-20261002\启动平台.cmd`。统一首页：http://127.0.0.1:8879/ 。无需另找 `/agent`。

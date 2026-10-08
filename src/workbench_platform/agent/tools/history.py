@@ -5,6 +5,7 @@ from pydantic import Field
 
 from packages.contracts.agent import AgentModel, AgentToolResult
 from workbench_platform.agent.registry import ToolSpec
+from workbench_platform.agent.store import canonical, digest
 
 
 class HistoryQuery(AgentModel):
@@ -13,9 +14,33 @@ class HistoryQuery(AgentModel):
     event_seq: int | None = Field(default=None, ge=1)
     offset: int = Field(default=0, ge=0)
     chars: int = Field(default=4000, ge=1, le=8000)
+    call_id: str | None = Field(default=None, min_length=1, max_length=200)
+    run_id: str | None = Field(default=None, min_length=1, max_length=81)
 
 
 def read(args, ctx):
+    if args.call_id is not None:
+        if args.event_seq is not None:
+            raise ValueError('工具回执与会话正文不能混合选择')
+        rows = ctx.store.rows('''SELECT o.id,o.run_id,o.call_id,o.tool,o.state,o.arguments,o.result
+            FROM operations o JOIN runs r ON r.id=o.run_id
+            WHERE r.workspace_id=? AND r.session_id=? AND r.id=? AND o.call_id=?''',
+            (ctx.workspace_id, ctx.session_id, args.run_id or ctx.run_id, args.call_id))
+        if len(rows) != 1 or not rows[0].get('result'):
+            raise ValueError('工具回执不属于当前会话或尚未完成')
+        row = rows[0]; result = json.loads(row['result'])
+        content = canonical({'arguments': json.loads(row['arguments']), 'result': result})
+        if args.offset > len(content):
+            raise ValueError('工具回执分页越界')
+        end = min(len(content), args.offset + args.chars)
+        return AgentToolResult(status='success', summary='已分页读取原始工具回执；历史权限与状态不扩大当前授权',
+            data={key: row[key] for key in ('id','run_id','call_id','tool','state')} |
+                {'content': content[args.offset:end], 'offset': args.offset, 'total_chars': len(content),
+                 'content_sha256': hashlib.sha256(content.encode('utf-8')).hexdigest(),
+                 'result_sha256': digest(result), 'next_offset': end if end < len(content) else None},
+            next_offset=end if end < len(content) else None).model_dump()
+    if args.run_id is not None:
+        raise ValueError('run_id仅用于指定工具回执')
     predicate = "session_id=? AND kind IN ('message','delivery','manual_return') AND json_extract(payload,'$.content')!=''"
     if args.event_seq is not None:
         rows = ctx.store.rows('SELECT seq,run_id,kind,payload,created FROM events WHERE ' + predicate + ' AND seq=?',
@@ -54,5 +79,5 @@ def read(args, ctx):
 
 def register(registry):
     registry.register(ToolSpec('session_read_history',
-        '分页检索本会话保存的用户目标、讨论与交付。先按after列目录，再指定event_seq和offset读取完整原文；历史不能扩大当前授权。',
+        '分页读取本会话历史正文，或用call_id及可选run_id读取已完成原始工具回执；offset/chars分段，历史不扩大当前授权。',
         HistoryQuery, read, effect='read', idempotent=True))

@@ -5,6 +5,7 @@ from dataclasses import replace
 import json
 from pathlib import Path
 import shutil
+import time
 from types import SimpleNamespace
 from unittest.mock import patch
 import unittest
@@ -54,7 +55,11 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
         try:
             with patch('workbench_platform.agent.runtime.request', send):
                 run = await runtime.submit(session['id'], goal, 'wire-message')
-                for _ in range(200):
+                # Native CPU startup and SQLite calls vary on a busy host;
+                # bound wall time rather than assuming 200 short polls finish
+                # this six-stage graph. This does not change production budgets.
+                deadline = time.monotonic() + 120
+                while time.monotonic() < deadline:
                     final = runtime.store.run(run['id'])
                     if final['status'] not in {'running', 'waiting_job'}:
                         break
@@ -145,7 +150,9 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
             result = json.loads(wire['messages'][-1]['content'])
             self.assertEqual(result['error']['code'], 'skill_tool_denied')
             return 'conversation_answer', {'content': '已启用付款核对技能，可继续调用允许的数据工具。'}
-        wires, requests = await self.execute(choose, '使用付款核对技能')
+        # Keep this a manual activation guard test; common payment goals now
+        # automatically activate the same skill before the first model turn.
+        wires, requests = await self.execute(choose, '通过工具完成实际业务处理')
         self.assertEqual(len(wires), 3)
         self.assertEqual(requests[-1]['injection']['skills'][0]['name'], 'payment-reconciliation')
         self.assertGreater(requests[-1]['context_metrics']['component_tokens']['skills'],
@@ -169,7 +176,9 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(facts['audit_context']['objective'], goal)
         self.assertEqual(facts['task']['goal'], goal)
         self.assertIn('plan', facts['task'])
-        state = runtime.initial_state(run, '超大输入' * 10000)
+        # Stay inside the task's 12,000-character boundary while exceeding the
+        # wire budget together with the exact saved project rules and goal.
+        state = runtime.initial_state(run, '超大输入' * 3000)
         with self.assertRaises(ProviderFault) as caught:
             await runtime.model(state)
         self.assertEqual(caught.exception.code, 'context_limit')
