@@ -24,6 +24,23 @@ def register_screen_routes(app, manager, require_recognition):
     def detail(project_id: str, batch_id: str, version_id: str):
         return manager.detail(project_id, batch_id, version_id)
 
+    @app.post('/api/projects/{project_id}/screen-batches/{batch_id}/items/{version_id}/compare')
+    def compare(project_id: str, batch_id: str, version_id: str, body: dict):
+        return manager.compare(project_id, batch_id, version_id, body)
+
+    @app.get('/api/projects/{project_id}/screen-batches/{batch_id}/delivery-snapshot')
+    def delivery_snapshot(project_id: str, batch_id: str):
+        return manager.delivery_snapshot(project_id, batch_id)
+
+    @app.post('/api/projects/{project_id}/screen-batches/{batch_id}/resolve')
+    def resolve(project_id: str, batch_id: str, body: dict):
+        require_recognition()
+        return manager.resolve(project_id, batch_id, body)
+
+    @app.post('/api/projects/{project_id}/screen-batches/{batch_id}/resolve-lookup')
+    def resolve_lookup(project_id: str, batch_id: str, body: dict):
+        return manager.resolve(project_id, batch_id, body, allow_new=False)
+
     @app.get('/api/projects/{project_id}/screen-batches/{batch_id}/items/{version_id}/files/{file_id}')
     def image(project_id: str, batch_id: str, version_id: str, file_id: str):
         return FileResponse(manager.file(project_id, batch_id, version_id, file_id), media_type='image/png')
@@ -33,6 +50,10 @@ def register_screen_routes(app, manager, require_recognition):
         if body.get('action') in {'resume', 'retry_failed', 'upgrade'}:
             require_recognition()
         return manager.action(project_id, batch_id, body)
+
+    @app.post('/api/projects/{project_id}/screen-batches/{batch_id}/action-lookup')
+    def action_lookup(project_id: str, batch_id: str, body: dict):
+        return manager.action(project_id, batch_id, body, allow_new=False)
 
     @app.post('/api/projects/{project_id}/screen-batches/{batch_id}/export')
     def export(project_id: str, batch_id: str, body: dict):

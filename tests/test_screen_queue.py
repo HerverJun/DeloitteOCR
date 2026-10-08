@@ -178,7 +178,7 @@ class ScreenQueueTests(unittest.TestCase):
         detail = self.manager.detail(self.project, batch, versions[0])
         evidence = json.loads(self.store.rows('SELECT evidence FROM screen_items WHERE batch_id=? AND input_version_id=?', (batch, versions[0]))[0]['evidence'])
         self.assertEqual(evidence['provenance']['ocr_source'], 'mock-independent-ppocr')
-        self.assertEqual(detail['status'], 'completed')
+        self.assertEqual(detail['status'], 'needs_review')
         self.assertFalse(detail['human_confirmed'])
 
     def test_failed_context_is_visible_and_never_counts_as_independent_success(self):
@@ -279,7 +279,7 @@ class ScreenQueueTests(unittest.TestCase):
         self.queue.step()
         self.assertEqual([call['timeout'] for call in self.calls], [17, 900])
 
-    def test_pre_cap_persisted_policy_keeps_original_request_behavior(self):
+    def test_pre_cap_persisted_policy_uses_shared_budget_without_new_180_cap(self):
         version = self.images()[0]
         batch = self.submit([version], layout_evidence=False, budget_seconds=600)
         with self.store.transaction() as db:
@@ -291,7 +291,9 @@ class ScreenQueueTests(unittest.TestCase):
         self.assertGreater(self.calls[0]['timeout'], 180)
         self.assertLessEqual(self.calls[0]['timeout'], 600)
         metadata = json.loads(self.store.rows('SELECT metadata FROM screen_tasks')[0]['metadata'])
-        self.assertEqual(metadata['request_timeout_seconds'], 900)
+        self.assertEqual(metadata['request_timeout_seconds'], min(900, metadata['budget_reservation_seconds']))
+        self.assertLessEqual(metadata['request_timeout_seconds'], 600)
+        self.assertLessEqual(self.calls[0]['timeout'], metadata['request_timeout_seconds'])
 
     def test_expired_budget_after_context_cold_load_never_dispatches_inference(self):
         version = self.images()[0]
@@ -382,7 +384,7 @@ class ScreenQueueTests(unittest.TestCase):
         self.block_context = False
         self.drain()
         self.assertEqual(len(self.store.rows('SELECT * FROM screen_contexts')), 1)
-        self.assertEqual(self.manager.detail(self.project, batch, version)['status'], 'completed')
+        self.assertEqual(self.manager.detail(self.project, batch, version)['status'], 'needs_review')
 
     def test_resume_keeps_prior_active_segments_and_counts_new_segment(self):
         for context in (False, True):
@@ -445,7 +447,7 @@ class ScreenQueueTests(unittest.TestCase):
             self.store.save(detail['result_id'], edited, detail['result']['revision'])
         with patch('ocr_workbench.tables.export_xlsx', side_effect=competing_edit):
             with self.assertRaisesRegex(Conflict, '导出期间'):
-                self.manager.export(self.project, batch)
+                self.manager.export(self.project, batch, {'include_pending_review': True})
 
     def test_native_asgi_auth_origin_project_scope_and_binary_export(self):
         app = create_app(self.bundle, self.root / 'http-data', 'x'*32, start_queue=False)
@@ -476,7 +478,9 @@ class ScreenQueueTests(unittest.TestCase):
                     while task := store.claim():
                         store.complete(task['id'], {'engine':'glm','text':'data','tables':[deepcopy(TABLE)],'blocks':[]})
                     manager.step()
-                    response = await client.post(endpoint+'/'+batch+'/export', json={})
+                    blocked = await client.post(endpoint+'/'+batch+'/export', json={})
+                    self.assertEqual(blocked.status_code, 400)
+                    response = await client.post(endpoint+'/'+batch+'/export', json={'include_pending_review':True})
                     self.assertEqual(response.status_code, 200, response.text)
                     self.assertEqual(response.headers['content-type'], 'application/zip')
                     self.assertTrue(response.content.startswith(b'PK'))

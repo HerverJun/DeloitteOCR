@@ -191,19 +191,18 @@ class TaskQueue:
                 WHERE c.task_id=?''', (task['id'],))
         if not rows:
             return None
-        from ocr_workbench.screen_batches import screen_seconds_spent
+        from ocr_workbench.screen_resolution import remaining_screen_budget
         row = rows[0]
         policy = json.loads(row['policy'])
-        remaining = policy['budget_seconds'] - screen_seconds_spent(
-            self.store, row['batch_id'], row['input_version_id'], row['attempt'])
-        if row['attempt'] == 0 and row['preparation']:
-            remaining -= json.loads(row['preparation']).get('preparation_seconds', 0)
-        if row['deadline']:
-            remaining = min(remaining, row['deadline'] - time.time())
+        remaining = remaining_screen_budget(self.store,row['batch_id'],row['input_version_id'],
+                                            task_id=task['id'])['remaining_seconds']
         if for_request:
             # Keep pre-cap persisted policies unchanged. New batches freeze their
             # explicit per-call cap, separately from the whole-image budget.
             remaining = min(remaining, policy.get('request_timeout_seconds', 900))
+            frozen=self.store.rows('SELECT metadata FROM screen_tasks WHERE task_id=?',(task['id'],))
+            if frozen:
+                remaining=min(remaining,json.loads(frozen[0]['metadata']).get('request_timeout_seconds',900))
         return remaining
 
     def step(self):
@@ -291,6 +290,11 @@ class TaskQueue:
             ):
                 self.unload()
             if self.adapter is None:
+                from ocr_workbench.screen_load_guard import cold_load_state,record_cold_load,ScreenEngineUnavailable
+                load_state=cold_load_state(self.store,task['id'])
+                if load_state['blocked']:
+                    raise ScreenEngineUnavailable('此根任务及其子批次的同一模型已连续 '+str(load_state['consecutive_timeouts'])+
+                        ' 次冷加载超时，已停止继续加载；原图与已有成果保留，请检查模型加载阶段，或使用已有可用替代模型。')
                 with self.guard:
                     self.adapter = self.factory(
                         resolved,
@@ -300,7 +304,13 @@ class TaskQueue:
                     self.adapter.cancelled = self.cancel_event
                     if task.get('kind') in {'geometry', 'screen_context'} and hasattr(self.adapter, 'configure_geometry'):
                         self.adapter.configure_geometry(geometry_provider)
-                self.adapter.load()
+                try:
+                    self.adapter.load()
+                except Exception as load_error:
+                    if getattr(load_error,'phase',None)=='engine_load':
+                        record_cold_load(self.store,task['id'],'timeout',error=load_error)
+                    raise
+                record_cold_load(self.store,task['id'],'ready')
             else:
                 self.adapter.cancelled = self.cancel_event
             if self.cancel_event.is_set() or self.stopping.is_set():
@@ -431,6 +441,8 @@ class TaskQueue:
                 state, phase, reason = 'cancelled', '已取消', None
             else:
                 state, phase, reason = 'failed', '审校失败' if task.get('kind') == 'multimodal' else '识别失败', friendly_engine_error(error)
+                if getattr(error,'phase',None)=='engine_load':phase='引擎初始化超时'
+                elif getattr(error,'phase',None)=='engine_load_blocked':phase='引擎暂不可用'
             with self.store.transaction() as db:
                 db.execute(
                     "UPDATE tasks SET status=?,phase=?,error=?,finished=? WHERE id=? AND status='running'",

@@ -22,7 +22,7 @@ try:
 except ImportError:  # numpy/Pillow-only service deployments remain usable.
     cv2 = None
 
-POLICY_VERSION = "screen-cpu-v2"
+POLICY_VERSION = "screen-cpu-v3"
 UI_KINDS = {"toolbar", "taskbar", "formula_bar", "ruler", "window_border", "scrollbar", "ui"}
 TABLE_KINDS = {"table", "spreadsheet", "table_region"}
 ANCILLARY_KINDS = {"title", "caption", "unit", "note", "footnote", "text"}
@@ -99,6 +99,10 @@ def _line_regions(image):
                        "sources": ["pixel_grid"], "score": .78,
                        "observed_grid_rows": len(hpositions)-1,
                        "observed_grid_columns": len(vpositions)-1,
+                       "observed_grid": {"horizontal_lines": [(y+value)/scale for value in hpositions],
+                                         "vertical_lines": [(x+value)/scale for value in vpositions],
+                                         "coordinate_space": "exif_normalized_original",
+                                         "source": "pixel_grid", "range_semantics": "observed_line_positions"},
                        "grid_reliable": bool(np.min(hp[np.rint(hpositions).astype(int)]) > .65
                                              and np.min(vp[np.rint(vpositions).astype(int)]) > .65)})
     # Window outlines can have several long interior separator lines. When a
@@ -261,7 +265,7 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
                 match['box']=combined
             match["sources"] = sorted(set(match["sources"] + candidate["sources"]))
             match["score"] = min(.99, max(match["score"], candidate["score"]) + .05)
-            for key in ("observed_grid_rows", "observed_grid_columns", "grid_reliable", "observed_text_rows"):
+            for key in ("observed_grid_rows", "observed_grid_columns", "observed_grid", "grid_reliable", "observed_text_rows"):
                 if key in candidate:
                     match[key] = candidate[key]
         else:
@@ -281,9 +285,17 @@ def detect_business_regions(image, evidence=None, *, max_regions=8):
             box = _box(item, width, height)
             if not box or kind not in ANCILLARY_KINDS or any(_overlap(box, u["box"])/_area(box) > .5 for u in ui):
                 continue
+            # In-table text belongs to its cells, not the independent notes
+            # margin. Keep all auxiliary readings in the context evidence.
+            if _overlap(box, table_box)/_area(box) >= .65:
+                continue
             horizontal = max(0., min(box[2], table_box[2])-max(box[0], table_box[0])) / min(tw, box[2]-box[0])
             gap = max(table_box[1]-box[3], box[1]-table_box[3], 0.)
-            if horizontal > .45 and gap <= max(30, min(height * .08, th * .22)):
+            chain_box=item.get('context_table_box')
+            chain_owner=(kind=='title' and item.get('classification_basis')=='observed_title_unit_table_chain'
+                and isinstance(chain_box,list) and _box({'box':chain_box},width,height)
+                and _overlap(chain_box,table_box)/max(_area(chain_box),_area(table_box))>=.85)
+            if (horizontal > .45 and gap <= max(30, min(height * .08, th * .22))) or chain_owner:
                 expanded = _union(expanded, box)
                 nearby.append({"kind": kind, "box": box, "text": item.get("text", ""),
                                "source":item.get("source","layout_or_text_evidence"),

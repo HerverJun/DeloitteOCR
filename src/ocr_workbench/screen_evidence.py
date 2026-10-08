@@ -14,9 +14,10 @@ import re
 
 from ocr_workbench.coordinates import IDENTITY, bounds, box_polygon, polygon
 
-POLICY_VERSION = "screen-evidence-v2"
+POLICY_VERSION = "screen-evidence-v4"
 LABELS = {"table":"table", "doc_title":"title", "paragraph_title":"title", "figure_title":"caption",
-          "table_title":"caption", "footnote":"note", "footer":"note", "header":"note", "page_number":"page_number",
+          "table_title":"caption", "footnote":"note", "vision_footnote":"note",
+          "footer":"note", "header":"note", "page_number":"page_number",
           "text":"text", "unit":"unit", "caption":"caption", "note":"note", "title":"title",
           "toolbar":"toolbar", "taskbar":"taskbar", "formula_bar":"formula_bar", "ruler":"ruler",
           "window_border":"window_border", "scrollbar":"scrollbar", "ui":"ui"}
@@ -68,7 +69,7 @@ def classify_screen_ui(layout, texts, width, height):
     protected=[]
     for item in layout:
         box=_box(item);confidence=item.get('confidence',item.get('score'))
-        semantic=item.get('kind') in {'title','caption','unit'} or item.get('original_label') in {'footnote','table_title','doc_title'}
+        semantic=item.get('kind') in {'title','caption','unit','note'} or item.get('original_label') in {'footnote','vision_footnote','table_title','doc_title'}
         if box and semantic and isinstance(confidence,(int,float)) and confidence>=.85:
             protected.append(box)
     anchors=[]
@@ -128,6 +129,63 @@ def np_median(values):
     return values[middle] if len(values)%2 else (values[middle-1]+values[middle])/2
 
 
+def _anchored_business_titles(layout,texts):
+    """Classify one observed heading above an independently read unit line.
+
+    A table, a high-confidence exterior unit line and a unique exterior heading
+    must agree spatially. This keeps the actual heading pixels/text; it neither
+    invents a title nor restores a missing glyph. The inferred role still needs
+    review. A bare nearby number, ruler token or conflicting semantic block is
+    insufficient. Multiple possible table owners remain ambiguous.
+    """
+    # Re-evaluate our own derived role when the caller adds or changes evidence.
+    # A formerly unique owner must not survive a newly ambiguous table context.
+    for item in texts:
+        if item.get('classification_basis')=='observed_title_unit_table_chain':
+            item['kind']=item.get('business_original_kind','text')
+            for key in ('classification_basis','context_table_box','semantic_role_review_required'):
+                item.pop(key,None)
+    tables=[item for item in layout if item.get('kind')=='table' and _box(item)
+            and isinstance(item.get('confidence',item.get('score')),(int,float))
+            and item.get('confidence',item.get('score'))>=.8]
+    units=[item for item in texts if _box(item) and item.get('kind') not in UI_KINDS
+           and re.match(r'^\s*(?:单位\s*[:：]|unit(?:s)?\s*[:：])',str(item.get('text','')),re.I)
+           and isinstance(item.get('confidence'),(int,float)) and item['confidence']>=.9
+           and not any(_intersection(_box(item),_box(table))/_area(_box(item))>.15 for table in tables)]
+    bindings={}
+    for table in tables:
+        tb=_box(table);tw=tb[2]-tb[0]
+        for unit in units:
+            ub=_box(unit);uh=ub[3]-ub[1]
+            overlap=max(0.,min(ub[2],tb[2])-max(ub[0],tb[0]))/min(tw,ub[2]-ub[0])
+            if overlap<.8 or not 0<=tb[1]-ub[3]<=max(40,uh*2):continue
+            possible=[]
+            for index,item in enumerate(texts):
+                box=_box(item);value=str(item.get('text',''))
+                if (not box or item.get('kind') in UI_KINDS|{'note','caption','unit'} or
+                        len(''.join(value.split()))<8 or not isinstance(item.get('confidence'),(int,float))
+                        or item['confidence']<.9):continue
+                if re.match(r'^\s*(?:单位\s*[:：]|表注\s*[:：]|注\s*[:：]|unit(?:s)?\s*[:：]|note\s*[:：])',value,re.I):continue
+                h=box[3]-box[1];gap=ub[1]-box[3]
+                horizontal=max(0.,min(box[2],tb[2])-max(box[0],tb[0]))/min(tw,box[2]-box[0])
+                conflicting=any(part.get('kind') in UI_KINDS|{'note','caption','unit','table'} and _box(part)
+                    and _intersection(box,_box(part))/_area(box)>=.65 for part in layout)
+                if (not conflicting and -min(h,uh)*.25<=gap<=max(30,max(h,uh)*1.5)
+                        and box[3]<=tb[1] and horizontal>=.8
+                        and abs(box[0]-tb[0])<=max(25,tw*.1)
+                        and box[2]-box[0]>=max(80,tw*.2)):
+                    possible.append(index)
+            if len(possible)==1:bindings.setdefault(possible[0],[]).append(tb)
+    for index,owners in bindings.items():
+        distinct={tuple(box) for box in owners}
+        if len(distinct)!=1:continue
+        item=texts[index]
+        item.setdefault('business_original_kind',item.get('kind','text'))
+        item.update(kind='title',classification_basis='observed_title_unit_table_chain',
+                    context_table_box=list(next(iter(distinct))),semantic_role_review_required=True)
+    return texts
+
+
 def reconcile_screen_evidence(evidence, *, width, height):
     """Reclassify actual old/new evidence, preserving every observed reading."""
     evidence=deepcopy(evidence or {})
@@ -135,13 +193,175 @@ def reconcile_screen_evidence(evidence, *, width, height):
     texts=evidence.get('text',evidence.get('blocks',evidence.get('text_boxes',[])))
     if isinstance(layout,dict):layout=layout.get('regions',layout.get('blocks',[]))
     if isinstance(texts,dict):texts=texts.get('blocks',texts.get('text_boxes',[]))
-    layout=[{**item,'box':box} for item in layout if isinstance(item,dict) and (box:=_box(item))]
+    layout=[{**item,'box':box,'kind':LABELS.get(item.get('original_label',item.get('label')),item.get('kind','text'))}
+            for item in layout if isinstance(item,dict) and (box:=_box(item))]
     texts=[{**item,'box':box} for item in texts if isinstance(item,dict) and (box:=_box(item))]
     layout,texts,confirmed=classify_screen_ui(layout,texts,width,height)
+    texts=_anchored_business_titles(layout,texts)
     rulers=_sequential_rulers(layout,texts,screen_confirmed=confirmed)
     layout.extend(rulers)
     return {**evidence,'layout':layout,'text':texts,'screen_chrome_confirmed':confirmed,
             'region_reconciliation_policy':POLICY_VERSION}
+
+
+def organize_screen_business_metadata(raw, preparation, evidence):
+    """Separate independent business context from full auxiliary OCR evidence.
+
+    Spatial ownership, rather than literal equality or UI keywords, determines
+    whether a reading belongs in the default notes sheet. Every input reading
+    remains in auxiliary_evidence and receives a disposition. The candidate's
+    tables and cell values are never changed. Ambiguous titles/notes are retained
+    with a review reason, not discarded or asserted to belong to a guessed table.
+    """
+    raw, preparation, original = raw or {}, preparation or {}, deepcopy(evidence or {})
+    width, height = preparation.get('width'), preparation.get('height')
+    if isinstance(width,(int,float)) and isinstance(height,(int,float)) and width > 0 and height > 0:
+        reconciled = reconcile_screen_evidence(original,width=width,height=height)
+    else:
+        reconciled = deepcopy(original)
+    layout = reconciled.get('layout',[]) or []
+    texts = reconciled.get('text',reconciled.get('blocks',[])) or []
+    if isinstance(texts,dict):
+        texts = texts.get('blocks',texts.get('text_boxes',[]))
+    if not isinstance(texts,list):texts=[]
+    if not isinstance(layout,list):layout=[]
+    original_texts = original.get('text',original.get('blocks',[])) or []
+    if isinstance(original_texts,dict):original_texts=original_texts.get('blocks',original_texts.get('text_boxes',[]))
+    if not isinstance(original_texts,list):original_texts=[]
+    # Reconciliation filters invalid geometry, but the disposition ledger still
+    # accounts for those original observations and the full original is retained.
+    readings = []
+    for index,item in enumerate(original_texts):
+        if not isinstance(item,dict):
+            readings.append(({'text':'','invalid_observation':True}, {'kind':'text','index':index}))
+            continue
+        matches = [value for value in texts if isinstance(value,dict) and value.get('text')==item.get('text') and _box(value)==_box(item)]
+        readings.append((matches[0] if matches else deepcopy(item), {'kind':'text','index':index}))
+    for index,item in enumerate(layout):
+        if isinstance(item,dict) and str(item.get('text','')).strip():
+            readings.append((item, {'kind':'layout','index':index}))
+    regions = []
+    for index,region in enumerate(preparation.get('business_regions',[]) or []):
+        if not isinstance(region,dict):continue
+        box = _box({'box':region.get('table_box',region.get('box'))})
+        if box:
+            regions.append({**region,'id':region.get('id',f'region-{index+1}'),'table_box':box})
+    tables = raw.get('tables',[]) or []
+    if not isinstance(tables,list):tables=[]
+    ui = [item for item in layout + list(preparation.get('excluded_regions',[]) or [])
+          if isinstance(item,dict) and item.get('kind') in UI_KINDS and _box(item)]
+    semantic_kinds = {'title','caption','unit','note'}
+    semantic = [item for item in layout if isinstance(item,dict) and item.get('kind') in semantic_kinds and _box(item)]
+    items, decisions = [], []
+
+    def table_owner(region):
+        matches = [index for index,table in enumerate(tables) if isinstance(table,dict) and (box:=_box(table))
+                   and _intersection(box,region['table_box'])/min(_area(box),_area(region['table_box'])) >= .75]
+        if len(matches)==1:return matches[0],'observed_table_geometry'
+        if len(tables)==len(regions)==1:return 0,'single_table_single_region'
+        return None,'no_unique_output_table_mapping'
+
+    def represented(value,owners):
+        normalized = ''.join(value.split())
+        for region in owners:
+            table,_ = table_owner(region)
+            if table is not None and any(normalized==''.join(str(cell.get('text','')).split())
+                for cell in tables[table].get('cells',[]) if isinstance(cell,dict)):
+                return True
+        return False
+
+    for reading,reference in readings:
+        box, value = _box(reading), str(reading.get('text',''))
+        decision = {'evidence_ref':reference,'text':value,'box':box,'source':reading.get('source'),
+                    'human_review':'not_performed'}
+        if not value.strip():
+            decision.update(disposition='evidence_only',reason='invalid_observation' if reading.get('invalid_observation') else 'no_visible_text')
+            decisions.append(decision);continue
+        if not box:
+            # No invented coordinates. Explicit business labels still survive.
+            if reading.get('kind') in semantic_kinds:
+                entry={'kind':reading['kind'],'text':value,'box':None,'source':reading.get('source'),
+                       'confidence':reading.get('confidence'),'region_id':None,'table':None,
+                       'ownership_basis':'missing_geometry','review_required':True,'human_confirmed':False,
+                       'evidence_refs':[reference]}
+                items.append(entry);decision.update(disposition='retained_context',reason='missing_geometry',item_index=len(items)-1)
+            else:
+                decision.update(disposition='evidence_only',reason='missing_geometry',review_required=True)
+            decisions.append(decision);continue
+        labels = [part for part in semantic if _intersection(box,_box(part))/_area(box) >= .65]
+        strong_labels = [part for part in labels if isinstance(part.get('confidence',part.get('score')),(int,float))
+                         and part.get('confidence',part.get('score')) >= .85]
+        excluded = reading.get('kind') in UI_KINDS or any(_intersection(box,_box(part))/_area(box)>=.65 for part in ui)
+        inside = [region for region in regions if _intersection(box,region['table_box'])/_area(box)>=.65]
+        kind = labels[0]['kind'] if len({part['kind'] for part in labels})==1 else reading.get('kind','text')
+        if excluded and not strong_labels:
+            decision.update(disposition='excluded_ui',reason='observed_ui_geometry',classification_basis=reading.get('classification_basis'))
+            decisions.append(decision);continue
+        if inside and not strong_labels:
+            decision.update(disposition='table_content',reason='inside_observed_table',region_ids=[region['id'] for region in inside])
+            decisions.append(decision);continue
+        if inside and strong_labels and represented(value,inside):
+            decision.update(disposition='table_content',reason='business_label_already_in_owned_table',region_ids=[region['id'] for region in inside])
+            decisions.append(decision);continue
+        nearby = []
+        # A title may be read in short fragments. Its observed semantic block,
+        # rather than a fragment's left edge, determines whether it is shared by
+        # two tables. The exported reading keeps its own original text box.
+        ownership_box = _box(labels[0]) if len(labels)==1 else box
+        for region in regions:
+            tb=region['table_box'];tw,th=tb[2]-tb[0],tb[3]-tb[1]
+            horizontal=max(0.,min(ownership_box[2],tb[2])-max(ownership_box[0],tb[0]))/min(tw,ownership_box[2]-ownership_box[0])
+            gap=max(tb[1]-ownership_box[3],ownership_box[1]-tb[3],0.)
+            max_gap=max(30,min((height or tb[3])*.08,th*.22))
+            tagged=any(isinstance(part,dict) and _box(part) and part.get('kind') in semantic_kinds
+                       and _intersection(box,_box(part))/_area(box)>=.65 for part in region.get('ancillary',[]))
+            chain_box=reading.get('context_table_box')
+            chain_owner=(reading.get('classification_basis')=='observed_title_unit_table_chain'
+                and isinstance(chain_box,list) and _box({'box':chain_box})
+                and _intersection(chain_box,tb)/max(_area(chain_box),_area(tb))>=.85)
+            if (horizontal>.45 and gap<=max_gap) or tagged or region in inside or chain_owner:
+                nearby.append(region)
+        if not nearby and kind not in semantic_kinds:
+            decision.update(disposition='evidence_only',reason='outside_business_context',review_required=False)
+            decisions.append(decision);continue
+        owner=nearby[0] if len(nearby)==1 else None
+        table,basis=table_owner(owner) if owner else (None,'ambiguous_or_unassigned_region')
+        ambiguous=excluded or not owner or len(labels)>1 and len({part['kind'] for part in labels})>1
+        if kind not in semantic_kinds:
+            # A unit label is only classified after it has an independent spatial
+            # relation to a business table; numbers inside a grid are untouched.
+            if re.match(r'^\s*(?:单位\s*[:：]|unit(?:s)?\s*[:：])',value,re.I) and owner and not inside:
+                kind='unit'
+            else:kind='text'
+        # Adjacency establishes where a reading came from, not whether an
+        # unclassified logo/header really is a business note.
+        ambiguous = ambiguous or kind=='text' or reading.get('semantic_role_review_required') is True
+        entry={'kind':kind,'text':value,'box':box,'source':reading.get('source'),
+               'confidence':reading.get('confidence',reading.get('score')),'region_id':owner['id'] if owner else None,
+               'region_ids':[region['id'] for region in nearby],'table':table,'ownership_basis':basis,
+               'review_required':bool(ambiguous),'human_confirmed':False,'evidence_refs':[reference],
+               'context_box':ownership_box}
+        for key in ('classification_basis','context_table_box','semantic_role_review_required','business_original_kind'):
+            if key in reading:entry[key]=deepcopy(reading[key])
+        # Only the same literal at the same observed location is a duplicate
+        # observation. An identical title elsewhere remains a separate item.
+        existing=next((index for index,part in enumerate(items) if part['text']==value and part.get('box')
+                       and _intersection(box,part['box'])/max(_area(box),_area(part['box']))>=.85),None)
+        if existing is not None:
+            items[existing]['evidence_refs'].append(reference)
+            if items[existing]['kind']=='text' and kind in semantic_kinds:items[existing]['kind']=kind
+            decision.update(disposition='duplicate_observation',reason='same_literal_same_location',item_index=existing)
+        else:
+            items.append(entry)
+            decision.update(disposition='retained_context',reason='conflicting_ui_and_business_geometry' if excluded else
+                            'independent_business_label' if kind in semantic_kinds else 'nearby_independent_context',item_index=len(items)-1)
+        decisions.append(decision)
+    counts={kind:sum(row['disposition']==kind for row in decisions)
+            for kind in ('retained_context','table_content','excluded_ui','duplicate_observation','evidence_only')}
+    counts.update(items=len(items),review_required=sum(bool(item.get('review_required')) for item in items),observations=len(decisions))
+    return {'policy_version':'screen-business-context-v2','items':items,'decisions':decisions,'counts':counts,
+            'auxiliary_evidence':original,'reconciled_evidence':reconciled,'human_review':'not_performed',
+            'values_modified':False}
 
 
 def _sequential_rulers(layout, texts, *, screen_confirmed=False):
@@ -150,10 +370,13 @@ def _sequential_rulers(layout, texts, *, screen_confirmed=False):
     A business number column inside a detected table is never classified as UI.
     A single '1', 'A', or toolbar-like word is insufficient evidence.
     """
-    tables = [item["box"] for item in layout if item["kind"]=="table"]
+    tables = [item["box"] for item in layout if item.get("kind")=="table" and _box(item)]
     if not tables:
         return []
-    candidates = [item for item in texts if item.get('kind') not in UI_KINDS and not any(_intersection(item["box"],box)>0 for box in tables)
+    protected = [_box(item) for item in layout if item.get('kind') in {'title','caption','unit','note'}
+                 and isinstance(item.get('confidence',item.get('score')), (int,float))
+                 and item.get('confidence',item.get('score')) >= .85 and _box(item)]
+    candidates = [item for item in texts if item.get('kind') not in UI_KINDS and not any(_intersection(item["box"],box)>0 for box in tables+protected)
                   and re.fullmatch(r"\d{1,5}|[A-Z]{1,2}",str(item.get("text","")).strip())]
     groups = []
     for axis in (0,1):
@@ -188,7 +411,11 @@ def _sequential_rulers(layout, texts, *, screen_confirmed=False):
             box = [min(i["box"][0] for i in items),min(i["box"][1] for i in items),max(i["box"][2] for i in items),max(i["box"][3] for i in items)]
             # Ordered tokens must border a real table, rather than an arbitrary
             # list elsewhere in the document. This is a geometric association.
-            reach=max(100,(box[3]-box[1])*4) if screen_confirmed and axis==0 else max(35,(box[3]-box[1])*3)
+            # A photographed sheet can have blank rows between its column ruler
+            # and the business table. Use observed glyph height as well as the
+            # confirmed application chrome; a lone ordered business list still
+            # cannot establish chrome or cross a protected caption.
+            reach=max(100,(box[3]-box[1])*8) if screen_confirmed and axis==0 else max(35,(box[3]-box[1])*3)
             nearby = any((axis==1 and box[2] <= tb[0] and tb[0]-box[2] < max(35,(box[2]-box[0])*3)
                           and min(box[3],tb[3])-max(box[1],tb[1]) > (box[3]-box[1])*.7)
                          or (axis==0 and box[3] <= tb[1] and tb[1]-box[3] < reach
@@ -243,6 +470,7 @@ def normalize_screen_context(context, *, width=None, height=None, candidate=None
                 mapped["text"] = str(item.get("text",""))
             target.append(mapped)
     layout,text,screen_confirmed=classify_screen_ui(layout,text,width,height)
+    text=_anchored_business_titles(layout,text)
     layout.extend(_sequential_rulers(layout,text,screen_confirmed=screen_confirmed))
     return {"policy_version":POLICY_VERSION,"layout":layout,"text":text,"warnings":warnings,
             "provenance":{"component":context.get("component"),"ocr_source":context.get("ocr_source"),
@@ -321,6 +549,9 @@ def build_screen_visual_snapshot(raw, image_info, issues, input_path, *, max_tar
         raise ValueError("视觉核对预算无效")
     path = Path(input_path)
     width,height = image_info["width"],image_info["height"]
+    from ocr_workbench.screen_diagnostics import (reliable_cell_box,observe_screen_grid_cells,localized_grid_box)
+    info={**image_info,'input_path':str(path)}
+    localization=observe_screen_grid_cells(raw,info)
     targets,source_targets,skipped = [],[],[]
     used = set()
     for issue in issues:
@@ -332,9 +563,11 @@ def build_screen_visual_snapshot(raw, image_info, issues, input_path, *, max_tar
         tables = raw.get("tables",[])
         if not 0 <= ti < len(tables):
             continue
-        cell = next((c for c in tables[ti].get("cells",[]) if c.get("row")==row and c.get("column")==column),None)
-        box = _box(cell) if cell else None
-        if not cell or not box or cell.get("geometry_origin") not in {"direct_detection","verified_cell","native_cell"} or box[0] < 0 or box[1] < 0 or box[2] > width or box[3] > height:
+        matches=[c for c in tables[ti].get("cells",[]) if isinstance(c,dict) and c.get("row")==row and c.get("column")==column]
+        cell=matches[0] if len(matches)==1 else None
+        native_box=reliable_cell_box(cell,info)
+        box=native_box or localized_grid_box(localization,ti,cell)
+        if not cell or not box or box[0] < 0 or box[1] < 0 or box[2] > width or box[3] > height:
             skipped.append({"target":key,"reason":"no_reliable_local_cell_geometry"})
             continue
         if len(targets) == max_targets:
@@ -342,7 +575,7 @@ def build_screen_visual_snapshot(raw, image_info, issues, input_path, *, max_tar
             continue
         ident = f"screen:{ti}:{row}:{column}"
         targets.append({"id":ident,"before":"","context":"逐字读取此单元格实际可见内容，保留负号、小数点、前导零；模糊或遮挡时返回未知，不推测。",
-                        "evidence":{"level":"cell","polygon":cell.get("polygon") or box_polygon(box),"range_semantics":"full_cell"}})
+                        "evidence":{"level":"cell","polygon":cell.get("polygon") if native_box and cell.get("polygon") else box_polygon(box),"range_semantics":"full_cell"}})
         source_targets.append({"id":ident,"table":ti,"row":row,"column":column,"before":cell.get("text",""),"box":box,"issue_code":issue.get("code")})
     return {"image_sha256":hashlib.sha256(path.read_bytes()).hexdigest(),"targets":targets,"source_targets":source_targets,
             "skipped":skipped,"policy_version":POLICY_VERSION,"human_review":"not_performed"}

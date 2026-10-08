@@ -115,7 +115,7 @@ class ScreenQualityTests(unittest.TestCase):
         self.assertEqual([a["risk"] for a in selection["assessments"]], [0, 0])
         self.assertEqual(selection["selected_id"], "primary")
         self.assertEqual(secondary, original)
-        self.assertEqual(selection["policy_version"], "screen-quality-v2")
+        self.assertEqual(selection["policy_version"], "screen-quality-v4")
 
     def test_extra_table_without_reliable_business_region_support_is_reviewed(self):
         raw = result([["A", "B"]], boxes=False)

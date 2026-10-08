@@ -256,7 +256,7 @@ class ScreenBatchTests(unittest.TestCase):
         first = self.manager.submit(self.project, {'version_ids': [version],
             'request_id': 'measured-default-route', 'policy': {}})
         policy = first['policy']
-        self.assertEqual(policy, self.measured_defaults())
+        self.assertEqual(policy, validate_policy(self.measured_defaults()))
         self.assertEqual((policy['primary_engine'], policy['fallback_engines'], policy['max_upgrades']),
                          ('hunyuan', ['glm'], 1))
         self.assertEqual((policy['upgrade_trigger'], policy['require_human_review']), ('failure_only', True))
@@ -396,16 +396,35 @@ class ScreenBatchTests(unittest.TestCase):
         self.assertEqual(self.manager.get(self.project, batch)['counts']['completed'], 1)
 
     def test_precision_subset_explicitly_uses_glm_quality_and_human_review(self):
+        from unittest.mock import patch
         version = self.images(1)[0]
         parent = self.submit([version], primary_engine='hunyuan', fallback_engines=['glm'], max_upgrades=1,
             upgrade_trigger='failure_only', require_human_review=True)
         self.manager.step(); self.finish(); self.manager.step()
+        # Controlled layout evidence exercises the legacy entry -> bounded
+        # issue route. It is not a claim about this fixture's OCR accuracy.
+        item = self.manager._items(parent)[0]
+        preparation = json.loads(item['preparation'])
+        preparation['business_regions'] = [{'id': 'controlled-grid', 'table_box': [0, 0, 100, 70],
+            'sources': ['pixel_grid'], 'grid_reliable': True,
+            'observed_grid_rows': TABLE['rows'], 'observed_grid_columns': TABLE['columns'] + 1}]
+        self.manager._update(parent, version, preparation=json.dumps(preparation))
+        before = self.store.result(item['result_id'])
         command = {'action': 'upgrade', 'version_ids': [version], 'request_id': 'manual-glm-precision'}
-        child = self.manager.action(self.project, parent, command)
-        self.assertEqual((child['policy']['primary_engine'], child['policy']['upgrade_trigger'],
-                          child['policy']['require_human_review']), ('glm', 'quality', True))
+        with patch('ocr_workbench.screen_resolution.precision_capability',
+                   return_value={'available': True, 'engine': 'glm', 'basis': 'controlled-test-only'}):
+            child = self.manager.action(self.project, parent, command)
+            self.assertEqual(self.manager.action(self.project, parent, command)['batch_id'], child['batch_id'])
+        self.assertEqual(child['status'], 'submitted')
+        self.assertEqual((child['policy']['primary_engine'], child['policy']['max_upgrades'],
+                          child['policy']['require_human_review']), ('glm', 0, True))
+        self.assertEqual(child['policy']['fallback_engines'], [])
+        self.assertLessEqual(child['budget']['reserved_seconds'], 180)
+        self.assertFalse(child['selection_applied'])
+        self.assertFalse(child['values_modified'])
+        self.assertEqual(child['human_review'], 'not_performed')
         self.assertEqual(child['parent_batch_id'], parent)
-        self.assertEqual(self.manager.action(self.project, parent, command)['batch_id'], child['batch_id'])
+        self.assertEqual(self.store.result(before['id']), before)
         self.manager.step(); self.finish(); self.manager.step()
         tasks = self.store.rows('''SELECT t.engine FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
             WHERE s.batch_id=? ORDER BY s.pass_index''', (child['batch_id'],))
@@ -414,16 +433,31 @@ class ScreenBatchTests(unittest.TestCase):
         self.assertEqual(self.manager.get(self.project, parent)['counts']['needs_review'], 1)
 
     def test_selected_precision_attempt_has_lineage_and_is_idempotent(self):
+        from unittest.mock import patch
         versions = self.images(2)
-        batch = self.submit(versions)
+        batch = self.submit(versions, primary_engine='hunyuan')
         self.manager.step(); self.finish(); self.manager.step()
+        item = next(item for item in self.manager._items(batch) if item['input_version_id'] == versions[1])
+        preparation = json.loads(item['preparation'])
+        preparation['business_regions'] = [{'id': 'controlled-grid', 'table_box': [0, 0, 100, 70],
+            'sources': ['pixel_grid'], 'grid_reliable': True,
+            'observed_grid_rows': TABLE['rows'], 'observed_grid_columns': TABLE['columns'] + 1}]
+        self.manager._update(batch, versions[1], preparation=json.dumps(preparation))
+        before = self.store.result(item['result_id'])
         command = {'action': 'upgrade', 'version_ids': [versions[1]], 'request_id': 'precision-only-one'}
-        improved = self.manager.action(self.project, batch, command)
+        with patch('ocr_workbench.screen_resolution.precision_capability',
+                   return_value={'available': True, 'engine': 'glm', 'basis': 'controlled-test-only'}):
+            improved = self.manager.action(self.project, batch, command)
+            replay = self.manager.action(self.project, batch, command, allow_new=False)
+        self.assertEqual(improved['status'], 'submitted')
         self.assertEqual(improved['parent_batch_id'], batch)
-        self.assertEqual(improved['counts']['total'], 1)
+        self.assertEqual(improved['attempt']['counts']['total'], 1)
+        self.assertEqual([entry['input_version_id'] for entry in improved['bindings']], [versions[1]])
         self.assertEqual(improved['policy']['mode'], 'accuracy')
         self.assertNotEqual(improved['batch_id'], batch)
-        self.assertEqual(self.manager.action(self.project, batch, command)['batch_id'], improved['batch_id'])
+        self.assertEqual(replay['batch_id'], improved['batch_id'])
+        self.assertEqual(self.store.result(before['id']), before)
+        self.assertEqual(len(self.store.rows('SELECT id FROM screen_batches WHERE parent_batch_id=?', (batch,))), 1)
         self.assertEqual(self.manager.get(self.project, batch)['counts']['completed'], 2)
 
     def test_pending_filter_and_collection_preserve_all_inputs(self):
