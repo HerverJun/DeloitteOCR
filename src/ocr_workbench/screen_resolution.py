@@ -109,6 +109,11 @@ def _costs(manager,batch_id,items=None):
         FROM screen_contexts c JOIN tasks t ON t.id=c.task_id WHERE c.batch_id=?) GROUP BY input_version_id''',
         (timestamp,batch_id,timestamp,batch_id))
     costs={row['input_version_id']:max(0.,float(row['seconds'] or 0)) for row in rows}
+    for row in _local_rows(manager.store, '''SELECT l.input_version_id,l.spent_seconds +
+        CASE WHEN t.started IS NULL THEN 0 ELSE MAX(0,(julianday(COALESCE(t.finished,?))-
+        julianday(t.started))*86400) END seconds FROM screen_local_requests l
+        JOIN tasks t ON t.id=l.task_id WHERE l.batch_id=?''', (timestamp,batch_id)):
+        costs[row['input_version_id']]=costs.get(row['input_version_id'],0.)+max(0.,float(row['seconds'] or 0))
     for item in items if items is not None else manager._items(batch_id):
         preparation=json.loads(item['preparation']) if item.get('preparation') else {}
         value=preparation.get('preparation_seconds',0)
@@ -135,7 +140,31 @@ def task_seconds_spent(store,task_id):
         CASE WHEN t.started IS NULL THEN 0 ELSE MAX(0,(julianday(COALESCE(t.finished,?))-julianday(t.started))*86400) END active
         FROM tasks t LEFT JOIN screen_tasks s ON s.task_id=t.id
         LEFT JOIN screen_contexts c ON c.task_id=t.id WHERE t.id=?''',(now(),task_id))
-    return max(0.,float(rows[0]['carried'] or 0)+float(rows[0]['active'] or 0)) if rows else 0.
+    local=_local_rows(store,'SELECT spent_seconds FROM screen_local_requests WHERE task_id=?',(task_id,))
+    carried=float(local[0]['spent_seconds'] or 0) if local else float(rows[0]['carried'] or 0) if rows else 0.
+    return max(0.,carried+float(rows[0]['active'] or 0)) if rows else 0.
+
+
+def _local_rows(store,query,parameters=()):
+    if not store.rows("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_local_requests'"):
+        return []
+    return store.rows(query,parameters)
+
+
+def _local_reservations(manager,batch,exclude_task_id=None):
+    from ocr_workbench.store import now
+    rows=_local_rows(manager.store,'''SELECT l.input_version_id,l.metadata,t.id,l.spent_seconds +
+        CASE WHEN t.started IS NULL THEN 0 ELSE MAX(0,(julianday(COALESCE(t.finished,?))-
+        julianday(t.started))*86400) END spent FROM screen_local_requests l JOIN tasks t ON t.id=l.task_id
+        WHERE l.batch_id=? AND t.status IN ('queued','running','paused','interrupted')''',(now(),batch['id']))
+    reserved={}
+    for row in rows:
+        if row['id']==exclude_task_id:continue
+        allowance=json.loads(row['metadata']).get('budget_reservation_seconds')
+        if type(allowance) not in (int,float) or not math.isfinite(allowance) or allowance<0:
+            raise Conflict('局部候选任务预算预留无效')
+        key=row['input_version_id'];reserved[key]=reserved.get(key,0.)+max(0.,allowance-float(row['spent'] or 0))
+    return reserved
 
 
 def _live_reservations(manager,batch,exclude_task_id=None):
@@ -157,6 +186,8 @@ def _live_reservations(manager,batch,exclude_task_id=None):
         if type(allowance) not in (int,float) or not math.isfinite(allowance) or allowance<0:
             raise Conflict('任务预算预留无效，不能重置额度')
         reserved[row['version_id']]=reserved.get(row['version_id'],0.)+max(0.,allowance-float(row['spent'] or 0))
+    for key,value in _local_reservations(manager,batch,exclude_task_id).items():
+        reserved[key]=reserved.get(key,0.)+value
     return reserved
 
 
@@ -168,12 +199,13 @@ def _budget(manager,root,lineage,receipts,*,executing=None,exclude_task_id=None)
         policy=json.loads(batch['policy']);items=manager._items(batch['id'])
         item_costs=_costs(manager,batch['id'],items)
         live=_live_reservations(manager,batch,exclude_task_id if executing and executing[0]==batch['id'] else None)
+        local_live=_local_reservations(manager,batch,exclude_task_id if executing and executing[0]==batch['id'] else None)
         costs=[(item,item_costs.get(item['input_version_id'],0.)) for item in items]
         for item,cost in costs:
             pending=item['status'] not in {'completed','needs_review','failed','cancelled'}
             current=executing==(batch['id'],item['input_version_id'])
             reserve=(live.get(item['input_version_id'],0.)
-                     if batch['id']==root or current else max(0.,policy['budget_seconds']-cost)) if pending else 0.
+                     if batch['id']==root or current else max(0.,policy['budget_seconds']-cost)) if pending else local_live.get(item['input_version_id'],0.)
             amount=cost+reserve;used+=amount;actual+=cost;reserved+=reserve
             per_source[item['source_hash']]=per_source.get(item['source_hash'],0.)+amount
             per_source_actual[item['source_hash']]=per_source_actual.get(item['source_hash'],0.)+cost
@@ -206,11 +238,13 @@ def execution_budget(manager,project_id,batch_id,version_id,*,task_id=None):
     budget=_budget(manager,root,lineage,_receipts(manager,lineage),executing=(batch_id,version_id),exclude_task_id=task_id)
     costs=_costs(manager,batch_id,items)
     live=_live_reservations(manager,batch,task_id)
+    local_live=_local_reservations(manager,batch,task_id)
     local=costs.get(version_id,0.)
     source=item['source_hash']
-    sibling_reserved=sum(live.get(other['input_version_id'],0.) if batch_id==root else
-        max(0.,policy['budget_seconds']-costs.get(other['input_version_id'],0.))
-        for other in items if other['input_version_id']!=version_id and other['status'] not in {'completed','needs_review','failed','cancelled'})
+    sibling_reserved=sum((live.get(other['input_version_id'],0.) if batch_id==root else
+        max(0.,policy['budget_seconds']-costs.get(other['input_version_id'],0.)))
+        if other['status'] not in {'completed','needs_review','failed','cancelled'} else local_live.get(other['input_version_id'],0.)
+        for other in items if other['input_version_id']!=version_id)
     same_input_reserved=live.get(version_id,0.)
     local_batch_spent=sum(costs.get(other['input_version_id'],0.) for other in items)
     wall=max(0.,batch['deadline']-time.time()) if batch.get('deadline') else float('inf')
@@ -224,6 +258,8 @@ def execution_budget(manager,project_id,batch_id,version_id,*,task_id=None):
         task=manager.store.rows('''SELECT s.metadata,c.raw FROM tasks t LEFT JOIN screen_tasks s ON s.task_id=t.id
             LEFT JOIN screen_contexts c ON c.task_id=t.id WHERE t.id=?''',(task_id,))[0]
         frozen=json.loads(task['metadata'] or task['raw'] or '{}')
+        local_task=_local_rows(manager.store,'SELECT metadata FROM screen_local_requests WHERE task_id=?',(task_id,))
+        if local_task:frozen=json.loads(local_task[0]['metadata'])
         allowance=frozen.get('budget_reservation_seconds',frozen.get('timeout_seconds',policy['budget_seconds']))
         remaining=min(remaining,allowance-task_seconds_spent(manager.store,task_id))
     return {**budget,'remaining_seconds':max(0.,remaining),'potential_remaining_seconds':max(0.,potential),

@@ -189,6 +189,11 @@ class TaskQueue:
                 FROM screen_contexts c JOIN screen_batches b ON b.id=c.batch_id
                 JOIN screen_items i ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
                 WHERE c.task_id=?''', (task['id'],))
+        if not rows and task.get('kind') == 'screen_local_text':
+            rows = self.store.rows('''SELECT l.batch_id,l.input_version_id,0 AS attempt,b.policy,b.deadline,i.preparation
+                FROM screen_local_requests l JOIN screen_batches b ON b.id=l.batch_id
+                JOIN screen_items i ON i.batch_id=l.batch_id AND i.input_version_id=l.input_version_id
+                WHERE l.task_id=?''', (task['id'],))
         if not rows:
             return None
         from ocr_workbench.screen_resolution import remaining_screen_budget
@@ -203,6 +208,9 @@ class TaskQueue:
             frozen=self.store.rows('SELECT metadata FROM screen_tasks WHERE task_id=?',(task['id'],))
             if frozen:
                 remaining=min(remaining,json.loads(frozen[0]['metadata']).get('request_timeout_seconds',900))
+            if task.get('kind') == 'screen_local_text':
+                local=self.store.rows('SELECT metadata FROM screen_local_requests WHERE task_id=?',(task['id'],))
+                remaining=min(remaining,json.loads(local[0]['metadata'])['request_timeout_seconds'])
         return remaining
 
     def step(self):
@@ -244,6 +252,10 @@ class TaskQueue:
             if prepared is None:
                 raise Cancelled()
             task = prepared
+            local_input = None
+            if task.get('kind') == 'screen_local_text':
+                from ocr_workbench.screen_local_candidates import prepare_local_input
+                local_input = prepare_local_input(self.store, task)
             if task.get('kind') == 'screen_context':
                 geometry_provider = 'context'
             if task.get('kind') == 'geometry':
@@ -331,6 +343,8 @@ class TaskQueue:
             output = self.store.root / "task-results" / task["id"] / str(time.time_ns())
             output.mkdir(parents=True)
             input_image = self.store.file(version["path"])
+            if local_input is not None:
+                input_image = local_input
             screen_input = self.store.rows("SELECT prepared_path,metadata FROM screen_tasks WHERE task_id=?", (task['id'],)) if self.store.rows("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_tasks'") else []
             if screen_input:
                 import json
@@ -352,7 +366,9 @@ class TaskQueue:
                     cropped = source.crop(json.loads(crop['crop_box']))
                     input_image = output / 'region-input.png'
                     cropped.save(input_image)
-            if task.get('kind') == 'screen_context':
+            if task.get('kind') == 'screen_local_text':
+                data = self.adapter.recognize_local_text(input_image, output, allow_empty=True)
+            elif task.get('kind') == 'screen_context':
                 data = self.adapter.recognize(input_image, output, {'image_version': task['version_id'], 'allow_auxiliary_ocr': True, 'include_all_layout': True})
             elif task.get('kind') == 'geometry':
                 import json
@@ -372,7 +388,10 @@ class TaskQueue:
                 data = self.adapter.recognize(input_image, output)
             if budget_expired.is_set():
                 raise TimeoutError('本图或整批处理预算已用尽，未采用超时结果')
-            if task.get("kind") == "dewarp":
+            if task.get('kind') == 'screen_local_text':
+                from ocr_workbench.screen_local_candidates import complete_local_candidate
+                complete_local_candidate(self.store, task, data, output)
+            elif task.get("kind") == "dewarp":
                 from ocr_workbench.imaging import save_version
                 from PIL import Image
 
@@ -452,9 +471,14 @@ class TaskQueue:
         finally:
             if budget_timer:
                 budget_timer.cancel()
-            with self.guard:
-                self.current = None
-                self.recovery_task = None
+            try:
+                if task.get('kind') == 'screen_local_text' and 'output' in locals():
+                    from ocr_workbench.screen_local_candidates import retain_local_artifact
+                    retain_local_artifact(self.store, task, output)
+            finally:
+                with self.guard:
+                    self.current = None
+                    self.recovery_task = None
         return True
 
     def _run_multimodal(self, task):
@@ -510,6 +534,13 @@ class TaskQueue:
 
     def action(self, project_id, action, task_ids=None):
         self.store.one("projects", project_id)
+        with self.store.transaction() as db:
+            affected = self._action_changes(db, project_id, action, task_ids)
+        self._signal_action(action, affected)
+        return affected
+
+    def _action_changes(self, db, project_id, action, task_ids=None):
+        """Apply transitions within an owner transaction before signalling the worker."""
         transitions = {
             "pause": ("paused", ("queued",)),
             "resume": ("queued", ("paused", "interrupted")),
@@ -519,40 +550,41 @@ class TaskQueue:
         if action not in transitions:
             raise ValueError("未知队列操作")
         target, sources = transitions[action]
-        with self.store.transaction() as db:
-            tasks = db.execute(
-                "SELECT id,status FROM tasks WHERE project_id=? AND " + self.store.queue_scope(self.fusion_only, self.external_only), (project_id,)
-            ).fetchall()
-            owned = {t["id"] for t in tasks}
-            if task_ids is not None and not set(task_ids) <= owned:
-                raise ValueError("任务不属于该项目")
-            affected = [
-                t["id"]
-                for t in tasks
-                if t["status"] in sources and (task_ids is None or t["id"] in task_ids)
-            ]
-            for key in affected:
-                db.execute(
-                    "UPDATE tasks SET status=?,phase=?,error=NULL,finished=CASE WHEN ?='cancelled' THEN COALESCE(finished,?) ELSE finished END WHERE id=?",
-                    (
-                        target,
-                        {
-                            "paused": "已暂停",
-                            "queued": "等待识别",
-                            "cancelled": "已取消",
-                        }[target],
-                        target,
-                        now(),
-                        key,
-                    ),
-                )
+        tasks = db.execute(
+            "SELECT id,status FROM tasks WHERE project_id=? AND " + self.store.queue_scope(self.fusion_only, self.external_only), (project_id,)
+        ).fetchall()
+        owned = {t["id"] for t in tasks}
+        if task_ids is not None and not set(task_ids) <= owned:
+            raise ValueError("任务不属于该项目")
+        affected = [
+            t["id"]
+            for t in tasks
+            if t["status"] in sources and (task_ids is None or t["id"] in task_ids)
+        ]
+        for key in affected:
+            db.execute(
+                "UPDATE tasks SET status=?,phase=?,error=NULL,finished=CASE WHEN ?='cancelled' THEN COALESCE(finished,?) ELSE finished END WHERE id=?",
+                (
+                    target,
+                    {
+                        "paused": "已暂停",
+                        "queued": "等待识别",
+                        "cancelled": "已取消",
+                    }[target],
+                    target,
+                    now(),
+                    key,
+                ),
+            )
+        return affected
+
+    def _signal_action(self, action, affected):
         with self.guard:
             if action == "cancel" and self.current in affected:
                 self.cancel_event.set()
         self.wake.set()
         if action in {"resume", "retry"}:
             self.recover_worker()
-        return affected
 
     def stop(self):
         self.stopping.set()

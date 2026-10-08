@@ -14,7 +14,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 18
+SCHEMA_VERSION = 19
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -54,8 +54,15 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         path = self.root / "workbench.sqlite3"
         exists = path.is_file()
         if exists:
+            # A closed WAL database has no frames to replay. SQLite mode=ro
+            # alone may create empty WAL/SHM sidecars even on schema refusal.
+            # Immutable reads avoid that; live WALs still require replay.
+            wal = path.with_name(path.name + '-wal')
+            probe_uri = path.as_uri() + '?mode=ro'
+            if not wal.is_file() or wal.stat().st_size == 0:
+                probe_uri += '&immutable=1'
             with closing(
-                sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
+                sqlite3.connect(probe_uri, uri=True)
             ) as probe:
                 version = probe.execute("PRAGMA user_version").fetchone()[0]
             if version > SCHEMA_VERSION:
@@ -266,6 +273,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         elif version == 18:
             from ocr_workbench.screen_schema import migrate_screen_schema
             migrate_screen_schema(db)
+        elif version == 19:
+            from ocr_workbench.screen_local_candidates import migrate_local_candidates
+            migrate_local_candidates(db)
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -522,7 +532,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             # Claim atomically accounts the old segment before replacing its start.
             timestamp = now()
             if task['started']:
-                for table in ('screen_tasks', 'screen_contexts'):
+                for table in ('screen_tasks', 'screen_contexts', 'screen_local_requests'):
+                    if table == 'screen_local_requests' and self.schema_version < 19:
+                        continue
                     db.execute('''UPDATE ''' + table + ''' SET spent_seconds=spent_seconds+
                         MAX(0,(julianday(COALESCE(?,?))-julianday(?))*86400) WHERE task_id=?''',
                         (task['finished'], timestamp, task['started'], task['id']))
