@@ -10,6 +10,68 @@ import json
 import time
 
 
+class LocalTextTruncatedOutput(RuntimeError):
+    def __init__(self, evidence):
+        self.recognition_evidence = evidence
+        super().__init__('GLM local text generation reached token limit; output may be truncated')
+
+
+def recognize_local_text(models, image_path, session=None):
+    """Decode one supplied crop with the official text prompt, without layout.
+
+    This returns one whole-crop text block. It creates no table, guessed cell
+    structure, formatting, confidence, source position or acceptance decision.
+    """
+    import hashlib
+    import torch
+    from PIL import Image
+
+    _, model, processor, loader, _, loaded, _ = session or load_session(models)
+    with Image.open(image_path) as opened:
+        image = opened.convert('RGB')
+    payload = loader.build_request_from_image(image, task_type='text')
+    # Preserve the SDK's resize, JPEG, text prompt and decoding parameters.
+    prompt = [{ 'role':message['role'], 'content':[dict(item) for item in message['content']
+              if item.get('type') != 'image_url']} for message in payload['messages']]
+    image_bindings = []
+    for message in payload['messages']:
+        for item in message['content']:
+            if item['type'] == 'image_url':
+                encoded = item['image_url']['url'].split(',', 1)[1]
+                encoded_bytes = base64.b64decode(encoded)
+                with Image.open(io.BytesIO(encoded_bytes)) as opened:
+                    decoder_image = opened.convert('RGB')
+                image_bindings.append({'encoded_image_sha256':hashlib.sha256(encoded_bytes).hexdigest(),
+                    'decoder_image_size':list(decoder_image.size),
+                    'decoder_rgb_pixels_sha256':hashlib.sha256(decoder_image.tobytes()).hexdigest()})
+                item.clear()
+                item.update(type='image', image=decoder_image)
+    if len(image_bindings) != 1:
+        raise ValueError('Official local text loader must produce exactly one crop image')
+    inputs = processor.apply_chat_template(payload['messages'], tokenize=True,
+        add_generation_prompt=True, return_dict=True, return_tensors='pt').to(model.device)
+    with torch.inference_mode():
+        output = model.generate(**inputs, max_new_tokens=payload['max_tokens'],
+            do_sample=False, repetition_penalty=payload['repetition_penalty'])
+    ids = output[0][inputs['input_ids'].shape[-1]:]
+    text = processor.decode(ids, skip_special_tokens=True)
+    with open(image_path, 'rb') as handle:
+        source_sha = hashlib.file_digest(handle, 'sha256').hexdigest()
+    raw = {'recognition_mode':'local_text', 'layout_applied':False, 'formatter_applied':False,
+        'input_image_sha256':source_sha,
+        'input_image_size':list(image.size), 'request':{'task_type':'text','prompt':prompt,
+            'max_new_tokens':payload['max_tokens'],'do_sample':False,
+            'repetition_penalty':payload['repetition_penalty'],'image_bindings':image_bindings},
+        'generated':[{'bbox_2d':[0,0,1000,1000], 'task':'text', 'content':text,
+            'token_count':len(ids),'token_limit':payload['max_tokens']}],
+        'truncated':len(ids)>=payload['max_tokens']}
+    if raw['truncated']:
+        raise LocalTextTruncatedOutput(raw)
+    blocks = [{'kind':'text', 'text':text, 'confidence':None,
+        'polygon':[[0,0],[image.width,0],[image.width,image.height],[0,image.height]]}]
+    return raw, blocks, loaded
+
+
 def load_session(models):
     import torch
     from PIL import Image

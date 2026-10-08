@@ -17,6 +17,19 @@ class Cancelled(Exception):
     pass
 
 
+class EngineLoadTimeout(TimeoutError):
+    """The worker did not publish readiness within its startup deadline."""
+
+    phase = 'engine_load'
+
+    def __init__(self, engine, timeout_seconds, ipc, last_stage=None):
+        self.engine = engine
+        self.timeout_seconds = timeout_seconds
+        self.ipc = Path(ipc)
+        self.last_stage = last_stage
+        super().__init__(f'引擎初始化超时（{engine}，{timeout_seconds} 秒）；请查看加载阶段与引擎日志')
+
+
 def runtime_path(runtime, system_root):
     site = runtime.parent / 'Lib' / 'site-packages' / 'nvidia'
     bundled = sorted(path for path in site.glob('*/bin') if path.is_dir())
@@ -115,7 +128,15 @@ class EngineAdapter:
         self.job.assign(self.process)
         if self.reservation:
             self.reservation.track(self.process, self.job)
-        status = self.wait_for(self.ipc / "status.json", 240)
+        try:
+            status = self.wait_for(self.ipc / "status.json", 240)
+        except TimeoutError as error:
+            stage = None
+            try:
+                stage = read_json(self.ipc / 'loading.json').get('stage')
+            except (OSError, ValueError, TypeError, AttributeError):
+                pass  # Diagnostic absence must not replace the actual timeout.
+            raise EngineLoadTimeout(self.engine, 240, self.ipc, stage) from error
         if status["status"] != "ready":
             raise RuntimeError(status.get("message", "引擎加载失败"))
         self.load_seconds = status["load_seconds"]
@@ -153,14 +174,18 @@ class EngineAdapter:
             self.cancelled.wait(0.05)
         raise TimeoutError("识别超时，请缩小图片或换用其他引擎")
 
-    def recognize(self, image, output, geometry_request=None, *, allow_empty=False):
+    def recognize(self, image, output, geometry_request=None, *, allow_empty=False, recognition_mode='page'):
+        from ocr_workbench.recognition_modes import validate_recognition_mode
+        validate_recognition_mode(self.engine, recognition_mode)
+        if recognition_mode == 'local_text' and geometry_request is not None:
+            raise ValueError('Local text cannot use a geometry request')
         key = uuid.uuid4().hex
         response = self.ipc / "response.json"
         response.unlink(missing_ok=True)
-        publish(
-            self.ipc / "request.json",
-            {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
-        )
+        request = {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request}
+        if recognition_mode != 'page':
+            request['recognition_mode'] = recognition_mode
+        publish(self.ipc / "request.json", request)
         reply = self.wait_for(response, self.recognition_timeout)
         if reply.get("id") != key or reply["status"] != "success":
             raise RuntimeError(reply.get("message", "识别失败"))
@@ -178,12 +203,25 @@ class EngineAdapter:
             return result
         result = json.loads((Path(output) / "result.json").read_text(encoding="utf-8"))
         check_recognition_result(result, allow_empty=allow_empty)
+        if recognition_mode == 'local_text':
+            raw = result.get('raw')
+            if (result.get('recognition_mode') != 'local_text'
+                    or not isinstance(raw, dict)
+                    or raw.get('recognition_mode') != 'local_text'
+                    or raw.get('layout_applied') is not False
+                    or raw.get('formatter_applied') is not False
+                    or result.get('tables') != []):
+                raise RuntimeError('局部文字识别回执与请求模式不一致，结果未采用')
         result["engine_session"] = {
             "id": self.ipc.name,
             "load_seconds": self.load_seconds,
             "pid": self.process.pid,
         }
         return result
+
+    def recognize_local_text(self, image, output, *, allow_empty=False):
+        """Explicit whole-crop text request; never inferred from geometry payloads."""
+        return self.recognize(image, output, allow_empty=allow_empty, recognition_mode='local_text')
 
     def cancel(self):
         self.cancelled.set()

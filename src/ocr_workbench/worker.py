@@ -111,6 +111,8 @@ def paddle_engine(engine, models, image, pipe=None, loaded=None):
 
 def run_image(args, session=None):
     """Write one complete result, with optional resident model reuse."""
+    from ocr_workbench.recognition_modes import validate_recognition_mode
+    validate_recognition_mode(args.engine, getattr(args, 'recognition_mode', 'page'))
     faulthandler.enable()
     faulthandler.dump_traceback_later(120, repeat=True)
     args.output.mkdir(parents=True, exist_ok=True)
@@ -127,6 +129,8 @@ def run_image(args, session=None):
                     "error_type": type(error).__name__,
                     "message": str(error),
                     "traceback": traceback.format_exc(),
+                    **({'recognition_evidence': error.recognition_evidence}
+                       if hasattr(error, 'recognition_evidence') else {}),
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -146,13 +150,18 @@ def main():
     )
     p.add_argument("--image", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument('--recognition-mode', choices=['page', 'local_text'], default='page')
     args = p.parse_args()
+    from ocr_workbench.recognition_modes import validate_recognition_mode
+    validate_recognition_mode(args.engine, args.recognition_mode)
     args.output.mkdir(parents=True, exist_ok=True)
     install_guard(args.output / "network-blocked.log")
     run_image(args)
 
 
 def process_image(args, session, started):
+    from ocr_workbench.recognition_modes import validate_recognition_mode
+    mode = validate_recognition_mode(args.engine, getattr(args, 'recognition_mode', 'page'))
     from PIL import Image, ImageOps
     from pillow_heif import register_heif_opener
 
@@ -177,7 +186,9 @@ def process_image(args, session, started):
         if not manifest.is_file():
             raise FileNotFoundError(f"Missing model provenance manifest: {manifest}")
         revisions[name] = json.loads(manifest.read_text(encoding="utf-8"))["revision"]
-    if session is not None:
+    if session is not None and mode == 'local_text':
+        raw, blocks, loaded = session.recognize(prepared, args.output, recognition_mode=mode)
+    elif session is not None:
         raw, blocks, loaded = session.recognize(prepared, args.output)
     elif args.engine in {"ppocr", "paddlevl"}:
         from ocr_workbench.windows_paths import ascii_model_directory
@@ -186,6 +197,9 @@ def process_image(args, session, started):
             raw, blocks, loaded = paddle_engine(
                 args.engine, compatible_models, prepared
             )
+    elif args.engine == 'glm' and mode == 'local_text':
+        from ocr_workbench.glm import recognize_local_text
+        raw, blocks, loaded = recognize_local_text(models, prepared)
     elif args.engine == "glm":
         from ocr_workbench.glm import recognize
 
@@ -200,7 +214,7 @@ def process_image(args, session, started):
         encoding="utf-8",
     )
     warnings = []
-    tables = parse_tables(text, warnings=warnings)
+    tables = parse_tables(text, warnings=warnings) if mode == 'page' else []
     from ocr_workbench.editing import validate_edit
 
     usable_tables = []
@@ -240,6 +254,8 @@ def process_image(args, session, started):
         "warnings": warnings,
         "artifacts": {"xlsx": {"status": "unavailable"}},
     }
+    if mode != 'page':
+        result['recognition_mode'] = mode
     from ocr_workbench.editing import export_text
     (args.output / "result.txt").write_text(export_text({"text": text, "tables": tables}), encoding="utf-8")
     (args.output / "result.md").write_text(text, encoding="utf-8")
