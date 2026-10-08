@@ -157,10 +157,17 @@ def inventory(source):
 
 
 def platform_inventory():
-    source=Path(__file__).resolve().parents[1]/'src/workbench_platform'
-    names=('agent/context.py','agent/graph.py','agent/providers.py','agent/runtime.py','agent/scope.py',
-        'agent/tools/screen_batches.py','agent/tools/context.py','jobs/screen_batches.py','jobs/ocr_handoff.py','jobs/native_ocr.py')
-    return {name:sha(source/name) for name in names}
+    source=Path(__file__).resolve().parents[1]
+    files={}
+    for name in ('src/workbench_platform','packages/contracts','config/skills'):
+        for path in sorted((source/name).rglob('*')):
+            if path.is_symlink() or path.is_junction():raise ValueError('Platform binding cannot include linked source')
+            if path.is_file() and '__pycache__' not in path.parts and path.suffix!='.pyc':
+                files[path.relative_to(source).as_posix()]=sha(path)
+    for name in ('scripts/evaluate_screen_agent_native.py','scripts/evaluate_screen_agent_replay.py',
+                 'scripts/product_compatibility.py'):
+        files[name]=sha(source/name)
+    return files
 
 
 def prepare(args,root):
@@ -320,7 +327,7 @@ async def execute(args,root,mapping,binding):
             mark('post_agent_evidence_collection','start')
             for batch_id in batch_ids:
                 summary=await asyncio.to_thread(value.screen_batches.status,'wreplay',batch_id,limit=1)
-                items=[]
+                items=[];readback_items=[]
                 for offset in range(0,summary['counts']['total'],30):
                     page=await asyncio.to_thread(value.screen_batches.status,'wreplay',batch_id,offset=offset,limit=30)
                     for item in page['items']:
@@ -328,9 +335,19 @@ async def execute(args,root,mapping,binding):
                         sample=next(entry for entry in mapping if entry.get('asset_id')==item['asset_id'])
                         detail.update(sample_id=sample['sample_id'],source_image_sha256=sample['source_image_sha256'])
                         save(receipts/(sample['sample_id']+'.json'),detail);items.append(item)
+                        result=detail.get('result') or {}
+                        original=result.get('original') or {}
+                        readback_items.append({'id':sample['sample_id'],'input_version_id':item['input_version_id'],
+                            'image_id':item['image_id'],'source_name':detail['source_name'],
+                            'image_sha256':original.get('screen',{}).get('input_sha256',sample['source_image_sha256']),
+                            'result_id':result.get('id'),'result_revision':result.get('revision'),
+                            'status':detail['status'],'review_state':detail['review_state'],
+                            'human_confirmed':detail.get('human_confirmed',False),
+                            'candidate':{'original':original,'edited':result.get('edited') or {}}})
                 export_receipt=None
                 if summary['counts']['completed']+summary['counts']['needs_review']:
                     mark('post_agent_export','start',batch_id=batch_id)
+                    before=await asyncio.to_thread(value.screen_batches.delivery_snapshot,'wreplay',batch_id)
                     bundle=await asyncio.to_thread(value.screen_batches.export,'wreplay',batch_id,ScreenExport(include_pending_review=True))
                     artifact=value.artifact_center.file('wreplay',bundle['bundle_id'],'ocr-results.zip')
                     with value.artifact_center.store.stage_download('wreplay',artifact.artifact_id,
@@ -339,6 +356,17 @@ async def execute(args,root,mapping,binding):
                         with zipfile.ZipFile(source) as archive:
                             manifest=json.loads(archive.read('manifest.json'))
                             files=[name for name in archive.namelist() if name.endswith('.xlsx')]
+                    after=await asyncio.to_thread(value.screen_batches.delivery_snapshot,'wreplay',batch_id)
+                    options={'include_pending_review':True,'numeric_columns':None}
+                    vector=lambda snapshot:{**{key:snapshot[key] for key in
+                        ('snapshot_id','batch_id','project_id','policy_sha256','items')},'export_options':options}
+                    # These vectors and result values come from the live API,
+                    # independently of the ZIP whose fidelity is checked later.
+                    save(root/('readback-snapshot-'+batch_id+'.json'),{'batch_id':batch_id,'policy':summary['policy'],
+                        'zip_sha256':artifact.blob_hash,'items':readback_items,
+                        'version_vector':vector(before),'current_version_vector':vector(after),
+                        'evidence_source':'actual_native_detail_and_delivery_snapshot_API',
+                        'truth_read':False,'manifest_used_as_oracle':False})
                     export_receipt={'bundle_id':bundle['bundle_id'],'zip_sha256':artifact.blob_hash,
                         'xlsx_files':len(files),'manifest_success_files':manifest['success_files'],
                         'manifest_items':len(manifest['items']),
