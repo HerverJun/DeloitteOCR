@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem, type ScreenEta } from "./screenBatchWorkflow";
 import type { Photo, Table } from "./types";
+import { screenDiagnosticLocation, screenComparisonBody, type ScreenDiagnostic } from "./screenBatchWorkflow";
 
 const item: ScreenItem = { input_version_id: "version-a", image_id: "image-a", source_name: "财务.png", status: "needs_review", stage: "review",
   result_id: "result-a", result_revision: 7, review_state: "automatic", human_confirmed: false, issues: [] };
@@ -9,6 +10,33 @@ const table: Table = { rows: 2, columns: 2, cells: [
   { row: 1, column: 0, row_span: 1, column_span: 1, text: "000123456789012345678" },
   { row: 1, column: 1, row_span: 1, column_span: 1, text: "-10.05" },
 ] };
+
+describe("diagnostic evidence gates", () => {
+  const diagnostic: ScreenDiagnostic = { id:"issue-1",code:"difference",severity:"high",reason:"金额不同",location:{level:"cell",table:0,row:1,column:1,box:[10,20,90,60],basis:"observed_full_cell_geometry",range_semantics:"full_cell"},evidence:[],applicable_actions:[] };
+  it("keeps reliable cell/table geometry distinct and never highlights indexes alone", () => {
+    expect(screenDiagnosticLocation(diagnostic).level).toBe("cell");
+    expect(screenDiagnosticLocation({...diagnostic,location:{...diagnostic.location,box:null}}).polygon).toBeNull();
+    expect(screenDiagnosticLocation({...diagnostic,location:{...diagnostic.location,basis:"same_indexes"}}).level).toBe("image");
+    expect(screenDiagnosticLocation({...diagnostic,location:{...diagnostic.location,box:[90,20,10,60]}}).polygon).toBeNull();
+    const region=screenDiagnosticLocation({...diagnostic,location:{level:"table",table:0,box:[10,20,190,160],basis:"observed_table_region"}});
+    expect(region.level).toBe("table"); expect(region.reason).toContain("未定位到单格");
+  });
+  it("comparison pins current result and image candidate without confirming or editing", () => {
+    const input={...item,candidates:[{id:"alternative",engine:"glm",table_count:1}]};
+    expect(screenComparisonBody(input,"alternative",7)).toEqual({result_id:"result-a",expected_revision:7,candidate_id:"alternative"});
+    expect(() => screenComparisonBody(input,"alternative",6)).toThrow("版本已变化");
+    expect(() => screenComparisonBody(input,"other-image",7)).toThrow("候选");
+  });
+  it("compares the actual edited revision while leaving the prior human review stale", () => {
+    const edited = { ...item, result_revision: 7, current_result_revision: 8, review_stale: true,
+      result: { revision: 8, edited: { tables: [table] } }, candidates: [{ id: "alternative", engine: "glm", table_count: 1 }] };
+    expect(screenComparisonBody(edited, "alternative", 8).expected_revision).toBe(8);
+    expect(() => screenComparisonBody(edited, "alternative", 7)).toThrow("版本已变化");
+    expect(() => screenNumericExport({ ...edited, human_confirmed: true, status: "completed" }, { "0": [1] }, true)).toThrow("核对");
+    expect(edited.result_revision).toBe(7);
+    expect(edited.review_stale).toBe(true);
+  });
+});
 
 describe("screen batch workflow", () => {
   it("labels an ETA as the queued phase and keeps unknown or paused time explicit", () => {

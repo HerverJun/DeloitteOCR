@@ -4,15 +4,19 @@ import { Download, ScanLine, X } from "lucide-react";
 import { api, request } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
+import { ScreenDiagnosticPanel } from "./ScreenDiagnosticPanel";
 import type { Photo, Result, Table, Version } from "./types";
 import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
   screenNumericColumnOptions, screenNumericExport,
   screenCandidateReviewBody,
+  screenDiagnosticLocation, screenComparisonBody, screenResultRevision,
+  type ScreenDiagnostics, type ScreenComparison,
   type ScreenBatch, type ScreenCandidate, type ScreenCellEdit, type ScreenItem } from "./screenBatchWorkflow";
 import "./screen-batches.css";
 
 type PreparedImage = { id: string; kind: string; width: number; height: number; region_id?: string; path?: string };
 type ScreenDetail = ScreenItem & {
+  diagnostics?: ScreenDiagnostics;
   preparation?: { width: number; height: number; prepared_images: PreparedImage[]; warnings?: { message: string }[] };
   result?: (Result & { original: Result["original"] & {
     screen?: { selection?: { selected_id?: string } }; screen_selection?: { candidate_id?: string };
@@ -65,6 +69,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   const [numericConfirmed, setNumericConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [diagnosticIndex, setDiagnosticIndex] = useState(0), [compareCandidate, setCompareCandidate] = useState("");
+  const [comparison, setComparison] = useState<ScreenComparison | null>(null);
   const projectRef = useRef(projectId);
   const submission = useRef<{ requestId: string; signature: string } | null>(null);
   const generation = useRef(0);
@@ -75,7 +81,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   useEffect(() => {
     generation.current++;
     setBatchId(""); setBatch(null); setBatches([]); setDetailId(""); setDetail(null); setEdits({});
-    setError(""); setNotice(""); setFilter(""); setOffset(0); setBusy(false); submission.current = null;
+    setError(""); setNotice(""); setFilter(""); setOffset(0); setBusy(false); setComparison(null); submission.current = null;
   }, [projectId]);
 
   const report = useCallback((value: unknown) => {
@@ -125,14 +131,23 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   useEffect(() => {
     if (!open || !detailId || !batchId) { setDetail(null); return; }
     let active = true;
-    setDetail(null); setEdits({}); setIssueIndex(0); setPreviewId("original");
-    void loadDetail(detailId).then(value => { if (active && value) { setDetail(value); setTableIndex(value.issues[0]?.table || 0); setRow(value.issues[0]?.row || 0); setColumn(value.issues[0]?.column || 0); } }).catch(e => { if (active) report(e); });
+    setDetail(null); setEdits({}); setIssueIndex(0); setPreviewId("original"); setDiagnosticIndex(0); setComparison(null); setCompareCandidate("");
+    void loadDetail(detailId).then(value => { if (active && value) { setDetail(value); setTableIndex(value.issues[0]?.table || 0); setRow(value.issues[0]?.row || 0); setColumn(value.issues[0]?.column || 0); setCompareCandidate(value.candidate_results?.[0]?.id || ""); } }).catch(e => { if (active) report(e); });
     return () => { active = false; };
   }, [open, detailId, batchId, loadDetail, report]);
 
   useEffect(() => { setNumericColumns({}); setNumericConfirmed(false); }, [projectId, batchId, detailId, detail?.result?.id, detail?.result?.revision]);
 
   const issue = detail?.issues[issueIndex];
+  const currentComparison = comparison?.result_id === detail?.result_id && comparison?.result_revision === screenResultRevision(detail || undefined) && comparison?.input_version_id === detail?.input_version_id ? comparison : null;
+  const diagnostics = currentComparison?.diagnostics || detail?.diagnostics;
+  const selectedDiagnostic = diagnostics?.items[diagnosticIndex] || diagnostics?.items[0];
+  const diagnosticLocation = screenDiagnosticLocation(selectedDiagnostic);
+  const chooseDiagnostic = (index: number) => {
+    setDiagnosticIndex(index); setPreviewId("original");
+    const selected = diagnostics?.items[index];
+    if (selected && screenDiagnosticLocation(selected).level === "cell") { setTableIndex(selected.location.table!); setRow(selected.location.row!); setColumn(selected.location.column!); }
+  };
   const tables = detail?.result?.edited.tables || [];
   const cell = screenCell(tables[tableIndex], row, column);
   const editKey = cell ? screenEditKey({ table_index: tableIndex, row: cell.row, column: cell.column }) : "";
@@ -201,13 +216,21 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     const anchor = document.createElement("a");
     anchor.href = url; anchor.download = "screen-tables.zip"; anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-    setNotice("已下载逐图 Excel 与输入/结果清单。");
+    setNotice(`已下载当前可导出范围及输入/结果清单；待核对 ${batch?.counts.needs_review || 0} 张，尚未完成 ${batch?.counts.pending || 0} 张。`);
+  });
+  const compare = () => run(async () => {
+    if (!detail?.result || editedCount) throw Error("请先保存或清除当前修改，再比较候选。");
+    const owner = generation.current;
+    const body = screenComparisonBody(detail, compareCandidate, detail.result.revision);
+    const value = await api<ScreenComparison>(`${base}/${encodeURIComponent(batchId)}/items/${encodeURIComponent(detail.input_version_id)}/compare`, "POST", body);
+    if (owner !== generation.current) return;
+    setComparison(value); setDiagnosticIndex(0); setNotice(`候选比较发现 ${value.conflicts.length} 项分歧；尚未采用或修改结果，请依据原图核对。`);
   });
   const progress = batch ? screenProgress(batch.counts) : null;
   const active = batch && (activeStates.has(batch.status) || batch.counts.pending > 0 && batch.status !== "paused");
   const version: Version | null = detail?.preparation ? { id: detail.input_version_id, image_id: detail.image_id,
     width: detail.preparation.width, height: detail.preparation.height, parent_id: null, operations: "[]", created: "" } : null;
-  const localized = cell?.polygon || issue?.polygon || (issue?.box?.length === 4 ? [[issue.box[0], issue.box[1]], [issue.box[2], issue.box[1]], [issue.box[2], issue.box[3]], [issue.box[0], issue.box[3]]] : null);
+  const localized = diagnosticLocation.polygon;
   const close = () => { if (busy) return; if (editedCount) { setError("请先保存单元格修改，或清除待保存修改后关闭。"); return; } setOpen(false); };
 
   return <>
@@ -245,6 +268,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                   {batch.eta.cached_pending_tasks > 0 && ` ${batch.eta.cached_pending_tasks} 项等待完全重复图片的处理结果。`}
                 </p>}
               </div>
+              {batch.delivery_fresh === false && <p className="inline-warning" role="status">已有下载是历史版本；{batch.stale_item_count || 0} 张图片版本已变化，请重新导出当前结果。</p>}
+              <p className="screen-batch-small">已处理包含待核对、失败和取消项。可先下载当前范围，剩余 {batch.counts.pending} 张继续处理。</p>
               {batch.worker_error && <p className="inline-warning" role="alert">处理服务正在恢复：{batch.worker_error}</p>}
               <div className="screen-batch-actions">
                 {active && <Button disabled={busy} onClick={() => void batchAction("pause")}>暂停批次</Button>}
@@ -276,6 +301,12 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       {detail.result_id && <Button size="small" disabled={busy || disabled || !!editedCount || activeStates.has(detail.status)} onClick={() => void batchAction("upgrade",{version_ids:[detail.input_version_id]})}>只对这张图提高精度</Button>}
                     </div>
                     {detail.error && <p role="alert">{detail.error}</p>}
+                    {diagnostics && <ScreenDiagnosticPanel data={diagnostics} index={diagnosticIndex} select={chooseDiagnostic} busy={busy} action={name => {
+                      setPreviewId("original"); if (name === "structure_compare") void compare();
+                      if (name === "precision_subbatch") void batchAction("upgrade", {version_ids:[detail.input_version_id]});
+                      if (name === "request_better_source") setNotice("请补充这张图的清晰、完整照片；原结果与来源继续保留，不猜测不可见内容。");
+                    }} />}
+                    {!!detail.candidate_results?.length && <div className="screen-batch-actions"><label>比较候选<select aria-label="诊断比较候选" value={compareCandidate} onChange={event => { setCompareCandidate(event.target.value); setComparison(null); }}>{detail.candidate_results.map(value => <option key={value.id} value={value.id}>{value.engine} · {value.raw.tables.length} 张表</option>)}</select></label><Button size="small" disabled={busy || !!editedCount || !compareCandidate} onClick={() => void compare()}>比较候选差异</Button></div>}
                     {detail.issues.length > 0 && <label>需要核对<select aria-label="本图疑点" value={issueIndex} onChange={e => chooseIssue(Number(e.target.value))}>{detail.issues.map((item,index) => <option key={index} value={index}>{index+1}. {screenIssueTitle(item)}</option>)}</select></label>}
                     {issue && <div className={"screen-issue " + (issue.severity === "high" ? "high" : "")}>
                       <strong>{screenIssueTitle(issue)}</strong>
@@ -289,7 +320,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       {previewId === "original" && version ? <div className="screen-source-canvas">
                         <ImageCanvas key={version.id} version={version} versions={[version]} blocks={[]} highlight={null} readOnly busy={false}
                           onVersion={() => {}} onTransform={() => {}} onRegion={() => {}}
-                          reviewLocation={{level:localized ? "cell" : "image",polygon:localized,version_id:version.id,reason:localized ? "原图局部定位" : "无可靠单格定位，显示全图"}} />
+                          reviewLocation={{level:diagnosticLocation.level,polygon:localized,version_id:version.id,reason:diagnosticLocation.reason}} />
                         <p className="screen-batch-small">点击 100% 或放大后，拖动图片或使用滚动条查看原文。{!localized && "当前没有可靠单格定位，请在原图逐项核对。"}</p>
                       </div>
                         : <PreparedPreview path={`${base}/${encodeURIComponent(batchId)}/items/${encodeURIComponent(detail.input_version_id)}/files/${encodeURIComponent(previewId)}`} name="业务处理图" />}
@@ -311,7 +342,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       <details className="screen-numeric-export">
                         <summary>本图数值列可计算（可选）</summary>
                         <p className="screen-batch-small">仅作用于当前图片的已选列。请先完成人工核对，再选择金额或数量列；编号、前导零和超长数字继续保留原文。</p>
-                        {!detail.human_confirmed || detail.status !== "completed" ? <p>保存并标记本图核对完成后，可选择数值列。</p> : <>
+                        {!detail.human_confirmed || detail.review_stale || detail.result.revision !== detail.result_revision || detail.status !== "completed" ? <p>保存并标记本图核对完成后，可选择数值列。</p> : <>
                           <label>选择表格<select aria-label="本图数值列所属表格" value={tableIndex} onChange={e => setTableIndex(Number(e.target.value))}>{tables.map((_, index) => <option key={index} value={index}>表 {index + 1}</option>)}</select></label>
                           <div className="screen-numeric-columns">{tables[tableIndex] && screenNumericColumnOptions(tables[tableIndex]).map(option => <label key={option.column} className="screen-batch-check">
                             <input type="checkbox" aria-label={`数值列 ${option.column + 1} ${option.title}`} disabled={busy || !!editedCount || option.identifier} checked={(numericColumns[String(tableIndex)] || []).includes(option.column)} onChange={e => {

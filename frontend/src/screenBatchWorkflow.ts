@@ -9,6 +9,7 @@ export type ScreenCounts = { total: number; completed: number; needs_review: num
 export type ScreenItem = {
   input_version_id: string; image_id: string; source_name: string; status: string; stage: string;
   result_id?: string | null; result_revision?: number | null; review_state: string; human_confirmed: boolean;
+  current_result_revision?: number | null; review_stale?: boolean;
   error?: string | null; issues: ScreenIssue[];
   candidates?: { id: string; engine: string; table_count: number }[];
 };
@@ -16,7 +17,32 @@ export type ScreenBatch = {
   batch_id: string; project_id: string; status: string; counts: ScreenCounts; items: ScreenItem[];
   total_items: number; next_offset: number | null; created: string; updated: string; worker_error?: string | null;
   eta?: ScreenEta;
+  delivery_snapshot_id?: string; delivery_fresh?: boolean; stale_item_count?: number;
 };
+export type ScreenDiagnosticAction = { action: string; label: string; enabled: boolean; reason?: string | null; budget_seconds?: number };
+export type ScreenDiagnostic = { id: string; code: string; severity: string; reason: string; location: { level: "cell" | "table" | "image"; table?: number | null; row?: number; column?: number; box?: number[] | null; basis?: string; range_semantics?: string }; evidence: Record<string, unknown>[]; applicable_actions: ScreenDiagnosticAction[] };
+export type ScreenDiagnostics = { items: ScreenDiagnostic[]; summary: { issues: number; groups: number; cell: number; table: number; image: number }; budget: { remaining_seconds: number | null }; result_id?: string; result_revision?: number; input_version_id?: string };
+export type ScreenComparison = { result_id: string; result_revision: number; input_version_id: string; current_id: string; alternative_id: string; recommended_candidate_id: string; diagnostics: ScreenDiagnostics; conflicts: { code: string; value?: string; alternative?: string; message?: string }[]; selection_applied: false; values_modified: false };
+
+export function screenDiagnosticLocation(item?: ScreenDiagnostic) {
+  const loc = item?.location, box = loc?.box;
+  const validBox = !!box && box.length === 4 && box.every(Number.isFinite) && box[0] >= 0 && box[1] >= 0 && box[2] > box[0] && box[3] > box[1];
+  const cell = loc?.level === "cell" && loc.basis === "observed_full_cell_geometry" && loc.range_semantics === "full_cell"
+    && [loc.table, loc.row, loc.column].every(value => Number.isInteger(value) && Number(value) >= 0);
+  const table = loc?.level === "table" && loc.basis === "observed_table_region";
+  if (validBox && (cell || table)) return { level: cell ? "cell" : "table", polygon: [[box![0], box![1]], [box![2], box![1]], [box![2], box![3]], [box![0], box![3]]], reason: cell ? `表 ${Number(loc!.table) + 1}，行 ${Number(loc!.row) + 1}，列 ${Number(loc!.column) + 1}（可靠单格）` : "可靠业务表区，未定位到单格" };
+  return { level: "image", polygon: null, reason: loc?.level === "table" ? "表区疑点无可靠单格定位，请核对原图" : "无可靠单格定位，显示全图" };
+}
+
+export function screenResultRevision(item?: Pick<ScreenItem, "current_result_revision" | "result_revision"> & { result?: { revision: number } | null }) {
+  const revision = item?.result?.revision ?? item?.current_result_revision ?? item?.result_revision;
+  return Number.isInteger(revision) && Number(revision) >= 0 ? Number(revision) : undefined;
+}
+
+export function screenComparisonBody(item: ScreenItem & { result?: { revision: number } | null }, candidateId: string, revision: number) {
+  if (!item.result_id || revision !== screenResultRevision(item) || !Number.isInteger(revision) || !item.candidates?.some(candidate => candidate.id === candidateId)) throw Error("比较对应的图片、候选或结果版本已变化，请刷新后再试。");
+  return { result_id: item.result_id, expected_revision: revision, candidate_id: candidateId };
+}
 export type ScreenEta = {
   remaining_seconds: number | null; stage: { kind: string; engine: string; pass_index: number; label: string } | null;
   sample_count: number; pending_tasks: number; cached_pending_tasks: number; reason: string;
@@ -96,7 +122,7 @@ export function screenNumericColumnOptions(table: Table) {
 export function screenNumericExport(item: ScreenItem & { result?: { revision: number; edited: { tables: Table[] } } | null }, selections: Record<string, number[]>, confirmed: boolean) {
   const chosen = Object.entries(selections).filter(([, columns]) => columns.length > 0);
   if (!chosen.length) return undefined;
-  if (!confirmed || !item.human_confirmed || item.status !== "completed" || !item.result || item.result.revision !== item.result_revision)
+  if (!confirmed || !item.human_confirmed || item.review_stale || item.status !== "completed" || !item.result || item.result.revision !== item.result_revision)
     throw Error("请先保存并完成本图核对，再确认需要计算的金额或数量列。");
   const tables: Record<string, number[]> = {};
   for (const [tableIndex, columns] of chosen) {
