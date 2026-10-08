@@ -7,7 +7,7 @@ type Target = { input_version_id: string; result_id: string; result_revision: nu
 type Submission = { request_id: string; budget_seconds: number; target: Target }
 type Command = { action: string; request_id: string }
 type Candidate = { task_id: string; status: string; candidate_state: string; current_binding: boolean; text: string | null; text_preview_only: boolean; content_status?: string | null; binding: { result_id: string; result_revision: number }; artifact?: Record<string, { sha256: string }> | null }
-type Receipt = { request_id: string; status: string; execution_status: string; reason?: string; items: Candidate[]; values_modified: false; selection_applied: false; human_review: string }
+type Receipt = { request_id: string; status: string; execution_status: string; reason?: string; owned_task_ids: string[]; items: Candidate[]; values_modified: false; selection_applied: false; human_review: string }
 const id = () => 'r' + crypto.randomUUID().replaceAll('-', '')
 async function json<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined)
@@ -39,12 +39,13 @@ export function LocalCandidates({ workspaceId, batchId, inputVersionId, resultId
     queryFn: () => json<Receipt>(`${base}/${submission!.request_id}?offset=0&limit=12`),
     refetchInterval: q => q.state.data?.execution_status === 'pending' ? 2500 : false })
   const start = useMutation({ mutationFn: (request: Submission) => json<Receipt>(base, request),
-    onSuccess: value => client.setQueryData(queryKey, value) })
+    onSuccess: value => client.setQueryData(['ocr-local-candidate', workspaceId, batchId, value.request_id], value) })
   const control = useMutation({ mutationFn: (command: Command) => json<Receipt>(`${base}/${submission!.request_id}/control`, command),
-    onSuccess: value => { setControlIntent(null); sessionStorage.removeItem(controlKey); client.setQueryData(queryKey, value) } })
+    onSuccess: value => { setControlIntent(null); sessionStorage.removeItem(controlKey); client.setQueryData(['ocr-local-candidate', workspaceId, batchId, value.request_id], value) } })
   const reliable = diagnostic?.location.level === 'cell' && !!reliableDiagnosticBox(diagnostic)
   const supported = reliable && !!resultId && revision !== undefined && remainingBudget !== null && remainingBudget >= 10 && !primaryPending
   const pending = receipt.data?.execution_status === 'pending'
+  const canControl = (receipt.data?.owned_task_ids?.length ?? 0) > 0
   const canStart = supported && !start.isPending && !pending && !controlIntent
   const waitingUnknown = !!submission && !receipt.data
   function generate() {
@@ -70,8 +71,9 @@ export function LocalCandidates({ workspaceId, batchId, inputVersionId, resultId
     {waitingUnknown && submission && <Button loading={start.isPending} onClick={() => start.mutate(submission)}>核实原候选请求</Button>}
     {controlIntent && <Button loading={control.isPending} onClick={() => control.mutate(controlIntent)}>核实原控制操作</Button>}
     {receipt.data && <><p>处理状态：{pending ? '后台处理中' : receipt.data.status === 'blocked' ? '本次未新增识别' : '已结束'}{receipt.data.reason === 'lineage_budget_exhausted' ? ' · 剩余预算不足' : ''}</p>
-      {pending && <Space wrap>{(['pause', 'resume', 'cancel'] as const).map(action => <Button key={action} disabled={control.isPending || (!!controlIntent && controlIntent.action !== action)} onClick={() => command(action)}>{({ pause: '暂停候选', resume: '继续候选', cancel: '取消候选' })[action]}</Button>)}</Space>}
-      {receipt.data.items.some(item => item.status === 'failed') && <Button disabled={control.isPending || (!!controlIntent && controlIntent.action !== 'retry_failed')} onClick={() => command('retry_failed')}>仅重试失败候选</Button>}
+      {receipt.data.status === 'reused' && !canControl && <p>已复用此前相同位置的识别，任务由原请求控制。</p>}
+      {pending && canControl && <Space wrap>{(['pause', 'resume', 'cancel'] as const).map(action => <Button key={action} disabled={control.isPending || (!!controlIntent && controlIntent.action !== action)} onClick={() => command(action)}>{({ pause: '暂停候选', resume: '继续候选', cancel: '取消候选' })[action]}</Button>)}</Space>}
+      {canControl && receipt.data.items.some(item => item.status === 'failed') && <Button disabled={control.isPending || (!!controlIntent && controlIntent.action !== 'retry_failed')} onClick={() => command('retry_failed')}>仅重试失败候选</Button>}
       {receipt.data.items.map(item => {
         const stale = !item.current_binding || item.candidate_state === 'stale' || item.binding.result_id !== resultId || item.binding.result_revision !== revision
         const fileBase = `${base}/${receipt.data!.request_id}/tasks/${item.task_id}/files`

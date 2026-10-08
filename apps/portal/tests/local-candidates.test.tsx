@@ -24,6 +24,7 @@ const storage = 'clear-local-candidate:workA:batchA:versionA'
 const candidate = { task_id: 'taskA', status: 'succeeded', candidate_state: 'available', current_binding: true,
   text: 'OBFC1', text_preview_only: false, binding: { result_id: 'resultA', result_revision: 2 }, artifact: {} }
 const receipt = { request_id: submission.request_id, status: 'submitted', execution_status: 'succeeded', items: [candidate],
+  owned_task_ids: ['taskA'],
   values_modified: false, selection_applied: false, human_review: 'not_performed' }
 const ok = (value: unknown) => ({ ok: true, status: 200, json: async () => value })
 function mount(properties = props) {
@@ -90,4 +91,19 @@ test('a candidate from an older result stays visibly historical after an edit', 
   await screen.findByText('历史候选，所依据的结果已变化')
   expect(screen.getByText('当前格值：人工修改值')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /采用|确认/ })).not.toBeInTheDocument()
+})
+
+test.each(['running', 'failed'])('a reused %s task remains readable but has no controls owned by this request', async status => {
+  sessionStorage.setItem(storage, JSON.stringify(submission))
+  const fetcher = vi.fn(async (_url: string, _init?: RequestInit) => ok({ ...receipt, status: 'reused', owned_task_ids: [],
+    execution_status: status === 'running' ? 'pending' : 'failed',
+    items: [{ ...candidate, status, candidate_state: status === 'running' ? 'pending' : 'failed' }] }))
+  vi.stubGlobal('fetch', fetcher)
+  mount()
+  await screen.findByText('已复用此前相同位置的识别，任务由原请求控制。')
+  expect(screen.queryByRole('button', { name: '暂停候选' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '继续候选' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '取消候选' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '仅重试失败候选' })).not.toBeInTheDocument()
+  expect(fetcher.mock.calls.every(call => call[1]?.method !== 'POST')).toBe(true)
 })
