@@ -53,7 +53,9 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
         self.root = Path(self.tmp.name)
         self.workspace = WorkspaceStore(self.root / 'workspace.sqlite3')
         self.workspace.create_workspace('screen wait fixture', workspace_id='wtest')
-        self.services = SimpleNamespace(workspace_store=self.workspace, asset_library=(Assets(), Sets(), None))
+        self.services = SimpleNamespace(workspace_store=self.workspace, asset_library=(Assets(), Sets(), None),
+            screen_batches=SimpleNamespace(export_freshness=lambda *args: {
+                'current': True, 'current_snapshot_id': 'a'*64, 'export_options': {}}))
         self.state = {'pending': True, 'status': 'running', 'posts': 0, 'actions': []}
         self.observed = []
         def settle(ref, ctx):
@@ -94,7 +96,16 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
         summary=_history_summary(messages)['content']
         self.assertIn('batchA',summary)
         self.assertIn('bundleA',summary)
-        self.assertIn('omitted_discovery_calls',summary)
+        facts=json.loads(summary.split('\n',1)[1])
+        discovery=next(item for item in facts if item['call_id']=='discover')
+        batch=next(item for item in facts if item['call_id']=='batch')
+        self.assertEqual(discovery['tool'],'tools_list')
+        self.assertEqual(discovery['arguments'],{'family':'artifacts'})
+        self.assertEqual([item['name'] for item in discovery['data']['tools']],['example']*30)
+        self.assertEqual(discovery['data']['contract_readback'],'tools_describe/session_read_history')
+        self.assertNotIn('activated_tools',discovery['data'])
+        self.assertEqual(batch['job_refs'],messages[-1]['result']['job_refs'])
+        self.assertEqual(batch['artifact_refs'],messages[-1]['result']['artifact_refs'])
         self.assertIn('session_read_history',summary)
         self.assertNotIn('目录文案',summary)
         self.assertEqual(json.dumps(messages,ensure_ascii=False),original)
@@ -145,8 +156,10 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
             job_refs=[AgentRef(kind='job',workspace_id='wtest',object_id='batchA',revision=1,application='ocr',coverage={'kind':'screen_batch'})]).model_dump()
         state={'messages':[{'role':'tool','call_id':'A','result':receipt}],'background_jobs':[]}
         delivery=AgentToolResult(status='success',summary='候选文件已交付',data={'verified':True,
-            'screen_batch_coverage':[{'batch_id':'batchA','total':8,'file_count':8,'pending':0}]}).model_dump()
+            'screen_batch_coverage':[{'batch_id':'batchA','total':8,'file_count':8,'pending':0,'current_verified':True}]}).model_dump()
         self.assertTrue(terminal_screen_delivery(state,delivery))
+        wrong=json.loads(json.dumps(delivery));wrong['data']['screen_batch_coverage'][0]['current_verified']=False
+        self.assertFalse(terminal_screen_delivery(state,wrong))
         wrong=json.loads(json.dumps(delivery));wrong['data']['screen_batch_coverage'][0]['file_count']=2
         self.assertFalse(terminal_screen_delivery(state,wrong))
         wrong=json.loads(json.dumps(delivery));wrong['data']['screen_batch_coverage'][0]['pending']=6
@@ -261,7 +274,7 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
             file=lambda *args: SimpleNamespace(artifact_id='artifactA', revision=1, blob_hash='a' * 64),
             store=SimpleNamespace(stage_download=lambda *args, **kwargs: nullcontext()))
         ctx = SimpleNamespace(workspace_id='wtest', run_id='runA',
-                              services=SimpleNamespace(artifact_center=center),
+                              services=SimpleNamespace(artifact_center=center, screen_batches=self.services.screen_batches),
                               store=SimpleNamespace(rows=lambda *args: []))
         args = Delivery(summary='具体审计结论与分析依据', artifact_refs=[
             AgentRef(kind='artifact', workspace_id='wtest', object_id='bundleA', revision=1)])
@@ -278,7 +291,7 @@ class ScreenWaitTests(unittest.IsolatedAsyncioTestCase):
             file=lambda *args: SimpleNamespace(artifact_id='artifactA', revision=1, blob_hash='a' * 64),
             store=SimpleNamespace(stage_download=lambda *args, **kwargs: nullcontext()))
         ctx = SimpleNamespace(workspace_id='wtest', run_id='runA',
-                              services=SimpleNamespace(artifact_center=center),
+                              services=SimpleNamespace(artifact_center=center, screen_batches=self.services.screen_batches),
                               store=SimpleNamespace(rows=lambda *args: []))
         args = Delivery(summary='已交付', artifact_refs=[AgentRef(kind='artifact', workspace_id='wtest',
             object_id='bundleA', revision=1, application='ocr', parent_id='batchA')])

@@ -26,6 +26,7 @@ from workbench_platform.assets.routes import json_body, library
 from workbench_platform.assets.sets import AssetSetConflict
 from workbench_platform.jobs.native_ocr import OcrUnavailable, OcrResultConflict, MAX_EXPORT
 from workbench_platform.jobs.ocr_handoff import _json, _utc
+from workbench_platform.reader_requirements import mark_reader_feature
 
 router = APIRouter(prefix='/api/platform/v1/workspaces/{workspace_id}/ocr/screen-batches', tags=['screen-batches'])
 TERMINAL = {'completed', 'succeeded', 'partial', 'failed', 'cancelled', 'needs_review'}
@@ -51,6 +52,7 @@ class ScreenPolicy(AgentModel):
     layout_evidence: bool | None = None
     upgrade_trigger: Literal['failure_only', 'quality'] | None = None
     require_human_review: bool | None = Field(default=None, strict=True)
+    context_schedule: Literal['whole_batch', 'grouped'] | None = None
 
 
 class ScreenSubmit(AgentModel):
@@ -96,6 +98,39 @@ class ScreenExport(AgentModel):
     numeric_columns: dict[str, dict[str, list[int]]] | None = None
 
 
+class ScreenCompare(AgentModel):
+    result_id: Identity
+    expected_revision: int = Field(ge=0)
+    candidate_id: Identity
+
+
+class ScreenIssueTarget(AgentModel):
+    input_version_id: Identity
+    result_id: Identity
+    result_revision: int = Field(ge=0, strict=True)
+    issue_ids: list[Identity] = Field(min_length=1, max_length=50)
+
+    @model_validator(mode='after')
+    def distinct_issues(self):
+        if len(set(self.issue_ids)) != len(self.issue_ids):
+            raise ValueError('问题编号不能重复')
+        return self
+
+
+class ScreenResolution(AgentModel):
+    request_id: Identity = Field(min_length=8)
+    action: Literal['precision_subbatch'] = 'precision_subbatch'
+    budget_seconds: int = Field(ge=10, le=864000, strict=True)
+    targets: list[ScreenIssueTarget] = Field(min_length=1, max_length=50)
+
+    @model_validator(mode='after')
+    def distinct_images(self):
+        versions = [target.input_version_id for target in self.targets]
+        if len(set(versions)) != len(versions):
+            raise ValueError('处理图片不能重复')
+        return self
+
+
 class ScreenBatches:
     def __init__(self, path: Path, handoff, artifacts):
         self.path, self.handoff, self.artifacts = path, handoff, artifacts
@@ -118,6 +153,11 @@ class ScreenBatches:
                 CREATE TABLE IF NOT EXISTS screen_batch_policy_receipts(
                 workspace_id TEXT NOT NULL,batch_id TEXT NOT NULL,policy_hash TEXT NOT NULL,
                 policy_json TEXT NOT NULL,PRIMARY KEY(workspace_id,batch_id));''')
+            columns = {row['name'] for row in db.execute('PRAGMA table_info(screen_batch_exports)')}
+            if 'snapshot_json' not in columns:
+                db.execute('ALTER TABLE screen_batch_exports ADD COLUMN snapshot_json TEXT')
+            from .screen_local_candidates import initialize
+            initialize(db)
 
     def _connect(self):
         db = sqlite3.connect(self.path, timeout=30, isolation_level=None)
@@ -267,7 +307,7 @@ class ScreenBatches:
             raise KeyError('Prepared image not in this batch')
         return adapter.screen_image(row['project_id'],batch_id,version_id,file_id)
 
-    def action(self, workspace, batch_id, args: ScreenAction):
+    def action(self, workspace, batch_id, args: ScreenAction, *, allow_new=True):
         row = self._row(workspace, batch_id)
         adapter, _, fixed = self._adapter(workspace, row)
         body = args.model_dump(mode='json', exclude_none=True)
@@ -279,9 +319,35 @@ class ScreenBatches:
             if old and (old['payload_hash'] != identity or old['batch_id'] != batch_id):
                 raise AssetSetConflict('操作请求身份与原参数不同')
             if not old:
+                if not allow_new:
+                    return None
                 db.execute('INSERT INTO screen_batch_actions VALUES(?,?,?,?)', (workspace,args.request_id,batch_id,identity))
-            receipt=adapter._request('POST', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/action', body, max_body=128000, result_conflict=True)
+            if args.action == 'upgrade':
+                mark_reader_feature(self.path.parent, 'screen-resolution-v1')
+            endpoint = 'action' if allow_new else 'action-lookup'
+            receipt=adapter._request('POST', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/{endpoint}',
+                body, max_body=128000, result_conflict=True, allow_null=not allow_new)
+            if receipt is None:
+                return None
             if args.action=='upgrade':
+                if receipt.get('status') in {'blocked', 'intent'}:
+                    return {**self.status(workspace, batch_id), 'resolution': receipt, 'new_attempt_started': False}
+                if receipt.get('resolution_version'):
+                    # New bounded upgrades return a resolution ledger; reuse
+                    # the exact registration path and read-only native lookup.
+                    targets = [{key: binding[key] for key in ('input_version_id','result_id','result_revision','issue_ids')}
+                               for binding in receipt['bindings']]
+                    resolution = ScreenResolution(request_id=receipt['request_id'], action='precision_subbatch',
+                        budget_seconds=receipt['requested_budget_seconds'], targets=targets)
+                    resolution_hash = hashlib.sha256(_json(resolution.model_dump(mode='json')).encode()).hexdigest()
+                    db.execute('INSERT OR IGNORE INTO screen_batch_actions VALUES(?,?,?,?)',
+                               (workspace, resolution.request_id, batch_id, resolution_hash))
+                    resolved = self.resolve(workspace, batch_id, resolution, allow_new=False)
+                    if resolved is None:
+                        raise OcrUnavailable()
+                    if resolved.get('job_registered'):
+                        return {**resolved['attempt'], 'resolution': resolved, 'new_attempt_started': True}
+                    return {**self.status(workspace, batch_id), 'resolution': resolved, 'new_attempt_started': False}
                 new_id=receipt.get('batch_id')
                 if not isinstance(new_id,str) or not __import__('re').fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}',new_id) or new_id==batch_id or receipt.get('parent_batch_id')!=batch_id:
                     raise OcrUnavailable()
@@ -300,6 +366,143 @@ class ScreenBatches:
                            (workspace,new_id,subset.asset_set_id,subset.revision))
                 batch_id=new_id
         return self.status(workspace, batch_id)
+
+    def delivery_snapshot(self, workspace, batch_id):
+        row = self._row(workspace, batch_id)
+        adapter, _, _ = self._adapter(workspace, row)
+        value = adapter._request('GET', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/delivery-snapshot')
+        sources = {item['input_version_id']: item['image_id'] for item in json.loads(row['source_json'])}
+        items = value.get('items', [])
+        identity = {key: value.get(key) for key in ('batch_id', 'project_id', 'policy_sha256', 'items')}
+        if (value.get('batch_id') != batch_id or value.get('project_id') != row['project_id']
+            or len(items) != len(sources)
+            or {item.get('input_version_id'): item.get('image_id') for item in items} != sources
+            or value.get('snapshot_id') != hashlib.sha256(_json(identity).encode()).hexdigest()
+            or type(value.get('fresh')) is not bool):
+            raise OcrUnavailable()
+        return value
+
+    def export_freshness(self, workspace, batch_id, bundle_id):
+        self._row(workspace, batch_id)
+        with self.lock, closing(self._connect()) as db:
+            row = db.execute('SELECT snapshot_json FROM screen_batch_exports WHERE workspace_id=? AND batch_id=? AND bundle_id=?',
+                             (workspace, batch_id, bundle_id)).fetchone()
+        saved = json.loads(row['snapshot_json']) if row and row['snapshot_json'] else None
+        if not saved:
+            return {'batch_id': batch_id, 'bundle_id': bundle_id, 'current': False,
+                    'state': 'historical', 'reason': '旧成果缺少当前内容快照，请重新导出'}
+        current = self.delivery_snapshot(workspace, batch_id)
+        fresh = current['fresh'] and current['snapshot_id'] == saved['snapshot_id']
+        return {'batch_id': batch_id, 'bundle_id': bundle_id, 'current': fresh,
+                'state': 'current' if fresh else 'historical',
+                'snapshot_id': saved['snapshot_id'], 'current_snapshot_id': current['snapshot_id'],
+                'export_options': saved['export_options'],
+                'reason': '' if fresh else '原图、结果、复核状态或处理进度已变化，请重新导出'}
+
+    def bundle_freshness(self, workspace, bundle_id):
+        with self.lock, closing(self._connect()) as db:
+            row = db.execute('SELECT batch_id FROM screen_batch_exports WHERE workspace_id=? AND bundle_id=?',
+                             (workspace, bundle_id)).fetchone()
+        if not row:
+            return {'kind': 'other', 'state': 'untracked'}
+        return {'kind': 'screen_batch', **self.export_freshness(workspace, row['batch_id'], bundle_id)}
+
+    def compare(self, workspace, batch_id, version_id, args: ScreenCompare):
+        self.detail(workspace, batch_id, version_id)
+        row = self._row(workspace, batch_id)
+        adapter, _, _ = self._adapter(workspace, row)
+        value = adapter._request('POST', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/items/{version_id}/compare',
+                                 args.model_dump(mode='json'))
+        if (value.get('input_version_id') != version_id or value.get('result_id') != args.result_id
+                or value.get('result_revision') != args.expected_revision or value.get('selection_applied') is not False):
+            raise OcrUnavailable()
+        return value
+
+    def local_candidates(self, workspace, batch_id, args, *, allow_new=True):
+        from .screen_local_candidates import submit
+        return submit(self, workspace, batch_id, args, allow_new=allow_new)
+
+    def local_candidates_status(self, workspace, batch_id, request_id, *, offset=0, limit=12):
+        from .screen_local_candidates import read
+        return read(self, workspace, batch_id, request_id, offset=offset, limit=limit)
+
+    def local_candidates_control(self, workspace, batch_id, request_id, args, *, allow_new=True):
+        from .screen_local_candidates import control
+        return control(self, workspace, batch_id, request_id, args, allow_new=allow_new)
+
+    def local_candidate_file(self, workspace, batch_id, request_id, task_id, file_id):
+        from .screen_local_candidates import artifact_file
+        return artifact_file(self, workspace, batch_id, request_id, task_id, file_id)
+
+    def resolve(self, workspace, batch_id, args: ScreenResolution, *, allow_new=True):
+        row = self._row(workspace, batch_id)
+        adapter, _, fixed = self._adapter(workspace, row)
+        body = args.model_dump(mode='json')
+        versions = [target.input_version_id for target in args.targets]
+        source_by_version = {item['input_version_id']: item for item in json.loads(row['source_json'])}
+        if not set(versions) <= set(source_by_version):
+            raise ValueError('问题图片不属于当前批次')
+        identity = hashlib.sha256(_json(body).encode()).hexdigest()
+        with self.lock, closing(self._connect()) as db:
+            old = db.execute('SELECT * FROM screen_batch_actions WHERE workspace_id=? AND request_id=?',
+                             (workspace, args.request_id)).fetchone()
+            if old and (old['payload_hash'] != identity or old['batch_id'] != batch_id):
+                raise AssetSetConflict('处理请求身份与原参数不同')
+            if old is None:
+                if not allow_new:
+                    return None
+                db.execute('INSERT INTO screen_batch_actions VALUES(?,?,?,?)',
+                           (workspace, args.request_id, batch_id, identity))
+            mark_reader_feature(self.path.parent, 'screen-resolution-v1')
+            endpoint = 'resolve' if allow_new else 'resolve-lookup'
+            receipt = adapter._request('POST', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/{endpoint}',
+                                       body, max_body=128000, result_conflict=True, allow_null=not allow_new)
+            if receipt is None:
+                return None
+            bindings = receipt.get('bindings', [])
+            if (receipt.get('request_id') != args.request_id or receipt.get('parent_batch_id') != batch_id
+                    or receipt.get('action') != 'precision_subbatch' or receipt.get('selection_applied') is not False
+                    or receipt.get('values_modified') is not False or receipt.get('human_review') != 'not_performed'
+                    or len(bindings) != len(args.targets)
+                    or any(any(binding.get(key) != target.model_dump()[key] for key in
+                               ('input_version_id', 'result_id', 'result_revision', 'issue_ids'))
+                           for binding, target in zip(bindings, args.targets))):
+                raise OcrUnavailable()
+            child_id = receipt.get('batch_id')
+            if child_id and receipt.get('status') in {'submitted', 'reused'}:
+                if not __import__('re').fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', str(child_id)) or child_id == batch_id:
+                    raise OcrUnavailable()
+                # The native receipt binds the complete child range/policy.
+                # Reused pixel attempts may have a different existing subset;
+                # register only after checking the actual child identity.
+                native = adapter._request('GET', f'/api/projects/{row["project_id"]}/screen-batches/{child_id}?limit=50')
+                actual_versions = [item.get('input_version_id') for item in native.get('items', [])]
+                if (native.get('batch_id') != child_id or native.get('project_id') != row['project_id']
+                        or native.get('parent_batch_id') != batch_id or len(actual_versions) != len(versions)
+                        or set(actual_versions) != set(versions)
+                        or native.get('counts', {}).get('total') != len(versions)):
+                    # Reuse is still valid evidence, but a larger/foreign-parent
+                    # attempt must not become this session's narrowed job.
+                    return {**receipt, 'attempt': None, 'job_registered': False,
+                            'registration_reason': 'existing_attempt_has_different_bound_range'}
+                sources = [source_by_version[version] for version in versions]
+                db.execute('INSERT OR IGNORE INTO screen_batch_refs VALUES(?,?,?,?,?,?,?,?,?)',
+                           (workspace, args.request_id, identity, row['handoff_id'], row['project_id'], child_id,
+                            _json(sources), _json(native['policy']), _utc()))
+                saved = db.execute('SELECT * FROM screen_batch_refs WHERE workspace_id=? AND batch_id=?',
+                                   (workspace, child_id)).fetchone()
+                if not saved or saved['source_json'] != _json(sources) or saved['policy_json'] != _json(native['policy']):
+                    raise AssetSetConflict('精度子批次回执与原范围或策略不一致')
+                source_ids = {source['asset_id'] for source in sources}
+                members = [member for member in fixed.items if member.asset_id in source_ids]
+                subset_id = 's' + hashlib.sha256(_json([fixed.asset_set_id, fixed.revision,
+                                                      [member.item_id for member in members]]).encode()).hexdigest()[:40]
+                subset = self.handoff.sets.create(workspace, members, asset_set_id=subset_id,
+                    parents={member.item_id: (fixed.asset_set_id, fixed.revision, member.item_id) for member in members})
+                db.execute('INSERT OR IGNORE INTO screen_batch_subsets VALUES(?,?,?,?)',
+                           (workspace, child_id, subset.asset_set_id, subset.revision))
+                return {**receipt, 'attempt': self.status(workspace, child_id), 'job_registered': True}
+        return {**receipt, 'attempt': None, 'job_registered': False}
 
     def export(self, workspace, batch_id, args: ScreenExport):
         row = self._row(workspace, batch_id)
@@ -333,11 +536,23 @@ class ScreenBatches:
                     filenames.append(name)
             if not filenames or len(set(filenames)) != len(filenames) or manifest.get('success_files') != len(filenames):
                 raise OcrUnavailable()
+        delivery = self.delivery_snapshot(workspace, batch_id)
+        options = args.model_dump(mode='json')
+        version_vector = {**{key: delivery[key] for key in
+            ('snapshot_id', 'batch_id', 'project_id', 'policy_sha256', 'items')}, 'export_options': options}
+        if (not delivery['fresh'] or manifest.get('snapshot_id') != delivery['snapshot_id']
+                or manifest.get('export_options') != options or manifest.get('version_vector') != version_vector):
+            raise OcrResultConflict()
+        current_items = {item['input_version_id']: item for item in delivery['items']}
+        if any(any(item.get(key) != current_items[item['input_version_id']].get(key)
+                   for key in ('result_id', 'result_revision', 'status', 'review_state')) for item in items):
+            raise OcrResultConflict()
         counts = summary['counts']
         # Export timestamps and ZIP container metadata change between native
         # reads. Pinned result identities/revisions and export options own the
         # semantic snapshot; a retry must recover its existing managed bundle.
         export_key=hashlib.sha256(_json({'items':items,'policy':manifest.get('policy'),
+            'snapshot_id': delivery['snapshot_id'],
             'options':args.model_dump(mode='json',exclude_none=True),'input_manifest_hash':fixed.manifest_hash}).encode()).hexdigest()
         with self.lock,closing(self._connect()) as db:
             previous=db.execute('SELECT bundle_id FROM screen_batch_exports WHERE workspace_id=? AND batch_id=? AND payload_hash=?',
@@ -361,7 +576,11 @@ class ScreenBatches:
             if previous:
                 return self.artifacts.get(workspace,previous['bundle_id'])
             bundle=self.artifacts.ocr.publish(workspace,batch_id,snapshot=snapshot)
-            db.execute('INSERT INTO screen_batch_exports VALUES(?,?,?,?)',(workspace,batch_id,export_key,bundle['bundle_id']))
+            db.execute('INSERT INTO screen_batch_exports(workspace_id,batch_id,payload_hash,bundle_id,snapshot_json) VALUES(?,?,?,?,?)',
+                       (workspace,batch_id,export_key,bundle['bundle_id'],
+                        _json({'snapshot_id': delivery['snapshot_id'], 'export_options': options,
+                               'version_vector': version_vector})))
+            mark_reader_feature(self.path.parent, 'screen-delivery-snapshot-v1')
             return bundle
 
 
@@ -417,6 +636,43 @@ async def detail(workspace_id:str,batch_id:Identity,version_id:Identity,request:
 @router.post('/{batch_id}/action')
 async def action(workspace_id:str,batch_id:Identity,request:Request):
     return await call(service(request,workspace_id,True).action,workspace_id,batch_id,await parse(request,ScreenAction))
+
+
+@router.post('/{batch_id}/items/{version_id}/compare')
+async def compare(workspace_id:str,batch_id:Identity,version_id:Identity,request:Request):
+    return await call(service(request,workspace_id,True).compare,workspace_id,batch_id,version_id,await parse(request,ScreenCompare))
+
+
+@router.post('/{batch_id}/resolve')
+async def resolve(workspace_id:str,batch_id:Identity,request:Request):
+    return await call(service(request,workspace_id,True).resolve,workspace_id,batch_id,await parse(request,ScreenResolution))
+
+
+@router.post('/{batch_id}/local-candidates')
+async def local_submit(workspace_id:str,batch_id:Identity,request:Request):
+    from .screen_local_candidates import ScreenLocalSubmit
+    return await call(service(request,workspace_id,True).local_candidates,workspace_id,batch_id,
+                      await parse(request,ScreenLocalSubmit))
+
+
+@router.get('/{batch_id}/local-candidates/{request_id}')
+async def local_status(workspace_id:str,batch_id:Identity,request_id:Identity,request:Request,
+                       offset:int=Query(0,ge=0),limit:int=Query(12,ge=1,le=12)):
+    return await call(service(request,workspace_id).local_candidates_status,workspace_id,batch_id,
+                      request_id,offset=offset,limit=limit)
+
+
+@router.post('/{batch_id}/local-candidates/{request_id}/control')
+async def local_control(workspace_id:str,batch_id:Identity,request_id:Identity,request:Request):
+    from .screen_local_candidates import ScreenLocalControl
+    return await call(service(request,workspace_id,True).local_candidates_control,workspace_id,batch_id,
+                      request_id,await parse(request,ScreenLocalControl))
+
+
+@router.get('/{batch_id}/local-candidates/{request_id}/tasks/{task_id}/files/{file_id}')
+async def local_file(workspace_id:str,batch_id:Identity,request_id:Identity,task_id:Identity,file_id:str,request:Request):
+    data,media=await call(service(request,workspace_id).local_candidate_file,workspace_id,batch_id,request_id,task_id,file_id)
+    return Response(content=data,media_type=media,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
 
 
 @router.get('/{batch_id}/items/{version_id}/files/{file_id}')

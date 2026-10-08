@@ -14,6 +14,8 @@ from fastapi.testclient import TestClient
 from workbench_platform.app import app
 from workbench_platform.jobs.native_ocr import OcrUnavailable
 from workbench_platform.jobs.screen_batches import ScreenSubmit
+from workbench_platform.jobs.ocr_handoff import _json
+import hashlib
 
 LOCAL={'host':'127.0.0.1:8766','origin':'http://127.0.0.1:8766'}
 
@@ -54,6 +56,16 @@ def bridge(tmp_path,monkeypatch,request):
             context=native_context
             def _request(self,method,path,body=None,**kwargs):
                 parsed=urlsplit(path)
+                if parsed.path.endswith('/delivery-snapshot'):
+                    batch_id = parsed.path.split('/')[-2]
+                    value = self._request('GET', f'/api/projects/projectA/screen-batches/{batch_id}?limit=1000')
+                    items = [{**item, 'result_revision': state.get('result_revision', 0),
+                        'review_state': state.get('review_state', 'pending'),
+                        'active_version': item['input_version_id'],
+                        'human_review_status': state.get('human_review_status', 'pending')}
+                        for item in value['items']]
+                    identity = {'batch_id': batch_id, 'project_id': 'projectA', 'policy_sha256': 'a' * 64, 'items': items}
+                    return {**identity, 'snapshot_id': hashlib.sha256(_json(identity).encode()).hexdigest(), 'fresh': True, 'stale_items': []}
                 if 'screen-batch-requests' in path:
                     return {'submitted':state['submitted'],'batch_id':'batchA' if state['submitted'] else None}
                 if method=='POST' and parsed.path.endswith('/screen-batches'):
@@ -90,13 +102,20 @@ def bridge(tmp_path,monkeypatch,request):
                     'policy':{'primary_engine':'glm','upgrade_trigger':'quality','require_human_review':True} if upgraded else state['policy']}
             def screen_export(self,project_id,batch_id,options):
                 output=io.BytesIO();items=[]
+                snapshot = self._request('GET', f'/api/projects/{project_id}/screen-batches/{batch_id}/delivery-snapshot')
                 with zipfile.ZipFile(output,'w') as archive:
                     for index in range(amount):
                         name=f'same-{index:04d}.xlsx'
                         archive.writestr(name,workbook())
-                        items.append({'input_version_id':'version'+str(index),'image_id':'image'+str(index),
-                            'result_id':'result'+str(index),'result_revision':0,'status':'completed','file_name':name})
-                    archive.writestr('manifest.json',json.dumps({'items':items,'success_files':amount}))
+                        items.append({**snapshot['items'][index], 'file_name':name})
+                    archive.writestr('manifest.json',json.dumps({'items':items,'success_files':amount,
+                        'snapshot_id': '0' * 64 if state.get('stale_export') else snapshot['snapshot_id'],
+                        'version_vector': {**{key: snapshot[key] for key in
+                            ('snapshot_id','batch_id','project_id','policy_sha256','items')},
+                            'export_options': {'include_pending_review': options.get('include_pending_review', False),
+                                               'numeric_columns': options.get('numeric_columns')}},
+                        'export_options': {'include_pending_review': options.get('include_pending_review', False),
+                                           'numeric_columns': options.get('numeric_columns')}}))
                 return output.getvalue()
         monkeypatch.setattr(handoff,'_adapter',lambda _:Native())
         yield client,workspace,fixed,state,app.state.screen_batches,assets
@@ -261,12 +280,13 @@ def test_cold_restore_keeps_screen_parent_subset_policy_and_export_identity(brid
     # HTTP is deterministic; reference, subset, policy and artifact stores are
     # the production services. This is persistence evidence, not OCR quality.
     client.__exit__(None,None,None)
+    source_marker=source/'product-reader-requirements.json'
+    source_marker_before=source_marker.read_bytes() if source_marker.exists() else None
     manifest=create(source,archive)
     assert 'screen-batches.sqlite3' in manifest['files']
     assert 'product-reader-requirements.json' in manifest['files']
     assert verify(archive)['files']==manifest['files']
-    if not existing_marker:
-        assert not (source/'product-reader-requirements.json').exists()
+    assert (source_marker.read_bytes() if source_marker.exists() else None)==source_marker_before
     restore(archive,recovered)
     marker=json.loads((recovered/'product-reader-requirements.json').read_text(encoding='utf-8'))
     assert 'screen-batch-v1' in marker['reader_features']

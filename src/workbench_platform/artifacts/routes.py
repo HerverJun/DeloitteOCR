@@ -49,6 +49,20 @@ def list_artifacts(workspace_id: str, request: Request,
     return center(request, workspace_id).list(workspace_id, offset, limit)
 
 
+@router.get('/{bundle_id}/freshness')
+async def freshness(workspace_id: str, bundle_id: str, request: Request):
+    value = center(request, workspace_id)
+    try:
+        value.get(workspace_id, bundle_id)
+        batches = getattr(request.app.state, 'screen_batches', None)
+        return await run_in_threadpool(batches.bundle_freshness, workspace_id, bundle_id) if batches else {
+            'kind': 'other', 'state': 'untracked'}
+    except (KeyError, ArtifactUnavailable):
+        raise HTTPException(404, '成果不存在') from None
+    except OcrUnavailable:
+        raise HTTPException(503, '当前 OCR 内容暂不可核实，请稍后重新检查') from None
+
+
 @router.post("/data-exports", status_code=201)
 async def publish_data_export(workspace_id: str, request: Request):
     value = center(request, workspace_id, write=True)

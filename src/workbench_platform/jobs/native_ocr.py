@@ -127,7 +127,7 @@ class OcrAdapter:
 
     def _request(self, method: str, path: str, body: dict | None = None,
                  *, max_body: int = 8192, import_conflict: bool = False,
-                 result_conflict: bool = False) -> dict:
+                 result_conflict: bool = False, allow_null: bool = False) -> dict | None:
         credential = self._credential()
         payload = json.dumps(body, separators=(",", ":")).encode("utf-8") if body is not None else None
         if payload is not None and len(payload) > max_body:
@@ -149,6 +149,8 @@ class OcrAdapter:
             if len(raw) > MAX_JSON:
                 raise OcrUnavailable()
             value = json.loads(raw)
+            if value is None and allow_null:
+                return None
             if not isinstance(value, dict):
                 raise OcrUnavailable()
             return value
@@ -596,6 +598,32 @@ class OcrAdapter:
                 raise OcrUnavailable()
             return data,media
         except (OSError,ValueError,http.client.HTTPException):
+            raise OcrUnavailable() from None
+        finally:
+            connection.close()
+
+    def screen_local_file(self, project_id: str, batch_id: str, request_id: str,
+                          task_id: str, file_id: str) -> tuple[bytes, str]:
+        if (project_id != self.context.module_project_id
+                or not all(_is_native_id(value) for value in (batch_id, request_id, task_id))
+                or file_id not in {'raw.json', 'result.json', 'error.json', 'input.png', 'result.txt',
+                                   'result.md', 'crop.png', 'crop-binding.json'}):
+            raise OcrUnavailable()
+        connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=30)
+        try:
+            connection.request('GET', f'/api/projects/{project_id}/screen-batches/{batch_id}'
+                f'/local-candidates/{request_id}/tasks/{task_id}/files/{file_id}',
+                headers={'Authorization': 'Bearer '+self._credential()})
+            response = connection.getresponse()
+            media = response.getheader('Content-Type', '').split(';')[0]
+            expected = 'image/png' if file_id.endswith('.png') else 'application/json' if file_id.endswith('.json') else 'text/plain'
+            if response.status != 200 or media != expected:
+                raise OcrUnavailable()
+            data = response.read(32*1024*1024+1)
+            if not data or len(data) > 32*1024*1024:
+                raise OcrUnavailable()
+            return data, media
+        except (OSError, ValueError, http.client.HTTPException):
             raise OcrUnavailable() from None
         finally:
             connection.close()
