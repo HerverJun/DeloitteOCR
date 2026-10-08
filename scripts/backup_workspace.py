@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+import sys
 import uuid
 
 
@@ -130,7 +131,8 @@ def _check_agent_pair(root: Path) -> None:
     if operations.is_file() and not checkpoints.is_file():
         # Settings-only initialization can precede async saver creation. Once
         # any run exists both stores are mandatory, including completed runs.
-        with closing(sqlite3.connect(operations.as_uri() + '?mode=ro', uri=True)) as db:
+        from workbench_platform.reader_requirements import read_database
+        with closing(read_database(operations)) as db:
             runs = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='runs'").fetchone()
             if runs and db.execute('SELECT 1 FROM runs LIMIT 1').fetchone():
                 raise ValueError('Agent backup requires both operations and checkpoint databases')
@@ -140,30 +142,15 @@ def _screen_reader_required(root: Path) -> bool:
     path = root / 'screen-batches.sqlite3'
     if not path.is_file():
         return False
-    with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
+    from workbench_platform.reader_requirements import read_database
+    with closing(read_database(path)) as db:
         table = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_batch_refs'").fetchone()
         return bool(table and db.execute('SELECT 1 FROM screen_batch_refs LIMIT 1').fetchone())
 
 
 def _screen_requirements(root: Path, *, create_missing: bool = False) -> None:
-    if not _screen_reader_required(root):
-        return
-    marker = root / 'product-reader-requirements.json'
-    previous = json.loads(marker.read_text(encoding='utf-8-sig')) if marker.is_file() else {}
-    if marker.is_file() and (not isinstance(previous, dict)
-            or previous.get('format') != 'clear-product-reader-requirements-v1'
-            or not isinstance(previous.get('reader_features'), list)
-            or any(not isinstance(item, str) for item in previous['reader_features'])):
-        raise ValueError('Stored product reader requirements are invalid')
-    features = previous.get('reader_features', [])
-    if 'screen-batch-v1' in features:
-        return
-    if not create_missing:
-        raise ValueError('Screen batch backup requires its product reader capabilities')
-    # Derive this capability from actual persisted screen references. Only the
-    # private backup stage is written; business source data remains untouched.
-    marker.write_text(json.dumps({**previous, 'format': 'clear-product-reader-requirements-v1',
-        'reader_features': sorted({*features, 'screen-batch-v1'})}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    from workbench_platform.reader_requirements import ensure_reader_requirements
+    ensure_reader_requirements(root, create_missing=create_missing)
 
 
 def _copy_member(source: Path, target: Path) -> dict:
@@ -173,7 +160,8 @@ def _copy_member(source: Path, target: Path) -> dict:
     if is_db:
         # A writable source connection can checkpoint residual WAL on close and
         # mutate a stopped workspace. Read-only still includes committed WAL.
-        with closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True)) as input_db, closing(sqlite3.connect(target)) as output_db:
+        from workbench_platform.reader_requirements import read_database
+        with closing(read_database(source)) as input_db, closing(sqlite3.connect(target)) as output_db:
             input_db.backup(output_db)
         _check_db(target)
     else:
@@ -210,12 +198,11 @@ def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
             records[relative] = _copy_member(item, stage / relative)
         if _members(source, kind) != members:
             raise ValueError("Source file set changed during backup")
-        if kind == 'platform':
-            _screen_requirements(stage, create_missing=True)
-            marker = stage / 'product-reader-requirements.json'
-            if marker.is_file():
-                digest, size = _hash(marker)
-                records[marker.name] = {'sha256': digest, 'bytes': size, 'sqlite': False}
+        _screen_requirements(stage, create_missing=True)
+        marker = stage / 'product-reader-requirements.json'
+        if marker.is_file():
+            digest, size = _hash(marker)
+            records[marker.name] = {'sha256': digest, 'bytes': size, 'sqlite': False}
         manifest = {"format": FORMAT, "kind": kind,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "files": records}
@@ -257,10 +244,10 @@ def verify(backup: Path) -> dict:
         if recorded["sqlite"]:
             _check_db(target)
     _check_agent_pair(backup)
-    if kind == 'platform':
-        if _screen_reader_required(backup) and 'product-reader-requirements.json' not in files:
-            raise ValueError('Screen batch reader capabilities are missing from the backup manifest')
-        _screen_requirements(backup)
+    from workbench_platform.reader_requirements import infer_reader_requirements
+    if infer_reader_requirements(backup)['reader_features'] and 'product-reader-requirements.json' not in files:
+        raise ValueError('Actual-record reader capabilities are missing from the backup manifest')
+    _screen_requirements(backup)
     return manifest
 
 
@@ -434,4 +421,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parents[1] / 'src')]
     main()
