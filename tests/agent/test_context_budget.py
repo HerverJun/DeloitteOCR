@@ -264,15 +264,29 @@ class ContextBudgetTests(unittest.TestCase):
         self.assertEqual(compact['required'], schema['required'])
         self.assertFalse(compact['additionalProperties'])
 
-    def test_reclaims_stale_tools_but_pins_current_activation_batch(self):
+    def test_reclaims_successful_completed_business_contract_but_pins_explicit_activation_batch(self):
         registry = full_registry()
-        history = [{'role': 'user', 'content': '改为OCR识别'}, assistant('latest', 'data_read_table'),
+        schema_sha = hashlib.sha256(json.dumps(registry.schemas(['data_read_table'])['data_read_table'],
+            ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf8')).hexdigest()
+        history = [{'role': 'user', 'content': '改为OCR识别'},
+                   assistant('initial-load', 'tools_describe', {'names': ['data_read_table']}),
+                   {'role': 'tool', 'call_id': 'initial-load', 'result': {'status': 'success',
+                    'data': {'format': 'platform-tool-activation-v1', 'activated_tools': ['data_read_table'],
+                             'tools': [{'name': 'data_read_table', 'schema_sha256': schema_sha,
+                                        'allowed': True, 'loaded': True}]}}}, assistant('latest', 'data_read_table'),
                    {'role': 'tool', 'call_id': 'latest',
                     'result': AgentToolResult(status='success', summary='刚读回台账').model_dump()}]
         _, metrics, selected = prepare_request(configuration(),
             history, registry, list(registry.tools), protected=['ocr_run'])
         self.assertIn('ocr_run', selected)
-        self.assertIn('data_read_table', selected)
+        self.assertNotIn('data_read_table', selected)
+        self.assertIn('data_read_table', metrics['reclaimed_tools'])
+        with self.assertRaises(ValueError):
+            registry.validate_batch([{'call_id': 'reuse', 'tool': 'data_read_table', 'arguments': {}}], selected)
+        # A durable old loaded receipt never activates a retired tool again.
+        _, _, next_selected = prepare_request(configuration(), history, registry, selected)
+        self.assertNotIn('data_read_table', next_selected)
+        self.assertIn('tools_describe', next_selected)
         self.assertTrue(set(core_tools(registry)) <= set(selected))
         self.assertTrue(metrics['reclaimed_tools'])
         self.assertLessEqual(metrics['input_tokens_estimate'], metrics['available_input_tokens'])
@@ -307,6 +321,49 @@ class ContextBudgetTests(unittest.TestCase):
             self.assertIn('pending', serialized)
             self.assertLessEqual(metrics['input_tokens_estimate'], metrics['available_input_tokens'])
             self.assertIn('data_read_table', selected)
+
+    def test_latest_pending_error_or_protected_contract_cannot_be_retired(self):
+        registry = full_registry()
+        for status in ('pending', 'error', 'needs_verification', 'success'):
+            with self.subTest(status=status):
+                history = [{'role': 'user', 'content': '保留当前未决工具及原约束'},
+                    assistant('latest', 'data_read_table'), {'role': 'tool', 'call_id': 'latest',
+                    'result': AgentToolResult(status=status, summary='当前原生读取回执',
+                        error={'code': 'failed', 'message': '原生失败'} if status == 'error' else None).model_dump()}]
+                protected = ['data_read_table'] if status == 'success' else []
+                _, metrics, selected = prepare_request(configuration(), history, registry,
+                    list(registry.tools), protected=protected)
+                self.assertIn('data_read_table', selected)
+                self.assertNotIn('data_read_table', metrics['reclaimed_tools'])
+
+    def test_direct_screen_batch_and_local_candidate_reads_keep_unresolved_contracts(self):
+        registry = full_registry()
+        for tool, field in (('ocr_screen_batch_status', 'status'),
+                            ('ocr_screen_local_candidates_read', 'execution_status')):
+            for state in ('pending', 'queued', 'running', 'paused', 'interrupted', 'failed', 'needs_review'):
+                for evidence in ('state', 'count'):
+                    with self.subTest(tool=tool, state=state, evidence=evidence):
+                        data = {field: state if evidence == 'state' else 'succeeded',
+                                'counts': {state: 1} if evidence == 'count' else {'pending': 0}}
+                        history = [{'role': 'user', 'content': '继续现有批次，未决事项不得隐去'},
+                            assistant('latest-direct', tool), {'role': 'tool', 'call_id': 'latest-direct',
+                            'result': AgentToolResult(status='success', summary='读取实际未决状态', data=data).model_dump()}]
+                        _, metrics, selected = prepare_request(configuration(), history, registry, list(registry.tools))
+                        self.assertIn(tool, selected)
+                        self.assertNotIn(tool, metrics['reclaimed_tools'])
+
+    def test_business_data_status_words_do_not_make_completed_read_contract_pending(self):
+        registry = full_registry()
+        # These are literal table/document values, not native batch semantics.
+        data = {'status': 'running', 'execution_status': 'failed', 'counts': {'needs_review': 4},
+                'batch': {'status': 'queued', 'summary': {'pending': 3}},
+                'rows': [{'status': 'paused', 'text': 'interrupted'}]}
+        history = [{'role': 'user', 'content': '读取原表后继续其他工作'}, assistant('literal-status', 'data_read_table'),
+                   {'role': 'tool', 'call_id': 'literal-status',
+                    'result': AgentToolResult(status='success', summary='已读取业务字面值', data=data).model_dump()}]
+        _, metrics, selected = prepare_request(configuration(), history, registry, list(registry.tools), protected=['ocr_run'])
+        self.assertNotIn('data_read_table', selected)
+        self.assertIn('data_read_table', metrics['reclaimed_tools'])
 
     def test_component_overflow_is_specific_and_original_user_message_is_never_truncated(self):
         registry = ToolRegistry()

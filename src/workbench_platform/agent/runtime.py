@@ -15,6 +15,7 @@ from packages.contracts.agent import AgentToolResult
 from .connection import ControllerConnection
 from .context import prepare_request, core_tools, skill_control_tools
 from .preferences import TaskPreferences, task_overrides
+from .matching import existing_ocr_progress, classification_progress
 from .environment import compose, environment
 from .skills import SkillService, registration
 from .dependencies import load_dependencies
@@ -193,6 +194,9 @@ class AgentRuntime:
                   self.connection.resolve(run['connection_revision'])[0])
         task = self.tasks.get(ctx.session_id)
         facts = self.session_facts(run, task=task, skill_snapshot=scope)
+        route = self.workflow_route(state, scope, facts)
+        if route:
+            facts['tool_route'] = route
         values = environment(config, workspace_id=ctx.workspace_id, session_id=ctx.session_id,
             scope_revision=task['scope_revision'], manual=task['manual'],
             families=(name.split('_', 1)[0] for name in self.registry.tools))
@@ -202,8 +206,6 @@ class AgentRuntime:
                 if not message.get('id', '').endswith((':session-facts', ':current-facts'))]
         base.insert(0, {'id': ctx.run_id + ':current-facts', 'role': 'user',
             'content': CURRENT_FACTS_PREFIX + canonical(facts)})
-        visible = [name for name in state['visible'] if name in scope.allowed_tools(
-            state['visible'], core=skill_control_tools(self.registry))]
         # Discovery/context contracts are already available or reloadable.
         # Try requested business contracts first, so a small budget cannot
         # spend all newly protected space on repeated context reads. Receipt
@@ -217,8 +219,12 @@ class AgentRuntime:
             activated.append(name)
             trial = [*base, {'role': 'tool', 'call_id': call['call_id'], 'result': result()}]
             try:
-                _, _, selected = prepare_request(config, trial, self.registry, [*visible, *activated],
-                    system=system, protected=activated, system_components=sections)
+                visible, protected = self.phase_contracts([*state['visible'], *activated], scope, route, activated)
+                _, _, selected = prepare_request(config, trial, self.registry, visible,
+                    system=system, protected=protected, system_components=sections,
+                    reclaimable_core=self.route_reclaimable_core(route),
+                    archive_tools=(route or {}).get('archive_tools', ()),
+                    retain_table_columns=(route or {}).get('retain_table_columns', True))
                 if name not in selected:
                     raise Conflict('已加载工具未进入真实输入契约')
             except ProviderFault as error:
@@ -230,8 +236,12 @@ class AgentRuntime:
         while activated:
             trial = [*base, {'role': 'tool', 'call_id': call['call_id'], 'result': result()}]
             try:
-                prepare_request(config, trial, self.registry, [*visible, *activated], system=system,
-                    protected=activated, system_components=sections)
+                visible, protected = self.phase_contracts([*state['visible'], *activated], scope, route, activated)
+                prepare_request(config, trial, self.registry, visible, system=system,
+                    protected=protected, system_components=sections,
+                    reclaimable_core=self.route_reclaimable_core(route),
+                    archive_tools=(route or {}).get('archive_tools', ()),
+                    retain_table_columns=(route or {}).get('retain_table_columns', True))
                 break
             except ProviderFault as error:
                 if error.code != 'context_limit':
@@ -331,6 +341,9 @@ class AgentRuntime:
         skill_snapshot = self.skills.request_snapshot(state['workspace_id'], state['session_id'],
                                                      scan_sources=previous is None)
         facts = self.session_facts(run, task=task, skill_snapshot=skill_snapshot)
+        route = self.workflow_route(state, skill_snapshot, facts)
+        if route:
+            facts['tool_route'] = route
         saved_snapshot = saved.get('request_snapshot')
         if previous and isinstance(saved_snapshot, dict) and 'task_matches' in saved_snapshot:
             # The matching projection was bound to the transmitted request.
@@ -407,17 +420,22 @@ class AgentRuntime:
                     if not message.get('id', '').endswith((':session-facts', ':current-facts'))]
         messages.insert(0, {'id': run['id'] + ':current-facts', 'role': 'user',
             'content': CURRENT_FACTS_PREFIX + canonical(facts)})
-        allowed = skill_snapshot.allowed_tools(state['visible'], core=skill_control_tools(self.registry))
-        visible = [name for name in state['visible'] if name in allowed]
+        # Registered phase contracts follow actual successful receipts. This
+        # selects schemas only; invocation still uses the unchanged Skill and
+        # workspace guards, and no business action is dispatched here.
+        visible, protected = self.phase_contracts(state['visible'], skill_snapshot, route,
+                                                   state.get('protected_tools', ()))
         screen_calls={call['call_id'] for message in state['messages'] if message['role']=='assistant'
             for call in message.get('calls',[]) if call['tool']=='ocr_screen_batch_run'}
         has_screen_job=bool(state.get('background_jobs')) or any(message['role']=='tool' and
             message.get('call_id') in screen_calls and message['result'].get('status') in {'success','pending'}
             for message in state['messages'])
         payload, metrics, selected = prepare_request(config, messages, self.registry, visible,
-            system=system, protected=[name for name in state.get('protected_tools', ()) if name in allowed],
+            system=system, protected=protected,
             system_components=components,
-            reclaimable_core=tuple(name for name in core_tools(self.registry) if name not in {
+            archive_tools=(route or {}).get('archive_tools', ()),
+            retain_table_columns=(route or {}).get('retain_table_columns', True),
+            reclaimable_core=self.route_reclaimable_core(route) if route else tuple(name for name in core_tools(self.registry) if name not in {
                 'conversation_answer','tools_list','tools_describe','ask_user','session_read_history',
                 'delivery_publish','ocr_screen_batch_export'}) if has_screen_job else ())
         injection['tools'] = selected
@@ -709,7 +727,7 @@ class AgentRuntime:
                     context=self.context({'workspace_id': run['workspace_id'], 'session_id': session['id'],
                         'run_id': run['id'], 'generation': run['generation']}))
             if workflow['can_select']:
-                workflow_tools = workflow['tools']
+                workflow_tools = workflow['entry_tools']
         previous = self.store.rows("SELECT payload FROM events WHERE session_id=? AND kind='delivery' AND run_id!=? ORDER BY seq DESC LIMIT 1", (session['id'], run['id']))
         inputs = [{'id': run['request_id'], 'role': 'user', 'content': content}]
         history = self.session_facts(run)
@@ -728,6 +746,58 @@ class AgentRuntime:
             'visible': list(dict.fromkeys([*core_tools(self.registry), *workflow_tools])), 'protected_tools': [],
             'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0,
             'background_jobs': []}
+
+    def workflow_route(self, state, snapshot, facts):
+        """A fixed applicable skill supplies an advisory phase, not authority."""
+        match = facts.get('task_matches') or {}
+        workflows = match.get('workflows', [])
+        if (match.get('match') != 'single' or match.get('intent') != 'action' or not workflows
+                or not workflows[0]['can_select']
+                or not any(item['name'] == workflows[0]['suggested_skill'] for item in snapshot.active)):
+            return None
+        if workflows[0]['id'] == 'classification':
+            return classification_progress(state['messages'])
+        if workflows[0]['id'] != 'existing_ocr_reconciliation':
+            return None
+        session = self.store.session(state['session_id'])
+        return existing_ocr_progress(state['messages'], session['initial_refs'])
+
+    def route_reclaimable_core(self, route):
+        if not route:
+            return ()
+        keep = set(route['next_tools'])
+        if route['phase'] not in {'actual_predictions', 'actual_differences', 'direct_evidence',
+                                  'evidence_readback', 'downloadable_export', 'verified_delivery'}:
+            keep.update({'conversation_answer', 'tools_list', 'tools_describe', 'ask_user', 'session_read_history'})
+        elif route['phase'] != 'verified_delivery':
+            keep.update({'tools_describe', 'session_read_history'})
+        return tuple(name for name in core_tools(self.registry) if name not in keep)
+
+    def terminal_workflow_delivery(self, state, delivery):
+        from .graph import terminal_workflow_delivery
+        # Appended goals retain the normal controller/finalize route. A fixed
+        # workflow receipt must never close a new goal with an older export.
+        if state.get('inbox_received') or not delivery:
+            return False
+        run = self.store.run(state['run_id'])
+        task = self.tasks.get(state['session_id'])
+        original = next((message.get('content') for message in state['messages']
+                         if message.get('id') == run['request_id'] and message.get('role') == 'user'), None)
+        if original is None or original != task['goal']:
+            return False
+        snapshot = self.skills.request_snapshot(state['workspace_id'], state['session_id'])
+        facts = {'task_matches': self.skills.match(state['workspace_id'], state['session_id'],
+                                                 task['goal'], snapshot=snapshot)}
+        route = self.workflow_route(state, snapshot, facts)
+        return terminal_workflow_delivery(state, delivery, route)
+
+    def phase_contracts(self, visible, snapshot, route, protected=()):
+        """Admission and transmission use the same authorized phase schemas."""
+        next_tools = (route or {}).get('next_tools', ())
+        candidates = list(dict.fromkeys([*visible, *next_tools]))
+        allowed = snapshot.allowed_tools(candidates, core=skill_control_tools(self.registry))
+        selected = [name for name in candidates if name in allowed and name in self.registry.tools]
+        return selected, list(dict.fromkeys(name for name in [*protected, *next_tools] if name in selected))
 
     def session_facts(self, run, *, task=None, skill_snapshot=None):
         goals = self.store.rows("SELECT payload FROM events WHERE session_id=? AND (run_id IS NULL OR run_id!=?) AND kind='message' ORDER BY seq DESC LIMIT 30",

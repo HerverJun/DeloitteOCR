@@ -12,7 +12,7 @@ import httpx
 from fastapi import FastAPI
 
 from packages.contracts.agent import AgentModel, AgentToolResult
-from workbench_platform.agent.matching import WORKFLOWS, match_goal, readiness_projection
+from workbench_platform.agent.matching import WORKFLOWS, match_goal, readiness_projection, existing_ocr_progress, classification_progress
 from workbench_platform.agent.preferences import TaskPreferences, PreferenceValues, task_overrides
 from workbench_platform.agent.registry import ToolContext, ToolRegistry, ToolSpec
 from workbench_platform.agent.skills import SkillService
@@ -133,6 +133,147 @@ class SpecializedTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn('private-path', json.dumps(value))
         self.assertFalse(value['starts_services'])
         self.assertFalse(value['probes_model_execution'])
+
+    async def test_existing_ocr_route_matches_only_explicit_existing_reconciliation(self):
+        for goal in ('请核对已有实际OCR结果与reference.csv，固定直接审计证据并交付',
+                     '现有OCR发票成果与台账比对',
+                     '核对application=ocr，link_id=knownLink，object_id=knownResult与参考表'):
+            with self.subTest(goal=goal):
+                matched = self.skills.match('wtest', self.session['id'], goal)
+                self.assertEqual(matched['match'], 'single')
+                self.assertEqual(matched['auto_skill_candidate'], 'existing-ocr-reconciliation')
+                workflow = matched['workflows'][0]
+                self.assertEqual(workflow['id'], 'existing_ocr_reconciliation')
+                self.assertEqual(workflow['entry_tools'], ['native_attach_result', 'results_describe'])
+                self.assertNotIn('ocr_run', workflow['tools'])
+                self.assertFalse(matched['grants_changed'])
+                self.assertFalse(matched['schemas_activated'])
+        for goal in ('已有OCR结果如何核对，请评估方案', '不要核对已有OCR结果。只介绍原理',
+                     '请核对台账', '请识别新发票并核对台账', '已有OCR结果核对，同时开始识别新图片',
+                     '已有OCR结果核对，然后进行图片分类', '已有OCR结果核对并生成底稿'):
+            with self.subTest(goal=goal):
+                matched = self.skills.match('wtest', self.session['id'], goal)
+                self.assertNotEqual(matched['auto_skill_candidate'], 'existing-ocr-reconciliation')
+        matched = self.skills.match('wtest', self.session['id'],
+            '核对已有OCR结果，禁止重新OCR、训练或修改值。交付直接审计证据')
+        self.assertEqual(matched['auto_skill_candidate'], 'existing-ocr-reconciliation')
+
+    async def test_existing_ocr_route_missing_and_active_skill_boundaries(self):
+        goal = '请核对已有OCR成果与参考表并交付直接审计证据'
+        removed = self.registry.tools.pop('results_to_input')
+        missing = self.skills.match('wtest', self.session['id'], goal)
+        self.assertEqual(missing['workflows'][0]['missing_required_tools'], ['results_to_input'])
+        self.assertFalse(missing['workflows'][0]['can_select'])
+        self.assertIsNone(missing['auto_skill_candidate'])
+        self.registry.tools[removed.name] = removed
+        self.skills.activate('wtest', self.session['id'], 'payment-reconciliation', 'keep-payment')
+        allowed = self.skills.allowed_tools(self.session['id'], self.registry.tools)
+        blocked = self.skills.match('wtest', self.session['id'], goal)
+        self.assertIn('native_attach_result', blocked['workflows'][0]['blocked_by_active_skills'])
+        self.assertIsNone(blocked['auto_skill_candidate'])
+        self.assertEqual(self.skills.allowed_tools(self.session['id'], self.registry.tools), allowed)
+
+    async def test_existing_ocr_progress_uses_current_sessions_and_keeps_unresolved_calls(self):
+        messages = []
+        def add(tool, arguments=None, data=None, status='success'):
+            call_id = 'actual-phase-' + str(len(messages))
+            messages.extend([{'role': 'assistant', 'calls': [{'call_id': call_id, 'tool': tool, 'arguments': arguments or {}}]},
+                {'role': 'tool', 'call_id': call_id, 'result': {'status': status, 'summary': '实际回执', 'data': data or {}}}])
+        add('native_attach_result')
+        add('results_describe')
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['results_to_input'])
+        add('results_to_input')
+        add('data_create_session', data={'data_session_id': 'current'})
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_inspect_input'])
+        add('data_inspect_input', {'asset_id': 'left-input'})
+        add('data_inspect_input', {'asset_id': 'left-input'})
+        self.assertEqual(existing_ocr_progress(messages)['phase'], 'input_columns')
+        add('data_inspect_input', {'asset_id': 'right-reference'})
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_import'])
+        add('data_import', {'data_session_id': 'old', 'side': 'right'})
+        add('data_import', {'data_session_id': 'current', 'side': 'left'})
+        add('data_import', {'data_session_id': 'current', 'side': 'left'})
+        self.assertEqual(existing_ocr_progress(messages)['imported_sides'], ['left'])
+        add('data_import', {'data_session_id': 'current', 'side': 'right'}, status='pending')
+        blocked = existing_ocr_progress(messages)
+        self.assertEqual(blocked['phase'], 'requires_attention')
+        self.assertEqual(blocked['status'], 'pending')
+        self.assertEqual(blocked['next_tools'], ['data_import'])
+        messages[-1]['result']['status'] = 'success'
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_read_table'])
+        add('data_read_table', {'data_session_id': 'current', 'side': 'left'})
+        add('data_read_table', {'data_session_id': 'old', 'side': 'right'})
+        self.assertEqual(existing_ocr_progress(messages)['read_sides'], ['left'])
+        add('data_read_table', {'data_session_id': 'current', 'side': 'right'})
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_compare'])
+        add('data_compare', {'data_session_id': 'current'})
+        add('data_compare', {'data_session_id': 'current'}, status='error')
+        self.assertEqual(existing_ocr_progress(messages)['phase'], 'requires_attention')
+        messages[-1]['result']['status'] = 'success'
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_read_result'])
+        add('data_read_result', {'data_session_id': 'current'})
+        messages[-1]['result']['next_offset'] = 50
+        self.assertEqual(existing_ocr_progress(messages)['next_offset'], 50)
+        messages[-1]['result']['next_offset'] = None
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['audit_bind_evidence'])
+        add('audit_bind_evidence')
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['audit_read_evidence'])
+        add('audit_read_evidence', data={'stale': True})
+        self.assertEqual(existing_ocr_progress(messages)['status'], 'stale_evidence')
+        messages[-1]['result']['data']['stale'] = False
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['data_export'])
+        add('data_export', {'data_session_id': 'current'})
+        self.assertEqual(existing_ocr_progress(messages)['next_tools'], ['delivery_publish'])
+        add('results_to_input')
+        self.assertEqual(existing_ocr_progress(messages)['phase'], 'data_session')
+        self.assertFalse(existing_ocr_progress(messages)['schemas_activated'])
+
+    async def test_existing_ocr_typed_entry_does_not_infer_missing_structure(self):
+        typed = [{'kind': 'result', 'application': 'ocr', 'object_id': 'existing'}]
+        self.assertEqual(existing_ocr_progress([], typed)['next_tools'], ['results_describe'])
+        messages = [{'role': 'assistant', 'calls': [{'call_id': 'bridge', 'tool': 'results_to_input', 'arguments': {}}]},
+                    {'role': 'tool', 'call_id': 'bridge', 'result': {'status': 'unsupported', 'data': {}}}]
+        blocked = existing_ocr_progress(messages, typed)
+        self.assertEqual(blocked['phase'], 'requires_attention')
+        self.assertEqual(blocked['status'], 'unsupported')
+        self.assertFalse(blocked['grants_changed'])
+
+    async def test_published_classification_scope_and_actual_prediction_stages(self):
+        goal = '请用已发布模型对选中图片分类，固定直接审计证据并交付，禁止训练或改标签'
+        matched = self.skills.match('wtest', self.session['id'], goal)
+        self.assertEqual(matched['auto_skill_candidate'], 'published-image-classification')
+        self.skills.activate('wtest', self.session['id'], 'published-image-classification', 'published')
+        allowed = self.skills.allowed_tools(self.session['id'], self.registry.tools)
+        self.assertTrue({'classification_infer', 'audit_bind_evidence', 'audit_read_evidence', 'classification_export'} <= allowed)
+        self.assertFalse({'classification_train', 'classification_annotate', 'classification_activate_model'} & allowed)
+        messages = []
+        def add(tool, arguments=None, data=None, status='success', next_offset=None):
+            identity = 'classification-phase-' + str(len(messages))
+            messages.extend([{'role': 'assistant', 'calls': [{'call_id': identity, 'tool': tool, 'arguments': arguments or {}}]},
+                             {'role': 'tool', 'call_id': identity, 'result': {'status': status, 'data': data or {}, 'next_offset': next_offset}}])
+        self.assertEqual(classification_progress(messages)['next_tools'], ['classification_prepare'])
+        add('classification_prepare')
+        self.assertEqual(classification_progress(messages)['next_tools'], ['assets_create_set'])
+        add('assets_create_set')
+        self.assertEqual(classification_progress(messages)['next_tools'], ['classification_infer'])
+        add('classification_infer', data={'handoff_id': 'actual'}, status='pending')
+        self.assertEqual(classification_progress(messages)['phase'], 'requires_attention')
+        messages[-1]['result']['status'] = 'success'
+        self.assertEqual(classification_progress(messages)['next_tools'], ['classification_read_results'])
+        add('classification_read_results', {'handoff_id': 'old'})
+        self.assertEqual(classification_progress(messages)['next_tools'], ['classification_read_results'])
+        add('classification_read_results', {'handoff_id': 'actual'}, next_offset=50)
+        self.assertEqual(classification_progress(messages)['next_offset'], 50)
+        add('classification_read_results', {'handoff_id': 'actual', 'offset': 50})
+        self.assertEqual(classification_progress(messages)['next_tools'], ['audit_bind_evidence'])
+        add('audit_bind_evidence')
+        self.assertEqual(classification_progress(messages)['next_tools'], ['audit_read_evidence'])
+        add('audit_read_evidence', data={'stale': True})
+        self.assertEqual(classification_progress(messages)['status'], 'stale_evidence')
+        messages[-1]['result']['data']['stale'] = False
+        self.assertEqual(classification_progress(messages)['next_tools'], ['classification_export'])
+        add('classification_export', {'handoff_id': 'actual'})
+        self.assertEqual(classification_progress(messages)['next_tools'], ['delivery_publish'])
 
     async def test_defaults_scoped_versioned_revocable_and_request_identity_checked(self):
         self.save({'value_mode': 'text'}, business='project')

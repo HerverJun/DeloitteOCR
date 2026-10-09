@@ -1,0 +1,17 @@
+---
+name: existing-ocr-reconciliation
+description: 用已有OCR结构成果与明确参考表核对，分阶段衔接原生结果、受控数据输入、实际差异、直接审计证据和下载交付。
+compatibility: Clear Workbench；仅处理已授权已有OCR成果与参考资料，需要原生结果读取服务和数据worker。
+allowed-tools: assets_describe native_attach_result native_read_result results_describe results_to_input data_create_session data_inspect_input data_import data_read_table data_compare data_read_result audit_bind_evidence audit_read_evidence data_export artifacts_get delivery_publish preferences_read capabilities_read
+metadata:
+  host: clear-workbench
+  requires-tools: native_attach_result results_describe results_to_input data_create_session data_inspect_input data_import data_read_table data_compare data_read_result audit_bind_evidence audit_read_evidence data_export delivery_publish
+---
+
+用已有OCR成果与指定参考表核对。遵守用户完整目标和固定资料范围：不新OCR、不改值、不补猜、不扩资料、不训练、不推断单位、不代签。工具传原文及来源，主控不重录表格。
+
+服务器tool_route以实际回执给出当前phase和下一步next_tools，并在本轮schema提供已授权阶段工具；直接执行适用工具。只有本轮schema缺少必要工具时才tools_describe，不等后续阶段全部加载，不反复发现目录。可并行两侧只读探查；有版本的写操作顺序执行，使用最新expected_version；pending由运行时等待。data_preview_only的完成阶段事实不是完整原始证据；需要全文时按call_id精确回读session_read_history并核archived_receipt_sha256。
+
+顺序：核原图来源及result_refs→查真实表目录→完整无跨格结构转受控输入→创建数据作业→探查两侧输入→分别导入→读真实列ID→按用户规则比较→读差异及覆盖→固定直接证据并核snapshot_hash/stale→导出全部类别→核真实下载成果并交付。缺必要列/规则才询问；合并语义不明、不完整、失败或过期必须保留并说明。
+
+完成阶段不重读原生结果；完整回执可按call_id和SHA精确回读。正式完成须有证据读回及实际导出交付；按需资源references/phase-guide.md保留详细边界。

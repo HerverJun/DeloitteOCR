@@ -12,7 +12,8 @@ from workbench_platform.reader_requirements import mark_reader_feature
 
 
 Business = Literal['project', 'screen_excel', 'invoice_reconciliation',
-                   'payment_reconciliation', 'classification', 'evidence_workpaper']
+                   'payment_reconciliation', 'classification', 'evidence_workpaper',
+                   'existing_ocr_reconciliation']
 
 
 class PreferenceValues(AgentModel):
@@ -95,7 +96,8 @@ class TaskPreferences:
     @staticmethod
     def _business(business):
         if business not in ('project', 'screen_excel', 'invoice_reconciliation',
-                            'payment_reconciliation', 'classification', 'evidence_workpaper'):
+                            'payment_reconciliation', 'classification', 'evidence_workpaper',
+                            'existing_ocr_reconciliation'):
             raise ValueError('业务偏好作用域无效')
         return business
 

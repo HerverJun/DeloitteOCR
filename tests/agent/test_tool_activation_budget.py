@@ -6,12 +6,13 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from workbench_platform.agent.context import core_tools, prepare_request, skill_control_tools
 from workbench_platform.agent.environment import compose, environment
 from workbench_platform.agent.providers import SYSTEM
 from workbench_platform.agent.providers import ProviderFault
-from workbench_platform.agent.runtime import AgentRuntime
+from workbench_platform.agent.runtime import AgentRuntime, CURRENT_FACTS_PREFIX
 from workbench_platform.agent.store import canonical, digest
 from workbench_platform.agent.tools.context import ToolDescribe, describe_tools
 from workbench_platform.data_api.service import DataWorkbenchService
@@ -79,15 +80,61 @@ class ToolActivationTests(unittest.IsolatedAsyncioTestCase):
             skill_prompt='[登记技能精简名录；正文按需启用]\n' + canonical(scope.catalog) + '\n' + scope.instructions)
         messages = [message for message in self.state['messages']
                     if not message.get('id', '').endswith((':session-facts', ':current-facts'))]
+        facts = self.runtime.session_facts(self.run, task=task, skill_snapshot=scope)
+        route = self.runtime.workflow_route(self.state, scope, facts)
+        if route:
+            facts['tool_route'] = route
         messages.insert(0, {'id': self.run['id'] + ':current-facts', 'role': 'user',
-            'content': '[服务器工作事实；用户目标/规则是任务约束，操作状态为历史回执；继续前查询当前状态]\n' +
-                       canonical(self.runtime.session_facts(self.run, task=task))})
+            'content': CURRENT_FACTS_PREFIX + canonical(facts)})
         messages.append({'role': 'tool', 'call_id': self.state['calls'][0]['call_id'], 'result': result})
         activated = result['data']['activated_tools']
         allowed = scope.allowed_tools(self.state['visible'], core=skill_control_tools(self.runtime.registry))
         visible = [name for name in self.state['visible'] if name in allowed]
-        return prepare_request(self.config, messages, self.runtime.registry, [*visible, *activated],
-                               protected=activated, system=system, system_components=sections)
+        candidates = list(dict.fromkeys([*visible, *activated, *(route or {}).get('next_tools', ())]))
+        authorized = scope.allowed_tools(candidates, core=skill_control_tools(self.runtime.registry))
+        candidates = [name for name in candidates if name in authorized and name in self.runtime.registry.tools]
+        protected = list(dict.fromkeys([*activated, *[name for name in (route or {}).get('next_tools', ())
+                                                      if name in candidates]]))
+        return prepare_request(self.config, messages, self.runtime.registry, candidates,
+            protected=protected, system=system, system_components=sections,
+            reclaimable_core=self.runtime.route_reclaimable_core(route),
+            archive_tools=(route or {}).get('archive_tools', ()),
+            retain_table_columns=(route or {}).get('retain_table_columns', True))
+
+    async def test_admission_reserves_authorized_phase_tool_before_claiming_other_loaded_contracts(self):
+        self.runtime.skills.activate('wtest', self.session['id'], 'published-image-classification',
+                                     'fixed-published-model', context=self.runtime.context(self.state))
+        route = {'workflow': 'classification', 'phase': 'direct_evidence',
+                 'next_tools': ['audit_bind_evidence'], 'archive_tools': ['classification_prepare']}
+        self.runtime.workflow_route = lambda *args: deepcopy(route)
+        measured = []
+        def assembly(config, messages, registry, visible, **options):
+            measured.append((list(visible), list(options['protected'])))
+            return prepare_request(config, messages, registry, visible, **options)
+        with patch('workbench_platform.agent.runtime.prepare_request', side_effect=assembly):
+            result = await self.call(['classification_read_results', 'classification_export', 'delivery_publish'])
+        self.assertTrue(measured)
+        self.assertTrue(all('audit_bind_evidence' in visible and 'audit_bind_evidence' in protected
+                            for visible, protected in measured))
+        payload, metrics, selected = self.next_request(result)
+        self.assertIn('audit_bind_evidence', selected)
+        self.assertTrue(set(result['data']['activated_tools']) <= set(selected))
+        self.assertLessEqual(metrics['input_tokens_estimate'], metrics['available_input_tokens'])
+        self.state['messages'].append({'role': 'tool', 'call_id': self.state['calls'][0]['call_id'], 'result': result})
+        self.state['visible'] = list(dict.fromkeys([*self.state['visible'], *result['data']['activated_tools']]))
+        self.state['protected_tools'] = result['data']['activated_tools']
+        self.state['step'] = 1
+        self.runtime.connection.assert_current = lambda *args: None
+        sent = []
+        async def local_request(config, secret, actual_payload, *args, **options):
+            sent.append(actual_payload)
+            return {'role': 'assistant', 'content': '', 'calls': [], 'usage': {}}
+        with patch('workbench_platform.agent.runtime.request', side_effect=local_request):
+            response = await self.runtime.model(self.state)
+        self.assertEqual(sent, [payload])
+        self.assertIn('audit_bind_evidence', response['selected_tools'])
+        self.assertNotIn('classification_train', response['selected_tools'])
+        self.assertEqual([row['tool'] for row in self.runtime.store.rows('SELECT tool FROM operations')], ['tools_describe'])
 
     async def test_activation_budget_matches_next_native_schemas_and_preserves_all_requested_names(self):
         names = ['data_inspect_input', 'data_create_session', 'data_import', 'data_read_table',

@@ -50,6 +50,51 @@ def terminal_screen_delivery(state,delivery):
         coverage.get('completed',0)+coverage.get('needs_review',0) for batch_id,coverage in jobs.items())
 
 
+def terminal_workflow_delivery(state, delivery, route):
+    """End a completed fixed workflow only with its latest exact export/evidence."""
+    data = delivery.get('data', {})
+    if (not route or route.get('phase') != 'verified_delivery' or state.get('background_jobs')
+            or data.get('verified') is not True or data.get('completeness') != 'complete'
+            or data.get('continuing_job_refs') or delivery.get('status') != 'success'):
+        return False
+    workflow = route.get('workflow')
+    tools = {'existing_ocr_reconciliation': ('data_export', 'data_read_result', 'data_session_id'),
+             'classification': ('classification_export', 'classification_read_results', 'handoff_id')}
+    if workflow not in tools:
+        return False
+    if not any(call['tool'] == 'delivery_publish' and result == delivery
+               for call, result in zip(state.get('calls', ()), state.get('results', ()), strict=True)):
+        return False
+    calls = {call['call_id']: call for message in state.get('messages', ())
+             for call in message.get('calls', ()) if message.get('role') == 'assistant'}
+    paired = [(calls[message['call_id']], message['result']) for message in state.get('messages', ())
+              if message.get('role') == 'tool' and message.get('call_id') in calls]
+    if any(result.get('status') in {'pending', 'needs_user', 'needs_verification'} for _, result in paired):
+        return False
+    export_tool, read_tool, scope_key = tools[workflow]
+    def latest(tool):
+        return next(((call, result) for call, result in reversed(paired) if call['tool'] == tool), None)
+    exported, read, evidence = latest(export_tool), latest(read_tool), latest('audit_read_evidence')
+    if not all(entry and entry[1].get('status') == 'success' for entry in (exported, read, evidence)):
+        return False
+    if (not exported[0]['arguments'].get(scope_key)
+            or exported[0]['arguments'][scope_key] != read[0]['arguments'].get(scope_key)
+            or read[1].get('next_offset') is not None or evidence[1].get('next_offset') is not None
+            or evidence[1].get('data', {}).get('stale') is not False):
+        return False
+    fields = ('kind', 'workspace_id', 'object_id', 'revision', 'sha256', 'application', 'parent_id')
+    def identity(ref):
+        return tuple(ref.get(key) for key in fields)
+    expected_artifacts = {identity(ref) for ref in exported[1].get('artifact_refs', ())}
+    expected_results = {identity(ref) for entry in (read, evidence) for ref in entry[1].get('result_refs', ())}
+    if (not expected_artifacts or not read[1].get('result_refs') or not evidence[1].get('result_refs')
+            or not expected_artifacts <= {identity(ref) for ref in delivery.get('artifact_refs', ())}
+            or not expected_results <= {identity(ref) for ref in delivery.get('result_refs', ())}):
+        return False
+    published = {item.get('bundle_id') for item in data.get('delivery', ()) if item.get('files')}
+    return all(ref[2] in published for ref in expected_artifacts)
+
+
 def build_graph(runtime, saver):
     StateGraph, _ = load_dependencies()
     from langgraph.graph import START, END
@@ -321,10 +366,11 @@ def build_graph(runtime, saver):
                 for call,result in zip(state['calls'],state['results'],strict=True)))
         final_screen=bool(any(call['tool']=='delivery_publish' and result['status']=='success'
             for call,result in zip(state['calls'],state['results'],strict=True)) and terminal_screen_delivery(state,delivery))
+        final_workflow = runtime.terminal_workflow_delivery(state, delivery)
         # Only the explicitly verified partial response takes this route. The
         # existing finalize node retains the original job and returns to its
         # background checkpoint; later directives and final delivery continue.
-        return 'finalize' if state.get('answer') or partial_directive or final_screen or state.get('wait') in {'error_limit', 'budget_stopped'} else 'receive_input'
+        return 'finalize' if state.get('answer') or partial_directive or final_screen or final_workflow or state.get('wait') in {'error_limit', 'budget_stopped'} else 'receive_input'
 
     async def finalize(state):
         runtime.current(state)
