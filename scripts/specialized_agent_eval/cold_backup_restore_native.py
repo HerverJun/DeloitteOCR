@@ -297,7 +297,7 @@ def serve(args):
     uvicorn.run(app, host='127.0.0.1', port=args.port, log_level='warning')
 
 
-def read_native(args, data, output, phase):
+def read_native(args, data, output, phase, *, consumer=None):
     from s07_native_read import native_http
     token_file = output / (phase + '-reader-token.txt')
     token_file.write_text(secrets.token_urlsafe(36), encoding='utf-8')
@@ -311,7 +311,7 @@ def read_native(args, data, output, phase):
         '--read-audit-log', str(output / (phase + '-native-file-reads.jsonl')),
         '--reader-runtime-report', str(output / (phase + '-native-runtime.json'))]
     forbidden = [fpath(args.source_run), fpath(args.s07_run)]
-    if phase == 'restored':
+    if phase.startswith('restored'):
         forbidden.extend([output / 'sources', output / 'isolated-cold-sources'])
     for root in forbidden:
         command.extend(['--forbid-data-root', str(root)])
@@ -336,7 +336,13 @@ def read_native(args, data, output, phase):
                 batches = [dict(row) for row in db.execute('SELECT id,project_id,policy,deadline FROM screen_batches')]
                 items = [dict(row) for row in db.execute('SELECT * FROM screen_items ORDER BY position')]
                 versions = {row['id']: dict(row) for row in db.execute('SELECT * FROM versions')}
-            require(len(batches) == 1 and len(items) == 12, 'Actual native cold check requires one 12-input batch')
+            selected_batch = getattr(args, 'batch_id', None)
+            if selected_batch:
+                batches = [batch for batch in batches if batch['id'] == selected_batch]
+                items = [item for item in items if item['batch_id'] == selected_batch]
+            expected_inputs = getattr(args, 'expected_inputs', 12)
+            require(len(batches) == 1 and len(items) == expected_inputs,
+                    'Actual native cold check requires one batch with the declared complete input scope')
             batch = batches[0]; endpoint = '/api/projects/' + batch['project_id'] + '/screen-batches/' + batch['id']
             business_edit = None
             if phase == 'business-edit':
@@ -394,24 +400,58 @@ def read_native(args, data, output, phase):
                     'metadata_edit_log_sha256': fingerprint((detail.get('result', {}).get('edited', {}).get('screen') or {}).get('metadata_edit_log', [])),
                     'diagnostics': compared_diagnostics,
                     'downloaded_images': [{key: value for key, value in row.items() if key != 'path'} for row in downloads]})
+            local_reads = []
+            with closing(sqlite3.connect((data / 'workbench.sqlite3').as_uri() + '?mode=ro', uri=True)) as db:
+                has_local = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_local_requests'").fetchone()
+                requests = db.execute('SELECT DISTINCT request_id FROM screen_local_requests WHERE batch_id=? ORDER BY request_id',
+                                      (batch['id'],)).fetchall() if has_local else []
+            for (request_id,) in requests:
+                offset, pages, local_items, downloaded = 0, [], [], []
+                while True:
+                    page = native_http(base, token, endpoint + '/local-candidates/' + quote(request_id, safe='')
+                                       + '?offset=' + str(offset) + '&limit=12')
+                    pages.append(page); local_items.extend(page['items'])
+                    next_offset = page.get('next_offset')
+                    if next_offset is None:
+                        break
+                    require(type(next_offset) is int and next_offset > offset, 'Local candidate pagination did not advance')
+                    offset = next_offset
+                require(len(local_items) == pages[0]['total'], 'Local candidate read omitted saved tasks')
+                for candidate in local_items:
+                    require(candidate['values_modified'] is False and candidate['selection_applied'] is False,
+                            'Read-only local candidate consumption applied a selection')
+                    for name, artifact in (candidate.get('artifact') or {}).items():
+                        path = fpath(data / artifact['path'])
+                        require(path.is_relative_to(data) and digest(path) == artifact['sha256'], 'Local artifact identity differs')
+                        route = (endpoint + '/local-candidates/' + quote(request_id, safe='') + '/tasks/'
+                                 + quote(candidate['task_id'], safe='') + '/files/' + quote(name, safe=''))
+                        require(hashlib.sha256(native_bytes(base, token, route)).hexdigest() == artifact['sha256'],
+                                'Actual restored local artifact download differs')
+                        downloaded.append({'task_id': candidate['task_id'], 'file': name, **artifact})
+                local_reads.append({'request_id': request_id, 'pages': pages, 'artifact_downloads': downloaded})
             export_root = data / 'screen-batches' / batch['id'] / 'exports'
             manifests = sorted(export_root.glob('*/manifest.json'), key=lambda path: path.stat().st_mtime_ns)
-            require(manifests, 'Actual source native batch has no existing export manifest')
-            exported = read_json(manifests[-1])
-            options = exported['export_options']
+            require(manifests or not getattr(args, 'export_required', True),
+                    'Actual source native batch has no existing export manifest')
+            exported = read_json(manifests[-1]) if manifests else None
+            options = exported['export_options'] if exported else None
             vector = {**{key: snapshot[key] for key in
                 ('snapshot_id', 'batch_id', 'project_id', 'policy_sha256', 'items')}, 'export_options': options}
-            require(exported['version_vector'] == vector, 'Existing actual export is not the current full version vector')
+            require(exported is None or exported['version_vector'] == vector,
+                    'Existing actual export is not the current full version vector')
             export_files = {path.relative_to(data).as_posix(): digest(path)
                             for path in export_root.rglob('*') if path.is_file()}
             result = {'snapshot': snapshot, 'version_vector': {**{key: snapshot[key] for key in
                 ('snapshot_id', 'batch_id', 'project_id', 'policy_sha256', 'items')}, 'export_options': options},
                 'policy': json.loads(batch['policy']), 'details': details, 'source_and_prepared_files': files,
+                'local_candidate_reads': local_reads,
                 'existing_export_files': export_files,
                 'actual_diagnostic_clock_verification': read_clocks,
                 'queue_alive': False, 'fusion_queue_alive': False, 'external_queue_alive': False,
                 'start_queue': False, 'agent_enabled': False, 'only_http_get': business_edit is None,
                 'business_metadata_probe': business_edit, 'pid': process.pid}
+            if consumer is not None:
+                result['additional_consumption'] = consumer(base, token, batch)
             frozen_json(output / (phase + '-native-read.json'), result)
     finally:
         if process is not None and process.poll() is None:
@@ -658,6 +698,8 @@ async def execute(args):
                 and source_native['source_and_prepared_files'] == restored_native['source_and_prepared_files']
                 and source_native['existing_export_files'] == restored_native['existing_export_files'],
                 'Actual restored native API identities/files differ')
+        require(source_native['local_candidate_reads'] == restored_native['local_candidate_reads'],
+                'Actual restored local candidate state or artifact downloads differ')
         restored_pref = preferences_api(restored / 'main', fpath(args.data_python))
         require(pref['preview'] == restored_pref['preview'] and pref['frozen_snapshots'] == restored_pref['frozen_snapshots'],
                 'Actual restored preference API or frozen snapshot differs')
