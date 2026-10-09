@@ -1,8 +1,8 @@
 {
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
-  "last_updated": "2026-10-08",
-  "update_basis_main_head": "f016cbae357c869e24c4215684b79b2c9cd4fe64",
+  "last_updated": "2026-10-09",
+  "update_basis_main_head": "66732f7f46da2f74fe387730ce308d9bdf3ef125",
   "timezone": "Asia/Hong_Kong",
   "status": "in_progress",
   "progress_evidence_is_not_completion": true,
@@ -22,7 +22,19 @@
     "local_candidates_native_cpu": "F:/OCR/output/platform-specialized-agent-20261007/evidence/local-candidates-backend-cpu-004.json",
     "local_candidates_platform_interop": "F:/OCR/output/platform-specialized-agent-20261007/evidence/local-candidates-platform-interop-review-002.json",
     "local_candidates_platform_closure_cpu": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-platform-closure-003.json",
-    "local_candidates_ui_type_build": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-ui-build-001.json"
+    "local_candidates_ui_type_build": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-ui-build-003.json",
+    "local_candidates_issue_binding_reproduction": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-binding-ui-repro-005.json",
+    "local_candidates_issue_binding_component_closure": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-binding-ui-closure-006.json",
+    "local_candidates_owned_controls_cpu": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-controls-cpu-004.json",
+    "local_candidates_owned_controls_ui": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-local-controls-ui-004-qualification.json",
+    "screen_intent_absence_reproduction": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-intent-null-lookup-repro-001.json",
+    "screen_intent_absence_cpu_closure": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-intent-null-lookup-closure-002.json",
+    "packaging_delivery_compatibility_cpu": "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-delivery-package-cpu-003.json",
+    "context_frozen_component_gate": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/context-activation-regression-012-qualification.json",
+    "s07_latest_incomplete_actual_chain": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-009/s07-agent-native-result.json",
+    "s03_unadopted_patch_counterexamples": "F:/OCR/output/platform-specialized-agent-20261007/development-patches/review-business-context-patch-001/probe-001.json",
+    "paddlevl60_interrupted_seal": "F:/OCR/output/platform-specialized-agent-20261007/evidence/paddlevl60-interrupted-seal-001/result.json",
+    "paddlevl60_partial_export_readback": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/paddlevl60-partial-reader-004/result.json"
   },
   "execution": {
     "root": "F:/OCR/output/platform-specialized-agent-20261007",
@@ -84,7 +96,7 @@
       "deliverables": ["有来源/作用域/版本的工作偏好", "当前任务的范围与策略快照", "可查看/修改/撤回的默认参数"],
       "acceptance": ["单次指令覆盖默认", "暂停恢复沿用原快照", "项目与任务范围不串用", "金额列/单位/规则的实质歧义得到核实"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/specialized-runtime-cpu-tests-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/frontend-source-build-verification-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/specialized-data-compatibility-receipt-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-specialized-cpu-002.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/context-completed-batches-002.xml"],
-      "progress_note": "偏好和冻结任务已有实现；真实S07最新008为14625/14336上下文超限，业务工具已加载但未调用原生业务工具。继续改善重复事实、契约加载和历史投影；CPU重演或增加窗口不能替代真实重验。"
+      "progress_note": "偏好和冻结任务已有实现并分类提交；freeze010组件69主测试+27子测试通过。真实S07最新009已调用原生结果接入与读取，随后14619/14336上下文超限，未贯通数据核对和审计交付。继续改善重复历史与契约投影，保留来源/逐项权限/精确回读；CPU重演或增加窗口不能替代真实重验。"
     },
     {
       "id": "S03",
@@ -95,7 +107,7 @@
       "deliverables": ["图/表/格可靠定位及原图证据", "独立文字/结构校验", "按空间归属整理标题/单位/表注与UI"],
       "acceptance": ["格位与坐标/跨度均核实，无可靠定位不按索引替换", "已知错误的漏报/误报与需核范围分别计量", "业务信息误删与UI漏清分别计量", "辅助OCR全量证据保留，全图待复核不计定位成功"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-known-case-replay-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-diagnostics-budget-tests-007.xml", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-context-role-regression-012.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-schedule-whole-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s04-grid-localization-score-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/native-diagnostics-cpu-004.json"],
-      "progress_note": "元信息7/18→14/18已在新12图真实链复现，仍缺4且extra5；v2格位CPU回放仅两图81格可靠，联合9疑点5真错4误报，覆盖全133错的5个。原H60受控恢复后的开发评分整表19/60、关键2194/2670，元信息59/72、缺13/extra47、UI标记泄漏21，60图全部待核且当前格级定位成绩0。中文模拟与公开复杂表分开报告；局部回放不等于减负验收。"
+      "progress_note": "元信息7/18→14/18已在新12图真实链复现，仍缺4且extra5；v2格位CPU回放仅两图81格可靠，联合9疑点5真错4误报，覆盖全133错的5个。原H60受控恢复后的开发评分整表19/60、关键2194/2670，元信息59/72、缺13/extra47、UI标记泄漏21，60图全部待核。中文另核5图83可靠格位，当前单格疑点评分0。元信息/UI独立副本v001虽开发评分改善，但14实证发现语义/符号误换、混合footer业务误删和版本来源缺失，未应用共享源；须修复后按同版oracle完整60分母重验。中文模拟与公开复杂表分开报告，回放不等于减负验收。"
     },
     {
       "id": "S04",
@@ -104,7 +116,7 @@
       "depends_on": ["S02", "S03"],
       "areas": ["platform/agent/tools", "platform/agent/runtime", "ocr/screen_batches", "ocr/review_ui"],
       "deliverables": ["可处理异常回执", "原因到既有工具的有限处理分支", "新旧候选比较与版本/来源更新"],
-      "acceptance": ["技术故障和业务歧义分开，冷加载与推理超时分别记录，连续冷加载失败受控停止", "同异常无收益尝试及时停止且不丢预算", "慢提案回写前核原图版本、结果ID/revision、当前选定候选和review epoch，过期提案不覆盖值或复核状态", "新增自动处理净修复为正且无新增静默关键错误", "原有关键错未经纠正移出复核也计静默放行错误，禁止采用该分流规则", "不可见/模糊/仍冲突内容保留待核，Agent不代签人审"],
+      "acceptance": ["技术故障和业务歧义分开，冷加载与推理超时分别记录；模型未就绪时预算耗尽或中断也须纳入加载失败记账，连续冷加载失败受控停止", "同异常无收益尝试及时停止且不丢预算", "慢提案回写前核原图版本、结果ID/revision、当前选定候选和review epoch，过期提案不覆盖值或复核状态", "新增自动处理净修复为正且无新增静默关键错误", "原有关键错未经纠正移出复核也计静默放行错误，禁止采用该分流规则", "不可见/模糊/仍冲突内容保留待核，Agent不代签人审"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-issue-bridge-001.log", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s04-lineage-budget-002.xml", "F:/OCR/output/platform-specialized-agent-20261007/evidence/engine-load-receipts-001.xml", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s04-s06-cpu-regression-011.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/engine-load-receipts-001.json"],
       "progress_note": "有界预算、迟到提案和冷加载回归已有CPU证据；81格整页模式净0，explicit local_text全格替换修1关键/增1非关键、净格0，拒绝全格盲换。预冻结9诊断疑点完整856格分母净修1关键/新0，策略在观察开发结果后选择，尚无验证40或独立240资格、9格实际成本或人工减负。异步局部候选schema19后端完整189项及最终来源46项CPU通过；平台真实响应/分页8项接受、损坏4项拒绝，平台新反例及此前失败范围补测50项通过，含发送前失败、null lookup、下载SHA和全项终态校验。界面tsc/Vite build通过，仍无browser资格。生产local_reread=false、全待核。Paddle新单图通过不能代替全量精度/可靠性排名。"
     },
@@ -138,7 +150,7 @@
       "deliverables": ["屏拍转Excel实际样例", "已有发布模型分类样例", "可支持结构OCR到数据核对和证据的样例"],
       "acceptance": ["真实结构和原文/来源贯穿衔接", "合并含义未知或结构不完整不补猜下游输入", "规则/字段/单位核实", "缺能力明确说明，训练与新资料对应用户明确目标/范围"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-classification-model-002.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-data-file-001/execution-002/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-native-data-003/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-002/s07-agent-native-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-003/s07-agent-native-result.json"],
-      "progress_note": "已发布模型CPU实际预测、文件data/audit及原生OCR来源衔接局部实跑；native12表2支持/10明确unsupported。真实跨工具Agent最新008仍context_limit失败，保留失败并修复；尚无完整分类Agent与跨工具Agent资格，OCR主线不等待通用Agent框架。"
+      "progress_note": "已发布模型CPU实际预测、文件data/audit及原生OCR来源衔接局部实跑；native12表2支持/10明确unsupported。真实跨工具Agent最新009以8主控/11操作完成native_attach_result和native_read_result，后续context_limit失败，未完成results→data→evidence/export；旧008/009均保留。尚无完整分类Agent与跨工具Agent资格，OCR主线不等待通用Agent框架。"
     },
     {
       "id": "S08",
@@ -149,7 +161,7 @@
       "deliverables": ["新独立保留集240主批次/24挑战", "真实Agent/模型/导出/恢复报告", "新候选资格与采用/回退依据", "分类提交和Git clean记录"],
       "acceptance": ["已用于调参的旧240/24仅作回归，保留分组与独立来源说明", "覆盖与错误/净修复/需核范围/实际时间同时报告", "全量真值与错误分母固定，免人工子集的残留错误单独核验，漏报不能因缩小复核范围而排除", "全送人审只记辅助提取，不计自动化通过", "包/兼容/冷恢复与内容/人工确认/正式采用分别验收", "所有项目产物与Git元数据在F盘，历史失败不覆盖"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evaluation/dataset-qualification-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/dev-probe-001-final-review-001.md", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/specialized-data-compatibility-receipt-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-readback-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-glm-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-glm-dev-001-readback-001.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/cold-backup-restore-native-005/cold-restore-result.json"],
-      "progress_note": "H/GLM及调度12图真实链、独立XLSX/ZIP读回、冷恢复005及其独立复核通过是开发/工程证据；原H60已受控恢复并独立评分，但仅开发60且全待核。最终context/admission/status/schema19局部候选源码不被005覆盖，须新冷恢复。仍未完成200+与240/24资格；全待核不是自动化通过，相关工作树待分类收口。"
+      "progress_note": "H/GLM及调度12图真实链、独立XLSX/ZIP读回、冷恢复005及其独立复核通过是开发/工程证据；原H60已受控恢复并独立评分，但仅开发60且全待核。Paddle60第一次因本机重启中断，原deadline不延长，recognition-disabled实际reader已独立导出10本/60manifest/50未完成并核fidelity/freshness，不能称完整Paddle路线通过；新试验使用独立身份。稳定Agent/后台/交付/兼容/包装/界面和主仓helpers已分类提交，后续修正仍在执行。最终context/admission/status/schema19局部候选源码不被005覆盖，须新冷恢复。仍未完成200+与240/24资格；全待核不是自动化通过，最终相关工作树仍须收口。"
     }
   ]
 }
