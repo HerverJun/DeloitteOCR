@@ -302,11 +302,12 @@ class TaskQueue:
             ):
                 self.unload()
             if self.adapter is None:
-                from ocr_workbench.screen_load_guard import cold_load_state,record_cold_load,ScreenEngineUnavailable
+                from ocr_workbench.screen_load_guard import (cold_load_state,record_cold_load,
+                    record_load_budget_exhausted,ScreenEngineUnavailable)
                 load_state=cold_load_state(self.store,task['id'])
                 if load_state['blocked']:
-                    raise ScreenEngineUnavailable('此根任务及其子批次的同一模型已连续 '+str(load_state['consecutive_timeouts'])+
-                        ' 次冷加载超时，已停止继续加载；原图与已有成果保留，请检查模型加载阶段，或使用已有可用替代模型。')
+                    raise ScreenEngineUnavailable('此根任务及其子批次的同一模型已连续 '+str(load_state['consecutive_failures'])+
+                        ' 次冷加载失败（含加载期预算耗尽），已停止继续加载；原图与已有成果保留，请检查模型加载阶段，或使用已有可用替代模型。')
                 with self.guard:
                     self.adapter = self.factory(
                         resolved,
@@ -321,6 +322,8 @@ class TaskQueue:
                 except Exception as load_error:
                     if getattr(load_error,'phase',None)=='engine_load':
                         record_cold_load(self.store,task['id'],'timeout',error=load_error)
+                    elif budget_expired.is_set():
+                        record_load_budget_exhausted(self.store,task['id'],self.adapter)
                     raise
                 record_cold_load(self.store,task['id'],'ready')
             else:
