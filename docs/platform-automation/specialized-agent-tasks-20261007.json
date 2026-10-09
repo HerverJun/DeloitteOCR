@@ -2,12 +2,70 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-09",
-  "update_basis_main_head": "66732f7f46da2f74fe387730ce308d9bdf3ef125",
+  "update_basis_main_head": "9531228",
   "timezone": "Asia/Hong_Kong",
   "status": "in_progress",
   "progress_evidence_is_not_completion": true,
   "remaining_gates": ["final-source long-preparation status/pause responsiveness and native controls; original H60 actual recovery is now verified and remains development evidence", "final-route quality gain and independently verified review reduction", "same-condition 240-input whole/grouped performance comparison", "truthful per-tool admission and stable full cross-tool Agent orchestration within the configured context window and preserved OCR provenance", "independent validation of diagnostic-only local text candidates, cost and version protection before any automatic adoption", "final frozen-source 200+ real Agent/model/XLSX batch and independent 240/24 qualification", "native controlled recovery, reentry and edit/review races under actual service execution", "final-source candidate package/browser/cold backup restore qualification", "classified commits and clean related worktrees"],
-  "execution_priorities": ["repair long-batch status/recovery and close truthful tool loading and context stability", "run development 60 and validation 40 for content quality and model route selection", "validate bounded diagnostic-only local text candidates without blindly replacing all cells", "close current delivery/recovery and measure first candidate, first Excel and total time", "freeze route and execute independent 240/24 with actual 200+ Agent/model/XLSX", "qualify final candidate and clean classified Git changes"],
+  "execution_priorities": ["M1: close existing model trials and content-quality work, then decide default/precision/failure routes using development 60 and validation 40", "M2: integrate the complete daily OCR workflow, current table/metadata review and export, long-task stability and proven review reduction", "M3: freeze the final route and source, qualify independent 240/24 and actual 200+ Agent/model/XLSX, actual efficiency/recovery/races and existing-tool Agent workflows", "M4: qualify and deliver the final candidate, including browser/package/compatibility/cold restore, classified commits and clean related worktrees"],
+  "milestone_mapping_preserves_all_task_acceptance": true,
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "确定识别方案",
+      "status": "in_progress",
+      "owner": "root integrates OCR-content and model-evaluation workstreams",
+      "depends_on": [],
+      "task_ids": ["S03", "S04", "S08"],
+      "deliverables": ["默认识别路线", "提高精度与技术故障兜底路线", "开发60与验证40的完整配对质量/可交付率/需核范围/加载可靠性/成本报告"],
+      "completion": ["关键格、结构/合并跨度、标题单位表注、UI残留和业务误删使用完整分母", "未完成批次和成功图片子集不用于排名", "未ready时预算取消纳入持久加载失败与有界止损", "初始候选、人工确认和自动可交付状态独立", "无收益分支不进入默认，未达成质量目标继续保留"],
+      "next_action": "收当前Paddle独立试验的完整质量/独立Excel读回报告，保留Agent未交付失败；审查内容整理修正，完成其余开发/验证对照后决定路线"
+    },
+    {
+      "id": "M2",
+      "title": "完成日常OCR闭环",
+      "status": "in_progress",
+      "owner": "root integrates platform, OCR review and portal workstreams",
+      "depends_on": [],
+      "task_ids": ["S01", "S02", "S03", "S04", "S05", "S06"],
+      "deliverables": ["专用任务/偏好/范围/预算完整流程", "后台进度、暂停恢复与定向处理", "表格和业务说明两版/来源对照及人工纠正", "每图XLSX、同图多表分sheet、部分和整批ZIP当前版本交付"],
+      "completion": ["未知回包查原操作，未变成功项不重算，原范围/身份/预算不丢", "平台注册工具权限、skill/schema版本及call_id/SHA精确回读保留", "普通批次不超过5逻辑主控/8批次级工具，等待不轮询主控", "元信息编辑与表格编辑保存同一修订，原始ledger不可变，详情/复核/导出使用同一有效值", "空表/失败/预算终止清单完整可见，无静默少文件", "局部处理在可靠原图格位及有界预算内验证净修复/新错/成本，过期候选不覆盖值或确认", "新增处理有正净收益且缩小需核范围或证明校对减负，全图待核不算自动化通过"],
+      "next_action": "按实际010与Paddle002失败修正业务技能匹配/分阶段平台注册工具路线及有用的批次回执，完成元信息人工编辑/当前导出与界面对照，再集中做完整用户操作验收"
+    },
+    {
+      "id": "M3",
+      "title": "证明大批次与平台Agent可用",
+      "status": "pending",
+      "owner": "root coordinates independent evaluation and actual Agent execution",
+      "depends_on": ["M1", "M2"],
+      "parallel_preparation": "已有分类与OCR到数据审计的工程样例可并行预跑；小样例不替代本里程碑最终资格",
+      "task_ids": ["S04", "S06", "S07", "S08"],
+      "deliverables": ["新240主保留/24挑战独立验收", "200+实际Agent/模型/XLSX完整链", "240同条件整批/分组实际性能比较", "恢复/重复/编辑复核竞态实证", "已发布分类模型和OCR→数据→审计完整Agent样例"],
+      "completion": ["质量、需核范围、自动覆盖与免人工子集残留错误同时报告", "中文业务与公开复杂表分开，挑战单列，旧调参集不作为独立holdout", "新增静默关键错误为零，未纠正原关键错移出复核也计静默放行", "分别测首候选/首可下载Excel/整批墙时/主控及工具调用，恢复链不作正常性能", "真实输入版本、结果修订、原文字面值和直接证据贯穿跨工具链", "受支持结构实际完成，合并语义未知或结构不完整明确拒绝而不猜补", "各条完整链分别取得实际终态与独立成果读回"],
+      "next_action": "M1/M2完成后冻结路线与完整源码；执行独立大批次和跨工具最终资格"
+    },
+    {
+      "id": "M4",
+      "title": "交付可采用候选",
+      "status": "pending",
+      "owner": "root owns final qualification and classified Git closure",
+      "depends_on": ["M3"],
+      "parallel_preparation": "包装检查与交付材料可预先准备；最终资格必须绑定同一最终源码",
+      "task_ids": ["S05", "S08"],
+      "deliverables": ["全部工程门禁通过的候选包", "界面/兼容/真实冷备恢复证据", "简明操作说明、采用范围与回退依据", "分类提交和相关Git工作区干净记录"],
+      "completion": ["包装既有全部门槛保持，组件检查不能替代实际模型/浏览器/冷恢复资格", "最终源码、运行配置和实际成果一致", "F盘内新目录真实冷恢复覆盖最终状态及schema19局部候选", "候选工程资格、内容质量和正式采用分别登记", "全部项目产物及Git元数据在F盘，失败原件保留，相关开发修改分类收口"],
+      "next_action": "M3通过后统一收口最终候选与交付；更改影响已验要求时重新验证对应范围"
+    }
+  ],
+  "execution_rules": {
+    "parallelism": "M1与M2并行；GPU模型试验单槽顺序；已有跨工具样例和最终交付材料可独立预备",
+    "final_qualification_order": ["M1 and M2 complete", "M3 final frozen-source qualification", "M4 final candidate delivery"],
+    "run_continuity": "观察超时不重启活任务，未知提交查原身份；保留原预算/成本/截止时间",
+    "verification_reuse": "仅复用源码/配置/输入/环境未变且范围相符的证据；变更验证受影响要求和必要整体链",
+    "blocking_issues": "数据正确性、来源绑定、任务恢复、当前交付和关键操作在对应里程碑解决；其他改进集中登记处理",
+    "stop_conditions": "连续同原因加载失败受控停止；无净收益分支退出默认，保留未完成质量/减负目标，不以辅助模式缩减目标",
+    "reporting": "汇报里程碑、可交付能力和影响使用的关键阻碍；测试用例/日志/函数细节留在证据明细"
+  },
   "latest_progress_evidence": {
     "local_text_development_analysis": "F:/OCR/output/platform-specialized-agent-20261007/runs/local-text-probe-001/diagnostic-only-analysis-001.json",
     "local_text_actual_coordinates": "F:/OCR/output/platform-specialized-agent-20261007/runs/local-text-probe-001/coordinate-readback-001.json",
@@ -30,8 +88,14 @@
     "screen_intent_absence_reproduction": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-intent-null-lookup-repro-001.json",
     "screen_intent_absence_cpu_closure": "F:/OCR/output/platform-specialized-agent-20261007/evidence/screen-intent-null-lookup-closure-002.json",
     "packaging_delivery_compatibility_cpu": "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-delivery-package-cpu-003.json",
-    "context_frozen_component_gate": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/context-activation-regression-012-qualification.json",
-    "s07_latest_incomplete_actual_chain": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-009/s07-agent-native-result.json",
+    "context_frozen_component_gate": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/context-activation-regression-015-qualification.json",
+    "s07_current_actual_chain_log": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-agent-native-010.log",
+    "s03_development_cpu_replay": "F:/OCR/output/platform-specialized-agent-20261007/development-patches/s03-business-context-cpu-003/evidence/replay-002.json",
+    "s03_development_final_item_regression": "F:/OCR/output/platform-specialized-agent-20261007/development-patches/s03-business-context-cpu-003/evidence/regression-002.json",
+    "s03_source_byte_restoration_readback": "F:/OCR/output/platform-specialized-agent-20261007/development-patches/s03-business-context-cpu-003/evidence/source-pixel-restoration-readback-002.json",
+    "s07_latest_incomplete_actual_chain": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-010/s07-agent-native-result.json",
+    "s07_previous_failed_actual_chain": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-009/s07-agent-native-result.json",
+    "paddlevl60_second_trial_terminal": "F:/OCR/output/platform-specialized-agent-20261007/runs/agent-native-paddlevl-development-002/agent-native-summary.json",
     "s03_unadopted_patch_counterexamples": "F:/OCR/output/platform-specialized-agent-20261007/development-patches/review-business-context-patch-001/probe-001.json",
     "paddlevl60_interrupted_seal": "F:/OCR/output/platform-specialized-agent-20261007/evidence/paddlevl60-interrupted-seal-001/result.json",
     "paddlevl60_partial_export_readback": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/paddlevl60-partial-reader-004/result.json"
@@ -96,7 +160,7 @@
       "deliverables": ["有来源/作用域/版本的工作偏好", "当前任务的范围与策略快照", "可查看/修改/撤回的默认参数"],
       "acceptance": ["单次指令覆盖默认", "暂停恢复沿用原快照", "项目与任务范围不串用", "金额列/单位/规则的实质歧义得到核实"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/specialized-runtime-cpu-tests-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/frontend-source-build-verification-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/specialized-data-compatibility-receipt-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-specialized-cpu-002.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/context-completed-batches-002.xml"],
-      "progress_note": "偏好和冻结任务已有实现并分类提交；freeze010组件69主测试+27子测试通过。真实S07最新009已调用原生结果接入与读取，随后14619/14336上下文超限，未贯通数据核对和审计交付。继续改善重复历史与契约投影，保留来源/逐项权限/精确回读；CPU重演或增加窗口不能替代真实重验。"
+      "progress_note": "偏好和冻结任务已有实现并分类提交；最新freeze013原7模块组件门禁132 JUnit项通过且源inventory不变，属于组件证据。真实S07 009与010均因上下文/工具发现循环未贯通，010为12主控/15工具、原生接入/读取/重新加载成功，但尚未进入results桥/data/audit/交付。下一实现聚焦已有OCR成果核对的专用技能和分阶段注册工具路线；保留原预算/窗口/权限、来源与精确回读。"
     },
     {
       "id": "S03",
@@ -126,8 +190,8 @@
       "status": "in_progress",
       "depends_on": ["S01"],
       "areas": ["platform/agent/delivery", "platform/screen_exports", "ocr/exporting"],
-      "deliverables": ["逐输入当前结果与导出选项核验", "过期成果历史标记和重新导出", "真实交付范围/缺文件/待核摘要"],
-      "acceptance": ["同数量的旧ZIP在编辑/换候选/重新确认后不作为当前交付", "导出期间版本变化拒绝", "部分范围/no_book/无原因遗漏明确登记", "XLSX原值/空格/授权数值及全部来源独立读回"],
+      "deliverables": ["逐输入当前结果与导出选项核验", "表格及业务说明人工修改/当前修订/复核/导出一致", "过期成果历史标记和重新导出", "真实交付范围/缺文件/待核摘要"],
+      "acceptance": ["表格和元信息修改存当前修订、原始识别ledger不可变，详情/复核/导出读取同一有效值", "人工选主候选/辅助原文/手改分别保留来源，候选切换/过期索引不误配元信息", "同数量的旧ZIP在编辑/换候选/重新确认后不作为当前交付", "导出期间版本变化拒绝", "部分范围/no_book/无原因遗漏明确登记", "XLSX原值/空格/授权数值及全部来源独立读回"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/native-delivery-current-003.log", "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-delivery-001.log", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-readback-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-specialized-cpu-002.json"]
     },
     {
@@ -150,7 +214,7 @@
       "deliverables": ["屏拍转Excel实际样例", "已有发布模型分类样例", "可支持结构OCR到数据核对和证据的样例"],
       "acceptance": ["真实结构和原文/来源贯穿衔接", "合并含义未知或结构不完整不补猜下游输入", "规则/字段/单位核实", "缺能力明确说明，训练与新资料对应用户明确目标/范围"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-classification-model-002.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-data-file-001/execution-002/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-native-data-003/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-002/s07-agent-native-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-003/s07-agent-native-result.json"],
-      "progress_note": "已发布模型CPU实际预测、文件data/audit及原生OCR来源衔接局部实跑；native12表2支持/10明确unsupported。真实跨工具Agent最新009以8主控/11操作完成native_attach_result和native_read_result，后续context_limit失败，未完成results→data→evidence/export；旧008/009均保留。尚无完整分类Agent与跨工具Agent资格，OCR主线不等待通用Agent框架。"
+      "progress_note": "已发布模型CPU实际预测、文件data/audit及原生OCR来源衔接局部实跑；native12表2支持/10明确unsupported。真实跨工具Agent最新010以12主控/15操作、177.20秒完成native接入/读取及重新加载，最终失败，未进入results→data→evidence/export；旧008/009/010全部保留。通过专用任务匹配和分阶段工具路线推进完整实战，仍须独立验证分类Agent和跨工具Agent，OCR主线不等待通用Agent框架。"
     },
     {
       "id": "S08",
