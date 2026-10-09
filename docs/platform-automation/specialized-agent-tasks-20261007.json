@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-09",
-  "update_basis_main_head": "9531228",
+  "update_basis_main_head": "856d289",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": ["M1", "M2"],
     "completed_plan": false,
@@ -13,7 +13,51 @@
     "loading_budget_guard": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/load-budget-guard-final-002.json",
     "preparation_http_controls": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/preparation-http-controls-001.json",
     "glm_loading_stages": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/glm-loading-progress-001.json",
-    "glm_development_live_run": "F:/OCR/output/platform-specialized-agent-20261007/runs/m1-glm-development-20261009-002",
+    "glm_development_partial_run": "F:/OCR/output/platform-specialized-agent-20261007/runs/m1-glm-development-20261009-002",
+    "glm_partial_terminal_seal": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-partial-terminal-seal-001/result.json",
+    "glm_partial_scope": {"success": 1, "failed": 6, "interrupted_unknown": 1, "not_attempted": 52, "complete_engine_comparison": false, "agent_delivery": false},
+    "glm_single_diagnostic_closure": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-single-diagnostic-closure-001.json",
+    "glm_development_live_run": "F:/OCR/output/platform-specialized-agent-20261007/runs/m1-glm-development-20261009-003",
+    "glm_development_live_source_binding": "F:/OCR/output/platform-specialized-agent-20261007/source-snapshots/m1-glm-development-20261009-003/trial-source-binding.json",
+    "glm_full60_terminal_seal": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-terminal-seal-001/result.json",
+    "glm_full60_closure": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-closure-001.json",
+    "glm_full60_note": "Normal exit0/model60 succeeded,Agent3 requests/3tools,59XLSX+1no_book/all60 reviewed. Exact20/60,critical2361/2670,visible3466/3933; versusH net316 cell repairs/net167 critical but81 new critical errors remain reviewed. Old5-column oracle failure preserved; new independent eight-column source/review/current-version readback passed59 workbooks plus one no_book. Mixed-source development only,not default/final qualification.",
+    "glm_full60_corrected_closure": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-closure-002.json",
+    "glm_full60_eight_column_readback": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-readback-v4-001.json",
+    "strict_subset_rejected": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-strict-subset-review-001/result.json",
+    "strict_subset_note": "Two hypothetical automatic images retain two critical U+2212-to-ASCII-hyphen errors. Entire 60-input denominator independently scored; no native review or default policy change. Numeric raster diagnostic produced zero uniquely supported proposals.",
+    "cell_scope_development_review": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/independent-m2-cell-review-scope-002/review.json",
+    "cell_scope_rule_boundary": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/independent-m2-cell-review-scope-boundary-001/report.json",
+    "cell_scope_note": "Full60/3933 scope:3911 cells remain reviewed,22 CJK strings exact/noncritical in measured development inputs,783 visible errors/476 critical errors covered independently of automatic flag. No value repair/automatic image/native change/human time/validation. CJK amounts and identifiers are unresolved semantic boundary; no adoption.",
+    "closed_header_development_review": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m2-closed-header-scope-independent-full60-003/review.json",
+    "closed_header_note": "Frozen reimbursement-matrix-only seven-field rule reduces reviewed reference cells by14/3933 across2/60 development images. Independent scoring covers all783 visible/476 critical errors; values, candidates and automatic delivery unchanged. This is development-informed CPU feasibility only; validation40, production integration, human time and adoption remain open. Earlier import failures 001/002 preserved.",
+    "m2_ocr_commit": "36f7a6d",
+    "m2_platform_commit": "1877789",
+    "m2_engineering_browser": "F:/OCR/output/platform-specialized-agent-20261007/evidence/m2-live-workflow-001/browser.json",
+    "m2_engineering_zip_readback": "F:/OCR/output/platform-specialized-agent-20261007/evidence/m2-live-workflow-001/readback.json",
+    "m2_evidence_index": "F:/OCR/output/platform-specialized-agent-20261007/evidence/m2-evidence-index.json",
+    "m2_cold_workflow_first_rejection": "F:/OCR/output/platform-specialized-agent-20261007/runs/cold-backup-restore-workflow-001/cold-restore-result.json",
+    "m2_corrected_fixture_lineage": "F:/OCR/output/platform-specialized-agent-20261007/evidence/m2-live-workflow-lineage-003/lineage.json",
+    "m2_cold_workflow_005": "F:/OCR/output/platform-specialized-agent-20261007/runs/cold-backup-restore-workflow-005/cold-restore-result.json",
+    "m2_cold_workflow_005_independent": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/independent-m2-cold005-review-002/review.json",
+    "m2_cold_negative_grid_contract": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m2-cold-negative-grid-contract-001.json",
+    "m2_cold_scope": "Actual production component backups/restore and isolated HTTP consumption of stopped engineering fixture:3 inputs/2 local requests/current and historical ZIPs; two positive diagnostic pixel batches plus one exact declared dimension rejection. All001-004 failures retained. No model/Agent/final qualification.",
+    "local_candidate_reader_root_fix_commit": "1ffb392",
+    "local_candidate_reader_root_regression": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/reader-root-local-candidate-002/result.json",
+    "s07_late_chain_status": "Native019 had actual successful delivery receipts but graph continued to context overflow; classification006 also incomplete. Full five-category export list was wrongly rejected by verifier. Terminal graph/receipt-verifier fixes require fresh real identity, preserved budgets/sources and complete independent readback.",
+    "s07_native020_actual": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-020/s07-agent-native-result.json",
+    "s07_native020_note": "Actual existing-result/data/audit/export/delivery Agent succeeded,15 requests/16tools/0model-GPU-train. Auxiliary export-review001 wrote empty WAL/SHM by opening original SQLite; original main database/receipts unchanged,failed immutable guard preserved,followup uses byte copies. Classification007 still incomplete; branches are not final common-source qualification.",
+    "s07_native021_actual": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-021/s07-agent-native-result.json",
+    "s07_native021_independent_export": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-native021-export-review-001/export-review.json",
+    "s07_classification008_actual": "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-classification-008/result.json",
+    "s07_classification008_independent_export": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-classification008-export-review-005/export-review.json",
+    "s07_branch029_note": "Native021 actual existing-OCR/data/audit/export/delivery succeeded,15 controller/17 tools, independent five-file readback passed. Classification008 performed2 real CPU predictions and delivered3 source-bound files, but Agent terminal status remains partial because a failed unregistered tools_describe call is preserved. Independent export review005 passed with original bytes and human labels unchanged; attempts003/004 checker failures retained. Branch freeze029 is not final common-source qualification.",
+    "s07_platform_stage_commit": "30a26f1",
+    "main_readback_header_probe_commit": "5162500",
+    "main_s07_review_helpers_commit": "856d289",
+    "cold_workflow_driver_commit": "5011feb",
+    "strict_subset_probe_commit": "80e183a",
+    "operator_guide": "F:/OCR/docs/platform-automation/平台专用Agent操作说明-20261009.md",
     "quality_note": "Paddle60 complete: 15/60 exact tables, critical2182/2670, visible3208/3933; compared to H60 net visible+58 but critical-12. All available images reviewed, automatic0; failure dropout is not review relief. v003 shared metadata integration does not qualify table correctness or final validation.",
     "qualification_note": "Component tests and live development progress only. No 40-validation, 240/24 final quality, 200+ final Agent batch, final-source cold restore or final candidate adoption claimed."
   },
@@ -33,7 +77,7 @@
       "task_ids": ["S03", "S04", "S08"],
       "deliverables": ["默认识别路线", "提高精度与技术故障兜底路线", "开发60与验证40的完整配对质量/可交付率/需核范围/加载可靠性/成本报告"],
       "completion": ["关键格、结构/合并跨度、标题单位表注、UI残留和业务误删使用完整分母", "未完成批次和成功图片子集不用于排名", "未ready时预算取消纳入持久加载失败与有界止损", "初始候选、人工确认和自动可交付状态独立", "无收益分支不进入默认，未达成质量目标继续保留"],
-      "next_action": "收当前Paddle独立试验的完整质量/独立Excel读回报告，保留Agent未交付失败；审查内容整理修正，完成其余开发/验证对照后决定路线"
+      "next_action": "H/P/GLM开发60完整分母及GLM实际8列读回已收口；冻结仅由实际源证据驱动的候选路线，完成验证40与真实成本/需核范围，再定默认/精度/故障路线。严格双读放行因2静默关键错拒绝，不能以全待核或失败dropout替代减负目标"
     },
     {
       "id": "M2",
@@ -44,7 +88,7 @@
       "task_ids": ["S01", "S02", "S03", "S04", "S05", "S06"],
       "deliverables": ["专用任务/偏好/范围/预算完整流程", "后台进度、暂停恢复与定向处理", "表格和业务说明两版/来源对照及人工纠正", "每图XLSX、同图多表分sheet、部分和整批ZIP当前版本交付"],
       "completion": ["未知回包查原操作，未变成功项不重算，原范围/身份/预算不丢", "平台注册工具权限、skill/schema版本及call_id/SHA精确回读保留", "普通批次不超过5逻辑主控/8批次级工具，等待不轮询主控", "元信息编辑与表格编辑保存同一修订，原始ledger不可变，详情/复核/导出使用同一有效值", "空表/失败/预算终止清单完整可见，无静默少文件", "局部处理在可靠原图格位及有界预算内验证净修复/新错/成本，过期候选不覆盖值或确认", "新增处理有正净收益且缩小需核范围或证明校对减负，全图待核不算自动化通过"],
-      "next_action": "按实际010与Paddle002失败修正业务技能匹配/分阶段平台注册工具路线及有用的批次回执，完成元信息人工编辑/当前导出与界面对照，再集中做完整用户操作验收"
+      "next_action": "两端元信息修改、7ZIP读回与工程冷恢复005已通过；封闭表头开发CPU缩核14格，需验证40、实际产品接入或人工时间证明。全部组件/fixture证据不得代替M2质量门槛"
     },
     {
       "id": "M3",
@@ -185,7 +229,7 @@
       "deliverables": ["图/表/格可靠定位及原图证据", "独立文字/结构校验", "按空间归属整理标题/单位/表注与UI"],
       "acceptance": ["格位与坐标/跨度均核实，无可靠定位不按索引替换", "已知错误的漏报/误报与需核范围分别计量", "业务信息误删与UI漏清分别计量", "辅助OCR全量证据保留，全图待复核不计定位成功"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-known-case-replay-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-diagnostics-budget-tests-007.xml", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-context-role-regression-012.json", "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-schedule-whole-dev-001-quality-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/s04-grid-localization-score-001.json", "F:/OCR/output/platform-specialized-agent-20261007/evidence/native-diagnostics-cpu-004.json"],
-      "progress_note": "元信息7/18→14/18已在新12图真实链复现，仍缺4且extra5；v2格位CPU回放仅两图81格可靠，联合9疑点5真错4误报，覆盖全133错的5个。原H60受控恢复后的开发评分整表19/60、关键2194/2670，元信息59/72、缺13/extra47、UI标记泄漏21，60图全部待核。中文另核5图83可靠格位，当前单格疑点评分0。元信息/UI独立副本v001虽开发评分改善，但14实证发现语义/符号误换、混合footer业务误删和版本来源缺失，未应用共享源；须修复后按同版oracle完整60分母重验。中文模拟与公开复杂表分开报告，回放不等于减负验收。"
+      "progress_note": "元信息v003已在共享OCR实现并提交36f7a6d：H60共同政策开发回放命中72/72、extra0、UI标记21→2；P60同政策仍59/72、extra13、UI2，真实源文字不一致保持拒绝。表格值和所有关键格错误不变。严格全格像素及PP98%一致的60图CPU放行可行性试验提出2图，独立评分仍2个数学负号字形关键错，路线拒绝、产品仍待核；字形raster诊断0唯一提案。真实业务说明修改/当前ZIP的两端工程UI已通过，但验证40、内容净收益和减负尚未完成。"
     },
     {
       "id": "S04",
@@ -228,7 +272,7 @@
       "deliverables": ["屏拍转Excel实际样例", "已有发布模型分类样例", "可支持结构OCR到数据核对和证据的样例"],
       "acceptance": ["真实结构和原文/来源贯穿衔接", "合并含义未知或结构不完整不补猜下游输入", "规则/字段/单位核实", "缺能力明确说明，训练与新资料对应用户明确目标/范围"],
       "evidence": ["F:/OCR/output/platform-specialized-agent-20261007/evaluation/s07-classification-model-002.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-data-file-001/execution-002/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-native-data-003/s07-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-002/s07-agent-native-result.json", "F:/OCR/output/platform-specialized-agent-20261007/runs/s07-agent-native-003/s07-agent-native-result.json"],
-      "progress_note": "已发布模型CPU实际预测、文件data/audit及原生OCR来源衔接局部实跑；native12表2支持/10明确unsupported。真实跨工具Agent最新010以12主控/15操作、177.20秒完成native接入/读取及重新加载，最终失败，未进入results→data→evidence/export；旧008/009/010全部保留。通过专用任务匹配和分阶段工具路线推进完整实战，仍须独立验证分类Agent和跨工具Agent，OCR主线不等待通用Agent框架。"
+      "progress_note": "029分支原生021已实际完成既有OCR→数据核对→审计→五类导出→交付，15主控/17工具，独立读回通过；分类008实际CPU预测2/2并交付3份来源绑定文件，独立读回通过，仍因一次未注册工具描述失败保持partial。旧失败保留；这些是小规模分支链，不能代替最终共同源码和完整分类Agent资格。"
     },
     {
       "id": "S08",
