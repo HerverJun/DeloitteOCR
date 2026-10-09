@@ -187,8 +187,8 @@ class Resident:
                 stage('dependency_import', 'Importing GLM session loader')
                 from ocr_workbench.glm import load_session
 
-                stage('model_initialization', 'Calling GLM load_session; internal loading stages are not instrumented')
-                self.session = load_session(bundle / "models")
+                stage('model_initialization', 'Calling the existing GLM session loader')
+                self.session = load_session(bundle / "models", stage=stage)
                 self.loaded = self.session[5]
             else:
                 stage('dependency_import', 'Importing Hunyuan session')
