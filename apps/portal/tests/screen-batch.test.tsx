@@ -22,6 +22,49 @@ function mount(start = '/ocr?screen_batch=batchA') {
   return render(<ConfigProvider><QueryClientProvider client={client}><MemoryRouter initialEntries={[start]}><ScreenBatch workspaceId="wtest" linkId="linkA" setId="setA" revision={1} count={240} ready /></MemoryRouter></QueryClientProvider></ConfigProvider>)
 }
 
+test('business metadata retains both readings and submits selected source with cell edits and current review token', async () => {
+  const actions: any[] = []
+  const token = 'a'.repeat(64)
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith('/items/versionA')) return ok({ ...item, review_binding_token: token, original_url: '/original.png',
+      tables: [{ columns: 1, cells: [{ row: 0, column: 0, text: '001.20' }] }],
+      business_metadata: [{ kind: 'note', text: '表注：金额+20', source: 'primary_transcription', table: 0,
+        alternative_text: '表注：金额-20', alternative_source: 'rapidocr', review_required: true, human_confirmed: false,
+        transcription_evidence: { primary_text: '表注：金额+20', auxiliary_text: '表注：金额-20',
+          primary_source: { result_id: 'nativeA', image_version: 'versionA' }, auxiliary_source: { source: 'rapidocr', evidence_refs: [7] } } }] })
+    if (path.endsWith('/action')) { actions.push(JSON.parse(String(init?.body))); return ok(batch()) }
+    return ok(batch())
+  }))
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '核对原图与结果' }))
+  await screen.findByText('当前文字：表注：金额+20')
+  expect(screen.getByText('另一识别原文：表注：金额-20（rapidocr）')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '选用辅助识别原文 1' }))
+  expect(screen.getByLabelText('业务说明1复核值')).toHaveValue('表注：金额-20')
+  fireEvent.change(screen.getByLabelText('表1行1列1'), { target: { value: '001.30' } })
+  fireEvent.click(screen.getByRole('button', { name: '保存并确认本图' }))
+  await waitFor(() => expect(actions).toHaveLength(1))
+  expect(actions[0]).toMatchObject({ expected_revision: 3, expected_review_token: token,
+    metadata_edits: [{ item_index: 0, before: '表注：金额+20', after: '表注：金额-20', choice: 'auxiliary' }],
+    edits: [{ table_index: 0, row: 0, column: 0, before: '001.20', after: '001.30' }] })
+}, 30000)
+
+test('manual business metadata remains pending until explicit acceptance', async () => {
+  const actions: any[] = []
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith('/items/versionA')) return ok({ ...item, original_url: '/original.png', tables: [],
+      business_metadata: [{ kind: 'unit', text: '单位：元', source: 'rapidocr', review_required: true }] })
+    if (path.endsWith('/action')) { actions.push(JSON.parse(String(init?.body))); return ok(batch()) }
+    return ok(batch())
+  }))
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '核对原图与结果' }))
+  fireEvent.change(await screen.findByLabelText('业务说明1复核值'), { target: { value: '单位：万元' } })
+  fireEvent.click(screen.getByRole('button', { name: '保留当前结果' }))
+  await waitFor(() => expect(actions).toHaveLength(1))
+  expect(actions[0]).toMatchObject({ state: 'retain', metadata_edits: [{ item_index: 0, before: '单位：元', after: '单位：万元', choice: 'manual' }] })
+}, 30000)
+
 test('240-image progress can export confirmed files while outstanding inputs remain visible', async () => {
   const payloads: any[] = []
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
@@ -85,6 +128,34 @@ test('review keeps original/crop selector aligned and writes against the pinned 
   await waitFor(() => expect(actions).toHaveLength(1))
   expect(actions[0]).toMatchObject({ action: 'review', version_ids: ['versionA'], result_id: 'resultA', expected_revision: 3, state: 'accepted', edits: [{ table_index: 0, row: 1, column: 1, before: '01.10', after: '01.20' }] })
 })
+
+test('reopening review binds refreshed detail before a new metadata draft', async () => {
+  const actions: any[] = []
+  let revision = 3
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith('/items/versionA')) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+      return ok({ ...item, current_result_revision: revision, review_binding_token: String(revision).repeat(64), original_url: '/original.png',
+        business_metadata: [{ kind: 'note', text: `表注：版本${revision}`, source: 'human_manual' }], tables: [] })
+    }
+    if (path.endsWith('/action')) { actions.push(JSON.parse(String(init?.body))); revision++; return ok(batch()) }
+    return ok(batch())
+  }))
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '核对原图与结果' }))
+  await screen.findByLabelText('业务说明1复核值')
+  fireEvent.click(screen.getByRole('button', { name: '保存并确认本图' }))
+  await waitFor(() => expect(actions).toHaveLength(1))
+  await waitFor(() => expect(screen.queryByRole('button', { name: '保留当前结果' })).not.toBeInTheDocument())
+  fireEvent.click(screen.getByRole('button', { name: '核对原图与结果' }))
+  await waitFor(() => expect(screen.getByLabelText('业务说明1复核值')).toHaveValue('表注：版本4'))
+  await waitFor(() => expect(screen.getByRole('button', { name: '保留当前结果' })).toBeEnabled())
+  fireEvent.change(screen.getByLabelText('业务说明1复核值'), { target: { value: '表注：人工复核' } })
+  fireEvent.click(screen.getByRole('button', { name: '保留当前结果' }))
+  await waitFor(() => expect(actions).toHaveLength(2))
+  expect(actions[1]).toMatchObject({ expected_revision: 4, expected_review_token: '4'.repeat(64), state: 'retain',
+    metadata_edits: [{ item_index: 0, before: '表注：版本4', after: '表注：人工复核', choice: 'manual' }] })
+}, 30000)
 
 test('candidate review preserves the old result guard and confirmed numeric columns are scoped to one image and table', async () => {
   const actions: any[] = [], exports: any[] = []

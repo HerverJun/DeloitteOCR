@@ -4,7 +4,8 @@ from contextlib import closing
 import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','screen-batch-v1',
-                   'agent-preferences-v1','screen-delivery-snapshot-v1','screen-resolution-v1','screen-local-candidates-v1')
+                   'agent-preferences-v1','screen-delivery-snapshot-v1','screen-resolution-v1','screen-local-candidates-v1',
+                   'screen-business-metadata-edit-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {

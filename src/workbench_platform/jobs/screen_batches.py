@@ -71,23 +71,34 @@ class CellEdit(AgentModel):
     after: str = Field(max_length=16000)
 
 
+class MetadataEdit(AgentModel):
+    item_index: int = Field(ge=0, strict=True)
+    before: str = Field(max_length=10000)
+    after: str = Field(max_length=10000)
+    choice: Literal['manual', 'primary', 'auxiliary'] = 'manual'
+
+
 class ScreenAction(AgentModel):
     action: Literal['pause', 'resume', 'cancel', 'retry_failed', 'review', 'upgrade']
     request_id: Identity
     version_ids: list[Identity] | None = Field(default=None, min_length=1, max_length=1000)
     result_id: Identity | None = None
     expected_revision: int | None = Field(default=None, ge=0)
+    expected_review_token: str | None = Field(default=None, pattern=r'^[0-9a-f]{64}$')
     candidate_id: Identity | None = None
     state: Literal['accepted', 'retain', 'deferred'] | None = None
     edits: list[CellEdit] = Field(default_factory=list, max_length=100)
+    metadata_edits: list[MetadataEdit] = Field(default_factory=list, max_length=100)
 
     @model_validator(mode='after')
     def valid_review(self):
         if self.action == 'review' and (not self.version_ids or len(self.version_ids) != 1
                 or not self.result_id or self.expected_revision is None or not self.state):
             raise ValueError('Review requires one pinned image and result revision')
-        if self.action != 'review' and (self.result_id or self.expected_revision is not None or self.candidate_id or self.state or self.edits):
+        if self.action != 'review' and (self.result_id or self.expected_revision is not None or self.expected_review_token or self.candidate_id or self.state or self.edits or self.metadata_edits):
             raise ValueError('Review fields are only valid for review')
+        if self.candidate_id and self.metadata_edits:
+            raise ValueError('切换整图候选后请重新加载业务说明再编辑')
         if self.action=='upgrade' and not self.version_ids:
             raise ValueError('提高精度必须明确选择图片')
         return self
@@ -365,6 +376,10 @@ class ScreenBatches:
                 db.execute('INSERT OR IGNORE INTO screen_batch_subsets VALUES(?,?,?,?)',
                            (workspace,new_id,subset.asset_set_id,subset.revision))
                 batch_id=new_id
+        if args.action == 'review':
+            current = adapter._request('GET', f'/api/projects/{row["project_id"]}/screen-batches/{batch_id}/items/{args.version_ids[0]}')
+            if current.get('business_metadata_source') == 'edited':
+                mark_reader_feature(self.path.parent, 'screen-business-metadata-edit-v1')
         return self.status(workspace, batch_id)
 
     def delivery_snapshot(self, workspace, batch_id):

@@ -17,7 +17,7 @@ import uuid
 
 FORMAT = 'clear-product-reader-requirements-v1'
 SPECIALIZED_FEATURES = ('agent-preferences-v1', 'screen-delivery-snapshot-v1', 'screen-resolution-v1',
-                        'screen-local-candidates-v1')
+                        'screen-local-candidates-v1', 'screen-business-metadata-edit-v1')
 PREFERENCE_TABLES = {
     'agent_preference_profiles': ('workspace_id', 'business', 'revision', 'body', 'updated'),
     'agent_preference_snapshots': ('run_id', 'business', 'workspace_id', 'session_id', 'body', 'sha256', 'created'),
@@ -352,6 +352,48 @@ def infer_reader_requirements(root):
                         features.add('screen-local-candidates-v1')
                         evidence.append({'database': relative, 'table': 'screen_local_requests',
                             'feature': 'screen-local-candidates-v1', 'task_id': row['task_id']})
+            if kind == 'resolution' and 'results' in present and 'edited' in table_columns(db, 'results'):
+                for row in db.execute('SELECT * FROM results'):
+                    edited = encoded_object(row['edited'], 'OCR current edit')
+                    if 'screen' not in edited:
+                        continue
+                    require_columns(db, 'results', ('id', 'original', 'revision', 'task_id'))
+                    original = encoded_object(row['original'], 'OCR original result')
+                    screen = edited['screen']
+                    if (original.get('origin') != 'screen_batch' or not isinstance(screen, dict)
+                            or set(screen) != {'business_metadata', 'metadata_edit_log', 'metadata_review'}
+                            or not isinstance(screen['business_metadata'], list)
+                            or not isinstance(screen['metadata_edit_log'], list)
+                            or not isinstance(screen['metadata_review'], dict)):
+                        raise ValueError('Invalid screen business metadata edit structure')
+                    review = screen['metadata_review']
+                    if (review.get('actor') != 'human' or review.get('state') not in {'accepted','retain','deferred'}
+                            or type(review.get('base_revision')) is not int
+                            or not 0 <= review['base_revision'] < row['revision']
+                            or review.get('input_version_id') != original.get('project_image_version')):
+                        raise ValueError('Business metadata review lost its input/revision source')
+                    require_columns(db, 'tasks', ('id', 'version_id', 'image_id'))
+                    task = db.execute('SELECT * FROM tasks WHERE id=?', (row['task_id'],)).fetchone()
+                    if not task or task['version_id'] != review['input_version_id']:
+                        raise ValueError('Business metadata task source differs')
+                    for part in screen['business_metadata']:
+                        if (not isinstance(part, dict) or not isinstance(part.get('text'), str)
+                                or not isinstance(part.get('kind'), str)
+                                or type(part.get('human_confirmed')) is not bool
+                                or type(part.get('review_required')) is not bool):
+                            raise ValueError('Invalid business metadata current value')
+                    for entry in screen['metadata_edit_log']:
+                        if (not isinstance(entry, dict) or entry.get('actor') != 'human'
+                                or entry.get('image_version') != review['input_version_id']
+                                or type(entry.get('base_revision')) is not int
+                                or not 0 <= entry['base_revision'] <= review['base_revision']
+                                or type(entry.get('item_index')) is not int
+                                or not 0 <= entry['item_index'] < len(screen['business_metadata'])
+                                or entry.get('choice') not in {'manual','primary','auxiliary'}):
+                            raise ValueError('Business metadata history lost its source binding')
+                    features.add('screen-business-metadata-edit-v1')
+                    evidence.append({'database': relative, 'table': 'results', 'result_id': row['id'],
+                        'feature': 'screen-business-metadata-edit-v1'})
     return {'reader_features': sorted(features), 'evidence': evidence, 'writes': 0}
 
 
