@@ -104,6 +104,42 @@ def old_reader(feature):
     return descriptor
 
 
+@pytest.mark.parametrize('standalone', [False, True])
+@pytest.mark.parametrize('foreign_root_batch', [False, True])
+def test_local_candidate_inference_preserves_workspace_path_and_root_batch_ownership(
+        tmp_path, standalone, foreign_root_batch):
+    root = platform_root(tmp_path / 'data')
+    path = resolution(root, standalone=standalone)
+    snapshot = {'input_version_id': 'version1', 'result_id': 'result1',
+                'result_revision': 0, 'batch_id': 'batch1', 'source_sha256': 'a' * 64}
+    with closing(sqlite3.connect(path)) as db, db:
+        db.executescript('''PRAGMA user_version=19;
+            ALTER TABLE tasks ADD COLUMN input_version_id TEXT;
+            ALTER TABLE tasks ADD COLUMN kind TEXT;
+            ALTER TABLE tasks ADD COLUMN engine TEXT;
+            CREATE TABLE screen_local_requests(task_id TEXT,batch_id TEXT,root_batch_id TEXT,
+                request_id TEXT,input_version_id TEXT,parent_result_id TEXT,pixel_key TEXT,
+                snapshot TEXT,metadata TEXT,candidate_state TEXT);''')
+        db.execute('UPDATE tasks SET input_version_id=version_id,kind=?,engine=?', ('ocr', 'hunyuan'))
+        db.execute('INSERT INTO screen_batches VALUES(?,?)',
+                   ('root-batch', 'foreign-project' if foreign_root_batch else 'project1'))
+        db.execute('INSERT INTO tasks VALUES(?,?,?,?,?,?,?)',
+                   ('local-task', 'version1', 'image1', 'project1', 'version1', 'screen_local_text', 'glm'))
+        db.execute('INSERT INTO screen_local_requests VALUES(?,?,?,?,?,?,?,?,?,?)',
+                   ('local-task', 'batch1', 'root-batch', 'request-local', 'version1', 'result1',
+                    'e' * 64, json.dumps(snapshot), '{}', 'available'))
+    before = files(root)
+    if foreign_root_batch:
+        with pytest.raises(ValueError, match='ownership'):
+            infer_reader_requirements(root)
+    else:
+        inferred = infer_reader_requirements(root)
+        assert 'screen-local-candidates-v1' in inferred['reader_features']
+        assert check(root, DATA_COMPATIBILITY)['compatible']
+        assert any(item.get('task_id') == 'local-task' for item in inferred['evidence'])
+    assert files(root) == before
+
+
 @pytest.mark.parametrize('feature', ['agent-preferences-v1', 'screen-delivery-snapshot-v1', 'screen-resolution-v1'])
 def test_missing_marker_cannot_hide_actual_specialized_records(tmp_path, feature):
     root = platform_root(tmp_path / 'data')

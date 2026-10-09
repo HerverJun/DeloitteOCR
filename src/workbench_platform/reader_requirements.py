@@ -334,11 +334,11 @@ def infer_reader_requirements(root):
                         source = db.execute('SELECT * FROM versions WHERE id=?', (row['input_version_id'],)).fetchone()
                         result = db.execute('SELECT * FROM results WHERE id=?', (row['parent_result_id'],)).fetchone()
                         parent = db.execute('SELECT * FROM screen_batches WHERE id=?', (row['batch_id'],)).fetchone()
-                        root = db.execute('SELECT * FROM screen_batches WHERE id=?', (row['root_batch_id'],)).fetchone()
+                        root_batch = db.execute('SELECT * FROM screen_batches WHERE id=?', (row['root_batch_id'],)).fetchone()
                         result_task = db.execute('SELECT * FROM tasks WHERE id=?', (result['task_id'],)).fetchone() if result else None
-                        if (not task or not source or not result or not result_task or not parent or not root
+                        if (not task or not source or not result or not result_task or not parent or not root_batch
                                 or task['kind'] != 'screen_local_text' or task['engine'] != 'glm'
-                                or task['project_id'] != parent['project_id'] or root['project_id'] != parent['project_id']
+                                or task['project_id'] != parent['project_id'] or root_batch['project_id'] != parent['project_id']
                                 or result_task['project_id'] != parent['project_id']
                                 or task['input_version_id'] != source['id'] or task['image_id'] != source['image_id']
                                 or result_task['image_id'] != source['image_id']
