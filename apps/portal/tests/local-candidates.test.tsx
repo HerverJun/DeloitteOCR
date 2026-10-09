@@ -24,12 +24,15 @@ const storage = 'clear-local-candidate:workA:batchA:versionA'
 const candidate = { task_id: 'taskA', status: 'succeeded', candidate_state: 'available', current_binding: true,
   text: 'OBFC1', text_preview_only: false, binding: { result_id: 'resultA', result_revision: 2 }, artifact: {} }
 const receipt = { request_id: submission.request_id, status: 'submitted', execution_status: 'succeeded', items: [candidate],
+  target: submission.target,
   owned_task_ids: ['taskA'],
   values_modified: false, selection_applied: false, human_review: 'not_performed' }
 const ok = (value: unknown) => ({ ok: true, status: 200, json: async () => value })
 function mount(properties = props) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
-  return render(<ConfigProvider><QueryClientProvider client={client}><LocalCandidates {...properties} /></QueryClientProvider></ConfigProvider>)
+  const view = (value: typeof props) => <ConfigProvider><QueryClientProvider client={client}><LocalCandidates {...value} /></QueryClientProvider></ConfigProvider>
+  const mounted = render(view(properties))
+  return { ...mounted, rerenderProperties: (value: typeof props) => mounted.rerender(view(value)) }
 }
 
 test('unreliable geometry and unfinished primary batch cannot start a local reread', () => {
@@ -106,4 +109,44 @@ test.each(['running', 'failed'])('a reused %s task remains readable but has no c
   expect(screen.queryByRole('button', { name: '取消候选' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '仅重试失败候选' })).not.toBeInTheDocument()
   expect(fetcher.mock.calls.every(call => call[1]?.method !== 'POST')).toBe(true)
+})
+
+test('switching to another cell never pairs its value with the previous cell candidate', async () => {
+  sessionStorage.setItem(storage, JSON.stringify(submission))
+  vi.stubGlobal('fetch', vi.fn(async () => ok(receipt)))
+  const mounted = mount()
+  await screen.findByText('候选文字：OBFC1')
+  expect(screen.getByText('当前格值：OBFCI')).toBeInTheDocument()
+  mounted.rerenderProperties({ ...props, currentValue: '9,999.00',
+    diagnostic: { ...issue, id: 'issueB', location: { ...issue.location, row: 3 } } })
+  await screen.findByText('当前显示的是此前结果或疑点的候选，请切回对应疑点核对。')
+  expect(screen.queryByText('当前格值：9,999.00')).not.toBeInTheDocument()
+  expect(screen.getByText('候选文字：OBFC1')).toBeInTheDocument()
+})
+
+test('a new request for the selected cell restores a correctly bound comparison', async () => {
+  sessionStorage.setItem(storage, JSON.stringify(submission))
+  let latest = receipt
+  const writes: typeof submission[] = []
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.method === 'POST') {
+      const request = JSON.parse(String(init.body)) as typeof submission
+      writes.push(request)
+      latest = { ...receipt, request_id: request.request_id, target: request.target,
+        items: [{ ...candidate, text: '9,998.00' }] }
+    }
+    return ok(latest)
+  }))
+  const mounted = mount()
+  await screen.findByText('候选文字：OBFC1')
+  mounted.rerenderProperties({ ...props, currentValue: '9,999.00',
+    diagnostic: { ...issue, id: 'issueB', location: { ...issue.location, row: 3 } } })
+  fireEvent.click(screen.getByRole('button', { name: '生成此格文字候选' }))
+  await screen.findByText('候选文字：9,998.00')
+  expect(screen.getByText('当前格值：9,999.00')).toBeInTheDocument()
+  expect(screen.queryByText('候选文字：OBFC1')).not.toBeInTheDocument()
+  expect(screen.queryByText('当前显示的是此前结果或疑点的候选，请切回对应疑点核对。')).not.toBeInTheDocument()
+  expect(writes).toHaveLength(1)
+  expect(writes[0].target.issue_ids).toEqual(['issueB'])
+  expect(writes[0].request_id).not.toBe(submission.request_id)
 })
