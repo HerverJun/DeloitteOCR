@@ -10,6 +10,7 @@ export type ScreenItem = {
   input_version_id: string; image_id: string; source_name: string; status: string; stage: string;
   result_id?: string | null; result_revision?: number | null; review_state: string; human_confirmed: boolean;
   current_result_revision?: number | null; review_stale?: boolean;
+  review_binding_token?: string;
   error?: string | null; issues: ScreenIssue[];
   candidates?: { id: string; engine: string; table_count: number }[];
 };
@@ -94,7 +95,8 @@ export function screenReviewBody(item: ScreenItem, revision: number, state: "acc
   if (!item.result_id || !Number.isInteger(revision) || revision < 0) throw Error("当前结果不可复核，请重新加载。");
   if (edits.length > 100) throw Error("请分次保存，每次最多修改 100 个单元格。");
   return { action: "review", request_id: requestId, version_ids: [item.input_version_id], result_id: item.result_id,
-    expected_revision: revision, state, edits: state === "deferred" ? [] : edits.filter(edit => edit.before !== edit.after) };
+    expected_revision: revision, ...(item.review_binding_token ? { expected_review_token: item.review_binding_token } : {}),
+    state, edits: state === "deferred" ? [] : edits.filter(edit => edit.before !== edit.after) };
 }
 
 export function screenIssueTitle(issue: ScreenIssue) {

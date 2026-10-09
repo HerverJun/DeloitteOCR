@@ -5,6 +5,7 @@ import { api, request } from "./api";
 import { ImageCanvas } from "./ImageCanvas";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import { ScreenDiagnosticPanel } from "./ScreenDiagnosticPanel";
+import { ScreenBusinessMetadata, type ScreenMetadata, type ScreenMetadataEdit } from "./ScreenBusinessMetadata";
 import type { Photo, Result, Table, Version } from "./types";
 import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
   screenNumericColumnOptions, screenNumericExport,
@@ -16,6 +17,7 @@ import "./screen-batches.css";
 
 type PreparedImage = { id: string; kind: string; width: number; height: number; region_id?: string; path?: string };
 type ScreenDetail = ScreenItem & {
+  business_metadata?: ScreenMetadata[];
   diagnostics?: ScreenDiagnostics;
   preparation?: { width: number; height: number; prepared_images: PreparedImage[]; warnings?: { message: string }[] };
   result?: (Result & { original: Result["original"] & {
@@ -63,6 +65,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   const [tableIndex, setTableIndex] = useState(0);
   const [row, setRow] = useState(0), [column, setColumn] = useState(0);
   const [edits, setEdits] = useState<Record<string, ScreenCellEdit>>({});
+  const [metadataEdits, setMetadataEdits] = useState<Record<number, ScreenMetadataEdit>>({});
   const [previewId, setPreviewId] = useState("original");
   const [includeReview, setIncludeReview] = useState(false);
   const [numericColumns, setNumericColumns] = useState<Record<string, number[]>>({});
@@ -80,7 +83,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
 
   useEffect(() => {
     generation.current++;
-    setBatchId(""); setBatch(null); setBatches([]); setDetailId(""); setDetail(null); setEdits({});
+    setBatchId(""); setBatch(null); setBatches([]); setDetailId(""); setDetail(null); setEdits({}); setMetadataEdits({});
     setError(""); setNotice(""); setFilter(""); setOffset(0); setBusy(false); setComparison(null); submission.current = null;
   }, [projectId]);
 
@@ -131,7 +134,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   useEffect(() => {
     if (!open || !detailId || !batchId) { setDetail(null); return; }
     let active = true;
-    setDetail(null); setEdits({}); setIssueIndex(0); setPreviewId("original"); setDiagnosticIndex(0); setComparison(null); setCompareCandidate("");
+    setDetail(null); setEdits({}); setMetadataEdits({}); setIssueIndex(0); setPreviewId("original"); setDiagnosticIndex(0); setComparison(null); setCompareCandidate("");
     void loadDetail(detailId).then(value => { if (active && value) { setDetail(value); setTableIndex(value.issues[0]?.table || 0); setRow(value.issues[0]?.row || 0); setColumn(value.issues[0]?.column || 0); setCompareCandidate(value.candidate_results?.[0]?.id || ""); } }).catch(e => { if (active) report(e); });
     return () => { active = false; };
   }, [open, detailId, batchId, loadDetail, report]);
@@ -165,6 +168,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     setEdits(current => ({ ...current, [editKey]: screenCellEdit(tableIndex, cell, after) }));
   };
   const editedCount = Object.values(edits).filter(edit => edit.after !== edit.before).length;
+  const metadataCount = Object.keys(metadataEdits).length;
+  const hasDraft = editedCount + metadataCount > 0;
 
   const run = async (operation: () => Promise<void>) => {
     const owner = generation.current;
@@ -186,6 +191,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     setNotice(`已开始处理 ${versions.length} 张图片；每图一个 Excel 文件。`);
   });
   const batchAction = (action: string, extra: Record<string, unknown> = {}) => run(async () => {
+    if (action !== "review" && hasDraft) throw Error("请先保存或清除当前表格和业务说明修改。");
     const value = await api<ScreenBatch>(`${base}/${encodeURIComponent(batchId)}/action`, "POST", { action, request_id: requestId(), ...extra });
     if (projectRef.current !== projectId) return;
     setBatch(value);
@@ -198,17 +204,18 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   const review = (state: "accepted" | "retain" | "deferred") => {
     if (!detail?.result) return;
     const body = screenReviewBody(detail, detail.result.revision, state, Object.values(edits), requestId());
-    void batchAction("review", body).then(success => { if (success) setEdits({}); });
+    void batchAction("review", { ...body, ...(metadataCount && state !== "deferred" ? { metadata_edits: Object.values(metadataEdits) } : {}) }).then(success => { if (success) { setEdits({}); setMetadataEdits({}); } });
   };
   const adoptCandidate = (candidateId: string) => {
     if (!detail?.result) return;
     try {
+      if (metadataCount) throw Error("请先保存或清除业务说明修改，再采用整图候选。");
       const body = screenCandidateReviewBody(detail, detail.result.revision, candidateId, Object.values(edits), requestId());
       void batchAction("review", body).then(success => { if (success) { setEdits({}); setNotice("已采用本图整图候选，请继续核对并保存。"); } });
     } catch (error) { report(error); }
   };
   const exportBatch = () => run(async () => {
-    if (editedCount) throw Error("请先保存或清除当前单元格修改，再导出。");
+    if (hasDraft) throw Error("请先保存或清除表格和业务说明修改，再导出。");
     const numeric = detail ? screenNumericExport(detail, numericColumns, numericConfirmed) : undefined;
     const response = await request(`${base}/${encodeURIComponent(batchId)}/export`, { method: "POST", body: JSON.stringify({ include_pending_review: includeReview,
       ...(numeric ? { numeric_columns: numeric } : {}) }) });
@@ -219,7 +226,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     setNotice(`已下载当前可导出范围及输入/结果清单；待核对 ${batch?.counts.needs_review || 0} 张，尚未完成 ${batch?.counts.pending || 0} 张。`);
   });
   const compare = () => run(async () => {
-    if (!detail?.result || editedCount) throw Error("请先保存或清除当前修改，再比较候选。");
+    if (!detail?.result || hasDraft) throw Error("请先保存或清除当前修改，再比较候选。");
     const owner = generation.current;
     const body = screenComparisonBody(detail, compareCandidate, detail.result.revision);
     const value = await api<ScreenComparison>(`${base}/${encodeURIComponent(batchId)}/items/${encodeURIComponent(detail.input_version_id)}/compare`, "POST", body);
@@ -231,7 +238,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
   const version: Version | null = detail?.preparation ? { id: detail.input_version_id, image_id: detail.image_id,
     width: detail.preparation.width, height: detail.preparation.height, parent_id: null, operations: "[]", created: "" } : null;
   const localized = diagnosticLocation.polygon;
-  const close = () => { if (busy) return; if (editedCount) { setError("请先保存单元格修改，或清除待保存修改后关闭。"); return; } setOpen(false); };
+  const close = () => { if (busy) return; if (hasDraft) { setError("请先保存表格和业务说明修改，或清除待保存修改后关闭。"); return; } setOpen(false); };
 
   return <>
     <Button icon={<ScanLine size={16} />} disabled={!projectId} onClick={() => { setScope(selectedImageIds.length ? "selected" : "project"); setOpen(true); }}>拍屏表格批量转 Excel</Button>
@@ -249,11 +256,11 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                 <option value="selected" disabled={!selectedImageIds.length}>已选图片（{selectedImageIds.length} 张）</option>
               </select></label>
               <label className="screen-batch-check"><input type="checkbox" checked={precision} onChange={e => setPrecision(e.target.checked)} />提高精度（增加必要核对）</label>
-              <Button appearance="primary" disabled={busy || disabled || !!editedCount || !versions.length || versions.length > 1000} onClick={() => void startBatch()}>开始处理 {versions.length} 张</Button>
+              <Button appearance="primary" disabled={busy || disabled || hasDraft || !versions.length || versions.length > 1000} onClick={() => void startBatch()}>开始处理 {versions.length} 张</Button>
               {disabled && <span>当前识别不可用，可继续核对和下载已有批次。</span>}
             </div>
             <div className="screen-batch-pick">
-              <label>最近批次<select aria-label="最近表格批次" value={batchId} disabled={!!editedCount} onChange={e => { setBatchId(e.target.value); setDetailId(""); setOffset(0); setFilter(""); }}>
+              <label>最近批次<select aria-label="最近表格批次" value={batchId} disabled={hasDraft} onChange={e => { setBatchId(e.target.value); setDetailId(""); setOffset(0); setFilter(""); }}>
                 <option value="">选择已有批次</option>{batches.map(value => <option value={value.batch_id} key={value.batch_id}>{value.created?.slice(0,16).replace("T"," ")} · {value.counts?.total || ""} 张 · {screenStatuses[value.status] || value.status}</option>)}
               </select></label>
               <Button appearance="subtle" disabled={busy} onClick={() => void listBatches().catch(report)}>刷新批次</Button>
@@ -277,7 +284,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                 {batch.counts.pending > 0 && <Button disabled={busy} onClick={() => void batchAction("cancel")}>停止未完成项</Button>}
                 <Button disabled={busy || disabled || !batch.counts.failed} onClick={() => void batchAction("retry_failed")}>只重试失败项（{batch.counts.failed}）</Button>
                 <label className="screen-batch-check"><input type="checkbox" checked={includeReview} onChange={e => setIncludeReview(e.target.checked)} />下载时包含待核对结果</label>
-                <Button appearance="primary" icon={<Download size={15} />} disabled={busy || !(batch.counts.completed || includeReview && batch.counts.needs_review)} onClick={() => void exportBatch()}>下载逐图 Excel ZIP</Button>
+                <Button appearance="primary" icon={<Download size={15} />} disabled={busy || hasDraft || !(batch.counts.completed || includeReview && batch.counts.needs_review)} onClick={() => void exportBatch()}>下载逐图 Excel ZIP</Button>
               </div>
               <p className="screen-batch-small">默认按原文保存金额和编号，保留前导零及长编号。自动交付与人工核对分别记录；未完成和失败项列在下载清单中。</p>
               <div className="screen-batch-workspace">
@@ -285,7 +292,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                   <label>筛选<select aria-label="批次图片状态筛选" value={filter} onChange={e => { setFilter(e.target.value); setOffset(0); }}>
                     <option value="">全部</option><option value="needs_review">待核对</option><option value="failed">失败</option><option value="completed">可交付</option><option value="pending">处理中</option>
                   </select></label>
-                  <div className="screen-item-list">{batch.items.map(item => <button key={item.input_version_id} className={"screen-item " + (detailId === item.input_version_id ? "selected" : "")} onClick={() => { if (editedCount) { setError("请先保存或清除当前单元格修改，再切换图片。"); return; } setDetailId(item.input_version_id); }}>
+                  <div className="screen-item-list">{batch.items.map(item => <button key={item.input_version_id} className={"screen-item " + (detailId === item.input_version_id ? "selected" : "")} onClick={() => { if (hasDraft) { setError("请先保存或清除当前表格和业务说明修改，再切换图片。"); return; } setDetailId(item.input_version_id); }}>
                     <strong>{item.source_name}</strong><span>{screenStatuses[item.status] || item.status}{item.human_confirmed ? " · 人工已核对" : item.status === "completed" ? " · 自动交付" : ""}</span>
                     {item.issues.length > 0 && <small>{item.issues.length} 项提示</small>}{item.error && <small className="screen-item-error">{item.error}</small>}
                   </button>)}</div>
@@ -296,9 +303,9 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                   {!detailId ? <p>选择一张图片查看业务表区、识别结果和疑点。</p> : !detail ? <Spinner label="正在载入图片详情" /> : <>
                     <h3>{detail.source_name}</h3>
                     <div className="screen-batch-detail-actions"><span>{screenStatuses[detail.status] || detail.status}</span>
-                      {detail.result_id && <Button size="small" disabled={!!editedCount} onClick={() => { setOpen(false); void onOpenResult(detail.result_id!,detail.image_id).catch(report); }}>打开完整表格编辑器</Button>}
+                      {detail.result_id && <Button size="small" disabled={hasDraft} onClick={() => { setOpen(false); void onOpenResult(detail.result_id!,detail.image_id).catch(report); }}>打开完整表格编辑器</Button>}
                       {detail.status === "failed" && <Button size="small" disabled={busy || disabled} onClick={() => void batchAction("retry_failed",{version_ids:[detail.input_version_id]})}>重试这张图</Button>}
-                      {detail.result_id && <Button size="small" disabled={busy || disabled || !!editedCount || activeStates.has(detail.status)} onClick={() => void batchAction("upgrade",{version_ids:[detail.input_version_id]})}>只对这张图提高精度</Button>}
+                      {detail.result_id && <Button size="small" disabled={busy || disabled || hasDraft || activeStates.has(detail.status)} onClick={() => void batchAction("upgrade",{version_ids:[detail.input_version_id]})}>只对这张图提高精度</Button>}
                     </div>
                     {detail.error && <p role="alert">{detail.error}</p>}
                     {diagnostics && <ScreenDiagnosticPanel data={diagnostics} index={diagnosticIndex} select={chooseDiagnostic} busy={busy} action={name => {
@@ -306,7 +313,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                       if (name === "precision_subbatch") void batchAction("upgrade", {version_ids:[detail.input_version_id]});
                       if (name === "request_better_source") setNotice("请补充这张图的清晰、完整照片；原结果与来源继续保留，不猜测不可见内容。");
                     }} />}
-                    {!!detail.candidate_results?.length && <div className="screen-batch-actions"><label>比较候选<select aria-label="诊断比较候选" value={compareCandidate} onChange={event => { setCompareCandidate(event.target.value); setComparison(null); }}>{detail.candidate_results.map(value => <option key={value.id} value={value.id}>{value.engine} · {value.raw.tables.length} 张表</option>)}</select></label><Button size="small" disabled={busy || !!editedCount || !compareCandidate} onClick={() => void compare()}>比较候选差异</Button></div>}
+                    {!!detail.candidate_results?.length && <div className="screen-batch-actions"><label>比较候选<select aria-label="诊断比较候选" value={compareCandidate} onChange={event => { setCompareCandidate(event.target.value); setComparison(null); }}>{detail.candidate_results.map(value => <option key={value.id} value={value.id}>{value.engine} · {value.raw.tables.length} 张表</option>)}</select></label><Button size="small" disabled={busy || hasDraft || !compareCandidate} onClick={() => void compare()}>比较候选差异</Button></div>}
                     {detail.issues.length > 0 && <label>需要核对<select aria-label="本图疑点" value={issueIndex} onChange={e => chooseIssue(Number(e.target.value))}>{detail.issues.map((item,index) => <option key={index} value={index}>{index+1}. {screenIssueTitle(item)}</option>)}</select></label>}
                     {issue && <div className={"screen-issue " + (issue.severity === "high" ? "high" : "")}>
                       <strong>{screenIssueTitle(issue)}</strong>
@@ -326,6 +333,8 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                         : <PreparedPreview path={`${base}/${encodeURIComponent(batchId)}/items/${encodeURIComponent(detail.input_version_id)}/files/${encodeURIComponent(previewId)}`} name="业务处理图" />}
                     </>}
                     {detail.result && <>
+                      <Button size="small" disabled={busy} onClick={() => void run(async () => { const current = await loadDetail(detail.input_version_id); if (current) { setDetail(current); setEdits({}); setMetadataEdits({}); setComparison(null); } })}>重新加载当前复核版本</Button>
+                      <ScreenBusinessMetadata items={detail.business_metadata || []} edits={metadataEdits} busy={busy} change={edit => setMetadataEdits(old => ({ ...old, [edit.item_index]: edit }))} />
                       <div className="screen-cell-position"><label>表<select aria-label="核对表格" value={tableIndex} onChange={e => { setTableIndex(Number(e.target.value)); setRow(0); setColumn(0); }}>{tables.map((_,index) => <option value={index} key={index}>表 {index+1}</option>)}</select></label>
                         <label>行<input aria-label="核对行" type="number" min={1} max={tables[tableIndex]?.rows || 1} value={row+1} onChange={e => setRow(Math.max(0,Number(e.target.value)-1))} /></label>
                         <label>列<input aria-label="核对列" type="number" min={1} max={tables[tableIndex]?.columns || 1} value={column+1} onChange={e => setColumn(Math.max(0,Number(e.target.value)-1))} /></label></div>
@@ -334,25 +343,26 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                         candidates={detail.candidate_results} inputVersionId={detail.input_version_id} currentTables={tables}
                         selectedCandidateId={detail.result.original.screen?.selection?.selected_id || detail.result.original.screen_selection?.candidate_id}
                         tableIndex={tableIndex} row={row} column={column} currentValue={cellValue} issues={detail.issues}
-                        busy={busy} hasDraft={!!editedCount} canAdopt={detail.status === "completed" || detail.status === "needs_review"} onFill={editValue} onAdopt={adoptCandidate} />}
+                        busy={busy} hasDraft={hasDraft} canAdopt={detail.status === "completed" || detail.status === "needs_review"} onFill={editValue} onAdopt={adoptCandidate} />}
                       <p className="screen-batch-small">待保存修改：{editedCount} 格 · 保存前按结果版本检查，防止覆盖新编辑。</p>
-                      {editedCount > 0 && <Button size="small" disabled={busy} onClick={() => setEdits({})}>清除待保存修改</Button>}
-                      <div className="screen-review-actions"><Button appearance="primary" disabled={busy || !detail.result_id || editedCount > 100 || activeStates.has(detail.status)} onClick={() => review("accepted")}>保存并标记核对完成</Button>
-                        <Button disabled={busy || editedCount > 100 || activeStates.has(detail.status)} onClick={() => review("retain")}>保留当前内容，仍待核对</Button><Button disabled={busy || editedCount > 0 || activeStates.has(detail.status)} onClick={() => review("deferred")}>稍后核对</Button></div>
+                      <p className="screen-batch-small">待保存业务说明：{metadataCount} 项</p>
+                      {hasDraft && <Button size="small" disabled={busy} onClick={() => { setEdits({}); setMetadataEdits({}); }}>清除待保存修改</Button>}
+                      <div className="screen-review-actions"><Button appearance="primary" disabled={busy || !detail.result_id || editedCount > 100 || metadataCount > 100 || activeStates.has(detail.status)} onClick={() => review("accepted")}>保存并标记核对完成</Button>
+                        <Button disabled={busy || editedCount > 100 || metadataCount > 100 || activeStates.has(detail.status)} onClick={() => review("retain")}>保留当前内容，仍待核对</Button><Button disabled={busy || hasDraft || activeStates.has(detail.status)} onClick={() => review("deferred")}>稍后核对</Button></div>
                       <details className="screen-numeric-export">
                         <summary>本图数值列可计算（可选）</summary>
                         <p className="screen-batch-small">仅作用于当前图片的已选列。请先完成人工核对，再选择金额或数量列；编号、前导零和超长数字继续保留原文。</p>
                         {!detail.human_confirmed || detail.review_stale || detail.result.revision !== detail.result_revision || detail.status !== "completed" ? <p>保存并标记本图核对完成后，可选择数值列。</p> : <>
                           <label>选择表格<select aria-label="本图数值列所属表格" value={tableIndex} onChange={e => setTableIndex(Number(e.target.value))}>{tables.map((_, index) => <option key={index} value={index}>表 {index + 1}</option>)}</select></label>
                           <div className="screen-numeric-columns">{tables[tableIndex] && screenNumericColumnOptions(tables[tableIndex]).map(option => <label key={option.column} className="screen-batch-check">
-                            <input type="checkbox" aria-label={`数值列 ${option.column + 1} ${option.title}`} disabled={busy || !!editedCount || option.identifier} checked={(numericColumns[String(tableIndex)] || []).includes(option.column)} onChange={e => {
+                            <input type="checkbox" aria-label={`数值列 ${option.column + 1} ${option.title}`} disabled={busy || hasDraft || option.identifier} checked={(numericColumns[String(tableIndex)] || []).includes(option.column)} onChange={e => {
                               const checked = e.target.checked;
                               setNumericColumns(current => ({ ...current, [String(tableIndex)]: checked ? [...new Set([...(current[String(tableIndex)] || []), option.column])] : (current[String(tableIndex)] || []).filter(column => column !== option.column) }));
                               setNumericConfirmed(false);
                             }} />
                             <span>第 {option.column + 1} 列 · {option.title}{option.identifier ? "（编号，保留原文）" : ""}<small>示例：{option.samples.join(" / ") || "空白"}</small></span>
                           </label>)}</div>
-                          <label className="screen-batch-check"><input type="checkbox" checked={numericConfirmed} onChange={e => setNumericConfirmed(e.target.checked)} disabled={busy || !!editedCount || !Object.values(numericColumns).some(columns => columns.length)} />我已确认所选列是可计算的金额或数量</label>
+                          <label className="screen-batch-check"><input type="checkbox" checked={numericConfirmed} onChange={e => setNumericConfirmed(e.target.checked)} disabled={busy || hasDraft || !Object.values(numericColumns).some(columns => columns.length)} />我已确认所选列是可计算的金额或数量</label>
                           <p className="screen-batch-small">将转换 {Object.values(numericColumns).reduce((count, columns) => count + columns.length, 0)} 列；其他图片保持原文格式。切换图片或结果版本后重新选择。</p>
                         </>}
                       </details>

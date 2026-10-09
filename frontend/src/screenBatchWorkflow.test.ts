@@ -12,6 +12,10 @@ const table: Table = { rows: 2, columns: 2, cells: [
 ] };
 
 describe("diagnostic evidence gates", () => {
+  it("pins same-revision human review changes in the native review body", () => {
+    const token="a".repeat(64);
+    expect(screenReviewBody({...item,review_binding_token:token},7,"retain",[],"review-one").expected_review_token).toBe(token);
+  });
   const diagnostic: ScreenDiagnostic = { id:"issue-1",code:"difference",severity:"high",reason:"金额不同",location:{level:"cell",table:0,row:1,column:1,box:[10,20,90,60],basis:"observed_full_cell_geometry",range_semantics:"full_cell"},evidence:[],applicable_actions:[] };
   it("keeps reliable cell/table geometry distinct and never highlights indexes alone", () => {
     expect(screenDiagnosticLocation(diagnostic).level).toBe("cell");

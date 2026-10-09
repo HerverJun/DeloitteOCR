@@ -606,6 +606,8 @@ class ScreenBatches:
             finishes.append(raw.get('finish_reason'))
             truncated = truncated or bool(raw.get('truncated')) or raw.get('finish_reason') in {'length', 'max_tokens', 'token_limit'}
             sources.append({'result_id': result['id'], 'revision': result['revision'], 'engine': row['engine'],
+                            'text_sha256':hashlib.sha256(result['edited'].get('text','').encode('utf-8')).hexdigest(),
+                            'table_caption':raw['tables'][0].get('caption','') if len(raw.get('tables',[]))==1 else None,
                             'task_id': row['task_id'], 'prepared_id': row['prepared_id'],
                             'transform': metadata.get('prepared_to_source'), 'prepared_metadata': metadata,
                             'warnings': raw.get('warnings', []), 'finish_reason': raw.get('finish_reason'),
@@ -619,10 +621,16 @@ class ScreenBatches:
                         'input_sha256': item['source_hash'], 'strategy_version': batch['policy']['strategy_version'],
                         'sources': sources, 'prepared': preparation,
                         'context_provenance': deepcopy(evidence.get('provenance'))}}}
-        from ocr_workbench.screen_evidence import organize_screen_business_metadata
-        metadata = organize_screen_business_metadata(candidate['raw'], preparation, evidence)
-        candidate['raw']['screen']['business_metadata'] = metadata['items']
-        candidate['raw']['screen']['business_metadata_evidence'] = metadata
+        original_pixels = [image for image in preparation.get('prepared_images',[]) if image.get('kind')=='original'
+                           and image.get('source_to_prepared') == [1,0,0,0,1,0,0,0,1]
+                           and image.get('prepared_to_source') == [1,0,0,0,1,0,0,0,1]]
+        if len(original_pixels)==1:
+            source_path = Path(original_pixels[0]['path'])
+            candidate['raw']['screen']['context_pixel_source'] = {'path':str(source_path),
+                'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                'image_version':item['input_version_id'],'input_sha256':item['source_hash']}
+        from ocr_workbench.screen_evidence import apply_screen_business_metadata
+        candidate['raw'] = apply_screen_business_metadata(candidate['raw'], preparation, evidence)
         return candidate
 
     def _final_result(self, batch, item, raw):
@@ -694,19 +702,38 @@ class ScreenBatches:
         raw = selected['selected_result']
         raw.setdefault('screen', {})['selection'] = {key: selected.get(key) for key in
             ('selected_id', 'conflicts', 'modifications', 'automatic_delivery', 'review_required', 'upgrade_kind')}
-        checks_passed = bool(selected.get('automatic_delivery', False))
-        human_required = batch['policy'].get('require_human_review', False) and item['review_state'] != 'accepted'
+        table_checks_passed = bool(selected.get('automatic_delivery', False))
+        metadata_items = raw.get('screen',{}).get('business_metadata',[])
+        metadata_issues = [{'code':'business_metadata_review_required','category':'business_metadata',
+            'severity':'medium','scope':'metadata','item_index':index,'kind':part.get('kind'),
+            'selected_text':part.get('text'),'alternative_text':part.get('alternative_text'),
+            'selected_source':part.get('source'),'alternative_source':part.get('alternative_source'),
+            'primary_source':deepcopy(part.get('primary_source')),
+            'auxiliary_source':deepcopy(part.get('transcription_evidence',{}).get('auxiliary_source')),
+            'human_confirmed':False,
+            'reason':part.get('review_reason') or part.get('classification_basis') or 'ambiguous_business_context',
+            'message':('业务说明待核对；当前候选（'+str(part.get('source') or '来源未确定')+'）：'+str(part.get('text') or '')
+                + ('；另一候选（'+str(part.get('alternative_source') or '来源未确定')+'）：'+str(part['alternative_text'])
+                   if part.get('alternative_text') is not None else '')+'。初始候选选择不代表人工确认。')}
+            for index,part in enumerate(metadata_items) if part.get('review_required')]
+        metadata_pending = bool(metadata_issues) and item['review_state'] != 'accepted'
+        checks_passed = table_checks_passed and not metadata_pending
+        human_required = (batch['policy'].get('require_human_review', False) or metadata_pending) and item['review_state'] != 'accepted'
         raw['screen']['selection'].update(automatic_checks_passed=checks_passed,
+            table_checks_passed=table_checks_passed,business_metadata_review_required=metadata_pending,
             human_review_required=human_required)
+        if metadata_pending:
+            raw['screen']['selection'].update(automatic_delivery=False,review_required=True)
         chosen_assessment = selected.get('selected_assessment') or next((a for a in selected.get('assessments', []) if a['id'] == selected.get('selected_id')), {})
         issues = list(chosen_assessment.get('issues', []))
         if selected.get('conflicts'):
             issues.extend(selected['conflicts'])
+        issues.extend(metadata_issues)
         result_id = self._final_result(batch, item, raw)
         legacy_accuracy_pass = ('upgrade_trigger' not in batch['policy']
             and batch['policy']['mode'] == 'accuracy' and item['pass_index'] == 0)
         needs_upgrade = (batch['policy'].get('upgrade_trigger', 'quality') == 'quality'
-            and (not checks_passed or legacy_accuracy_pass))
+            and (not table_checks_passed or legacy_accuracy_pass))
         can_upgrade = (item['pass_index'] < batch['policy']['max_upgrades']
                        and item['pass_index'] < len(batch['policy']['fallback_engines'])
                        and spent < batch['policy']['budget_seconds'])
@@ -889,14 +916,33 @@ class ScreenBatches:
         value['result'] = self.store.result(rows[0]['result_id']) if rows[0]['result_id'] else None
         value['candidate_results'] = json.loads(rows[0]['candidates'])
         if value['result']:
+            with self.store.transaction() as db:
+                context = self._review_context(db, rows[0])
+            value['review_binding_token'] = fingerprint(context)
+            value['business_metadata'] = self._current_business_metadata(value['result'])
+            value['business_metadata_source'] = ('edited' if 'business_metadata' in
+                (value['result']['edited'].get('screen') or {}) else 'original')
             value['current_result_revision'] = value['result']['revision']
-            value['review_stale'] = value['result']['revision'] != rows[0]['result_revision']
-            if value['review_stale']:
-                value['human_confirmed'] = False
+            value['human_confirmed'] = (rows[0]['review_state'] == 'accepted'
+                and context['human_review_status'] == 'confirmed'
+                and context['review_result_id'] == value['result']['id']
+                and context['review_revision'] == value['result']['revision']
+                and context['review_version_id'] == version_id and context['active_version'] == version_id
+                and context['selected_result_id'] in {None, value['result']['id']})
+            value['review_stale'] = (value['result']['revision'] != rows[0]['result_revision']
+                or rows[0]['review_state'] == 'accepted' and not value['human_confirmed']
+                or context['active_version'] != version_id
+                or context['selected_result_id'] not in {None, value['result']['id']})
+            if not value['human_confirmed']:
+                for part in value['business_metadata']:
+                    if part.get('human_confirmed'):
+                        part.update(human_confirmed=False, review_required=True, review_reason='human_review_binding_changed')
             from ocr_workbench.screen_diagnostics import build_screen_diagnostics
             from ocr_workbench.screen_resolution import precision_capability
             result = value['result']
             raw = {**deepcopy(result['original']), **deepcopy(result['edited'])}
+            raw['screen'] = {**deepcopy(result['original'].get('screen') or {}),
+                             **deepcopy(result['edited'].get('screen') or {})}
             evidence = json.loads(rows[0]['evidence']) if rows[0].get('evidence') else {}
             budget = self._execution_budget(batch, rows[0])
             remaining = budget['remaining_seconds']
@@ -934,7 +980,10 @@ class ScreenBatches:
                 raise ValueError('候选不属于当前图片或批次')
             row = next(item for item in self._items(batch_id) if item['input_version_id'] == version_id)
             evidence = json.loads(row['evidence']) if row.get('evidence') else {}
-            report = compare_screen_candidates({**deepcopy(result['original']), **deepcopy(result['edited'])},
+            current = {**deepcopy(result['original']), **deepcopy(result['edited'])}
+            current['screen'] = {**deepcopy(result['original'].get('screen') or {}),
+                                 **deepcopy(result['edited'].get('screen') or {})}
+            report = compare_screen_candidates(current,
                 candidate['raw'], value['preparation'], evidence, current_id=result['id'], alternative_id=candidate['id'],
                 remaining_seconds=value['diagnostics']['budget']['remaining_seconds'],
                 capabilities={'structure_compare': True, 'precision_subbatch': None, 'local_reread': False})
@@ -1006,6 +1055,8 @@ class ScreenBatches:
             if not allow_new:
                 return None
             if action == 'review':
+                if body.get('metadata_edits') and (selected is None or len(items)!=1):
+                    raise ValueError('编辑业务说明必须明确指定单张图片')
                 if len(items) != 1:
                     raise ValueError('单次复核必须指定一张图片')
                 self._review(batch, items[0], body)
@@ -1067,17 +1118,37 @@ class ScreenBatches:
         image = self.store.one('images', item['image_id'])
         if image['active_version'] != item['input_version_id']:
             raise Conflict('原图版本已变化，不能复核旧批次')
+        with self.store.transaction() as db:
+            review_context = self._review_context(db, item)
+        if (review_context['selected_result_id'] not in {None, result_id}
+                or body.get('expected_review_token') is not None
+                and body['expected_review_token'] != fingerprint(review_context)):
+            raise Conflict('采用结果或人工复核状态已变化，请重新加载')
         candidate_id = body.get('candidate_id')
+        metadata_edits = body.get('metadata_edits',[])
+        if not isinstance(metadata_edits,list) or len(metadata_edits)>100:
+            raise ValueError('业务说明编辑范围无效')
+        if candidate_id and metadata_edits:
+            raise Conflict('切换整图候选后请先重新加载当前业务说明，再编辑')
         if candidate_id:
             candidate = next((c for c in json.loads(item['candidates']) if c['id'] == candidate_id), None)
             if not candidate:
                 raise ValueError('整图候选不存在')
             result_id = self._final_result(batch, item, deepcopy(candidate['raw']))
             result = self.store.result(result_id)
+            # _final_result may select the new untouched candidate itself.
+            with self.store.transaction() as db:
+                switched_context = self._review_context(db, item)
+            if (switched_context['selected_result_id'] not in {review_context['selected_result_id'], result_id}
+                    or {key: value for key, value in switched_context.items() if key != 'selected_result_id'}
+                    != {key: value for key, value in review_context.items() if key != 'selected_result_id'}):
+                raise Conflict('切换候选期间人工复核或原图已变化')
+            review_context = switched_context
         edits = body.get('edits') or []
         if not isinstance(edits, list) or len(edits) > 100:
             raise ValueError('复核编辑范围无效')
-        if edits:
+        metadata = self._current_business_metadata(result)
+        if edits or metadata_edits or metadata and state == 'accepted':
             value = deepcopy(result['edited'])
             for edit in edits:
                 if (not isinstance(edit, dict) or any(type(edit.get(k)) is not int or edit[k] < 0 for k in ('table_index', 'row', 'column'))
@@ -1088,23 +1159,96 @@ class ScreenBatches:
                 if len(cells) != 1 or cells[0]['text'] != edit['before'] or not isinstance(edit['after'], str):
                     raise Conflict('待修改单元格已变化')
                 cells[0]['text'] = edit['after']
-            result = self.store.save(result_id, value, result['revision'])
-        with self.store.lock:
-            with self.store.transaction() as db:
-                current = db.execute('SELECT revision FROM results WHERE id=?', (result_id,)).fetchone()
-                version = db.execute('SELECT active_version FROM images WHERE id=?', (item['image_id'],)).fetchone()
-                if current['revision'] != result['revision'] or version['active_version'] != item['input_version_id']:
-                    raise Conflict('复核内容或图片已变化')
-                db.execute('INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id', (item['image_id'], result_id))
-            self.store.set_review(item['image_id'], 'confirmed' if state == 'accepted' else 'question',
-                                  result_id, result['revision'], item['input_version_id'])
+            metadata_log = deepcopy((value.get('screen') or {}).get('metadata_edit_log',[]))
+            original_metadata = result['original'].get('screen',{}).get('business_metadata',[])
+            seen = set()
+            for edit in metadata_edits:
+                if (not isinstance(edit,dict) or set(edit)-{'item_index','before','after','choice'}
+                        or type(edit.get('item_index')) is not int or edit['item_index']<0
+                        or edit['item_index']>=len(metadata) or edit['item_index'] in seen
+                        or not isinstance(edit.get('before'),str) or not isinstance(edit.get('after'),str)
+                        or len(edit['after'])>10000 or any(ord(c)<32 and c not in '\n\r\t' for c in edit['after'])):
+                    raise ValueError('业务说明编辑内容或位置无效')
+                index=edit['item_index'];seen.add(index);part=metadata[index]
+                if part.get('text')!=edit['before']:
+                    raise Conflict('待修改业务说明已变化，请重新加载')
+                choice=edit.get('choice','manual')
+                source_part=original_metadata[index] if index<len(original_metadata) else None
+                if not source_part:
+                    raise Conflict('业务说明原始证据不存在，不能按旧位置修改')
+                evidence=source_part.get('transcription_evidence') or {}
+                if (choice=='primary' and not evidence.get('primary_source')
+                        or choice=='auxiliary' and 'auxiliary_text' not in evidence):
+                    raise Conflict('所选识别候选缺少原始来源证据')
+                source_text=(evidence.get('auxiliary_text') if choice=='auxiliary' else
+                    evidence.get('primary_text',source_part.get('text')) if choice=='primary' else edit['after'])
+                if choice not in {'manual','primary','auxiliary'} or source_text!=edit['after']:
+                    raise Conflict('所选识别候选与原始证据不一致')
+                metadata_log.append({'item_index':index,'before':edit['before'],'after':edit['after'],
+                    'choice':choice,'base_revision':result['revision'],'image_version':item['input_version_id'],
+                    'original_selected_text':source_part.get('text'),
+                    'original_evidence_refs':deepcopy(source_part.get('evidence_refs',[])),
+                    'original_transcription_evidence':deepcopy(evidence),
+                    'actor':'human','at':now(),'confirmed_in_this_review':state=='accepted'})
+                part.update(text=edit['after'],source='human_edit' if choice=='manual' else 'human_selected_'+choice,
+                    selected_text_basis='human_metadata_'+choice,review_required=state!='accepted',
+                    review_reason='human_edit_pending_confirmation' if state!='accepted' else None,
+                    human_confirmed=state=='accepted',automatic_metadata_selection=False)
+                part.update(alternative_text=(evidence.get('primary_text',source_part['text']) if choice!='primary'
+                    else evidence.get('auxiliary_text',source_part['text'])),
+                    alternative_source=(source_part.get('source') if choice!='primary' else
+                        (evidence.get('auxiliary_source') or {}).get('source')))
+            if metadata_edits or metadata and state=='accepted':
+                if state=='accepted':
+                    for part in metadata:
+                        part.update(human_confirmed=True,review_required=False,review_reason=None)
+                value.setdefault('screen',{}).update(business_metadata=metadata,metadata_edit_log=metadata_log,
+                    metadata_review={'state':state,'actor':'human','input_version_id':item['input_version_id'],
+                                     'base_revision':result['revision'],'at':now()})
+            screen_metadata = value.pop('screen', None)
+            result = self.store.save(result_id, value, result['revision'], screen_metadata=screen_metadata)
         issues = json.loads(item['issues'])
+        if metadata_edits:
+            current_metadata = self._current_business_metadata(result)
+            for issue in issues:
+                if issue.get('code')=='business_metadata_review_required':
+                    index=issue.get('item_index')
+                    if type(index) is int and 0<=index<len(current_metadata):
+                        part=current_metadata[index]
+                        issue.update(selected_text=part['text'],selected_source=part.get('source'),
+                            alternative_text=part.get('alternative_text'),alternative_source=part.get('alternative_source'),
+                            human_confirmed=part.get('human_confirmed',False),reason=part.get('review_reason'),
+                            message='业务说明已人工编辑，当前文字：'+part['text']+'；尚需确认当前版本。')
         if state == 'accepted':
             issues = [issue for issue in issues if issue.get('code') not in {
                 'human_confirmation_required', 'quality_review_required'}]
-        self._update(batch['id'], item['input_version_id'], result_id=result_id, result_revision=result['revision'],
-                     issues=encoded(issues), review_state=state,
-                     status='completed' if state == 'accepted' else 'needs_review', stage='completed' if state == 'accepted' else 'review')
+            issues = [issue for issue in issues if issue.get('code') != 'business_metadata_review_required']
+        with self.store.transaction() as db:
+            db.execute('BEGIN IMMEDIATE')
+            current = db.execute('SELECT revision FROM results WHERE id=?', (result_id,)).fetchone()
+            if (current['revision'] != result['revision']
+                    or self._review_context(db, item) != review_context):
+                raise Conflict('复核内容、采用结果或人工复核状态已变化')
+            db.execute('INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id', (item['image_id'], result_id))
+            target = self.store._review_target(db, item['image_id'])
+            if (target['result_id'] != result_id or target['revision'] != result['revision']
+                    or target['active_version'] != item['input_version_id'] or target['version_id'] != item['input_version_id']):
+                raise Conflict('当前候选来源版本已变化')
+            stamp = now()
+            db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id,version_id=excluded.version_id,revision=excluded.revision,status=excluded.status,updated=excluded.updated',
+                (item['image_id'], result_id, item['input_version_id'], result['revision'], 'confirmed' if state == 'accepted' else 'question', stamp))
+            db.execute('UPDATE screen_items SET result_id=?,result_revision=?,issues=?,review_state=?,status=?,stage=?,updated=? WHERE batch_id=? AND input_version_id=?',
+                (result_id, result['revision'], encoded(issues), state, 'completed' if state == 'accepted' else 'needs_review',
+                 'completed' if state == 'accepted' else 'review', stamp, batch['id'], item['input_version_id']))
+
+    @staticmethod
+    def _review_context(db, item):
+        row = db.execute('''SELECT im.active_version,s.result_id selected_result_id,
+            rv.result_id review_result_id,rv.version_id review_version_id,rv.revision review_revision,
+            rv.status human_review_status,rv.updated review_epoch FROM images im
+            LEFT JOIN selections s ON s.image_id=im.id LEFT JOIN reviews rv ON rv.image_id=im.id WHERE im.id=?''',
+            (item['image_id'],)).fetchone()
+        return dict(row)
 
     def file(self, project_id, batch_id, version_id, file_id):
         detail = self.detail(project_id, batch_id, version_id)
@@ -1163,7 +1307,7 @@ class ScreenBatches:
                         target = folder / name
                         export_xlsx(result['edited']['tables'], target,
                                     source_rows=self._export_source_rows(batch, item, result, name))
-                        metadata = result['original'].get('screen', {}).get('business_metadata', [])
+                        metadata = self._current_business_metadata(result)
                         if metadata:
                             self._export_metadata(target, metadata)
                         numeric = (body.get('numeric_columns') or {}).get(item['input_version_id'])
@@ -1211,14 +1355,33 @@ class ScreenBatches:
                 for index, table in enumerate(result['edited']['tables'])]
 
     @staticmethod
+    def _current_business_metadata(result):
+        screen = result.get('edited',{}).get('screen') or {}
+        metadata = screen.get('business_metadata') if 'business_metadata' in screen else (
+            result.get('original',{}).get('screen') or {}).get('business_metadata',[])
+        if not isinstance(metadata,list) or any(not isinstance(item,dict) or not isinstance(item.get('text'),str) for item in metadata):
+            raise Conflict('当前业务说明结构无效，请重新加载')
+        metadata = deepcopy(metadata)
+        review = screen.get('metadata_review') or {}
+        if review.get('state') == 'accepted' and result.get('revision') != review.get('base_revision', -2) + 1:
+            for part in metadata:
+                part.update(human_confirmed=False, review_required=True, review_reason='metadata_confirmation_revision_changed')
+        return metadata
+
+    @staticmethod
     def _export_metadata(path, metadata):
         from openpyxl import load_workbook
         book = load_workbook(path)
         sheet = book.create_sheet('业务说明')
-        sheet.append(['类别', '识别原文', '来源', '原图坐标', '核对状态'])
+        sheet.append(['类别', '识别原文', '来源', '原图坐标', '核对状态', '另一识别候选（未人工确认）', '处理依据', '另一候选来源'])
         for part in metadata:
-            sheet.append([part['kind'], part['text'], part.get('source', ''), encoded(part.get('box')), '独立文字识别，未逐项人工确认'])
+            status = ('人工已确认' if part.get('human_confirmed') else
+                      '需要人工核对' if part.get('review_required') else '识别候选，未逐项人工确认')
+            sheet.append([part['kind'], part['text'], part.get('source', ''), encoded(part.get('box')), status,
+                          part.get('alternative_text',''),part.get('review_reason',part.get('selected_text_basis','')),
+                          part.get('alternative_source','')])
             sheet.cell(sheet.max_row, 2).data_type = 's'
+            sheet.cell(sheet.max_row, 6).data_type = 's'
         sheet.column_dimensions['B'].width = 70
         book.save(path)
 

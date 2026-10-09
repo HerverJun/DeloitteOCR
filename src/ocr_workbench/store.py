@@ -1,6 +1,7 @@
 """Transactional project, queue and edit history storage outside the application."""
 
 from contextlib import contextmanager, closing
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 import hashlib
@@ -748,7 +749,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         rows = self.rows('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation_id,))
         return json.loads(rows[0]['receipt']) if rows else None
 
-    def save(self, key, edit, expected_revision, *, operation=None):
+    def save(self, key, edit, expected_revision, *, operation=None, screen_metadata=None):
         from ocr_workbench.editing import validate_edit
 
         if type(expected_revision) is not int or expected_revision < 0:
@@ -769,6 +770,19 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                 raise KeyError("识别结果不存在")
             if row["revision"] != expected_revision:
                 raise Conflict("该结果已在其他窗口更新，请重新加载后编辑")
+            previous_edit = json.loads(row["edited"])
+            # Ordinary result-edit APIs may echo, but cannot change, metadata.
+            # The screen review action supplies a fully validated internal value.
+            if 'screen' in edit and edit['screen'] != previous_edit.get('screen'):
+                raise Conflict('业务说明必须通过当前屏拍复核操作修改')
+            edit = deepcopy(edit)
+            if screen_metadata is not None:
+                if json.loads(row["original"]).get('origin') != 'screen_batch':
+                    raise Conflict('非屏拍结果不能写入业务说明修订')
+                edit['screen'] = deepcopy(screen_metadata)
+                validate_edit(edit)
+            elif 'screen' in previous_edit:
+                edit['screen'] = deepcopy(previous_edit['screen'])
             fusion = json.loads(row["original"]).get("origin") == "fusion"
             if fusion:
                 from ocr_workbench.fusion_alignment import canonical_edit
