@@ -282,16 +282,20 @@ def main():
     parser.add_argument('--run-controller',action='store_true')
     args=parser.parse_args()
     if args.child_mode:
+        print('owned_native_child_start', args.child_mode, flush=True)
         sys.path.insert(0,str(fpath(args.native_source)/'src'))
         from image_platform.settings import Settings
         settings=Settings(fpath(args.native_data));settings.prepare()
+        print('owned_native_settings_prepared', args.child_mode, flush=True)
         if args.child_mode=='worker':
             from image_platform.worker import serve_worker
             serve_worker(settings)
         else:
             import uvicorn
             from image_platform.api import create_app
-            uvicorn.run(create_app(settings),host='127.0.0.1',port=args.child_port,log_level='warning')
+            app = create_app(settings)
+            print('owned_native_app_ready', args.child_mode, args.child_port, flush=True)
+            uvicorn.run(app,host='127.0.0.1',port=args.child_port,log_level='warning')
         return
     root,receipt=prepare(args)
     if args.run_controller:

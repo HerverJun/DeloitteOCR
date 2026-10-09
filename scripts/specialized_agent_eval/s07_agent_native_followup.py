@@ -127,11 +127,27 @@ def expose_owned_reader(value, batch, process, base, token, bundle):
     return context
 
 
-def validate_agent_result(runtime, value, run, root, expected_table, reference_asset):
+def persist_actual_ledger(runtime, run, root):
+    """Persist literal receipts before strict semantic/export qualification."""
     operations = runtime.store.rows('SELECT * FROM operations WHERE run_id=? ORDER BY created', (run['id'],))
     receipts = [{**{key: row[key] for key in ('id', 'call_id', 'tool', 'state', 'created', 'updated')},
         'arguments': json.loads(row['arguments']), 'receipt': json.loads(row['result']) if row.get('result') else None}
         for row in operations]
+    frozen_json(root / 'actual-agent-operations.json', receipts)
+    requests = runtime.store.rows('SELECT * FROM model_requests WHERE run_id=? ORDER BY created', (run['id'],))
+    request_summary = [{key: row[key] for key in ('id', 'step', 'attempt', 'state', 'created', 'updated') if key in row} for row in requests]
+    frozen_json(root / 'actual-controller-requests.json', request_summary)
+    return operations, receipts, requests
+
+
+def all_comparison_categories(categories):
+    """Omission and the exact five distinct categories both mean full scope."""
+    expected = {'same', 'different', 'only_left', 'only_right', 'ambiguous'}
+    return categories is None or (isinstance(categories, list) and len(categories) == len(expected)
+        and all(isinstance(value, str) for value in categories) and set(categories) == expected)
+
+
+def validate_agent_result(runtime, value, run, root, expected_table, reference_asset, receipts):
     success = {entry['tool']: entry for entry in receipts if (entry['receipt'] or {}).get('status') == 'success'}
     required = {'native_attach_result', 'results_describe', 'results_to_input', 'data_create_session', 'data_import', 'data_read_table',
                 'data_compare', 'data_read_result', 'audit_bind_evidence', 'audit_read_evidence', 'data_export', 'delivery_publish'}
@@ -170,7 +186,7 @@ def validate_agent_result(runtime, value, run, root, expected_table, reference_a
             raise ValueError('Actual Agent evidence is stale')
         if evidence['snapshot_hash'] != success['audit_bind_evidence']['receipt']['data']['snapshot_hash']:
             raise ValueError('Actual Agent evidence readback differs from binding receipt')
-        if success['data_export']['arguments'].get('categories'):
+        if not all_comparison_categories(success['data_export']['arguments'].get('categories')):
             raise ValueError('Explicit sample delivery requires all comparison categories')
         bundle = success['data_export']['receipt']['data']['bundle']
         for entry in bundle['files']:
@@ -199,8 +215,7 @@ def validate_agent_result(runtime, value, run, root, expected_table, reference_a
         checks = {'native_literal_cells_verified': len(expected), 'actual_compare_spec': spec,
                   'coverage': summary['coverage'], 'evidence_id': evidence['evidence_id'],
                   'evidence_snapshot_hash': evidence['snapshot_hash'], 'verified_delivery': True}
-    frozen_json(root / 'actual-agent-operations.json', receipts)
-    return missing, checks, files, len(operations)
+    return missing, checks, files, len(receipts)
 
 
 async def execute(args, root, binding, index):
@@ -288,10 +303,8 @@ async def execute(args, root, binding, index):
             terminal = runtime.store.run(run['id'])
             agent_seconds = time.perf_counter() - agent_started
             expected_table = selected_row['edited_view']['tables'][args.table_index]
-            missing, checks, files, tool_calls = validate_agent_result(runtime, value, run, root, expected_table, reference_asset)
-            requests = runtime.store.rows('SELECT * FROM model_requests WHERE run_id=? ORDER BY created', (run['id'],))
-            request_summary = [{key: row[key] for key in ('id', 'step', 'attempt', 'state', 'created', 'updated') if key in row} for row in requests]
-            frozen_json(root / 'actual-controller-requests.json', request_summary)
+            _, receipts, requests = persist_actual_ledger(runtime, run, root)
+            missing, checks, files, tool_calls = validate_agent_result(runtime, value, run, root, expected_table, reference_asset, receipts)
             qualified = not missing and terminal['status'] in {'succeeded', 'partial', 'answered'} and bool(requests)
             final_report = {'format': 'specialized-real-agent-native-followup-result-v1',
                 'status': 'real_agent_chain_verified' if qualified else 'real_agent_chain_incomplete',
