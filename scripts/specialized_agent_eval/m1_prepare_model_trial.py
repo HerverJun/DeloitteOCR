@@ -41,6 +41,9 @@ def main():
         raise ValueError('Use three distinct unique F-drive directories')
     freeze=read_json(base/'freeze.json')
     scopes=read_json(inputs)
+    split=inputs.parent.name
+    if split not in {'development', 'validation'}:
+        raise ValueError('This model-comparison preparer only handles development or validation inputs')
     if scopes.get('truth_available_to_inference') is not False or not scopes['samples']:
         raise ValueError('Requires independently frozen truth-free model inputs')
     for sample in scopes['samples']:
@@ -115,8 +118,10 @@ def main():
              'controller_byte_copy_only':True,'controller_source_sqlite_opened':False,
              'controller_files_sha256_only':{name:entry['sha256'] for name,entry in controller_files.items()},
              'request_identity_replacements':replacements,'policy':policy,'inputs':bound(inputs),
-             'scope_inputs':len(scopes['samples']),'actual_output':str(actual),'launch_argv':commands,
-             'quality_development_trial_only':True,'mixed_platform_and_ocr_freezes_explicit':True,
+             'scope_inputs':len(scopes['samples']),'evaluation_split':split,
+             'actual_output':str(actual),'launch_argv':commands,
+             'quality_nonfinal_trial_only':True,'quality_development_trial_only':split=='development',
+             'mixed_platform_and_ocr_freezes_explicit':True,
              'same_source_performance_comparison':False,'final_agent_qualification':False,
              'truth_read':False,'holdout_read':False,'model_invoked':False,'controller_invoked':False,
              'formal_current_changed':False,'helper':bound(__file__)}
