@@ -1,6 +1,7 @@
 """Independent workbook/ZIP oracle from authoritative result snapshots, without truth."""
 from __future__ import annotations
 import argparse
+from copy import deepcopy
 from decimal import Decimal, InvalidOperation
 import hashlib
 import io
@@ -12,6 +13,98 @@ from common import FORMAT, digest, fpath, frozen_json, indexed, read_json
 from quality import tables, raw
 
 SOURCE_FIELDS = ["工作簿", "工作表", "表格序号", "原图", "图片 ID", "图像版本", "输入 SHA-256", "引擎", "结果 ID", "校对 revision"]
+METADATA_LEGACY_FIELDS = ["类别", "识别原文", "来源", "原图坐标", "核对状态"]
+METADATA_CURRENT_FIELDS = METADATA_LEGACY_FIELDS + ["另一识别候选（未人工确认）", "处理依据", "另一候选来源"]
+
+
+def current_metadata(entry):
+    """Resolve metadata from authoritative current candidate and review identity.
+
+    New eight-column metadata requires its saved original evidence and preserves
+    alternatives. A confirmation is current only when the human review binds
+    this input and the revision produced by that review. Legacy five-column
+    artifacts remain a separate explicit contract, never a header-based escape.
+    """
+    candidate = entry['candidate']
+    original = raw(candidate)
+    original_screen = original.get('screen') or {}
+    edited_screen = (candidate.get('edited') or {}).get('screen') or {}
+    originals = original_screen.get('business_metadata', [])
+    metadata = deepcopy(edited_screen['business_metadata'] if 'business_metadata' in edited_screen else originals)
+    if (not isinstance(metadata, list) or any(not isinstance(p, dict) or not isinstance(p.get('text'), str) for p in metadata)):
+        raise ValueError('Authoritative metadata is not a literal part list')
+    evidence = original_screen.get('business_metadata_evidence') or {}
+    version = evidence.get('policy_version')
+    current = (version == 'screen-business-context-v4' or bool(edited_screen.get('metadata_review'))
+               or any('transcription_evidence' in p or 'alternative_text' in p for p in originals))
+    errors = []
+    if current and evidence.get('items') != originals:
+        errors.append({'code': 'metadata_original_evidence_binding'})
+    review = edited_screen.get('metadata_review') or {}
+    review_bound = (review.get('state') == 'accepted' and review.get('actor') == 'human'
+                    and review.get('input_version_id') == entry['input_version_id']
+                    and type(review.get('base_revision')) is int
+                    and entry['result_revision'] == review['base_revision'] + 1
+                    and entry.get('human_confirmed') is True and entry.get('review_state') == 'accepted')
+    stale_confirmation = (review.get('state') == 'accepted'
+                          and entry['result_revision'] != review.get('base_revision', -2) + 1)
+    logs = edited_screen.get('metadata_edit_log') or []
+    sources = original_screen.get('sources') or []
+    for index, part in enumerate(metadata):
+        source_part = originals[index] if index < len(originals) else None
+        if current and source_part is None:
+            errors.append({'code': 'metadata_unbound_added_part', 'item': index})
+            continue
+        if source_part is not None and current:
+            for key in ('kind', 'box', 'evidence_refs', 'transcription_evidence'):
+                if part.get(key) != source_part.get(key):
+                    errors.append({'code': 'metadata_geometry_or_evidence_changed', 'item': index, 'field': key})
+            if any(part.get(key) != source_part.get(key) for key in
+                   ('text', 'source', 'selected_text_basis', 'alternative_text', 'alternative_source')):
+                bound_logs = [log for log in logs if log.get('item_index') == index and log.get('actor') == 'human'
+                              and log.get('after') == part['text'] and log.get('image_version') == entry['input_version_id']
+                              and type(log.get('base_revision')) is int and log['base_revision'] < entry['result_revision']
+                              and log.get('original_selected_text') == source_part.get('text')
+                              and log.get('original_evidence_refs') == source_part.get('evidence_refs', [])
+                              and log.get('original_transcription_evidence') == source_part.get('transcription_evidence', {})]
+                if not bound_logs:
+                    errors.append({'code': 'metadata_unbound_human_edit', 'item': index})
+                else:
+                    log = bound_logs[-1]
+                    choice = log.get('choice')
+                    transcription = source_part.get('transcription_evidence') or {}
+                    chosen = (transcription.get('primary_text', source_part['text']) if choice == 'primary'
+                              else transcription.get('auxiliary_text') if choice == 'auxiliary' else log['after'])
+                    alternative = (transcription.get('auxiliary_text', source_part['text']) if choice == 'primary'
+                                   else transcription.get('primary_text', source_part['text']))
+                    alternative_source = ((transcription.get('auxiliary_source') or {}).get('source') if choice == 'primary'
+                                          else source_part.get('source'))
+                    if (choice not in {'manual', 'primary', 'auxiliary'} or chosen != part['text']
+                            or part.get('source') != ('human_edit' if choice == 'manual' else 'human_selected_' + choice)
+                            or part.get('selected_text_basis') != 'human_metadata_' + choice
+                            or part.get('alternative_text') != alternative
+                            or part.get('alternative_source') != alternative_source):
+                        errors.append({'code': 'metadata_human_choice_source_binding', 'item': index})
+            transcription = source_part.get('transcription_evidence') or {}
+            if source_part.get('alternative_text'):
+                primary = transcription.get('primary_source') or {}
+                auxiliary = transcription.get('auxiliary_source') or {}
+                matching = [source for source in sources if all(source.get(key) == primary.get(key)
+                             for key in ('result_id', 'task_id', 'engine', 'revision'))]
+                if (source_part.get('alternative_text') != transcription.get('auxiliary_text')
+                        or source_part.get('alternative_source') != auxiliary.get('source')
+                        or source_part.get('text') != transcription.get('primary_text')
+                        or source_part.get('primary_source') != primary or len(matching) != 1
+                        or primary.get('input_sha256') != entry['image_sha256']
+                        or primary.get('image_version') != entry['input_version_id']):
+                    errors.append({'code': 'metadata_alternative_source_binding', 'item': index})
+        if stale_confirmation:
+            part.update(human_confirmed=False, review_required=True, review_reason='metadata_confirmation_revision_changed')
+        elif part.get('human_confirmed') and not review_bound:
+            errors.append({'code': 'metadata_false_human_confirmation', 'item': index})
+    if current and len(metadata) != len(originals):
+        errors.append({'code': 'metadata_current_scope_changed'})
+    return metadata, METADATA_CURRENT_FIELDS if current else METADATA_LEGACY_FIELDS, errors
 
 
 def number_value(value, kind):
@@ -34,11 +127,11 @@ def check_book(book, filename, entry):
     from openpyxl.utils import get_column_letter
     candidate = entry["candidate"]
     expected_tables, original = tables(candidate), raw(candidate)
-    metadata = original.get("screen", {}).get("business_metadata", [])
+    metadata, metadata_fields, metadata_errors = current_metadata(entry)
     expected_sheets = [f"Table {i + 1}" for i in range(len(expected_tables))] + ["来源索引"]
     if metadata:
         expected_sheets.append("业务说明")
-    errors, count, numeric_count = [], 0, 0
+    errors, count, numeric_count = list(metadata_errors), 0, 0
     if book.sheetnames != expected_sheets:
         errors.append({"code": "sheet_mapping", "expected": expected_sheets, "actual": book.sheetnames})
     authorized = {}
@@ -121,12 +214,20 @@ def check_book(book, filename, entry):
                         errors.append({"code": "source_binding", "field": label, "table": ti})
     if metadata and "业务说明" in book.sheetnames:
         sheet = book["业务说明"]
-        if sheet.max_row != len(metadata) + 1 or [c.value for c in sheet[1]] != ["类别", "识别原文", "来源", "原图坐标", "核对状态"]:
+        if sheet.max_row != len(metadata) + 1 or [c.value for c in sheet[1]] != metadata_fields:
             errors.append({"code": "metadata_shape"})
         for row, item in enumerate(metadata, 2):
-            expected = [item["kind"], item["text"], item.get("source", ""),
-                        json.dumps(item.get("box"), ensure_ascii=False, separators=(",", ":")),
-                        "独立文字识别，未逐项人工确认"]
+            if metadata_fields == METADATA_CURRENT_FIELDS:
+                status = ('人工已确认' if item.get('human_confirmed') else
+                          '需要人工核对' if item.get('review_required') else '识别候选，未逐项人工确认')
+                expected = [item['kind'], item['text'], item.get('source', ''),
+                            json.dumps(item.get('box'), ensure_ascii=False, separators=(',', ':')), status,
+                            item.get('alternative_text', ''), item.get('review_reason', item.get('selected_text_basis', '')),
+                            item.get('alternative_source', '')]
+            else:
+                expected = [item["kind"], item["text"], item.get("source", ""),
+                            json.dumps(item.get("box"), ensure_ascii=False, separators=(",", ":")),
+                            "独立文字识别，未逐项人工确认"]
             for column, value in enumerate(expected, 1):
                 if sheet.cell(row, column).value != (None if value == "" else value):
                     errors.append({"code": "metadata_value", "row": row, "column": column})
@@ -137,7 +238,8 @@ def check_book(book, filename, entry):
                     errors.append({"code": "formula_in_any_sheet", "sheet": sheet.title, "row": cell.row, "column": cell.column})
     return {"status": "passed" if not errors else "failed", "errors": errors,
             "checked_business_cells": count, "authorized_numeric_cells": numeric_count,
-            "source_fields": SOURCE_FIELDS, "metadata_rows": len(metadata)}
+            "source_fields": SOURCE_FIELDS, "metadata_rows": len(metadata),
+            "metadata_contract": 'source_bound_eight_columns' if metadata_fields == METADATA_CURRENT_FIELDS else 'legacy_five_columns'}
 
 
 def check_bundle(path, snapshot):
