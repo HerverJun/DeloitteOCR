@@ -57,9 +57,14 @@ SYSTEM = SYSTEM_V4 + (
 
 # The retained v1 text is an explicit migration compatibility version. Replays
 # still compare the complete input and the current tool/environment contracts.
-SYSTEM_VERSION = 'clear-agent-system-v5'
+SYSTEM_V5 = SYSTEM
+SYSTEM = SYSTEM_V5.replace(
+    '执行任务时按真实观察选择下一步，优先已有服务；用audit_update_plan展示并更新简短安排。',
+    '执行任务时按真实观察选择下一步，优先已有服务。只有audit_update_plan出现在当前工具目录且获授权时才加载使用；未注册时直接使用已注册业务工具，不猜测或请求该计划工具。')
+SYSTEM_VERSION = 'clear-agent-system-v6'
 SYSTEM_PROMPTS = {'clear-agent-system-v1': LEGACY_SYSTEM, 'clear-agent-system-v2': SYSTEM_V2,
-    'clear-agent-system-v3': SYSTEM_V3, 'clear-agent-system-v4': SYSTEM_V4, SYSTEM_VERSION: SYSTEM}
+    'clear-agent-system-v3': SYSTEM_V3, 'clear-agent-system-v4': SYSTEM_V4,
+    'clear-agent-system-v5': SYSTEM_V5, SYSTEM_VERSION: SYSTEM}
 
 
 class ProviderFault(ValueError):
