@@ -338,6 +338,12 @@ def read_native(args, data, output, phase):
                 versions = {row['id']: dict(row) for row in db.execute('SELECT * FROM versions')}
             require(len(batches) == 1 and len(items) == 12, 'Actual native cold check requires one 12-input batch')
             batch = batches[0]; endpoint = '/api/projects/' + batch['project_id'] + '/screen-batches/' + batch['id']
+            business_edit = None
+            if phase == 'business-edit':
+                business_edit = seed_business_edit(base, token, endpoint, items, output)
+                with closing(sqlite3.connect((data / 'workbench.sqlite3').as_uri() + '?mode=ro', uri=True)) as db:
+                    db.row_factory=sqlite3.Row
+                    items=[dict(row) for row in db.execute('SELECT * FROM screen_items ORDER BY position')]
             snapshot = native_http(base, token, endpoint + '/delivery-snapshot')
             require(snapshot['fresh'], 'Actual native snapshot is stale before/after restore')
             files, details, read_clocks = {}, [], []
@@ -384,6 +390,8 @@ def read_native(args, data, output, phase):
                 details.append({'input_version_id': item['input_version_id'], 'result_id': item['result_id'],
                     'revision': item['result_revision'], 'status': item['status'], 'review_state': item['review_state'],
                     'candidates_sha256': fingerprint(json.loads(item['candidates'])), 'actual_tables_sha256': fingerprint(tables),
+                    'business_metadata_sha256': fingerprint(detail.get('business_metadata', [])),
+                    'metadata_edit_log_sha256': fingerprint((detail.get('result', {}).get('edited', {}).get('screen') or {}).get('metadata_edit_log', [])),
                     'diagnostics': compared_diagnostics,
                     'downloaded_images': [{key: value for key, value in row.items() if key != 'path'} for row in downloads]})
             export_root = data / 'screen-batches' / batch['id'] / 'exports'
@@ -402,7 +410,8 @@ def read_native(args, data, output, phase):
                 'existing_export_files': export_files,
                 'actual_diagnostic_clock_verification': read_clocks,
                 'queue_alive': False, 'fusion_queue_alive': False, 'external_queue_alive': False,
-                'start_queue': False, 'agent_enabled': False, 'only_http_get': True, 'pid': process.pid}
+                'start_queue': False, 'agent_enabled': False, 'only_http_get': business_edit is None,
+                'business_metadata_probe': business_edit, 'pid': process.pid}
             frozen_json(output / (phase + '-native-read.json'), result)
     finally:
         if process is not None and process.poll() is None:
@@ -423,6 +432,54 @@ def read_native(args, data, output, phase):
         'runtime': read_json(output / (phase + '-native-runtime.json'))}
     frozen_json(output / (phase + '-native-read-with-audit.json'), result)
     return result
+
+
+def seed_business_edit(base, token, endpoint, items, output):
+    """Write an explicit unconfirmed engineering edit only in the owned copy."""
+    from s07_native_read import native_http
+    def post(path, body):
+        parsed=urlsplit(base)
+        require(parsed.hostname=='127.0.0.1' and parsed.port, 'Edit probe must use its owned loopback reader')
+        connection=http.client.HTTPConnection(parsed.hostname,parsed.port,timeout=30)
+        try:
+            connection.request('POST',path,json.dumps(body,ensure_ascii=False).encode('utf8'),
+                {'Authorization':'Bearer '+token,'Content-Type':'application/json'})
+            reply=connection.getresponse();payload=reply.read(32*1024*1024+1)
+            require(reply.status==200 and len(payload)<=32*1024*1024,'Owned business edit/export was rejected')
+            return payload
+        finally:connection.close()
+    before=native_http(base,token,endpoint+'/delivery-snapshot')
+    for item in items:
+        detail=native_http(base,token,endpoint+'/items/'+item['input_version_id'])
+        metadata=detail.get('business_metadata',[])
+        if metadata:break
+    else:raise ValueError('Cold edit qualification needs an actual metadata-bearing result')
+    result=detail['result'];original_sha=fingerprint(result['original'])
+    text=metadata[0]['text']+' [冷备工程校验，未确认]'
+    body={'action':'review','state':'retain','version_ids':[item['input_version_id']],
+        'request_id':'coldBusinessMetadataProbe','result_id':result['id'],
+        'expected_revision':result['revision'],'expected_review_token':detail['review_binding_token'],
+        'metadata_edits':[{'item_index':0,'before':metadata[0]['text'],'after':text,'choice':'manual'}]}
+    receipt=json.loads(post(endpoint+'/action',body))
+    require(json.loads(post(endpoint+'/action',body))==receipt,'Repeated business edit changed its original receipt')
+    current=native_http(base,token,endpoint+'/items/'+item['input_version_id'])
+    require(current['result']['revision']==result['revision']+1 and
+        fingerprint(current['result']['original'])==original_sha,'Engineering edit changed original recognition or wrong revision')
+    require(current['business_metadata'][0]['text']==text and
+        not current['business_metadata'][0].get('human_confirmed'),'Unconfirmed engineering edit lost its text or claimed signoff')
+    after=native_http(base,token,endpoint+'/delivery-snapshot')
+    require(before['snapshot_id']!=after['snapshot_id'],'Business edit did not invalidate the previous delivery snapshot')
+    archive=post(endpoint+'/export',{'include_pending_review':True})
+    path=output/'business-edit-current.zip';path.write_bytes(archive)
+    proof={'input_version_id':item['input_version_id'],'result_id':result['id'],
+        'before_revision':result['revision'],'after_revision':current['result']['revision'],
+        'original_recognition_sha256':original_sha,'before_snapshot_id':before['snapshot_id'],
+        'after_snapshot_id':after['snapshot_id'],'actual_action_receipt':receipt,
+        'business_metadata_sha256':fingerprint(current['business_metadata']),
+        'current_export':{'path':str(path),'sha256':digest(path)},
+        'engineering_test_text_only':True,'human_signoff':False,'model_calls':0}
+    frozen_json(output/'business-metadata-edit-probe.json',proof)
+    return proof
 
 
 async def read_data(root, data_python, source_report, output):
@@ -555,6 +612,11 @@ async def execute(args):
         saver = await initialize_saver(followup)
         pref = preferences_api(main, fpath(args.data_python), save_if_absent=True)
         preferences_api(followup, fpath(args.data_python))
+        business_edit=None
+        if args.exercise_business_metadata:
+            business_edit=await asyncio.to_thread(read_native,args,native,output,'business-edit')
+            require(read_json(output/'business-edit-native-stop.json')['owned_process_exited'],
+                    'Business edit reader still active before source qualification')
         source_native = await asyncio.to_thread(read_native, args, native, output, 'source')
         require(read_json(output / 'source-native-stop.json')['owned_process_exited'], 'Source reader still active at cold backup')
         checkpoint_owned(sources)
@@ -613,6 +675,8 @@ async def execute(args):
             preference_api_receipts={'source': pref['api_receipts'], 'restored': restored_pref['api_receipts']}, components=components,
             actual_registered_data_read=data_read, artifact_downloads=artifacts,
             policy_preserved=True, candidates_revisions_review_state_preserved=True, logical_state_equal=True,
+            business_metadata_edit_restore_verified=business_edit is not None,
+            business_metadata_edit_probe=business_edit['business_metadata_probe'] if business_edit else None,
             actual_cold_source_isolation={'path': str(output / 'actual-cold-source-isolation.json'),
                 'sha256': digest(output / 'actual-cold-source-isolation.json'), 'isolated_source': str(isolated_sources)},
             actual_native_consumer_reads={'source': source_native['actual_read_audit'], 'restored': restored_native['actual_read_audit']},
@@ -643,6 +707,8 @@ async def execute(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serve', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--exercise-business-metadata',action='store_true',
+        help='Persist an unconfirmed engineering metadata edit in the owned source copy before cold backup')
     for name in ('output', 'source-run', 's07-run', 's07-independent', 'platform-source',
                  'native-source', 'bundle', 'pdf-layer', 'data-python', 'native-python',
                  'agent-layer', 'native-data', 'token-file', 'read-audit-log', 'reader-runtime-report'):
