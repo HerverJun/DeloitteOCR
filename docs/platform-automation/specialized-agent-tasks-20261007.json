@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-09",
-  "update_basis_main_head": "856d289",
+  "update_basis_main_head": "7ce56b3",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": ["M1", "M2"],
     "completed_plan": false,
@@ -24,6 +24,11 @@
     "glm_full60_note": "Normal exit0/model60 succeeded,Agent3 requests/3tools,59XLSX+1no_book/all60 reviewed. Exact20/60,critical2361/2670,visible3466/3933; versusH net316 cell repairs/net167 critical but81 new critical errors remain reviewed. Old5-column oracle failure preserved; new independent eight-column source/review/current-version readback passed59 workbooks plus one no_book. Mixed-source development only,not default/final qualification.",
     "glm_full60_corrected_closure": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-closure-002.json",
     "glm_full60_eight_column_readback": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-glm-development-full60-readback-v4-001.json",
+    "source_text_route_development": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-language-route-development-score-001/report.json",
+    "source_text_route_note": "Truth-free source business-region PP-OCR CJK/Latin policy frozen before scoring; CPU hypothetical selection H24/GLM36 across development60 gives25/60 exact,2370/2670 critical,3473/3933 visible, but all3933 cells remain reviewed. Versus actual G60 only net+7 visible and+9 critical, with1 new critical error still reviewed. No native per-image route, validation40, same-source time or adoption qualification.",
+    "h_validation40_attempt": "F:/OCR/output/platform-specialized-agent-20261007/runs/m1-h-validation-20261009-002/agent-native-summary.json",
+    "h_validation40_attempt_note": "Unique truth-free validation40 H trial stopped after first controller HTTP429:1 request,0 tools,0 native batches,0 GPU/model results. Failed run and its original budget preserved; it contributes no validation recognition score. Earlier preparation001 with development-only label was not launched and remains preserved.",
+    "source_text_route_helper_commit": "7ce56b3",
     "strict_subset_rejected": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-strict-subset-review-001/result.json",
     "strict_subset_note": "Two hypothetical automatic images retain two critical U+2212-to-ASCII-hyphen errors. Entire 60-input denominator independently scored; no native review or default policy change. Numeric raster diagnostic produced zero uniquely supported proposals.",
     "cell_scope_development_review": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/independent-m2-cell-review-scope-002/review.json",
@@ -77,7 +82,7 @@
       "task_ids": ["S03", "S04", "S08"],
       "deliverables": ["默认识别路线", "提高精度与技术故障兜底路线", "开发60与验证40的完整配对质量/可交付率/需核范围/加载可靠性/成本报告"],
       "completion": ["关键格、结构/合并跨度、标题单位表注、UI残留和业务误删使用完整分母", "未完成批次和成功图片子集不用于排名", "未ready时预算取消纳入持久加载失败与有界止损", "初始候选、人工确认和自动可交付状态独立", "无收益分支不进入默认，未达成质量目标继续保留"],
-      "next_action": "H/P/GLM开发60完整分母及GLM实际8列读回已收口；冻结仅由实际源证据驱动的候选路线，完成验证40与真实成本/需核范围，再定默认/精度/故障路线。严格双读放行因2静默关键错拒绝，不能以全待核或失败dropout替代减负目标"
+      "next_action": "H/P/GLM开发60完整分母及GLM实际8列读回已收口；源文字分流仅CPU假设回放、仍全待核。验证40首个H试跑在控制器HTTP429、0模型批次后终止；待控制器可用时以新身份完成H/GLM验证、真实成本及缩核路线，原失败保留。严格双读放行因2静默关键错拒绝"
     },
     {
       "id": "M2",
