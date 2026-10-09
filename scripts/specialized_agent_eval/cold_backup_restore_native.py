@@ -297,6 +297,55 @@ def serve(args):
     uvicorn.run(app, host='127.0.0.1', port=args.port, log_level='warning')
 
 
+def verify_negative_grid_contract(detail, tables, contract):
+    """Verify one declared dimension mismatch; never accept unknown no-read cases."""
+    require(detail['input_version_id'] == contract['input_version_id']
+            and detail['result']['id'] == contract['result_id']
+            and detail['result']['revision'] == contract['result_revision'],
+            'Negative grid fixture result identity changed')
+    diagnostics = detail['diagnostics']; grid = diagnostics['grid_localization']
+    require(diagnostics['version'] == 'screen-diagnostics-v2'
+            and diagnostics['review_required'] is True
+            and diagnostics['values_modified'] is False
+            and diagnostics['reference_input_used'] is False
+            and grid['values_modified'] is False and grid['reference_input_used'] is False,
+            'Negative grid fixture lost its read-only uncertainty contract')
+    require(grid['binding'] == contract['grid_binding'], 'Negative grid fixture evidence SHA changed')
+    require(grid['cell_count'] == 0 and grid['tables'] == contract['grid_tables'],
+            'Negative grid fixture rejection/localisation changed')
+    require(all(row['reason'] == 'candidate_grid_dimensions_disagree'
+                and row['status'] == 'unavailable' and row['cells'] == []
+                for row in grid['tables']) and bool(grid['tables']),
+            'Only the declared dimension-mismatch fixture may have no diagnostic pixel reads')
+    dimensions = [[table['rows'], table['columns']] for table in tables['tables']]
+    require(dimensions == contract['candidate_dimensions']
+            and fingerprint(tables['tables']) == contract['grid_binding']['table_snapshot_sha256'],
+            'Negative grid fixture effective table changed')
+    require([[table['rows'], table['columns']] for table in detail['result']['original']['tables']]
+            == contract['candidate_dimensions'], 'Negative grid fixture original table changed')
+    regions = detail['preparation']['business_regions']
+    observed = []
+    for region in regions:
+        lines = region['observed_grid']
+        require(region['grid_reliable'] is True and lines['source'] == 'pixel_grid'
+                and lines['coordinate_space'] == 'exif_normalized_original'
+                and lines['range_semantics'] == 'observed_line_positions',
+                'Negative grid fixture observation provenance changed')
+        observed.append([len(lines['horizontal_lines'])-1, len(lines['vertical_lines'])-1])
+    require(observed == contract['observed_dimensions'] and dimensions != observed,
+            'Negative grid fixture is no longer the declared structural mismatch')
+    require(diagnostics['summary']['cell'] == 0
+            and diagnostics['checks']['observed_cell_mapping'] == 'unavailable'
+            and all(item['location']['level'] != 'cell' for item in diagnostics['items'])
+            and not any(action['action'] == 'local_reread' for item in diagnostics['items']
+                        for action in item.get('applicable_actions', [])),
+            'Negative grid fixture invented a cell location or local reread action')
+    return {'contract_sha256': fingerprint(contract), 'identity_and_evidence_verified': True,
+            'reason': 'candidate_grid_dimensions_disagree', 'candidate_dimensions': dimensions,
+            'observed_dimensions': observed, 'source_http_sha_verified_separately': True,
+            'diagnostic_pixels_verified': False, 'reliable_cells': 0}
+
+
 def read_native(args, data, output, phase, *, consumer=None):
     from s07_native_read import native_http
     token_file = output / (phase + '-reader-token.txt')
@@ -310,7 +359,8 @@ def read_native(args, data, output, phase, *, consumer=None):
         '--native-data', str(data), '--token-file', str(token_file), '--pdf-layer', str(fpath(args.pdf_layer)), '--port', str(port),
         '--read-audit-log', str(output / (phase + '-native-file-reads.jsonl')),
         '--reader-runtime-report', str(output / (phase + '-native-runtime.json'))]
-    forbidden = [fpath(args.source_run), fpath(args.s07_run)]
+    forbidden = [fpath(args.source_run), fpath(args.s07_run),
+                 *[fpath(root) for root in getattr(args, 'additional_forbid_data_roots', [])]]
     if phase.startswith('restored'):
         forbidden.extend([output / 'sources', output / 'isolated-cold-sources'])
     for root in forbidden:
@@ -344,6 +394,9 @@ def read_native(args, data, output, phase, *, consumer=None):
             require(len(batches) == 1 and len(items) == expected_inputs,
                     'Actual native cold check requires one batch with the declared complete input scope')
             batch = batches[0]; endpoint = '/api/projects/' + batch['project_id'] + '/screen-batches/' + batch['id']
+            negative_contract = getattr(args, 'negative_grid_contract', None)
+            require(negative_contract is None or len(items) == 1 and batch['id'] == negative_contract['batch_id'],
+                    'Negative grid contract must bind its exact single-input fixture batch')
             business_edit = None
             if phase == 'business-edit':
                 business_edit = seed_business_edit(base, token, endpoint, items, output)
@@ -379,6 +432,7 @@ def read_native(args, data, output, phase, *, consumer=None):
                 tables = native_http(base, token, '/api/results/' + item['result_id'] + '/revisions/' + str(item['result_revision']) + '/tables')
                 diagnostics = detail.get('diagnostics') or {}
                 require(diagnostics.get('version') == 'screen-diagnostics-v2', 'Actual consumer is not diagnostics v2')
+                negative_proof = verify_negative_grid_contract(detail, tables, negative_contract) if negative_contract else None
                 countdown = diagnostics['execution_budget']['wall_deadline_remaining_seconds']
                 if batch['deadline']:
                     require(isinstance(countdown, (int, float))
@@ -398,6 +452,7 @@ def read_native(args, data, output, phase, *, consumer=None):
                     'candidates_sha256': fingerprint(json.loads(item['candidates'])), 'actual_tables_sha256': fingerprint(tables),
                     'business_metadata_sha256': fingerprint(detail.get('business_metadata', [])),
                     'metadata_edit_log_sha256': fingerprint((detail.get('result', {}).get('edited', {}).get('screen') or {}).get('metadata_edit_log', [])),
+                    'negative_grid_proof': negative_proof,
                     'diagnostics': compared_diagnostics,
                     'downloaded_images': [{key: value for key, value in row.items() if key != 'path'} for row in downloads]})
             local_reads = []
@@ -464,11 +519,16 @@ def read_native(args, data, output, phase, *, consumer=None):
     require(not any(row['forbidden_old_scope'] for row in actual_reads), 'Native consumer attempted to read an old data scope')
     pixel_reads = [row for row in actual_reads
                    if any(Path(frame['file']).name == 'screen_diagnostics.py' for frame in row['frames'])]
-    require(pixel_reads, 'Diagnostics v2 did not actually read any owned source pixels')
+    if negative_contract is None:
+        require(pixel_reads, 'Diagnostics v2 did not actually read any owned source pixels')
+    else:
+        require(not pixel_reads and all(row['negative_grid_proof'] for row in result['details']),
+                'Declared pre-pixel dimension rejection did not match its actual audited behaviour')
     require(all(fpath(row['path']).is_relative_to(data) for row in pixel_reads), 'Diagnostics source pixel read escaped owned data')
     result['actual_read_audit'] = {'path': str(audit_path), 'sha256': digest(audit_path),
         'events': len(actual_reads), 'forbidden_old_scope_reads': 0, 'diagnostics_source_pixel_read_events': len(pixel_reads),
         'diagnostics_source_pixel_paths': sorted({str(fpath(row['path'])) for row in pixel_reads}),
+        'declared_negative_grid_fixture': negative_contract is not None,
         'runtime': read_json(output / (phase + '-native-runtime.json'))}
     frozen_json(output / (phase + '-native-read-with-audit.json'), result)
     return result
