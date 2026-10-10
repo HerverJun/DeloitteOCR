@@ -13,6 +13,48 @@ from workbench_platform.agent.providers import ProviderFault, payload_for
 
 
 class CompletedBatchContextTests(unittest.TestCase):
+    def test_latest_history_read_of_archived_phase_requires_exact_retained_source(self):
+        command = {'handoff_id': 'actual-handoff', 'device': 'cpu'}
+        receipt = {'status': 'success', 'data': {'handoff_id': 'actual-handoff',
+                    'warnings': ['低置信度待复核']},
+                   'result_refs': [{'kind': 'result', 'object_id': 'actual-result',
+                                    'revision': 2, 'sha256': 'a' * 64}]}
+        content = wire_json({'arguments': command, 'result': receipt})
+        page = {'status': 'success', 'data': {'call_id': 'inference',
+            'tool': 'classification_infer', 'offset': 0, 'next_offset': None,
+            'content': content, 'content_sha256': hashlib.sha256(content.encode()).hexdigest(),
+            'result_sha256': hashlib.sha256(json.dumps(receipt, sort_keys=True,
+                ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()}}
+        messages = [
+            {'role': 'assistant', 'calls': [{'call_id': 'inference',
+                'tool': 'classification_infer', 'arguments': command}]},
+            {'role': 'tool', 'call_id': 'inference', 'result': receipt},
+            {'role': 'assistant', 'calls': [{'call_id': 'readback',
+                'tool': 'session_read_history', 'arguments': {'call_id': 'inference'}}]},
+            {'role': 'tool', 'call_id': 'readback', 'result': page}]
+        saved = deepcopy(messages)
+        facts = json.loads(_history_summary(messages,
+            archive_tools=['classification_infer'])['content'].split('\n', 1)[1])
+        self.assertNotIn('verified_readback', facts[-1].get('data', {}))
+        self.assertIn('archived_operation_sha256', facts[-1])
+        self.assertEqual(facts[0]['data']['retained_risks'], {'warnings': ['低置信度待复核']})
+        self.assertEqual(messages, saved)
+        for changed in ('no_archive', 'wrong_arguments', 'changed_source_receipt', 'missing_source'):
+            with self.subTest(changed=changed):
+                actual = deepcopy(messages)
+                archives = ['classification_infer']
+                if changed == 'no_archive':
+                    archives = []
+                elif changed == 'wrong_arguments':
+                    actual[0]['calls'][0]['arguments']['device'] = 'gpu'
+                elif changed == 'changed_source_receipt':
+                    actual[1]['result']['result_refs'][0]['revision'] = 3
+                else:
+                    actual = actual[2:]
+                value = json.loads(_history_summary(actual,
+                    archive_tools=archives)['content'].split('\n', 1)[1])[-1]
+                self.assertIn('verified_readback', value['data'])
+
     def test_latest_complete_history_read_exposes_actual_files_refs_and_hashes_after_compaction(self):
         artifact = {'kind': 'artifact', 'object_id': 'actual-export', 'revision': 1, 'application': 'classification',
                     'workspace_id': 'current-workspace', 'parent_id': 'actual-handoff'}

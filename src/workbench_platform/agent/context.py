@@ -324,6 +324,8 @@ def _history_summary(messages, *, archive_discovery=False, archive_tools=(), ret
                 and message['result'].get('status') == 'success'
                 and (value := _exact_readback(message['result'].get('data', {}))) is not None}
     latest_readback = next(reversed(readbacks), None)
+    source_receipts = {message['call_id']: message['result'] for message in messages
+                       if message['role'] == 'tool'}
     user_text = {value.get('content'): index for index, value in enumerate(messages)
                  if value['role'] == 'user' and isinstance(value.get('content'), str)}
     scope = {}
@@ -353,7 +355,16 @@ def _history_summary(messages, *, archive_discovery=False, archive_tools=(), ret
             # recent exact read visibly useful, including live typed refs and
             # actual export files, so compaction cannot cause a readback loop.
             restored = readbacks.get(message['call_id'])
-            business_archive = (bool(restored) and message['call_id'] != latest_readback
+            source_call_id = original_data.get('call_id')
+            source_call = all_calls.get(source_call_id, {})
+            source_receipt = source_receipts.get(source_call_id)
+            superseded_readback = (bool(restored) and source_call.get('tool') in archive_tools
+                and source_call.get('tool') == original_data.get('tool')
+                and source_call.get('arguments') == restored['arguments']
+                and source_receipt is not None
+                and _archive_sha256(source_receipt) == original_data.get('result_sha256'))
+            business_archive = (bool(restored) and
+                                (message['call_id'] != latest_readback or superseded_readback)
                                 and restored['result'].get('status') == 'success'
                                 and not restored['result'].get('error')
                                 and not restored['result'].get('data', {}).get('stale'))
@@ -423,7 +434,7 @@ def _history_summary(messages, *, archive_discovery=False, archive_tools=(), ret
             nested_risks = risks(original_data)
             if nested_risks:
                 data['retained_risks'] = nested_risks
-        if tool == 'session_read_history' and message['call_id'] == latest_readback:
+        if tool == 'session_read_history' and message['call_id'] == latest_readback and not business_archive:
             data = {'verified_readback': _readback_fields(original_data, readbacks[message['call_id']])}
         if tool in {'tools_list', 'tools_describe'}:
             # Listing is not activation. Keep actual discovered names, readiness
