@@ -111,6 +111,8 @@ def review(args):
             or not any(ref['kind'] == 'evidence' and ref['sha256'] == evidence['snapshot_hash'] for ref in delivery['result_refs'])):
         raise ValueError('Delivery omitted the actual classification result or direct evidence')
     status = rows(root / 'agent.sqlite3', 'SELECT status FROM runs WHERE id=?', (args.run_id,))[0]['status']
+    if status == 'succeeded' and delivery['data']['completeness'] != 'complete':
+        raise ValueError('Succeeded classification run lacks complete verified delivery')
     if (status != result['agent_status'] or inventory(original) != before or inventory(source_workspace) != source_before
             or platform_binding(source) != bound):
         raise ValueError('Original run/source workspace/status or frozen source changed')
@@ -122,7 +124,7 @@ def review(args):
         'selected_source_count': 2, 'predictions': exported['items'], 'delivery_completeness': delivery['data']['completeness'],
         'delivery_limitations': delivery['data']['limitations'], 'evidence_snapshot_hash': evidence['snapshot_hash'],
         'controller_calls': 0, 'gpu_calls': 0, 'training_calls': 0, 'helper_sha256': digest(__file__),
-        'scope': 'Production artifact download on an independent byte copy; exact exported actual predictions, historical labels/source/model bytes and preserved partial status; two synthetic engineering inputs, no business accuracy'})
+        'scope': 'Production artifact download on an independent byte copy; exact exported actual predictions, historical labels/source/model bytes and preserved actual terminal status; two synthetic engineering inputs, no business accuracy'})
     print('classification_export_review_pass', status, len(files), len(exported['items']))
 
 

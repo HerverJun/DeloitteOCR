@@ -123,7 +123,8 @@ def review(args):
                    or task['status'] not in {'succeeded', 'failed', 'cancelled'}
                    for task in model_by_input.values())
             or any(task['kind'] != 'screen_context' or task['engine'] != 'geometry'
-                   or task['status'] != 'succeeded' for task in context_by_input.values())):
+                   or task['status'] not in {'succeeded', 'failed', 'cancelled'}
+                   for task in context_by_input.values())):
         raise ValueError('Native model/context task ledger does not bind every source image')
     native_model = list(model_by_input.values())
     if result['export'] is None:
@@ -173,7 +174,7 @@ def review(args):
         'status_adapter': 'native completed/needs_review with persisted result -> scoring success; native_status retained',
         'underlying_observations_sha256': digest(run / 'observations.json'),
         'native_database_source_sha256': before,
-        'verification': 'every image bound to terminal native OCR and succeeded geometry tasks, result DB and detail receipt; XLSX/no_book reconciled without dropping failures'}
+        'verification': 'every image bound to terminal native OCR and geometry tasks with their actual statuses, result DB and detail receipt; XLSX/no_book reconciled without dropping failures'}
     frozen_json(output / 'verified-observations.json', verified_observations)
     if file_inventory(run) != original_files:
         raise ValueError('Original stopped runtime changed during independent review')
@@ -187,6 +188,8 @@ def review(args):
         'native_database_source_sha256': before,
         'native_database_opened_only_from_copy': True,
         'native_context_rows': len(contexts), 'native_model_tasks': len(native_model),
+        'native_context_task_states': {state: sum(task['status'] == state for task in context_by_input.values())
+                                      for state in sorted({task['status'] for task in context_by_input.values()})},
         'native_model_task_states': {state: sum(task['status'] == state for task in native_model)
                                      for state in sorted({task['status'] for task in native_model})},
         'status_counts': status_counts, 'details': details,
