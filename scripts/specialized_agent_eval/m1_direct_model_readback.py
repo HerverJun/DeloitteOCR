@@ -13,15 +13,21 @@ import shutil
 import sqlite3
 
 from common import digest, fpath, frozen_json, read_json
+from controlled_recovery import file_inventory, require_environment
 from freeze_sources import PARTS, inventory
+from m1_model_receipts import owned_processes
 from readback import check_bundle
 
 
 def review(args):
+    require_environment()
     run, source, inputs, output = map(fpath,
         (args.run, args.source, args.inputs, args.output))
     if output.exists():
         raise ValueError('Use a new independent readback identity')
+    if owned_processes(run):
+        raise ValueError('Original native service or model process remains live')
+    original_files = file_inventory(run)
     result = read_json(run / 'result.json')
     prepared = read_json(run / 'prepared.json')
     trial = read_json(source / 'trial-source-binding.json')
@@ -114,7 +120,8 @@ def review(args):
             or set(context_by_input) != set(model_by_input)
             or any(row['batch_id'] != result['batch_id'] for row in screen_tasks + contexts)
             or any(task['kind'] != 'ocr' or task['engine'] != trial['policy']['primary_engine']
-                   or task['status'] != 'succeeded' for task in model_by_input.values())
+                   or task['status'] not in {'succeeded', 'failed', 'cancelled'}
+                   for task in model_by_input.values())
             or any(task['kind'] != 'screen_context' or task['engine'] != 'geometry'
                    or task['status'] != 'succeeded' for task in context_by_input.values())):
         raise ValueError('Native model/context task ledger does not bind every source image')
@@ -161,12 +168,15 @@ def review(args):
                                 'status': scored_status})
     verified_observations = {**observations,
         'evidence_kind': 'native_model_receipts',
+        'truth_read': False,
         'records': scoring_records,
         'status_adapter': 'native completed/needs_review with persisted result -> scoring success; native_status retained',
         'underlying_observations_sha256': digest(run / 'observations.json'),
         'native_database_source_sha256': before,
-        'verification': 'every image bound to succeeded native OCR and geometry tasks, result DB, detail receipt and XLSX'}
+        'verification': 'every image bound to terminal native OCR and succeeded geometry tasks, result DB and detail receipt; XLSX/no_book reconciled without dropping failures'}
     frozen_json(output / 'verified-observations.json', verified_observations)
+    if file_inventory(run) != original_files:
+        raise ValueError('Original stopped runtime changed during independent review')
     report = {'format': 'm1-direct-model-independent-readback-v1',
         'status': 'passed', 'scope_inputs': len(samples), 'evaluation_split': trial['evaluation_split'],
         'run_result_sha256': digest(run / 'result.json'),
