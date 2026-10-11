@@ -202,7 +202,8 @@ def review(args):
         'native_model_task_states': {state: sum(task['status'] == state for task in native_model)
                                      for state in sorted({task['status'] for task in native_model})},
         'status_counts': status_counts, 'details': details,
-        **({'route_audit_sha256': digest(output / 'routed-attempt-ledger.json')} if routed else {}),
+        **({'route_audit_sha256': digest(output / 'routed-attempt-ledger.json'),
+            'route_audit_helper_sha256': digest(Path(__file__).with_name('precision_route_readback.py'))} if routed else {}),
         'xlsx_readback': {'status': readback['status'], 'inputs': readback['inputs'],
                           'workbooks': readback['workbooks'], 'no_book': readback['no_book']}
                           if readback else None,

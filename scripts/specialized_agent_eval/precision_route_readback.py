@@ -125,6 +125,8 @@ def verify_routed_ledger(policy, items, tasks, contexts, screen_tasks):
             models.append(task)
             attempts.append({'task_id': task['id'], 'engine': task['engine'], 'pass_index': index,
                 'prepared_id': link['prepared_id'], 'status': task['status'], 'kind': task['kind'],
+                'started': task.get('started'), 'finished': task.get('finished'),
+                'result_id': task.get('result_id'), 'carried_seconds': link.get('spent_seconds', 0),
                 'frozen_timeout_seconds': timeout, 'technical_fallback_reserved_seconds': reserve,
                 'actual_seconds': _cost(task, link), 'error': task.get('error')})
         if any(attempt['pass_index'] == 1 for attempt in attempts) and any(
