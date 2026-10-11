@@ -23,6 +23,8 @@ def diagnostic_source(source, expected_files=None):
     package = source / "src/ocr_workbench"
     needed = [package / (name + ".py") for name in
               ("__init__", "coordinates", "tables", "screen_quality", "screen_diagnostics", "image_utils")]
+    if (package / 'screen_rectified_grid.py').is_file():
+        needed.extend(package / (name + '.py') for name in ('screen_rectified_grid', 'screen_imaging'))
     hashes = {str(path): digest(path) for path in needed}
     if expected_files is not None and any(
             hashes[str(path)] != expected_files.get(path.relative_to(source).as_posix()) for path in needed):
@@ -39,6 +41,8 @@ def diagnostic_source(source, expected_files=None):
                   if name == "ocr_workbench" or name.startswith("ocr_workbench.")}
         allowed = {"ocr_workbench", "ocr_workbench.coordinates", "ocr_workbench.tables",
                    "ocr_workbench.screen_quality", "ocr_workbench.screen_diagnostics", "ocr_workbench.image_utils"}
+        if (package / 'screen_rectified_grid.py').is_file():
+            allowed.update({'ocr_workbench.screen_rectified_grid', 'ocr_workbench.screen_imaging'})
         if not set(loaded) <= allowed or any(
                 not fpath(value.__file__).is_relative_to(package) for value in loaded.values()):
             raise ValueError("Offline diagnostics imported an unexpected native module/source")
@@ -145,7 +149,7 @@ def validate_detail(detail, row, index, native_item, module, *, receipt_path, re
     if version == 'screen-diagnostics-v2':
         grid = diagnostic.get('grid_localization')
         if (not isinstance(grid, dict) or grid != replay.get('grid_localization')
-                or grid.get('version') != 'screen-grid-localization-v1'
+                or grid.get('version') not in {'screen-grid-localization-v1','screen-grid-localization-v2'}
                 or grid.get('reference_input_used') is not False
                 or grid.get('values_modified') is not False
                 or grid.get('human_review') != 'not_performed'):
@@ -179,7 +183,8 @@ def validate_detail(detail, row, index, native_item, module, *, receipt_path, re
             if location.get("range_semantics") != "full_cell" or not location.get("box"):
                 raise ValueError("Diagnostic cell has no replayed full-cell source geometry")
             basis = location.get('basis')
-            if basis == 'source_pixels_observed_partition_and_independent_row_column_anchors':
+            if basis in {'source_pixels_observed_partition_and_independent_row_column_anchors',
+                         'source_pixels_rectified_partition_independent_anchors_inverse_projection'}:
                 table_index = location.get('table')
                 tables = raw.get('tables', [])
                 if not grid or type(table_index) is not int or not 0 <= table_index < len(tables):
@@ -188,6 +193,9 @@ def validate_detail(detail, row, index, native_item, module, *, receipt_path, re
                          if cell['row'] == location['row'] and cell['column'] == location['column']]
                 if (len(cells) != 1 or module.localized_grid_box(grid, table_index, cells[0]) != location['box']):
                     raise ValueError('Grid cell location does not match independently observed full-cell boundaries')
+                if hasattr(module,'localized_grid_cell') and module.localized_grid_cell(
+                        grid,table_index,cells[0])['polygon'] != location.get('polygon'):
+                    raise ValueError('Grid cell polygon differs from independently observed source boundary')
             elif basis != 'observed_full_cell_geometry':
                 raise ValueError('Diagnostic cell location uses an unsupported geometry basis')
             region.update(row=location["row"], column=location["column"], reliable=True)

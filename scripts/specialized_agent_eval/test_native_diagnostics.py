@@ -127,6 +127,52 @@ class DiagnosticGates(unittest.TestCase):
         self.assertFalse(validated['automatic_delivery_qualification'])
         self.assertFalse(validated['human_review_qualification'])
 
+    def test_rectified_grid_replay_requires_inverse_and_actual_source_polygon(self):
+        import cv2
+        import numpy as np
+        from PIL import Image
+        with diagnostic_source(SOURCE) as module:
+            from ocr_workbench.coordinates import bounds,box_polygon,inverse,polygon
+            detail,row,index,item=grid_fixture(module)
+            prep=detail['preparation'];path=fpath(prep['input_path'])
+            transform=[1.,.03,20.,.01,1.,20.,0.,0.,1.]
+            with Image.open(path) as opened:
+                image=Image.fromarray(cv2.warpPerspective(np.asarray(opened),np.asarray(transform).reshape(3,3),
+                    (440,260),flags=cv2.INTER_CUBIC,borderValue=(255,255,255)))
+            image.save(path);sha=digest(path)
+            evidence=json.loads(item['evidence'])
+            for reading in evidence['text']:
+                reading['polygon']=polygon(transform,box_polygon(reading['box']))
+                reading['box']=bounds(reading['polygon'])
+            prep.update(input_sha256=sha,width=440,height=260,
+                business_regions=[{'id':'synthetic-grid','table_box':bounds(polygon(transform,box_polygon([30,30,340,165])))}],
+                prepared_images=[{'kind':'perspective','width':370,'height':195,
+                    'source_to_prepared':inverse(transform),'prepared_to_source':transform,
+                    'source_polygon':polygon(transform,box_polygon([0,0,370,195]))}])
+            original=detail['result']['original'];original['screen']['input_sha256']=sha
+            raw={**original,**detail['result']['edited']}
+            item.update(preparation=json.dumps(prep),evidence=json.dumps(evidence))
+            row.update(native_version_sha256=sha,result_original_sha256=fingerprint(original),selected_candidate=deepcopy(original))
+            detail['diagnostics']=module.build_screen_diagnostics(raw,prep,evidence,remaining_seconds=10)
+            detail['diagnostics'].update(result_id='r1',result_revision=0,input_version_id='v1')
+            validated=self.validate(detail,row,index,item,module)
+            self.assertEqual(validated['observed_grid_cell_count'],9)
+            diagnostic=detail['diagnostics']
+            self.assertEqual(diagnostic['grid_localization']['version'],'screen-grid-localization-v2')
+            cells=[part for part in diagnostic['items'] if part['location']['level']=='cell']
+            self.assertTrue(cells)
+            self.assertNotEqual(cells[0]['location']['polygon'],box_polygon(cells[0]['location']['box']))
+            for alteration in ('inverse','source_polygon','display_polygon'):
+                with self.subTest(alteration=alteration):
+                    changed=deepcopy(detail)
+                    proof=changed['diagnostics']['grid_localization']['tables'][0]
+                    if alteration=='inverse':proof['rectification']['prepared_to_source'][2]+=1
+                    elif alteration=='source_polygon':proof['cells'][0]['polygon'][0][0]+=1
+                    else:
+                        target=next(part for part in changed['diagnostics']['items'] if part['location']['level']=='cell')
+                        target['location']['polygon'][0][0]+=1
+                    with self.assertRaises(ValueError):self.validate(changed,row,index,item,module)
+
     def test_grid_proof_tampering_or_source_drift_cannot_certify_locations(self):
         with diagnostic_source(SOURCE) as module:
             for kind in ('source_hash', 'cell_box', 'anchors', 'partition', 'source_bytes', 'missing_proof', 'version'):
