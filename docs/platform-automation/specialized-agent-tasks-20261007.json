@@ -1,8 +1,8 @@
 {
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
-  "last_updated": "2026-10-10",
-  "update_basis_main_head": "f8aec0f",
+  "last_updated": "2026-10-11",
+  "update_basis_main_head": "5d538b9",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": [
       "M1",
@@ -121,7 +121,7 @@
         "初始候选、人工确认和自动可交付状态独立",
         "无收益分支不进入默认，未达成质量目标继续保留"
       ],
-      "next_action": "完整H/G验证40与技术失败对照已封存：H11/40整表、关键1418/1821；G10/40、1405/1821且3超时缺书；冻结语言分流净回退31可见/14关键，拒绝采用。保留H默认；后续解决有界精度/新身份技术兜底、实际质量与复核减负，不以CPU假设或缺文件充数。"
+      "next_action": "H默认保留；显式数学显示解析已提交并通过真实40模型/XLSX及同输出ledger独立对照，净修复49可见/38关键、新错0。完成路线报告并继续解决实际复核减负，GLM整批及冻结语言分流仍拒绝采用。"
     },
     {
       "id": "M2",
@@ -152,7 +152,7 @@
         "局部处理在可靠原图格位及有界预算内验证净修复/新错/成本，过期候选不覆盖值或确认",
         "新增处理有正净收益且缩小需核范围或证明校对减负，全图待核不算自动化通过"
       ],
-      "next_action": "工程闭环和冷恢复005保留；封闭表头规则在validation40释放0格，开发14格收益未复现，不能采用。继续解决有正净收益、实际缩核或经独立人工时间证明的校对减负。"
+      "next_action": "闭环基础保留；新表头范围CPU探索少核开发19/验证12格，全部残留错误覆盖，但验证已暴露、尚未改原生复核状态。须用冻结规则完成新的独立/原生证据，再整合界面和当前导出；继续检查透视格位来源证明。"
     },
     {
       "id": "M3",
@@ -400,9 +400,10 @@
         "F:/OCR/output/platform-specialized-agent-20261007/evidence/s03-context-role-regression-012.json",
         "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-schedule-whole-dev-001-quality-001.json",
         "F:/OCR/output/platform-specialized-agent-20261007/evidence/s04-grid-localization-score-001.json",
-        "F:/OCR/output/platform-specialized-agent-20261007/evidence/native-diagnostics-cpu-004.json"
+        "F:/OCR/output/platform-specialized-agent-20261007/evidence/native-diagnostics-cpu-004.json",
+        "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-header-closure-20261011-001.json"
       ],
-      "progress_note": "元信息v003已在共享OCR实现并提交36f7a6d：H60共同政策开发回放命中72/72、extra0、UI标记21→2；P60同政策仍59/72、extra13、UI2，真实源文字不一致保持拒绝。表格值和所有关键格错误不变。严格全格像素及PP98%一致的60图CPU放行可行性试验提出2图，独立评分仍2个数学负号字形关键错，路线拒绝、产品仍待核；字形raster诊断0唯一提案。真实业务说明修改/当前ZIP的两端工程UI已通过，但验证40、内容净收益和减负尚未完成。"
+      "progress_note": "业务元信息v003基础保留。新增显式数学显示解析OCR9ac69e1/平台2a533d0：开发60净修复124可见/97关键，验证40 CPU及真实新H007同输出分别净修复49/38，新错0；原模型原文/任务ledger/数值数字和正负号保留，未知语法/货币歧义/数字幂拒绝转换。真实40XLSX独立读回通过；仍全图待核。表头范围v2探索释放开发19/验证12格，全部残留错仍覆盖，但未独立新验证/原生采用。"
     },
     {
       "id": "S04",
@@ -470,7 +471,8 @@
         "F:/OCR/output/platform-specialized-agent-20261007/evidence/native-delivery-current-003.log",
         "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-delivery-001.log",
         "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-readback-001.json",
-        "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-specialized-cpu-002.json"
+        "F:/OCR/output/platform-specialized-agent-20261007/evidence/platform-specialized-cpu-002.json",
+        "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-header-closure-20261011-001.json"
       ]
     },
     {
@@ -578,7 +580,8 @@
         "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-dev-001-readback-001.json",
         "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-glm-dev-001-quality-001.json",
         "F:/OCR/output/platform-specialized-agent-20261007/evaluation/agent-native-glm-dev-001-readback-001.json",
-        "F:/OCR/output/platform-specialized-agent-20261007/runs/cold-backup-restore-native-005/cold-restore-result.json"
+        "F:/OCR/output/platform-specialized-agent-20261007/runs/cold-backup-restore-native-005/cold-restore-result.json",
+        "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-header-closure-20261011-001.json"
       ],
       "progress_note": "H/GLM及调度12图真实链、独立XLSX/ZIP读回、冷恢复005及其独立复核通过是开发/工程证据；原H60已受控恢复并独立评分，但仅开发60且全待核。Paddle60第一次因本机重启中断，原deadline不延长，recognition-disabled实际reader已独立导出10本/60manifest/50未完成并核fidelity/freshness，不能称完整Paddle路线通过；新试验使用独立身份。稳定Agent/后台/交付/兼容/包装/界面和主仓helpers已分类提交，后续修正仍在执行。最终context/admission/status/schema19局部候选源码不被005覆盖，须新冷恢复。仍未完成200+与240/24资格；全待核不是自动化通过，最终相关工作树仍须收口。"
     }
@@ -669,5 +672,38 @@
     "resume_note": "docs/platform-automation/续作记录-20261011.md",
     "no_active_task_trial": true,
     "latest_complete_validation_report": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\m1-complete-validation-decision-002\\report.json"
+  },
+  "execution_checkpoint_20261011": {
+    "goal_status": "active",
+    "user_resumed_development": true,
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "sources": {
+      "main": "5d538b9",
+      "ocr": "9ac69e1",
+      "platform": "2a533d0",
+      "classification": "d90707b"
+    },
+    "closure": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-header-closure-20261011-001.json",
+    "evidence": {
+      "math_policy": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-policy-001\\policy.json",
+      "development_score": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-development60-score-001\\report.json",
+      "validation_cpu_score": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-validation40-score-001\\report.json",
+      "actual_native_validation40": "F:\\OCR\\output\\platform-specialized-agent-20261007\\runs\\m1-h-math-validation-direct-20261011-007\\result.json",
+      "actual_native_independent": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\m1-h-math-validation-direct-independent-007-001\\review.json",
+      "actual_same_output_display_review": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-native007-ledger-review-001\\review.json",
+      "actual_native_quality": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\m1-h-math-validation-direct-quality-007-001.json",
+      "parser_tests": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-rendering-tests-001\\junit.xml",
+      "native_regression_original": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-native-regression-001\\junit.xml",
+      "native_export_corrected": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-native-export-regression-002\\junit.xml",
+      "platform_regression": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\math-text-platform-regression-001\\junit.xml",
+      "header_policy_v2": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\field-header-scope-policy-v2-001\\policy.json",
+      "header_development_review": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\field-header-scope-development60-review-v2-001\\review.json",
+      "header_validation_review": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\field-header-scope-validation40-review-v2-001\\review.json"
+    },
+    "math_display_summary": "Development60 fixes124 visible/97critical,new0; validation40 CPU fixes49/38,new0. New native H007 fully reproduced49/38 gains against exactly same immutable model task outputs,40model+40geometry success/40XLSX,376.38s,firstnative227.64s. Actual quality12/40 exact tables,2211/2711 visible,1456/1821critical,metadata42/48,extra25,UI5. All40 still reviewed.",
+    "math_display_constraints": "Only explicit supported model math display syntax is decoded; all original model tasks/text retained, provenance stores original syntax and style runs. Digits/minus bytes unchanged, currency ambiguity/unknown syntax/numeric powers abstain. Historical persisted policies default render_math_text=false; new native defaults true. Human review remains independent.",
+    "header_scope_summary": "New general closed first-row field glossary, complete actual pixel partition/anchors and exact PP>=.99 agreement released19 development/12 validation headers in CPU exploration. All659/500 visible and379/365 critical residual errors remain reviewed; all data and metadata remain reviewed. Validation already exposed; no independent new-validation/native adoption claim. Old rejected seven-field rule retained.",
+    "next_action": "Qualify genuine review-scope reduction using frozen rules on new independent/native evidence; examine source-recomputed perspective pixel partitions to improve reliable mapping. Then complete M1/M2 route/workflow gates before final common freeze and M3/M4."
   }
 }
