@@ -15,7 +15,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 19
+SCHEMA_VERSION = 20
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -277,6 +277,11 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         elif version == 19:
             from ocr_workbench.screen_local_candidates import migrate_local_candidates
             migrate_local_candidates(db)
+        elif version == 20:
+            # Routed preparation/attempt JSON carries engine and reserve meaning
+            # that a schema19 coordinator would silently ignore on recovery.
+            # The version barrier changes no historical records or budgets.
+            pass
 
     @staticmethod
     def _revision_triggers(db, table):
