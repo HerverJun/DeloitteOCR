@@ -5,7 +5,7 @@ import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','screen-batch-v1',
                    'agent-preferences-v1','screen-delivery-snapshot-v1','screen-resolution-v1','screen-local-candidates-v1',
-                   'screen-business-metadata-edit-v1')
+                   'screen-business-metadata-edit-v1','screen-business-language-route-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -29,7 +29,7 @@ DATA_COMPATIBILITY = {
         'forensics/forensics.sqlite3': {'user_versions':[0,1], 'reject_nonempty_unversioned':True, 'tables':{
             'inspections':['inspection_id','workspace_id','request_id','payload_hash','body'],
             'review_requests':['workspace_id','request_id','inspection_id','payload_hash','receipt']}},
-        'native/ocr/workbench.sqlite3': {'user_versions':list(range(20)), 'tables':{}},
+        'native/ocr/workbench.sqlite3': {'user_versions':list(range(21)), 'tables':{}},
         'screen-batches.sqlite3': {'user_versions':[0], 'tables':{}, 'optional_tables':{
             'screen_batch_exports':['workspace_id','batch_id','payload_hash','bundle_id']}},
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},

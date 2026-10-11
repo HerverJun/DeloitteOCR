@@ -195,6 +195,20 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
         with pytest.raises(ValueError):ScreenPolicy(engine_route=invalid)
     omitted=ScreenPolicy().model_dump(exclude_unset=True,exclude_none=True)
     assert 'engine_route' not in omitted and 'technical_fallback_reserve_seconds' not in omitted
+    from pathlib import Path
+    from workbench_platform.reader_requirements import infer_reader_requirements
+    from scripts.product_compatibility import DATA_COMPATIBILITY,check
+    from copy import deepcopy
+    service=bridge[4]
+    data_root=Path(service.path).parent
+    marker=data_root/'product-reader-requirements.json'
+    assert 'screen-business-language-route-v1' in json.loads(marker.read_text('utf-8'))['reader_features']
+    marker.unlink()
+    before={path:path.read_bytes() for path in data_root.glob('*.sqlite3*')}
+    assert 'screen-business-language-route-v1' in infer_reader_requirements(data_root)['reader_features']
+    old=deepcopy(DATA_COMPATIBILITY);old['reader_features'].remove('screen-business-language-route-v1')
+    with pytest.raises(ValueError):check(data_root,old)
+    assert all(path.read_bytes()==value for path,value in before.items())
     for invalid in (True,'180',9,901):
         with pytest.raises(ValueError):ScreenPolicy(request_timeout_seconds=invalid)
     for invalid in ('always',True):

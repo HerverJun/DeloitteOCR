@@ -232,6 +232,8 @@ class ScreenBatches:
                         (workspace, args.request_id, identity, imported['handoff_id'], context.module_project_id,
                          None, _json(sources), _json(body['policy']), _utc()))
                     row = db.execute('SELECT * FROM screen_batch_refs WHERE workspace_id=? AND request_id=?', (workspace, args.request_id)).fetchone()
+            if json.loads(row['policy_json']).get('engine_route') == 'business_language_v1':
+                mark_reader_feature(self.path.parent, 'screen-business-language-route-v1')
             adapter, _, _ = self._adapter(workspace, row)
             if not row['batch_id']:
                 previous = adapter._request('GET', f'/api/projects/{row["project_id"]}/screen-batch-requests/{args.request_id}')
@@ -285,6 +287,8 @@ class ScreenBatches:
             if recorded is None:
                 db.execute('INSERT INTO screen_batch_policy_receipts VALUES(?,?,?,?)',
                     (workspace,batch_id,policy_hash,policy_json))
+        if policy.get('engine_route') == 'business_language_v1':
+            mark_reader_feature(self.path.parent, 'screen-business-language-route-v1')
         return {**value, 'items': items, 'filtered_total':value.get('total_items',value.get('filtered_total',counts['total'])), 'workspace_id': workspace, 'link_id': original['link_id'],
             'handoff_id': row['handoff_id'], 'asset_set_id': fixed.asset_set_id,
             'asset_set_revision': fixed.revision, 'offset': offset, 'limit': limit,

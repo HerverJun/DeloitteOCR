@@ -17,7 +17,8 @@ import uuid
 
 FORMAT = 'clear-product-reader-requirements-v1'
 SPECIALIZED_FEATURES = ('agent-preferences-v1', 'screen-delivery-snapshot-v1', 'screen-resolution-v1',
-                        'screen-local-candidates-v1', 'screen-business-metadata-edit-v1')
+                        'screen-local-candidates-v1', 'screen-business-metadata-edit-v1',
+                        'screen-business-language-route-v1')
 PREFERENCE_TABLES = {
     'agent_preference_profiles': ('workspace_id', 'business', 'revision', 'body', 'updated'),
     'agent_preference_snapshots': ('run_id', 'business', 'workspace_id', 'session_id', 'body', 'sha256', 'created'),
@@ -307,6 +308,20 @@ def infer_reader_requirements(root):
                             'feature': 'screen-local-candidates-v1', 'request_id': row['request_id']})
                 if 'screen_batch_refs' in present and db.execute('SELECT 1 FROM screen_batch_refs LIMIT 1').fetchone():
                     features.add('screen-batch-v1')
+                    policies = db.execute('SELECT batch_id,policy_json FROM screen_batch_refs') if 'policy_json' in table_columns(db, 'screen_batch_refs') else []
+                    for row in policies:
+                        policy=encoded_object(row['policy_json'], 'screen batch policy intent')
+                        if policy.get('engine_route') == 'business_language_v1':
+                            features.add('screen-business-language-route-v1')
+                            evidence.append({'database':relative,'table':'screen_batch_refs',
+                                'feature':'screen-business-language-route-v1','batch_id':row['batch_id']})
+                if 'screen_batch_policy_receipts' in present and 'policy_json' in table_columns(db, 'screen_batch_policy_receipts'):
+                    for row in db.execute('SELECT batch_id,policy_json FROM screen_batch_policy_receipts'):
+                        policy=encoded_object(row['policy_json'], 'screen batch resolved policy')
+                        if policy.get('engine_route') == 'business_language_v1':
+                            features.add('screen-business-language-route-v1')
+                            evidence.append({'database':relative,'table':'screen_batch_policy_receipts',
+                                'feature':'screen-business-language-route-v1','batch_id':row['batch_id']})
                 if 'screen_batch_exports' in present and 'snapshot_json' in table_columns(db, 'screen_batch_exports'):
                     require_columns(db, 'screen_batch_exports', ('workspace_id', 'batch_id', 'bundle_id', 'snapshot_json'))
                     for row in db.execute("SELECT * FROM screen_batch_exports WHERE snapshot_json IS NOT NULL AND snapshot_json<>''"):
@@ -314,6 +329,13 @@ def infer_reader_requirements(root):
                         features.add('screen-delivery-snapshot-v1')
                         evidence.append({'database': relative, 'table': 'screen_batch_exports', 'feature': 'screen-delivery-snapshot-v1', 'bundle_id': row['bundle_id']})
             elif 'screen_actions' in present:
+                if 'screen_batches' in present and 'policy' in table_columns(db, 'screen_batches'):
+                    for row in db.execute('SELECT id,policy FROM screen_batches'):
+                        policy=encoded_object(row['policy'], 'native screen batch policy')
+                        if policy.get('engine_route') == 'business_language_v1':
+                            features.add('screen-business-language-route-v1')
+                            evidence.append({'database':relative,'table':'screen_batches',
+                                'feature':'screen-business-language-route-v1','batch_id':row['id']})
                 require_columns(db, 'screen_actions', ('batch_id', 'request_id', 'receipt'))
                 for row in db.execute('SELECT * FROM screen_actions'):
                     value = encoded_object(row['receipt'], 'screen action')

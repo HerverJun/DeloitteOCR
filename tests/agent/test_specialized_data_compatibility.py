@@ -22,6 +22,23 @@ def files(root):
             for path in root.rglob('*') if path.is_file()}
 
 
+def test_native_language_route_is_inferred_without_marker_and_rejects_old_reader(tmp_path):
+    native=tmp_path/'native/ocr';native.mkdir(parents=True)
+    database=native/'workbench.sqlite3'
+    with closing(sqlite3.connect(database)) as db,db:
+        db.execute('PRAGMA user_version=19')
+        db.execute('CREATE TABLE screen_batches(id TEXT,project_id TEXT,policy TEXT)')
+        db.execute('CREATE TABLE screen_actions(batch_id TEXT,request_id TEXT,receipt TEXT)')
+        db.execute('INSERT INTO screen_batches VALUES(?,?,?)',('route-batch','project',json.dumps({
+            'engine_route':'business_language_v1','technical_fallback_reserve_seconds':90})))
+    before=files(tmp_path)
+    inferred=infer_reader_requirements(tmp_path)
+    assert 'screen-business-language-route-v1' in inferred['reader_features']
+    old=deepcopy(DATA_COMPATIBILITY);old['reader_features'].remove('screen-business-language-route-v1')
+    with pytest.raises(ValueError):check(tmp_path,old)
+    assert files(tmp_path)==before
+
+
 def platform_root(root):
     root.mkdir(parents=True, exist_ok=True)
     for name in ('assets.sqlite3', 'workspaces.sqlite3'):
