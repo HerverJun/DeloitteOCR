@@ -48,6 +48,7 @@ class ScreenPolicy(AgentModel):
     mode: Literal['auto', 'accuracy'] = 'auto'
     group_size: int = Field(default=16, ge=1, le=64)
     budget_seconds: int | None = Field(default=None, ge=10, le=1800)
+    batch_budget_seconds: int | None = Field(default=None, strict=True, ge=10, le=864000)
     request_timeout_seconds: int | None = Field(default=None, strict=True, ge=10, le=900)
     layout_evidence: bool | None = None
     upgrade_trigger: Literal['failure_only', 'quality'] | None = None

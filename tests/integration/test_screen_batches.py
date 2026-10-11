@@ -169,6 +169,42 @@ def test_native_defaults_are_resolved_once_and_lost_submit_recovers_after_defaul
     with pytest.raises(OcrUnavailable):service.status(workspace,'batchA')
 
 
+@pytest.mark.parametrize('bridge',[200,240,1000],indirect=True)
+def test_original_precision_budget_survives_uncertain_submit_and_replay(bridge):
+    client,workspace,fixed,state,service,_=bridge
+    count=len(fixed['items'])
+    policy={'primary_engine':'glm','fallback_engines':['hunyuan'],'max_upgrades':1,
+        'mode':'accuracy','upgrade_trigger':'failure_only','layout_evidence':True,
+        'require_human_review':True,'budget_seconds':360,'request_timeout_seconds':180,
+        'engine_route':'business_language_v1','technical_fallback_reserve_seconds':90,
+        'batch_budget_seconds':max(36000,count*360)}
+    body={**arguments(fixed),'policy':policy}
+    args=ScreenSubmit.model_validate(body)
+    state['fail_once']=True
+    with pytest.raises(OcrUnavailable):service.submit(workspace,args)
+    assert state['specified_policy']==policy
+    state['defaults']={'primary_engine':'hunyuan','batch_budget_seconds':10}
+    recovered=service.submit(workspace,args,allow_new=False)
+    assert recovered['policy']['batch_budget_seconds']==count*360
+    assert recovered['policy']['budget_seconds']==360
+    assert recovered['policy']['technical_fallback_reserve_seconds']==90
+    assert recovered['policy']['engine_route']=='business_language_v1'
+    assert service.submit(workspace,args)['resolved_policy_sha256']==recovered['resolved_policy_sha256']
+    changed={**body,'policy':{**policy,'batch_budget_seconds':count*360+1}}
+    route=f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches'
+    assert client.post(route,headers=LOCAL,json=changed).status_code==409
+    assert state['posts']==1
+
+
+def test_batch_budget_is_strict_bounded_and_omitted_for_historical_requests():
+    from workbench_platform.jobs.screen_batches import ScreenPolicy
+    for invalid in (True,False,'86400',86400.0,9,864001):
+        with pytest.raises(ValueError):ScreenPolicy(batch_budget_seconds=invalid)
+    for valid in (10,72000,86400,360000,864000):
+        assert ScreenPolicy(batch_budget_seconds=valid).model_dump(exclude_unset=True)=={'batch_budget_seconds':valid}
+    assert 'batch_budget_seconds' not in ScreenPolicy().model_dump(exclude_unset=True,exclude_none=True)
+
+
 @pytest.mark.parametrize('bridge',[4],indirect=True)
 def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridge):
     from workbench_platform.agent.tools.screen_batches import Run

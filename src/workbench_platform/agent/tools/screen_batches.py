@@ -93,7 +93,7 @@ def run(args,ctx,allow_new=True):
         **values),allow_new=allow_new)
     if value is None:
         return None
-    return AgentToolResult(status='pending',summary='已启动整批图片转 Excel，后台按质量完成有限升级',
+    return AgentToolResult(status='pending',summary='已启动整批图片转 Excel，后台按固定策略处理，结果仍需核对',
         data=compact(value),job_refs=[AgentRef(kind='job',workspace_id=ctx.workspace_id,object_id=value['batch_id'],
             native_id=value['batch_id'],revision=1,application='ocr',parent_id=value['handoff_id'],coverage={'kind':'screen_batch','asset_set_id':value['asset_set_id'],'asset_set_revision':value['asset_set_revision']})]).model_dump()
 
