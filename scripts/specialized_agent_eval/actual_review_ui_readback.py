@@ -2,6 +2,7 @@
 import argparse
 from contextlib import closing
 from copy import deepcopy
+from datetime import datetime
 import io
 import json
 import re
@@ -51,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('host', 'browser', 'output'):
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--platform', action='store_true', help='Full Portal host with an additional cancelled submission')
     args = parser.parse_args()
     host, browser, output = map(fpath, (args.host, args.browser, args.output))
     require(not output.exists(), 'Use a new immutable independent readback identity')
@@ -59,19 +61,54 @@ def main():
             and report['passed'], 'UI and no-queue host must be successfully stopped')
     output.mkdir(parents=True)
     original = fpath(scope['source_run']) / 'native/ocr'
-    require(inventory(original) == read_json(host / 'original-native-bytes-before.json'), 'Original inference evidence changed')
+    original_bytes = (read_json(host / 'original-bytes-before.json')['native/ocr'] if args.platform
+                      else read_json(host / 'original-native-bytes-before.json'))
+    require(inventory(original) == original_bytes, 'Original inference evidence changed')
     owned = host / 'runtime/ocr'
     before = inventory(owned)
     copy_actual(owned, output / 'database', {'workbench.sqlite3': 'workbench.sqlite3'})
-    require(immutable_execution(execution_ledger(output / 'database')) ==
-            immutable_execution(read_json(host / 'initial-execution-ledger.json')),
+    copied_ledger = execution_ledger(output / 'database')
+    initial_ledger = read_json(host / 'initial-execution-ledger.json')
+    if args.platform:
+        from actual_platform_review_host import old_scope
+        copied_ledger = old_scope(copied_ledger, initial_ledger)
+    require(immutable_execution(copied_ledger) == immutable_execution(initial_ledger),
             'Requests, policies, deadlines, attempts, costs or failed tasks changed')
     with closing(sqlite3.connect(output / 'database/workbench.sqlite3')) as db:
         db.row_factory = sqlite3.Row
         results = {row['id']: dict(row) for row in db.execute('SELECT * FROM results')}
-        items = {row['input_version_id']: dict(row) for row in db.execute('SELECT * FROM screen_items')}
+        items = {row['input_version_id']: dict(row) for row in db.execute(
+            'SELECT * FROM screen_items WHERE batch_id=?', (scope['batch_id'],))}
         revisions = {(row['result_id'], row['revision']): row['edited']
                      for row in db.execute('SELECT result_id,revision,edited FROM result_revisions')}
+        if args.platform:
+            submission = read_json(browser / 'precision-submission.json')
+            new_id = submission['response']['batch_id']
+            new_batch = dict(db.execute('SELECT * FROM screen_batches WHERE id=?', (new_id,)).fetchone())
+            native_policy = json.loads(new_batch['policy'])
+            require(new_batch['request_id'] == submission['request']['request_id'] and
+                    native_policy == submission['native']['policy'] == submission['cancelled']['policy'],
+                    'Submitted policy/request changed after lookup or cancellation')
+            require(all(native_policy[key] == value for key, value in submission['request']['policy'].items()),
+                    'Portal precision policy did not reach the persisted native batch')
+            created = datetime.fromisoformat(new_batch['created']).timestamp()
+            require(abs(new_batch['deadline'] - created - native_policy['batch_budget_seconds']) < 1,
+                    'Original submitted deadline does not match the original whole-batch budget')
+            new_items = [dict(row) for row in db.execute('SELECT * FROM screen_items WHERE batch_id=?', (new_id,))]
+            require(len(new_items) == scope['images'] and all(row['status'] == 'cancelled' and row['result_id'] is None
+                    for row in new_items), 'Cancelled submission scope was lost or started recognition')
+    platform_bytes = None
+    if args.platform:
+        platform_root = host / 'runtime/platform'
+        platform_bytes = inventory(platform_root)
+        copy_actual(platform_root, output / 'platform-database', {'screen-batches.sqlite3': 'screen-batches.sqlite3'})
+        with closing(sqlite3.connect(output / 'platform-database/screen-batches.sqlite3')) as db:
+            db.row_factory = sqlite3.Row
+            submitted_ref = dict(db.execute('SELECT * FROM screen_batch_refs WHERE batch_id=?', (new_id,)).fetchone())
+            require(submitted_ref['request_id'] == new_batch['request_id'] and
+                    json.loads(submitted_ref['policy_json']) == submission['request']['policy'],
+                    'Native request no longer matches the durable platform bridge record')
+            export_rows = {row['bundle_id']: dict(row) for row in db.execute('SELECT * FROM screen_batch_exports')}
     initial = {d['input_version_id']: d for d in read_json(host / 'initial-details.json')}
     ledger = read_json(host / 'initial-execution-ledger.json')
     policy = ledger['batches'][0]['policy']
@@ -120,6 +157,10 @@ def main():
         live = snapshot['before']
         expected_vector = {key: live[key] for key in ('snapshot_id', 'batch_id', 'project_id', 'policy_sha256', 'items')}
         expected_vector['export_options'] = options
+        if args.platform:
+            saved = json.loads(export_rows[download['bundle_id']]['snapshot_json'])
+            require(saved['version_vector'] == expected_vector and saved['export_options'] == options,
+                    'Managed Portal bundle differs from its persisted native version vector')
         checks = []
         with zipfile.ZipFile(archive_path) as archive:
             names = archive.namelist()
@@ -155,7 +196,9 @@ def main():
         reports.append({'name': download['name'], 'zip_sha256': digest(archive_path),
                         'inputs_accounted': len(current), 'workbooks': len(checks),
                         'version_vector_and_current_options_verified': True, 'checks': checks})
-    require(inventory(owned) == before and inventory(original) == read_json(host / 'original-native-bytes-before.json'), 'Readback changed protected runtime/evidence')
+    require(inventory(owned) == before and inventory(original) == original_bytes, 'Readback changed protected runtime/evidence')
+    if args.platform:
+        require(inventory(platform_root) == platform_bytes, 'Readback changed protected platform evidence')
     frozen_json(output / 'report.json', {'format': 'actual-review-ui-independent-xlsx-readback-v1', 'status': 'passed',
         'host': str(host), 'browser': str(browser), 'source_run': scope['source_run'],
         'source_binding': {'freeze_sha256': digest(host / 'source/freeze.json'), 'browser_sha256': digest(browser / 'browser.json')},
@@ -164,6 +207,8 @@ def main():
         'browser_load_ordinal_json_rounding': browser_ordinal_rounding,
         'original_model_outputs_preserved': True, 'original_request_budget_cost_and_failures_preserved': True,
         'model_calls': 0, 'agent_calls': 0, 'scripted_review_actions': True,
+        'full_production_portal': args.platform,
+        'platform_precision_policy_request_and_deadline_verified': args.platform,
         'human_quality_or_relief_qualification': False, 'formal_current': 'v0.9.3',
         'helper_sha256': digest(__file__)})
     print(json.dumps({'status': 'passed', 'inputs': len(initial), 'workbooks_read': sum(r['workbooks'] for r in reports)}))

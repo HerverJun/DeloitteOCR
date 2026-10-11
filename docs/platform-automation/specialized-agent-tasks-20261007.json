@@ -121,7 +121,7 @@
         "初始候选、人工确认和自动可交付状态独立",
         "无收益分支不进入默认，未达成质量目标继续保留"
       ],
-      "next_action": "H默认保留；显式数学显示解析已提交并通过真实40模型/XLSX及同输出ledger独立对照，净修复49可见/38关键、新错0。完成路线报告并继续解决实际复核减负，GLM整批及冻结语言分流仍拒绝采用。"
+      "next_action": "保留默认H＋数学显示；显式精度入口使用实际009验证的business_language_v1及原预算内90秒技术兜底预留，平台提交已与原生持久策略联通。保留全部失败与质量回退；继续解决复核减负，禁止把全图待核或错误减少当作免人工资格。"
     },
     {
       "id": "M2",
@@ -152,7 +152,7 @@
         "局部处理在可靠原图格位及有界预算内验证净修复/新错/成本，过期候选不覆盖值或确认",
         "新增处理有正净收益且缩小需核范围或证明校对减负，全图待核不算自动化通过"
       ],
-      "next_action": "闭环基础保留；新表头范围CPU探索少核开发19/验证12格，全部残留错误覆盖，但验证已暴露、尚未改原生复核状态。须用冻结规则完成新的独立/原生证据，再整合界面和当前导出；继续检查透视格位来源证明。"
+      "next_action": "完整平台已通过实际40图副本复核／编辑／当前ZIP及精度策略持久联动，122本Excel独立读回；业务说明来源、并发409及草稿保护已验证。继续证明真实校对减负；表头范围v2已由业务值反例否决，禁止采用。"
     },
     {
       "id": "M3",
@@ -884,5 +884,36 @@
     "formal_current": "v0.9.3",
     "owned_models_or_native_services_active": 0,
     "next_action": "Complete current-source platform daily-flow integration and defensible review relief, then final common-source M3/M4 qualification."
+  },
+  "execution_checkpoint_20261011_actual_platform_review": {
+    "closure": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\actual-platform-review-workflow-closure-20261011-001.json",
+    "sources": {
+      "platform": {
+        "head": "d1827442e0a751c037c04325e4be424cb398b463",
+        "base_head_at_freeze": "3a78959e32939f013a421b6476dc2aca0b3a76a5",
+        "tested_working_bytes_equal_current": true
+      },
+      "ocr": {
+        "head": "e7746fcd4a30ae063fd0617dc92b4419de912398",
+        "base_head_at_freeze": "e7746fcd4a30ae063fd0617dc92b4419de912398",
+        "tested_working_bytes_equal_current": true
+      },
+      "classification": {
+        "head": "d90707b3d078db36485c788fa1494e9f62cf1baa",
+        "base_head_at_freeze": "d90707b3d078db36485c788fa1494e9f62cf1baa",
+        "tested_working_bytes_equal_current": true
+      }
+    },
+    "actual_recognition_inputs": 40,
+    "scripted_review_inputs": 1,
+    "independently_read_workbooks": 122,
+    "full_production_portal": true,
+    "precision_policy_persisted_and_cancelled_without_recognition": true,
+    "review_workload_reduction_qualified": false,
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "goal_status": "active",
+    "owned_services_active": 0,
+    "next_action": "Establish defensible review workload reduction, then final common-source M3 model/Agent and M4 adoption qualifications."
   }
 }
