@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 from pathlib import Path
 import tempfile
+import shutil
 import unittest
 
 import cv2
@@ -82,6 +83,21 @@ class ScreenRectifiedGridTests(unittest.TestCase):
         self.assertEqual(result['tables'][0]['cells'][0]['column_span'],2)
         raw['tables'][0]['cells'][0]['column_span']=1
         self.assertEqual(observe_screen_grid_cells(raw,prep,evidence)['cell_count'],0)
+
+    def test_cold_relocation_keeps_the_same_source_pixel_geometry_and_proof_identity(self):
+        raw,prep,evidence,*_=self.fixture()
+        before=observe_screen_grid_cells(raw,prep,evidence)
+        relocated=self.path.parent/'restored'
+        relocated.mkdir()
+        source=relocated/'original.png'
+        shutil.copyfile(self.path,source)
+        self.path.unlink()
+        moved=deepcopy(prep)
+        moved['input_path']=str(source)
+        moved['prepared_images'][0]['path']=str(relocated/'untrusted-prepared.png')
+        self.assertEqual(observe_screen_grid_cells(raw,moved,evidence),before)
+        moved['prepared_images'][0]['prepared_to_source'][2]+=1
+        self.assertEqual(observe_screen_grid_cells(raw,moved,evidence)['cell_count'],0)
 
     def test_changed_source_version_anchors_or_transform_never_reuse_old_proof(self):
         for alteration in ('source','version','swapped','weak','inverse','nan','singular',

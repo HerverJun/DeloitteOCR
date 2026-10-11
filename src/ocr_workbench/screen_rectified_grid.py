@@ -104,7 +104,11 @@ def observe_rectified_grid(raw, info, evidence, direct):
         row['rectification']={'version':'source-recomputed-rectified-grid-v1',
             'source_sha256':info['input_sha256'],'source_size':list(image.size),
             'prepared_size':[width,height],'source_to_prepared':transform,'prepared_to_source':inverted,
-            'source_polygon':source_polygon,'transform_snapshot_sha256':_digest(candidate),
+            'source_polygon':source_polygon,
+            # The prepared file is never read. Its relocated storage address
+            # cannot change a proof recomputed from the same original pixels.
+            'transform_snapshot_sha256':_digest({key:value for key,value in candidate.items() if key!='path'}),
+            'transform_snapshot_basis':'recorded_transform_fields_without_prepared_file_path_v1',
             'recomputed_rgb_sha256':hashlib.sha256(rectified.tobytes()).hexdigest(),
             'recomputed_mode':'RGB','interpolation':'cv2.INTER_CUBIC',
             'prepared_file_read':False,'pixel_grid_redetected':True,
