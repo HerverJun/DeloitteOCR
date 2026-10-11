@@ -53,6 +53,8 @@ class ScreenPolicy(AgentModel):
     upgrade_trigger: Literal['failure_only', 'quality'] | None = None
     require_human_review: bool | None = Field(default=None, strict=True)
     render_math_text: bool | None = Field(default=None, strict=True)
+    engine_route: Literal['fixed','business_language_v1'] | None = None
+    technical_fallback_reserve_seconds: int | None = Field(default=None,strict=True,ge=0,le=900)
     context_schedule: Literal['whole_batch', 'grouped'] | None = None
 
 

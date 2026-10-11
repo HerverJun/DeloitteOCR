@@ -29,5 +29,10 @@ class ScreenCompatibilityTests(unittest.TestCase):
             self.assertEqual(database.read_bytes(),before)
             with closing(sqlite3.connect(database)) as db,db:db.execute('PRAGMA user_version=19')
             before=database.read_bytes()
+            self.assertTrue(check(path,DATA_COMPATIBILITY)['compatible'])
+            self.assertEqual(database.read_bytes(),before)
+            future=max(DATA_COMPATIBILITY['sqlite']['native/ocr/workbench.sqlite3']['user_versions'])+1
+            with closing(sqlite3.connect(database)) as db,db:db.execute(f'PRAGMA user_version={future}')
+            before=database.read_bytes()
             with self.assertRaises(ValueError):check(path,DATA_COMPATIBILITY)
             self.assertEqual(database.read_bytes(),before)

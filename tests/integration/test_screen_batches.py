@@ -178,14 +178,23 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
     client,workspace,fixed,state,_,_=bridge
     body=arguments(fixed)
     body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True,
+        'engine_route':'business_language_v1','technical_fallback_reserve_seconds':90}
     response=client.post(f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches',headers=LOCAL,json=body)
     assert response.status_code==201,response.text
     assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True,
+        'engine_route':'business_language_v1','technical_fallback_reserve_seconds':90}
     assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True,
+        'engine_route':'business_language_v1','technical_fallback_reserve_seconds':90}
     from workbench_platform.jobs.screen_batches import ScreenPolicy
+    for invalid in (True,'90',-1,901):
+        with pytest.raises(ValueError):ScreenPolicy(technical_fallback_reserve_seconds=invalid)
+    for invalid in ('unknown',True,[],{}):
+        with pytest.raises(ValueError):ScreenPolicy(engine_route=invalid)
+    omitted=ScreenPolicy().model_dump(exclude_unset=True,exclude_none=True)
+    assert 'engine_route' not in omitted and 'technical_fallback_reserve_seconds' not in omitted
     for invalid in (True,'180',9,901):
         with pytest.raises(ValueError):ScreenPolicy(request_timeout_seconds=invalid)
     for invalid in ('always',True):
