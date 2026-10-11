@@ -30,9 +30,16 @@ def main():
                  'source-output','prepare-output','actual-output','trial-id'):
         parser.add_argument('--'+name,required=True)
     parser.add_argument('--engine',choices=('hunyuan','glm','paddlevl'),required=True)
+    parser.add_argument('--engine-route',choices=('fixed','business_language_v1'),default='fixed')
+    parser.add_argument('--technical-fallback-reserve-seconds',type=int,default=0)
     parser.add_argument('--required-file-sha',action='append',default=[],help='relative OCR path=expected final SHA')
     args=parser.parse_args()
     require_environment()
+    if args.engine_route == 'business_language_v1':
+        if args.engine != 'glm' or not 10 <= args.technical_fallback_reserve_seconds <= 350:
+            raise ValueError('Language route requires GLM primary and an explicit original-budget reserve')
+    elif args.technical_fallback_reserve_seconds:
+        raise ValueError('Fixed route does not accept a language fallback reserve')
     if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{4,79}',args.trial_id):
         raise ValueError('Trial identity must be a unique plain ASCII identifier')
     base,ocr,controller,inputs,route,preparation,actual=map(plain_path,(args.platform_freeze,args.ocr_source,
@@ -97,6 +104,12 @@ def main():
     policy.update(primary_engine=args.engine,fallback_engines=[],max_upgrades=0,require_human_review=True,
                   budget_seconds=360,request_timeout_seconds=180,batch_budget_seconds=36000,
                   group_size=32,context_schedule='whole_batch',allow_text_fixes=False,visual_review=False)
+    if args.engine_route == 'business_language_v1':
+        policy.update(engine_route=args.engine_route,technical_fallback_reserve_seconds=args.technical_fallback_reserve_seconds,
+            fallback_engines=['hunyuan'],max_upgrades=1,mode='accuracy',upgrade_trigger='failure_only',
+            layout_evidence=True,strategy_version='screen-business-language-budgeted-trial-v1')
+    elif 'engine_route' in policy or 'technical_fallback_reserve_seconds' in policy:
+        policy.update(engine_route='fixed',technical_fallback_reserve_seconds=0)
     policy_path.write_text(__import__('json').dumps(policy,ensure_ascii=False,indent=2)+'\n','utf-8')
     files['ocr']['config/screen-policy.json']=digest(policy_path)
     controller_files=file_inventory(controller)

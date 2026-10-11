@@ -114,7 +114,15 @@ def review(args):
                       for row in screen_tasks}
     context_by_input = {row['input_version_id']: task_by_id[row['task_id']]
                         for row in contexts}
-    if (len(screen_tasks) != len(samples) or len(model_by_input) != len(samples)
+    routed = trial['policy'].get('engine_route') == 'business_language_v1'
+    route_audit = None
+    if routed:
+        from precision_route_readback import verify_routed_ledger
+        native_model, route_audit = verify_routed_ledger(trial['policy'], items, tasks, contexts, screen_tasks)
+        if any(row['batch_id'] != result['batch_id'] for row in screen_tasks + contexts):
+            raise ValueError('Routed attempts escape original batch identity')
+        frozen_json(output / 'routed-attempt-ledger.json', route_audit)
+    elif (len(screen_tasks) != len(samples) or len(model_by_input) != len(samples)
             or len(context_by_input) != len(samples)
             or set(model_by_input) != {row['input_version_id'] for row in records.values()}
             or set(context_by_input) != set(model_by_input)
@@ -126,7 +134,8 @@ def review(args):
                    or task['status'] not in {'succeeded', 'failed', 'cancelled'}
                    for task in context_by_input.values())):
         raise ValueError('Native model/context task ledger does not bind every source image')
-    native_model = list(model_by_input.values())
+    if not routed:
+        native_model = list(model_by_input.values())
     if result['export'] is None:
         readback = None
     else:
@@ -193,6 +202,7 @@ def review(args):
         'native_model_task_states': {state: sum(task['status'] == state for task in native_model)
                                      for state in sorted({task['status'] for task in native_model})},
         'status_counts': status_counts, 'details': details,
+        **({'route_audit_sha256': digest(output / 'routed-attempt-ledger.json')} if routed else {}),
         'xlsx_readback': {'status': readback['status'], 'inputs': readback['inputs'],
                           'workbooks': readback['workbooks'], 'no_book': readback['no_book']}
                           if readback else None,
