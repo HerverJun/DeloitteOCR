@@ -924,7 +924,7 @@ def build_screen_visual_snapshot(raw, image_info, issues, input_path, *, max_tar
         raise ValueError("视觉核对预算无效")
     path = Path(input_path)
     width,height = image_info["width"],image_info["height"]
-    from ocr_workbench.screen_diagnostics import (reliable_cell_box,observe_screen_grid_cells,localized_grid_box)
+    from ocr_workbench.screen_diagnostics import (reliable_cell_box,observe_screen_grid_cells,localized_grid_box,localized_grid_cell)
     info={**image_info,'input_path':str(path)}
     localization=observe_screen_grid_cells(raw,info)
     targets,source_targets,skipped = [],[],[]
@@ -949,8 +949,9 @@ def build_screen_visual_snapshot(raw, image_info, issues, input_path, *, max_tar
             skipped.append({"target":key,"reason":"visual_target_budget"})
             continue
         ident = f"screen:{ti}:{row}:{column}"
+        geometry=localized_grid_cell(localization,ti,cell) if not native_box else None
         targets.append({"id":ident,"before":"","context":"逐字读取此单元格实际可见内容，保留负号、小数点、前导零；模糊或遮挡时返回未知，不推测。",
-                        "evidence":{"level":"cell","polygon":cell.get("polygon") if native_box and cell.get("polygon") else box_polygon(box),"range_semantics":"full_cell"}})
+                        "evidence":{"level":"cell","polygon":cell.get("polygon") if native_box and cell.get("polygon") else deepcopy(geometry['polygon']) if geometry else box_polygon(box),"range_semantics":"full_cell"}})
         source_targets.append({"id":ident,"table":ti,"row":row,"column":column,"before":cell.get("text",""),"box":box,"issue_code":issue.get("code")})
     return {"image_sha256":hashlib.sha256(path.read_bytes()).hexdigest(),"targets":targets,"source_targets":source_targets,
             "skipped":skipped,"policy_version":POLICY_VERSION,"human_review":"not_performed"}

@@ -177,7 +177,30 @@ def _pixel_cell_partition(image, ys, xs):
             'segment_presence_threshold':.85,'segment_absence_threshold':.12},None
 
 
-def observe_screen_grid_cells(raw, image_info=None, text_evidence=None):
+def _grid_source(raw, info, text_evidence):
+    """Read only the hash-bound, EXIF-normalized original image."""
+    path=Path(str(info.get('input_path') or ''))
+    candidate_sha=raw.get('screen',{}).get('input_sha256')
+    prepared_sha=info.get('input_sha256')
+    evidence_version=text_evidence.get('provenance',{}).get('image_version') if isinstance(text_evidence,dict) else None
+    if raw.get('project_image_version') and evidence_version!=raw['project_image_version']:
+        return None,'auxiliary_image_version_unbound_or_conflicting'
+    if not candidate_sha or candidate_sha!=prepared_sha or path.resolve().drive.upper()!='F:':
+        return None,'missing_or_conflicting_source_binding'
+    try:
+        from PIL import Image
+        from ocr_workbench.image_utils import normalized_rgb
+        data=path.read_bytes()
+        if hashlib.sha256(data).hexdigest()!=prepared_sha:return None,'source_pixels_changed'
+        with Image.open(io.BytesIO(data)) as opened:
+            if opened.width*opened.height>24000000:return None,'grid_localization_work_limit'
+            image=normalized_rgb(opened)
+        if image.size!=(info.get('width'),info.get('height')):return None,'source_dimensions_disagree'
+        return image,None
+    except (OSError,ValueError,ImportError):return None,'source_pixels_unavailable'
+
+
+def _observe_grid_cells(raw, image_info=None, text_evidence=None, *, source=None):
     """Bind complete observed cell topology using independent text anchors.
 
     Actual source bytes, line segments and high-confidence unique literals must
@@ -223,26 +246,7 @@ def observe_screen_grid_cells(raw, image_info=None, text_evidence=None):
             row['reason']='grid_exterior_not_bound_to_region';continue
         eligible.append((row,region,table,ys,xs))
     if not eligible:return result
-    path=Path(str(info.get('input_path') or ''))
-    candidate_sha=raw.get('screen',{}).get('input_sha256')
-    prepared_sha=info.get('input_sha256')
-    source_reason=None;image=None
-    evidence_version=text_evidence.get('provenance',{}).get('image_version') if isinstance(text_evidence,dict) else None
-    if raw.get('project_image_version') and evidence_version!=raw['project_image_version']:
-        source_reason='auxiliary_image_version_unbound_or_conflicting'
-    elif not candidate_sha or candidate_sha!=prepared_sha or path.drive.upper()!='F:':
-        source_reason='missing_or_conflicting_source_binding'
-    else:
-        try:
-            from PIL import Image
-            from ocr_workbench.image_utils import normalized_rgb
-            data=path.read_bytes()
-            if hashlib.sha256(data).hexdigest()!=prepared_sha:source_reason='source_pixels_changed'
-            else:
-                with Image.open(io.BytesIO(data)) as opened:image=normalized_rgb(opened)
-                if image.size!=(info.get('width'),info.get('height')):source_reason='source_dimensions_disagree'
-                elif image.width*image.height>24000000:source_reason='grid_localization_work_limit'
-        except (OSError,ValueError,ImportError):source_reason='source_pixels_unavailable'
+    image,source_reason=source if source is not None else _grid_source(raw,info,text_evidence)
     for row,region,table,ys,xs in eligible:
         if source_reason:
             row['reason']=source_reason;continue
@@ -298,6 +302,31 @@ def observe_screen_grid_cells(raw, image_info=None, text_evidence=None):
                        cell_boxes={':'.join(str(cell[key]) for key in ('row','column','row_span','column_span')):cell['box'] for cell in geometries})
             result['cell_count']+=len(geometries)
     return result
+
+
+def observe_screen_grid_cells(raw, image_info=None, text_evidence=None):
+    """Observe source cells, with a source-recomputed perspective fallback.
+
+    The private pixel observer also serves the rectified plane. Only this public
+    entry point loads evidence; callers cannot supply a replacement image.
+    """
+    raw,info=raw or {},image_info or {}
+    if text_evidence is None:
+        text_evidence=raw.get('screen',{}).get('business_metadata_evidence',{}).get('auxiliary_evidence',{})
+    direct=_observe_grid_cells(raw,info,text_evidence)
+    if direct['cell_count'] or not any(item.get('kind')=='perspective'
+            for item in info.get('prepared_images',[]) if isinstance(item,dict)):
+        return direct
+    from ocr_workbench.screen_rectified_grid import observe_rectified_grid
+    return observe_rectified_grid(raw,info,text_evidence,direct)
+
+
+def localized_grid_cell(localization, table_index, cell):
+    if not localization or not isinstance(cell,dict):return None
+    tables=[table for table in localization.get('tables',[]) if table.get('status')=='verified' and table.get('table')==table_index]
+    key=lambda value:tuple(value.get(name,1) for name in ('row','column','row_span','column_span'))
+    cells=[value for value in tables[0].get('cells',[]) if key(value)==key(cell)] if len(tables)==1 else []
+    return cells[0] if len(cells)==1 else None
 
 
 def localized_grid_box(localization, table_index, cell):
@@ -431,9 +460,10 @@ def _location(issue,tables,info,grid_localization=None):
                    and _intersection(box,other_box)/min(_area(box),_area(other_box))>=.8
                    for other in table.get('cells',[]) if isinstance(other,dict)):
         box=None
+    geometry=localized_grid_cell(grid_localization,ti,cell) if grid_box else None
     if box:return {'level':'cell','table':ti,'row':row,'column':column,'box':box,
-                   'polygon':box_polygon(box),'range_semantics':'full_cell',
-                   'basis':'source_pixels_observed_partition_and_independent_row_column_anchors' if grid_box else 'observed_full_cell_geometry'}
+                   'polygon':deepcopy(geometry['polygon']) if geometry else box_polygon(box),'range_semantics':'full_cell',
+                   'basis':geometry['basis'] if geometry else 'source_pixels_observed_partition_and_independent_row_column_anchors' if grid_box else 'observed_full_cell_geometry'}
     regions=[region for region in _regions(info) if region.get('id')==issue.get('region_id')]
     box=observed_box(table) if table else None
     if not box and len(regions)==1:box=regions[0]['table_box']
