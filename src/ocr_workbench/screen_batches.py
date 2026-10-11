@@ -46,7 +46,7 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     permitted = {'primary_engine', 'fallback_engines', 'max_upgrades', 'mode',
                  'group_size', 'budget_seconds', 'request_timeout_seconds', 'perspective', 'allow_text_fixes',
                  'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds',
-                 'upgrade_trigger', 'require_human_review', 'context_schedule'}
+                 'upgrade_trigger', 'require_human_review', 'context_schedule', 'render_math_text'}
     if set(value) - permitted:
         raise ValueError('未知的屏拍批次策略参数')
     result = {**(defaults or {}), **value}
@@ -70,6 +70,7 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     result.setdefault('upgrade_trigger', 'quality')
     result.setdefault('require_human_review', False)
     result.setdefault('context_schedule', 'whole_batch')
+    result.setdefault('render_math_text', False)
     if result['primary_engine'] not in ENGINES:
         raise ValueError('首轮模型必须具备表格结构输出能力')
     choices = result['fallback_engines']
@@ -88,7 +89,7 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
         raise ValueError('未知表区证据分组方式')
     if not isinstance(result['upgrade_trigger'], str) or result['upgrade_trigger'] not in {'failure_only', 'quality'}:
         raise ValueError('升级触发条件无效')
-    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence', 'require_human_review'):
+    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence', 'require_human_review', 'render_math_text'):
         if type(result[key]) is not bool:
             raise ValueError('处理开关必须为布尔值')
     if result['visual_review']:
@@ -631,6 +632,9 @@ class ScreenBatches:
                 'image_version':item['input_version_id'],'input_sha256':item['source_hash']}
         from ocr_workbench.screen_evidence import apply_screen_business_metadata
         candidate['raw'] = apply_screen_business_metadata(candidate['raw'], preparation, evidence)
+        if batch['policy'].get('render_math_text', False) and all(source['revision'] == 0 for source in sources):
+            from ocr_workbench.screen_text_rendering import render_screen_table_text
+            candidate['raw'] = render_screen_table_text(candidate['raw'])
         return candidate
 
     def _final_result(self, batch, item, raw):

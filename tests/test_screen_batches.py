@@ -123,6 +123,44 @@ class ScreenBatchTests(unittest.TestCase):
             self.submit(versions[:1])
         self.assertEqual(self.manager.lookup(self.project, 'request-screen-1')['batch_id'], first)
 
+    def test_math_display_export_preserves_engine_ledger_and_pending_review(self):
+        version = self.images(1)[0]
+        batch = self.submit([version], render_math_text=True, require_human_review=True)
+        self.manager.step()
+        task = self.store.claim()
+        table = deepcopy(TABLE)
+        table['cells'][3]['text'] = r'-1.00$^{\ast}$'
+        payload = {'status': 'success', 'text': r'original model: -1.00$^{\ast}$',
+                   'tables': [table], 'blocks': [], 'engine': task['engine'],
+                   'project_image_version': version}
+        self.store.complete(task['id'], payload)
+        engine_result_id = self.store.one('tasks', task['id'])['result_id']
+        engine_before = deepcopy(self.store.result(engine_result_id))
+        self.manager.step()
+        detail = self.manager.detail(self.project, batch, version)
+        self.assertEqual(detail['status'], 'needs_review')
+        original = detail['result']['original']
+        self.assertEqual(original['text'], payload['text'])
+        self.assertEqual(original['tables'][0]['cells'][3]['text'], '-1.00*')
+        change = original['screen']['table_text_rendering']['changes'][0]
+        self.assertEqual((change['before'], change['after']), (r'-1.00$^{\ast}$', '-1.00*'))
+        self.assertEqual(original['screen']['sources'][0]['result_id'], engine_result_id)
+        self.assertEqual(self.store.result(engine_result_id), engine_before)
+        path, manifest = self.manager.export(self.project, batch, {'include_pending_review': True})
+        self.assertEqual(manifest['success_files'], 1)
+        with zipfile.ZipFile(path) as archive:
+            book = load_workbook(io.BytesIO(archive.read(next(n for n in archive.namelist() if n.endswith('.xlsx')))))
+            self.assertEqual(book.worksheets[0]['B3'].value, '-1.00*')
+            self.assertEqual(book.worksheets[0]['B4'].value, '=1+1')
+            self.assertEqual(book.worksheets[0]['B4'].data_type, 's')
+
+    def test_math_display_requires_explicit_boolean_and_legacy_opt_in(self):
+        self.assertFalse(validate_policy({})['render_math_text'])
+        for invalid in (0, 1, 'true'):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                validate_policy({'render_math_text': invalid})
+        self.assertTrue(validate_policy({'render_math_text': True})['render_math_text'])
+
     def test_lost_submission_recovers_frozen_defaults_after_policy_update(self):
         versions = self.images(1)
         self.manager.defaults = lambda: {'primary_engine': 'hunyuan', 'max_upgrades': 0, 'group_size': 32,

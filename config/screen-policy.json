@@ -13,5 +13,6 @@
   "layout_evidence": true,
   "allow_text_fixes": false,
   "visual_review": false,
+  "render_math_text": true,
   "strategy_version": "screen-hunyuan-failure-glm-human-v1-20261007"
 }
