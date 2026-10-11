@@ -3,6 +3,7 @@ from contextlib import closing
 import json
 from pathlib import Path
 import sqlite3
+import shutil
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -45,3 +46,23 @@ def test_logical_comparison_accepts_only_root_relocation_not_value_changes(tmp_p
     with closing(sqlite3.connect(target / 'state.sqlite3')) as db, db:
         db.execute('UPDATE records SET body=?', (json.dumps({'path': str(target / 'original.png'), 'amount': '0.01'}),))
     assert database_state(source) != database_state(target)
+
+
+def test_migration_backup_paths_remain_historical_while_live_paths_relocate(tmp_path):
+    source, target = tmp_path/'source', tmp_path/'restored'
+    historical = json.dumps({'path':str(source/'original.png'),'amount':'-0.01'})
+    for root in (source,target):
+        (root/'database-backups').mkdir(parents=True)
+        with closing(sqlite3.connect(root/'workbench.sqlite3')) as db,db:
+            db.execute('CREATE TABLE records(body)')
+            db.execute('INSERT INTO records VALUES(?)',(json.dumps({'path':str(root/'original.png'),'amount':'-0.01'}),))
+    backup=source/'database-backups/before-v19-to-v20.sqlite3'
+    with closing(sqlite3.connect(backup)) as db,db:
+        db.execute('CREATE TABLE records(body)')
+        db.execute('INSERT INTO records VALUES(?)',(historical,))
+    restored_backup=target/'database-backups'/backup.name
+    shutil.copyfile(backup,restored_backup)
+    assert database_state(source)==database_state(target)
+    with closing(sqlite3.connect(restored_backup)) as db,db:
+        db.execute('UPDATE records SET body=?',(json.dumps({'path':str(target/'original.png'),'amount':'-0.01'}),))
+    assert database_state(source)!=database_state(target)

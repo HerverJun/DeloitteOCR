@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-11",
-  "update_basis_main_head": "98a8d94",
+  "update_basis_main_head": "0511c29",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": [
       "M1",
@@ -842,5 +842,29 @@
       "original_native009_schema19_unchanged": true
     },
     "owned_models_or_native_services_active": 0
+  },
+  "execution_checkpoint_20261011_precision_workflow": {
+    "closure": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\precision-route-workflow-closure-20261011-001.json",
+    "sources": {
+      "ocr": "e7746fc",
+      "platform": "3a78959",
+      "classification": "d90707b",
+      "main_before_record": "0511c29"
+    },
+    "accuracy_ui_connected": true,
+    "original_batch_budgets": {
+      "200": 72000,
+      "240": 86400,
+      "1000": 360000
+    },
+    "actual_ui_inputs": 240,
+    "actual_cold_inputs": 40,
+    "actual_new_cancellation_seconds": 0.6784269000000004,
+    "reader_schema": 20,
+    "review_workload_reduction_qualified": false,
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "owned_models_or_native_services_active": 0,
+    "next_action": "Establish defensible review relief on current daily workflows, then final common-source M3 model/Agent and M4 product adoption; preserve untouched holdout240/challenge24."
   }
 }

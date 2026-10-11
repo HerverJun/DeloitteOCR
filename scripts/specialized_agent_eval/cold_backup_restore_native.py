@@ -158,9 +158,14 @@ def database_state(root):
     from scripts.product_compatibility import read_database
     root = fpath(root)
     result = {}
+    archived_database = False
     def normalized(value, table, column):
         if isinstance(value, bytes):
             return {'binary_sha256': hashlib.sha256(value).hexdigest(), 'bytes': len(value)}
+        # Migration backups are immutable historical records. Their saved paths
+        # retain the original root; only the live DB is relocated by restore.
+        if archived_database:
+            return value
         if isinstance(value, str):
             if table == 'derived_inputs' and column == 'provenance_path':
                 return 'bridges/' + Path(value).name
@@ -179,6 +184,7 @@ def database_state(root):
             return [normalized(item, table, column) for item in value]
         return value
     for path in sorted(root.rglob('*.sqlite3')):
+        archived_database = 'database-backups' in path.relative_to(root).parts
         tables = {}
         with closing(read_database(path)) as db:
             for name, schema in db.execute("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"):
