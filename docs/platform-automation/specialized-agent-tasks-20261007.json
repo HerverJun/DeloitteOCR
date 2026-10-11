@@ -703,7 +703,35 @@
     },
     "math_display_summary": "Development60 fixes124 visible/97critical,new0; validation40 CPU fixes49/38,new0. New native H007 fully reproduced49/38 gains against exactly same immutable model task outputs,40model+40geometry success/40XLSX,376.38s,firstnative227.64s. Actual quality12/40 exact tables,2211/2711 visible,1456/1821critical,metadata42/48,extra25,UI5. All40 still reviewed.",
     "math_display_constraints": "Only explicit supported model math display syntax is decoded; all original model tasks/text retained, provenance stores original syntax and style runs. Digits/minus bytes unchanged, currency ambiguity/unknown syntax/numeric powers abstain. Historical persisted policies default render_math_text=false; new native defaults true. Human review remains independent.",
-    "header_scope_summary": "New general closed first-row field glossary, complete actual pixel partition/anchors and exact PP>=.99 agreement released19 development/12 validation headers in CPU exploration. All659/500 visible and379/365 critical residual errors remain reviewed; all data and metadata remain reviewed. Validation already exposed; no independent new-validation/native adoption claim. Old rejected seven-field rule retained.",
-    "next_action": "Qualify genuine review-scope reduction using frozen rules on new independent/native evidence; examine source-recomputed perspective pixel partitions to improve reliable mapping. Then complete M1/M2 route/workflow gates before final common freeze and M3/M4."
+    "header_scope_summary": "Historical v2 exploration released19 development/12 validation fields with all residual errors covered, but later data-only vocabulary counterexample released3 business values. V2 adoption now rejected: first-row closed words/topology cannot prove header role. Native state unchanged; historical results retained.",
+    "next_action": "Continue from execution_checkpoint_20261011_rectified: source-recomputed perspective geometry and real H008 are complete, but genuine review relief and bounded precision route remain unresolved before M1/M2 closure."
+  },
+  "execution_checkpoint_20261011_rectified": {
+    "goal_status": "active",
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "sources": {
+      "main_helpers": "cfe59a1",
+      "ocr_backend": "8d38afa",
+      "ocr_with_frontend": "6668bdd",
+      "platform": "2a533d0",
+      "classification": "d90707b"
+    },
+    "closure": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/rectified-grid-closure-20261011-001.json",
+    "latest_common_freeze": "F:/OCR/output/platform-specialized-agent-20261007/source-snapshots/rectified-grid-ui-common-20261011-002/freeze.json",
+    "actual_native_run": "F:/OCR/output/platform-specialized-agent-20261007/runs/m1-h-rectified-validation-direct-20261011-008",
+    "actual_native_independent": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-h-rectified-validation-direct-independent-008-001/review.json",
+    "actual_geometry_readback": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/rectified-grid-native008-review-001/result.json",
+    "actual_coordinate_review": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/rectified-grid-native008-coordinate-review-001/review.json",
+    "actual_quality": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-h-rectified-validation-direct-quality-008-001.json",
+    "header_v2_rejection": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/header-role-counterexample-001/review.json",
+    "original_fallback_budget_audit": "F:/OCR/output/platform-specialized-agent-20261007/evaluation/m1-precision-fallback-budget-audit-002/report.json",
+    "geometry_summary": "Development6/147 to12/246 mapped images/cells;99 newly mapped full-cell coordinates and all182 synthetic full-cell references correct. Public64 text-only reference boxes:58 unique containment passes,6 existing discrepancies retained. Validation2/48 to3/72;72/72 and24 new full-cell coordinates correct. No values/review changed.",
+    "native_summary": "Actual H00840model+40context success/40XLSX,321.71s,firstnative170.24s. Captured72-cell geometry and all diagnostics exactly replayed from original pixels. Content identical to H007:12/40exact,2211/2711visible,1456/1821critical,metadata42/48,extra25,UI5. Zero localized issue items in three mapped tables;40images/2711cells still reviewed. No review relief or speedup qualification.",
+    "ui_summary": "Frontend accepts observed pixel-grid and source-recomputed perspective bases, preserves true source polygons and rejects malformed projections.25 frontend tests/typecheck/build passed. H008 covers backend8d38afa; later UI6668bdd has component/build evidence only and still needs final browser qualification.",
+    "fallback_summary": "GLM006 original failed source budgets remaining0.633/175.478/176.819seconds; H007 observed OCR comparison32.441/5.010/4.406seconds. Three-image blanket fallback infeasible. New precision route/reservation is unimplemented and unqualified; original failed runs/deadlines/costs preserved.",
+    "owned_models_or_native_services_active": 0,
+    "holdout_or_challenge_used_for_tuning": false,
+    "next_action": "Resolve actual review workload reduction and a new optional precision route with source-only routing, durable per-item engine decisions and fallback capacity reserved inside original source/root budgets. Keep default H+math, full review and rejected header-v2 history. Then M1/M2 gates, final common source and M3/M4 qualification."
   }
 }
