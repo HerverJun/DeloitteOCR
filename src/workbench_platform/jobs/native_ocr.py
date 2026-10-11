@@ -645,6 +645,8 @@ class OcrAdapter:
             if not data or len(data)>MAX_EXPORT or not zipfile.is_zipfile(io.BytesIO(data)):
                 raise OcrUnavailable()
             return data
+        except OcrResultConflict:
+            raise
         except (OSError, ValueError, http.client.HTTPException):
             raise OcrUnavailable() from None
         finally:

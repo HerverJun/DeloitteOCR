@@ -65,6 +65,33 @@ test('manual business metadata remains pending until explicit acceptance', async
   expect(actions[0]).toMatchObject({ state: 'retain', metadata_edits: [{ item_index: 0, before: '单位：元', after: '单位：万元', choice: 'manual' }] })
 }, 30000)
 
+test('closing or deferring cannot discard unsaved table or business metadata drafts', async () => {
+  const actions: any[] = []
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith('/items/versionA')) return ok({ ...item, original_url: '/original.png',
+      tables: [{ columns: 1, cells: [{ row: 0, column: 0, text: '0001' }] }],
+      business_metadata: [{ kind: 'unit', text: '单位：元', source: 'rapidocr', review_required: true }] })
+    if (path.endsWith('/action')) actions.push(JSON.parse(String(init?.body)))
+    return ok(batch())
+  }))
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: '核对原图与结果' }))
+  fireEvent.change(await screen.findByLabelText('表1行1列1'), { target: { value: '0002' } })
+  fireEvent.change(screen.getByLabelText('业务说明1复核值'), { target: { value: '单位：万元' } })
+  expect(screen.getByRole('button', { name: '稍后复核' })).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  await screen.findByText('请先保存或清除当前表格和业务说明修改，再关闭复核窗口')
+  expect(screen.getByLabelText('表1行1列1')).toHaveValue('0002')
+  expect(screen.getByLabelText('业务说明1复核值')).toHaveValue('单位：万元')
+  expect(actions).toEqual([])
+  fireEvent.click(screen.getByRole('button', { name: '清除待保存修改' }))
+  expect(screen.getByLabelText('表1行1列1')).toHaveValue('0001')
+  expect(screen.getByLabelText('业务说明1复核值')).toHaveValue('单位：元')
+  expect(screen.getByRole('button', { name: '稍后复核' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  await waitFor(() => expect(screen.queryByRole('button', { name: '保留当前结果' })).not.toBeInTheDocument())
+}, 30000)
+
 test('240-image progress can export confirmed files while outstanding inputs remain visible', async () => {
   const payloads: any[] = []
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {

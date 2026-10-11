@@ -5,7 +5,7 @@ import json
 import pytest
 
 from workbench_platform.bridge.context import ResolvedContext
-from workbench_platform.jobs.native_ocr import OcrAdapter, OcrUnavailable, ResultArtifact
+from workbench_platform.jobs.native_ocr import OcrAdapter, OcrUnavailable, OcrResultConflict, ResultArtifact
 
 
 def test_export_pins_revision_and_rejects_native_conflict(monkeypatch):
@@ -53,3 +53,30 @@ def test_export_pins_revision_and_rejects_native_conflict(monkeypatch):
     response.update(status=200, body=b'{"id":"resultA","revision":1}')
     with pytest.raises(OcrUnavailable):
         adapter.export_results([(result, 0)])
+
+
+@pytest.mark.parametrize('status,expected', [(409, OcrResultConflict), (503, OcrUnavailable)])
+def test_screen_export_preserves_native_revision_conflict(monkeypatch, status, expected):
+    context = ResolvedContext('workspaceA', 'ocr', 'instanceA', 'linkA',
+                              'projectA', 'owner', '/jobs', 'http://127.0.0.1:8765')
+    adapter = OcrAdapter(context, token=lambda: 'a' * 32, live=lambda _: True)
+    closed = []
+
+    class Connection:
+        def __init__(self, host, port, timeout):
+            assert (host, port, timeout) == ('127.0.0.1', 8765, 120)
+
+        def request(self, method, path, *, body, headers):
+            assert method == 'POST' and path == '/api/projects/projectA/screen-batches/batchA/export'
+
+        def getresponse(self):
+            return type('Response', (), {'status': status})()
+
+        def close(self):
+            closed.append(True)
+
+    monkeypatch.setattr('workbench_platform.jobs.native_ocr.http.client.HTTPConnection', Connection)
+    with pytest.raises(expected) as error:
+        adapter.screen_export('projectA', 'batchA', {'include_pending_review': True})
+    assert type(error.value) is expected
+    assert closed == [True]

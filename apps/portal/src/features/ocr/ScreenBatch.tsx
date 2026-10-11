@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ScreenDiagnostics } from './ScreenDiagnostics'
 import { LocalCandidates } from './LocalCandidates'
 import { BusinessMetadata, metadataEdits, type MetadataItem, type MetadataDraft } from './BusinessMetadata'
+import { screenSubmissionPolicy } from './screenSubmissionPolicy'
 import { reliableDiagnosticBox, diagnosticRange, currentResultRevision, type Diagnostic, type Diagnostics, type CandidateComparison } from './screenDiagnosticWorkflow'
 
 type Item = { input_version_id: string; image_id: string; asset_id: string; name: string; status: string; stage: string; review_state?: string; result_id?: string; result_revision?: number; current_result_revision?: number; review_stale?: boolean; human_confirmed?: boolean; issues: { code?: string; message?: string; reason?: string }[] }
@@ -36,13 +37,14 @@ async function identified<T>(key: string, url: string, data: Record<string, unkn
 
 export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready }: { workspaceId: string; linkId?: string | null; setId: string; revision: number; count: number; ready: boolean }) {
   const [params, setParams] = useSearchParams(), client = useQueryClient(), batchId = params.get('screen_batch')
-  const [mode, setMode] = useState('auto'), [status, setStatus] = useState<string>(), [page, setPage] = useState(1)
+  const [mode, setMode] = useState<'auto' | 'accuracy'>('auto'), [status, setStatus] = useState<string>(), [page, setPage] = useState(1)
   const [includeReview, setIncludeReview] = useState(false), [review, setReview] = useState<Item | null>(null), [edits, setEdits] = useState<Record<string, string>>({})
   const [crop, setCrop] = useState<string>()
   const [metadataDrafts, setMetadataDrafts] = useState<Record<number, MetadataDraft>>({}), [draftBinding, setDraftBinding] = useState<string>()
   const [candidate, setCandidate] = useState<string>()
   const [diagnostic, setDiagnostic] = useState<Diagnostic>()
   const [diagnosticNotice, setDiagnosticNotice] = useState('')
+  const [reviewNotice, setReviewNotice] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [numericByBatch, setNumericByBatch] = useState<Record<string, NumericColumns>>({})
   const numericColumns = batchId ? numericByBatch[batchId] || {} : {}
@@ -52,7 +54,7 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
     refetchInterval: q => q.state.data?.counts.pending ? 2500 : false })
   const refresh = () => void client.invalidateQueries({ queryKey: ['ocr-screen-batch', workspaceId] })
   const start = useMutation({ mutationFn: () => identified<Batch>(`clear-screen-submit:${workspaceId}:${setId}:${revision}`, base,
-    { link_id: linkId, asset_set_id: setId, asset_set_revision: revision, policy: { mode } }),
+    { link_id: linkId, asset_set_id: setId, asset_set_revision: revision, policy: screenSubmissionPolicy(count, mode) }),
     onSuccess: value => { const next = new URLSearchParams(params); next.set('screen_batch', value.batch_id); setParams(next); refresh() } })
   const control = useMutation({ mutationFn: (command: string | { action: string; version_ids: string[] }) => {
     const action = typeof command === 'string' ? command : command.action
@@ -86,6 +88,12 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
   const cells = tables.flatMap((table, tableIndex) => (table.cells || []).map(cell => ({
     key: `${tableIndex}:${cell.row ?? cell.row_index ?? 0}:${cell.column ?? cell.col_index ?? 0}`, table_index: tableIndex,
     row: cell.row ?? cell.row_index ?? 0, column: cell.column ?? cell.col_index ?? 0, before: cell.text ?? cell.content ?? '' })))
+  const hasDraft = !!candidate || Object.keys(metadataDrafts).length > 0 || cells.some(cell => edits[cell.key] !== undefined && edits[cell.key] !== cell.before)
+  const closeReview = () => {
+    if (save.isPending) return
+    if (hasDraft) { setReviewNotice('请先保存或清除当前表格和业务说明修改，再关闭复核窗口'); return }
+    setReview(null); setReviewNotice('')
+  }
   const save = useMutation({ mutationFn: async (state: string) => {
     const selected = detail.data
     const currentRevision = currentResultRevision(selected)
@@ -102,7 +110,7 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
       const remaining = { ...(old[batchId] || {}) }; delete remaining[review.input_version_id]
       return { ...old, [batchId]: remaining }
     })
-    setReview(null); setEdits({}); setMetadataDrafts({}); setDraftBinding(undefined); refresh(); void client.invalidateQueries({ queryKey: ['ocr-screen-detail', workspaceId, batchId] })
+    setReview(null); setEdits({}); setMetadataDrafts({}); setDraftBinding(undefined); setReviewNotice(''); refresh(); void client.invalidateQueries({ queryKey: ['ocr-screen-detail', workspaceId, batchId] })
   } })
   const counts = batch.data?.counts
   const eta = batch.data?.eta
@@ -110,7 +118,7 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
   const remaining = estimated ? (eta!.remaining_seconds! < 60 ? `${Math.ceil(eta!.remaining_seconds!)} 秒` : `${Math.ceil(eta!.remaining_seconds! / 60)} 分钟`) : undefined
   return <section className="panel ocr-screen-batch"><div className="section-head"><Typography.Title level={3}>批量图片转 Excel</Typography.Title><Tag>每张图片一个文件</Tag></div>
     {!batchId ? <><Typography.Paragraph type="secondary">一次处理最多 1000 张图片，先定位业务表区，再识别和集中复核疑点，最后下载 ZIP。</Typography.Paragraph>
-      <Space wrap><Typography.Text>{count} 张</Typography.Text><Select aria-label="批次处理策略" value={mode} onChange={setMode} options={[{ value: 'auto', label: '自动处理' }, { value: 'accuracy', label: '提高精度' }]} />
+      <Space wrap><Typography.Text>{count} 张</Typography.Text><Select aria-label="批次处理策略" value={mode} onChange={setMode} options={[{ value: 'auto', label: '自动处理' }, { value: 'accuracy', label: '提高精度（耗时增加，仍需核对）' }]} />
         <Button type="primary" disabled={!ready || !linkId || !count || count > 1000} loading={start.isPending} onClick={() => start.mutate()}>开始整批转 Excel</Button></Space></> : <>
       {counts && <><Space wrap>{(['total', 'completed', 'pending', 'needs_review', 'failed', 'cancelled'] as const).map(key => <Typography.Text key={key}>{({ total: '总数', completed: '完成', pending: '处理中', needs_review: '待复核', failed: '失败', cancelled: '取消' })[key]} {counts[key]}</Typography.Text>)}<Tag>{labels[batch.data!.status] || batch.data!.status}</Tag></Space>
         <Progress percent={Math.round((counts.total - counts.pending) * 100 / Math.max(counts.total, 1))} status={counts.pending ? 'active' : counts.failed ? 'exception' : 'normal'} />
@@ -127,11 +135,13 @@ export function ScreenBatch({ workspaceId, linkId, setId, revision, count, ready
       <Table<Item> size="small" rowKey="input_version_id" dataSource={batch.data?.items || []} loading={batch.isPending} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: keys => setSelected(keys.map(String)), getCheckboxProps: item => ({ disabled: !['completed', 'needs_review', 'failed', 'cancelled'].includes(item.status) }) }} pagination={{ current: page, pageSize: 30, total: batch.data?.filtered_total ?? batch.data?.total ?? counts?.total, showSizeChanger: false, onChange: setPage }}
         columns={[{ title: '原图', dataIndex: 'name', ellipsis: true }, { title: '状态', render: (_, item) => <Tag>{labels[item.status] || item.status}</Tag> }, { title: '阶段', dataIndex: 'stage' },
           { title: '疑点', render: (_, item) => item.issues?.slice(0, 3).map(issue => issue.message || issue.reason || issue.code).join('；') },
-          { title: '操作', render: (_, item) => item.result_id ? <Button type="link" onClick={() => { setEdits({}); setMetadataDrafts({}); setDraftBinding(undefined); setCrop(undefined); setCandidate(undefined); setDiagnostic(undefined); comparison.reset(); save.reset(); setReview(item) }}>核对原图与结果</Button> : <Typography.Text type="secondary">尚无结果</Typography.Text> }]} locale={{ emptyText: <Empty description="当前筛选没有图片" /> }} />
+          { title: '操作', render: (_, item) => item.result_id ? <Button type="link" onClick={() => { setEdits({}); setMetadataDrafts({}); setDraftBinding(undefined); setCrop(undefined); setCandidate(undefined); setDiagnostic(undefined); setReviewNotice(''); comparison.reset(); save.reset(); setReview(item) }}>核对原图与结果</Button> : <Typography.Text type="secondary">尚无结果</Typography.Text> }]} locale={{ emptyText: <Empty description="当前筛选没有图片" /> }} />
     </>}
     {[start.error, batch.error, control.error, publish.error].filter(Boolean).map((error, index) => <Alert key={index} type="error" title={(error as Error).message} />)}
-    <Modal title={review ? `核对：${review.name}` : '集中复核'} open={!!review} width={1000} onCancel={() => setReview(null)} footer={<Space><Button disabled={!detail.data || detail.isFetching || save.isPending || staleDraft} onClick={() => save.mutate('deferred')}>稍后复核</Button><Button disabled={!detail.data || detail.isFetching || save.isPending || staleDraft} onClick={() => save.mutate('retain')}>保留当前结果</Button><Button type="primary" loading={save.isPending} disabled={!detail.data || detail.isFetching || staleDraft} onClick={() => save.mutate('accepted')}>保存并确认本图</Button></Space>}>
+    <Modal title={review ? `核对：${review.name}` : '集中复核'} open={!!review} width={1000} onCancel={closeReview} footer={<Space><Button disabled={!detail.data || detail.isFetching || save.isPending || staleDraft || hasDraft} onClick={() => save.mutate('deferred')}>稍后复核</Button><Button disabled={!detail.data || detail.isFetching || save.isPending || staleDraft} onClick={() => save.mutate('retain')}>保留当前结果</Button><Button type="primary" loading={save.isPending} disabled={!detail.data || detail.isFetching || staleDraft} onClick={() => save.mutate('accepted')}>保存并确认本图</Button></Space>}>
       {detail.data && <><Typography.Paragraph>{detail.data.issues?.map(issue => issue.message || issue.reason || issue.code).join('；')}</Typography.Paragraph>
+        {reviewNotice && <Alert type="warning" title={reviewNotice} />}
+        {hasDraft && <Button disabled={save.isPending} onClick={() => { setEdits({}); setMetadataDrafts({}); setCandidate(undefined); comparison.reset(); setReviewNotice('') }}>清除待保存修改</Button>}
         {staleDraft && <Alert type="warning" title="复核期间结果或人工确认已变化，请重新加载后核对" />}
         <Button disabled={save.isPending} onClick={async () => { const value = await detail.refetch(); if (value.data) { setEdits({}); setMetadataDrafts({}); setCandidate(undefined); comparison.reset(); setDraftBinding(detailBinding(value.data)) } }}>重新加载当前复核版本</Button>
         {diagnosticData && <ScreenDiagnostics data={diagnosticData} selected={currentDiagnostic?.id} busy={control.isPending || save.isPending || comparison.isPending}
