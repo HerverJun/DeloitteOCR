@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-11",
-  "update_basis_main_head": "d93756c",
+  "update_basis_main_head": "98a8d94",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": [
       "M1",
@@ -739,14 +739,16 @@
     "completed_plan": false,
     "formal_current": "v0.9.3",
     "sources": {
-      "main_helpers": "d93756c",
-      "ocr": "6a91106",
-      "platform": "a449d6f",
+      "main_helpers": "98a8d94",
+      "actual_native_ocr": "6a91106",
+      "actual_native_platform": "a449d6f",
+      "current_guarded_ocr": "67ba716",
+      "current_guarded_platform": "79778f8",
       "classification": "d90707b"
     },
     "implementation_checkpoint": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\precision-route-implementation-checkpoint-20261011-001.json",
     "actual_native_run": "F:\\OCR\\output\\platform-specialized-agent-20261007\\runs\\m1-precision-route-validation-direct-20261011-009",
-    "actual_native_status_at_checkpoint": "running",
+    "actual_native_status_at_checkpoint": "terminal",
     "scope_inputs": 40,
     "test_summary": {
       "corrected_route": "16 passed / 23 subtests",
@@ -768,6 +770,77 @@
       "old_failed_runs_or_deadlines_reset": false
     },
     "holdout_or_challenge_used_for_tuning": false,
-    "next_action": "Finish native009; independently copy/read all attempts and current XLSX, then score complete validation40. Resolve review relief before M1/M2 closure; M3/M4 remain pending."
+    "next_action": "Connect measured optional accuracy route with explicit original batch budget and preserve historical submissions; verify real daily review/current exports and actual review relief, then final M3/M4.",
+    "closure": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\precision-route-closure-20261011-002.json",
+    "native_summary": {
+      "actual_scope": 40,
+      "actual_counts": {
+        "completed": 0,
+        "needs_review": 40,
+        "failed": 0,
+        "cancelled": 0,
+        "total": 40,
+        "pending": 0
+      },
+      "actual_primary_routes": {
+        "glm": 24,
+        "hunyuan": 16
+      },
+      "native_model_attempts": 42,
+      "actual_model_engines": {
+        "glm": 24,
+        "hunyuan": 18
+      },
+      "actual_model_attempt_states": {
+        "succeeded": 40,
+        "failed": 2
+      },
+      "technical_fallback_attempts": 2,
+      "technical_fallback_success": 2,
+      "source_budget_overshoots": {},
+      "root_budget_overshoot_seconds": 0,
+      "actual_wall_seconds": 1142.6003291999996,
+      "first_native_result": {
+        "utc": "2026-10-11T05:10:33.917273+00:00",
+        "elapsed_seconds": 178.9204623000005,
+        "count": 1
+      },
+      "current_xlsx": {
+        "status": "passed",
+        "inputs": 40,
+        "workbooks": 40,
+        "no_book": 0
+      }
+    },
+    "quality_summary": {
+      "visible_table_exact_images": 13,
+      "visible_exact_cells": 2428,
+      "visible_reference_cells": 2711,
+      "visible_critical_exact_cells": 1633,
+      "visible_critical_cells": 1821,
+      "visible_error_cells": 283,
+      "visible_critical_error_cells": 188,
+      "review_reference_cells": 2711
+    },
+    "paired_delta": {
+      "fixed_visible_cells": 241,
+      "new_visible_error_cells": 24,
+      "fixed_visible_critical_cells": 181,
+      "new_visible_critical_error_cells": 4,
+      "new_silent_critical_release_errors": 0,
+      "review_images_delta": 0,
+      "review_reference_cells_delta": 0,
+      "net_visible_cell_repairs": 217
+    },
+    "reader_guards": {
+      "native_schema": 20,
+      "old_schema19_reader_rejected_before_writes": true,
+      "historical_policy_cost_deadline_and_request_preserved": true,
+      "platform_feature": "screen-business-language-route-v1",
+      "feature_inferred_without_marker": true,
+      "guard_source_has_cpu_evidence_only": true,
+      "original_native009_schema19_unchanged": true
+    },
+    "owned_models_or_native_services_active": 0
   }
 }
