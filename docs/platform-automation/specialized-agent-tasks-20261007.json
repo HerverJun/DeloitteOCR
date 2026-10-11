@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-11",
-  "update_basis_main_head": "5d538b9",
+  "update_basis_main_head": "d93756c",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": [
       "M1",
@@ -733,5 +733,41 @@
     "owned_models_or_native_services_active": 0,
     "holdout_or_challenge_used_for_tuning": false,
     "next_action": "Resolve actual review workload reduction and a new optional precision route with source-only routing, durable per-item engine decisions and fallback capacity reserved inside original source/root budgets. Keep default H+math, full review and rejected header-v2 history. Then M1/M2 gates, final common source and M3/M4 qualification."
+  },
+  "execution_checkpoint_20261011_precision_route": {
+    "goal_status": "active",
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "sources": {
+      "main_helpers": "d93756c",
+      "ocr": "6a91106",
+      "platform": "a449d6f",
+      "classification": "d90707b"
+    },
+    "implementation_checkpoint": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\precision-route-implementation-checkpoint-20261011-001.json",
+    "actual_native_run": "F:\\OCR\\output\\platform-specialized-agent-20261007\\runs\\m1-precision-route-validation-direct-20261011-009",
+    "actual_native_status_at_checkpoint": "running",
+    "scope_inputs": 40,
+    "test_summary": {
+      "corrected_route": "16 passed / 23 subtests",
+      "broad_native_regression": "120 passed / 45 subtests; one legacy error-message failure retained",
+      "final_route_reader_and_binding": "31 passed / 23 subtests",
+      "budget_and_reader_repair": "22 passed, including the failed legacy budget case",
+      "platform_bridge": "9 passed; one stale test expected supported schema19 to be rejected",
+      "platform_repair": "2 passed: schema19 accepted, unknown future schema rejected without writes; explicit fields preserved"
+    },
+    "policy": {
+      "default_changed": false,
+      "optional_route": "business_language_v1",
+      "source_only_language": true,
+      "per_item_route_frozen": true,
+      "per_image_original_budget_seconds": 360,
+      "glm_fallback_reserve_inside_original_seconds": 90,
+      "human_review_required": true,
+      "quality_triggered_second_model": false,
+      "old_failed_runs_or_deadlines_reset": false
+    },
+    "holdout_or_challenge_used_for_tuning": false,
+    "next_action": "Finish native009; independently copy/read all attempts and current XLSX, then score complete validation40. Resolve review relief before M1/M2 closure; M3/M4 remain pending."
   }
 }
