@@ -25,6 +25,20 @@ describe("diagnostic evidence gates", () => {
     const region=screenDiagnosticLocation({...diagnostic,location:{level:"table",table:0,box:[10,20,190,160],basis:"observed_table_region"}});
     expect(region.level).toBe("table"); expect(region.reason).toContain("未定位到单格");
   });
+  it("keeps verified perspective polygons and rejects unsupported or malformed projections", () => {
+    const polygon = [[10, 20], [85, 25], [90, 60], [15, 55]];
+    const projected = { ...diagnostic, location: { ...diagnostic.location, polygon,
+      basis: "source_pixels_rectified_partition_independent_anchors_inverse_projection" } };
+    expect(screenDiagnosticLocation(projected)).toMatchObject({ level: "cell", polygon });
+    expect(screenDiagnosticLocation({ ...projected, location: { ...projected.location, polygon: null } }).polygon).toBeNull();
+    expect(screenDiagnosticLocation({ ...projected, location: { ...projected.location, polygon: [[10, 20], [90, 60], [85, 25], [15, 55]] } }).polygon).toBeNull();
+    expect(screenDiagnosticLocation({ ...projected, location: { ...projected.location, polygon: [[10, 20], [85, 25], [91, 60], [15, 55]] } }).polygon).toBeNull();
+    expect(screenDiagnosticLocation({ ...projected, location: { ...projected.location, basis: "candidate_interpolated_grid" } }).level).toBe("image");
+    expect(screenDiagnosticLocation({ ...projected, location: { ...projected.location, basis: "source_pixels_observed_partition_and_independent_row_column_anchors" } }).level).toBe("cell");
+    const presented = screenDiagnosticLocation(projected).polygon!;
+    presented[0][0] = 99;
+    expect(polygon[0][0]).toBe(10);
+  });
   it("comparison pins current result and image candidate without confirming or editing", () => {
     const input={...item,candidates:[{id:"alternative",engine:"glm",table_count:1}]};
     expect(screenComparisonBody(input,"alternative",7)).toEqual({result_id:"result-a",expected_revision:7,candidate_id:"alternative"});
