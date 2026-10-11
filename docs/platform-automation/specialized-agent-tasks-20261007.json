@@ -2,7 +2,7 @@
   "format": "clear-specialized-agent-plan-v1",
   "date": "2026-10-07",
   "last_updated": "2026-10-11",
-  "update_basis_main_head": "0511c29",
+  "update_basis_main_head": "65c51d9",
   "execution_checkpoint_20261009": {
     "milestones_remain_in_progress": [
       "M1",
@@ -866,5 +866,23 @@
     "formal_current": "v0.9.3",
     "owned_models_or_native_services_active": 0,
     "next_action": "Establish defensible review relief on current daily workflows, then final common-source M3 model/Agent and M4 product adoption; preserve untouched holdout240/challenge24."
+  },
+  "execution_checkpoint_20261011_actual_review": {
+    "closure": "F:\\OCR\\output\\platform-specialized-agent-20261007\\evaluation\\actual-review-workflow-closure-20261011-001.json",
+    "sources": {
+      "platform": "3a78959e32939f013a421b6476dc2aca0b3a76a5",
+      "ocr": "e7746fcd4a30ae063fd0617dc92b4419de912398",
+      "classification": "d90707b3d078db36485c788fa1494e9f62cf1baa",
+      "main_before_record": "65c51d98f2179e5b1df0d21e6621a3146bbc6c4f"
+    },
+    "actual_recognition_source_inputs": 40,
+    "scripted_review_inputs": 1,
+    "independently_read_workbooks": 122,
+    "cold_restored_current_reviewed_copy": true,
+    "review_workload_reduction_qualified": false,
+    "completed_plan": false,
+    "formal_current": "v0.9.3",
+    "owned_models_or_native_services_active": 0,
+    "next_action": "Complete current-source platform daily-flow integration and defensible review relief, then final common-source M3/M4 qualification."
   }
 }

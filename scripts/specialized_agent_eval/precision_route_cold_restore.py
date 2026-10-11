@@ -36,6 +36,8 @@ def main():
     for name in ('source-run','output','platform-source','native-source','bundle',
                  'pdf-layer','native-python','agent-layer'):
         parser.add_argument('--'+name,required=True)
+    parser.add_argument('--review-workflow', help='Stopped actual UI review copy; never an injected OCR fixture')
+    parser.add_argument('--review-readback', help='Passed independent XLSX/revision report for that UI copy')
     args=parser.parse_args()
     require_environment()
     output,source_run=fpath(args.output),fpath(args.source_run)
@@ -48,8 +50,23 @@ def main():
     # read_native denies both original roots; this run has no S07 component.
     args.s07_run=str(source_run)
     args.additional_forbid_data_roots=[]
+    review_workflow = fpath(args.review_workflow) if args.review_workflow else None
+    if review_workflow:
+        require(args.review_readback, 'Reviewed workspace requires its independent artifact readback')
+        scope = read_json(review_workflow/'scope.json')
+        stop = read_json(review_workflow/'stopped.json')
+        readback = read_json(fpath(args.review_readback))
+        require(fpath(scope['source_run']) == source_run and scope['batch_id'] == args.batch_id
+                and scope['images'] == args.expected_inputs
+                and stop['servers_stopped'] and stop['original_native_bytes_unchanged']
+                and stop['execution_identity_budget_cost_and_failures_preserved']
+                and readback['status'] == 'passed' and fpath(readback['host']) == review_workflow,
+                'Reviewed source, scope, stopped history or independent readback differs')
+        args.additional_forbid_data_roots.append(review_workflow)
+    else:
+        require(not args.review_readback, 'Readback cannot be detached from its reviewed workspace')
     output.mkdir(parents=True)
-    original=source_run/'native/ocr'
+    original=review_workflow/'runtime/ocr' if review_workflow else source_run/'native/ocr'
     before=inventory(original)
     frozen_json(output/'original-native-bytes-before.json',before)
     consumers=freeze_consumers(args,output)
@@ -99,6 +116,10 @@ def main():
     frozen_json(output/'restored-logical-state.json',restored_before)
     frozen_json(output/'report.json',{'format':'precision-route-actual-cold-restore-v1','status':'passed',
         'source_run':str(source_run),'source_result_sha256':digest(source_run/'result.json'),
+        'scripted_review_workflow':str(review_workflow) if review_workflow else None,
+        'review_readback_sha256':digest(fpath(args.review_readback)) if review_workflow else None,
+        'reviewed_source_status_counts':{state:sum(row['status']==state for row in ledger['items'])
+            for state in sorted({row['status'] for row in ledger['items']})},
         'scope_inputs':args.expected_inputs,'batch_id':args.batch_id,
         'current_consumer_source_inventory_sha256':consumers['inventory_sha256'],
         'current_reader_schema':source_state['native/ocr/workbench.sqlite3']['user_version'],
