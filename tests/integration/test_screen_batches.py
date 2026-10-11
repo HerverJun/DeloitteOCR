@@ -178,13 +178,13 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
     client,workspace,fixed,state,_,_=bridge
     body=arguments(fixed)
     body['policy']={'group_size':8,'max_upgrades':0,'layout_evidence':False,'budget_seconds':None,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
     response=client.post(f'/api/platform/v1/workspaces/{workspace}/ocr/screen-batches',headers=LOCAL,json=body)
     assert response.status_code==201,response.text
     assert state['specified_policy']=={'group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
     assert response.json()['policy']=={'primary_engine':'glm','group_size':8,'max_upgrades':0,'layout_evidence':False,'request_timeout_seconds':180,
-        'upgrade_trigger':'failure_only','require_human_review':True}
+        'upgrade_trigger':'failure_only','require_human_review':True,'render_math_text':True}
     from workbench_platform.jobs.screen_batches import ScreenPolicy
     for invalid in (True,'180',9,901):
         with pytest.raises(ValueError):ScreenPolicy(request_timeout_seconds=invalid)
@@ -192,6 +192,7 @@ def test_policy_schema_omits_api_defaults_and_explicit_values_cross_bridge(bridg
         with pytest.raises(ValueError):ScreenPolicy(upgrade_trigger=invalid)
     for invalid in (0,1,'true'):
         with pytest.raises(ValueError):ScreenPolicy(require_human_review=invalid)
+        with pytest.raises(ValueError):ScreenPolicy(render_math_text=invalid)
 
 
 def test_export_240_unique_workbooks_and_manifest_is_managed(bridge):

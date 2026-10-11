@@ -52,6 +52,7 @@ class ScreenPolicy(AgentModel):
     layout_evidence: bool | None = None
     upgrade_trigger: Literal['failure_only', 'quality'] | None = None
     require_human_review: bool | None = Field(default=None, strict=True)
+    render_math_text: bool | None = Field(default=None, strict=True)
     context_schedule: Literal['whole_batch', 'grouped'] | None = None
 
 
