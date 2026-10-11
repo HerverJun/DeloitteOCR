@@ -279,12 +279,16 @@ class ScreenBatchTests(unittest.TestCase):
         with self.store.transaction() as db:
             policy = json.loads(db.execute('SELECT policy FROM screen_batches WHERE id=?', (batch,)).fetchone()['policy'])
             policy.pop('request_timeout_seconds')
+            policy.pop('engine_route')
+            policy.pop('technical_fallback_reserve_seconds')
             signature = fingerprint({'version_ids': versions, 'policy': policy,
                                      'export_options': None, 'parent_batch_id': None})
             db.execute('UPDATE screen_batches SET policy=?,payload_hash=? WHERE id=?',
                        (json.dumps(policy), signature, batch))
         self.assertEqual(self.submit(versions), batch)
         self.assertNotIn('request_timeout_seconds', self.manager.get(self.project, batch)['policy'])
+        self.assertNotIn('engine_route', self.manager.get(self.project, batch)['policy'])
+        self.assertNotIn('technical_fallback_reserve_seconds', self.manager.get(self.project, batch)['policy'])
         with self.assertRaises(Conflict):
             self.submit(versions, request_timeout_seconds=180)
 

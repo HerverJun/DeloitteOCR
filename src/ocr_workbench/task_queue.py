@@ -372,7 +372,21 @@ class TaskQueue:
             if task.get('kind') == 'screen_local_text':
                 data = self.adapter.recognize_local_text(input_image, output, allow_empty=True)
             elif task.get('kind') == 'screen_context':
+                import hashlib
+                from pathlib import Path
+                source_sha256 = hashlib.sha256(Path(input_image).read_bytes()).hexdigest()
+                original = self.store.rows('''SELECT i.source_hash FROM screen_items i JOIN screen_contexts c
+                    ON c.batch_id=i.batch_id AND c.input_version_id=i.input_version_id WHERE c.task_id=?''', (task['id'],))
+                if not original or original[0]['source_hash'] != source_sha256:
+                    raise ValueError('定位输入与已冻结原图不一致')
                 data = self.adapter.recognize(input_image, output, {'image_version': task['version_id'], 'allow_auxiliary_ocr': True, 'include_all_layout': True})
+                if hashlib.sha256(Path(input_image).read_bytes()).hexdigest() != source_sha256:
+                    raise ValueError('定位期间原图字节已变化')
+                data['screen_context_input'] = {'image_version': task['version_id'],
+                    'input_path': str(input_image), 'source_sha256': source_sha256,
+                    'coordinate_space': 'exif_normalized_original'}
+                from ocr_workbench.atomic_files import write_json
+                write_json(output / 'geometry.json', data, durable=True)
             elif task.get('kind') == 'geometry':
                 import json
                 geometry_request = self.store.rows('SELECT snapshot,regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]

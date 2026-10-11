@@ -178,8 +178,26 @@ class ScreenQueueTests(unittest.TestCase):
         detail = self.manager.detail(self.project, batch, versions[0])
         evidence = json.loads(self.store.rows('SELECT evidence FROM screen_items WHERE batch_id=? AND input_version_id=?', (batch, versions[0]))[0]['evidence'])
         self.assertEqual(evidence['provenance']['ocr_source'], 'mock-independent-ppocr')
+        source_hash = self.store.one('versions', versions[0])['sha256']
+        self.assertEqual(evidence['provenance']['source_sha256'], source_hash)
+        self.assertEqual(evidence['provenance']['input_image_version'], versions[0])
+        self.assertEqual(evidence['provenance']['coordinate_space'], 'exif_normalized_original')
+        context = self.store.rows('SELECT raw,artifact FROM screen_contexts WHERE batch_id=? AND input_version_id=?',
+            (batch, versions[0]))[0]
+        self.assertEqual(json.loads(context['raw']), json.loads(self.store.file(context['artifact']).read_text('utf-8')))
         self.assertEqual(detail['status'], 'needs_review')
         self.assertFalse(detail['human_confirmed'])
+
+    def test_changed_original_before_context_is_rejected_before_inference(self):
+        version = self.images()[0]
+        batch = self.submit([version])
+        self.manager.step()
+        self.store.file(self.store.one('versions', version)['path']).write_bytes(b'changed input')
+        self.assertTrue(self.queue.step())
+        self.assertEqual(self.calls, [])
+        context = self.store.rows('SELECT t.status,t.error FROM tasks t JOIN screen_contexts c ON c.task_id=t.id WHERE c.batch_id=?', (batch,))[0]
+        self.assertEqual(context['status'], 'failed')
+        self.assertIn('冻结原图', context['error'])
 
     def test_failed_context_is_visible_and_never_counts_as_independent_success(self):
         version = self.images()[0]

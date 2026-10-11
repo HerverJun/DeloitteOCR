@@ -46,7 +46,8 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     permitted = {'primary_engine', 'fallback_engines', 'max_upgrades', 'mode',
                  'group_size', 'budget_seconds', 'request_timeout_seconds', 'perspective', 'allow_text_fixes',
                  'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds',
-                 'upgrade_trigger', 'require_human_review', 'context_schedule', 'render_math_text'}
+                 'upgrade_trigger', 'require_human_review', 'context_schedule', 'render_math_text',
+                 'engine_route', 'technical_fallback_reserve_seconds'}
     if set(value) - permitted:
         raise ValueError('未知的屏拍批次策略参数')
     result = {**(defaults or {}), **value}
@@ -71,6 +72,8 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     result.setdefault('require_human_review', False)
     result.setdefault('context_schedule', 'whole_batch')
     result.setdefault('render_math_text', False)
+    result.setdefault('engine_route','fixed')
+    result.setdefault('technical_fallback_reserve_seconds',0)
     if result['primary_engine'] not in ENGINES:
         raise ValueError('首轮模型必须具备表格结构输出能力')
     choices = result['fallback_engines']
@@ -108,6 +111,19 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
         result.update(primary_engine='glm', fallback_engines=alternatives,
             max_upgrades=min(1, len(alternatives)), upgrade_trigger='quality',
             require_human_review=True, strategy_version='screen-glm-quality-human-v1-20261007')
+    if not isinstance(result['engine_route'], str) or result['engine_route'] not in {'fixed','business_language_v1'}:
+        raise ValueError('未知的逐图模型路线')
+    reserve=result['technical_fallback_reserve_seconds']
+    if type(reserve) is not int or not 0<=reserve<=900:
+        raise ValueError('技术兜底预留须为0–900整数秒')
+    if result['engine_route']=='business_language_v1':
+        if (result['primary_engine']!='glm' or result['fallback_engines']!=['hunyuan']
+                or result['max_upgrades']!=1 or result['mode']!='accuracy'
+                or result['upgrade_trigger']!='failure_only' or not result['require_human_review']
+                or not result['layout_evidence'] or not 10<=reserve<=result['budget_seconds']-10):
+            raise ValueError('逐图精度路线须明确GLM/H、一次技术兜底、定位、人工复核和原额度内预留')
+    elif reserve:
+        raise ValueError('固定路线不接受逐图精度兜底预留')
     return result
 
 
@@ -220,7 +236,8 @@ class ScreenBatches:
             policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults(),
                                      resolve_precision=not bool(previous))
             if previous:
-                for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review'):
+                for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review',
+                            'engine_route','technical_fallback_reserve_seconds'):
                     if key not in saved_policy and key not in (body.get('policy') or {}):
                         policy.pop(key)
             signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': None, 'parent_batch_id': parent_batch_id})
@@ -229,6 +246,9 @@ class ScreenBatches:
                     raise Conflict('请求编号已绑定不同的批次范围或策略')
                 batch_id = previous['id']
             else:
+                if (policy.get('engine_route')=='business_language_v1'
+                        and policy['batch_budget_seconds']<len(versions)*policy['budget_seconds']):
+                    raise ValueError('逐图精度路线的整批原额度须覆盖每图完整额度，不能挤占其它图片的兜底预留')
                 batch_id = uid()
                 db.execute('INSERT INTO screen_batches(id,project_id,request_id,payload_hash,policy,status,created,updated,parent_batch_id,deadline) VALUES(?,?,?,?,?,?,?,?,?,?)',
                            (batch_id, project_id, request_id, signature, encoded(policy), 'running', now(), now(), parent_batch_id, time.time() + policy['batch_budget_seconds']))
@@ -333,8 +353,16 @@ class ScreenBatches:
                 allowance=0
                 if not source:
                     budget=self._execution_budget(batch,item)
-                    allowance=int(budget['remaining_seconds'])
+                    from ocr_workbench.screen_engine_route import reserve_seconds
+                    allowance=int(max(0,budget['remaining_seconds']-reserve_seconds(batch['policy'])))
                     if allowance<1:
+                        if reserve_seconds(batch['policy']) and budget['remaining_seconds']>=1:
+                            self._update(batch['id'],item['input_version_id'],evidence=encoded({
+                                'layout':[],'text':[],'provenance':{'image_version':item['input_version_id'],
+                                    'contains_reference_input':False},
+                                'warnings':[{'code':'context_budget_reserved','message':'来源剩余额度保留给识别；未调用定位模型。'}]}))
+                            worked=True
+                            continue
                         self._budget_stop(batch,item,budget)
                         continue
                 pending_raw=encoded({'cache_pending_source_task_id':source['task_id'],
@@ -438,10 +466,11 @@ class ScreenBatches:
                         db.execute('UPDATE screen_contexts SET raw=? WHERE task_id=?',(encoded(pending),row['task_id']))
                     else:
                         budget=self._execution_budget(batch,item)
-                        allowance=int(budget['remaining_seconds'])
+                        from ocr_workbench.screen_engine_route import reserve_seconds
+                        allowance=int(max(0,budget['remaining_seconds']-reserve_seconds(batch['policy'])))
                         if allowance<1:
-                            if budget['potential_remaining_seconds']<1:
-                                db.execute("UPDATE tasks SET status='failed',phase='来源链预算已用尽',error='相同原图累计处理预算已用尽',finished=? WHERE id=? AND status='queued'",(now(),row['task_id']))
+                            if budget['potential_remaining_seconds']<1 or reserve_seconds(batch['policy']) and budget['remaining_seconds']>=1:
+                                db.execute("UPDATE tasks SET status='failed',phase='定位额度不可用',error='剩余额度保留给有界识别或来源累计预算已用尽',finished=? WHERE id=? AND status='queued'",(now(),row['task_id']))
                                 worked=True
                             continue
                         db.execute("UPDATE tasks SET kind='screen_context',phase='定位业务表区' WHERE id=? AND status='queued'",(row['task_id'],))
@@ -494,10 +523,13 @@ class ScreenBatches:
                     else:
                         item=next(item for item in self._items(batch['id']) if item['input_version_id']==row['input_version_id'])
                         budget=self._execution_budget(batch,item)
-                        allowance=int(budget['remaining_seconds'])
+                        reserve=metadata.get('technical_fallback_reserved_seconds',0)
+                        allowance=int(max(0,budget['remaining_seconds']-reserve))
                         if allowance<1:
-                            if budget['potential_remaining_seconds']<1:
-                                db.execute("UPDATE tasks SET status='failed',phase='来源链预算已用尽',error='相同原图累计处理预算已用尽',finished=? WHERE id=? AND status IN ('queued','running')",(now(),row['task_id']))
+                            if budget['potential_remaining_seconds']<1 or reserve and budget['remaining_seconds']>=1:
+                                phase = '首轮额度不可用' if reserve else '来源链预算已用尽'
+                                error = '首轮可用额度已用尽，剩余额度保留给有界技术兜底' if reserve else '相同原图累计处理预算已用尽'
+                                db.execute("UPDATE tasks SET status='failed',phase=?,error=?,finished=? WHERE id=? AND status IN ('queued','running')",(phase,error,now(),row['task_id']))
                                 worked=True
                             continue
                         metadata.pop('cache_pending_source_task_id',None)
@@ -528,8 +560,12 @@ class ScreenBatches:
 
     def _enqueue(self, batch, items, engine, pass_index):
         from ocr_workbench.screen_imaging import select_screen_first_pass
+        from ocr_workbench.screen_engine_route import reserve_seconds
         with self.guard, self.store.file_lock:
             for item in items:
+                choices = self._engine_choices(batch, item)
+                if not 0 <= pass_index < len(choices) or choices[pass_index] != engine:
+                    raise ValueError('派发模型与已冻结的逐图路线不一致')
                 info = json.loads(item['preparation'])
                 chosen = select_screen_first_pass(info)
                 if not chosen:
@@ -550,10 +586,21 @@ class ScreenBatches:
                     planned.append((image,pixel_hash,key,hits[0]['task_id'] if hits else None))
                 computing=sum(hit is None for _,_,_,hit in planned)
                 allowance=0
+                reserve=reserve_seconds(batch['policy']) if pass_index==0 and len(choices)>1 else 0
                 if computing:
                     budget=self._execution_budget(batch,item)
-                    allowance=int(budget['remaining_seconds']//computing)
+                    allowance=int(max(0,budget['remaining_seconds']-reserve)//computing)
                     if allowance<1:
+                        if reserve and budget['remaining_seconds']>=1:
+                            info['engine_route_primary_skip'] = {'reason': 'primary_envelope_exhausted',
+                                'original_remaining_seconds': budget['remaining_seconds'],
+                                'fallback_reserve_seconds': reserve,
+                                'original_budget': deepcopy(budget), 'model_invoked': False}
+                            self._update(batch['id'],item['input_version_id'],status='awaiting_upgrade',
+                                stage='primary_budget_reserved',pass_index=0,
+                                preparation=encoded(info),
+                                error='独立上下文已耗用首轮可用额度；首轮识别未调用，剩余额度留给有界技术兜底。')
+                            continue
                         self._budget_stop(batch,item,budget,waiting_status='prepared')
                         continue
                 # Commit each input's frozen allocation before sizing the next
@@ -563,8 +610,9 @@ class ScreenBatches:
                     for image,pixel_hash,key,hit in planned:
                         task_id=self.store._enqueue(db,batch['project_id'],[item['input_version_id']],[engine],
                             request_id='screen-'+fingerprint([batch['id'],item['input_version_id'],pass_index,image['id'],item['attempt']])[:64])[0]
+                        rank = ('0-' if engine == 'hunyuan' else '1-') if batch['policy'].get('engine_route') == 'business_language_v1' else ''
                         db.execute('UPDATE tasks SET batch=?,phase=? WHERE id=?',
-                            (batch['id']+'-stage-'+str(pass_index+1)+'-'+engine,'屏拍表格识别',task_id))
+                            (batch['id']+'-stage-'+str(pass_index+1)+'-'+rank+engine,'屏拍表格识别',task_id))
                         frozen=0 if hit else allowance
                         metadata = {**image, 'input_version_id': item['input_version_id'], 'batch_id': batch['id'],
                             'prepared_pixel_sha256':pixel_hash,'strategy_version':batch['policy']['strategy_version'],
@@ -572,6 +620,9 @@ class ScreenBatches:
                             'timeout_seconds':frozen,'budget_reservation_seconds':frozen,
                             'request_timeout_seconds':min(frozen,batch['policy'].get('request_timeout_seconds',900)),
                             'attempt':item['attempt'],'cache_key':key}
+                        if info.get('engine_route_snapshot'):
+                            metadata['engine_route_snapshot']=deepcopy(info['engine_route_snapshot'])
+                            metadata['technical_fallback_reserved_seconds']=reserve
                         if hit:metadata['cache_pending_source_task_id']=hit
                         path=str(Path(image['path']).relative_to(self.store.root))
                         db.execute('INSERT INTO screen_tasks(task_id,batch_id,input_version_id,pass_index,prepared_id,prepared_path,metadata,attempt) VALUES(?,?,?,?,?,?,?,?)',
@@ -581,6 +632,29 @@ class ScreenBatches:
                         ('running','first_pass' if pass_index==0 else 'upgrading',pass_index,now(),batch['id'],item['input_version_id']))
         self._resolve_ocr_reuse(batch)
         self.queue.wake.set()
+
+    def _engine_choices(self,batch,item):
+        if batch['policy'].get('engine_route')!='business_language_v1':
+            return [batch['policy']['primary_engine'],*batch['policy']['fallback_engines']]
+        from ocr_workbench.screen_engine_route import frozen_engine_route
+        info=json.loads(item['preparation'])
+        evidence=json.loads(item['evidence']) if item.get('evidence') else {}
+        route=frozen_engine_route(info,evidence,item['source_hash'],item['input_version_id'])
+        if info.get('engine_route_snapshot') is None:
+            info['engine_route_snapshot']=route
+            item['preparation']=encoded(info)
+            self._update(batch['id'],item['input_version_id'],preparation=item['preparation'])
+        return route['engines']
+
+    def _route_binding_stop(self, batch, item, error):
+        tasks = self.store.rows('''SELECT t.id FROM tasks t JOIN screen_tasks s ON s.task_id=t.id
+            WHERE s.batch_id=? AND s.input_version_id=? AND t.status NOT IN ('succeeded','failed','cancelled')''',
+            (batch['id'], item['input_version_id']))
+        if tasks:
+            self.queue.action(batch['project_id'], 'cancel', [task['id'] for task in tasks])
+        self._update(batch['id'], item['input_version_id'],
+            status='needs_review' if item['result_id'] else 'failed',
+            stage='route_binding_failed', error=str(error)[:500])
 
     def _candidate(self, batch, item, rows):
         from ocr_workbench.screen_quality import map_screen_result_to_source
@@ -687,7 +761,7 @@ class ScreenBatches:
             if not any(c['id'] == candidate['id'] for c in candidates):
                 candidates.append(candidate)
         if not candidates:
-            if item['pass_index'] < len(batch['policy']['fallback_engines']) and item['pass_index'] < batch['policy']['max_upgrades']:
+            if item['pass_index']+1 < len(self._engine_choices(batch,item)) and item['pass_index'] < batch['policy']['max_upgrades']:
                 budget=self._execution_budget(batch,item)
                 if budget['remaining_seconds']>=1:
                     self._update(batch['id'],item['input_version_id'],status='awaiting_upgrade',stage='technical_retry',
@@ -739,7 +813,7 @@ class ScreenBatches:
         needs_upgrade = (batch['policy'].get('upgrade_trigger', 'quality') == 'quality'
             and (not table_checks_passed or legacy_accuracy_pass))
         can_upgrade = (item['pass_index'] < batch['policy']['max_upgrades']
-                       and item['pass_index'] < len(batch['policy']['fallback_engines'])
+                       and item['pass_index']+1 < len(self._engine_choices(batch,item))
                        and spent < batch['policy']['budget_seconds'])
         if needs_upgrade and can_upgrade:
             state, stage = 'awaiting_upgrade', selected.get('upgrade_kind') or 'accuracy_check'
@@ -787,7 +861,17 @@ class ScreenBatches:
             items = self._items(batch_id)
             if self._expire_batch(batch, items):
                 return True
-            worked = self._resolve_ocr_reuse(batch)
+            if batch['policy'].get('engine_route') == 'business_language_v1':
+                for item in items:
+                    if item['status'] in TERMINAL or not item.get('preparation'):
+                        continue
+                    try:
+                        self._engine_choices(batch, item)
+                    except (ValueError, OSError, TypeError, KeyError) as error:
+                        self._route_binding_stop(batch, item, error)
+                        worked = True
+                items = self._items(batch_id)
+            worked = self._resolve_ocr_reuse(batch) or worked
             grouped_context = batch['policy'].get('context_schedule') == 'grouped' and batch['policy']['layout_evidence']
             resident_group = grouped_context and any(item['status'] in {'prepared', 'running'} for item in items)
             if batch['policy']['layout_evidence']:
@@ -832,7 +916,14 @@ class ScreenBatches:
             # Prepared items also survive a crash between preparation/enqueue.
             prepared = [item for item in current if item['status'] == 'prepared']
             if prepared:
-                self._enqueue(batch, prepared, batch['policy']['primary_engine'], 0)
+                first_groups={}
+                for item in prepared:
+                    try:
+                        first_groups.setdefault(self._engine_choices(batch,item)[0],[]).append(item)
+                    except (ValueError, OSError, TypeError, KeyError) as error:
+                        self._route_binding_stop(batch, item, error)
+                for engine,group in sorted(first_groups.items(),key=lambda pair:pair[0]!='hunyuan'):
+                    self._enqueue(batch,group,engine,0)
                 worked = True
             for item in self._items(batch_id):
                 if item['status'] == 'running':
@@ -844,11 +935,11 @@ class ScreenBatches:
                 grouped = {}
                 for item in [i for i in current if i['status'] == 'awaiting_upgrade']:
                     next_pass = item['pass_index'] + 1
-                    choices = batch['policy']['fallback_engines']
-                    if next_pass > len(choices):
+                    choices = self._engine_choices(batch,item)
+                    if next_pass >= len(choices):
                         self._update(batch_id, item['input_version_id'], status='needs_review' if item['result_id'] else 'failed', stage='review')
                         continue
-                    grouped.setdefault((choices[next_pass - 1], next_pass), []).append(item)
+                    grouped.setdefault((choices[next_pass], next_pass), []).append(item)
                 for (engine, index), group in grouped.items():
                     self._enqueue(batch, group, engine, index)
                     worked = True

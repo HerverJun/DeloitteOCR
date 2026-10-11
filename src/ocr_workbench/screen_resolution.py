@@ -344,6 +344,9 @@ def resolve_screen_issues(manager,project_id,batch_id,body,*,allow_new=True):
         policy=deepcopy(batch['policy'])
         policy.update(primary_engine='glm',fallback_engines=[],max_upgrades=0,mode='accuracy',upgrade_trigger='failure_only',
                       allow_text_fixes=False,visual_review=False,require_human_review=True,strategy_version=VERSION+'-glm-candidate')
+        # Keep the registered fixed GLM meaning and historical intent hashes.
+        if 'engine_route' in policy or 'technical_fallback_reserve_seconds' in policy:
+            policy.update(engine_route='fixed',technical_fallback_reserve_seconds=0)
         strategy=_hash({'model_identity':manager.model_identity,'policy':{key:policy[key] for key in policy if key not in {'budget_seconds','batch_budget_seconds','request_timeout_seconds','group_size'}}})
         attempt_key=_hash({'strategy':strategy,'bindings':sorted([{key:binding[key] for key in
             ('source_sha256','table_snapshot_sha256','problem_signature')} for binding in bindings],key=lambda value:encoded(value))})

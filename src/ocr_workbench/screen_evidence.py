@@ -847,11 +847,15 @@ def normalize_screen_context(context, *, width=None, height=None, candidate=None
     layout,text,screen_confirmed=classify_screen_ui(layout,text,width,height)
     text=_anchored_business_titles(layout,text)
     layout.extend(_sequential_rulers(layout,text,screen_confirmed=screen_confirmed))
+    binding = context.get('screen_context_input') or {}
     return {"policy_version":POLICY_VERSION,"layout":layout,"text":text,"warnings":warnings,
             "provenance":{"component":context.get("component"),"ocr_source":context.get("ocr_source"),
                           "image_version":context.get("image_version"),"source_candidate_id":candidate.get("id") if candidate else "original",
                           "inference_seconds":context.get("inference_seconds"),"load_seconds":context.get("load_seconds"),
-                          "contains_reference_input":False}}
+                          "contains_reference_input":False,
+                          **({'source_sha256':binding.get('source_sha256'),
+                              'input_image_version':binding.get('image_version'),
+                              'coordinate_space':binding.get('coordinate_space')} if binding else {})}}
 
 
 def collect_screen_context(input_path, output_dir, adapter, *, image_version=None, prepare=True):
