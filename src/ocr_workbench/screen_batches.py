@@ -99,9 +99,9 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
         raise ValueError('局部视觉审校仍在评测中，请通过复核工作流调用；批次自动审校尚未启用')
     if not isinstance(result['strategy_version'], str) or not 1 <= len(result['strategy_version']) <= 120:
         raise ValueError('策略版本无效')
-    # The existing checkbox submits accuracy + auto. Give new requests the
-    # measured precision route, while explicit model/trigger choices and frozen
-    # requests retain their original meaning.
+    # Preserve the historical accuracy + auto API interpretation. The current
+    # checkbox submits the explicit business-language route; explicit choices
+    # and frozen requests must retain their original meaning.
     if (resolve_precision and 'upgrade_trigger' in (defaults or {})
             and value.get('mode') == 'accuracy'
             and value.get('primary_engine', 'auto') == 'auto'
@@ -1173,17 +1173,24 @@ class ScreenBatches:
                         db.execute("UPDATE screen_batches SET status='running',updated=? WHERE id=?", (now(), batch_id))
             else:
                 active = [i for i in items if i['status'] not in TERMINAL]
-                task_ids = [r['task_id'] for i in active for r in self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=?', (batch_id, i['input_version_id']))]
-                task_ids.extend(r['task_id'] for i in active for r in self.store.rows('SELECT task_id FROM screen_contexts WHERE batch_id=? AND input_version_id=?', (batch_id, i['input_version_id'])))
+                # Read the batch once and commit item controls together. Per-item
+                # connections/FULL commits made cancelling 240 queued inputs
+                # exceed an HTTP timeout before the durable receipt was saved.
+                task_rows = self.store.rows('SELECT input_version_id,task_id,attempt FROM screen_tasks WHERE batch_id=?', (batch_id,))
+                context_rows = self.store.rows('SELECT input_version_id,task_id FROM screen_contexts WHERE batch_id=?', (batch_id,))
+                active_versions = {i['input_version_id'] for i in active}
+                task_ids = [r['task_id'] for r in [*task_rows, *context_rows] if r['input_version_id'] in active_versions]
                 if task_ids:
                     self.queue.action(project_id, action, task_ids)
-                for item in active:
-                    existing = self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=? AND attempt=?',
-                                               (batch_id, item['input_version_id'], item['attempt']))
-                    self._update(batch_id, item['input_version_id'], status='cancelled' if action == 'cancel' else
-                                 'paused' if action == 'pause' else 'running' if existing else 'prepared' if item['preparation'] else 'queued',
-                                 stage='cancelled' if action == 'cancel' else 'paused' if action == 'pause' else 'resuming')
+                existing_attempts = {(r['input_version_id'], r['attempt']) for r in task_rows}
+                updated = now()
                 with self.store.transaction() as db:
+                    db.executemany('UPDATE screen_items SET status=?,stage=?,updated=? WHERE batch_id=? AND input_version_id=?', [
+                        ('cancelled' if action == 'cancel' else 'paused' if action == 'pause' else
+                         'running' if (item['input_version_id'], item['attempt']) in existing_attempts else
+                         'prepared' if item['preparation'] else 'queued',
+                         'cancelled' if action == 'cancel' else 'paused' if action == 'pause' else 'resuming',
+                         updated, batch_id, item['input_version_id']) for item in active])
                     if selected is None and action == 'pause':
                         db.execute('UPDATE screen_batches SET paused_at=COALESCE(paused_at,?) WHERE id=?', (time.time(), batch_id))
                     if selected is None and action == 'resume' and batch.get('paused_at'):

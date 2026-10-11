@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem, type ScreenEta } from "./screenBatchWorkflow";
+import { screenBatchStartBody, screenCell, screenCellEdit, screenEditKey, screenEtaText, screenProgress, screenReviewBody, selectedScreenVersions, screenNumericExport, screenNumericColumnOptions, screenCandidateCell, screenCandidateReviewBody, type ScreenItem, type ScreenEta } from "./screenBatchWorkflow";
 import type { Photo, Table } from "./types";
 import { screenDiagnosticLocation, screenComparisonBody, type ScreenDiagnostic } from "./screenBatchWorkflow";
 
@@ -10,6 +10,33 @@ const table: Table = { rows: 2, columns: 2, cells: [
   { row: 1, column: 0, row_span: 1, column_span: 1, text: "000123456789012345678" },
   { row: 1, column: 1, row_span: 1, column_span: 1, text: "-10.05" },
 ] };
+
+describe("new batch precision submission", () => {
+  it.each([[1, 36000], [200, 72000], [240, 86400], [1000, 360000]])(
+    "allocates the original budget for %i images before submission",
+    (count, batchBudget) => {
+      const versions = Array.from({ length: count }, (_, i) => `version-${i}`);
+      const body = screenBatchStartBody(versions, "screen-ui-retry", true);
+      expect(body).toEqual({ version_ids: versions, request_id: "screen-ui-retry", policy: {
+        primary_engine: "glm", fallback_engines: ["hunyuan"], max_upgrades: 1,
+        mode: "accuracy", upgrade_trigger: "failure_only", layout_evidence: true,
+        require_human_review: true, budget_seconds: 360, request_timeout_seconds: 180,
+        engine_route: "business_language_v1", technical_fallback_reserve_seconds: 90,
+        batch_budget_seconds: batchBudget,
+      } });
+      expect(screenBatchStartBody(versions, body.request_id, true)).toEqual(body);
+      expect(body.version_ids).not.toBe(versions);
+    });
+  it("keeps ordinary mode's existing request and rejects unsupported counts", () => {
+    expect(screenBatchStartBody(["version-a"], "screen-ui-normal", false)).toEqual({
+      version_ids: ["version-a"], request_id: "screen-ui-normal",
+      policy: { primary_engine: "auto", mode: "auto" },
+    });
+    for (const versions of [[], Array(1001).fill("version-a")]) {
+      expect(() => screenBatchStartBody(versions, "screen-ui-invalid", true)).toThrow("1–1000");
+    }
+  });
+});
 
 describe("diagnostic evidence gates", () => {
   it("pins same-revision human review changes in the native review body", () => {

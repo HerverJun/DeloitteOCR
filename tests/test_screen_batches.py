@@ -209,6 +209,35 @@ class ScreenBatchTests(unittest.TestCase):
         self.assertEqual(self.manager.get(self.project, batch)['status'], 'succeeded')
         self.assertEqual(len(self.store.rows('SELECT * FROM screen_tasks')), 2)
 
+    def test_subset_controls_preserve_terminal_items_attempts_and_original_budget(self):
+        versions = self.images(4)
+        batch = self.submit(versions)
+        self.manager.step()
+        original = self.manager._batch(self.project, batch)
+        task_ids = [row['task_id'] for row in self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=?', (batch,))]
+        with self.store.transaction() as db:
+            db.execute("UPDATE screen_items SET status='needs_review',stage='human_confirmation' WHERE batch_id=? AND input_version_id=?", (batch, versions[0]))
+            db.execute('UPDATE screen_items SET attempt=1 WHERE batch_id=? AND input_version_id=?', (batch, versions[2]))
+            db.execute('UPDATE screen_tasks SET spent_seconds=7 WHERE batch_id=?', (batch,))
+        before_tasks = self.store.rows('SELECT * FROM screen_tasks WHERE batch_id=?', (batch,))
+        paused = {'action':'pause','request_id':'subset-pause-control','version_ids':versions[:3]}
+        self.manager.action(self.project, batch, paused)
+        states = {row['input_version_id']:row for row in self.manager._items(batch)}
+        self.assertEqual([states[key]['status'] for key in versions], ['needs_review','paused','paused','running'])
+        self.manager.action(self.project, batch, {'action':'resume','request_id':'subset-resume-control','version_ids':versions[1:3]})
+        states = {row['input_version_id']:row for row in self.manager._items(batch)}
+        self.assertEqual(states[versions[1]]['status'], 'running')
+        self.assertEqual(states[versions[2]]['status'], 'prepared')
+        cancel = {'action':'cancel','request_id':'subset-cancel-control','version_ids':versions[:3]}
+        receipt = self.manager.action(self.project, batch, cancel)
+        self.assertEqual(self.manager.action(self.project, batch, cancel), receipt)
+        states = {row['input_version_id']:row for row in self.manager._items(batch)}
+        self.assertEqual([states[key]['status'] for key in versions], ['needs_review','cancelled','cancelled','running'])
+        self.assertEqual(self.manager._batch(self.project, batch)['deadline'], original['deadline'])
+        self.assertEqual(self.manager._batch(self.project, batch)['policy'], original['policy'])
+        self.assertEqual(self.store.rows('SELECT * FROM screen_tasks WHERE batch_id=?', (batch,)), before_tasks)
+        self.assertEqual([row['task_id'] for row in before_tasks], task_ids)
+
     def test_reopen_recovers_completed_tasks_without_new_recognition(self):
         batch = self.submit(self.images(1))
         self.manager.step()

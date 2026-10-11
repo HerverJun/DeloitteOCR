@@ -83,6 +83,20 @@ export function selectedScreenVersions(images: Photo[], selectedIds: string[], s
   return [...new Set(images.filter(image => scope === "project" || ids.has(image.id)).map(image => image.active_version).filter(Boolean))];
 }
 
+// Only new precision submissions opt into the measured route. Keep the
+// ordinary request and previously persisted policies' interpretation intact.
+export function screenBatchStartBody(versionIds: string[], requestId: string, precision: boolean) {
+  if (!versionIds.length || versionIds.length > 1000) throw Error("请选择 1–1000 张图片后开始。");
+  const policy = precision ? {
+    primary_engine: "glm", fallback_engines: ["hunyuan"], max_upgrades: 1,
+    mode: "accuracy", upgrade_trigger: "failure_only", layout_evidence: true,
+    require_human_review: true, budget_seconds: 360, request_timeout_seconds: 180,
+    engine_route: "business_language_v1", technical_fallback_reserve_seconds: 90,
+    batch_budget_seconds: Math.max(36000, versionIds.length * 360),
+  } : { primary_engine: "auto", mode: "auto" };
+  return { version_ids: [...versionIds], request_id: requestId, policy };
+}
+
 export function screenCell(table: Table | undefined, row: number, column: number): Cell | undefined {
   return table?.cells.find(cell => row >= cell.row && row < cell.row + cell.row_span
     && column >= cell.column && column < cell.column + cell.column_span);

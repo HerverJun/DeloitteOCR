@@ -7,7 +7,7 @@ import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import { ScreenDiagnosticPanel } from "./ScreenDiagnosticPanel";
 import { ScreenBusinessMetadata, type ScreenMetadata, type ScreenMetadataEdit } from "./ScreenBusinessMetadata";
 import type { Photo, Result, Table, Version } from "./types";
-import { screenCell, screenCellEdit, screenEditKey, screenEtaText, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
+import { screenBatchStartBody, screenCell, screenCellEdit, screenEditKey, screenEtaText, screenIssueTitle, screenProgress, screenReviewBody, screenStatuses, selectedScreenVersions,
   screenNumericColumnOptions, screenNumericExport,
   screenCandidateReviewBody,
   screenDiagnosticLocation, screenComparisonBody, screenResultRevision,
@@ -182,8 +182,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
     if (!versions.length || versions.length > 1000) throw Error("请选择 1–1000 张图片后开始。");
     const signature = JSON.stringify({ projectId, versions, precision });
     if (submission.current?.signature !== signature) submission.current = { signature, requestId: requestId() };
-    const value = await api<ScreenBatch>(base, "POST", { version_ids: versions, request_id: submission.current.requestId,
-      policy: { primary_engine: "auto", mode: precision ? "accuracy" : "auto" } });
+    const value = await api<ScreenBatch>(base, "POST", screenBatchStartBody(versions, submission.current.requestId, precision));
     if (projectRef.current !== projectId) return;
     setBatchId(value.batch_id); setBatch(value); setFilter(""); setOffset(0); setDetailId("");
     submission.current = null;
@@ -255,7 +254,7 @@ export function ScreenBatchPanel({ projectId, images, selectedImageIds, disabled
                 <option value="project">本项目全部图片（{images.length} 张）</option>
                 <option value="selected" disabled={!selectedImageIds.length}>已选图片（{selectedImageIds.length} 张）</option>
               </select></label>
-              <label className="screen-batch-check"><input type="checkbox" checked={precision} onChange={e => setPrecision(e.target.checked)} />提高精度（增加必要核对）</label>
+              <label className="screen-batch-check"><input type="checkbox" checked={precision} onChange={e => setPrecision(e.target.checked)} />提高精度（耗时增加，仍需核对）</label>
               <Button appearance="primary" disabled={busy || disabled || hasDraft || !versions.length || versions.length > 1000} onClick={() => void startBatch()}>开始处理 {versions.length} 张</Button>
               {disabled && <span>当前识别不可用，可继续核对和下载已有批次。</span>}
             </div>
