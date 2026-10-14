@@ -28,7 +28,10 @@ def worker_environment(output, runtime, *, gpu=False, device_index=0):
         directory = local_path(output / 'runtime' / name.lower())
         directory.mkdir(parents=True, exist_ok=True)
         env[name] = str(directory)
-    temporary = local_path(Path('F:/OCR/temp/manual') / hashlib.sha256(str(output).encode()).hexdigest()[:20])
+    native_root = local_path(Path(env.get('CLEAR_NATIVE_TEMP_ROOT', 'F:/OCR/temp/manual')))
+    if not str(native_root).isascii():
+        raise ValueError('Native temporary root must be an ASCII path on F:')
+    temporary = local_path(native_root / hashlib.sha256(str(output).encode()).hexdigest()[:20])
     temporary.mkdir(parents=True, exist_ok=True)
     for name in ('TEMP', 'TMP', 'TMPDIR', 'CLEAR_PADDLE_TEMP'):
         env[name] = str(temporary)

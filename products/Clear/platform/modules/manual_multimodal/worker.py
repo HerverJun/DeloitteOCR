@@ -143,6 +143,17 @@ def seal(request):
         return seal_at_root(request,root)
 
 def seal_at_root(request,root):
+    from paddle_cache import install_paddle_cache
+    adapter=install_paddle_cache(OUT/'runtime/paddle-cache')
+    try:
+        result=seal_with_paddle_cache(request,root)
+        result['paddle_cache_adapter']=adapter.identity()
+        return result
+    finally:
+        adapter.close()
+
+
+def seal_with_paddle_cache(request,root):
     progress('加载印章定位、曲线文字检测与识别模型')
     from paddleocr import SealRecognition
     import paddle
@@ -204,68 +215,40 @@ def seal_at_root(request,root):
 def catnet(request):
     import cv2
     import numpy as np
-    import torch
-    import torch.nn.functional as functional
-    import jpeglib
-    from PIL import Image
-    from yacs.config import CfgNode
+    from catnet_inference import CatNetSession, read_catnet_jpeg
+    from image_geometry import orient_array
     root=Path(request['models'])/'catnet'
-    sys.path.insert(0,str(root/'source'))
-    from lib.models.network_CAT import CAT_Net
-    import yaml
-    config=CfgNode(yaml.safe_load((root/'source/experiments/CAT_full.yaml').read_text('utf-8')))
-    config.MODEL.PRETRAINED_RGB='';config.MODEL.PRETRAINED_DCT=''
+    runner=request.get('runner') or {}
+    tile_size=runner.get('catnet_tile_size',1024)
+    halo=runner.get('catnet_halo',0)
+    CONTROL.check()
+    prepared=read_catnet_jpeg(request['inputs'][0]['path'])
+    CONTROL.check()
     progress('加载 CAT-Net v2 权重')
-    model=CAT_Net(config)
-    checkpoint=torch.load(root/'CAT_full_v2.pth.tar',map_location='cpu',weights_only=False)
-    state=checkpoint['state_dict']
-    model.load_state_dict(state,strict=True)
-    device=request['options']['device'];model=model.eval().to(device)
-    source=request['inputs'][0]['path']
-    import shutil,tempfile
-    # Preserve the original JPEG bytes while crossing libjpeg's ASCII API.
-    with tempfile.TemporaryDirectory(prefix='clear-catnet-') as directory:
-        compatible=Path(directory)/'input.jpg';shutil.copyfile(source,compatible)
-        if digest(compatible)!=digest(source):raise ValueError('JPEG temporary copy changed')
-        jpeg=jpeglib.read_dct(str(compatible))
-        y=jpeg.Y
-        qindex=int(jpeg.quant_tbl_no[0])
-        quantization=jpeg.qt[qindex].copy()
-    rgb=np.asarray(Image.open(source).convert('RGB'))
-    height,width=rgb.shape[:2]
-    if height*width>16_000_000:raise ValueError('首版深度取证支持最多 1600 万像素 JPEG；原件未修改')
-    # jpeglib exposes the original quantized Y coefficients, not a DCT of
-    # decoded/recompressed pixels. This matches CAT-Net's one-channel stream.
-    coefficients=y.transpose(0,2,1,3).reshape(y.shape[0]*8,y.shape[1]*8)
-    qtable=torch.tensor(quantization,dtype=torch.float32)[None,None].to(device)
-    hp,wp=coefficients.shape
-    padded=np.full((hp,wp,3),127.5,dtype=np.float32);padded[:height,:width]=rgb
-    probabilities=np.zeros((height,width),dtype=np.float32)
-    tile_size=int((request.get('runner') or {}).get('catnet_tile_size',1024))
-    if tile_size not in (512,768,1024):raise ValueError('CAT-Net tile size must be 512, 768 or 1024')
-    total=((height+tile_size-1)//tile_size)*((width+tile_size-1)//tile_size);done=0
-    with torch.inference_mode():
-        for top in range(0,height,tile_size):
-            for left in range(0,width,tile_size):
-                CONTROL.check()
-                bottom=min(top+tile_size,hp);right=min(left+tile_size,wp)
-                pixels=padded[top:bottom,left:right]
-                block=np.abs(coefficients[top:bottom,left:right])
-                volume=np.stack([block==i for i in range(20)]+[block>=20]).astype(np.float32)
-                tensor=torch.cat([torch.from_numpy(pixels.transpose(2,0,1)).float().sub(127.5).div(127.5),torch.from_numpy(volume)])[None].to(device)
-                done+=1;progress(f'JPEG DCT 区域分析 {done}/{total}')
-                logits=model(tensor,qtable)
-                prediction=functional.interpolate(logits,size=pixels.shape[:2],mode='bilinear',align_corners=True).softmax(dim=1)[0,1].cpu().numpy()
-                bh=min(bottom,height)-top;bw=min(right,width)-left
-                probabilities[top:top+bh,left:left+bw]=prediction[:bh,:bw]
+    session=CatNetSession(root,request['options']['device'])
+    prediction=session.infer(prepared,tile_size=tile_size,halo=halo,check=CONTROL.check,
+        progress=lambda done,total:progress(f'JPEG DCT 区域分析 {done}/{total}'))
+    probabilities=prediction.probabilities
+    height,width=prepared.rgb.shape[:2]
+    CONTROL.check()
     np.save(OUT/'heatmap-probabilities.npy',probabilities,allow_pickle=False)
     colored=cv2.applyColorMap((np.clip(probabilities,0,1)*255).astype('uint8'),cv2.COLORMAP_JET)
-    png('heatmap.png',colored);png('preview.png',cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR))
-    return {'algorithm':'CAT-Net v2','device':device,'torch':torch.__version__,'outcome':'analyzed','width':width,'height':height,
-        'model_hashes':{'CAT_full_v2':digest(root/'CAT_full_v2.pth.tar'),'network':digest(root/'source/lib/models/network_CAT.py')},
+    preview=cv2.cvtColor(prepared.rgb,cv2.COLOR_RGB2BGR)
+    png('heatmap.png',colored);png('preview.png',preview)
+    orientation=prepared.geometry['exif_orientation']
+    png('heatmap-display.png',np.ascontiguousarray(orient_array(colored,orientation)))
+    png('preview-display.png',np.ascontiguousarray(orient_array(preview,orientation)))
+    CONTROL.check()
+    return {'algorithm':'CAT-Net v2','device':session.device,'torch':session.torch_version,'outcome':'analyzed','width':width,'height':height,
+        'model_hashes':session.model_hashes,
         'metrics':{'map_min':float(probabilities.min()),'map_max':float(probabilities.max()),'map_mean':float(probabilities.mean())},
-        'processing':{'jpeg_recompressed':False,'orientation':'stored_pixels','tile_size':tile_size,'tile_grid':[height,width]},
-        'limitations':['热图是模型的区域响应，不是整图真实性概率','大图按1024像素网格推理，块边界可能影响定位','训练域与手机屏拍、重存和文档改字不同，需要分组评测']}
+        'processing':{'jpeg_recompressed':False,'orientation':'stored_pixels','tile_size':tile_size,'tile_grid':[height,width],
+            'geometry':prepared.geometry,'inference':prediction.inference,
+            'display_preview':'preview-display.png','display_heatmap':'heatmap-display.png'},
+        'limitations':['热图是模型的区域响应，不是整图真实性概率',
+            f'模型输入上限{tile_size}像素，halo={halo}；分块上下文可能影响定位',
+            '显示预览按EXIF转正；概率图与保存区域仍按JPEG存储像素坐标',
+            '训练域与手机屏拍、重存和文档改字不同，需要分组评测']}
 
 if __name__=='__main__':
     deny_network()

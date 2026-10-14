@@ -1,0 +1,13 @@
+.forensic-viewer { min-width: 0; width: 100%; margin-block: 16px; }
+.forensic-viewer-toolbar { margin-bottom: 12px; }
+.forensic-opacity { display: flex; align-items: center; gap: 8px; font-size: var(--clear-caption-size, 13px); }
+.forensic-opacity input { width: 96px; accent-color: var(--clear-accent, #387749); }
+.forensic-opacity output { width: 38px; font-variant-numeric: tabular-nums; }
+.forensic-viewer > .ant-alert { margin-bottom: 10px; }
+.forensic-image-probe { display: none; }
+.forensic-viewer-viewport { width: 100%; height: min(65vh, 720px); min-height: 240px; overflow: auto; border: 1px solid var(--clear-border, #dfe5e2); border-radius: var(--clear-control-radius, 6px); background: var(--clear-subtle, #f7f9f8); }
+.forensic-viewer-viewport > svg, .forensic-viewer-viewport > .forensic-independent-image { display: block; max-width: none; max-height: none; margin: auto; flex: none; }
+.forensic-viewer-viewport:focus-visible { outline: 2px solid var(--clear-accent, #387749); outline-offset: 2px; }
+.forensic-viewer-caption { margin: 8px 0 0 !important; font-size: var(--clear-caption-size, 13px); }
+
+.forensic-viewer-viewport > svg { border: 0; }

@@ -7,7 +7,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from .core import Context, Evidence, gray, tile_map
+from .core import Context, Evidence, encoded_rgb, gray, tile_map
+from .geometry import transpose_pixels
 
 
 def metadata(ctx: Context) -> Evidence:
@@ -79,15 +80,16 @@ def frequency(ctx: Context) -> Evidence:
 def jpeg(ctx: Context) -> Evidence:
     if ctx.raw_format != "JPEG" or not ctx.jpeg_quantization:
         return Evidence("jpeg", "compression", "skipped", reason="source file is not JPEG with quantization tables")
-    h, w = ctx.image.shape[:2]
+    stored = encoded_rgb(ctx)
+    h, w = stored.shape[:2]
     if min(h, w) < 64:
         return Evidence("jpeg", "compression", "skipped", reason="image shorter than 64 pixels")
-    original = ctx.image.astype(np.float32)
+    original = stored.astype(np.float32)
     previews = []
     medians = {}
     for quality in (65, 75, 85, 95):
         buffer = BytesIO()
-        Image.fromarray(ctx.image).save(buffer, "JPEG", quality=quality)
+        Image.fromarray(stored).save(buffer, "JPEG", quality=quality)
         buffer.seek(0)
         with Image.open(buffer) as img:
             candidate = np.asarray(img.convert("RGB")).astype(np.float32)
@@ -104,20 +106,22 @@ def jpeg(ctx: Context) -> Evidence:
         "chosen_recompression_quality": (65, 75, 85, 95)[selected],
         "median_absolute_differences": medians,
         "map_kind": "relative_recompression_difference",
+        "analysis_coordinate_system": "stored_pixels",
     }, limitations=[
         "JPEG Ghost-style recompression difference does not prove double compression or tampering.",
         "Texture, color and the last forwarding step may dominate this map.",
-    ], map=relative.astype(np.float32))
+    ], map=transpose_pixels(relative.astype(np.float32), ctx.exif_orientation))
 
 
 def jpeg_grid(ctx: Context) -> Evidence:
     """Observed discontinuity at the final JPEG 8x8 block boundaries."""
     if ctx.raw_format != "JPEG" or not ctx.jpeg_quantization:
         return Evidence("jpeg_grid", "compression", "skipped", reason="source file is not JPEG")
-    h, w = ctx.image.shape[:2]
+    stored = encoded_rgb(ctx)
+    h, w = stored.shape[:2]
     if min(h, w) < 64:
         return Evidence("jpeg_grid", "compression", "skipped", reason="image shorter than 64 pixels")
-    lum = gray(ctx).astype(np.float32)
+    lum = cv2.cvtColor(stored, cv2.COLOR_RGB2GRAY).astype(np.float32)
     dx = np.abs(np.diff(lum, axis=1))
     dy = np.abs(np.diff(lum, axis=0))
     # JPEG block boundary at pixel 7|8, 15|16, etc. Compare with adjacent edges.
@@ -134,10 +138,11 @@ def jpeg_grid(ctx: Context) -> Evidence:
     return Evidence("jpeg_grid", "compression", metrics={
         "median_boundary_ratio": round(float(np.median(ratio)), 4),
         "map_kind": "relative_final_jpeg_grid_discontinuity",
+        "analysis_coordinate_system": "stored_pixels",
     }, limitations=[
         "This measures the final file grid, not the full forwarding history.",
         "Sharp text, grids, cropping and rescaling may produce misleading boundaries.",
-    ], map=relative.astype(np.float32))
+    ], map=transpose_pixels(relative.astype(np.float32), ctx.exif_orientation))
 
 
 def copy_move(ctx: Context) -> Evidence:

@@ -26,5 +26,49 @@
     }
   ],
   "source": "F:\\CodexBackups\\图像篡改识别\\20261003_111113\\project",
-  "policy": "read-only source; classical tools enabled; experimental models excluded"
+  "policy": "read-only source; classical tools enabled; experimental models excluded",
+  "derived": {
+    "version": "0.1.1",
+    "base_version": "0.1.0",
+    "recorded_on": "2026-10-14",
+    "coordinate_version": "exif-pixel-edges-v1",
+    "changes": [
+      "preserve partial-tile pixel extents",
+      "analyze JPEG in stored coordinates and orient output without interpolation",
+      "add optional EXIF geometry; keep historical reports immutable",
+      "preserve decoder-aware TIFF orientation and verified stored dimensions",
+      "bind isolated worker imports to the adjacent final toolbox"
+    ],
+    "files": [
+      {
+        "name": "__init__.py",
+        "sha256": "9eb3b9a8f2cd9345140f65c136fc198722c4441910817b378907695f2a51ac46"
+      },
+      {
+        "name": "algorithms.py",
+        "sha256": "94f7a285b4b266e2edb1789e9f70b8eaa29ac06e51da2bca2565c89bc4affda2"
+      },
+      {
+        "name": "catalog.py",
+        "sha256": "50cfabb95612f10c1dd5045befd4646241a0a800fae1736efaea74a35dcbc597"
+      },
+      {
+        "name": "core.py",
+        "sha256": "85f3c5b8123a0b95c196b13e6fa425d0a8ce60b674837661c5dbebf55713aac7"
+      },
+      {
+        "name": "geometry.py",
+        "sha256": "5d83936f573e8935783c0459972e99196293d5e4cfb7183a91eaf7af55170288"
+      },
+      {
+        "name": "model.py",
+        "sha256": "ab3fa9d0462d8629b60b8d81aa2edb14e51daad7fdcf3494e6a1c6ae330a7b47"
+      },
+      {
+        "name": "review.py",
+        "sha256": "d77c0c8772d7cc931036054ba919a71541bcdbac52d86d11d49914ed5f734a5e"
+      }
+    ],
+    "worker_sha256": "ed9da61f73f8debd67c46ca5a7e739b27f65cbf8d764d7e09addca22c507bd2b"
+  }
 }

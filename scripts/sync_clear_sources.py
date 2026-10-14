@@ -68,7 +68,7 @@ def included(relative: Path) -> bool:
     return not relative.name.endswith(("-wal", "-shm"))
 
 
-def capture() -> dict:
+def capture(platform_source: Path | None = None) -> dict:
     local_f(ROOT)
     destination_path(DESTINATION).mkdir(parents=True, exist_ok=True)
     manifest = {
@@ -80,7 +80,7 @@ def capture() -> dict:
         "sources": [],
     }
     for name in ("platform", "classification", "ocr"):
-        source = local_f(SOURCE_ROOT / name)
+        source = local_f(platform_source if name == "platform" and platform_source is not None else SOURCE_ROOT / name)
         metadata = Path(git(source, "rev-parse", "--absolute-git-dir").strip())
         local_f(metadata)
         paths = sorted(set(git(source, "ls-files", "-z", "--cached", "--others", "--exclude-standard").split("\0")) - {""})
@@ -150,9 +150,13 @@ def verify() -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--verify", action="store_true", help="Only verify saved snapshot hashes")
+    parser.add_argument("--platform-source", type=Path,
+                        help="Explicit local F-drive platform worktree; other sources keep their registered locations")
     args = parser.parse_args()
+    if args.verify and args.platform_source is not None:
+        parser.error("--platform-source applies to capture only")
     if args.verify:
         print(json.dumps(verify()))
     else:
-        result = capture()
+        result = capture(args.platform_source)
         print(json.dumps({"sources": [{"name": item["name"], "files": item["file_count"], "excluded": item["excluded_count"]} for item in result["sources"]]}))

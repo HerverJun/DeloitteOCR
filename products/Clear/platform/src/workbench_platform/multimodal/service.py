@@ -355,7 +355,8 @@ class MultimodalService:
                    'runner':{'protocol':PROTOCOL,'worker_epoch':epoch,'launch_id':self.launch_id,'instance_id':self.instance_id,
                        'job_id':job,'generation':generation,'checkpoint_root':str(checkpoints),
                        'audio_batch_size_s':self.config.get('audio',{}).get('reduced_batch_size_s' if reduced else 'batch_size_s',15 if reduced else 30),
-                       'catnet_tile_size':self.config.get('catnet',{}).get('reduced_tile_size' if reduced else 'tile_size',512 if reduced else 1024)}}
+                       'catnet_tile_size':self.config.get('catnet',{}).get('reduced_tile_size' if reduced else 'tile_size',512 if reduced else 1024),
+                       'catnet_halo':self.config.get('catnet',{}).get('halo',0)}}
             with ExitStack() as stack:
                 for index,source in enumerate(item['inputs']):
                     staged=stack.enter_context(self.registry.stage_verified(workspace,source['asset_id'],revision=source['asset_revision'],blob_hash=source['blob_hash']))

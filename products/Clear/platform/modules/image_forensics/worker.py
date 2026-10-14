@@ -4,7 +4,12 @@ import sys
 import warnings
 from pathlib import Path
 
+# Embedded/isolated runtimes can carry an older toolbox in their ._pth file.
+# Bind this worker to the code shipped beside its own script before importing.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from PIL import Image
+import forensic_toolbox
 from forensic_toolbox.core import run
 from forensic_toolbox.review import render
 
@@ -24,7 +29,9 @@ def main():
             raise ValueError('Image exceeds 12 million pixels')
     report = run(source, output, tools=tools)
     report['input']['path'] = name
-    report['runtime'] = {'python': sys.version.split()[0]}
+    report['runtime'] = {'python': sys.version.split()[0], 'toolbox': {
+        'path': str(Path(forensic_toolbox.__file__).resolve().parent),
+        'version': forensic_toolbox.__version__}}
     for module_name in ('numpy', 'cv2', 'PIL'):
         module = __import__(module_name)
         report['runtime'][module_name] = module.__version__

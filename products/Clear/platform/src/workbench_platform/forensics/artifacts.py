@@ -2,6 +2,7 @@
 from contextlib import closing
 import io
 import json
+from pathlib import Path
 from workbench_platform.artifacts.store import ArtifactUnavailable
 from workbench_platform.batches.store import encoded, fingerprint
 from packages.contracts.forensics import ForensicBundle
@@ -23,6 +24,33 @@ def get(center, workspace_id, bundle_id):
     return ForensicBundle.model_validate(json.loads(row[0])).model_dump(mode='json')
 
 
+
+def publication_versions(item):
+    """Use the report's executed code identity; old reports keep their old meaning."""
+    report=item.get('report') or {}
+    runtime_record=report.get('runtime')
+    runtime=runtime_record.get('toolbox') if isinstance(runtime_record,dict) else None
+    execution=report.get('toolbox_execution')
+    if execution is None and (runtime is None or isinstance(runtime,dict) and runtime.get('version')=='0.1.0'):
+        return 'forensic-toolbox-0.1.0',fingerprint(item['tools'])
+    from .service import source_identity
+    try:
+        identity=source_identity(report['toolbox_source'])
+    except (KeyError,TypeError,ValueError):
+        raise ArtifactUnavailable('INPUT_CHANGED') from None
+    expected=fingerprint(identity)
+    if (not isinstance(execution,dict) or not isinstance(runtime,dict)
+            or execution.get('source_identity_sha256')!=expected
+            or execution.get('version')!=identity['version'] or runtime.get('version')!=identity['version']
+            or execution.get('kind')!=identity['kind']
+            or any(execution.get(key)!=value for key,value in identity.items())
+            or not isinstance(runtime.get('path'),str) or not isinstance(execution.get('runtime_path'),str)
+            or Path(runtime['path']).resolve()!=Path(execution['runtime_path']).resolve()):
+        raise ArtifactUnavailable('INPUT_CHANGED')
+    if identity['kind']=='legacy':return 'forensic-toolbox-0.1.0',fingerprint(item['tools'])
+    return 'forensic-toolbox-'+identity['version'],fingerprint({'tools':item['tools'],'toolbox_source_identity':expected})
+
+
 def publish(service, workspace_id, inspection_id):
     item = service.get(workspace_id, inspection_id)
     if item['status'] not in {'succeeded', 'partial'}:
@@ -33,6 +61,7 @@ def publish(service, workspace_id, inspection_id):
             return get(center, workspace_id, inspection_id)
         except ArtifactUnavailable:
             pass
+        application_version, rule_version = publication_versions(item)
         with closing(center._connect()) as db:
             row = db.execute('SELECT body FROM forensic_artifact_bundle WHERE bundle_id=?', (inspection_id,)).fetchone()
             bundle = json.loads(row[0]) if row else {'schema_version': '1.0', 'bundle_id': inspection_id, 'workspace_id': workspace_id,
@@ -61,7 +90,7 @@ def publish(service, workspace_id, inspection_id):
                 db.execute('UPDATE forensic_artifact_bundle SET body=? WHERE bundle_id=?', (encoded(bundle), inspection_id))
             center.store.publish_managed(workspace_id, io.BytesIO(content), expected_hash=record['sha256'],
                 expected_size=record['size_bytes'], job_ref=job, source_refs=[source], media_type=media,
-                application_version='forensic-toolbox-0.1.0', rule_or_model_version=fingerprint(item['tools']), on_insert=insert)
+                application_version=application_version, rule_or_model_version=rule_version, on_insert=insert)
         ForensicBundle.model_validate(bundle)
         with closing(center._connect()) as db:
             db.execute("UPDATE forensic_artifact_bundle SET status='ready' WHERE bundle_id=?", (inspection_id,))
