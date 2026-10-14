@@ -9,6 +9,9 @@ from pydantic import Field, field_validator, model_validator
 from packages.contracts.models import Asset, Error, Hash, Id, Timestamped, Utc, Wire
 
 UPLOAD_MAX_BYTES = 128 * 1024 * 1024
+AUDIO_UPLOAD_MAX_BYTES = 4 * 1024 * 1024 * 1024
+AUDIO_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024
+AUDIO_UPLOAD_EXTENSIONS = frozenset({'.wav', '.mp3', '.m4a', '.flac', '.ogg', '.aac', '.wma'})
 UploadName = Annotated[str, Field(min_length=1, max_length=240)]
 UploadSize = Annotated[int, Field(strict=True, ge=1, le=UPLOAD_MAX_BYTES)]
 
@@ -91,4 +94,52 @@ class UploadStatus(Timestamped):
         return self
 
 
-UPLOAD_MODELS = [UploadBinding, UploadReceipt, UploadStatus]
+class AudioUploadBinding(UploadBinding):
+    """Large uploads are restricted to formats accepted by the audio workbench."""
+
+    size_bytes: Annotated[int, Field(strict=True, ge=1, le=AUDIO_UPLOAD_MAX_BYTES)]
+
+    @field_validator('name')
+    @classmethod
+    def audio_filename(cls, value: str) -> str:
+        if not any(value.lower().endswith(extension) for extension in AUDIO_UPLOAD_EXTENSIONS):
+            raise ValueError('Large uploads only accept supported audio filenames')
+        return value
+
+
+class AudioUploadReceipt(UploadReceipt):
+    binding: AudioUploadBinding
+
+
+class AudioUploadStatus(Timestamped):
+    binding: AudioUploadBinding
+    payload_hash: Hash
+    status: Literal['uploading', 'committed', 'cancelled', 'rejected']
+    next_offset: Annotated[int, Field(strict=True, ge=0, le=AUDIO_UPLOAD_MAX_BYTES)]
+    chunk_bytes: Literal[8388608] = AUDIO_UPLOAD_CHUNK_BYTES
+    receipt: AudioUploadReceipt | None = None
+    error: Error | None = None
+    created_at: Utc
+    updated_at: Utc
+
+    @model_validator(mode='after')
+    def valid_audio_status(self):
+        if (self.payload_hash != upload_payload_hash(self.binding) or self.next_offset > self.binding.size_bytes
+                or (self.next_offset != self.binding.size_bytes and self.next_offset % self.chunk_bytes)):
+            raise ValueError('Audio upload identity or offset is invalid')
+        if self.status == 'committed':
+            if (self.next_offset != self.binding.size_bytes or self.receipt is None or self.error is not None
+                    or self.receipt.binding != self.binding or self.receipt.payload_hash != self.payload_hash):
+                raise ValueError('Committed audio upload requires its complete fixed receipt')
+        elif self.receipt is not None:
+            raise ValueError('Uncommitted audio upload has no receipt')
+        elif self.status == 'rejected':
+            if (self.error is None or self.error.request_id != self.binding.request_id
+                    or self.error.details.get('effect') != 'no_registration'):
+                raise ValueError('Rejected audio upload requires proof of no registration')
+        elif self.error is not None:
+            raise ValueError('Uploading or cancelled audio upload has no final error')
+        return self
+
+
+UPLOAD_MODELS = [UploadBinding, UploadReceipt, UploadStatus, AudioUploadBinding, AudioUploadReceipt, AudioUploadStatus]

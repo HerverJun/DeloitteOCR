@@ -92,6 +92,19 @@
           "default": null,
           "title": "Box"
         },
+        "channel": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
         "column_number": {
           "anyOf": [
             {
@@ -121,6 +134,19 @@
           "default": null,
           "title": "Coordinate Space"
         },
+        "end_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Ms"
+        },
         "image_version_id": {
           "anyOf": [
             {
@@ -142,7 +168,8 @@
             "table",
             "cell",
             "row",
-            "region"
+            "region",
+            "media_segment"
           ],
           "title": "Kind",
           "type": "string"
@@ -201,6 +228,19 @@
           ],
           "default": null,
           "title": "Sheet Name"
+        },
+        "start_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Ms"
         },
         "table_number": {
           "anyOf": [

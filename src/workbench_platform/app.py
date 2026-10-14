@@ -27,6 +27,7 @@ from .jobs.classification_handoff import configure_classification_handoff, route
 from .batches.routes import configure_batches, router as batches_router
 from .audit.routes import configure_audit, router as audit_router
 from .forensics.routes import configure_forensics, router as forensics_router
+from .multimodal.routes import configure_multimodal, router as multimodal_router
 from .agent.routes import configure_agent, router as agent_router
 from .agent.skills_routes import router as agent_skills_router
 
@@ -55,9 +56,14 @@ async def lifespan(app: FastAPI):
         configure_batches(app)
         configure_audit(app)
         configure_forensics(app)
+        configure_multimodal(app)
         await configure_agent(app)
         yield
     finally:
+        manual_service = getattr(app.state, 'multimodal_service', None)
+        if manual_service is not None:
+            manual_service.close()
+        app.state.multimodal_service = None
         agent = getattr(app.state, 'agent', None)
         if agent is not None:
             await agent.close()
@@ -101,6 +107,7 @@ app.include_router(classification_handoff_router)
 app.include_router(batches_router)
 app.include_router(audit_router)
 app.include_router(forensics_router)
+app.include_router(multimodal_router)
 app.include_router(agent_router)
 app.include_router(agent_skills_router)
 
@@ -138,4 +145,6 @@ if portal_directory:
         candidate = (portal_root / requested_path).resolve()
         if not candidate.is_relative_to(portal_root):
             return JSONResponse({'detail': 'Not found'}, status_code=404)
-        return FileResponse(candidate if candidate.is_file() else portal_root / 'index.html')
+        target = candidate if candidate.is_file() else portal_root / 'index.html'
+        # Revalidate the SPA entry so an existing browser loads the current build.
+        return FileResponse(target, headers={'Cache-Control': 'no-cache'} if target.name == 'index.html' else None)

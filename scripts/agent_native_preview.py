@@ -95,7 +95,8 @@ def configure(source, program, data):
     data.mkdir(parents=True, exist_ok=True)
     os.environ.update(storage_environment(data))
     os.environ.update(WORKBENCH_DATA_DIR=str(data), WORKBENCH_DATA_PYTHON=str(program / 'runtimes/data/python.exe'),
-                      WORKBENCH_FORENSICS_PYTHON=str(program / 'runtimes/forensics/python.exe'), WORKBENCH_NATIVE_STARTUP_SECONDS='60')
+                      WORKBENCH_FORENSICS_PYTHON=str(program / 'runtimes/forensics/python.exe'),
+                      WORKBENCH_PROGRAM_ROOT=str(program), WORKBENCH_NATIVE_STARTUP_SECONDS='60')
     bundle_root, config = data / 'agent-native/bundles', data / 'agent-native/config'
     config.mkdir(parents=True, exist_ok=True)
     receipts = []

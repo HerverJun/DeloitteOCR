@@ -128,6 +128,8 @@ class ArtifactCenter:
                 "inputs": json.loads(row["input_json"]), "files": files}
 
     def list(self, workspace_id: str, offset: int, limit: int):
+        from workbench_platform.multimodal.artifacts import configure as configure_manual
+        configure_manual(self)
         parts = ["SELECT 'data' kind,bundle_id,created_at FROM data_artifact_bundle "
                  "WHERE workspace_id=? AND status='ready'"]
         parts.append("SELECT 'native_export' kind,bundle_id,created_at FROM native_export_bundles WHERE workspace_id=? AND json_extract(payload,'$.status')='ready'")
@@ -141,6 +143,7 @@ class ArtifactCenter:
             parts.append("SELECT 'ocr' kind,bundle_id,created_at FROM ocr_artifact_bundle "
                          "WHERE workspace_id=? AND status='ready'")
         parts.append("SELECT 'forensics' kind,bundle_id,created_at FROM forensic_artifact_bundle WHERE workspace_id=? AND status='ready'")
+        parts.append("SELECT 'manual' kind,bundle_id,created_at FROM manual_artifact_bundle WHERE workspace_id=? AND status='ready'")
         union = " UNION ALL ".join(parts)
         params = (workspace_id,) * len(parts)
         with closing(self._connect()) as db:
@@ -150,7 +153,10 @@ class ArtifactCenter:
         items = []
         for row in keys:
             bundle_id = row["bundle_id"]
-            if row["kind"] == "forensics":
+            if row['kind'] == 'manual':
+                from workbench_platform.multimodal.artifacts import get as get_manual
+                items.append(get_manual(self, workspace_id, bundle_id))
+            elif row["kind"] == "forensics":
                 from workbench_platform.forensics.artifacts import get
                 items.append(get(self, workspace_id, bundle_id))
             elif row['kind'] == 'native_export':
@@ -173,6 +179,12 @@ class ArtifactCenter:
                 "next_offset": offset + limit if offset + limit < total else None}
 
     def get(self, workspace_id: str, bundle_id: str):
+        from workbench_platform.multimodal.artifacts import configure as configure_manual, get as get_manual
+        configure_manual(self)
+        try:
+            return get_manual(self, workspace_id, bundle_id)
+        except ArtifactUnavailable:
+            pass
         from .native_exports import get as get_native
         try:
             return get_native(self, workspace_id, bundle_id)
@@ -216,6 +228,16 @@ class ArtifactCenter:
         raise ArtifactUnavailable("NOT_FOUND")
 
     def file(self, workspace_id: str, bundle_id: str, name: str):
+        from workbench_platform.multimodal.artifacts import configure as configure_manual, get as get_manual
+        configure_manual(self)
+        try:
+            manual = get_manual(self, workspace_id, bundle_id)
+        except ArtifactUnavailable:
+            pass
+        else:
+            file = next((f for f in manual['files'] if f['name']==name),None)
+            if file is None:raise ArtifactUnavailable('NOT_FOUND')
+            return self.store.get(workspace_id,file['artifact_id'])
         from .native_exports import get as get_native
         try:
             native = get_native(self, workspace_id, bundle_id)

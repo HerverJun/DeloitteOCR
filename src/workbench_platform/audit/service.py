@@ -191,6 +191,20 @@ class AuditService:
     def _source_context(self, task_id, workspace_id):
         from workbench_platform.agent.registry import ToolContext
         runtime = getattr(self.app.state, 'agent', None)
+        manual=getattr(self.app.state,'multimodal_service',None)
+        if manual is not None:
+            try:
+                analysis=manual.get(workspace_id,task_id)
+            except DataError as error:
+                if error.status!=404:raise
+            else:
+                if runtime is not None:store=runtime.store
+                else:
+                    from workbench_platform.agent.store import AgentStore
+                    with manual.lock:
+                        if not hasattr(manual,'provenance_store'):manual.provenance_store=AgentStore(manual.root.parent/'agent')
+                        store=manual.provenance_store
+                return ToolContext(workspace_id,task_id,'',0,0,'',tuple(source['asset_id'] for source in analysis['inputs']),self.app.state,store)
         if runtime is None:
             raise DataError('源任务服务尚不可用', 503)
         session = runtime.store.session(task_id)
@@ -198,6 +212,19 @@ class AuditService:
             raise DataError('源任务不属于目标项目', 404)
         return ToolContext(workspace_id, task_id, '', 0, 0, '', tuple(session['selected_assets']),
                            runtime.services, runtime.store)
+
+    def _manual_snapshot(self,choice,workspace_id,context=None):
+        from .direct import snapshot
+        from workbench_platform.application_services.references import asset_allowed
+        try:bundle=self.center.get(workspace_id,choice['manual_bundle_id'])
+        except ArtifactUnavailable as error:raise DataError('成果不属于当前项目或尚不可用',404) from error
+        if bundle.get('kind')!='manual_analysis':raise DataError('请选择已人工复核的多模态成果')
+        source_context=self._source_context(bundle['platform_job_id'],workspace_id)
+        value=snapshot(contract.DirectEvidenceRequest(reference={'kind':'artifact','workspace_id':workspace_id,
+            'object_id':bundle['bundle_id'],'revision':1}),source_context)
+        if context is not None and any(not asset_allowed(context,s['asset_id']) for s in value['source_assets']):
+            raise DataError('成果原件超出当前任务范围',403)
+        return value
 
     def _direct_snapshot(self, choice, workspace_id, context=None):
         from workbench_platform.application_services.references import asset_allowed
@@ -349,8 +376,11 @@ class AuditService:
                 ref = retained.get(choice['evidence_id'])
                 if ref is None:
                     raise DataError('只能保留此调查事项原有的证据快照', 409)
-            elif 'source_evidence_id' in choice:
-                evidence = self._direct_snapshot(choice, project['workspace_id'], context)
+            elif 'source_evidence_id' in choice or 'manual_bundle_id' in choice:
+                evidence = (self._manual_snapshot(choice,project['workspace_id'],context) if 'manual_bundle_id' in choice
+                            else self._direct_snapshot(choice, project['workspace_id'], context))
+                if 'manual_bundle_id' in choice:
+                    choice={'task_id':evidence['task_id'],'source_evidence_id':evidence['evidence_id'],'snapshot_hash':evidence['snapshot_hash']}
                 evidence_id = identity('e')
                 ref = {**choice, 'evidence_id': evidence_id, 'project_id': project['project_id'],
                        'workspace_id': project['workspace_id'], 'scenario': 'direct_tool', 'captured_at': now(),

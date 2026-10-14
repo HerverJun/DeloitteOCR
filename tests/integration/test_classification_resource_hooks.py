@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-CLASSIFICATION_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/classification/src")
+CLASSIFICATION_SRC = Path(__file__).resolve().parents[3] / 'classification' / 'src'
 sys.path.insert(0, str(CLASSIFICATION_SRC))
 
 from image_platform import cli, platform_resources as resources  # noqa: E402
@@ -120,13 +120,16 @@ def test_cli_cuda_predict_and_doctor_are_isolated(monkeypatch):
     assert [item["mode"] for item in calls] == ["doctor", "predict"]
 
 
-def test_native_classification_entries_in_isolated_runtime():
-    python = Path("E:/project/image-classification-platform/.venv/Scripts/python.exe")
+def test_native_classification_entries_in_isolated_runtime(tmp_path):
+    python = CLASSIFICATION_SRC.parents[2] / 'program/bundles/classification/runtimes/control/python.exe'
     environment = os.environ.copy()
     environment["PYTHONPATH"] = str(CLASSIFICATION_SRC)
+    environment['PYTHONDONTWRITEBYTECODE']='1'
     for key in resources._KEYS:
         environment.pop(key, None)
-    result = subprocess.run([str(python), "-m", "pytest", "tests/test_resource_hooks.py", "-q"],
+    environment['PYTEST_ADDOPTS']='-p no:cacheprovider'
+    result = subprocess.run([str(python), "-m", "pytest", "tests/test_resource_hooks.py", "-q", '-p', 'no:cacheprovider',
+                             '--basetemp',str(tmp_path/'classification-pytest')],
                             cwd=CLASSIFICATION_SRC.parent, env=environment,
                             capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stdout + result.stderr

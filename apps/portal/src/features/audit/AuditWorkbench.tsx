@@ -14,6 +14,7 @@ import './audit.css'
 import type { ForensicEvidenceSelection, ForensicEvidenceRef, AuditDirectEvidenceRef } from '../../../../../packages/contracts/types.generated'
 import { FormalDraftOrigin, FormalDirectEvidence } from './FormalDraftOrigin'
 import { ForensicPicker } from '../forensics/ForensicWorkbench'
+import { ManualEvidencePicker, type ManualSelection } from '../multimodal/ManualEvidencePicker'
 
 const { Title, Text, Paragraph } = Typography
 const PAGE_SIZE = 20
@@ -154,12 +155,14 @@ function FindingEditor({ finding, procedure, project, workspaceId, writer }: {
   const [form] = Form.useForm<AuditFindingFields>()
   const [selected, setSelected] = useState<AuditEvidenceSelection[]>([])
   const [forensic, setForensic] = useState<ForensicEvidenceSelection[]>([])
+  const [manual, setManual] = useState<ManualSelection[]>([])
   const [kept, setKept] = useState<(AuditEvidenceRef | ForensicEvidenceRef | AuditDirectEvidenceRef)[]>(finding?.evidence_refs || [])
   useEffect(() => {
     const editPath = `${auditProjectPath(project.project_id)}/findings${finding ? '/' + encodeURIComponent(finding.finding_id) : ''}`
     const draft = writer.pending?.path === editPath && writer.pending.payload
     form.setFieldsValue(draft && 'finding' in draft && draft.finding ? draft.finding : finding?.finding || findingFields)
     setSelected(draft && 'evidence' in draft ? (draft.evidence || []).filter((item): item is AuditEvidenceSelection => 'batch_id' in item) : [])
+    setManual(draft && 'evidence' in draft ? (draft.evidence || []).filter((item): item is ManualSelection => 'manual_bundle_id' in item) : [])
     setForensic(draft && 'evidence' in draft ? (draft.evidence || []).filter((item): item is ForensicEvidenceSelection => 'inspection_id' in item) : [])
     setKept(draft && 'evidence' in draft ? (finding?.evidence_refs || []).filter(item => draft.evidence?.some(value => 'evidence_id' in value && value.evidence_id === item.evidence_id)) : finding?.evidence_refs || [])
   }, [finding?.finding_id, form])
@@ -168,7 +171,7 @@ function FindingEditor({ finding, procedure, project, workspaceId, writer }: {
     <Form form={form} layout="vertical" disabled={writer.blocked} onFinish={fields => writer.submit(
     `${auditProjectPath(project.project_id)}/findings${finding ? '/' + encodeURIComponent(finding.finding_id) : ''}`,
     { ...auditCommand(writer.actor), expected_revision: project.revision, ...(!finding ? { procedure_id: procedure.procedure_id } : {}),
-      finding: fields, evidence: [...kept.map(item => ({ evidence_id: item.evidence_id })), ...selected, ...forensic] }, finding ? '保存调查说明与结论' : '生成调查事项')}>
+      finding: fields, evidence: [...kept.map(item => ({ evidence_id: item.evidence_id })), ...selected, ...forensic, ...manual] }, finding ? '保存调查说明与结论' : '生成调查事项')}>
     <Form.Item label="调查事项名称" name="title" rules={[{ required: true, whitespace: true, message: '填写调查事项名称' }, { max: 200 }]}><Input aria-label="调查事项名称" /></Form.Item>
     <div className="audit-form-grid"><Form.Item label="优先级" name="priority"><Select aria-label="调查优先级" options={Object.entries(priorityNames).map(([value, label]) => ({ value, label }))} /></Form.Item>
       <Form.Item label="调查状态" name="status"><Select aria-label="调查状态" options={[{ value: 'draft', label: '尚未解决' }, { value: 'resolved', label: '已解决' }]} /></Form.Item></div>
@@ -179,7 +182,8 @@ function FindingEditor({ finding, procedure, project, workspaceId, writer }: {
       {' '}<Button size="small" onClick={() => setKept(values => values.filter(value => value.evidence_id !== item.evidence_id))}>取消引用</Button></li>)}</ul></>}
     <IssuePicker key={procedure.procedure_id} procedure={procedure} workspaceId={workspaceId} writer={writer} selected={selected} onSelected={setSelected} />
     <ForensicPicker workspaceId={workspaceId} disabled={writer.blocked} selected={forensic} onSelected={setForensic} />
-    <Button className="application-message" type="primary" htmlType="submit" disabled={!kept.length && !selected.length && !forensic.length}>{finding ? '保存调查说明与结论' : '生成调查事项'}</Button>
+    <ManualEvidencePicker workspaceId={workspaceId} disabled={writer.blocked} selected={manual} onSelected={setManual} />
+    <Button className="application-message" type="primary" htmlType="submit" disabled={!kept.length && !selected.length && !forensic.length && !manual.length}>{finding ? '保存调查说明与结论' : '生成调查事项'}</Button>
   </Form>{finding && <RecordControls kind="finding" id={finding.finding_id} contentRevision={finding.content_revision} contextRevision={finding.project_context_revision}
     records={finding.records} current={finding.records_current} project={project} writer={writer} />}</>
 }

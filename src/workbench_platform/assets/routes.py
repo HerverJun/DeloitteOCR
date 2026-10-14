@@ -21,10 +21,12 @@ from packages.contracts.models import AssetSetItem, Error, SourceLocator
 from packages.contracts.uploads import UploadBinding, UploadStatus
 from workbench_platform.assets.registry import AssetChanged, AssetRegistry, AssetUnavailable, UploadConflict, UploadMissing
 from workbench_platform.assets.sets import AssetSetConflict, AssetSetMissing, AssetSetStore
+from workbench_platform.assets.audio_uploads import router as audio_upload_router
 from workbench_platform.workspaces.routes import ID, _loopback_host, _same_loopback_origin
 
 router = APIRouter(prefix="/api/platform/v1/workspaces/{workspace_id}/assets", tags=["assets"])
 MAX_UPLOAD = 128 * 1024 * 1024
+router.include_router(audio_upload_router)
 
 
 def configure_assets(app) -> None:

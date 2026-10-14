@@ -1,0 +1,240 @@
+{
+  "$defs": {
+    "ManualOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "default": "analyze",
+          "enum": [
+            "detect",
+            "compare",
+            "search",
+            "analyze"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "maximum": 63,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "device": {
+          "default": "cpu",
+          "enum": [
+            "cpu",
+            "cuda"
+          ],
+          "title": "Device",
+          "type": "string"
+        },
+        "expected_subject": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Expected Subject",
+          "type": "string"
+        },
+        "face_indices": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "title": "Face Indices",
+          "type": "array"
+        },
+        "threshold": {
+          "default": 0.363,
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "top_k": {
+          "default": 5,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Top K",
+          "type": "integer"
+        }
+      },
+      "title": "ManualOptions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actual_device": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Actual Device"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error"
+    },
+    "generation": {
+      "minimum": 1,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "inputs": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "job_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Job Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "face",
+        "audio",
+        "seal",
+        "catnet"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "options": {
+      "$ref": "#/$defs/ManualOptions"
+    },
+    "progress": {
+      "additionalProperties": true,
+      "title": "Progress",
+      "type": "object"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Result"
+    },
+    "result_hash": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Result Hash"
+    },
+    "review": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Review"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "cancelling",
+        "cancelled",
+        "failed",
+        "succeeded",
+        "needs_verification"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "job_id",
+    "workspace_id",
+    "request_id",
+    "kind",
+    "inputs",
+    "options",
+    "status",
+    "stage",
+    "revision",
+    "generation",
+    "created_at",
+    "updated_at",
+    "result",
+    "review",
+    "error"
+  ],
+  "title": "ManualAnalysis",
+  "type": "object"
+}

@@ -10,7 +10,7 @@ def upload_paths(ref, response, parameter, binding_model):
         schema = {key: value for key, value in properties[name].items()
                   if key not in ('title', 'default')}
         metadata.append({'name': name, 'in': 'query', 'required': True, 'schema': schema})
-    return {path: {
+    paths = {path: {
         'post': {
             'operationId': 'uploadWorkspaceAssetWithRequest',
             'parameters': parameters + metadata,
@@ -40,3 +40,45 @@ def upload_paths(ref, response, parameter, binding_model):
                 '403': response('Error', 'Host not permitted'),
                 '404': response('Error', 'Request not currently found; effect is not inferred'),
                 '503': response('Error', 'Store unavailable')}}}}
+    audio = '/api/platform/v1/workspaces/{workspace_id}/assets/audio-uploads/{request_id}'
+    audio_responses = {
+        '200': response('AudioUploadStatus'),
+        '400': response('Error', 'Invalid metadata or content type'),
+        '403': response('Error', 'Origin or host not permitted'),
+        '404': response('Error', 'Unknown workspace or request'),
+        '409': response('Error', 'Binding, chunk hash or offset conflict'),
+        '413': response('Error', 'Chunk exceeds 8 MiB'),
+        '507': response('Error', 'Insufficient F drive space; preserve request identity'),
+        '503': response('Error', 'Store unavailable; query the original request before retrying'),
+    }
+    paths[audio] = {
+        'post': {
+            'operationId': 'beginWorkspaceAudioUpload', 'parameters': parameters,
+            'description': 'Reserve or replay a fixed audio upload of at most 4 GiB. Only supported audio filenames are accepted. Other upload endpoints retain their 128 MiB limit.',
+            'requestBody': {'required': True, 'content': {'application/json': {'schema': ref('AudioUploadBinding')}}},
+            'responses': {**audio_responses, '201': response('AudioUploadStatus', 'Reserved audio upload')}},
+        'get': {
+            'operationId': 'getWorkspaceAudioUpload', 'parameters': parameters,
+            'description': 'Read durable next_offset. After a lost response, read this status before retransmitting. Reloading the browser requires reselecting and hashing the same original file.',
+            'responses': audio_responses},
+    }
+    paths[audio + '/chunks'] = {'put': {
+        'operationId': 'appendWorkspaceAudioChunk',
+        'parameters': parameters + [
+            {'name': 'offset', 'in': 'query', 'required': True, 'schema': {'type': 'integer', 'minimum': 0, 'maximum': 4294967296}},
+            {'name': 'sha256', 'in': 'query', 'required': True, 'schema': {'type': 'string', 'pattern': '^[a-f0-9]{64}$'}},
+        ],
+        'description': 'Append exactly 8 MiB at next_offset, except the shorter final chunk. Fsync and chunk SHA-256 precede durable acknowledgement. Exact committed chunk replays are idempotent; gaps and altered replays cannot overwrite bytes.',
+        'requestBody': {'required': True, 'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}},
+        'responses': audio_responses,
+    }}
+    for action in ('complete', 'cancel'):
+        paths[audio + '/' + action] = {'post': {
+            'operationId': ('complete' if action == 'complete' else 'cancel') + 'WorkspaceAudioUpload',
+            'parameters': parameters,
+            'description': ('Verify the full file SHA-256 and atomically commit the existing asset registration and immutable receipt.'
+                            if action == 'complete' else 'Cancel an uncommitted upload and remove only its temporary bytes. A committed upload keeps its original receipt.'),
+            'requestBody': {'required': True, 'content': {'application/json': {'schema': {'type': 'object', 'maxProperties': 0, 'additionalProperties': False}}}},
+            'responses': audio_responses,
+        }}
+    return paths

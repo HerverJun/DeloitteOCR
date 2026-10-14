@@ -133,6 +133,10 @@ class AuditDirectEvidenceSelection(AuditStrict):
     snapshot_hash: Hash
 
 
+class ManualEvidenceSelection(AuditStrict):
+    manual_bundle_id: Id
+
+
 class AuditDirectEvidenceRef(AuditDirectEvidenceSelection):
     evidence_id: Id
     project_id: Id
@@ -209,7 +213,7 @@ class AuditProcedureWrite(AuditProcedureCreate):
 class AuditFindingCreate(AuditConditionalCommand):
     procedure_id: Id
     finding: AuditFindingFields | None = None
-    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection] = Field(default_factory=list, max_length=100)
+    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection | ManualEvidenceSelection] = Field(default_factory=list, max_length=100)
     source_draft: DraftTransferSource | None = None
 
     @model_validator(mode='after')
@@ -223,7 +227,7 @@ class AuditFindingCreate(AuditConditionalCommand):
 
 class AuditFindingWrite(AuditConditionalCommand):
     finding: AuditFindingFields
-    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection] = Field(max_length=100)
+    evidence: list[AuditEvidenceSelection | ForensicEvidenceSelection | AuditEvidenceKeep | AuditDirectEvidenceSelection | ManualEvidenceSelection] = Field(max_length=100)
 
 
 class AuditRecordCreate(AuditConditionalCommand):

@@ -137,20 +137,22 @@ function Workspace({ workspaceId }: { workspaceId: string }) {
   function submit() { const asset = assets.data?.items.find(item => item.asset_id === assetId); if (!asset) return
     const payload: InspectionCreate = { schema_version: '1.0', request_id: newRequestId(), asset_id: asset.asset_id, asset_revision: asset.revision, blob_hash: asset.blob_hash, tools: chosen }
     localStorage.setItem(pendingKey, JSON.stringify(payload)); setPending(payload); start.mutate(payload) }
-  return <><section className="panel"><Title level={3}>选择图片与取证工具</Title><Paragraph>支持单帧 JPEG、PNG、WebP、BMP、TIFF，最大 32 MiB、1200 万像素。先上传资料，再选择原件。</Paragraph>
+  return <><details className="panel forensic-start" open={!detail.data?.report || !!pending}>
+    <summary className="forensic-start-title"><span>选择图片与取证工具</span><small>{detail.data?.report ? '展开，开始另一项检查' : '上传原件并选择检查工具'}</small></summary>
+    <div className="forensic-start-body"><Paragraph>支持单帧 JPEG、PNG、WebP、BMP、TIFF，最大 32 MiB、1200 万像素。先上传资料，再选择原件。</Paragraph>
     <UploadQueue workspaceId={workspaceId} />
     <Input.Search className="application-message" aria-label="搜索取证图片" placeholder="按图片名称搜索" disabled={!!pending} onSearch={value => { setKeyword(value); setAssetPage(1); setAssetId('') }} />
-    <Space wrap className="application-message"><Select aria-label="取证图片" placeholder="选择资料库图片" style={{ minWidth: 280 }} value={assetId || undefined} onChange={setAssetId} loading={assets.isPending} disabled={!!pending}
-      options={assets.data?.items.filter(item => item.media_type.startsWith('image/')).map(item => ({ value: item.asset_id, label: item.original_name }))} /><Button onClick={() => void assets.refetch()}>刷新图片</Button><Link to={`/assets?workspace=${workspaceId}`}>资料库</Link></Space>
+    <div className="application-message forensic-asset-actions"><Select className="forensic-asset-select" aria-label="取证图片" placeholder="选择资料库图片" value={assetId || undefined} onChange={setAssetId} loading={assets.isPending} disabled={!!pending}
+      options={assets.data?.items.filter(item => item.media_type.startsWith('image/')).map(item => ({ value: item.asset_id, label: item.original_name }))} /><Button onClick={() => void assets.refetch()}>刷新图片</Button><Link to={`/assets?workspace=${workspaceId}`}>资料库</Link></div>
     {assets.error && <Alert type="error" title={assets.error.message} />}
     <Pagination current={assetPage} pageSize={50} total={assets.data?.total || 0} onChange={value => { setAssetPage(value); setAssetId('') }} showSizeChanger={false} disabled={!!pending} />
     <details className="application-message"><summary>处理设置 · 已选择 {chosen.length} 项检查</summary><Checkbox.Group options={[...tools]} value={chosen} disabled={!!pending} onChange={values => setChosen(values as InspectionCreate['tools'])} /></details>
     <Button className="application-message" type="primary" onClick={submit} disabled={!assetId || !chosen.length || !!pending} loading={start.isPending}>开始本地取证</Button>
     {start.error && <Alert type="error" title={start.error.message} />}
     {pending && <Space wrap><Text>原提交已保留，刷新后可核对同一任务。</Text><Button onClick={() => start.mutate(pending)} loading={start.isPending}>查询并续接原提交</Button><Button disabled={start.isPending} onClick={() => { localStorage.removeItem(pendingKey); setPending(null) }}>结束此提交草稿</Button></Space>}
-  </section>
+    </div></details>
     {detail.error && <Alert type="error" title={detail.error.message} action={<Button onClick={() => void detail.refetch()}>刷新</Button>} />}
-    {detail.data && <><section className="panel"><div className="section-head"><Title level={3}>{detail.data.original_name}</Title><Tag>{statuses[detail.data.status]}</Tag></div>
+    {detail.data && <><section className="panel forensic-report"><div className="section-head"><Title level={3}>{detail.data.original_name}</Title><Tag>{statuses[detail.data.status]}</Tag></div>
       {detail.data.error && <Alert type="warning" title={detail.data.error} />}
       <ForensicEvidenceView inspection={detail.data} />
       <Space wrap>{detail.data.status === 'needs_verification' && <Button loading={action.isPending} onClick={() => action.mutate('resume')}>恢复此中断任务</Button>}
@@ -163,7 +165,8 @@ function Workspace({ workspaceId }: { workspaceId: string }) {
 export function ForensicWorkbench() {
   const workspaceId = useWorkspaceId()
   const [params] = useSearchParams()
-  return <><div className="page-heading"><div className="eyebrow">APPLICATION / IMAGE FORENSICS</div><Title level={1}>{brands.forensics}</Title><Paragraph>选择或上传图片，开始检查，直接查看和下载报告。</Paragraph></div>
+  return <div className="forensic-workbench"><div className="page-heading"><div className="eyebrow">APPLICATION / IMAGE FORENSICS</div><Title level={1}>{brands.forensics}</Title><Paragraph>选择或上传图片，开始检查，直接查看和下载报告。</Paragraph></div>
+    <Paragraph><Link to={`/apps/forensics/deep${params.size ? `?${params}` : ''}`}>打开 CAT-Net 深度区域分析 →</Link></Paragraph>
     {workspaceId ? <Workspace key={workspaceId} workspaceId={workspaceId} /> : <Workspaces continueTo="/apps/forensics" />}
-    <div className="back-link"><Link to={`/apps${params.size ? `?${params}` : ''}`}>← 返回应用目录</Link></div></>
+    <div className="back-link"><Link to={`/apps${params.size ? `?${params}` : ''}`}>← 返回应用目录</Link></div></div>
 }

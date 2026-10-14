@@ -12,6 +12,7 @@ import { BatchCenter } from './features/batches/BatchCenter'
 import { AuditWorkbench } from './features/audit/AuditWorkbench'
 import { TodoCenter } from './features/todos/TodoCenter'
 import { ForensicWorkbench } from './features/forensics/ForensicWorkbench'
+import { MultimodalWorkbench } from './features/multimodal/MultimodalWorkbench'
 import { clearTheme } from './clear-ui/theme'
 import { QuickNativeWorkbench } from './features/start/QuickNativeWorkbench'
 import { PlatformSettings } from './features/agent/PlatformSettings'
@@ -21,8 +22,9 @@ import { AuditHelp } from './features/agent/AuditHelp'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: clearTheme.primary, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
-    colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorBgBase: clearTheme.panel,
+    colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorTextDescription: clearTheme.muted, colorBgBase: clearTheme.panel,
     colorBgLayout: clearTheme.workspace, colorBorder: clearTheme.border, colorBorderSecondary: clearTheme.border,
+    colorPrimaryBg: clearTheme.selected, colorFillAlter: clearTheme.subtle,
     borderRadius: clearTheme.controlRadius, borderRadiusLG: clearTheme.panelRadius,
     colorInfoBg: '#f0f4f7', colorInfoBorder: '#d8e1e8',
     colorSuccessBg: clearTheme.selected, colorWarningBg: '#fbf6ea', colorErrorBg: '#fdf1f1',
@@ -33,10 +35,13 @@ export const theme: ThemeConfig = {
     Layout: { siderBg: clearTheme.navigation, bodyBg: clearTheme.workspace, headerBg: clearTheme.header, headerHeight: clearTheme.headerHeight },
     Menu: { darkItemBg: clearTheme.navigation, darkItemSelectedBg: '#273329', darkItemSelectedColor: '#d2eb9e',
       darkItemColor: clearTheme.navigationText, darkItemHoverBg: '#222c31', itemHeight: clearTheme.controlHeight, itemBorderRadius: clearTheme.controlRadius },
-    Button: { primaryColor: clearTheme.primaryText, dangerColor: '#ffffff', defaultBorderColor: clearTheme.border },
-    Card: { headerFontSize: clearTheme.panelTitleSize, headerHeight: 48, bodyPadding: 20 },
+    Button: { primaryColor: clearTheme.primaryText, dangerColor: '#ffffff', defaultBorderColor: clearTheme.border,
+      defaultShadow: 'none', primaryShadow: 'none' },
+    Card: { headerFontSize: clearTheme.panelTitleSize, headerHeight: 48, bodyPadding: clearTheme.panelPadding },
+    Form: { itemMarginBottom: 16, verticalLabelPadding: '0 0 6px' },
     Typography: { fontSizeHeading1: clearTheme.titleSize, fontSizeHeading2: clearTheme.titleSize, fontSizeHeading3: clearTheme.panelTitleSize, fontSizeHeading4: clearTheme.panelTitleSize },
-    Table: { cellPaddingBlockSM: 8, cellPaddingInlineSM: 12 },
+    Table: { cellPaddingBlockSM: 8, cellPaddingInlineSM: 12, headerBg: clearTheme.subtle,
+      headerColor: clearTheme.muted, rowSelectedBg: clearTheme.selected },
   },
 }
 
@@ -81,6 +86,10 @@ export const routes: RouteObject[] = [{
     { path: 'apps', element: <Applications /> },
     { path: 'apps/data', element: <DataWorkbench /> },
     { path: 'apps/forensics', element: <ForensicWorkbench /> },
+    { path: 'apps/face', element: <MultimodalWorkbench kind="face" /> },
+    { path: 'apps/audio', element: <MultimodalWorkbench kind="audio" /> },
+    { path: 'apps/ocr/seals', element: <MultimodalWorkbench kind="seal" /> },
+    { path: 'apps/forensics/deep', element: <MultimodalWorkbench kind="catnet" /> },
     { path: 'apps/ocr/start', element: <QuickNativeWorkbench appId="ocr" /> },
     { path: 'apps/classification/start', element: <QuickNativeWorkbench appId="classification" /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },

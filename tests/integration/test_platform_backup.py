@@ -384,7 +384,7 @@ def test_three_component_cold_restore_keeps_real_native_revisions_and_unknown_op
     for name, database in [('ocr', 'workbench.sqlite3'), ('classification', 'platform.sqlite3')]:
         with sqlite3.connect(roots[name] / database) as db:
             source_schemas[name] = db.execute('PRAGMA user_version').fetchone()[0]
-    assert source_schemas == {'ocr': 16, 'classification': 5}
+    assert source_schemas == {'ocr': 17, 'classification': 5}
     group = {'format': 1, 'mode': 'cold', 'components': {name: {'files': len(manifest['files']),
         'manifest_sha256': hashlib.sha256((archive / name / 'manifest.json').read_bytes()).hexdigest()}
         for name, manifest in manifests.items()}, 'source_schemas': source_schemas,
@@ -402,7 +402,7 @@ def test_three_component_cold_restore_keeps_real_native_revisions_and_unknown_op
     restored_ocr = ocr_module.Store(restored['ocr'])
     restored_class = class_module.Store(Settings(restored['classification']))
     reopened = BatchStore(restored['platform'] / 'batches')
-    for name, database, version in [('ocr', 'workbench.sqlite3', 16), ('classification', 'platform.sqlite3', 5)]:
+    for name, database, version in [('ocr', 'workbench.sqlite3', 17), ('classification', 'platform.sqlite3', 5)]:
         with sqlite3.connect(restored[name] / database) as db:
             assert db.execute('PRAGMA user_version').fetchone()[0] == version
             assert db.execute('PRAGMA quick_check').fetchone()[0] == 'ok'

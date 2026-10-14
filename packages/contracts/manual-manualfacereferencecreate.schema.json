@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "face_index": {
+      "maximum": 1000,
+      "minimum": 0,
+      "title": "Face Index",
+      "type": "integer"
+    },
+    "input_index": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Input Index",
+      "type": "integer"
+    },
+    "job_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Job Id",
+      "type": "string"
+    },
+    "label": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "job_id",
+    "face_index",
+    "label"
+  ],
+  "title": "ManualFaceReferenceCreate",
+  "type": "object"
+}

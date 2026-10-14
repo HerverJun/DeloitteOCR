@@ -179,7 +179,7 @@ export function ApplicationCard({ app, workspaceId, projectMode = false }: { app
   const serviceSummary = !verifying && !verificationFailed && !missing && !storageUnavailable && !current.data && serviceUnavailable
     ? healthReasonText(health.data?.service?.reason)
     : awaitingStartup ? '按需启动，打开时检查运行状态'
-      : progress?.message || (verifying ? '应用文件校验中，可先使用数据工作台' : missing ? healthReasonText(health.data?.service?.reason) || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? `实例 ${current.data.instance_id}` : healthReasonText(health.data?.service?.reason))
+      : progress?.message || (verifying ? '应用文件校验中，可先使用数据工作台' : missing ? healthReasonText(health.data?.service?.reason) || '本机未登记安装包' : storageUnavailable ? '请配置本机数据目录后启动' : current.data ? '本地服务已连接' : healthReasonText(health.data?.service?.reason))
   const linked = `/apps/${safeId}${context.size ? `?${context}` : ''}`
   const presentation = applicationDescriptions[app.app_id]
   return <Card className="application-card" title={<ToolIdentity appId={app.app_id} to={linked} label={brandName(app.app_id, app.display_name)} />}>
@@ -190,7 +190,7 @@ export function ApplicationCard({ app, workspaceId, projectMode = false }: { app
         <Alert type="error" title="无法核实应用状态" action={<Button onClick={() => { void health.refetch(); void current.refetch(); void installation.refetch() }}>重试</Button>} /> : <>
         <div className="application-state"><Tag color={verificationFailed ? 'error' : verifying && !verificationPassed ? 'processing' : current.data ? 'success' : missing || storageUnavailable || serviceUnavailable ? 'error' : awaitingStartup ? 'default' : verificationPassed ? 'success' : 'default'}>
           {verificationFailed ? '校验失败' : verifying ? progress?.phase === 'waiting' ? '等待校验' : verificationPassed ? '校验完成' : '正在校验' : current.data ? '实例已核实' : missing ? '未安装' : storageUnavailable ? '存储未配置' : serviceUnavailable ? '暂不可用' : awaitingStartup ? '待启动' : verificationPassed ? '已校验' : '尚未运行'}</Tag>
-          <Text type="secondary">{serviceSummary}</Text>
+          <Text type="secondary" title={current.data ? `实例 ${current.data.instance_id}` : undefined}>{serviceSummary}</Text>
         </div>
         {progress && progress.phase !== 'cached' && <div role="status" aria-live="polite" className="application-verification">
           <Progress percent={percent} status={verificationFailed ? 'exception' : progress.phase === 'checking' ? 'active' : progress.phase === 'passed' ? 'success' : 'normal'}
@@ -236,8 +236,8 @@ export function RecentWorks({ workspaceId }: { workspaceId: string | null }) {
       !recent.data?.length ? <Empty description="没有已核验的最近操作" /> : <div className="recent-list">
         {recent.data.map(item => <div key={item.recent_id}>
           <Text strong>{brandName(item.app_id)}</Text><Text type="secondary">{item.source === 'platform_launch' ? '平台已核验启动' : '原生项目已打开'}</Text>
-          <Text type="secondary">{item.module_project_id || item.launch_id}</Text>
-          <Text type="secondary">{new Date(item.opened_at).toLocaleString()}</Text>
+          <Text type="secondary" title={item.module_project_id || item.launch_id}>{item.module_project_id ? '项目已关联' : '工具启动'}</Text>
+          <Text type="secondary">{new Date(item.opened_at).toLocaleString('zh-CN')}</Text>
           <Link to={`/apps/${encodeURIComponent(item.app_id)}${scope ? `?workspace=${encodeURIComponent(scope)}` : ''}`}>继续（先核实实例）→</Link>
         </div>)}
       </div>}

@@ -3,7 +3,7 @@ from pathlib import Path
 from contextlib import closing
 import argparse, json, sqlite3, sys
 
-READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1')
+READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -61,6 +61,31 @@ def check(data, descriptor):
             raise ValueError('工作区读取能力记录不可识别，原文件保留')
         if set(requirements['reader_features'])-set(descriptor['reader_features']):
             raise ValueError('该候选缺少工作区所需记录读取能力，不能直接降级')
+    jobs=data/'jobs.sqlite3'
+    if jobs.is_file():
+        with closing(read_database(jobs)) as db:
+            tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if 'manual_analysis' in tables:
+                required={'job_id','workspace_id','request_id','payload_hash','body'}
+                if not required<={row[1] for row in db.execute('PRAGMA table_info(manual_analysis)')}:
+                    raise ValueError('多模态任务数据库结构不兼容')
+                rows=db.execute('SELECT body FROM manual_analysis').fetchall()
+                if rows and 'manual-multimodal-v1' not in descriptor['reader_features']:
+                    raise ValueError('该候选缺少多模态任务读取能力，不能直接降级')
+                if rows:
+                    from packages.contracts.multimodal import ManualAnalysis
+                    internal={'gpu_request_id','worker_epoch','oom_retries','active_seconds'}
+                    for row in rows:
+                        item=json.loads(row[0])
+                        if (set(item)&internal or 'channel' in item.get('options',{})) and 'manual-long-audio-v1' not in descriptor['reader_features']:
+                            raise ValueError('该候选缺少长录音与受管任务读取能力，不能直接降级')
+                        ManualAnalysis.model_validate({key:value for key,value in item.items() if key not in internal})
+    assets=data/'assets.sqlite3'
+    if assets.is_file():
+        with closing(read_database(assets)) as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='asset_audio_upload'").fetchone():
+                if db.execute('SELECT 1 FROM asset_audio_upload LIMIT 1').fetchone() and 'manual-long-audio-v1' not in descriptor['reader_features']:
+                    raise ValueError('该候选缺少大音频上传记录读取能力，不能直接降级')
     checked=[]
     for relative,requirements in descriptor['sqlite'].items():
         path=f_path(data/relative)
@@ -137,6 +162,7 @@ def active_work(data):
              ('native/classification/platform.sqlite3','jobs',"SELECT id,state FROM jobs WHERE state IN ('queued','running','pausing','cancelling')"),
              ('batches/batches.sqlite3','batches',"SELECT batch_id,json_extract(body,'$.status') FROM batches WHERE json_extract(body,'$.status') IN ('queued','running','waiting_resource','cancelling')"),
              ('forensics/forensics.sqlite3','inspections',"SELECT inspection_id,json_extract(body,'$.status') FROM inspections WHERE json_extract(body,'$.status') IN ('queued','running')"),
+             ('jobs.sqlite3','manual_analysis',"SELECT job_id,json_extract(body,'$.status') FROM manual_analysis WHERE json_extract(body,'$.status') IN ('queued','running','cancelling')"),
              ('data-workbench/sessions.sqlite3','jobs',"SELECT id,status FROM jobs WHERE status IN ('queued','running','cancelling')"))
     for relative,table,sql in queries:
         path=f_path(data/relative)

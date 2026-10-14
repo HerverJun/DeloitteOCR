@@ -21,8 +21,8 @@ import uuid
 
 PLATFORM_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
                   "recent-work.sqlite3", "ocr-handoffs.sqlite3",
-                  "classification-handoffs.sqlite3")
-PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics", "agent")
+                  "classification-handoffs.sqlite3", "product-reader-requirements.json")
+PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics", "agent", "manual-analysis")
 REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
             "ocr": ("workbench.sqlite3",)}
 OCR_TRANSIENT_DIRS = frozenset({".image-staging", "pdf-ipc"})

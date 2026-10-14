@@ -36,6 +36,9 @@ def snapshot(args, ctx, *, legacy=False):
         for member in value.get('inputs', []):
             if member.get('asset_id'):
                 add(source_locator(registry.get(ctx.workspace_id, member['asset_id'])))
+        for member in value.get('files', []):
+            artifact=ctx.services.artifact_center.file(ctx.workspace_id,ref.object_id,member['name'])
+            for source in artifact.source_refs:add(source.model_dump(mode='json'))
         summary = '固定已生成的成果及原始输入。'
     elif ref.kind == 'asset':
         asset = registry.get(ctx.workspace_id, ref.object_id)

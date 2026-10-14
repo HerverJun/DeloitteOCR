@@ -7,6 +7,7 @@ import { ApplicationCard, RecentWorks } from './features/catalog/ApplicationCard
 import { healthStateText, healthReasonText } from './features/catalog/ApplicationDeclaration'
 import { DataApplicationCard } from './features/data/DataWorkbench'
 import { ForensicApplicationCard } from './features/forensics/ForensicWorkbench'
+import { MultimodalApplicationCard } from './features/multimodal/MultimodalWorkbench'
 import { brands, brandName } from './clear-ui/theme'
 import { AgentWorkbench } from './features/agent/AgentWorkbench'
 import { ManualReturn } from './features/agent/ManualReturn'
@@ -108,10 +109,10 @@ export function App() {
         <Menu theme="dark" mode="inline" selectedKeys={location.pathname === '/settings' || location.pathname === '/help' ? [] : [active]}
           items={primaryNavigation}
           onClick={({ key }) => { navigate(mainHref(key)); if (narrowNavigation) setNavigationCollapsed(true) }} aria-label="主导航" />
-        <div className="sidebar-foot"><Link to={scoped('/help')}>使用指南</Link><br />Clear 智能审计 · v0.9.3</div>
+        <div className="sidebar-foot"><Link to={scoped('/help')}>使用指南</Link><br />Clear 智能审计 · v0.10.0</div>
       </Sider>
       {narrowNavigation && !navigationCollapsed && <button className="navigation-backdrop" aria-label="关闭导航" onClick={() => setNavigationCollapsed(true)} />}
-      <Content id="platform-content" tabIndex={-1} className={`page${location.pathname === '/' ? ' audit-home-page' : ''}`}>
+      <Content id="platform-content" tabIndex={-1} className={`page${location.pathname === '/' ? ' audit-home-page' : ''}${['/apps/data', '/apps/forensics'].includes(location.pathname) ? ' workbench-page' : ''}`}>
       <ManualReturn />
       {isProject && <ProjectNavigation />}
       {workspaceId && workspaces.isPending ? <div role="status" aria-label="正在读取项目"><Skeleton active /></div> :
@@ -140,7 +141,7 @@ export function Home() {
   return <AgentWorkbench />
 }
 
-export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/apps/ocr/start' | '/apps/classification/start' } = {}) {
+export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/apps/ocr/start' | '/apps/classification/start' | '/apps/face' | '/apps/audio' | '/apps/ocr/seals' | '/apps/forensics/deep' } = {}) {
   const list = useWorkspaces(), workspaceId = useWorkspaceId(), client = useQueryClient(), navigate = useNavigate()
   const [params] = useSearchParams()
   const location = useLocation()
@@ -209,13 +210,13 @@ export function Applications() {
   const [params] = useSearchParams(), taskId = params.get('task_return')
   const task = useQuery({ queryKey: ['audit-task', taskId], enabled: !!taskId && !!workspaceId,
     queryFn: () => agentRequest<AuditTask>(`/agent/sessions/${encodeURIComponent(taskId!)}/task`) })
-  return <><PageHeading eyebrow="APPLICATIONS" title="手动工具" description="打开工具处理资料、保存结果，再按需带回智能审计。" />
+  return <div className="manual-directory"><PageHeading eyebrow="APPLICATIONS" title="手动工具" description="打开工具处理资料、保存结果，再按需带回智能审计。" />
     {task.data?.workspace_id === workspaceId && !!(task.data.result_refs?.length || task.data.initial_refs?.length || task.data.job_refs?.length) && <section className="panel"><Title level={3}>当前任务已有结果</Title><ReferenceLinks taskId={taskId || undefined} refs={[...task.data.result_refs, ...task.data.initial_refs, ...task.data.job_refs]} /></section>}
     <div className="app-grid" aria-label="Clear 应用目录"><DataApplicationCard />
       <QueryState pending={apps.isPending} error={apps.isError} retry={() => void apps.refetch()}>
         {apps.data?.map(app => <ApplicationCard key={app.app_id} app={app} workspaceId={workspaceId} projectMode={!!workspaceId} />)}
-      </QueryState><ForensicApplicationCard />
-    </div><RecentWorks workspaceId={workspaceId} /></>
+      </QueryState><ForensicApplicationCard /><MultimodalApplicationCard kind="face" /><MultimodalApplicationCard kind="audio" />
+    </div><RecentWorks workspaceId={workspaceId} /></div>
 }
 
 export function Application() {

@@ -159,7 +159,7 @@ function InputPanel({ session, side, busy, run, upload }: { session: Session; si
           <Select aria-label={`${side}区间条件`} value={typedPredicate} onChange={setTypedPredicate} options={[{ value: 'gt', label: '大于' }, { value: 'ge', label: '大于等于' }, { value: 'lt', label: '小于' }, { value: 'le', label: '小于等于' }, { value: 'between', label: '闭区间' }]} /><Input aria-label={`${side}比较下限`} value={text} onChange={e => setText(e.target.value)} placeholder="比较值 / 下限" />{typedPredicate === 'between' && <Input aria-label={`${side}比较上限`} value={upper} onChange={e => setUpper(e.target.value)} placeholder="上限" />}</>}
         <Button type="primary" disabled={busy || !column} onClick={apply}>应用步骤</Button>
       </div>
-      <Space className="data-history" wrap><Select aria-label={`${side}历史版本`} value={table.revision} style={{ minWidth: 235 }} disabled={busy}
+      <Space className="data-history" wrap><Select aria-label={`${side}历史版本`} value={table.revision} disabled={busy}
         onChange={revision => void run('select_revision', { side, revision })} options={(table.versions || table.history).map((entry, index) => ({ value: entry.revision,
           label: `${index + 1}. ${operatorNames[entry.step?.operator || 'source']} · ${entry.output_rows} 行` }))} />
         <Button disabled={busy || table.history.length < 2} onClick={() => void run('undo', { side })}>撤销一步</Button>
@@ -234,11 +234,12 @@ function ComparePanel({ session, busy, run }: { session: Session; busy: boolean;
       <Select aria-label={`右侧映射${pair.left}`} value={pair.right || undefined} onChange={right => change(index, { right })} options={options(right.columns)} />
       <Select aria-label={`列用途${pair.left}`} value={pair.mode} onChange={mode => change(index, { mode })} options={[{ value: 'key', label: '匹配键' }, { value: 'compare', label: '比对值' }, { value: 'ignore', label: '忽略' }]} />
       <Checkbox disabled={pair.mode !== 'compare'} checked={pair.amount} onChange={event => change(index, { amount: event.target.checked })}>金额</Checkbox></div>)}</div>
+    <details className="data-options data-advanced"><summary>高级比对策略 <span>{typePolicy === 'strict' ? '区分列类型' : '按文本比较'} · {nullPolicy === 'equal' ? '空值视为相同' : '空值不匹配'} · 容差 {tolerance}</span></summary>
     <Space wrap className="data-policies"><Select aria-label="类型策略" value={typePolicy} onChange={setTypePolicy} options={[{ value: 'strict', label: '区分列类型' }, { value: 'text', label: '按文本比较' }]} />
       <Select aria-label="空值策略" value={nullPolicy} onChange={setNullPolicy} options={[{ value: 'never_match', label: '空值不匹配' }, { value: 'equal', label: '空值视为相同' }]} />
       <label>金额容差 <Input aria-label="金额容差" style={{ width: 100 }} value={tolerance} onChange={event => setTolerance(event.target.value)} /></label>
       <Checkbox checked={trim} onChange={event => setTrim(event.target.checked)}>比较时去首尾空白</Checkbox>
-      <Checkbox checked={fold} onChange={event => setFold(event.target.checked)}>忽略大小写</Checkbox></Space>
+      <Checkbox checked={fold} onChange={event => setFold(event.target.checked)}>忽略大小写</Checkbox></Space></details>
   </section>
 }
 
@@ -271,11 +272,11 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
   const query = useQuery({ queryKey: ['data-result', session.id, selected, category, page], enabled: !!selected,
     queryFn: () => request<ResultPage>(`/sessions/${session.id}/results/${selected}?offset=${(page - 1) * 30}&limit=30${category ? '&category=' + category : ''}`) })
   const metadata = query.data?.metadata
-  return <section id="data-results" className="panel"><div className="section-head"><Title level={3}>差异结果</Title><Space wrap>
-    <Select aria-label="历史比对" placeholder="选择一次比对" value={selected || undefined} style={{ minWidth: 220 }} onChange={value => { setSelected(value); setPage(1) }}
+  return <section id="data-results" className="panel"><div className="section-head"><Title level={3}>差异结果</Title><div className="data-results-actions">
+    <Select className="data-comparison-select" aria-label="历史比对" placeholder="选择一次比对" value={selected || undefined} onChange={value => { setSelected(value); setPage(1) }}
       options={session.state.comparisons.map((item, i) => ({ value: item.id, label: `${i + 1}. ${item.left_name} / ${item.right_name}` }))} />
     <Button type="primary" disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button>
-    {workspaceId && selected && session.workspace_id === workspaceId && <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&data_session=${encodeURIComponent(session.id)}&result=${encodeURIComponent(selected)}`}><Button>交给 Agent 继续处理</Button></Link>}</Space></div>
+    {workspaceId && selected && session.workspace_id === workspaceId && <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&data_session=${encodeURIComponent(session.id)}&result=${encodeURIComponent(selected)}`}><Button>交给 Agent 继续处理</Button></Link>}</div></div>
     {!selected ? <Empty description="完成比对后，这里显示固定版本的结果" /> : <>
       {metadata && <div className="data-counts">{[['相同', 'same_pairs'], ['差异', 'different_pairs'], ['仅左', 'only_left'], ['仅右', 'only_right'], ['重复键', 'ambiguous_keys']].map(([title, key]) =>
         <div key={key}><Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></div>)}</div>}
@@ -416,10 +417,15 @@ export function DataWorkbench() {
       {list.isError && <Alert type="error" title="作业历史读取失败" action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
       <Space.Compact>{!workspaceId && <Input aria-label="新作业名称" value={name} maxLength={100} onChange={event => setName(event.target.value)} />}<Button disabled={sending || !health.data?.ready || !!workspaceId && !projectName} onClick={() => void create()}>{workspaceId ? '开始新的比对' : '新建作业'}</Button></Space.Compact>
       {workspaceId && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}`}>项目输出</Link>}
-      {current && <div className="data-session-context"><Text strong>{current.name}</Text><Text type="secondary">作业版本 {current.version}</Text>
+      {current && <div className="data-session-context"><Text type="secondary">作业版本 {current.version}</Text>
         {current.jobs[0] && <Tag aria-live="polite" color={job ? 'processing' : current.jobs[0].status === 'failed' ? 'error' : current.jobs[0].status === 'succeeded' ? 'success' : 'default'}>
           {jobNames[(job || current.jobs[0]).action] || '操作'}{jobStatusNames[(job || current.jobs[0]).status] || (job || current.jobs[0]).status}</Tag>}
-        <nav className="data-flow-nav" aria-label="数据工作步骤"><a href="#data-inputs">输入与清洗</a><a href="#data-compare">比对设置</a><a href="#data-results">结果与导出</a></nav></div>}</div>
+        </div>}</div>
+    {current && <nav className="data-flow-nav" aria-label="数据工作步骤">
+      <a href="#data-inputs"><span className="data-step-number" aria-hidden="true">01</span><span>输入与清洗<small>已导入 {Object.keys(current.state.tables).length}/2 份表格</small></span></a>
+      <a href="#data-compare"><span className="data-step-number" aria-hidden="true">02</span><span>比对设置<small>匹配键、字段与金额策略</small></span></a>
+      <a href="#data-results"><span className="data-step-number" aria-hidden="true">03</span><span>结果与导出<small>{current.state.result_id ? '查看比对结果与来源' : '完成比对后查看结果'}</small></span></a>
+    </nav>}
     {workspaceId && assetSetId && <section className="panel data-asset-selection"><div className="section-head"><Title level={3}>从资料库导入</Title>
       <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(assetSetId)}`}>返回资料库</Link></div>
       {assetSet.isError && <Alert type="error" title={assetSet.error.message} action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}

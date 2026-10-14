@@ -15,7 +15,7 @@ type OcrItem = { asset_id: string; page_number?: number; revision: number }
 type OriginalBundle = { bundle_id: string; kind: string; title: string;
   session_id?: string; session_name?: string; export_id?: string;
   project_id?: string; handoff_id?: string; platform_job_id?: string;
-  result_id?: string | null; created_at: string; input_set_id: string; input_set_revision: number;
+  result_id?: string | null; analysis_kind?: string; review_revision?: number; created_at: string; input_set_id: string; input_set_revision: number;
   inputs: Input[]; items?: OcrItem[]; files: File[] }
 type Bundle = OriginalBundle | ReviewBundle | WorkpaperBundle | ForensicBundle
 type BundlePage = { items: Bundle[]; total: number; next_offset: number | null }
@@ -35,6 +35,7 @@ function size(value: number) {
 }
 
 function kindName(bundle: Bundle) {
+  if (bundle.kind === 'manual_analysis') return '多模态人工复核成果'
   if (isWorkpaper(bundle)) return bundle.delivery_kind === 'final' ? '正式复核底稿' : '中间审计底稿'
   if (isReview(bundle)) return bundle.delivery_kind === 'final' ? '正式复核成果' : '中间复核材料'
   if (isForensic(bundle)) return '图像取证报告'
@@ -126,6 +127,16 @@ function BundleDetails({ bundle, workspaceId, base }: { bundle: Bundle; workspac
   const scope = encodeURIComponent(workspaceId)
   const classification = bundle.kind === 'classification_result'
   const ocr = bundle.kind === 'ocr_result'
+  if (bundle.kind === 'manual_analysis') {
+    const paths: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep' }
+    const route = paths[bundle.analysis_kind || ''] || '/apps'
+    return <section className="artifact-detail"><div className="artifact-detail-head"><Title level={2}>{bundle.title}</Title>
+      <Link to={`${route}?workspace=${scope}&analysis=${encodeURIComponent(bundle.platform_job_id || '')}`}>返回分析与复核</Link></div>
+      <Paragraph>固定人工复核版本 {bundle.review_revision} · {new Date(bundle.created_at).toLocaleString('zh-CN')}</Paragraph>
+      <Title level={3}>输入原件</Title>{bundle.inputs.map(input => <p key={input.asset_id}><Link to={`/assets?workspace=${scope}&asset=${input.asset_id}`}>{input.name}</Link> · 来源版本 {input.revision}</p>)}
+      <Title level={3}>成果文件</Title><ul>{bundle.files.map(file => <li key={file.artifact_id}><span>{file.name} · {size(file.size_bytes)} </span>
+        <a href={`${base}/${bundle.bundle_id}/files/${encodeURIComponent(file.name)}`}>下载固定成果</a></li>)}</ul></section>
+  }
   return <section className="artifact-detail">
     <div className="artifact-detail-head"><div><Tag>{kindName(bundle)}</Tag>
       <Title level={2}>{bundle.title}</Title><Text type="secondary">生成于 {new Date(bundle.created_at).toLocaleString('zh-CN')}</Text></div>

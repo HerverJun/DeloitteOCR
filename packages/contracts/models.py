@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, model_serializer
 
 VERSION = "1.0"
 Id = Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$", max_length=64)]
@@ -198,7 +198,7 @@ class Asset(Timestamped):
 
 
 class SourceLocator(Wire):
-    kind: Literal["file", "page", "table", "cell", "row", "region"]
+    kind: Literal["file", "page", "table", "cell", "row", "region", "media_segment"]
     asset_id: Id
     asset_revision: Revision
     blob_hash: Hash
@@ -210,12 +210,36 @@ class SourceLocator(Wire):
     image_version_id: Id | None = None
     coordinate_space: Literal["image_pixels", "normalized"] | None = None
     transform_revision: Revision | None = None
+    start_ms: Annotated[int, Field(strict=True, ge=0)] | None = None
+    end_ms: Annotated[int, Field(strict=True, ge=0)] | None = None
+    channel: Annotated[int, Field(strict=True, ge=0)] | None = None
     precision: Literal["exact", "approximate", "page_only", "unknown"]
     box: tuple[Annotated[float, Field(allow_inf_nan=False)], Annotated[float, Field(allow_inf_nan=False)],
                Annotated[float, Field(allow_inf_nan=False)], Annotated[float, Field(allow_inf_nan=False)]] | None = None
 
+    @field_validator('box',mode='before')
+    @classmethod
+    def json_box(cls,value):
+        return tuple(value) if isinstance(value,list) else value
+
+    @model_serializer(mode='wrap')
+    def compatible_dump(self, handler):
+        value = handler(self)
+        if self.kind != 'media_segment':
+            for key in ('start_ms', 'end_ms', 'channel'):
+                value.pop(key, None)
+        return value
+
     @model_validator(mode="after")
     def locate(self) -> SourceLocator:
+        if self.kind == "media_segment":
+            if self.start_ms is None or self.end_ms is None or self.start_ms >= self.end_ms:
+                raise ValueError("media segment requires an increasing original-media time range")
+            if self.precision not in {"exact", "approximate"} or any(value is not None for value in
+                    (self.page_number, self.sheet_name, self.table_number, self.row_number, self.column_number, self.box)):
+                raise ValueError("media segment cannot carry page or table coordinates")
+        elif any(value is not None for value in (self.start_ms, self.end_ms, self.channel)):
+            raise ValueError("media times require a media segment")
         if self.kind in {"page", "region"} and self.page_number is None:
             raise ValueError("page number required")
         if self.kind in {"table", "cell", "row"} and (self.sheet_name is None) == (self.page_number is None):

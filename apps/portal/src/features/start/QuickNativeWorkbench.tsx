@@ -19,6 +19,7 @@ export function QuickNativeWorkbench({ appId }: { appId: 'ocr' | 'classification
   const workspaceId = useWorkspaceId()
   return <><div className="page-heading"><Text className="eyebrow">CLEAR / PROCESS</Text><Title level={1}>{brandName(appId)}</Title>
     <Paragraph>{applicationDescriptions[appId].purpose} · 在工具内导入资料、处理并下载输出。</Paragraph></div>
+    {appId === 'ocr' && <Paragraph><Link to={`/apps/ocr/seals${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`}>印章识别与主体核对 →</Link></Paragraph>}
     {workspaceId ? <NativeProject key={`${workspaceId}:${appId}`} workspaceId={workspaceId} appId={appId} /> : <Workspaces continueTo={`/apps/${appId}/start`} />}</>
 }
 

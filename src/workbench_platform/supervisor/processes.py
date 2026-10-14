@@ -71,6 +71,11 @@ def storage_environment(data_root: Path) -> dict[str, str]:
         "HYPOTHESIS_STORAGE_DIRECTORY": data / "cache/hypothesis",
         "JUPYTER_CONFIG_DIR": data / "cache/jupyter", "JUPYTER_DATA_DIR": data / "cache/jupyter-data",
         "PLAYWRIGHT_BROWSERS_PATH": data / "cache/playwright",
+        "CUDA_CACHE_PATH": data / "cache/cuda",
+        "TORCHINDUCTOR_CACHE_DIR": data / "cache/torchinductor",
+        "TRITON_CACHE_DIR": data / "cache/triton",
+        "NUMBA_CACHE_DIR": data / "cache/numba",
+        "MODELSCOPE_CACHE": data / "cache/modelscope",
     }
     # Validate every existing ancestor (including junctions) before creating any.
     checked = {key: require_f_path(path, key) for key, path in directories.items()}
