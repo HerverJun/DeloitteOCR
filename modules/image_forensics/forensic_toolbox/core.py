@@ -13,19 +13,21 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from . import __version__
+from .geometry import COORDINATE_VERSION, describe_geometry, transpose_pixels
 
 
 @dataclass
 class Context:
     path: Path
-    image: np.ndarray  # RGB, EXIF-transposed; the coordinate space for all tools
+    image: np.ndarray  # RGB, EXIF-transposed; the output coordinate space for all maps
     raw_format: str | None
     original_size: tuple[int, int]
     sha256: str
     jpeg_quantization: bool
-    exif_orientation: int | None
+    exif_orientation: Any  # Invalid metadata is recorded as invalid and treated as identity.
     exif_tag_count: int
     icc_profile_present: bool
+    encoded_image: np.ndarray | None = field(default=None, repr=False)
 
     @property
     def size(self) -> tuple[int, int]:
@@ -62,15 +64,40 @@ def load_image(path: str | Path) -> Context:
         raw_format = source.format
         quant = bool(getattr(source, "quantization", None))
         original_size = source.size
+        if raw_format == "TIFF":
+            # Pillow may already expose oriented TIFF dimensions before load().
+            # TIFF ImageWidth/ImageLength are the actual stored pixel extents.
+            stored_width, stored_height = source.tag_v2.get(256), source.tag_v2.get(257)
+            if type(stored_width) is not int or type(stored_height) is not int:
+                raise ValueError("TIFF stored dimensions could not be verified")
+            original_size = stored_width, stored_height
         exif = source.getexif()
         orientation = exif.get(274)
         exif_count = len(exif)
         icc_present = bool(source.info.get("icc_profile"))
-        image = np.asarray(ImageOps.exif_transpose(source).convert("RGB")).copy()
+        encoded_image = None
+        if raw_format == "JPEG":
+            encoded_image = np.asarray(source.convert("RGB")).copy()
+            image = transpose_pixels(encoded_image, orientation)
+        else:
+            # TIFF decoders apply orientation during load and remove the tag;
+            # ImageOps handles that behavior without applying EXIF twice.
+            image = np.asarray(ImageOps.exif_transpose(source).convert("RGB")).copy()
+        geometry = describe_geometry(original_size, orientation)
+        if geometry["display_size"] != [image.shape[1], image.shape[0]]:
+            raise ValueError("Decoded display dimensions disagree with verified EXIF geometry")
     if image.shape[0] < 1 or image.shape[1] < 1:
         raise ValueError("empty image")
     return Context(path, image, raw_format, original_size, digest, quant,
-                   orientation, exif_count, icc_present)
+                   orientation, exif_count, icc_present, encoded_image)
+
+
+def encoded_rgb(context: Context) -> np.ndarray:
+    if context.encoded_image is not None:
+        return context.encoded_image
+    # Preserve compatibility with callers constructing a normalized Context directly.
+    orientation = describe_geometry(context.original_size, context.exif_orientation)["exif_orientation"]
+    return transpose_pixels(context.image, {6: 8, 8: 6}.get(orientation, orientation))
 
 
 def gray(context: Context) -> np.ndarray:
@@ -79,11 +106,14 @@ def gray(context: Context) -> np.ndarray:
 
 def tile_map(values: np.ndarray, block: int, shape: tuple[int, int], func: Callable[[np.ndarray], float]) -> np.ndarray:
     h, w = values.shape
-    cells = np.zeros(((h + block - 1) // block, (w + block - 1) // block), np.float32)
-    for yi, y in enumerate(range(0, h, block)):
-        for xi, x in enumerate(range(0, w, block)):
-            cells[yi, xi] = func(values[y:min(y + block, h), x:min(x + block, w)])
-    return cv2.resize(cells, (shape[1], shape[0]), interpolation=cv2.INTER_NEAREST)
+    if block < 1 or shape != (h, w):
+        raise ValueError("tile_map requires a positive block and the original pixel shape")
+    full = np.empty((h, w), np.float32)
+    for y in range(0, h, block):
+        for x in range(0, w, block):
+            bottom, right = min(y + block, h), min(x + block, w)
+            full[y:bottom, x:right] = func(values[y:bottom, x:right])
+    return full
 
 
 def save_map(data: np.ndarray, target: Path) -> None:
@@ -152,23 +182,31 @@ def run(path: str | Path, output: str | Path, tools: list[str] | None = None,
             safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", item.tool)[:48]
             target = out / f"{index:02d}-{safe_name}.png"
             try:
+                if item.map.shape != context.image.shape[:2]:
+                    raise ValueError("map dimensions do not match the EXIF-normalized preview")
+                item.metrics.setdefault("map_coordinate_system", "exif_transposed_pixels")
+                item.metrics.setdefault("coordinate_version", COORDINATE_VERSION)
                 save_map(item.map, target)
                 map_path = target.name
             except Exception as exc:
                 item.status = "error"
                 item.reason = f"invalid map: {exc}"
         records.append(item.record(map_path))
+    geometry = describe_geometry(context.original_size, context.exif_orientation)
+    geometry["stored_size_source"] = "tiff_image_width_length_tags" if context.raw_format == "TIFF" else "image_header"
+    geometry["display_pixels_source"] = "exact_exif_permutation" if context.raw_format == "JPEG" else "pillow_imageops_exif_transpose"
     report = {
         "schema_version": "0.1", "input": {
             "path": str(context.path), "sha256": context.sha256,
             "source_format": context.raw_format,
-            "source_exif_orientation": context.exif_orientation,
+            "source_exif_orientation": geometry["source_exif_orientation"],
             "source_exif_tag_count": context.exif_tag_count,
             "source_icc_profile_present": context.icc_profile_present,
             "original_width": context.original_size[0], "original_height": context.original_size[1],
             "width": context.size[0], "height": context.size[1],
             "preview_path": "preview-exif-normalized.png",
             "coordinate_system": "EXIF-transposed full RGB image, origin at upper left",
+            "geometry": geometry,
         },
         "verdict": None, "evidence": records,
         "notice": "Diagnostic evidence only. Maps are not probabilities; do not sum their scores.",

@@ -6,6 +6,7 @@ import { useWorkspaceId, Workspaces } from '../../App'
 import { API, assets, newRequestId, post, request, stateNames, type Asset } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
 import { RegionReview, type Mark } from './RegionReview'
+import { readGeometry } from '../forensics/geometry'
 import { ToolIdentity } from '../catalog/ToolIdentity'
 import './multimodal.css'
 
@@ -16,6 +17,7 @@ type Face = { face_index: number; box: number[]; detection_score: number; crop: 
 type Segment = { row_id: string; review_index: number; start_ms: number; end_ms: number; text: string; speaker: string }
 type Seal = { row_id: string; review_index: number; page_number: number; box?: number[]; text: string; subject: string; number: string; subject_check: string }
 type Result = { outcome: string; algorithm: string; device: string; elapsed_seconds: number; limitations: string[];
+  processing?: { geometry?: unknown; display_preview?: string; display_heatmap?: string }; output_files?: Record<string, { bytes: number; sha256: string }>;
   width?: number; height?: number; pages?: { page_number: number; width: number; height: number; preview: string }[];
   images?: { faces: Face[]; width: number; height: number; preview: string }[]; comparison?: { cosine_similarity: number; meets_reference_threshold: boolean } | null;
   candidates?: { reference_id: string; label: string; score: number; meets_reference_threshold: boolean }[];
@@ -159,6 +161,12 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   onReference: (input: number, index: number) => void; referenceBusy: boolean;
 }) {
   const result = item.result!, audioRef = useRef<HTMLAudioElement>(null), navigate = useNavigate()
+  const catGeometry = readGeometry(result.processing?.geometry)
+  const displayPreview = result.processing?.display_preview
+  const displayHeatmap = result.processing?.display_heatmap
+  const catCoordinatesReady = !!catGeometry && catGeometry.persisted_region_coordinate_system === 'stored_pixels'
+    && !!displayPreview && !!displayHeatmap && !!result.output_files?.[displayPreview] && !!result.output_files?.[displayHeatmap]
+  const catWarning = !catCoordinatesReady ? '旧版结果或预览缺少可核验的坐标元数据，保留历史原图与原保存坐标；热图仅独立查看，不能确认配准。' : undefined
   const audioRows = (result.segments || []).map((row, index) => ({ ...row, review_index: index }))
   const sealRows = (result.seals || []).map((row, index) => ({ ...row, review_index: index }))
   const draftKey = `clear-manual-review:${workspaceId}:${item.job_id}:${item.revision}`
@@ -229,7 +237,10 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
       <Button disabled={!item.review} loading={toData.isPending} onClick={() => toData.mutate()}>将已保存印章字段转入 ClearData</Button>
       {toData.error && <Alert type="error" title={toData.error.message} />}
     </>}
-    {item.kind === 'catnet' && <><div className="mm-forensics-images"><RegionReview image={file('preview.png')} width={result.width || 1000} height={result.height || 1000} marks={marks} onChange={setMarks} /><Image src={file('heatmap.png')} alt="CAT-Net 可疑区域热图" /></div>
+    {item.kind === 'catnet' && <><RegionReview image={file(catCoordinatesReady ? displayPreview! : 'preview.png')}
+      width={result.width || 1000} height={result.height || 1000} marks={marks} onChange={setMarks}
+      forensic={{ heatmap: file(catCoordinatesReady ? displayHeatmap! : 'heatmap.png'), geometry: catCoordinatesReady ? catGeometry : null,
+        registered: catCoordinatesReady, warning: catWarning }} />
       <Link to={`/apps/forensics?workspace=${workspaceId}&asset=${item.inputs[0].asset_id}`}>使用经典取证工具继续核查</Link></>}
     <ul className="mm-limitations">{result.limitations.map((value, index) => <li key={index}>{value}</li>)}</ul>
     <div className="mm-review"><Title level={4}>保存人工复核</Title><div className="mm-controls">

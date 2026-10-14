@@ -1,0 +1,10 @@
+# Receipts bind exact working-tree bytes. Preserve the evaluated adapters,
+# including untouched audio/protocol sources, across Git checkout.
+modules/manual_multimodal/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+src/workbench_platform/multimodal/runner.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+src/workbench_platform/multimodal/service.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+src/workbench_platform/forensics/service.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+src/workbench_platform/forensics/artifacts.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+config/multimodal.json -text whitespace=trailing-space,space-before-tab,cr-at-eol
+scripts/qualify_multimodal.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+scripts/forensics_stability/* -text whitespace=trailing-space,space-before-tab,cr-at-eol

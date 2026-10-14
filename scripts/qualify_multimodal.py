@@ -42,6 +42,7 @@ def main():
     parser.add_argument('--qualify', action='store_true')
     parser.add_argument('--refresh-cpu', action='store_true', help='Refresh bundled CPU engineering receipt after successful CPU inference')
     args = parser.parse_args()
+    config = json.loads((SOURCE/'config/multimodal.json').read_text('utf-8'))
     program, data, output, source = map(local_path, (args.program, args.data, args.output, args.input))
     if output.exists() and any(output.iterdir()): raise ValueError('Use a new evidence output directory')
     output.mkdir(parents=True, exist_ok=True); data.mkdir(parents=True, exist_ok=True)
@@ -60,7 +61,9 @@ def main():
             'face_indices': [0, 0], 'top_k': 5, 'threshold': .363, 'expected_subject': '', 'channel': args.channel},
         'runner': {'protocol': PROTOCOL, 'worker_epoch': uuid.uuid4().hex, 'launch_id': 'qualification',
             'instance_id': 'qualification', 'job_id': request_id, 'generation': 1,
-            'checkpoint_root': str(checkpoint), 'audio_batch_size_s': 30, 'catnet_tile_size': 1024}}
+            'checkpoint_root': str(checkpoint), 'audio_batch_size_s': 30,
+            'catnet_tile_size': config.get('catnet',{}).get('tile_size',1024),
+            'catnet_halo': config.get('catnet',{}).get('halo',0)}}
     atomic_json(output / 'request.json', request)
     env = worker_environment(output, runtime, gpu=args.device == 'cuda')
     if args.kind == 'seal': env.update(OMP_NUM_THREADS='1', MKL_NUM_THREADS='8', OPENBLAS_NUM_THREADS='1')

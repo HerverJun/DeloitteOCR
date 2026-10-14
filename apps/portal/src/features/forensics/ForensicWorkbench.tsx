@@ -1,7 +1,7 @@
 import { ToolIdentity } from '../catalog/ToolIdentity'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Card, Checkbox, Form, Image, Input, Pagination, Select, Space, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Checkbox, Form, Input, Pagination, Select, Space, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Asset, ForensicEvidenceSelection, Inspection, InspectionCreate, InspectionPage, InspectionReview } from '../../../../../packages/contracts/types.generated'
 import { useWorkspaceId, Workspaces } from '../../App'
@@ -9,6 +9,8 @@ import { brands, applicationDescriptions } from '../../clear-ui/theme'
 import { ApplicationDeclaration, forensicsDeclaration } from '../catalog/ApplicationDeclaration'
 import { API, localReviewer, newRequestId, post, request } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
+import { ForensicImageViewer } from './ForensicImageViewer'
+import { imageSize, readGeometry } from './geometry'
 import './forensics.css'
 
 const { Title, Text, Paragraph } = Typography
@@ -36,15 +38,24 @@ export function ForensicApplicationCard() {
 export function ForensicEvidenceView({ inspection }: { inspection: Inspection }) {
   const records = (inspection.report?.evidence || []) as ToolEvidence[]
   const [active, setActive] = useState('')
+  const input = (inspection.report?.input || {}) as Record<string, unknown>
+  const geometry = readGeometry(input.geometry)
+  const size = geometry?.display_size || imageSize([input.width, input.height]) || [1000, 1000]
   const selected = records.find(tool => tool.tool === active) || records.find(tool => tool.map_path)
+  const compatibleMap = !!geometry && selected?.metrics.map_coordinate_system === 'exif_transposed_pixels'
+    && selected.metrics.coordinate_version === geometry.coordinate_version
+  const preview = geometry && typeof input.preview_path === 'string' ? input.preview_path : 'preview-exif-normalized.png'
+  const coordinateWarning = !geometry ? '旧版报告缺少可核验的坐标元数据，保留原图预览；热图仅独立查看，不能确认图层配准。'
+    : selected?.map_path && !compatibleMap ? '此热图缺少匹配的坐标版本，已停用叠加；请独立查看热图。' : undefined
   const file = (name: string) => `${API}${path(inspection.workspace_id)}/${encodeURIComponent(inspection.inspection_id)}/files/${encodeURIComponent(name)}`
   return <section className="forensic-evidence">
     <Paragraph>原件：<Link to={`/assets?workspace=${encodeURIComponent(inspection.workspace_id)}&asset=${encodeURIComponent(inspection.asset_id)}`}>{inspection.original_name}</Link> · 来源版本 {inspection.asset_revision} · 审阅版本 {inspection.revision}</Paragraph>
     <Paragraph type="secondary">热图表示该工具的相对统计量。转发压缩、文字边缘和重复纹理也会产生变化；工具跳过或失败不能解释为未篡改。</Paragraph>
-    {inspection.report && <><Space wrap><Text>原图与热图使用相同的 EXIF 校正坐标</Text>
+    {inspection.report && <><Space wrap><Text>选择检查图层，查看原图细节或叠加对照</Text>
       <Select aria-label="查看取证热图" value={selected?.tool} onChange={setActive} options={records.filter(tool => tool.map_path).map(tool => ({ value: tool.tool, label: names[tool.tool] || tool.tool }))} /></Space>
-      <div className="forensic-images"><figure><Image src={file('preview-exif-normalized.png')} alt="原图 EXIF 校正预览" /><figcaption>原图预览</figcaption></figure>
-        {selected?.map_path && <figure><Image src={file(selected.map_path)} alt={`${names[selected.tool]}灰度热图`} /><figcaption>{names[selected.tool]} · 灰度热图</figcaption></figure>}</div>
+      <ForensicImageViewer image={file(preview)} heatmap={selected?.map_path ? file(selected.map_path) : undefined}
+        width={size[0]} height={size[1]} registered={compatibleMap} warning={coordinateWarning}
+        heatmapLabel={selected ? `${names[selected.tool] || selected.tool} · 灰度热图` : undefined} />
       <Table<ToolEvidence> size="small" rowKey="tool" pagination={false} dataSource={records} columns={[
         { title: '工具', dataIndex: 'tool', render: name => names[name] || name },
         { title: '执行情况', dataIndex: 'status', render: value => <Tag color={value === 'error' ? 'error' : undefined}>{statuses[value] || value}</Tag> },

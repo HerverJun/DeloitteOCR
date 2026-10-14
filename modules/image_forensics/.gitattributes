@@ -1,0 +1,5 @@
+forensic_toolbox/*.py text eol=lf
+source-manifest.json text eol=lf
+README.md text eol=lf
+GEOMETRY.md text eol=lf
+worker.py text eol=lf

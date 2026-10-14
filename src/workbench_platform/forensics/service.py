@@ -1,6 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing, contextmanager
 import hashlib
+import ast
+import re
 import io
 import json
 import mimetypes
@@ -26,6 +28,83 @@ def f_path(path):
     if value.drive.upper() != 'F:' or value.resolve().drive.upper() != 'F:':
         raise DataError('图像取证的运行、缓存与输出目录必须位于本机 F 盘', 503)
     return value.resolve()
+
+
+LEGACY_TOOLBOX_FILES = frozenset({'__init__.py','algorithms.py','catalog.py','core.py','model.py','review.py'})
+_HASH = re.compile(r'[0-9a-f]{64}\Z')
+_VERSION = re.compile(r'[0-9]+\.[0-9]+\.[0-9]+\Z')
+
+
+def source_identity(provenance):
+    """Canonical active-code identity; an explicit derived record never falls back."""
+    if not isinstance(provenance,dict):raise DataError('取证来源清单无效')
+    derived = 'derived' in provenance
+    active = provenance['derived'] if derived else provenance
+    if not isinstance(active,dict):raise DataError('派生取证来源清单无效；不能退回上游版本')
+    version = active.get('version') if derived else '0.1.0'
+    if not isinstance(version,str) or not _VERSION.fullmatch(version):
+        raise DataError('取证版本登记无效')
+    records = active.get('files')
+    if not isinstance(records,list) or not records:raise DataError('取证文件清单缺失')
+    files = []
+    names = set()
+    for record in records:
+        if not isinstance(record,dict):raise DataError('取证文件登记无效')
+        name,sha = record.get('name'),record.get('sha256')
+        if (not isinstance(name,str) or Path(name).name!=name or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*\.py',name)
+                or name in names or not isinstance(sha,str) or not _HASH.fullmatch(sha)):
+            raise DataError('取证文件名、重复项或哈希登记无效')
+        names.add(name);files.append({'name':name,'sha256':sha})
+    if not LEGACY_TOOLBOX_FILES.issubset(names):raise DataError('取证必要文件登记不完整')
+    identity={'schema_version':'1.0','kind':'derived' if derived else 'legacy',
+              'version':version,'files':sorted(files,key=lambda value:value['name'])}
+    if derived:
+        worker_hash=active.get('worker_sha256')
+        if (not isinstance(worker_hash,str) or not _HASH.fullmatch(worker_hash)
+                or active.get('base_version')!='0.1.0' or version=='0.1.0'
+                or active.get('coordinate_version')!='exif-pixel-edges-v1'):
+            raise DataError('派生取证worker、基础版本或坐标版本登记无效')
+        identity.update(worker_sha256=worker_hash,base_version=active['base_version'],
+                        coordinate_version=active['coordinate_version'])
+    elif names!=LEGACY_TOOLBOX_FILES:
+        raise DataError('旧版取证文件集合与六文件约定不一致')
+    return identity
+
+
+def verify_toolbox_source(provenance, source_root=None):
+    """Verify the selected manifest against the exact code about to execute."""
+    source_root=Path(source_root or SOURCE_ROOT)
+    toolbox=(source_root/'modules/image_forensics/forensic_toolbox').resolve()
+    identity=source_identity(provenance)
+    registered={record['name'] for record in identity['files']}
+    actual={path.name for path in toolbox.iterdir() if path.is_file() and path.suffix=='.py'}
+    if actual!=registered:raise DataError('取证实际文件集合与登记不一致，禁止省略或混入代码')
+    for record in identity['files']:
+        if hashlib.sha256((toolbox/record['name']).read_bytes()).hexdigest()!=record['sha256']:
+            raise DataError('取证源码与登记版本不一致，请更新来源清单后再执行')
+    versions=[]
+    for statement in ast.parse((toolbox/'__init__.py').read_text('utf-8')).body:
+        if isinstance(statement,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='__version__' for target in statement.targets):
+            versions.append(ast.literal_eval(statement.value))
+    if versions!=[identity['version']]:raise DataError('取证代码版本与登记版本不一致')
+    if identity['kind']=='derived':
+        worker=source_root/'modules/image_forensics/worker.py'
+        if not worker.is_file() or hashlib.sha256(worker.read_bytes()).hexdigest()!=identity['worker_sha256']:
+            raise DataError('派生取证worker与登记哈希不一致')
+    return {**identity,'source_identity_sha256':fingerprint(identity),'runtime_path':str(toolbox)}
+
+
+def validate_report_toolbox(report, execution):
+    """Reject a successful worker that imported another toolbox or version."""
+    runtime_record=report.get('runtime')
+    runtime=runtime_record.get('toolbox') if isinstance(runtime_record,dict) else None
+    if runtime is None and execution['kind']=='legacy':return
+    if (not isinstance(runtime,dict) or runtime.get('version')!=execution['version']
+            or not isinstance(runtime.get('path'),str)
+            or Path(runtime['path']).resolve()!=Path(execution['runtime_path']).resolve()):
+        raise DataError('取证worker实际来源或版本与核准代码不一致')
+    if any(row.get('version')!=execution['version'] for row in report.get('evidence',[])):
+        raise DataError('取证工具记录版本与实际运行版本不一致')
 
 
 class ForensicService:
@@ -155,10 +234,7 @@ class ForensicService:
                 item.update(status='running', updated_at=now())
                 self.save(db, item)
             output.mkdir(parents=True)
-            for record in self.provenance['files']:
-                actual = SOURCE_ROOT / 'modules/image_forensics/forensic_toolbox' / record['name']
-                if hashlib.sha256(actual.read_bytes()).hexdigest() != record['sha256']:
-                    raise DataError('取证源码与登记版本不一致，请更新来源清单后再执行')
+            execution = verify_toolbox_source(self.provenance)
             env = dict(os.environ)
             for key in ('TEMP', 'TMP', 'APPDATA', 'LOCALAPPDATA'):
                 f_path(env[key])
@@ -174,7 +250,9 @@ class ForensicService:
             report = json.loads((output / 'report.json').read_text(encoding='utf-8'))
             if report['input']['sha256'] != item['blob_hash'] or report['verdict'] is not None:
                 raise DataError('取证输出身份或结果语义不匹配')
+            validate_report_toolbox(report, execution)
             report['toolbox_source'] = self.provenance
+            report['toolbox_execution'] = execution
             (output / 'report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False), encoding='utf-8')
             files = [{'schema_version': '1.0', 'name': path.name, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                       'size_bytes': path.stat().st_size, 'media_type': mimetypes.guess_type(path.name)[0] or 'application/octet-stream'}

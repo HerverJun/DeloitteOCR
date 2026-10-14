@@ -1,6 +1,6 @@
 # ClearForensics 图像取证业务模块
 
-来源：`F:/CodexBackups/图像篡改识别/20261003_111113/project`。六个工具箱源码文件原样保留，来源及 SHA256 见 `source-manifest.json`。备份中的模型、数据集、研究输出和虚拟环境没有复制或修改。
+来源：`F:/CodexBackups/图像篡改识别/20261003_111113/project`（只读来源）。`source-manifest.json` 的 `files` 保留导入时六个源码文件的原始 SHA256；`derived` 记录当前 0.1.1 派生版本及七个源码文件的实际 SHA256。原始备份中的模型、数据集、研究输出和虚拟环境没有复制或修改。
 
 平台应用目录入口 `/apps/forensics`，显示品牌 ClearForensics（图像取证与审阅）；旧 `/forensics` 保留查询参数与锚点跳转。资料使用现有资产 ID、版本和内容哈希；工作空间下的取证任务保存于 `forensics/forensics.sqlite3`。本地独立进程依次执行文件画像、噪声残差、高频分布、JPEG 重压缩差异、JPEG 网格及重复区域。支持单帧 JPEG/PNG/WebP/BMP/TIFF，32 MiB、1200 万像素以内，单张超时 120 秒。默认不启用 OCR 下载、外部服务或研究模型。
 
@@ -13,3 +13,5 @@
 本机开发运行时由 `config/forensics.json` 绑定现有 F 盘虚拟环境，可用 `WORKBENCH_FORENSICS_PYTHON` 覆盖为已核实的 F 盘 Python。开发配置只读复用备份依赖，不下载权重。独立验证包已纳入本模块、来源清单及 NumPy/OpenCV/Pillow 运行依赖，使用包内相对路径配置；2026-10-03 已验证包内 Python 执行文件画像、噪声残差和高频分布并生成完整报告 ZIP。运行前继承 F 盘临时、缓存和应用数据环境，禁止盘外回退。
 
 PSCC-Net 保留为原项目可选研究能力；ADCD、SAFIRE、SEED 等按原准入记录处理，均未作为本模块默认能力。软件流程检查不代表真实审计识别准确率。
+
+0.1.1 修正非整块图像的热图块坐标，并将 JPEG 重压缩/网格分析固定在存储像素坐标后再按 EXIF 精确转置热图。报告新增可选 `input.geometry`，已有报告、图片、人工审阅、报告哈希与固定证据不迁移、不重算。坐标约定、兼容行为及验证范围见 [几何修正说明](GEOMETRY.md)。
