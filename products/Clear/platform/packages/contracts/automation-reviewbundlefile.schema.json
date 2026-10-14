@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "artifact_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "availability": {
+      "enum": [
+        "available",
+        "expired",
+        "missing",
+        "corrupt"
+      ],
+      "title": "Availability",
+      "type": "string"
+    },
+    "blob_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Blob Hash",
+      "type": "string"
+    },
+    "media_type": {
+      "title": "Media Type",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "size_bytes": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Size Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "artifact_id",
+    "revision",
+    "media_type",
+    "size_bytes",
+    "availability",
+    "blob_hash"
+  ],
+  "title": "ReviewBundleFile",
+  "type": "object"
+}

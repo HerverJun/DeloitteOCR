@@ -1,0 +1,5 @@
+{
+  "format": "clear-skill-roots-v1",
+  "platform_roots": ["skills"],
+  "workspace_roots": {}
+}

@@ -1,0 +1,46 @@
+{
+  "GLM-OCR": {
+    "repo": "zai-org/GLM-OCR",
+    "revision": "ca5d8b3e287e52589e37c28385d9655ee4372f9d"
+  },
+  "HunyuanOCR": {
+    "repo": "tencent/HunyuanOCR",
+    "revision": "47644ecc4fc854efa4f505155158831f36773ee4"
+  },
+  "HunyuanOCR-GGUF": {
+    "repo": "tencent/HunyuanOCR",
+    "revision": "47644ecc4fc854efa4f505155158831f36773ee4"
+  },
+  "PaddleOCR-VL-1.6": {
+    "repo": "PaddlePaddle/PaddleOCR-VL-1.6",
+    "revision": "c5630abae1d940eafe0697512a0325494b02ab42"
+  },
+  "PP-DocLayoutV3": {
+    "repo": "PaddlePaddle/PP-DocLayoutV3",
+    "revision": "7b48a7566925fa464281f930c58eee04fe2c862a"
+  },
+  "PP-DocLayoutV3_safetensors": {
+    "repo": "PaddlePaddle/PP-DocLayoutV3_safetensors",
+    "revision": "97d101e6db2642e162a1d05392d1b0231c91033e"
+  },
+  "PP-LCNet_x1_0_doc_ori": {
+    "repo": "PaddlePaddle/PP-LCNet_x1_0_doc_ori",
+    "revision": "d3b95a6dff5fe8a94f2748e12b61cb26818a0df8"
+  },
+  "PP-LCNet_x1_0_textline_ori": {
+    "repo": "PaddlePaddle/PP-LCNet_x1_0_textline_ori",
+    "revision": "cd237a44b0e359d4fe38310a416203cf7403faa5"
+  },
+  "PP-OCRv6_medium_det": {
+    "repo": "PaddlePaddle/PP-OCRv6_medium_det",
+    "revision": "8e0f56fb2ef86b461d99cfc7ac5c137738985f61"
+  },
+  "PP-OCRv6_medium_rec": {
+    "repo": "PaddlePaddle/PP-OCRv6_medium_rec",
+    "revision": "e5a92bcbc5cc1b494628e458d267778f0704fd7c"
+  },
+  "UVDoc": {
+    "repo": "PaddlePaddle/UVDoc",
+    "revision": "16c3f0ea9c2f0c6a57e24160f7eeaa7574613fa3"
+  }
+}

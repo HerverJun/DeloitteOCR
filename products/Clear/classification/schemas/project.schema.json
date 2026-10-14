@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed single-label classification project configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "readiness_status",
+    "project_id",
+    "display_name",
+    "task_type",
+    "data_root",
+    "labels",
+    "preprocessing",
+    "model_candidates",
+    "training",
+    "split",
+    "review",
+    "runtime",
+    "acceptance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "readiness_status": {
+      "const": "planned"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_type": {
+      "const": "single_label"
+    },
+    "data_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "labels": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/label"
+      }
+    },
+    "preprocessing": {
+      "$ref": "#/$defs/preprocessing"
+    },
+    "model_candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "experiment_id",
+          "timm_name_candidate",
+          "input_size",
+          "pooling",
+          "feature_normalization",
+          "weights_status",
+          "weights_sha256"
+        ],
+        "properties": {
+          "experiment_id": {
+            "type": "string"
+          },
+          "timm_name_candidate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input_size": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "pooling": {
+            "enum": [
+              "cls_last",
+              "global_average"
+            ]
+          },
+          "feature_normalization": {
+            "const": "l2_eps_1e-12"
+          },
+          "weights_status": {
+            "const": "not_downloaded"
+          },
+          "weights_sha256": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "encoder_frozen",
+        "encoder_eval_mode",
+        "head",
+        "seed",
+        "augmentation",
+        "precision",
+        "hyperparameter_policy"
+      ],
+      "properties": {
+        "encoder_frozen": {
+          "const": true
+        },
+        "encoder_eval_mode": {
+          "const": true
+        },
+        "head": {
+          "const": "linear_softmax"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "augmentation": {
+          "const": "none"
+        },
+        "precision": {
+          "const": "fp32"
+        },
+        "hyperparameter_policy": {
+          "const": "small_search_on_train_val_only"
+        }
+      }
+    },
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "train",
+        "val",
+        "test",
+        "test_locked"
+      ],
+      "properties": {
+        "method": {
+          "const": "group_stratified_best_effort"
+        },
+        "train": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "val": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "test": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "test_locked": {
+          "const": true
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rounds",
+        "budget_per_round",
+        "boundary",
+        "novel",
+        "random"
+      ],
+      "properties": {
+        "rounds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_per_round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "boundary": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "novel": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "random": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device",
+        "require_gpu",
+        "batch_candidates",
+        "max_concurrent_gpu_jobs",
+        "input_queue_batches",
+        "results_backend",
+        "output_formats"
+      ],
+      "properties": {
+        "device": {
+          "const": "cuda:0"
+        },
+        "require_gpu": {
+          "const": true
+        },
+        "batch_candidates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "max_concurrent_gpu_jobs": {
+          "const": 1
+        },
+        "input_queue_batches": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "results_backend": {
+          "const": "sqlite"
+        },
+        "output_formats": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "csv",
+              "jsonl"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "class_thresholds",
+        "minimum_precision",
+        "minimum_recall",
+        "max_review_rate",
+        "batch_deadline_seconds"
+      ],
+      "properties": {
+        "status": {
+          "const": "business_targets_pending"
+        },
+        "class_thresholds": {
+          "type": "null"
+        },
+        "minimum_precision": {
+          "type": "null"
+        },
+        "minimum_recall": {
+          "type": "null"
+        },
+        "max_review_rate": {
+          "type": "null"
+        },
+        "batch_deadline_seconds": {
+          "type": "null"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label_id",
+        "display_name",
+        "definition"
+      ],
+      "properties": {
+        "label_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "exif_transpose",
+        "color_mode",
+        "alpha_background",
+        "resize",
+        "interpolation",
+        "rounding",
+        "padding_alignment",
+        "rescale",
+        "mean",
+        "std",
+        "layout",
+        "max_decode_pixels",
+        "padding_color"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exif_transpose": {
+          "const": true
+        },
+        "color_mode": {
+          "const": "RGB"
+        },
+        "alpha_background": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        },
+        "resize": {
+          "const": "fit_long_edge_and_pad"
+        },
+        "interpolation": {
+          "const": "bicubic"
+        },
+        "rounding": {
+          "const": "floor_x_plus_half"
+        },
+        "padding_alignment": {
+          "const": "center_extra_right_bottom"
+        },
+        "rescale": {
+          "const": 0.00392156862745098
+        },
+        "mean": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "std": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "layout": {
+          "const": "NCHW"
+        },
+        "max_decode_pixels": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "padding_color": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        }
+      }
+    }
+  }
+}

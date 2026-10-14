@@ -16,6 +16,10 @@ frontend/dist/
 # Clear product entry is authored; its live locks, process receipts and logs stay local.
 /release/Clear/runtime/
 
+# Versioned offline installations contain runtimes, models and generated payloads.
+# Reviewable authored sources are captured under products/Clear instead.
+/release/Clear/versions/
+
 # Generated manuals and audit runs stay local. Commit curated evidence explicitly.
 /output/
 /audit/*/

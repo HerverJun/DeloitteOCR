@@ -1,0 +1,33 @@
+{
+  "name": "workbench-portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "dev": "vite --host 127.0.0.1",
+    "test": "vitest run --environment jsdom"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.90.2",
+    "antd": "6.6.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-markdown": "10.1.0",
+    "react-router-dom": "7.9.1",
+    "remark-gfm": "4.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "jsdom": "26.1.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.1",
+    "vitest": "5.0.1"
+  },
+  "packageManager": "pnpm@10.12.3"
+}

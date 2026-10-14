@@ -1,9 +1,9 @@
 {
   "format": "clear-current-product-v1",
-  "product_version": "0.9.3",
-  "candidate": "F:\\OCR\\output\\ocr-simplification-dev-20261006\\candidate-complete",
-  "candidate_manifest_sha256": "b65ad69cf909efbb6c4026fca65d14c5fe473be51e8be847bef81c8b68b5de39",
-  "shared_program": "F:\\OCR\\output\\clear-automation-dev-20261002\\program",
+  "product_version": "0.10.0",
+  "candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0",
+  "candidate_manifest_sha256": "852e27bb337b2e9ccd8f4c4a0cbe17e021f578f5dd5e8ec8c260a625d75407dc",
+  "shared_program": "F:\\OCR\\release\\Clear\\versions\\0.10.0\\program",
   "data": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\workspace",
   "port": 8879,
   "data_compatibility": {
@@ -11,7 +11,9 @@
     "reader_features": [
       "agent-request-snapshot-v1",
       "formal-direct-evidence-v1",
-      "fixed-draft-transfer-v1"
+      "fixed-draft-transfer-v1",
+      "manual-multimodal-v1",
+      "source-media-segment-v1"
     ],
     "sqlite": {
       "workspaces.sqlite3": {
@@ -175,5 +177,14 @@
         "clear-model-input-v1"
       ]
     }
+  },
+  "release_name": "多模态手动工具 CPU 版",
+  "ui_contract_version": "1.2.0",
+  "published_at": "2026-10-13T16:31:12.192815+00:00",
+  "acceptance": {
+    "engineering_cpu": true,
+    "business_accuracy": false,
+    "a4000_a6000": false,
+    "new_gpu_routes": false
   }
 }

@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "plan_revision": 1,
+  "created": "2026-09-19",
+  "document": "docs/structure-repair-exploration-plan-20260919.md",
+  "status": "planned_not_started",
+  "objective": "探索保留当前采用文字的局部结构修复是否可用，并检验Luna在同一合法候选池上的额外净收益。",
+  "execution": {
+    "default_executor": "single_codex_agent",
+    "stage_approval_required": false,
+    "start_condition": "用户后续发出执行该计划的指令；本次仅创建计划产物。",
+    "model_blind_evaluation": {
+      "requested_model": "gpt-5.6-luna",
+      "independent_context_per_table": true,
+      "inherit_development_context": false,
+      "expose_reference_or_scores": false,
+      "subagent_simulation": "仅在执行范围授权时使用；记录工具辅助和协议差异，不当成真实API验收。"
+    },
+    "dependencies_mean": "前置证据和工程契约就绪；数据规模、真实服务条件不足不阻塞独立工程工作。",
+    "state_values": [
+      "pending",
+      "running",
+      "done",
+      "done_with_gaps"
+    ],
+    "independent_outcomes": [
+      "engineering",
+      "quality",
+      "model_simulation",
+      "real_service"
+    ],
+    "hypothesis_outcomes": [
+      "supported",
+      "rejected",
+      "inconclusive"
+    ],
+    "gap_semantics": "需要有可审阅的受限产物、实际尝试和缺口说明；不表示质量达标或允许工程保全错误。",
+    "initial_data_exploration_minutes": 45,
+    "later_data_batch_minutes": 30,
+    "maximum_distinct_source_attempts": 3,
+    "maximum_variants_per_hypothesis": 3,
+    "automatic_generative_retry": false,
+    "raw_inputs": "只向消费型导入接口传临时副本；前后检查原始输入哈希。",
+    "resume_from": "audit/structure-repair-<date>-<nn>/NEXT.md"
+  },
+  "paths": {
+    "build": "build/structure-repair-<date>-<nn>",
+    "audit": "audit/structure-repair-<date>-<nn>",
+    "evidence_file_note": "逻辑相对文件名；实际运行需记录完整路径。输入与逐项实验留在build；公开汇总在audit。"
+  },
+  "protected_contracts": [
+    "structure_operations_preserve_adopted_literals",
+    "content_ids_do_not_imply_geometry",
+    "one_content_namespace_per_revision_across_candidates",
+    "duplicate_value_identity_and_multiplicity_preserved",
+    "manual_edits_and_clears_preserved",
+    "splits_require_supported_fragment_boundaries",
+    "local_and_combined_changes_require_full_grid_validation",
+    "caption_and_footnote_content_retained",
+    "uncertain_blanks_and_symmetric_matches_not_guessed",
+    "no_automatic_external_transmission_or_adoption"
+  ],
+  "research_gate": {
+    "minimum_correct_real_development_repairs": 5,
+    "minimum_documents": 3,
+    "content_preservation_violations_allowed": 0,
+    "means": "是否值得继续探索，不是正式质量通过。"
+  },
+  "confirmation_target": {
+    "documents": 10,
+    "tables": 20,
+    "cells": 1000,
+    "qualification": "未曝光、按文档模板隔离的小规模确认；缺口不阻挡工程。"
+  },
+  "formal_acceptance": "沿用docs/complex-table-todo-20260919.md的原独立规模与分类目标，不以小确认组替代。",
+  "measurements": [
+    "gate_funnel_all_inputs",
+    "literal_and_identity_conservation",
+    "structure_and_text_separate",
+    "corrected_harmed_unchanged_abstained",
+    "all_and_triggered_denominators",
+    "whole_table_correctness",
+    "document_template_cluster_intervals",
+    "amount_identifier_merged_blank_repeated_groups",
+    "change_extent_and_worst_harm",
+    "local_latency_and_budget_fallback",
+    "actual_api_usage_when_available",
+    "human_time_only_when_measured"
+  ],
+  "default_deliverables": [
+    "scoped_experimental_source_changes_or_evidence_based_negative_result",
+    "usage_and_limitations",
+    "reproducibility_index"
+  ],
+  "full_bundle_condition": "执行范围要求完整交付，且存在经验证的可用实现；必须新目录新ZIP与实际包内/归档校验。",
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "隔离运行与忠实重放",
+      "status": "pending",
+      "priority": 1,
+      "depends_on": [],
+      "evidence_files": [
+        "run-identity.json",
+        "input-integrity.json",
+        "replay-parity.json"
+      ],
+      "done_when": "应用路径与重放的来源、候选和修订语义一致；输入前后哈希一致。",
+      "on_missing_input_or_failed_attempt": "修正研究工具并新建重跑；保留失败回执，不修改产品门槛。"
+    },
+    {
+      "id": "T02",
+      "title": "逐层阻塞漏斗",
+      "status": "pending",
+      "priority": 2,
+      "depends_on": [
+        "T01"
+      ],
+      "evidence_files": [
+        "gate-funnel.json",
+        "rejection-cases.json"
+      ],
+      "done_when": "候选级与表级分母分开；主因辅因不重复计数；有正确拦截及疑似过度保守的实例。",
+      "on_missing_input_or_failed_attempt": "资格不足与不需要修改的表分别记录；无候选仍保留在总输入分母。"
+    },
+    {
+      "id": "T03",
+      "title": "数据资格与冻结评测",
+      "status": "pending",
+      "priority": 3,
+      "depends_on": [
+        "T01"
+      ],
+      "evidence_files": [
+        "sources.jsonl",
+        "dataset-qualification.json",
+        "split-lock.json",
+        "protocol.json",
+        "exposure.jsonl"
+      ],
+      "done_when": "开发/确认按文档模板隔离；身份、指标、归一化、随机检查及选择规则在评测前固定。",
+      "on_missing_input_or_failed_attempt": "自主换公开来源；缺扫描、照片或独立标签单列，继续工程工作。"
+    },
+    {
+      "id": "T04",
+      "title": "保全契约与失败用例",
+      "status": "pending",
+      "priority": 4,
+      "depends_on": [
+        "T01",
+        "T02"
+      ],
+      "evidence_files": [
+        "content-contract.json",
+        "invariant-cases.json",
+        "baseline-invariants.json"
+      ],
+      "done_when": "覆盖重复值、人工修改/清空、片段边界、标题脚注、索引位移、组合冲突和过期。",
+      "on_missing_input_or_failed_attempt": "发现旧代码硬约束问题则修复或隔离；不得以质量缺口掩盖。"
+    },
+    {
+      "id": "T05",
+      "title": "候选可修复空间",
+      "status": "pending",
+      "priority": 5,
+      "depends_on": [
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "evidence_files": [
+        "repairability.json",
+        "oracle-diagnostic.json"
+      ],
+      "done_when": "区分不需要修复、没有正确候选、缺对应、预算不合格；参考上限仅为开发诊断。",
+      "on_missing_input_or_failed_attempt": "记录低上限/缺证据；只对有独立证据的输入类别继续。"
+    },
+    {
+      "id": "T06",
+      "title": "保留采用文字的对应层",
+      "status": "pending",
+      "priority": 6,
+      "depends_on": [
+        "T04",
+        "T05"
+      ],
+      "evidence_files": [
+        "content-binding-experiment.json",
+        "content-conservation.json"
+      ],
+      "done_when": "原字面值、身份、数量和人工状态保留；新内容ID不冒称几何；跨候选命名空间一致。",
+      "on_missing_input_or_failed_attempt": "最多3个有依据变体；缺可靠几何或片段边界时保留/人工处理。"
+    },
+    {
+      "id": "T07",
+      "title": "局部结构补丁",
+      "status": "pending",
+      "priority": 7,
+      "depends_on": [
+        "T04",
+        "T05",
+        "T06"
+      ],
+      "evidence_files": [
+        "patch-contract.json",
+        "patch-results.json",
+        "composition-checks.json"
+      ],
+      "done_when": "复用已有局部算法；补丁前置条件、影响映射和完整全表校验可验证。",
+      "on_missing_input_or_failed_attempt": "不能局部证明则保持原样；不以缩小分母隐藏失败。"
+    },
+    {
+      "id": "T08",
+      "title": "表区与上下文约束",
+      "status": "pending",
+      "priority": 8,
+      "depends_on": [
+        "T03",
+        "T04",
+        "T05"
+      ],
+      "evidence_files": [
+        "boundary-evidence.json",
+        "boundary-regression.json"
+      ],
+      "done_when": "标题脚注不丢失；网格范围由独立证据支持；合法多层表头和整页多表有反例测试。",
+      "on_missing_input_or_failed_attempt": "边界不确定时拒绝扩张；不能直接使用参考框作为生产证据。"
+    },
+    {
+      "id": "T09",
+      "title": "本地消融与继续决定",
+      "status": "pending",
+      "priority": 9,
+      "depends_on": [
+        "T03",
+        "T06",
+        "T07",
+        "T08"
+      ],
+      "evidence_files": [
+        "local-ablations.json",
+        "hypothesis-decisions.json",
+        "candidate-freeze.json"
+      ],
+      "done_when": "同输入对比旧实现及逐层机制；全部内容不变量通过；明确继续或否定/未决。",
+      "on_missing_input_or_failed_attempt": "达不到跨3文档5个正确真实修复的研究继续条件时停止该分支，记录原因。"
+    },
+    {
+      "id": "T10",
+      "title": "忠实模型输入",
+      "status": "pending",
+      "priority": 10,
+      "depends_on": [
+        "T09"
+      ],
+      "evidence_files": [
+        "model-input-contract.json",
+        "model-eligibility.json",
+        "payload-roundtrip.json"
+      ],
+      "done_when": "只发送产品合格补丁；保持与弃权明确；统一ID、完整证据、可逆压缩和既有预算验证。",
+      "on_missing_input_or_failed_attempt": "无合格输入则0触发；诊断投影另列，不能冒充产品收益。"
+    },
+    {
+      "id": "T11",
+      "title": "Luna独立盲评与本地对照",
+      "status": "pending",
+      "priority": 11,
+      "depends_on": [
+        "T03",
+        "T10"
+      ],
+      "evidence_files": [
+        "model-lock.json",
+        "request-response-lock.json",
+        "model-paired-events.json",
+        "invocation-receipt.json"
+      ],
+      "done_when": "固定指定模型和提示词；每表独立上下文；完整原始响应进入校验；失败不自动重发。",
+      "on_missing_input_or_failed_attempt": "无端点则可用明确标识的授权模型模拟；无合法候选/模型不可用则记录未测，不换模型冒称完成。"
+    },
+    {
+      "id": "T12",
+      "title": "新确认组配对验收",
+      "status": "pending",
+      "priority": 12,
+      "depends_on": [
+        "T09",
+        "T11"
+      ],
+      "evidence_files": [
+        "confirmation-lock.json",
+        "confirmation-results.json",
+        "grouped-net-benefit.json"
+      ],
+      "done_when": "冻结后同输入比较原实现/新本地/新本地+Luna；全目标和触发目标均计分；按文档模板计算区间。",
+      "on_missing_input_or_failed_attempt": "独立材料不足保留未测；曝光后转回归，不在同组调参恢复独立性。"
+    },
+    {
+      "id": "T13",
+      "title": "有条件集成现有复核",
+      "status": "pending",
+      "priority": 13,
+      "depends_on": [
+        "T09",
+        "T12"
+      ],
+      "evidence_files": [
+        "integration-decision.json",
+        "review-ui-receipt.json"
+      ],
+      "done_when": "有支持证据的实现复用现有采用/撤销/来源导出，清楚说明改变与保留；无支持则记录不集成。",
+      "on_missing_input_or_failed_attempt": "不制造平行编辑器；缺可用实现时交付不适用说明。"
+    },
+    {
+      "id": "T14",
+      "title": "相关及最终工程回归",
+      "status": "pending",
+      "priority": 14,
+      "depends_on": [
+        "T13"
+      ],
+      "evidence_files": [
+        "regression/backend.json",
+        "regression/frontend.json",
+        "regression/build.json",
+        "regression/browser.json",
+        "regression/export.json",
+        "performance.json"
+      ],
+      "done_when": "保全、过期/取消、组合冲突、采用/撤销/重做、导出回读与性能降级验证；当前src优先。",
+      "on_missing_input_or_failed_attempt": "修复实际工程错误或隔离并验证；真实服务/设备缺口与代码失败分开。"
+    },
+    {
+      "id": "T15",
+      "title": "可复现证据与研究结论",
+      "status": "pending",
+      "priority": 15,
+      "depends_on": [
+        "T12",
+        "T14"
+      ],
+      "evidence_files": [
+        "artifact-index.json",
+        "final-report.md",
+        "gaps.json",
+        "hypothesis-outcomes.json"
+      ],
+      "done_when": "逐假设supported/rejected/inconclusive；工程、质量、模拟、真实服务独立结论，保留负结果与命令。",
+      "on_missing_input_or_failed_attempt": "无正收益也交完整负结果；不得宣称正式质量通过或把模拟当API验收。"
+    },
+    {
+      "id": "T16",
+      "title": "按范围交付实验产物",
+      "status": "pending",
+      "priority": 16,
+      "depends_on": [
+        "T15"
+      ],
+      "evidence_files": [
+        "delivery-scope.json",
+        "source-change-lock.json",
+        "delivery-receipt.json"
+      ],
+      "done_when": "交付可审阅源码实验/说明/证据；要求完整离线包时另建新包并实际验证，才报告路径。",
+      "on_missing_input_or_failed_attempt": "无可发布实现不伪造升级；封存旧包不改动。"
+    }
+  ]
+}

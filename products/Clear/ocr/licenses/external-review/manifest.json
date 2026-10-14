@@ -1,0 +1,17 @@
+[
+  {
+    "package": "httpx-0.28.1",
+    "file": "httpx-0.28.1-LICENSE.md",
+    "sha256": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d"
+  },
+  {
+    "package": "httpcore-1.0.9",
+    "file": "httpcore-1.0.9-LICENSE.md",
+    "sha256": "fdcb59154c74cbaba16a11242f7740bea9f23d6feb5547917d8c5f94a80392a5"
+  },
+  {
+    "package": "certifi-2026.7.22",
+    "file": "certifi-2026.7.22-LICENSE",
+    "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+  }
+]

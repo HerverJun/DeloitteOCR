@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "generator": "scripts/fixtures/build_fixtures.py",
+  "policy": "Self-authored synthetic CC0-1.0 material; no private data or external source assets",
+  "real_public_sources": [],
+  "fixtures": [
+    {
+      "path": "data/images/same-source-a.png",
+      "sha256": "654508c11dd64f600165ae04a4ed3b854a51190ffa5bccfe23b753167747d402",
+      "size_bytes": 725,
+      "media_type": "image/png",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceAlpha",
+      "source_revision": 1,
+      "expected": {
+        "width": 64,
+        "height": 32,
+        "mode": "RGB",
+        "pixel_0_0": [
+          248,
+          248,
+          246
+        ],
+        "pixel_63_31": [
+          248,
+          248,
+          246
+        ]
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/images/same-source-b.png",
+      "sha256": "654508c11dd64f600165ae04a4ed3b854a51190ffa5bccfe23b753167747d402",
+      "size_bytes": 725,
+      "media_type": "image/png",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceBeta",
+      "source_revision": 1,
+      "expected": {
+        "width": 64,
+        "height": 32,
+        "mode": "RGB",
+        "pixel_0_0": [
+          248,
+          248,
+          246
+        ],
+        "pixel_63_31": [
+          248,
+          248,
+          246
+        ]
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/images/票据-甲-v2.png",
+      "sha256": "13d573e0d2acfb3348274883082337423718ae921e2198e192321d3f6abbad56",
+      "size_bytes": 728,
+      "media_type": "image/png",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceAlpha",
+      "source_revision": 2,
+      "expected": {
+        "width": 64,
+        "height": 32,
+        "mode": "RGB",
+        "pixel_0_0": [
+          248,
+          248,
+          246
+        ],
+        "pixel_63_31": [
+          255,
+          0,
+          0
+        ]
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/docs/invoice.pdf",
+      "sha256": "01552fea410e1a58b84bf8884054d297825013e9fae4594a36491dcda7e3c59a",
+      "size_bytes": 1856,
+      "media_type": "application/pdf",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourcePdf",
+      "source_revision": 1,
+      "expected": {
+        "page_count": 2,
+        "page_text": [
+          "SYNTHETIC INVOICE 000123456789012345678901234567",
+          "SECOND PAGE TABLE A 12.50"
+        ]
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/tables/对账.xlsx",
+      "sha256": "b3098e2dafb535db1ba0ae6f61886e3e627a6dc8e244a00077cf35050164a235",
+      "size_bytes": 5057,
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceXlsx",
+      "source_revision": 1,
+      "expected": {
+        "sheet_names": [
+          "对账"
+        ],
+        "rows": [
+          [
+            "r1",
+            "000123456789012345678901234567",
+            "dup",
+            "12.500000",
+            "=SUM(1,2)",
+            null
+          ],
+          [
+            "r2",
+            "000000000000000000000000000002",
+            "dup",
+            "0.000001",
+            null,
+            null
+          ],
+          [
+            "r3",
+            "000000000000000000000000000003",
+            "unique",
+            "-3.250000",
+            null,
+            "值"
+          ]
+        ],
+        "formula_cell": "=SUM(1,2)",
+        "cached_value": null,
+        "long_id_type": "str"
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/tables/match.csv",
+      "sha256": "48e932cc8a10d3fb511f2e867a8c6fe83c9d4aa62695dace0eee9d423d77f1a6",
+      "size_bytes": 195,
+      "media_type": "text/csv",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceCsv",
+      "source_revision": 1,
+      "expected": {
+        "rows": [
+          {
+            "row_id": "r1",
+            "long_id": "000123456789012345678901234567",
+            "match_key": "dup",
+            "amount": "12.500000",
+            "nullable": "\\N"
+          },
+          {
+            "row_id": "r2",
+            "long_id": "000000000000000000000000000002",
+            "match_key": "dup",
+            "amount": "0.000001",
+            "nullable": ""
+          },
+          {
+            "row_id": "r3",
+            "long_id": "000000000000000000000000000003",
+            "match_key": "unique",
+            "amount": "-3.250000",
+            "nullable": "值"
+          }
+        ],
+        "null_token": "\\N",
+        "empty_string_distinct": true
+      },
+      "byte_deterministic": true
+    },
+    {
+      "path": "data/tables/match.parquet",
+      "sha256": "45002798b111064ffdfa1f43e989a53bb1e6842af702c043b24252c165f479f3",
+      "size_bytes": 1848,
+      "media_type": "application/vnd.apache.parquet",
+      "origin": {
+        "kind": "synthetic",
+        "creator": "Workbench fixture generator",
+        "license": "CC0-1.0",
+        "upstream_url": null
+      },
+      "source_id": "sourceParquet",
+      "source_revision": 1,
+      "expected": {
+        "rows": [
+          {
+            "row_id": "r1",
+            "long_id": "000123456789012345678901234567",
+            "match_key": "dup",
+            "amount": "12.500000",
+            "nullable": null
+          },
+          {
+            "row_id": "r2",
+            "long_id": "000000000000000000000000000002",
+            "match_key": "dup",
+            "amount": "0.000001",
+            "nullable": ""
+          },
+          {
+            "row_id": "r3",
+            "long_id": "000000000000000000000000000003",
+            "match_key": "unique",
+            "amount": "-3.250000",
+            "nullable": "值"
+          }
+        ],
+        "amount_type": "decimal128(20, 6)",
+        "long_id_type": "string"
+      },
+      "byte_deterministic": true
+    }
+  ],
+  "relationships": {
+    "same_bytes_distinct_sources": [
+      "data/images/same-source-a.png",
+      "data/images/same-source-b.png"
+    ],
+    "changed_source_revisions": [
+      "data/images/same-source-a.png",
+      "data/images/票据-甲-v2.png"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "ppocr": {
+    "name": "PP-OCRv6 medium",
+    "route": "Paddle native CUDA",
+    "models": ["PP-OCRv6_medium_det", "PP-OCRv6_medium_rec", "PP-LCNet_x1_0_textline_ori"],
+    "capabilities": {"text": true, "text_coordinates": true, "confidence": true, "tables": false}
+  },
+  "paddlevl": {
+    "name": "PaddleOCR-VL-1.6",
+    "route": "Paddle full document parsing pipeline, native CUDA",
+    "models": ["PaddleOCR-VL-1.6", "PP-DocLayoutV3"],
+    "capabilities": {"text": true, "text_coordinates": false, "region_coordinates": true, "confidence": false, "tables": true}
+  },
+  "glm": {
+    "name": "GLM-OCR",
+    "route": "Transformers BF16 CUDA plus official GLM SDK layout/crop/format components",
+    "models": ["GLM-OCR", "PP-DocLayoutV3_safetensors"],
+    "capabilities": {"text": true, "text_coordinates": false, "region_coordinates": true, "confidence": false, "tables": true}
+  },
+  "hunyuan": {
+    "name": "HunyuanOCR-1.5",
+    "route": "llama.cpp b10894 Windows CUDA 12.4, F16 GGUF and visual projector",
+    "models": ["HunyuanOCR-GGUF"],
+    "capabilities": {"text": true, "text_coordinates": false, "confidence": false, "tables": true}
+  }
+}

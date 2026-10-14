@@ -1,0 +1,128 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adapter_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "app_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "App Id",
+      "type": "string"
+    },
+    "app_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "App Version",
+      "type": "string"
+    },
+    "capabilities": {
+      "items": {
+        "enum": [
+          "cancel",
+          "pause",
+          "resume",
+          "retry_failed",
+          "import",
+          "export",
+          "gpu"
+        ],
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "data_schema_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Data Schema Version",
+      "type": "string"
+    },
+    "display_name": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "entry_mode": {
+      "const": "standalone_page",
+      "title": "Entry Mode",
+      "type": "string"
+    },
+    "input_types": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Input Types",
+      "type": "array"
+    },
+    "license_refs": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "License Refs",
+      "type": "array"
+    },
+    "min_platform_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Min Platform Version",
+      "type": "string"
+    },
+    "output_types": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Output Types",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "enum": [
+          "cpu",
+          "gpu",
+          "network"
+        ],
+        "type": "string"
+      },
+      "maxItems": 8,
+      "title": "Resources",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "app_id",
+    "display_name",
+    "app_version",
+    "adapter_version",
+    "min_platform_version",
+    "data_schema_version",
+    "entry_mode",
+    "capabilities",
+    "input_types",
+    "output_types",
+    "resources",
+    "license_refs"
+  ],
+  "title": "AppManifest",
+  "type": "object"
+}

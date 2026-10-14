@@ -1,0 +1,38 @@
+{
+  "model_version_id": "model_fc64192b639d44cd",
+  "providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "torch_imported": false,
+  "results": [
+    {
+      "path": ".local-data/demo-images/circle/合成_circle_000.png",
+      "content_sha256": "dea28a7ba99e637f74a11bce9ae9f0c9b48e97ff22d15acb9815ed5d4b2f2df9",
+      "class_index": 0,
+      "label_id": "circle",
+      "display_name": "圆形",
+      "score": 0.9973617196083069,
+      "status": "needs_review",
+      "scores": [
+        0.9973617196083069,
+        0.0008892536861822009,
+        0.0017490782774984837
+      ]
+    },
+    {
+      "path": ".local-data/demo-images/rectangle/合成_rectangle_000.png",
+      "content_sha256": "94cb12979a2f3454f9d44fd8d52bf3c7a276e889454ff07e4039c27bfbcad3e4",
+      "class_index": 1,
+      "label_id": "rectangle",
+      "display_name": "矩形",
+      "score": 0.9859372973442078,
+      "status": "needs_review",
+      "scores": [
+        0.003195398021489382,
+        0.9859372973442078,
+        0.010867316275835037
+      ]
+    }
+  ]
+}

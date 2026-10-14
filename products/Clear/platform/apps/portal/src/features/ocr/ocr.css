@@ -1,0 +1,14 @@
+.ocr-workflow .page-heading { margin-bottom: 16px; }
+.ocr-input-list { padding-left: 20px; margin: 12px 0 0; }
+.ocr-input-list li { margin: 7px 0; }
+.ocr-project-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.ocr-project-controls .ant-select, .ocr-project-controls .ant-input { width: min(420px, 100%); }
+.ocr-notice { margin-top: 14px; }
+.ocr-open { margin-top: 14px; }
+.ocr-handoff-state { margin-top: 18px; }
+.ocr-handoff-state ul { list-style: none; padding: 0; max-width: 600px; }
+.ocr-handoff-state li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 10px 0; border-bottom: 1px solid var(--clear-border); }
+.ocr-processing { margin-top: 22px; }
+.ocr-processing .ocr-notice { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.ocr-processing .ocr-notice > .ant-typography, .ocr-processing .ocr-notice > a, .ocr-processing .ocr-notice > .ant-btn { flex-shrink: 0; }
+@media (max-width: 600px) { .ocr-project-controls { align-items: stretch; flex-direction: column; } .ocr-project-controls .ant-select, .ocr-project-controls .ant-input, .ocr-project-controls .ant-btn { width: 100%; } }

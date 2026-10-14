@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-09-18T14:14:25.878773+00:00",
+  "status": "passed",
+  "device": "cuda",
+  "model_id": "model_fc64192b639d44cd",
+  "initial": {
+    "inputs": 4,
+    "succeeded": 1,
+    "failed": 3,
+    "failures": [
+      "content changed",
+      "missing file",
+      "invalid image"
+    ]
+  },
+  "retry": {
+    "inputs": 3,
+    "succeeded": 2,
+    "failed": 1,
+    "successful_original_row_unchanged": true
+  },
+  "scope": "Real ONNX inference with synthetic input copies and an isolated disposable database."
+}

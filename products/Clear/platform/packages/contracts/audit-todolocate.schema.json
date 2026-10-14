@@ -1,0 +1,288 @@
+{
+  "$defs": {
+    "TodoContext": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Batch Id"
+        },
+        "finding_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finding Id"
+        },
+        "item_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Item Id"
+        },
+        "procedure_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Procedure Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "workspace_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_id"
+      ],
+      "title": "TodoContext",
+      "type": "object"
+    },
+    "TodoItem": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "items": {
+            "enum": [
+              "open_evidence",
+              "open_native",
+              "open_audit",
+              "confirm",
+              "defer",
+              "reopen",
+              "adopt"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "title": "Actions",
+          "type": "array"
+        },
+        "batch_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Batch Revision"
+        },
+        "context": {
+          "$ref": "#/$defs/TodoContext"
+        },
+        "issue_type": {
+          "enum": [
+            "result",
+            "technical",
+            "investigation"
+          ],
+          "title": "Issue Type",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "issue",
+            "finding"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "high",
+            "normal",
+            "low"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "priority_basis": {
+          "enum": [
+            "manual_investigation",
+            "default_review_order"
+          ],
+          "title": "Priority Basis",
+          "type": "string"
+        },
+        "project_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Project Revision"
+        },
+        "scenario": {
+          "anyOf": [
+            {
+              "enum": [
+                "data_compare",
+                "classification",
+                "ocr"
+              ],
+              "type": "string"
+            },
+            {
+              "const": "image_forensics",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scenario"
+        },
+        "source_summary": {
+          "maxLength": 1000,
+          "title": "Source Summary",
+          "type": "string"
+        },
+        "state": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "State",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "todo_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Todo Id",
+          "type": "string"
+        },
+        "updated_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "todo_id",
+        "kind",
+        "issue_type",
+        "context",
+        "scenario",
+        "batch_revision",
+        "project_revision",
+        "title",
+        "state",
+        "priority",
+        "priority_basis",
+        "updated_at",
+        "source_summary",
+        "actions"
+      ],
+      "title": "TodoItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "item": {
+      "$ref": "#/$defs/TodoItem"
+    },
+    "matches_filters": {
+      "title": "Matches Filters",
+      "type": "boolean"
+    },
+    "page_cursor": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]{1,256}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Page Cursor"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_token": {
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_-]{1,256}$",
+      "title": "Snapshot Token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "item",
+    "matches_filters",
+    "snapshot_token",
+    "page_cursor"
+  ],
+  "title": "TodoLocate",
+  "type": "object"
+}

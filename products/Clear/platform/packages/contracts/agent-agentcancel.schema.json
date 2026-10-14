@@ -1,0 +1,12 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "cancel_owned_jobs": {
+      "default": false,
+      "title": "Cancel Owned Jobs",
+      "type": "boolean"
+    }
+  },
+  "title": "AgentCancel",
+  "type": "object"
+}

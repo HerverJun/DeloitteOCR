@@ -1,0 +1,59 @@
+{
+  "provider": "pdfplumber",
+  "version": "0.11.10",
+  "source": "build/public-quality-20260916/tool/site-packages",
+  "runtime": "pdf",
+  "table_settings": {},
+  "settings_policy": "unmodified upstream defaults; no per-document routes or tolerance tuning",
+  "resolved_default_settings": {
+    "vertical_strategy": "lines",
+    "horizontal_strategy": "lines",
+    "explicit_vertical_lines": null,
+    "explicit_horizontal_lines": null,
+    "snap_tolerance": 3,
+    "snap_x_tolerance": 3,
+    "snap_y_tolerance": 3,
+    "join_tolerance": 3,
+    "join_x_tolerance": 3,
+    "join_y_tolerance": 3,
+    "edge_min_length": 3,
+    "edge_min_length_prefilter": 1,
+    "min_words_vertical": 3,
+    "min_words_horizontal": 1,
+    "intersection_tolerance": 3,
+    "intersection_x_tolerance": 3,
+    "intersection_y_tolerance": 3,
+    "text_settings": {
+      "x_tolerance": 3,
+      "y_tolerance": 3
+    }
+  },
+  "wheel_sha256": "7741ea81bf165b474b153e6789d10d18e06b6ddcf3ec84289c3ef2fed6802580",
+  "dependencies": {
+    "pdfminer.six": "20260107",
+    "Pillow": "12.3.0",
+    "pypdfium2": "5.13.0"
+  },
+  "files": {
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/cli.py": "a0e581d533d7cd7ddb81c8c75a5ea927207e456b74d410dbd436e55ccd3ec721",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/container.py": "b92edf698c6ad6f43327d316a941ffbea7722898ef138c6b35993cac90cdcd4a",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/convert.py": "c4317ee6466ba721d66cfcf3b9c68aa7128129b9df7c1df95ffeb1c40582c172",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/ctm.py": "efc7f001690a1c3ead47cfc4486b1bb9e7cef8c3cabcb1b006d40bc8927115be",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/display.py": "4f12c5edec22c2530329c57f2137db2e2a5090cd1c34446f9688b41a54d0bb03",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/page.py": "ef423b47ed5a2a467275277f4a672ac2a1b8a1af103aa424248f85d5a0be4bba",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/pdf.py": "7f5c27ef82c91202022c43c0149bbbcf781fe95476344e422ba3f7895332039d",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/repair.py": "5eb9bbb08df0abdcfbfc8842d1fb5b0bb4ce80341967f1e94ec5f271f1b6c748",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/structure.py": "5fc08c0c67a1981186a8c8509f6ece0feff6a856b5992e8f12ddb6b57d5af648",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/table.py": "d3557440585e7147b5f37cead8b55d960f4d864f61bc9bf203903000d87d0eff",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/_typing.py": "3419758867aeb8c3dad13b532f62fe391fac624e59b180ff21d0afadd2c82999",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/_version.py": "9898638a7cfb9d8fdf37723b7baf0142941ad8d17f87c98389e9c6f106798c14",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/__init__.py": "dfee537d1da4de9b6f5dabf5bee84d5278d74fec787ef6bdd6179cd2b349817c",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/clustering.py": "66ea35aa100b625eb00478c2268e369c1a01d0dc9a51adb313727e1818ebef51",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/exceptions.py": "9bf02b1c3c8f4d38ea6fe72056afcfa621083dc87cdcc74636ae5cf9f5aad3ae",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/generic.py": "e7157ea9b77f8f483750d32d6b8f80536ab3e4497bfc7c1f4cc67d4bf4693d73",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/geometry.py": "9f60a4a4f5f913f8adda08262a2b92015675c5b5c3ee4a2140c3ac3d279b6243",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/pdfinternals.py": "1a0074734817d08f5c83baebe94566ea97a953162e54b102ea58a3927d173495",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/text.py": "72c80dcf70b4cdbfd6184023616330a5c421839855e5b19b954604a1d951fa33",
+    "build/public-quality-20260916/tool/site-packages/pdfplumber/utils/__init__.py": "752a082a53face6fba32a40c9b2b8c7383ffd95881d8a749dec21b9420de6d08"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "checked_at": "2026-09-18T12:54:18.154644+00:00",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "python": {
+    "version": "3.12.7",
+    "executable": "D:\\anaconda3\\python.exe"
+  },
+  "logical_cpus": 20,
+  "disks": {
+    "C:\\": {
+      "total_bytes": 536871956480,
+      "free_bytes": 12495728640
+    },
+    "E:\\": {
+      "total_bytes": 2000382062592,
+      "free_bytes": 395078307840
+    }
+  },
+  "tools": {
+    "git": {
+      "path": "D:\\Git\\cmd\\git.EXE",
+      "check": {
+        "returncode": 0,
+        "stdout": "git version 2.48.1.windows.1",
+        "stderr": ""
+      }
+    },
+    "node": {
+      "path": "D:\\nodejs\\node.EXE",
+      "check": {
+        "returncode": 0,
+        "stdout": "v22.17.0",
+        "stderr": ""
+      }
+    },
+    "pnpm": {
+      "path": "C:\\Users\\A\\AppData\\Roaming\\npm\\pnpm.CMD"
+    },
+    "uv": {
+      "path": null
+    },
+    "docker": {
+      "path": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+      "check": {
+        "returncode": 0,
+        "stdout": "Docker version 29.4.3, build 055a478",
+        "stderr": ""
+      }
+    },
+    "nvidia-smi": {
+      "path": "C:\\Windows\\system32\\nvidia-smi.EXE",
+      "check": {
+        "returncode": 0,
+        "stdout": "NVIDIA GeForce RTX 4070 Ti SUPER, 16376 MiB, 595.97",
+        "stderr": ""
+      }
+    }
+  },
+  "packages": {
+    "torch": "2.9.1",
+    "torchvision": "0.24.1",
+    "timm": "1.0.22",
+    "onnx": "1.21.0",
+    "onnxscript": null,
+    "onnxruntime": "1.26.0",
+    "onnxruntime-gpu": null,
+    "Pillow": "10.4.0",
+    "numpy": "1.26.4",
+    "fastapi": "0.124.4",
+    "sqlalchemy": "2.0.34",
+    "jsonschema": "4.23.0"
+  },
+  "limitations": [
+    "Package presence does not prove compatibility.",
+    "No model, export or throughput test was performed.",
+    "ORT provider enumeration is not proof that a real model executes on GPU."
+  ],
+  "hardware": {
+    "cpu": "13th Gen Intel(R) Core(TM) i5-13600KF",
+    "cores": 14,
+    "ram_bytes": 34164097024
+  },
+  "ml_probes": {
+    "torch": {
+      "returncode": 0,
+      "stdout": "{\"version\": \"2.9.1+cpu\", \"cuda_available\": false, \"compiled_cuda\": null}",
+      "stderr": ""
+    },
+    "onnxruntime": {
+      "returncode": 0,
+      "stdout": "{\"version\": \"1.26.0\", \"providers\": [\"AzureExecutionProvider\", \"CPUExecutionProvider\"]}",
+      "stderr": ""
+    }
+  }
+}

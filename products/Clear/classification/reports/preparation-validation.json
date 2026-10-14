@@ -1,0 +1,235 @@
+{
+  "checked_at": "2026-09-18T12:55:45.821387+00:00",
+  "status": "passed",
+  "check_count": 45,
+  "checks": [
+    {
+      "name": "schema-valid:model-metadata.schema.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "schema-valid:project.schema.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "config-schema:document-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "split-sum:document-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "review-budget:document-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "label-ids:document-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "patch-divisibility:document-project.json:B1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "patch-divisibility:document-project.json:B2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "config-schema:general-image-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "split-sum:general-image-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "review-budget:general-image-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "label-ids:general-image-project.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "patch-divisibility:general-image-project.json:B1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "patch-divisibility:general-image-project.json:B2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "python-syntax:preflight.py",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "python-syntax:validate_manifest.py",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "manifest-valid-example",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-group-leakage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-content-leakage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-conflicting-labels",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-duplicate-id",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-duplicate-path",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-path-traversal",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-absolute-path",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-windows-alternate-stream",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-labeled-pool",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-unknown-class",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-pseudo-ground-truth",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-invalid-hash",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-empty-manifest",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-missing-file",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accept-unicode-path-and-real-hash",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reject-changed-source-file",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/01-product-scope.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/02-architecture.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/03-data-and-api.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/04-ml-and-evaluation.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/05-delivery-plan.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/06-environment.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "local-link:README.md:docs/07-source-decisions.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "original-document-unchanged",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "official-source:timm-release",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "official-source:dinov2-model-card",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "official-source:ort-cuda",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "official-source:lightly-license",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "scope": "Preparation schemas, proposed configuration consistency, manifest validator positive/negative cases, links and source integrity only. No ML quality or performance validation.",
+  "rechecked_at": "2026-09-18T12:57:39.405632+00:00",
+  "recheck_note": "Both JSON Schemas and both project configs revalidated after adding an explicit padding_color. Earlier unaffected validator, source and link checks remain applicable."
+}

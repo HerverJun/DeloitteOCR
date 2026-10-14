@@ -1,0 +1,62 @@
+{
+  "checked_at": "2026-09-18T15:59:20.819332+00:00",
+  "version": "0.2.0",
+  "status": "passed",
+  "dataset_images_downloaded": 8189,
+  "published_splits": {
+    "test": 6149,
+    "val": 1015,
+    "train": 1019
+  },
+  "training_experiments": 16,
+  "onnx_export_batches": [
+    1,
+    3,
+    16,
+    32
+  ],
+  "gpu_timed_runs_final": 36,
+  "gpu_timed_inputs_per_run": 1024,
+  "gpu_prediction_parity": "passed",
+  "cpu_model_count": 4,
+  "cpu_cuda_parity_samples_per_model": 128,
+  "cpu_environment_mib": 124.92247581481934,
+  "python_tests_passed": 31,
+  "browser": {
+    "startTime": "2026-09-18T15:57:55.017Z",
+    "duration": 14372.508,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "ruff": "passed",
+  "frontend_build": "passed; ~371 KB gzip JS, Vite chunk-size warning remains",
+  "pip_check_gpu": "passed",
+  "pip_check_cpu": "passed",
+  "powershell_5_1_start": "passed after saving scripts as UTF-8 with BOM",
+  "live_url": "http://127.0.0.1:8765/",
+  "active_public_model": "model_7752f62302f84f5d",
+  "bundles": [
+    {
+      "encoder": "mobilenetv4",
+      "path": "E:\\project\\image-classification-platform\\dist\\inference-cpu-mobilenetv4.zip",
+      "bytes": 10879566,
+      "sha256": "562e211c4848588ff53e21d548487f70bb31a3a939f595353d73b9f2252a08dc",
+      "isolated_cpu_smoke_test": "passed"
+    },
+    {
+      "encoder": "repvit",
+      "path": "E:\\project\\image-classification-platform\\dist\\inference-cpu-repvit.zip",
+      "bytes": 18616891,
+      "sha256": "ae19d6fe35fec9db4fc6b21ac5e56651dee78145d136e8e2810c7bd5e3d7ac66",
+      "isolated_cpu_smoke_test": "passed"
+    }
+  ],
+  "limitations": [
+    "Public fine-grained flower recognition is not document or industrial business acceptance.",
+    "Pretrained encoder exposure to public images cannot be ruled out.",
+    "No unknown-class claim; all test classes occur in training.",
+    "Three AdamW seeds measure initialization sensitivity on a fixed official split, not three independent datasets."
+  ]
+}

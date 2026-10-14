@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-09-18T14:13:12.206189+00:00",
+  "platform": "Windows x64 / Python 3.12",
+  "python_lock": "requirements-windows-cu128.lock.txt",
+  "frontend_lock": "apps/web/pnpm-lock.yaml",
+  "python_index_used": "https://pypi.tuna.tsinghua.edu.cn/simple",
+  "pytorch_official_indexes": [
+    "https://download.pytorch.org/whl/cu128/torch/",
+    "https://download.pytorch.org/whl/cu128/torchvision/"
+  ],
+  "pytorch_download_mirror": "https://mirrors.nju.edu.cn/pytorch/whl/cu128",
+  "wheels": [
+    {
+      "file": "torch-2.9.1+cu128-cp312-cp312-win_amd64.whl",
+      "size": 2862033275,
+      "sha256": "3a01f0b64c10a82d444d9fd06b3e8c567b1158b76b2764b8f51bfd8f535064b0"
+    },
+    {
+      "file": "torchvision-0.24.1+cu128-cp312-cp312-win_amd64.whl",
+      "size": 9630268,
+      "sha256": "33ecea57afa1daeedfed443a8a0cb8e4b0b403fdf18c2a328ba6f9069d403384"
+    }
+  ],
+  "encoders": {
+    "resnet18": {
+      "name": "resnet18.a1_in1k",
+      "pooling": "global_average",
+      "dimension": 512,
+      "revision": "491b427b45c94c7fb0e78b5474cc919aff584bbf",
+      "sha256": "80c49dee3da4822c009c5a7fe591e9223c5a2cfcf95a4067ca4dfb5a7b89c612"
+    },
+    "dinov2": {
+      "name": "vit_small_patch14_dinov2.lvd142m",
+      "pooling": "cls_last",
+      "dimension": 384,
+      "revision": "4610ca143709d58a633b6397a74412c2c3842454",
+      "sha256": "04d27f3400d059fc0cfd7d17dd1909a75bf3ea8fb3eeb48b97cb99e57ee20081"
+    }
+  },
+  "limits": [
+    "Other Python dependencies are version-pinned, not file-hash locked.",
+    "Installer rerun validated on the current cached environment; no second clean-machine validation.",
+    "Business input images have not been supplied."
+  ]
+}

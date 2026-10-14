@@ -1,0 +1,14 @@
+item_id,relative_path,content_sha256,label_id,group_id,split,source_id,annotation_status
+example-train-0,train/invoice/example.png,4f61a269f6aaee72a71dabf5a915b2e32de012c33b0783cc94136f79a076e41d,invoice,example-group-train-0,train,example-source-train-0,human_confirmed
+example-train-1,train/payment_qr/example.png,2612322c810c6bf319b252c60d17c3a408bf90478d2d0341147200c74b1d53fa,payment_qr,example-group-train-1,train,example-source-train-1,human_confirmed
+example-train-2,train/contract/example.png,a24b75619dcecba4f0047986021277bfcddff755cca34344bc3b10b38aca84cb,contract,example-group-train-2,train,example-source-train-2,human_confirmed
+example-train-3,train/other/example.png,01cb0e1420c72e13c418adbd44f8fafc851bc885b331d13dbd5db5aef7b937ca,other,example-group-train-3,train,example-source-train-3,human_confirmed
+example-val-0,val/invoice/example.png,469f9431444b2f4e83f6c27ca08a6efe318450a6acf1fe9d16aff1ec9e766e35,invoice,example-group-val-0,val,example-source-val-0,human_confirmed
+example-val-1,val/payment_qr/example.png,8bdcbe27efe781b62169f54eb51fa0e340b551ecb914cda5ff02c8162d57fb73,payment_qr,example-group-val-1,val,example-source-val-1,human_confirmed
+example-val-2,val/contract/example.png,c712b00539a8dda6b5a4d87296de9f104f087bbdc29fcf1a59365b682e500aa4,contract,example-group-val-2,val,example-source-val-2,human_confirmed
+example-val-3,val/other/example.png,b53ffe41fcbaa208ad7caab52cfe31fd3c821542c7fb2132895c957f078b0806,other,example-group-val-3,val,example-source-val-3,human_confirmed
+example-test-0,test/invoice/example.png,21457e67b9118d3b25fb79b384985bb18d4999ea4f698b85c4714db869625fb2,invoice,example-group-test-0,test,example-source-test-0,human_confirmed
+example-test-1,test/payment_qr/example.png,9d3ac192652a14451ca45b9556c3625e61473a861fba59db3a07f1432a121ed3,payment_qr,example-group-test-1,test,example-source-test-1,human_confirmed
+example-test-2,test/contract/example.png,1070a8c4c84daa31e58c7eef522bd5751b5eeb6b16c5379273e41f4aed53cced,contract,example-group-test-2,test,example-source-test-2,human_confirmed
+example-test-3,test/other/example.png,4e2500817fddd25e7c905b752a27fe3f378a24549d701a30395a26421590c089,other,example-group-test-3,test,example-source-test-3,human_confirmed
+example-pool-1,pool/example.png,947da8bff1909dea7ced0b39c09444000a24e98f04bbf65ea410195fea8e0aa8,,example-group-pool-1,pool,example-source-pool-1,unlabeled

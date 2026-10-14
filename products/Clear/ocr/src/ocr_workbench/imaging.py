@@ -1,0 +1,395 @@
+"""Immutable originals and geometrically explicit image versions."""
+
+import hashlib
+import json
+import threading
+import shutil
+import logging
+from contextlib import contextmanager
+from functools import wraps
+from pathlib import Path
+from PIL import Image, ImageOps, ImageEnhance
+from pillow_heif import register_heif_opener
+from ocr_workbench.store import uid, now, encoded
+from ocr_workbench.image_utils import normalized_rgb
+
+register_heif_opener()
+Image.MAX_IMAGE_PIXELS = 80_000_000
+SUPPORTED = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp",
+    ".tif",
+    ".tiff",
+    ".webp",
+    ".heic",
+    ".heif",
+}
+CPU_GATE = threading.BoundedSemaphore(2)
+
+
+class ImagePublication:
+    def __init__(self, store, destination, directory):
+        self.destination = destination
+        self.folder = store.root / ".image-staging" / uid()
+        self.folder.mkdir(parents=True)
+        self.temporary = self.folder / destination.name
+        if directory:
+            self.temporary.mkdir()
+        self.published = False
+
+    def publish(self):
+        self.destination.parent.mkdir(parents=True, exist_ok=True)
+        if self.destination.exists():
+            raise FileExistsError("图像提交目标已存在")
+        self.temporary.replace(self.destination)
+        self.published = True
+
+
+@contextmanager
+def image_publication(store, destination, *, directory=False):
+    """Stage complete files, then publish inside the owning DB transaction."""
+    with store.file_lock:
+        publication = ImagePublication(store, destination, directory)
+        try:
+            yield publication
+        except BaseException:
+            if publication.published:
+                try:
+                    if directory:
+                        shutil.rmtree(destination)
+                    else:
+                        destination.unlink(missing_ok=True)
+                except OSError:
+                    logging.getLogger(__name__).exception(
+                        "Image compensation pending; inspect orphan files"
+                    )
+            raise
+        finally:
+            try:
+                shutil.rmtree(publication.folder)
+            except OSError:
+                logging.getLogger(__name__).exception(
+                    "Image staging cleanup pending; inspect orphan files"
+                )
+
+
+def bounded_image_work(function):
+    @wraps(function)
+    def limited(*args, **kwargs):
+        with CPU_GATE:
+            return function(*args, **kwargs)
+
+    return limited
+
+
+def validate_preset(operations):
+    if not isinstance(operations, list) or len(operations) > 2:
+        raise ValueError("预处理最多包含一次旋转和一次对比度增强")
+    seen = set()
+    for op in operations:
+        if not isinstance(op, dict) or op.get("kind") in seen:
+            raise ValueError("无效或重复的预处理")
+        kind = op.get("kind")
+        seen.add(kind)
+        if (
+            kind == "rotate"
+            and set(op) == {"kind", "degrees"}
+            and op["degrees"] in [90, 180, 270, -90]
+        ):
+            continue
+        if (
+            kind == "contrast"
+            and set(op) == {"kind", "factor"}
+            and type(op["factor"]) in {int, float}
+            and 0.2 <= op["factor"] <= 3
+        ):
+            continue
+        raise ValueError("批次预处理仅支持旋转与对比度，原图始终保留")
+    return operations
+
+
+@bounded_image_work
+def prepare_task(store, task):
+    """One persistent processed version per source/batch, reused across engines."""
+    operations = validate_preset(json.loads(task.get("preprocess") or "[]"))
+    if not operations:
+        return task
+    source = store.one("versions", task.get("input_version_id") or task["version_id"])
+    provenance = {"kind": "batch", "preset": operations, "batch": task["batch"]}
+    existing = store.rows(
+        "SELECT * FROM versions WHERE parent_id=? AND operations=?",
+        (source["id"], encoded(provenance)),
+    )
+    if not existing:
+        with Image.open(store.file(source["path"])) as image:
+            image = image.convert("RGB")
+            for op in operations:
+                image = (
+                    image.rotate(-op["degrees"], expand=True)
+                    if op["kind"] == "rotate"
+                    else ImageEnhance.Contrast(image).enhance(op["factor"])
+                )
+            version = save_version(
+                store, source, image, provenance, prepare_task_id=task["id"]
+            )
+        return store.one("tasks", task["id"]) if version else None
+    if existing:
+        version = existing[0]
+    with store.transaction() as db:
+        current = db.execute(
+            "SELECT status FROM tasks WHERE id=?", (task["id"],)
+        ).fetchone()
+        if not current or current["status"] != "running":
+            return None
+        db.execute(
+            "UPDATE tasks SET version_id=? WHERE id=?", (version["id"], task["id"])
+        )
+        db.execute(
+            "UPDATE images SET active_version=? WHERE id=? AND active_version=?",
+            (version["id"], source["image_id"], source["id"]),
+        )
+    return store.one("tasks", task["id"])
+
+
+@bounded_image_work
+def thumbnail(store, version_id):
+    version = store.one("versions", version_id)
+    folder = store.root / "thumbnails"
+    folder.mkdir(exist_ok=True)
+    target = folder / (version_id + ".jpg")
+    if not target.exists():
+        with Image.open(store.file(version["path"])) as image:
+            image = image.convert("RGB")
+            image.thumbnail((160, 160))
+            temporary = folder / (version_id + "-" + uid() + ".tmp")
+            try:
+                image.save(temporary, format="JPEG", quality=80)
+                temporary.replace(target)
+            finally:
+                temporary.unlink(missing_ok=True)
+    return target
+
+
+def digest(path):
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+@bounded_image_work
+def add_image(store, project_id, name, temporary, *, page_id=None, pdf_to_pixel=None,
+              page_payload=None, on_accept=None):
+    store.one("projects", project_id)
+    suffix = Path(name).suffix.lower()
+    if suffix not in SUPPORTED:
+        raise ValueError("不支持的图片格式")
+    try:
+        with Image.open(temporary) as source:
+            if getattr(source, "n_frames", 1) != 1:
+                raise ValueError("多页图片请先拆分为单页")
+            if source.width * source.height > 80_000_000:
+                raise ValueError("图片超过 8000 万像素，请先缩小")
+            image = normalized_rgb(source)
+    except OSError as error:
+        logging.getLogger(__name__).exception("Cannot decode imported image %s", name)
+        raise ValueError(f"无法读取 {Path(name).name}，文件可能损坏或格式不受支持，请重新导出图片后重试") from error
+    key, version = uid(), uid()
+    folder = store.root / "projects" / project_id / "images" / key
+    original = folder / ("original" + suffix)
+    prepared = folder / (version + ".png")
+    with image_publication(store, folder, directory=True) as publication:
+        staged_original = publication.temporary / original.name
+        staged_prepared = publication.temporary / prepared.name
+        # Keep the uploaded source until publication and DB commit both succeed.
+        shutil.copyfile(temporary, staged_original)
+        image.save(staged_prepared)
+        original_hash, prepared_hash = digest(staged_original), digest(staged_prepared)
+        with Image.open(staged_prepared) as check:
+            check.verify()
+        with store.transaction() as db:
+            db.execute(
+                "INSERT INTO images VALUES(?,?,?,?,?,?,?)",
+                (
+                    key,
+                    project_id,
+                    name,
+                    str(original.relative_to(store.root)),
+                    original_hash,
+                    version,
+                    now(),
+                ),
+            )
+            db.execute(
+                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
+                (
+                    version,
+                    key,
+                    None,
+                    str(prepared.relative_to(store.root)),
+                    image.width,
+                    image.height,
+                    prepared_hash,
+                    encoded({"kind": "import", "exif_normalized": True}),
+                    now(),
+                ),
+            )
+            store.link_image_document(db, key, page_id=page_id, pdf_to_pixel=pdf_to_pixel)
+            if page_payload is not None:
+                from ocr_workbench.atomic_files import write_json
+                write_json(publication.temporary / 'native.json', page_payload)
+                db.execute('UPDATE pages SET native_result=?,render_parameters=? WHERE id=?',
+                           (str((folder / 'native.json').relative_to(store.root)), encoded(page_payload['metadata']), page_id))
+                native = page_payload['native']
+                for order, region in enumerate(native.get('coverage_regions', [])):
+                    store.add_region(page_id, version, region['kind'], region['polygon'], region['source'],
+                                     reading_order=order, metadata={'overlaps_native': region.get('overlaps_native', False)}, db=db)
+                for order, unit in enumerate(native['units']):
+                    store.add_region(page_id, version, 'native-word', unit['polygon'], 'pdf-native',
+                                     reading_order=order, metadata=unit, db=db)
+            if on_accept is not None:
+                # The platform import mapping commits in the same SQLite
+                # transaction as the native image and version. A lost HTTP
+                # response can then be reconciled by request/item identity.
+                on_accept(db, key, version)
+            publication.publish()
+    try:
+        temporary.unlink(missing_ok=True)
+    except OSError:
+        logging.getLogger(__name__).exception(
+            "Uploaded source cleanup pending after successful import"
+        )
+    return store.one("images", key)
+
+
+@bounded_image_work
+def transform(store, version_id, operation):
+    import cv2
+    import numpy as np
+
+    source = store.one("versions", version_id)
+    with Image.open(store.file(source["path"])) as raw:
+        image = raw.convert("RGB")
+    kind = operation.get("kind")
+    if kind == "rotate":
+        degrees = operation.get("degrees")
+        if degrees not in [90, 180, 270, -90]:
+            raise ValueError("旋转角度必须是 90 度的倍数")
+        image = image.rotate(-degrees, expand=True)
+    elif kind == "crop":
+        box = operation.get("box", [])
+        if len(box) != 4 or any(type(v) not in {float, int} for v in box):
+            raise ValueError("请框选裁剪区域")
+        x1, y1, x2, y2 = map(round, box)
+        if (
+            not (0 <= x1 < x2 <= image.width and 0 <= y1 < y2 <= image.height)
+            or min(x2 - x1, y2 - y1) < 8
+        ):
+            raise ValueError("裁剪区域太小或超出图片")
+        image = image.crop((x1, y1, x2, y2))
+    elif kind == "perspective":
+        points = np.asarray(operation.get("points", []), dtype=np.float32)
+        if points.shape != (4, 2) or not np.isfinite(points).all():
+            raise ValueError("请按左上、右上、右下、左下选取四角")
+        if (
+            (points < 0).any()
+            or (points[:, 0] > image.width).any()
+            or (points[:, 1] > image.height).any()
+        ):
+            raise ValueError("透视点超出图片")
+        contour = points.reshape(-1, 1, 2)
+        if not cv2.isContourConvex(contour) or cv2.contourArea(contour) < 64:
+            raise ValueError("四角应构成凸四边形，不能交叉或重合")
+        width = round(
+            max(
+                np.linalg.norm(points[1] - points[0]),
+                np.linalg.norm(points[2] - points[3]),
+            )
+        )
+        height = round(
+            max(
+                np.linalg.norm(points[3] - points[0]),
+                np.linalg.norm(points[2] - points[1]),
+            )
+        )
+        if min(width, height) < 8 or width * height > 80_000_000:
+            raise ValueError("校正后的尺寸超出限制")
+        matrix = cv2.getPerspectiveTransform(
+            points,
+            np.float32(
+                [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]]
+            ),
+        )
+        image = Image.fromarray(
+            cv2.warpPerspective(
+                np.asarray(image),
+                matrix,
+                (width, height),
+                flags=cv2.INTER_CUBIC,
+                borderMode=cv2.BORDER_REPLICATE,
+            )
+        )
+        operation = {**operation, "matrix": matrix.tolist()}
+    elif kind == "contrast":
+        factor = operation.get("factor", 1.3)
+        if not isinstance(factor, (int, float)) or not 0.2 <= factor <= 3:
+            raise ValueError("对比度应在 0.2–3 之间")
+        image = ImageEnhance.Contrast(image).enhance(factor)
+    else:
+        raise ValueError("未知的图像处理操作")
+    return save_version(store, source, image, operation)
+
+
+def save_version(store, parent, image, operation, task_id=None, prepare_task_id=None):
+    version = uid()
+    path = store.file(parent["path"]).with_name(version + ".png")
+    owner_task = task_id or prepare_task_id
+    with image_publication(store, path) as publication:
+        image.save(publication.temporary)
+        sha256 = digest(publication.temporary)
+        with Image.open(publication.temporary) as check:
+            check.verify()
+        with store.transaction() as db:
+            if owner_task:
+                task = db.execute(
+                    "SELECT status FROM tasks WHERE id=?", (owner_task,)
+                ).fetchone()
+                if not task or task["status"] != "running":
+                    return None
+            db.execute(
+                "INSERT INTO versions VALUES(?,?,?,?,?,?,?,?,?)",
+                (
+                    version,
+                    parent["image_id"],
+                    parent["id"],
+                    str(path.relative_to(store.root)),
+                    image.width,
+                    image.height,
+                    sha256,
+                    encoded(operation),
+                    now(),
+                ),
+            )
+            store.link_derived_version(db, parent, version, operation)
+            if owner_task:
+                db.execute(
+                    "UPDATE images SET active_version=? WHERE id=? AND active_version=?",
+                    (version, parent["image_id"], parent["id"]),
+                )
+                if task_id:
+                    db.execute(
+                        "UPDATE tasks SET status='succeeded',phase='去弯曲完成',finished=?,result_version_id=? WHERE id=?",
+                        (now(), version, task_id),
+                    )
+                else:
+                    db.execute(
+                        "UPDATE tasks SET version_id=? WHERE id=?",
+                        (version, prepare_task_id),
+                    )
+            else:
+                db.execute(
+                    "UPDATE images SET active_version=? WHERE id=?",
+                    (version, parent["image_id"]),
+                )
+            publication.publish()
+    return store.one("versions", version)

@@ -1,0 +1,500 @@
+{
+  "$defs": {
+    "Inspection": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "created_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/InspectionFile"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "inspection_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Inspection Id",
+          "type": "string"
+        },
+        "original_name": {
+          "title": "Original Name",
+          "type": "string"
+        },
+        "report": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Report"
+        },
+        "report_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Report Hash"
+        },
+        "request_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Review"
+        },
+        "review_history": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Review History",
+          "type": "array"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "partial",
+            "failed",
+            "needs_verification"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "enum": [
+              "metadata",
+              "noise",
+              "frequency",
+              "jpeg",
+              "jpeg_grid",
+              "copy_move"
+            ],
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "updated_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "inspection_id",
+        "workspace_id",
+        "request_id",
+        "revision",
+        "asset_id",
+        "asset_revision",
+        "blob_hash",
+        "original_name",
+        "tools",
+        "status",
+        "error",
+        "report_hash",
+        "report",
+        "files",
+        "review",
+        "review_history",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "Inspection",
+      "type": "object"
+    },
+    "InspectionFile": {
+      "additionalProperties": false,
+      "properties": {
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "name",
+        "sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "title": "InspectionFile",
+      "type": "object"
+    },
+    "SourceLocator": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "box": {
+          "anyOf": [
+            {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Box"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "column_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Column Number"
+        },
+        "coordinate_space": {
+          "anyOf": [
+            {
+              "enum": [
+                "image_pixels",
+                "normalized"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordinate Space"
+        },
+        "end_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Ms"
+        },
+        "image_version_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Version Id"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "page",
+            "table",
+            "cell",
+            "row",
+            "region",
+            "media_segment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "page_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Number"
+        },
+        "precision": {
+          "enum": [
+            "exact",
+            "approximate",
+            "page_only",
+            "unknown"
+          ],
+          "title": "Precision",
+          "type": "string"
+        },
+        "row_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Row Number"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet Name"
+        },
+        "start_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Ms"
+        },
+        "table_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Number"
+        },
+        "transform_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transform Revision"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "asset_id",
+        "asset_revision",
+        "blob_hash",
+        "precision"
+      ],
+      "title": "SourceLocator",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inspection": {
+      "$ref": "#/$defs/Inspection"
+    },
+    "scenario": {
+      "const": "image_forensics",
+      "title": "Scenario",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "source_count": {
+      "title": "Source Count",
+      "type": "integer"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceLocator"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "scenario",
+    "workspace_id",
+    "inspection",
+    "sources",
+    "source_count",
+    "snapshot_hash"
+  ],
+  "title": "ForensicEvidenceSnapshot",
+  "type": "object"
+}

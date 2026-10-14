@@ -1,0 +1,7 @@
+# Isolated CPU runtime. Never install these into the four OCR environments.
+docling-parse==7.19.1
+docling-core==2.96.0
+pypdfium2==5.13.0
+pikepdf==10.13.0.post1
+fpdf2==2.8.8
+ocrmypdf==17.11.0

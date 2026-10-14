@@ -1,0 +1,4 @@
+# CPU-independent API, data, and learning tests; model training/inference are covered by local GPU validation.
+scikit-learn==1.7.2
+scipy==1.18.1
+threadpoolctl==3.7.0

@@ -39,6 +39,11 @@ config/geometry-evaluation-v3.json -text
 config/geometry-matching-policy.json -text
 config/geometry-matching-policy-v3.json -text
 config/geometry-providers.json -text
+
+# Clear source snapshots are bound to the exact bytes in source-manifest.json.
+products/Clear/** -text -whitespace
+# Upstream package metadata uses RST underline headings resembling merge markers.
+products/Clear/ocr/licenses/** conflict-marker-size=1000
 config/multimodal-review.json -text
 config/pdf-table-tool.json -text
 config/structure-workflow-protocol.json -text

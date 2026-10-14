@@ -1,0 +1,167 @@
+{
+  "source_path": "C:\\Users\\A\\Desktop\\少样本文档图像分类框架_GitHub调研与技术选型.docx",
+  "sha256": "f019dcdb3b6057ff71ac7a9735ecea027285986a265f3525330f88428dcb9697",
+  "read_at": "2026-09-18T12:53:56.847887+00:00",
+  "paragraphs_with_text": 91,
+  "tables": 7,
+  "embedded_image_count": 0,
+  "links": [
+    {
+      "id": "rId10",
+      "url": "https://github.com/lightly-ai/lightly-train"
+    },
+    {
+      "id": "rId11",
+      "url": "https://docs.lightly.ai/train/stable/image_classification.html"
+    },
+    {
+      "id": "rId12",
+      "url": "https://docs.lightly.ai/train/stable/index.html"
+    },
+    {
+      "id": "rId13",
+      "url": "https://github.com/huggingface/pytorch-image-models"
+    },
+    {
+      "id": "rId14",
+      "url": "https://github.com/huggingface/pytorch-image-models/blob/main/onnx_export.py"
+    },
+    {
+      "id": "rId15",
+      "url": "https://github.com/facebookresearch/dinov2"
+    },
+    {
+      "id": "rId16",
+      "url": "https://github.com/facebookresearch/dinov2/blob/main/MODEL_CARD.md"
+    },
+    {
+      "id": "rId17",
+      "url": "https://github.com/facebookresearch/dinov3"
+    },
+    {
+      "id": "rId18",
+      "url": "https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md"
+    },
+    {
+      "id": "rId19",
+      "url": "https://github.com/mlfoundations/open_clip"
+    },
+    {
+      "id": "rId20",
+      "url": "https://github.com/mlfoundations/open_clip/blob/main/LICENSE"
+    },
+    {
+      "id": "rId21",
+      "url": "https://github.com/microsoft/unilm/blob/master/dit/README.md"
+    },
+    {
+      "id": "rId22",
+      "url": "https://huggingface.co/microsoft/dit-base-finetuned-rvlcdip"
+    },
+    {
+      "id": "rId23",
+      "url": "https://github.com/PaddlePaddle/PaddleClas"
+    },
+    {
+      "id": "rId24",
+      "url": "https://github.com/PaddlePaddle/PaddleClas/blob/release/2.6/docs/zh_CN/models/PP-ShiTu/README.md"
+    },
+    {
+      "id": "rId25",
+      "url": "https://github.com/sicara/easy-few-shot-learning"
+    },
+    {
+      "id": "rId26",
+      "url": "https://github.com/open-mmlab/mmpretrain"
+    },
+    {
+      "id": "rId27",
+      "url": "https://docs.ultralytics.com/tasks/classify/"
+    },
+    {
+      "id": "rId28",
+      "url": "https://github.com/ultralytics/ultralytics"
+    },
+    {
+      "id": "rId29",
+      "url": "https://github.com/microsoft/onnxruntime"
+    },
+    {
+      "id": "rId30",
+      "url": "https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html"
+    },
+    {
+      "id": "rId31",
+      "url": "https://github.com/Boulaouaney/timmx"
+    },
+    {
+      "id": "rId32",
+      "url": "https://docs.pytorch.org/tutorials/beginner/onnx/export_simple_model_to_onnx_tutorial.html"
+    },
+    {
+      "id": "rId33",
+      "url": "https://onnxruntime.ai/docs/performance/model-optimizations/float16.html"
+    },
+    {
+      "id": "rId34",
+      "url": "https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html"
+    },
+    {
+      "id": "rId35",
+      "url": "https://github.com/huggingface/pytorch-image-models/releases"
+    },
+    {
+      "id": "rId36",
+      "url": "https://github.com/huggingface/pytorch-image-models/commit/986e7215e187d850d6bc975b13056675a9fa7885"
+    },
+    {
+      "id": "rId37",
+      "url": "https://github.com/facebookresearch/dinov2/commit/7764ea0f912e53c92e82eb78a2a1631e92725fc8"
+    },
+    {
+      "id": "rId38",
+      "url": "https://github.com/facebookresearch/dinov3/commit/6876159a11b4df116f30f667f8c9888617df0751"
+    },
+    {
+      "id": "rId39",
+      "url": "https://github.com/mlfoundations/open_clip/commit/2d5346092bf447ff73a782d372a8e018fb269ffc"
+    },
+    {
+      "id": "rId40",
+      "url": "https://github.com/microsoft/unilm/commit/50224e387211f15ac6a3b2685730b9a0c850f145"
+    },
+    {
+      "id": "rId41",
+      "url": "https://github.com/sicara/easy-few-shot-learning/commit/8023ff49a02a68830c10a21b8eb908cb33bdf1b9"
+    },
+    {
+      "id": "rId42",
+      "url": "https://github.com/PaddlePaddle/PaddleClas/commit/f1233c18455b8acde4fc42ab0bea575fa06daa8e"
+    },
+    {
+      "id": "rId43",
+      "url": "https://github.com/open-mmlab/mmpretrain/commit/ee7f2e88501f61aa95c742dd5f429f039935ee90"
+    },
+    {
+      "id": "rId44",
+      "url": "https://github.com/ultralytics/ultralytics/commit/b454f423600f99d41730bd75a7a26b491187de36"
+    },
+    {
+      "id": "rId45",
+      "url": "https://github.com/microsoft/onnxruntime/commit/bc8e7ed75c8b29d72f4b7bbbe4a0b66bafd28b49"
+    },
+    {
+      "id": "rId46",
+      "url": "https://github.com/lightly-ai/lightly-train/commit/4f69a408561beb063422a625fc065135d5f9bf10"
+    },
+    {
+      "id": "rId47",
+      "url": "https://github.com/Boulaouaney/timmx/commit/7441a953d0ac783f4fb6937d4114b8dbdf181335"
+    },
+    {
+      "id": "rId48",
+      "url": "https://github.com/microsoft/unilm/commit/768a3c873f598bb9b4d4dfb9267b099e35f8fe56"
+    }
+  ],
+  "method": "python-docx full body-order text and table extraction; source unchanged; layout not reviewed"
+}

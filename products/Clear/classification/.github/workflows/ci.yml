@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install API and test dependencies
+        run: |
+          python -m pip install -e '.[dev]' -r requirements-ci.txt
+          python -m pip check
+      - name: Lint and API tests
+        run: |
+          python -m ruff check src tests scripts
+          python -m pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.3
+          run_install: false
+      - name: Build frontend from lockfile
+        working-directory: apps/web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Install Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Fresh-project browser smoke
+        working-directory: apps/web
+        env:
+          ICP_DATA_DIR: ${{ runner.temp }}/prism-ci-data
+          CI_SMOKE: '1'
+        run: |
+          python -m image_platform.cli serve --port 8765 > "$RUNNER_TEMP/prism-api.log" 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:8765/api/v1/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8765/api/v1/health
+          pnpm exec playwright test e2e/ci-smoke.spec.ts

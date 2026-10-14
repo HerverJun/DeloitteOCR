@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "AuditBatchSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "batch_revision": {
+          "minimum": 1,
+          "title": "Batch Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "batch_id",
+        "batch_revision"
+      ],
+      "title": "AuditBatchSelection",
+      "type": "object"
+    },
+    "AuditProcedureFields": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "maxLength": 4000,
+          "title": "Basis",
+          "type": "string"
+        },
+        "conclusion": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Conclusion",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Note",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4000,
+          "title": "Scope",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "basis",
+        "scope"
+      ],
+      "title": "AuditProcedureFields",
+      "type": "object"
+    },
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "batches": {
+      "items": {
+        "$ref": "#/$defs/AuditBatchSelection"
+      },
+      "maxItems": 100,
+      "title": "Batches",
+      "type": "array"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "procedure": {
+      "$ref": "#/$defs/AuditProcedureFields"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "actor",
+    "expected_revision",
+    "procedure",
+    "batches"
+  ],
+  "title": "AuditProcedureWrite",
+  "type": "object"
+}

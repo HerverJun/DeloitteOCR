@@ -1,0 +1,61 @@
+{
+  "repo": "google/fonts",
+  "revision": "809e4d8b8d7e9364a914909bb777679606c178b8",
+  "license": "OFL-1.1",
+  "files": [
+    {
+      "file": "NotoSansSC-Regular.ttf",
+      "sha256": "fa5a113f137d26e80ba43370dc598a4508b126a6afb99477d1691f2ff7500078",
+      "bytes": 10595892,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf"
+    },
+    {
+      "file": "source-NotoSansSC-Regular.ttf",
+      "sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+      "bytes": 17772300,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf"
+    },
+    {
+      "file": "notosanssc-OFL.txt",
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+      "bytes": 4388,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssc/OFL.txt"
+    },
+    {
+      "file": "NotoSans-Regular.ttf",
+      "sha256": "f2a0c74f4a638695ec347e11aeb4fdadb9a1dbc457a40ea809ebd57c35539829",
+      "bytes": 626220,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf"
+    },
+    {
+      "file": "source-NotoSans-Regular.ttf",
+      "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d",
+      "bytes": 2049096,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf"
+    },
+    {
+      "file": "notosans-OFL.txt",
+      "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+      "bytes": 4396,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosans/OFL.txt"
+    },
+    {
+      "file": "NotoSansSymbols2-Regular.ttf",
+      "sha256": "e8d677c7262d3b401f55104a3bdd7f24818fad6e59277fd2402a58d533a19dc8",
+      "bytes": 1233128,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssymbols2/NotoSansSymbols2-Regular.ttf"
+    },
+    {
+      "file": "source-NotoSansSymbols2-Regular.ttf",
+      "sha256": "7d5fb73b7ca67a6798101741f5d280a3d016a56a197afcd4199dbb57b4b82a21",
+      "bytes": 1233128,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssymbols2/NotoSansSymbols2-Regular.ttf"
+    },
+    {
+      "file": "notosanssymbols2-OFL.txt",
+      "sha256": "b118dd41337806a5d4797052c77caf3bd096aed783e5eb21b4d11154351e1ac0",
+      "bytes": 4383,
+      "url": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/notosanssymbols2/OFL.txt"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[
+ {"id":"segformer-license","url":"https://raw.githubusercontent.com/NVlabs/SegFormer/master/LICENSE"},
+ {"id":"segformer-readme","url":"https://raw.githubusercontent.com/NVlabs/SegFormer/master/README.md"},
+ {"id":"opencv-current-yunet-lfs","url":"https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2026may.onnx"}
+]

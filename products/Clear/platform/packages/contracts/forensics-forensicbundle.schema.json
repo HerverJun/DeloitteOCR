@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "ForensicBundleFile": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "availability": {
+          "const": "available",
+          "title": "Availability",
+          "type": "string"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "artifact_id",
+        "revision",
+        "blob_hash",
+        "size_bytes",
+        "media_type",
+        "availability"
+      ],
+      "title": "ForensicBundleFile",
+      "type": "object"
+    },
+    "ForensicBundleInput": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "role": {
+          "const": "image",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "name",
+        "asset_id",
+        "revision"
+      ],
+      "title": "ForensicBundleInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bundle_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Bundle Id",
+      "type": "string"
+    },
+    "created_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Created At",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ForensicBundleFile"
+      },
+      "minItems": 3,
+      "title": "Files",
+      "type": "array"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ForensicBundleInput"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "inspection_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Inspection Id",
+      "type": "string"
+    },
+    "kind": {
+      "const": "image_forensics",
+      "title": "Kind",
+      "type": "string"
+    },
+    "report_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Report Hash",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "workspace_id",
+    "kind",
+    "title",
+    "inspection_id",
+    "report_hash",
+    "created_at",
+    "inputs",
+    "files"
+  ],
+  "title": "ForensicBundle",
+  "type": "object"
+}

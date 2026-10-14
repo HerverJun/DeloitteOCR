@@ -1,0 +1,426 @@
+{
+  "$defs": {
+    "BatchCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Confirmed",
+          "type": "integer"
+        },
+        "deferred": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Deferred",
+          "type": "integer"
+        },
+        "index_complete": {
+          "default": false,
+          "title": "Index Complete",
+          "type": "boolean"
+        },
+        "indexed_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Indexed Items",
+          "type": "integer"
+        },
+        "input_files": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Input Files",
+          "type": "integer"
+        },
+        "left_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Left Rows",
+          "type": "integer"
+        },
+        "next_ordinal": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Next Ordinal",
+          "type": "integer"
+        },
+        "pending": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Pending",
+          "type": "integer"
+        },
+        "required_items": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Required Items",
+          "type": "integer"
+        },
+        "result_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Result Rows",
+          "type": "integer"
+        },
+        "right_rows": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Right Rows",
+          "type": "integer"
+        },
+        "scanned_results": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Scanned Results",
+          "type": "integer"
+        }
+      },
+      "title": "BatchCoverage",
+      "type": "object"
+    },
+    "BatchDelivery": {
+      "additionalProperties": false,
+      "properties": {
+        "bundle_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bundle Id"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "intermediate",
+                "final"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        },
+        "status": {
+          "default": "none",
+          "enum": [
+            "none",
+            "current",
+            "outdated"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "title": "BatchDelivery",
+      "type": "object"
+    },
+    "BatchInput": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "left",
+            "right",
+            "images",
+            "documents"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "asset_id",
+        "asset_revision",
+        "blob_hash"
+      ],
+      "title": "BatchInput",
+      "type": "object"
+    },
+    "BatchTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "additionalProperties": true,
+          "title": "Config",
+          "type": "object"
+        },
+        "config_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "scenario": {
+          "enum": [
+            "data_compare",
+            "classification",
+            "ocr"
+          ],
+          "title": "Scenario",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "template_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Template Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "workspace_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "workspace_id",
+        "template_id",
+        "version",
+        "name",
+        "scenario",
+        "config",
+        "config_hash",
+        "created_at"
+      ],
+      "title": "BatchTemplate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifact_state": {
+      "enum": [
+        "not_generated",
+        "generated",
+        "collected",
+        "collection_failed"
+      ],
+      "title": "Artifact State",
+      "type": "string"
+    },
+    "artifacts": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "automation_version": {
+      "const": "2.0",
+      "default": "2.0",
+      "title": "Automation Version",
+      "type": "string"
+    },
+    "batch_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "cancel_requested": {
+      "title": "Cancel Requested",
+      "type": "boolean"
+    },
+    "capabilities": {
+      "items": {
+        "enum": [
+          "cancel",
+          "retry"
+        ],
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "coverage": {
+      "$ref": "#/$defs/BatchCoverage"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "delivery": {
+      "$ref": "#/$defs/BatchDelivery"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/BatchInput"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "issues": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "receipts": {
+      "additionalProperties": true,
+      "title": "Receipts",
+      "type": "object"
+    },
+    "request_key": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Key",
+      "type": "string"
+    },
+    "revision": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_input",
+        "waiting_resource",
+        "partial",
+        "succeeded",
+        "failed",
+        "cancelling",
+        "cancelled",
+        "needs_verification"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "additionalProperties": true,
+      "title": "Summary",
+      "type": "object"
+    },
+    "template": {
+      "$ref": "#/$defs/BatchTemplate"
+    },
+    "template_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Template Id",
+      "type": "string"
+    },
+    "template_version": {
+      "minimum": 1,
+      "title": "Template Version",
+      "type": "integer"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "batch_id",
+    "request_key",
+    "workspace_id",
+    "template_id",
+    "template_version",
+    "template",
+    "inputs",
+    "status",
+    "stage",
+    "summary",
+    "issues",
+    "receipts",
+    "artifact_state",
+    "artifacts",
+    "capabilities",
+    "cancel_requested",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "ProcessingBatch",
+  "type": "object"
+}

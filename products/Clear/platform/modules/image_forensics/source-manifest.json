@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "name": "__init__.py",
+      "sha256": "d101ee2057e7af1bf900587eabb5da807c9ffcc6ba9425153433302ec5f84928"
+    },
+    {
+      "name": "algorithms.py",
+      "sha256": "f7eb97afde8a1d182f9c01384048077e360c69b488c90d3240947c1b99ef0fe0"
+    },
+    {
+      "name": "catalog.py",
+      "sha256": "50cfabb95612f10c1dd5045befd4646241a0a800fae1736efaea74a35dcbc597"
+    },
+    {
+      "name": "core.py",
+      "sha256": "1d836afaaa75e6713f2470738bbbadc3a97fffc07992ab7d79d0c2f2511e6a5b"
+    },
+    {
+      "name": "model.py",
+      "sha256": "ab3fa9d0462d8629b60b8d81aa2edb14e51daad7fdcf3494e6a1c6ae330a7b47"
+    },
+    {
+      "name": "review.py",
+      "sha256": "d77c0c8772d7cc931036054ba919a71541bcdbac52d86d11d49914ed5f734a5e"
+    }
+  ],
+  "source": "F:\\CodexBackups\\图像篡改识别\\20261003_111113\\project",
+  "policy": "read-only source; classical tools enabled; experimental models excluded"
+}

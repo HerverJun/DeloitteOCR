@@ -1,0 +1,8 @@
+paddlepaddle-gpu @ https://paddle-whl.cdn.bcebos.com/stable/cu126/paddlepaddle-gpu/paddlepaddle_gpu-3.3.1-cp312-cp312-win_amd64.whl
+paddleocr[doc-parser]==3.7.0
+paddlex==3.7.0
+openpyxl==3.1.5
+pillow-heif==1.3.0
+# Build-time upstream acquisition. Apply scripts/patch_paddle_wheel.py, then
+# overlay nvidia-cudnn-cu12==9.9.0.52 before installing the final runtime.
+# Shipped runtime versions are recorded under bundle/locks/*.txt.

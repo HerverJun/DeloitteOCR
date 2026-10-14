@@ -1,0 +1,31 @@
+{
+  "downloaded_at": "2026-09-18T15:11:11.081167+00:00",
+  "dataset": "Oxford Flowers 102",
+  "homepage": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/",
+  "images": 8189,
+  "categories": 102,
+  "files": [
+    {
+      "url": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz",
+      "path": "E:\\image-platform-data\\public\\flowers102\\102flowers.tgz",
+      "bytes": 344862509,
+      "expected_md5_from_torchvision_0_24_1": "52808999861908f626f3c1f4e79d11fa",
+      "sha256": "2d01ecc807db462958cfe3d92f57a8c252b4abd240eb955770201e45f783b246"
+    },
+    {
+      "url": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/imagelabels.mat",
+      "path": "E:\\image-platform-data\\public\\flowers102\\imagelabels.mat",
+      "bytes": 502,
+      "expected_md5_from_torchvision_0_24_1": "e0620be6f572b9609742df49c70aed4d",
+      "sha256": "4903e94206bac23bf772aadf06451916df56b58fc483a62db32a97b82656651d"
+    },
+    {
+      "url": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/setid.mat",
+      "path": "E:\\image-platform-data\\public\\flowers102\\setid.mat",
+      "bytes": 14989,
+      "expected_md5_from_torchvision_0_24_1": "a5357ecc9cb78c4bef273ce3793fc85c",
+      "sha256": "46b8678f91fd95d3c8f4feab80d271a6c834a1dd896fe29fd3e6ad9ce5c8dccd"
+    }
+  ],
+  "usage": "Local public-dataset evaluation. Original images are not redistributed by this project."
+}

@@ -1,0 +1,351 @@
+{
+  "$defs": {
+    "AuditBatchRef": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "batch_revision": {
+          "minimum": 1,
+          "title": "Batch Revision",
+          "type": "integer"
+        },
+        "config_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "template_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Template Id",
+          "type": "string"
+        },
+        "template_version": {
+          "minimum": 1,
+          "title": "Template Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "batch_id",
+        "batch_revision",
+        "template_id",
+        "template_version",
+        "config_hash"
+      ],
+      "title": "AuditBatchRef",
+      "type": "object"
+    },
+    "AuditProcedure": {
+      "additionalProperties": false,
+      "properties": {
+        "audit_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Audit Version",
+          "type": "string"
+        },
+        "batches": {
+          "items": {
+            "$ref": "#/$defs/AuditBatchRef"
+          },
+          "maxItems": 100,
+          "title": "Batches",
+          "type": "array"
+        },
+        "content_revision": {
+          "minimum": 1,
+          "title": "Content Revision",
+          "type": "integer"
+        },
+        "created_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "procedure": {
+          "$ref": "#/$defs/AuditProcedureFields"
+        },
+        "procedure_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Procedure Id",
+          "type": "string"
+        },
+        "project_context_revision": {
+          "minimum": 1,
+          "title": "Project Context Revision",
+          "type": "integer"
+        },
+        "project_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision": {
+          "minimum": 1,
+          "title": "Project Revision",
+          "type": "integer"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/AuditRecord"
+          },
+          "maxItems": 2,
+          "title": "Records",
+          "type": "array"
+        },
+        "records_current": {
+          "title": "Records Current",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "updated_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "procedure_id",
+        "project_id",
+        "project_revision",
+        "content_revision",
+        "project_context_revision",
+        "procedure",
+        "batches",
+        "records",
+        "records_current",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "AuditProcedure",
+      "type": "object"
+    },
+    "AuditProcedureFields": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "maxLength": 4000,
+          "title": "Basis",
+          "type": "string"
+        },
+        "conclusion": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Conclusion",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Note",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4000,
+          "title": "Scope",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "basis",
+        "scope"
+      ],
+      "title": "AuditProcedureFields",
+      "type": "object"
+    },
+    "AuditRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/LocalActor"
+        },
+        "content_revision": {
+          "minimum": 1,
+          "title": "Content Revision",
+          "type": "integer"
+        },
+        "created_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "entity_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "enum": [
+            "project",
+            "procedure",
+            "finding"
+          ],
+          "title": "Entity Kind",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 4000,
+          "title": "Note",
+          "type": "string"
+        },
+        "project_context_revision": {
+          "minimum": 1,
+          "title": "Project Context Revision",
+          "type": "integer"
+        },
+        "project_revision": {
+          "minimum": 1,
+          "title": "Project Revision",
+          "type": "integer"
+        },
+        "record_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "prepared",
+            "reviewed"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "entity_kind",
+        "entity_id",
+        "content_revision",
+        "project_context_revision",
+        "project_revision",
+        "role",
+        "actor",
+        "note",
+        "created_at"
+      ],
+      "title": "AuditRecord",
+      "type": "object"
+    },
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/AuditProcedure"
+      },
+      "maxItems": 200,
+      "title": "Items",
+      "type": "array"
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]{1,256}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Cursor"
+    },
+    "project_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "project_revision": {
+      "minimum": 1,
+      "title": "Project Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_token": {
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_-]{1,256}$",
+      "title": "Snapshot Token",
+      "type": "string"
+    },
+    "total": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Total",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "total",
+    "snapshot_token",
+    "next_cursor",
+    "project_id",
+    "project_revision",
+    "items"
+  ],
+  "title": "AuditProcedurePage",
+  "type": "object"
+}

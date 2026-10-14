@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "inspection_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Inspection Id",
+      "type": "string"
+    },
+    "inspection_revision": {
+      "minimum": 1,
+      "title": "Inspection Revision",
+      "type": "integer"
+    },
+    "report_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Report Hash",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "inspection_id",
+    "inspection_revision",
+    "report_hash"
+  ],
+  "title": "ForensicEvidenceSelection",
+  "type": "object"
+}

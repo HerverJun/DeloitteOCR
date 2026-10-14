@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "AgentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "default": "platform",
+          "enum": [
+            "platform",
+            "data",
+            "ocr",
+            "classification",
+            "forensics"
+          ],
+          "title": "Application",
+          "type": "string"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "asset",
+            "asset_set",
+            "table",
+            "result",
+            "artifact",
+            "job",
+            "evidence"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Id"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Revision"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/AgentRef"
+          },
+          "maxItems": 100,
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "workspace_id",
+        "object_id",
+        "revision"
+      ],
+      "title": "AgentRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "limit": {
+      "default": 20,
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "offset": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Offset",
+      "type": "integer"
+    },
+    "reference": {
+      "$ref": "#/$defs/AgentRef"
+    }
+  },
+  "required": [
+    "reference"
+  ],
+  "title": "DirectEvidenceRequest",
+  "type": "object"
+}

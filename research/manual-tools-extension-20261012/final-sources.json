@@ -1,0 +1,18 @@
+[
+ {"id":"doctamper-readme","url":"https://raw.githubusercontent.com/qcf-568/DocTamper/main/README.md"},
+ {"id":"doctamper-license","url":"https://raw.githubusercontent.com/qcf-568/DocTamper/main/LICENSE"},
+ {"id":"forensichub-readme","url":"https://raw.githubusercontent.com/scu-zjz/ForensicHub/main/README.md"},
+ {"id":"forensichub-license","url":"https://raw.githubusercontent.com/scu-zjz/ForensicHub/main/LICENSE"},
+ {"id":"seal-trocr-readme","url":"https://raw.githubusercontent.com/Gmgge/TrOCR-Seal-Recognition/main/README.md"},
+ {"id":"seal-trocr-license","url":"https://raw.githubusercontent.com/Gmgge/TrOCR-Seal-Recognition/main/LICENSE"},
+ {"id":"seal-extract-readme","url":"https://raw.githubusercontent.com/wu529778790/extractSeal/main/README.md"},
+ {"id":"seal-extract-license","url":"https://raw.githubusercontent.com/wu529778790/extractSeal/main/LICENSE"},
+ {"id":"underseal-license","url":"https://raw.githubusercontent.com/yushuosun/underseal-bench/main/LICENSE"},
+ {"id":"nist-frte-1n","url":"https://pages.nist.gov/frvt/html/frvt1N.html"},
+ {"id":"nist-pad-results","url":"https://pages.nist.gov/frvt/html/frvt_pad.html"},
+ {"id":"opencv-sface-lfs","url":"https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx"},
+ {"id":"opencv-yunet-lfs","url":"https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"},
+ {"id":"trufor-requirements","url":"https://raw.githubusercontent.com/grip-unina/TruFor/main/TruFor_train_test/requirements.txt"},
+ {"id":"catnet-requirements","url":"https://raw.githubusercontent.com/mjkwon2021/CAT-Net/main/requirements.txt"},
+ {"id":"dlib-pretrained-models","url":"https://raw.githubusercontent.com/davisking/dlib-models/master/README.md"}
+]

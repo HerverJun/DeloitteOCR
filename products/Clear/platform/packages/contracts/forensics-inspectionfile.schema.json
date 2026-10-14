@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "media_type": {
+      "title": "Media Type",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "size_bytes": {
+      "minimum": 0,
+      "title": "Size Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "name",
+    "sha256",
+    "size_bytes",
+    "media_type"
+  ],
+  "title": "InspectionFile",
+  "type": "object"
+}

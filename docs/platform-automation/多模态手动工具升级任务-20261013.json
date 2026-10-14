@@ -1,0 +1,95 @@
+{
+  "format": "clear-multimodal-upgrade-tasks-v1",
+  "baseline_version": "0.9.4",
+  "run_root": "F:/OCR/output/multimodal-manual-upgrade-20261013-001",
+  "scope": "四方向实用基础版、开源免费、Windows离线单机优先",
+  "tasks": [
+    {
+      "id": "M0-baseline",
+      "status": "complete",
+      "title": "保全已有改动、模型许可与真实推理验证"
+    },
+    {
+      "id": "M1-contracts",
+      "status": "cpu_engineering_complete",
+      "title": "时间来源、能力状态、后台任务与隔离worker",
+      "remaining": "新增 GPU 资源协调与显存恢复待交付"
+    },
+    {
+      "id": "M1-face",
+      "status": "complete",
+      "title": "YuNet/SFace检测、两图比对和项目参考库"
+    },
+    {
+      "id": "M1-audio",
+      "status": "complete",
+      "title": "音频播放、频谱、Paraformer转写和匿名说话人分段"
+    },
+    {
+      "id": "M1-seal",
+      "status": "complete",
+      "title": "Paddle印章检测识别和原页坐标"
+    },
+    {
+      "id": "M1-catnet",
+      "status": "complete",
+      "title": "CAT-Net Windows适配与热图"
+    },
+    {
+      "id": "M2-review",
+      "status": "complete",
+      "title": "人工修订、导出、Data核对与审计成果"
+    },
+    {
+      "id": "M3-package",
+      "status": "engineering_complete",
+      "title": "独立运行包、模型哈希、断网及空缓存验证",
+      "stage": "ZIP 逐文件校验、新路径解压及空缓存真实处理复验通过",
+      "remaining": "物理断网和目标机独立验收"
+    },
+    {
+      "id": "M3-business",
+      "status": "awaiting_validation",
+      "title": "独立业务样本及目标A4000/A6000验收",
+      "reason": "用户暂无业务样本；目标 A4000/A6000 未现场验证"
+    },
+    {
+      "id": "M4-release",
+      "status": "complete",
+      "title": "数据兼容、备份、正式切换与回退演练"
+    },
+    {
+      "id": "M1-gpu",
+      "status": "pending",
+      "title": "新增模型共享 GPU 协调、显存不足恢复与 GPU 真实推理"
+    },
+    {
+      "id": "M3-target-hardware",
+      "status": "awaiting_validation",
+      "title": "A4000/A6000 与物理断网现场验收"
+    },
+    {
+      "id": "M3-long-audio",
+      "status": "pending",
+      "title": "大音频上传扩容、长录音和复杂多声道专项验证"
+    }
+  ],
+  "overall_upgrade_complete": false,
+  "updated_at": "2026-10-13T16:36:55.025739+00:00",
+  "candidate_version": "0.10.0",
+  "formal_version": "0.10.0",
+  "product_version": "0.10.0",
+  "released_scope": "四方向 CPU 工程版及完整离线介质",
+  "report": "F:\\OCR\\docs\\platform-automation\\多模态手动工具升级交付记录-20261013.md",
+  "deferred": [
+    "业务校准和最终测试",
+    "A4000/A6000现场资格",
+    "新增GPU资源协调与显存恢复",
+    "大音频与长录音稳定性"
+  ],
+  "artifacts": {
+    "archive": "F:\\OCR\\output\\multimodal-manual-upgrade-20261013-001\\delivery\\Clear-0.10.0-Windows-offline.zip",
+    "archive_sha256": "0afdc351f879f8f7ca532e10f3d03189f022589c125d9770fd081834d6eb9cc1",
+    "formal_candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0"
+  }
+}

@@ -1,0 +1,648 @@
+{
+  "$defs": {
+    "ForensicEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "evidence_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "inspection_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Inspection Id",
+          "type": "string"
+        },
+        "inspection_revision": {
+          "minimum": 1,
+          "title": "Inspection Revision",
+          "type": "integer"
+        },
+        "issue_type": {
+          "const": "result",
+          "title": "Issue Type",
+          "type": "string"
+        },
+        "project_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "report_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Report Hash",
+          "type": "string"
+        },
+        "scenario": {
+          "const": "image_forensics",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "source_count": {
+          "minimum": 1,
+          "title": "Source Count",
+          "type": "integer"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/SourceLocator"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "inspection_id",
+        "inspection_revision",
+        "report_hash",
+        "evidence_id",
+        "project_id",
+        "workspace_id",
+        "scenario",
+        "issue_type",
+        "snapshot_hash",
+        "captured_at",
+        "sources",
+        "source_count"
+      ],
+      "title": "ForensicEvidenceRef",
+      "type": "object"
+    },
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    },
+    "ReviewBundleFile": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "expired",
+            "missing",
+            "corrupt"
+          ],
+          "title": "Availability",
+          "type": "string"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "size_bytes": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "artifact_id",
+        "revision",
+        "media_type",
+        "size_bytes",
+        "availability",
+        "blob_hash"
+      ],
+      "title": "ReviewBundleFile",
+      "type": "object"
+    },
+    "SourceLocator": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        },
+        "box": {
+          "anyOf": [
+            {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Box"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "column_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Column Number"
+        },
+        "coordinate_space": {
+          "anyOf": [
+            {
+              "enum": [
+                "image_pixels",
+                "normalized"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordinate Space"
+        },
+        "end_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Ms"
+        },
+        "image_version_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Version Id"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "page",
+            "table",
+            "cell",
+            "row",
+            "region",
+            "media_segment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "page_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Number"
+        },
+        "precision": {
+          "enum": [
+            "exact",
+            "approximate",
+            "page_only",
+            "unknown"
+          ],
+          "title": "Precision",
+          "type": "string"
+        },
+        "row_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Row Number"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet Name"
+        },
+        "start_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Ms"
+        },
+        "table_number": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Number"
+        },
+        "transform_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transform Revision"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "asset_id",
+        "asset_revision",
+        "blob_hash",
+        "precision"
+      ],
+      "title": "SourceLocator",
+      "type": "object"
+    },
+    "WorkpaperReviewRef": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "batch_revision": {
+          "minimum": 1,
+          "title": "Batch Revision",
+          "type": "integer"
+        },
+        "bundle_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Bundle Id",
+          "type": "string"
+        },
+        "results_xlsx": {
+          "$ref": "#/$defs/ReviewBundleFile"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "bundle_id",
+        "batch_id",
+        "batch_revision",
+        "snapshot_hash",
+        "results_xlsx"
+      ],
+      "title": "WorkpaperReviewRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Ready only; fixed receipt bytes and dynamic GET current/outdated status.",
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/LocalActor"
+    },
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "bundle_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Bundle Id",
+      "type": "string"
+    },
+    "created_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "title": "Created At",
+      "type": "string"
+    },
+    "delivery_kind": {
+      "enum": [
+        "intermediate",
+        "final"
+      ],
+      "title": "Delivery Kind",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ReviewBundleFile"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Files",
+      "type": "array"
+    },
+    "forensic_refs": {
+      "items": {
+        "$ref": "#/$defs/ForensicEvidenceRef"
+      },
+      "maxItems": 100,
+      "title": "Forensic Refs",
+      "type": "array"
+    },
+    "kind": {
+      "const": "audit_workpaper",
+      "title": "Kind",
+      "type": "string"
+    },
+    "payload_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Payload Hash",
+      "type": "string"
+    },
+    "predecessor_workpaper_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Predecessor Workpaper Id"
+    },
+    "project_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "project_revision": {
+      "minimum": 1,
+      "title": "Project Revision",
+      "type": "integer"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "review_refs": {
+      "items": {
+        "$ref": "#/$defs/WorkpaperReviewRef"
+      },
+      "maxItems": 100,
+      "title": "Review Refs",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "current",
+        "outdated"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "successor_count": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Successor Count",
+      "type": "integer"
+    },
+    "successor_workpaper_ids": {
+      "items": {
+        "maxLength": 64,
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Successor Workpaper Ids",
+      "type": "array"
+    },
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "unresolved_count": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Unresolved Count",
+      "type": "integer"
+    },
+    "unresolved_reasons": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 30,
+      "title": "Unresolved Reasons",
+      "type": "array"
+    },
+    "workpaper_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workpaper Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "workpaper_id",
+    "bundle_id",
+    "workspace_id",
+    "project_id",
+    "project_revision",
+    "kind",
+    "delivery_kind",
+    "status",
+    "request_id",
+    "payload_hash",
+    "snapshot_hash",
+    "actor",
+    "title",
+    "created_at",
+    "predecessor_workpaper_id",
+    "successor_workpaper_ids",
+    "successor_count",
+    "files",
+    "review_refs",
+    "unresolved_count",
+    "unresolved_reasons"
+  ],
+  "title": "WorkpaperBundle",
+  "type": "object"
+}

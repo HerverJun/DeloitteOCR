@@ -1,0 +1,7 @@
+export type AgentSession = { id: string; project_id: string; title: string; status: "active" | "archived"; updated: string };
+export type AgentRun = { id: string; session_id: string; project_id: string; goal: string; status: string; outcome: string | null; generation: number; last_event_seq: number; coverage: Record<string, unknown>; limits: Record<string, number>; usage: Record<string, unknown> };
+export type AgentEvidence = { ref_id: string; project_id: string; document_id: string; page_id: string; page_number: number; result_id: string; revision: number; version_id: string; is_adopted: boolean; table_id?: string | null; target_id?: string | null };
+export type AgentDestination = { kind: "structure" | "multimodal"; id: string } | { kind: "cell"; table: number; row: number; column: number };
+export type AgentResult = { status: string; summary: string; data: Record<string, unknown>; evidence_refs: AgentEvidence[]; job_refs: { job_id: string; state: string; ownership: string }[]; artifact_refs: { artifact_id: string; state: string }[] };
+export type AgentEvent = { session_id: string; run_id: string | null; generation: number | null; seq: number; type: string; created: string; payload: Record<string, unknown> };
+export type AgentConnectionState = { configured: boolean; available: boolean; revision: number; protocol?: string; base_url?: string; model?: string; reason?: string; token_parameter?: string; context_cap?: number };

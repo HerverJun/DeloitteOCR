@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "audit_object": {
+      "default": "",
+      "maxLength": 200,
+      "title": "Audit Object",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "objective": {
+      "default": "",
+      "maxLength": 4000,
+      "title": "Objective",
+      "type": "string"
+    },
+    "period_end": {
+      "default": "",
+      "maxLength": 10,
+      "title": "Period End",
+      "type": "string"
+    },
+    "period_start": {
+      "default": "",
+      "maxLength": 10,
+      "title": "Period Start",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "rules": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Rules",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "expected_revision"
+  ],
+  "title": "AuditProjectProfile",
+  "type": "object"
+}

@@ -1,0 +1,193 @@
+{
+  "$defs": {
+    "AuditHistoryEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Action",
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/LocalActor"
+        },
+        "created_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "current": {
+          "additionalProperties": true,
+          "title": "Current",
+          "type": "object"
+        },
+        "entity_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "entity_kind": {
+          "enum": [
+            "project",
+            "procedure",
+            "finding",
+            "record",
+            "workpaper"
+          ],
+          "title": "Entity Kind",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "previous": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous"
+        },
+        "project_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision": {
+          "minimum": 1,
+          "title": "Project Revision",
+          "type": "integer"
+        },
+        "request_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "project_id",
+        "project_revision",
+        "entity_kind",
+        "entity_id",
+        "request_id",
+        "actor",
+        "action",
+        "previous",
+        "current",
+        "created_at"
+      ],
+      "title": "AuditHistoryEvent",
+      "type": "object"
+    },
+    "LocalActor": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "local",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "source"
+      ],
+      "title": "LocalActor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "audit_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Audit Version",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/AuditHistoryEvent"
+      },
+      "maxItems": 200,
+      "title": "Items",
+      "type": "array"
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]{1,256}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Cursor"
+    },
+    "project_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "project_revision": {
+      "minimum": 1,
+      "title": "Project Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_token": {
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_-]{1,256}$",
+      "title": "Snapshot Token",
+      "type": "string"
+    },
+    "total": {
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Total",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "total",
+    "snapshot_token",
+    "next_cursor",
+    "project_id",
+    "project_revision",
+    "items"
+  ],
+  "title": "AuditHistoryPage",
+  "type": "object"
+}

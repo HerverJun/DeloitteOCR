@@ -1,0 +1,10 @@
+.audit-workbench .audit-panel { margin-bottom: var(--clear-space-4); }
+.audit-workbench .audit-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--clear-space-4); }
+.audit-workbench .audit-wide { grid-column: 1 / -1; }
+.audit-workbench .audit-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: var(--clear-space-3); margin-top: var(--clear-space-3); }
+.audit-workbench .audit-records { border-top: 1px solid var(--clear-border); padding-top: var(--clear-space-3); margin-top: var(--clear-space-4); }
+.audit-workbench .audit-records ul, .audit-workbench .audit-evidence-list { padding-left: 20px; }
+.audit-workbench .audit-evidence-list li { margin-bottom: var(--clear-space-2); }
+.audit-workbench .audit-workpaper { border-top: 1px solid var(--clear-border); padding-top: var(--clear-space-4); margin-top: var(--clear-space-4); }
+.audit-workbench .audit-selection { margin-bottom: var(--clear-space-3); }
+@media (max-width: 720px) { .audit-workbench .audit-form-grid { grid-template-columns: minmax(0, 1fr); } }

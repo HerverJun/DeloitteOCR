@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workbench-contracts"
+version = "1.0.0"
+description = "Workbench platform versioned wire contracts"
+requires-python = ">=3.12,<3.13"
+dependencies = ["pydantic==2.13.5"]
+
+[tool.setuptools]
+packages = ["packages.contracts"]
+package-dir = {"packages.contracts" = "."}
+
+[tool.setuptools.package-data]
+"packages.contracts" = ["*.json", "*.ts", "examples/*.json"]

@@ -79,7 +79,8 @@ $productPort = [int]$productRegistration.port
 if ($productPort -lt 1 -or $productPort -gt 65535) { throw '端口登记无效' }
 Assert-ProductHash (Join-Path $productRoot 'candidate.json') $productRegistration.candidate_manifest_sha256
 $productManifest = Read-ProductJson (Join-Path $productRoot 'candidate.json')
-if ($productManifest.shared_program -ne $productRegistration.shared_program -or
+$productDeclaredProgram = if ([IO.Path]::IsPathRooted($productManifest.shared_program)) { Resolve-ProductPath $productManifest.shared_program } else { Resolve-ProductPath (Join-Path $productRoot $productManifest.shared_program) }
+if ($productDeclaredProgram -ne $productProgram -or
     ($productManifest.data_compatibility | ConvertTo-Json -Depth 20 -Compress) -ne
     ($productRegistration.data_compatibility | ConvertTo-Json -Depth 20 -Compress)) {
     throw '候选资产或数据兼容声明与当前登记不一致'
@@ -92,7 +93,8 @@ foreach ($productFile in $productManifest.files.PSObject.Properties) {
     Assert-ProductHash $productMember ([string]$productFile.Value)
 }
 foreach ($productFile in $productManifest.shared_identity.PSObject.Properties) {
-    Assert-ProductHash $productFile.Name ([string]$productFile.Value)
+    $productSharedMember = if ([IO.Path]::IsPathRooted($productFile.Name)) { $productFile.Name } else { Join-Path $productRoot $productFile.Name }
+    Assert-ProductHash $productSharedMember ([string]$productFile.Value)
 }
 
 foreach ($productFolder in @('temp','cache','appdata','localappdata','logs')) {
@@ -190,8 +192,11 @@ do {
     if (-not $productReady) { Start-Sleep -Milliseconds 250 }
 } until ($productReady -or [DateTime]::UtcNow -gt $productDeadline)
 if (-not $productReady) { throw '启动尚未完成；可查询状态和本地日志，未重复启动' }
-Write-ProductJson (Join-Path $productData 'product-reader-requirements.json') @{
-    format='clear-product-reader-requirements-v1';reader_features=$productManifest.data_compatibility.reader_features;
+$productReaderMarker = Join-Path $productData 'product-reader-requirements.json'
+$productStartupFeatures = if ($null -ne $productManifest.startup_reader_features) { @($productManifest.startup_reader_features) } else { @($productManifest.data_compatibility.reader_features) }
+if ([IO.File]::Exists($productReaderMarker)) { $productStartupFeatures += @((Read-ProductJson $productReaderMarker).reader_features) }
+Write-ProductJson $productReaderMarker @{
+    format='clear-product-reader-requirements-v1';reader_features=@($productStartupFeatures | Sort-Object -Unique);
     candidate_manifest_sha256=$productRegistration.candidate_manifest_sha256;at=[DateTime]::UtcNow.ToString('o')}
 Write-ProductJson (Join-Path $productRuntimeRoot ("logs\start-$productLaunchId.json")) @{
     status='running';pid=$productChild.Id;candidate=$productRoot;data=$productData;compatibility=$productCheck;at=[DateTime]::UtcNow.ToString('o')}

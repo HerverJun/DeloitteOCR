@@ -1,0 +1,13 @@
+--- upstream/tf_cell_matcher.py
++++ vendored/tf_cell_matcher.py
+@@ -4,8 +4,8 @@
+ 
+ import numpy as np
+ 
+-import docling_ibm_models.tableformer.otsl as otsl
+-import docling_ibm_models.tableformer.settings as s
++from . import otsl
++from . import settings as s
+ 
+ # LOG_LEVEL = logging.INFO
+ # LOG_LEVEL = logging.DEBUG

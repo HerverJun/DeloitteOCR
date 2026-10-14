@@ -1,0 +1,259 @@
+{
+  "$defs": {
+    "AgentError": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "AgentError",
+      "type": "object"
+    },
+    "AgentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "default": "platform",
+          "enum": [
+            "platform",
+            "data",
+            "ocr",
+            "classification",
+            "forensics"
+          ],
+          "title": "Application",
+          "type": "string"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "asset",
+            "asset_set",
+            "table",
+            "result",
+            "artifact",
+            "job",
+            "evidence"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Id"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Revision"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/AgentRef"
+          },
+          "maxItems": 100,
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "workspace_id",
+        "object_id",
+        "revision"
+      ],
+      "title": "AgentRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifact_refs": {
+      "items": {
+        "$ref": "#/$defs/AgentRef"
+      },
+      "maxItems": 100,
+      "title": "Artifact Refs",
+      "type": "array"
+    },
+    "coverage": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "title": "Coverage",
+      "type": "object"
+    },
+    "data": {
+      "additionalProperties": true,
+      "title": "Data",
+      "type": "object"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AgentError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "job_refs": {
+      "items": {
+        "$ref": "#/$defs/AgentRef"
+      },
+      "maxItems": 100,
+      "title": "Job Refs",
+      "type": "array"
+    },
+    "next_offset": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Offset"
+    },
+    "result_refs": {
+      "items": {
+        "$ref": "#/$defs/AgentRef"
+      },
+      "maxItems": 100,
+      "title": "Result Refs",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "success",
+        "pending",
+        "error",
+        "needs_user",
+        "needs_verification",
+        "unsupported"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 2000,
+      "title": "Summary",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "summary"
+  ],
+  "title": "AgentToolResult",
+  "type": "object"
+}

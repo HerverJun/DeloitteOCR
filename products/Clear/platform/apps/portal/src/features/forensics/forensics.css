@@ -1,0 +1,29 @@
+.forensic-start-title { cursor: pointer; padding: 4px 0; color: var(--clear-text); min-height: 32px; }
+.forensic-start-title > span { font-size: 16px; font-weight: 600; }
+.forensic-start-title > small { margin-left: 12px; font-size: var(--clear-caption-size); color: var(--clear-muted); }
+.forensic-start-body { margin-top: 16px; }
+.forensic-start-body > .ant-typography { color: var(--clear-muted); font-size: var(--clear-caption-size); }
+.forensic-start-body .ant-space { max-width: 100%; }
+.forensic-start-body .ant-select { max-width: 100%; }
+.forensic-asset-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clear-toolbar-gap); }
+.forensic-asset-select { flex: 1 1 280px; min-width: 0; max-width: 560px !important; }
+.forensic-report .section-head h3 { min-width: 0; overflow-wrap: anywhere; flex: 1; }
+.forensic-images { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.forensic-images figure { margin: 0; min-width: 0; padding: 8px; background: var(--clear-subtle); border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius); }
+.forensic-images .ant-image { width: 100%; }
+.forensic-images img { width: 100%; height: clamp(220px, 42vh, 480px); object-fit: contain; background: var(--clear-subtle); }
+.forensic-images figcaption { font-size: var(--clear-caption-size); line-height: 1.6; padding: 8px 4px 0; color: var(--clear-muted); }
+.forensic-evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }
+.forensic-evidence .ant-table-wrapper { overflow-x: auto; }
+@media (max-width: 720px) {
+  .forensic-images { grid-template-columns: 1fr; }
+  .forensic-start-title { min-height: 44px; }
+  .forensic-start-title > small { display: block; margin: 4px 0 0 16px; }
+  .forensic-start-body .ant-space-item { max-width: 100%; min-width: 0; }
+}
+
+.forensic-evidence > .ant-typography { max-width: 960px; line-height: 1.65; }
+.forensic-evidence pre { padding: 16px; background: var(--clear-subtle); font-size: 13px; border-radius: var(--clear-control-radius); }
+.forensic-evidence .ant-table-cell { vertical-align: top; }
+.forensic-evidence .ant-table-cell .ant-typography { margin-bottom: 8px; }
+.forensic-evidence .ant-table-cell ul { padding-left: 18px; margin: 0; line-height: 1.6; }

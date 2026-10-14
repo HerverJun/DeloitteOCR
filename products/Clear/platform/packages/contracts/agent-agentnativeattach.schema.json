@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "application": {
+      "enum": [
+        "ocr",
+        "classification"
+      ],
+      "title": "Application",
+      "type": "string"
+    },
+    "link_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Link Id",
+      "type": "string"
+    },
+    "object_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "application",
+    "link_id",
+    "object_id"
+  ],
+  "title": "AgentNativeAttach",
+  "type": "object"
+}

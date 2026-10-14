@@ -1,0 +1,4 @@
+[
+ {"id":"aliyun-stamp","url":"https://help.aliyun.com/zh/ocr/developer-reference/api-ocr-api-2021-07-07-recognizestamp"},
+ {"id":"tencent-seal-sdk","url":"https://raw.githubusercontent.com/TencentCloud/tencentcloud-sdk-python/master/tencentcloud/ocr/v20181119/ocr_client.py"}
+]

@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "arguments": {
+      "additionalProperties": true,
+      "title": "Arguments",
+      "type": "object"
+    },
+    "call_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Call Id",
+      "type": "string"
+    },
+    "tool": {
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "title": "Tool",
+      "type": "string"
+    }
+  },
+  "required": [
+    "call_id",
+    "tool",
+    "arguments"
+  ],
+  "title": "AgentCall",
+  "type": "object"
+}

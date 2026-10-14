@@ -1,0 +1,90 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "draft_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Draft Id"
+    },
+    "evidence_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "expected_revision": {
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "facts": {
+      "default": "",
+      "maxLength": 12000,
+      "title": "Facts",
+      "type": "string"
+    },
+    "interpretation": {
+      "default": "",
+      "maxLength": 12000,
+      "title": "Interpretation",
+      "type": "string"
+    },
+    "missing_information": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Missing Information",
+      "type": "string"
+    },
+    "recommendations": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Recommendations",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "rule": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Rule",
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "enum": [
+        "draft",
+        "confirmed",
+        "dismissed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "expected_revision",
+    "title"
+  ],
+  "title": "AuditDraftWrite",
+  "type": "object"
+}

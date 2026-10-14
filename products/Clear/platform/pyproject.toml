@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workbench-platform"
+version = "0.1.0"
+description = "Local multi-application workbench platform"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi==0.141.1",
+  "uvicorn==0.36.0",
+  "pypdf==6.1.1",
+]
+
+[project.optional-dependencies]
+dev = ["httpx==0.28.1", "pytest==9.1.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

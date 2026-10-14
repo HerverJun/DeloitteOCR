@@ -1,0 +1,367 @@
+{
+  "$defs": {
+    "AgentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "default": "platform",
+          "enum": [
+            "platform",
+            "data",
+            "ocr",
+            "classification",
+            "forensics"
+          ],
+          "title": "Application",
+          "type": "string"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Coverage",
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "asset",
+            "asset_set",
+            "table",
+            "result",
+            "artifact",
+            "job",
+            "evidence"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "native_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Id"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Revision"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/AgentRef"
+          },
+          "maxItems": 100,
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "workspace_id",
+        "object_id",
+        "revision"
+      ],
+      "title": "AgentRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "application": {
+      "anyOf": [
+        {
+          "enum": [
+            "platform",
+            "data",
+            "ocr",
+            "classification",
+            "forensics"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Application"
+    },
+    "availability": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Availability"
+    },
+    "capabilities": {
+      "items": {
+        "enum": [
+          "pause",
+          "resume",
+          "cancel",
+          "retry_failed"
+        ],
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "counts": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "coverage": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Coverage",
+      "type": "object"
+    },
+    "execution_complete": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Complete"
+    },
+    "generation": {
+      "minimum": 1,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "hard_cancel": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hard Cancel"
+    },
+    "has_error": {
+      "default": false,
+      "title": "Has Error",
+      "type": "boolean"
+    },
+    "index_complete": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Index Complete"
+    },
+    "job_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Job Id"
+    },
+    "job_ref": {
+      "$ref": "#/$defs/AgentRef"
+    },
+    "native_kind": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Native Kind"
+    },
+    "needs_resume": {
+      "default": false,
+      "title": "Needs Resume",
+      "type": "boolean"
+    },
+    "observation": {
+      "default": "native",
+      "enum": [
+        "native",
+        "unavailable"
+      ],
+      "title": "Observation",
+      "type": "string"
+    },
+    "progress_done": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Progress Done"
+    },
+    "progress_total": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Progress Total"
+    },
+    "resume_message": {
+      "default": "",
+      "maxLength": 256,
+      "title": "Resume Message",
+      "type": "string"
+    },
+    "review_complete": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Complete"
+    },
+    "sampled_at": {
+      "title": "Sampled At",
+      "type": "string"
+    },
+    "stage": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stage"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "generation",
+    "job_ref",
+    "status",
+    "sampled_at"
+  ],
+  "title": "AgentJobProgress",
+  "type": "object"
+}

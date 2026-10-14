@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Computer Vision group from the University of Oxford">
+    <meta name="keywords" content="vgg,oxford,computer vision,machine learning,research,software,publications,data">
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="/~vgg/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/~vgg/assets/fonts/themify/themify-icons.css">
+
+    <link rel="stylesheet" href="/~vgg/assets/css/slick.css">
+    <link rel="stylesheet" href="/~vgg/assets/css/slick-theme.css">
+    <link rel="stylesheet" href="/~vgg/assets/css/all.css">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="/~vgg/assets/css/style.css">
+    <link rel="stylesheet" href="/~vgg/assets/css/responsive.css">
+
+    <!-- Publications CSS -->
+    <link rel="stylesheet" href="/~vgg/assets/css/listpubli.css">
+
+    <!-- cookiealert styles, see /~vgg/assets/css/cookiealert/LICENSE -->
+    <link rel="stylesheet" href="/~vgg/assets/css/cookiealert/cookiealert.css">
+
+    <title>Visual Geometry Group - University of Oxford</title>
+
+</head>
+
+
+<body class="top-header">
+
+    <!-- LOADER TEMPLATE
+    <div id="page-loader">
+        <div class="loader-icon fa fa-spin colored-border"></div>
+    </div>
+    <!-- /LOADER TEMPLATE -->
+
+    <!-- COOKIE MESSAGE
+    ================================================== -->
+
+    <div class="alert text-center cookiealert" role="alert">
+        This website uses Google Analytics to help us
+        improve the website content.  This requires the use of
+        standard Google Analytics cookies, as well as a cookie to
+        record your response to this confirmation request. If this is
+        OK with you, please click 'Accept cookies', otherwise you will
+        see this notice on every page. For more information, please <span class="current-year"><a
+        href="http://www.admin.ox.ac.uk/dataprotection/cookies/">click
+        here</a></span>
+        <button type="button" class="btn btn-primary btn-sm acceptcookies" aria-label="Close">
+            Accept cookies
+        </button>
+    </div>
+    <!-- /COOKIE MESSAGE -->
+
+    <!-- HEADER AREA
+    ================================================== -->
+    <section class="banner-area py-2">
+
+        <!-- INCLUDE VGG NAVBAR -->
+        <div id="vggnavbar"></div>
+
+        <!-- Content -->
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col text-left">
+                    <!-- Heading -->
+                    <h1 class="font-weight-bold mb-0 banner-area-subpage-title">
+                        102 Category Flower Dataset
+                    </h1>
+                </div> <!-- / .col -->
+
+                 <!-- INCLUDE VGG SOCIALS -->
+                <div id="vggsocials"></div>
+
+            </div> <!-- / .row -->
+        </div> <!-- / .container -->
+    </section>
+    <!-- /HEADER -->
+
+    <!-- ACTUAL PAGE CONTENT
+    ================================================== -->
+
+    <section id="about" class="section">
+        <div class="container">
+            <div class="blog-content">
+                <h3>
+                  <a href="http://www.robots.ox.ac.uk/~men/">Maria-Elena Nilsback</a> and
+                  <a href="http://www.robots.ox.ac.uk/~az/">Andrew Zisserman</a>
+                </h3>
+                <br><br>
+                <h3>Overview</h3>
+
+                <p>We have created a 102 category dataset, consisting of 102 flower categories. The flowers chosen to be flower commonly occuring in the United Kingdom. Each class 
+                consists of between 40 and 258 images. The details of the categories and the number of images for each class can be found on this <a href="categories.html">category statistics page</a>.</p>
+                <p>The images have large scale, pose and light variations. In addition, there are categories that have large variations within the category and several very similar categories. The dataset is visualized using isomap with shape and colour features.
+                </p>
+
+                <h3>Downloads</h3>
+                <p> The data needed for evaluation are:</p>
+                <ol class="ul-large">
+                    <li><a href="102flowers.tgz">Dataset images</a>
+                    <li><a href="102segmentations.tgz">Image segmentations</a>
+                    <li><a href="distancematrices102.mat">&#38;Chi<sup>2</sup> distances</a> - As used in the ICVGIP 2008 publication.
+                    <li><a href="imagelabels.mat">The image labels</a>
+                    <li><a href="setid.mat">The data splits</a>
+                </ol>
+                <p>The <a href="README.txt">README</a> file explains everything.</p>
+
+                <h3>Visualization of the dataset</h3>
+                <p> We visualize the categories in the dataset using SIFT features as shape descriptors and HSV as colour descriptor. The images are randomly sampled from the category. </p>
+
+                <div class="row">
+                    <div class="col text-center" style="font-size:large;">
+                        <strong>Shape Isomap</strong><br/>
+                        <a href="shapeiso.jpg"><img src="T_shapeiso.jpg" alt="Isomap using shape features" class="img-fluid"></a>
+                    </div>
+                    <div class="col text-center" style="font-size:large;">
+                        <strong>Colour Isomap</strong><br/>
+                        <a href="colouriso.jpg"><img src="T_colouriso.jpg" alt="Isomap using shape features" class="img-fluid"></a>
+                    </div>
+                </div>
+                <br/>
+                <h3>Publications<a name="publi"></a></h3>
+                <br/>
+                <div class="ref">
+                  <div class="authors">
+                     Nilsback, M-E. and Zisserman, A.
+                  </div>
+                  <div class="title">
+                   <a href="/~vgg/publications/2008/Nilsback08/">
+                    Automated flower classification over a large number of classes
+                   </a> &nbsp; 
+                  </div>
+                  <div class="conf">
+                   Proceedings of the Indian Conference on Computer Vision, Graphics and Image Processing (2008)
+                  </div>
+                </div>
+                <br/>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- /ACTUAL PAGE CONTENT -->
+
+    <!-- INCLUDE VGG FOOTER -->
+    <div id="vggfooter"></div>
+
+    <!--  Page Scroll to Top  -->
+    <a class="scroll-to-top js-scroll-trigger" href=".top-header">
+        <i class="fa fa-angle-up"></i>
+    </a>
+
+    <!-- JAVASCRIPT
+    ================================================== -->
+    <!-- Global JS -->
+    <script src="/~vgg/assets/js/jquery.min.js"></script>
+    <script src="/~vgg/assets/js/popper.min.js"></script>
+
+    <!-- Plugins JS -->
+    <script src="/~vgg/assets/js/bootstrap.min.js"></script>
+
+    <!-- Slick JS -->
+    <script src="/~vgg/assets/js/jquery.easing.1.3.js"></script>
+    <script src="/~vgg/assets/js/slick.min.js"></script>
+    <!-- Theme JS -->
+    <script src="/~vgg/assets/js/theme.js"></script>
+
+    <!-- cookiealert JS, see /~vgg/assets/css/cookiealert/LICENSE -->
+    <script src="/~vgg/assets/js/cookiealert/cookiealert.js"></script>
+
+    <!-- Load includes -->
+    <script>
+    $(function(){
+        $("#vggnavbar").load("/~vgg/vggnavbar.html");
+        $("#vggsocials").load("/~vgg/vggsocials.html");
+        $("#vggfooter").load("/~vgg/vggfooter.html");
+    });
+    </script>
+
+    <!-- GoogleAnalytics code -->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-20555581-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+
+</body>
+
+</html>

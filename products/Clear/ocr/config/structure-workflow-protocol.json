@@ -1,0 +1,47 @@
+{
+  "version": "structure-workflow-20260916-v1",
+  "scope": "public-document experimental release with manual confirmation",
+  "scope_authorization": "User confirmed no business materials or human participants; deliver public-material experimental scope.",
+  "priorities": ["merged cells and header hierarchy", "missing rows and columns"],
+  "default_provider": "paddle",
+  "default_matcher": "local-v2",
+  "structure_review_matcher": "local-v3",
+  "automatic_structure_adoption": false,
+  "matching_budget_ms": 200,
+  "cached_location_p95_ms": 300,
+  "split_unit": "original document and similar template group",
+  "near_duplicate_rules": {"phash_max_distance": 6, "layout_text_jaccard_min": 0.9},
+  "forbidden_label_sources": ["unreviewed native extraction", "unreviewed model predictions"],
+  "annotation_requirements": {
+    "table_regions": true,
+    "complete_row_column_spans": true,
+    "literal_text": true,
+    "header_relationships": true,
+    "key_fields": true,
+    "structure_and_key_field_reviewers": 2,
+    "ambiguity_arbitrated_before_inference": true,
+    "geometry_label": "full_grid",
+    "uncertain_geometry": "separate topology/content eligibility; no invented boxes"
+  },
+  "independent_acceptance_minimum": {"documents": 100, "pages": 200, "tables": 120, "full_cells": 6000},
+  "desired_subgroups": {"chinese_documents": 30, "verified_physical_scan_documents": 20, "mixed_documents": 10, "multi_table_pages": 30, "no_table_pages": 30, "merged_cells": 300, "repeated_value_cells": 500, "empty_cells": 200},
+  "quality_targets": {
+    "usable_table_absolute_gain": 0.1,
+    "correction_cells_relative_reduction": 0.25,
+    "human_review_median_relative_reduction": 0.25,
+    "merged_structure_absolute_gain": 0.1,
+    "suggestion_precision": 0.95,
+    "geometry_coverage": 0.9,
+    "geometry_wrong_cell_max": 0.01,
+    "offered_geometry_accuracy": 0.95
+  },
+  "human_trial": {"users": 3, "documents": 20, "counterbalanced": true, "independent_residual_review": true, "without_actual_users": "not measured"},
+  "tracks": {
+    "A": "same image, OCR, raw TableFormer, adopted output; local-v2 versus local-v3 regression",
+    "B": "same detected table region, fixed tokens and ownership; compare provider skeletons. Native and OCR groups separate",
+    "C": "original full pages, actual detected regions, frozen product routing, no reference crops"
+  },
+  "failure_order": ["engineering", "detection", "structure", "text_anchor", "geometry"],
+  "statistics_unit": "paired original document or template group; bootstrap 95% confidence intervals",
+  "release_rule": "manual experimental workflow may ship with unmet quality gates explicitly reported; automatic adoption and precise-location defaults remain disabled"
+}

@@ -1,0 +1,5 @@
+{
+  "program_root": "../../program",
+  "max_reference_faces": 1000,
+  "worker_timeouts": {"face": 600, "audio": 7200, "seal": 3600, "catnet": 1800}
+}

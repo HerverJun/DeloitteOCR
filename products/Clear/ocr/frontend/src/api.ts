@@ -1,0 +1,89 @@
+function consumeLaunchToken() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const fromHash = hash.get("token");
+  if (!fromHash) return false;
+  sessionStorage.setItem("ocr-token", fromHash);
+  hash.delete("token");
+  history.replaceState(null, "", location.pathname + location.search + (hash.size ? "#" + hash : ""));
+  return true;
+}
+consumeLaunchToken();
+window.addEventListener("hashchange", () => {
+  if (consumeLaunchToken() || new URLSearchParams(location.hash.slice(1)).has("platform_ticket"))
+    window.dispatchEvent(new Event("ocr-session-changed"));
+});
+const token = () => sessionStorage.getItem("ocr-token") || "";
+export async function request(path: string, options: RequestInit = {}) {
+  const usedToken = token();
+  const response = await fetch("/api" + path, {
+    ...options,
+    headers: {
+      Authorization: "Bearer " + usedToken,
+      ...(!(options.body instanceof FormData) && options.body
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...options.headers,
+    },
+  });
+  if (!response.ok) {
+    if (response.status === 401 && usedToken === token()) {
+      window.dispatchEvent(new Event("ocr-session-expired"));
+    }
+    const error = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(error.message || error.detail || "请求未完成");
+  }
+  return response;
+}
+export async function api<T = any>(
+  path: string,
+  method = "GET",
+  body?: unknown,
+): Promise<T> {
+  return (
+    await request(path, {
+      method,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+  ).json();
+}
+export async function download(
+  ids: string[],
+  format: string,
+  aggregate = false,
+  confirmedOnly = false,
+) {
+  if (format === "pdf") {
+    await downloadPdf({ result_ids: ids, confirmed_only: confirmedOnly });
+    return;
+  }
+  const response = await request("/export", {
+    method: "POST",
+    body: JSON.stringify({
+      result_ids: ids,
+      format,
+      aggregate,
+      confirmed_only: confirmedOnly,
+    }),
+  });
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download =
+    response.headers
+      .get("Content-Disposition")
+      ?.match(/filename="([^"]+)"/)?.[1] || "OCR-export";
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function downloadPdf(scope: Record<string, unknown>) {
+  const preflight = await api<{ ready: boolean; failures: { page_number: number; reason: string; items?: { text?: string; reason: string }[] }[] }>("/export/preflight", "POST", scope);
+  if (!preflight.ready) throw Error(preflight.failures.map(p => `第 ${p.page_number} 页：${p.reason}${p.items?.length ? "；"+p.items.slice(0,8).map(i => `${i.reason}${i.text ? "「"+i.text+"」" : ""}`).join("；") : ""}`).join("\n")+"\n请补定位、核对内容或从导出范围排除这些页面。");
+  const response = await request("/export", { method: "POST", body: JSON.stringify({ ...scope, format: "pdf" }) });
+  const url = URL.createObjectURL(await response.blob()), anchor = document.createElement("a");
+  anchor.href = url; anchor.download = response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] || "OCR-document.pdf";
+  anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

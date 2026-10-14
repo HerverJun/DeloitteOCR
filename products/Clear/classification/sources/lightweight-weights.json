@@ -1,0 +1,18 @@
+[
+  {
+    "encoder": "mobilenetv4",
+    "canonical_url": "https://huggingface.co/timm/mobilenetv4_conv_small.e2400_r224_in1k/resolve/331fb803779522b685cf942e15f914fb6741c1eb/model.safetensors",
+    "download_url": "https://hf-mirror.com/timm/mobilenetv4_conv_small.e2400_r224_in1k/resolve/331fb803779522b685cf942e15f914fb6741c1eb/model.safetensors",
+    "revision": "331fb803779522b685cf942e15f914fb6741c1eb",
+    "sha256": "7a7102ec18f62bbfb555b6fe829bbb5af749516b84174926c29ffdfdfc03aec4",
+    "path": "E:\\project\\image-classification-platform\\.local-data\\cache\\huggingface\\hub\\models--timm--mobilenetv4_conv_small.e2400_r224_in1k\\snapshots\\331fb803779522b685cf942e15f914fb6741c1eb\\model.safetensors"
+  },
+  {
+    "encoder": "repvit",
+    "canonical_url": "https://huggingface.co/timm/repvit_m0_9.dist_450e_in1k/resolve/c073717dd84b5af671dd51b187b99ac55b2af4f0/model.safetensors",
+    "download_url": "https://hf-mirror.com/timm/repvit_m0_9.dist_450e_in1k/resolve/c073717dd84b5af671dd51b187b99ac55b2af4f0/model.safetensors",
+    "revision": "c073717dd84b5af671dd51b187b99ac55b2af4f0",
+    "sha256": "c2dd32622df856ea7a68d6b241c1623f0e6fbec8acde381a3519cb5a5463e9cf",
+    "path": "E:\\project\\image-classification-platform\\.local-data\\cache\\huggingface\\hub\\models--timm--repvit_m0_9.dist_450e_in1k\\snapshots\\c073717dd84b5af671dd51b187b99ac55b2af4f0\\model.safetensors"
+  }
+]

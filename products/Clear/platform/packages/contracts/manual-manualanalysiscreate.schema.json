@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "ManualInput": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_revision": {
+          "minimum": 1,
+          "title": "Asset Revision",
+          "type": "integer"
+        },
+        "blob_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Blob Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_revision",
+        "blob_hash"
+      ],
+      "title": "ManualInput",
+      "type": "object"
+    },
+    "ManualOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "default": "analyze",
+          "enum": [
+            "detect",
+            "compare",
+            "search",
+            "analyze"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "device": {
+          "default": "cpu",
+          "enum": [
+            "cpu",
+            "cuda"
+          ],
+          "title": "Device",
+          "type": "string"
+        },
+        "expected_subject": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Expected Subject",
+          "type": "string"
+        },
+        "face_indices": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "title": "Face Indices",
+          "type": "array"
+        },
+        "threshold": {
+          "default": 0.363,
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "top_k": {
+          "default": 5,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Top K",
+          "type": "integer"
+        }
+      },
+      "title": "ManualOptions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ManualInput"
+      },
+      "maxItems": 2,
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "kind": {
+      "enum": [
+        "face",
+        "audio",
+        "seal",
+        "catnet"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "options": {
+      "$ref": "#/$defs/ManualOptions"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "kind",
+    "inputs"
+  ],
+  "title": "ManualAnalysisCreate",
+  "type": "object"
+}

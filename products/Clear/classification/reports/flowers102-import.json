@@ -1,0 +1,546 @@
+{
+  "project_id": "project_flowers102_official",
+  "dataset_id": "dataset_25f91c11d81441ce",
+  "stats": {
+    "total": 8183,
+    "splits": {
+      "test": 6149,
+      "val": 1015,
+      "train": 1019
+    },
+    "classes": {
+      "flower_001": {
+        "test": 20,
+        "train": 10,
+        "val": 10
+      },
+      "flower_002": {
+        "test": 40,
+        "train": 10,
+        "val": 10
+      },
+      "flower_003": {
+        "val": 10,
+        "test": 20,
+        "train": 10
+      },
+      "flower_004": {
+        "test": 36,
+        "train": 10,
+        "val": 10
+      },
+      "flower_005": {
+        "test": 45,
+        "train": 10,
+        "val": 10
+      },
+      "flower_006": {
+        "test": 25,
+        "train": 10,
+        "val": 10
+      },
+      "flower_007": {
+        "test": 20,
+        "train": 10,
+        "val": 10
+      },
+      "flower_008": {
+        "test": 65,
+        "train": 10,
+        "val": 10
+      },
+      "flower_009": {
+        "test": 26,
+        "train": 10,
+        "val": 10
+      },
+      "flower_010": {
+        "test": 25,
+        "train": 10,
+        "val": 10
+      },
+      "flower_011": {
+        "test": 67,
+        "train": 10,
+        "val": 10
+      },
+      "flower_012": {
+        "test": 67,
+        "train": 10,
+        "val": 10
+      },
+      "flower_013": {
+        "test": 29,
+        "train": 10,
+        "val": 10
+      },
+      "flower_014": {
+        "val": 10,
+        "test": 28,
+        "train": 10
+      },
+      "flower_015": {
+        "test": 29,
+        "train": 10,
+        "val": 10
+      },
+      "flower_016": {
+        "train": 10,
+        "test": 21,
+        "val": 10
+      },
+      "flower_017": {
+        "test": 65,
+        "train": 10,
+        "val": 10
+      },
+      "flower_018": {
+        "train": 10,
+        "test": 62,
+        "val": 10
+      },
+      "flower_019": {
+        "test": 29,
+        "val": 10,
+        "train": 10
+      },
+      "flower_020": {
+        "train": 10,
+        "test": 36,
+        "val": 10
+      },
+      "flower_021": {
+        "test": 20,
+        "val": 10,
+        "train": 10
+      },
+      "flower_022": {
+        "test": 39,
+        "val": 10,
+        "train": 10
+      },
+      "flower_023": {
+        "test": 71,
+        "val": 10,
+        "train": 10
+      },
+      "flower_024": {
+        "val": 10,
+        "test": 22,
+        "train": 10
+      },
+      "flower_025": {
+        "test": 21,
+        "val": 10,
+        "train": 10
+      },
+      "flower_026": {
+        "train": 10,
+        "test": 21,
+        "val": 10
+      },
+      "flower_027": {
+        "val": 10,
+        "test": 20,
+        "train": 10
+      },
+      "flower_028": {
+        "test": 46,
+        "val": 10,
+        "train": 10
+      },
+      "flower_029": {
+        "test": 58,
+        "val": 10,
+        "train": 10
+      },
+      "flower_030": {
+        "test": 65,
+        "val": 10,
+        "train": 10
+      },
+      "flower_031": {
+        "test": 32,
+        "train": 10,
+        "val": 9
+      },
+      "flower_032": {
+        "test": 25,
+        "train": 10,
+        "val": 10
+      },
+      "flower_033": {
+        "val": 10,
+        "train": 10,
+        "test": 26
+      },
+      "flower_034": {
+        "test": 20,
+        "train": 10,
+        "val": 10
+      },
+      "flower_035": {
+        "test": 23,
+        "val": 10,
+        "train": 10
+      },
+      "flower_036": {
+        "test": 55,
+        "train": 10,
+        "val": 10
+      },
+      "flower_037": {
+        "test": 88,
+        "val": 10,
+        "train": 10
+      },
+      "flower_038": {
+        "test": 36,
+        "train": 10,
+        "val": 10
+      },
+      "flower_039": {
+        "test": 21,
+        "val": 8,
+        "train": 10
+      },
+      "flower_040": {
+        "train": 10,
+        "val": 10,
+        "test": 47
+      },
+      "flower_041": {
+        "test": 107,
+        "train": 10,
+        "val": 10
+      },
+      "flower_042": {
+        "train": 10,
+        "test": 39,
+        "val": 10
+      },
+      "flower_043": {
+        "test": 110,
+        "val": 10,
+        "train": 10
+      },
+      "flower_044": {
+        "test": 73,
+        "val": 10,
+        "train": 10
+      },
+      "flower_045": {
+        "test": 20,
+        "val": 10,
+        "train": 10
+      },
+      "flower_046": {
+        "test": 176,
+        "train": 10,
+        "val": 10
+      },
+      "flower_047": {
+        "test": 47,
+        "val": 10,
+        "train": 10
+      },
+      "flower_048": {
+        "train": 10,
+        "test": 51,
+        "val": 10
+      },
+      "flower_049": {
+        "test": 29,
+        "val": 10,
+        "train": 10
+      },
+      "flower_050": {
+        "test": 72,
+        "val": 10,
+        "train": 10
+      },
+      "flower_051": {
+        "val": 10,
+        "test": 238,
+        "train": 10
+      },
+      "flower_052": {
+        "test": 65,
+        "val": 10,
+        "train": 10
+      },
+      "flower_053": {
+        "test": 73,
+        "train": 10,
+        "val": 10
+      },
+      "flower_054": {
+        "test": 41,
+        "train": 10,
+        "val": 10
+      },
+      "flower_055": {
+        "val": 10,
+        "test": 51,
+        "train": 10
+      },
+      "flower_056": {
+        "val": 10,
+        "test": 89,
+        "train": 10
+      },
+      "flower_057": {
+        "test": 47,
+        "train": 10,
+        "val": 10
+      },
+      "flower_058": {
+        "test": 94,
+        "val": 10,
+        "train": 10
+      },
+      "flower_059": {
+        "test": 47,
+        "val": 10,
+        "train": 10
+      },
+      "flower_060": {
+        "test": 89,
+        "train": 10,
+        "val": 10
+      },
+      "flower_061": {
+        "test": 30,
+        "train": 10,
+        "val": 10
+      },
+      "flower_062": {
+        "test": 35,
+        "train": 10,
+        "val": 10
+      },
+      "flower_063": {
+        "test": 34,
+        "val": 10,
+        "train": 10
+      },
+      "flower_064": {
+        "val": 10,
+        "test": 32,
+        "train": 10
+      },
+      "flower_065": {
+        "test": 82,
+        "train": 10,
+        "val": 10
+      },
+      "flower_066": {
+        "train": 10,
+        "val": 10,
+        "test": 41
+      },
+      "flower_067": {
+        "test": 22,
+        "val": 10,
+        "train": 10
+      },
+      "flower_068": {
+        "test": 34,
+        "val": 10,
+        "train": 10
+      },
+      "flower_069": {
+        "test": 34,
+        "val": 10,
+        "train": 10
+      },
+      "flower_070": {
+        "test": 42,
+        "train": 10,
+        "val": 10
+      },
+      "flower_071": {
+        "test": 58,
+        "val": 10,
+        "train": 10
+      },
+      "flower_072": {
+        "test": 76,
+        "train": 10,
+        "val": 10
+      },
+      "flower_073": {
+        "test": 174,
+        "val": 10,
+        "train": 10
+      },
+      "flower_074": {
+        "test": 151,
+        "val": 10,
+        "train": 10
+      },
+      "flower_075": {
+        "test": 100,
+        "train": 10,
+        "val": 10
+      },
+      "flower_076": {
+        "test": 87,
+        "train": 10,
+        "val": 10
+      },
+      "flower_077": {
+        "test": 231,
+        "val": 10,
+        "train": 10
+      },
+      "flower_078": {
+        "test": 117,
+        "train": 10,
+        "val": 8
+      },
+      "flower_079": {
+        "train": 10,
+        "test": 21,
+        "val": 10
+      },
+      "flower_080": {
+        "test": 85,
+        "train": 10,
+        "val": 10
+      },
+      "flower_081": {
+        "test": 146,
+        "val": 10,
+        "train": 10
+      },
+      "flower_082": {
+        "test": 92,
+        "train": 10,
+        "val": 10
+      },
+      "flower_083": {
+        "test": 111,
+        "train": 10,
+        "val": 10
+      },
+      "flower_084": {
+        "test": 66,
+        "train": 10,
+        "val": 10
+      },
+      "flower_085": {
+        "val": 10,
+        "test": 43,
+        "train": 10
+      },
+      "flower_086": {
+        "test": 38,
+        "train": 10,
+        "val": 10
+      },
+      "flower_087": {
+        "test": 43,
+        "train": 10,
+        "val": 10
+      },
+      "flower_088": {
+        "test": 134,
+        "val": 10,
+        "train": 10
+      },
+      "flower_089": {
+        "test": 164,
+        "val": 10,
+        "train": 10
+      },
+      "flower_090": {
+        "test": 62,
+        "val": 10,
+        "train": 10
+      },
+      "flower_091": {
+        "train": 10,
+        "val": 10,
+        "test": 56
+      },
+      "flower_092": {
+        "val": 10,
+        "test": 46,
+        "train": 10
+      },
+      "flower_093": {
+        "test": 26,
+        "train": 10,
+        "val": 10
+      },
+      "flower_094": {
+        "test": 142,
+        "train": 9,
+        "val": 10
+      },
+      "flower_095": {
+        "test": 108,
+        "val": 10,
+        "train": 10
+      },
+      "flower_096": {
+        "test": 71,
+        "val": 10,
+        "train": 10
+      },
+      "flower_097": {
+        "test": 46,
+        "train": 10,
+        "val": 10
+      },
+      "flower_098": {
+        "test": 62,
+        "val": 10,
+        "train": 10
+      },
+      "flower_099": {
+        "val": 10,
+        "test": 43,
+        "train": 10
+      },
+      "flower_100": {
+        "test": 29,
+        "train": 10,
+        "val": 10
+      },
+      "flower_101": {
+        "train": 10,
+        "test": 38,
+        "val": 10
+      },
+      "flower_102": {
+        "test": 28,
+        "train": 10,
+        "val": 10
+      }
+    },
+    "seed": 42,
+    "prior_dataset_id": "dataset_52e0221d34684b27",
+    "holdout_policy": "external_fixed_split_deduplicated",
+    "provenance": {
+      "audit": "reports/flowers102-data-audit.json",
+      "dataset": "Oxford Flowers102",
+      "homepage": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/",
+      "labels_sha256": "4903e94206bac23bf772aadf06451916df56b58fc483a62db32a97b82656651d",
+      "protocol_sha256": "89c898fcd83dd5903c645ff290ff5ccb0a9089d3f28c72d3d766c17d012e882f",
+      "setid_sha256": "46b8678f91fd95d3c8f4feab80d271a6c834a1dd896fe29fd3e6ad9ce5c8dccd",
+      "amendment": "Visual duplicate review before any completed experiment"
+    },
+    "warning": "测试集仅用于最终报告；样本少时不能证明低错误率。"
+  },
+  "provenance": {
+    "audit": "reports/flowers102-data-audit.json",
+    "dataset": "Oxford Flowers102",
+    "homepage": "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/",
+    "labels_sha256": "4903e94206bac23bf772aadf06451916df56b58fc483a62db32a97b82656651d",
+    "protocol_sha256": "89c898fcd83dd5903c645ff290ff5ccb0a9089d3f28c72d3d766c17d012e882f",
+    "setid_sha256": "46b8678f91fd95d3c8f4feab80d271a6c834a1dd896fe29fd3e6ad9ce5c8dccd",
+    "amendment": "Visual duplicate review before any completed experiment"
+  }
+}

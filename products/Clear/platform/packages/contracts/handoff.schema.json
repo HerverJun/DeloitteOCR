@@ -1,0 +1,87 @@
+{
+  "$defs": {
+    "ImportOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "duplicate_policy": {
+          "enum": [
+            "skip",
+            "keep_separate"
+          ],
+          "title": "Duplicate Policy",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "copy",
+            "reference"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "mode",
+        "duplicate_policy"
+      ],
+      "title": "ImportOptions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "asset_set_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Asset Set Id",
+      "type": "string"
+    },
+    "asset_set_revision": {
+      "minimum": 1,
+      "title": "Asset Set Revision",
+      "type": "integer"
+    },
+    "import_options": {
+      "$ref": "#/$defs/ImportOptions"
+    },
+    "manifest_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Manifest Hash",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_link_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Target Link Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "target_link_id",
+    "asset_set_id",
+    "asset_set_revision",
+    "manifest_hash",
+    "import_options"
+  ],
+  "title": "HandoffRequest",
+  "type": "object"
+}

@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "human_label_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Human Label Id"
+    },
+    "native_result_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Native Result Id"
+    },
+    "native_revision": {
+      "minimum": 0,
+      "title": "Native Revision",
+      "type": "integer"
+    },
+    "native_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Native Version Id"
+    }
+  },
+  "required": [
+    "native_revision"
+  ],
+  "title": "NativeAdoption",
+  "type": "object"
+}

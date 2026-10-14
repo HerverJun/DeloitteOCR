@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "artifact",
+        "table",
+        "result"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "object_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    }
+  },
+  "required": [
+    "kind",
+    "object_id"
+  ],
+  "title": "AgentReferenceRequest",
+  "type": "object"
+}
