@@ -7,6 +7,10 @@ from pathlib import Path
 import sys
 import time
 
+# Embedded Windows Python uses ._pth isolation and does not add the script's
+# directory to sys.path. Keep the small sibling modules explicit in packaged runs.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 def initialize_temporary_directory(output):
     import tempfile
     configured=os.environ.get('CLEAR_PADDLE_TEMP') or os.environ.get('TEMP','')
@@ -44,7 +48,8 @@ def save(name,value):
             if attempt==19:raise
             time.sleep(.05*(attempt+1))
 
-def progress(stage):save('progress.json',{'stage':stage})
+def progress(stage, **fields):
+    save('progress.json',{'stage':stage,'worker_epoch':getattr(globals().get('CONTROL'), 'epoch', None),**fields})
 
 def image(path):
     import cv2
@@ -127,91 +132,9 @@ def face(request):
         result['candidates']=candidates[:request['options']['top_k']]
     return result
 
-def decode_audio(path):
-    import av
-    import numpy as np
-    import wave
-    chunks=[];channels=None;original_rate=None;sample_count=0;origin=None;timeline=[]
-    with av.open(path) as container:
-        stream=next((s for s in container.streams if s.type=='audio'),None)
-        if stream is None:raise ValueError('文件不包含音轨')
-        original_rate=stream.codec_context.sample_rate;channels=stream.codec_context.channels
-        resampler=av.audio.resampler.AudioResampler(format='flt',layout='mono',rate=16000)
-        def append(output):
-            nonlocal origin,sample_count
-            chunk=output.to_ndarray().reshape(-1)
-            timestamp=float(output.pts*output.time_base) if output.pts is not None and output.time_base else None
-            if origin is None:origin=timestamp or 0.0
-            position=round((timestamp-origin)*16000) if timestamp is not None else sample_count
-            gap=position-sample_count
-            if gap>16000*4*3600 or max(position,sample_count)+chunk.size>16000*4*3600:
-                raise ValueError('音频超过首版四小时上限')
-            if gap>2:
-                chunks.append(np.zeros(gap,dtype=np.float32));sample_count+=gap
-                timeline.append({'at_ms':position/16,'gap_ms':gap/16,'handling':'preserved_as_silence'})
-            elif gap < -2:
-                removed=min(len(chunk),-gap);chunk=chunk[removed:]
-                timeline.append({'at_ms':sample_count/16,'overlap_ms':removed/16,'handling':'trimmed_duplicate_timestamps'})
-            chunks.append(chunk);sample_count+=chunk.size
-        for frame in container.decode(stream):
-            for output in resampler.resample(frame):append(output)
-        for output in resampler.resample(None):append(output)
-    if not chunks:raise ValueError('音轨为空')
-    samples=np.concatenate(chunks).astype(np.float32)
-    with wave.open(str(OUT/'playback.wav'),'wb') as target:
-        target.setnchannels(1);target.setsampwidth(2);target.setframerate(16000)
-        target.writeframes((np.clip(samples,-1,1)*32767).astype('<i2').tobytes())
-    return samples,{'original_sample_rate':original_rate,'original_channels':channels,'analysis_sample_rate':16000,
-        'duration_ms':int(len(samples)/16),'time_offset_ms':0,'playback':'playback.wav',
-        'transform':{'time_origin':'first_decoded_audio_sample','first_pts_seconds':origin,'scale':1,'offset_ms':0,
-            'channel_mapping':'all_original_channels_downmixed','discontinuities':timeline},
-        'processing':['解码','重采样为16kHz单声道；保持原音首样本起点及时间间隔']}
-
-def audio_figures(samples):
-    import cv2
-    import numpy as np
-    width,height=1000,180
-    canvas=np.full((height,width,3),250,dtype=np.uint8)
-    boundaries=np.linspace(0,len(samples),width+1,dtype=int)
-    for x in range(width):
-        chunk=samples[boundaries[x]:max(boundaries[x]+1,boundaries[x+1])]
-        if len(chunk):cv2.line(canvas,(x,int(height/2-min(.98,float(chunk.max()))*height*.46)),(x,int(height/2-max(-.98,float(chunk.min()))*height*.46)),(70,130,45),1)
-    png('waveform.png',canvas)
-    starts=np.linspace(0,max(0,len(samples)-512),width,dtype=int)
-    windows=np.stack([np.pad(samples[i:i+512],(0,max(0,512-len(samples[i:i+512])))) for i in starts])*np.hanning(512)
-    spectrum=20*np.log10(np.maximum(np.abs(np.fft.rfft(windows,axis=1)),1e-6)).T
-    normalized=np.clip((spectrum+70)/90*255,0,255).astype('uint8')[::-1]
-    png('spectrogram.png',cv2.applyColorMap(cv2.resize(normalized,(width,256)),cv2.COLORMAP_VIRIDIS))
-
 def audio(request):
-    progress('解码、波形与频谱')
-    samples,metadata=decode_audio(request['inputs'][0]['path']);audio_figures(samples)
-    from funasr import AutoModel
-    import torch
-    root=Path(request['models'])/'audio'
-    progress('加载转写、VAD、标点和说话人模型')
-    pipeline=AutoModel(model=str(root/'paraformer-zh'),vad_model=str(root/'fsmn-vad'),
-        punc_model=str(root/'ct-punc'),spk_model=str(root/'campplus'),device=request['options']['device'],
-        disable_update=True,disable_pbar=True,trust_remote_code=False)
-    progress('转写与说话人分段')
-    records=pipeline.generate(input=samples,fs=16000,batch_size_s=60,sentence_timestamp=True,return_spk_res=True)
-    segments=[]
-    for record in records:
-        for row in record.get('sentence_info',[]):
-            start=max(0,int(row['start']));end=min(metadata['duration_ms'],int(row['end']))
-            if start>=end:continue
-            speaker=row.get('spk')
-            segments.append({'start_ms':start,'end_ms':end,'text':row.get('text',''),
-                             'speaker':f'说话人 {int(speaker)+1}' if speaker is not None else '未分配'})
-    if not segments and any(record.get('text') for record in records):
-        raise ValueError('模型返回了文字但没有可定位的句段；不能伪造时间戳')
-    hashes={name:digest(root/name/file) for name,file in [('paraformer-zh','model.pt'),('fsmn-vad','model.pt'),('ct-punc','model.pt'),('campplus','campplus_cn_common.bin')]}
-    save('asr-original.json',records)
-    return {'algorithm':'FunASR Paraformer + FSMN-VAD + ct-punc + CAM++','device':request['options']['device'],
-        'funasr':importlib.metadata.version('funasr'),'torch':torch.__version__,'model_hashes':hashes,
-        'segments':segments,'speaker_segments':[{'start_ms':r['start_ms'],'end_ms':r['end_ms'],'speaker':r['speaker']} for r in segments],
-        'audio':metadata,'outcome':'transcribed' if segments else 'no_speech',
-        'limitations':['说话人编号为本录音内的匿名分组','时间戳为模型估计，引用前需回听原音']}
+    from audio_processing import run_audio
+    return run_audio(request, OUT, CONTROL, progress)
 
 def seal(request):
     sys.path.insert(0,str(Path(request['program'])/'bundles/ocr/src'))
@@ -318,11 +241,13 @@ def catnet(request):
     hp,wp=coefficients.shape
     padded=np.full((hp,wp,3),127.5,dtype=np.float32);padded[:height,:width]=rgb
     probabilities=np.zeros((height,width),dtype=np.float32)
-    tile_size=1024
+    tile_size=int((request.get('runner') or {}).get('catnet_tile_size',1024))
+    if tile_size not in (512,768,1024):raise ValueError('CAT-Net tile size must be 512, 768 or 1024')
     total=((height+tile_size-1)//tile_size)*((width+tile_size-1)//tile_size);done=0
     with torch.inference_mode():
         for top in range(0,height,tile_size):
             for left in range(0,width,tile_size):
+                CONTROL.check()
                 bottom=min(top+tile_size,hp);right=min(left+tile_size,wp)
                 pixels=padded[top:bottom,left:right]
                 block=np.abs(coefficients[top:bottom,left:right])
@@ -348,8 +273,25 @@ if __name__=='__main__':
     if input_path.drive.upper()!='F:' or OUT.resolve().drive.upper()!='F:':raise ValueError('worker output must be on F:')
     initialize_temporary_directory(OUT)
     request=json.loads(input_path.read_text('utf-8'))
+    import faulthandler
+    faulthandler.enable()
+    from worker_protocol import WorkerControl, WorkerStopped
+    CONTROL=WorkerControl(request, save)
+    CONTROL.event('ready')
+    try:
+        CONTROL.wait('start')
+        progress('门控已通过')
+        CONTROL.check()
+    except WorkerStopped:
+        CONTROL.event('yielded')
+        sys.exit(75)
     started=time.monotonic()
-    result={'face':face,'audio':audio,'seal':seal,'catnet':catnet}[request['kind']](request)
+    try:
+        result={'face':face,'audio':audio,'seal':seal,'catnet':catnet}[request['kind']](request)
+        CONTROL.check()
+    except WorkerStopped:
+        CONTROL.event('yielded')
+        sys.exit(75)
     result['elapsed_seconds']=round(time.monotonic()-started,3)
     result['input_hashes']=[source['blob_hash'] for source in request['inputs']]
     import platform

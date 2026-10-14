@@ -238,6 +238,20 @@
   },
   "additionalProperties": false,
   "properties": {
+    "row_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Row Id"
+    },
     "source": {
       "$ref": "#/$defs/SourceLocator"
     },

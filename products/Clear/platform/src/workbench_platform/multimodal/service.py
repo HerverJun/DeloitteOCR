@@ -22,10 +22,16 @@ from workbench_platform.audit.service import validated
 from workbench_platform.batches.store import encoded, fingerprint, now
 from workbench_platform.data_api.service import DataError
 from workbench_platform.forensics.service import f_path
+from workbench_platform.resources.gpu import GpuCoordinator, ResourceBusy, ReleaseUnconfirmed, StaleOwner
+from workbench_platform.resources.recovery import local_path, recover_owned
+from .runner import WorkerRunner, worker_environment, PROTOCOL
+from .qualification import Qualification, GPU_KINDS
 
 SOURCE = Path(__file__).resolve().parents[3]
 ACTIVE = {'queued','running','cancelling'}
 LABELS = {'face':'人脸比对','audio':'音频分析','seal':'印章识别','catnet':'深度图像取证'}
+AUDIO_DISK_BUDGET = 4*3600*16000*2*3 + 256*1024*1024
+DISK_MARGIN = 64*1024*1024
 
 class MultimodalService:
     def __init__(self, app, root):
@@ -38,9 +44,22 @@ class MultimodalService:
         self.program = f_path(configured if configured.is_absolute() else SOURCE/configured)
         self.models = self.program/'models/multimodal'
         self.lock = threading.RLock()
-        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='manual-multimodal')
+        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='manual-cpu')
+        self.gpu_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='manual-gpu')
+        self.stopping = threading.Event()
+        self.wake = threading.Event()
+        self.inflight = {}
         self.processes = {}
         self.resource_hash_cache = {}
+        ledger = local_path(self.root.parent/'gpu.sqlite3')
+        if os.environ.get('WORKBENCH_GPU_LEDGER') and local_path(os.environ['WORKBENCH_GPU_LEDGER']) != ledger:
+            raise DataError('多模态必须使用平台统一 GPU 账本',503)
+        self.coordinator = GpuCoordinator(ledger)
+        self.ownership_root = local_path(self.root.parent/'gpu-owners')
+        self.runner = WorkerRunner(self.coordinator,self.ownership_root)
+        self.qualification = Qualification(self.root.parent/self.config.get('gpu',{}).get('qualification_file','gpu-qualification.json'))
+        self.launch_id, self.instance_id = 'manual'+uuid.uuid4().hex, 'manual'+uuid.uuid4().hex
+        self.gpu_recovery_error = None
         from .artifacts import configure
         configure(app.state.artifact_center)
         with closing(self.db()) as db:
@@ -56,8 +75,12 @@ class MultimodalService:
             for row in db.execute('SELECT body FROM manual_analysis').fetchall():
                 item=json.loads(row[0])
                 if item['status'] in ACTIVE:
+                    if item.get('gpu_request_id') in self.coordinator.snapshot().pending:
+                        self.coordinator.cancel_pending(item['gpu_request_id'],'manual')
                     item.update(status='needs_verification',error='上次执行中断；保留原任务，请明确重试',updated_at=now())
                     self.save(db,item)
+        self.dispatcher = threading.Thread(target=self._dispatch,name='manual-dispatch',daemon=True)
+        self.dispatcher.start()
 
     def db(self):
         db=sqlite3.connect(self.path,timeout=15,isolation_level=None)
@@ -101,15 +124,96 @@ class MultimodalService:
             (identifier,item['workspace_id'],sequence,'localManual',item['generation'],encoded(value)))
 
     def close(self):
+        self.stopping.set()
+        self.wake.set()
+        self.dispatcher.join(timeout=10)
         with self.transaction() as db:
             for row in db.execute('SELECT body FROM manual_analysis').fetchall():
                 item=json.loads(row[0])
                 if item['status'] in ACTIVE:
+                    self._cancel_pending(item)
                     item.update(status='needs_verification',stage='interrupted',updated_at=now());self.save(db,item)
-        with self.lock:
-            for process in self.processes.values():
-                if process.poll() is None:process.terminate()
         self.pool.shutdown(wait=True,cancel_futures=True)
+        self.gpu_pool.shutdown(wait=True,cancel_futures=True)
+
+    def _cancel_pending(self,item):
+        identifier=item.get('gpu_request_id')
+        if identifier and identifier in self.coordinator.snapshot().pending:
+            self.coordinator.cancel_pending(identifier,'manual')
+
+    def _admit_gpu(self,db,item):
+        if item.get('gpu_request_id') not in self.coordinator.snapshot().pending:
+            identifier='manual-'+uuid.uuid4().hex
+            self.coordinator.request(identifier,'manual')
+            try:
+                item['gpu_request_id']=identifier
+                item.update(stage='waiting_gpu',updated_at=now())
+                self.save(db,item)
+            except BaseException:
+                self.coordinator.cancel_pending(identifier,'manual')
+                raise
+
+    def _check_disk_budget(self,db,*,additional_audio=0,copy_bytes=0):
+        reserved=additional_audio
+        for row in db.execute('SELECT body FROM manual_analysis').fetchall():
+            item=json.loads(row[0])
+            if item['kind']=='audio' and item['status'] in ACTIVE:
+                reserved+=AUDIO_DISK_BUDGET
+        needed=reserved+copy_bytes+DISK_MARGIN
+        if shutil.disk_usage(self.root).free<needed:
+            raise DataError(f'F 盘可用空间不足：处理及并行音频需预留至少 {needed/1024**3:.2f} GiB；已有原件和检查点已保留',503)
+
+    def _stage_input(self,db,source,destination,blob_hash):
+        source,destination=local_path(source),local_path(destination)
+        if destination.exists():
+            if self.file_hash(destination)!=blob_hash:
+                raise DataError('已有输入副本校验失败；原文件已保留，请核实后重试',409)
+            return
+        try:
+            os.link(source,destination)
+        except OSError:
+            self._check_disk_budget(db,copy_bytes=source.stat().st_size)
+            # No deletion or replacement of old inputs; only a new assigned path.
+            with source.open('rb') as origin,destination.open('xb') as target:
+                shutil.copyfileobj(origin,target,length=8*1024*1024)
+        if self.file_hash(destination)!=blob_hash:
+            raise DataError('原件副本校验失败，原文件已保留',409)
+
+    def _dispatch(self):
+        last_recovery=0
+        while not self.stopping.is_set():
+            try:
+                snapshot=self.coordinator.snapshot()
+                if snapshot.owner and snapshot.expires_at <= time.time() and time.monotonic()-last_recovery>5:
+                    last_recovery=time.monotonic()
+                    try:
+                        recover_owned(self.coordinator,self.ownership_root)
+                        self.gpu_recovery_error=None
+                    except (OSError,ValueError,KeyError) as error:
+                        self.gpu_recovery_error=str(error)
+                with self.transaction() as db:
+                    rows=[json.loads(row[0]) for row in db.execute('SELECT body FROM manual_analysis ORDER BY rowid').fetchall()]
+                    for item in rows:
+                        if item['status']!='queued' or item['job_id'] in self.inflight:continue
+                        gpu=item['options']['device']=='cuda'
+                        lane='gpu' if gpu else 'cpu'
+                        if gpu:
+                            try:self._admit_gpu(db,item)
+                            except ResourceBusy:continue
+                            snapshot=self.coordinator.snapshot()
+                            position=snapshot.pending.index(item['gpu_request_id'])+1+int(snapshot.owner is not None)
+                            information={**item.get('progress',{}),'queue_position':position}
+                            if information!=item.get('progress'):
+                                item['progress']=information;self.save(db,item)
+                            if snapshot.owner or not snapshot.pending or snapshot.pending[0]!=item['gpu_request_id']:continue
+                        if lane in self.inflight.values():continue
+                        self.inflight[item['job_id']]=lane
+                        executor=self.gpu_pool if gpu else self.pool
+                        executor.submit(self.run,item['workspace_id'],item['job_id'])
+            except Exception as error:
+                self.gpu_recovery_error=str(error)[:600]
+            self.wake.wait(self.config.get('dispatch_poll_seconds',.25))
+            self.wake.clear()
 
     def row(self,db,workspace,job):
         row=db.execute('SELECT body FROM manual_analysis WHERE workspace_id=? AND job_id=?',(workspace,job)).fetchone()
@@ -121,7 +225,13 @@ class MultimodalService:
 
     @staticmethod
     def public(item):
-        item=copy.deepcopy(item)
+        public_fields={'schema_version','job_id','workspace_id','request_id','kind','inputs','options','status','stage',
+            'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device'}
+        item={key:copy.deepcopy(value) for key,value in item.items() if key in public_fields}
+        item.setdefault('progress',{})
+        item.setdefault('actual_device',None)
+        from .revisions import attach_row_ids
+        if item.get('result'):attach_row_ids(item,item['result'])
         for image in (item.get('result') or {}).get('images',[]):
             for face in image.get('faces',[]):face.pop('feature',None)
         return item
@@ -151,12 +261,30 @@ class MultimodalService:
             if not (self.program/python).is_file():missing.append(python)
             receipt=receipts.get(kind,{})
             identities=receipt.get('resources',{})
-            fresh=bool(identities) and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
+            source_hashes={path.relative_to(SOURCE).as_posix():self.file_hash(path) for path in sorted((SOURCE/'modules/manual_multimodal').glob('*.py'))}
+            fresh=bool(identities) and receipt.get('source_hashes')==source_hashes and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
             cpu=not missing and fresh and receipt.get('cpu') is True
-            gpu=not missing and fresh and receipt.get('gpu') is True
+            gpu=False;gpu_reason='需完成本机 GPU 工程推理验证'
+            if kind not in GPU_KINDS or kind not in self.config.get('gpu',{}).get('enabled_kinds',[]):
+                gpu_reason='本阶段此能力使用 CPU'
+            elif not missing and identities and self.qualification.path.is_file():
+                try:
+                    local=json.loads(self.qualification.path.read_text('utf-8'))
+                    if kind in local.get('items',{}):
+                        binding=self.gpu_binding(kind,python,identities)
+                        gpu=self.qualification.ready(kind,binding,peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
+                        if not gpu:gpu_reason='本机程序、模型、运行库或驱动设备变化，请重新验证 GPU'
+                except (OSError,ValueError,KeyError) as error:gpu_reason=str(error)
             items.append({'kind':kind,'title':LABELS[kind],'state':'resources_missing' if missing else 'gpu_ready' if gpu else 'cpu_ready' if cpu else 'load_failed' if fresh and receipt.get('record',{}).get('exit_code',0) else 'resources_present',
-                          'cpu_ready':cpu,'gpu_ready':gpu,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
+                          'cpu_ready':cpu,'gpu_ready':gpu,'gpu_reason':None if gpu else gpu_reason,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
         return {'items':items}
+
+    def gpu_binding(self,kind,runtime,identities):
+        resources={name:{'bytes':(self.models/name).stat().st_size,'sha256':self.qualification.file_hash(self.models/name)} for name in identities}
+        return self.qualification.binding(kind,self.program/runtime,
+            [*sorted((SOURCE/'modules/manual_multimodal').glob('*.py')),SOURCE/'config/multimodal.json',Path(__file__),SOURCE/'src/workbench_platform/multimodal/runner.py',
+             SOURCE/'src/workbench_platform/multimodal/qualification.py',SOURCE/'src/workbench_platform/resources/recovery.py'],
+            resources,device_index=self.config.get('gpu',{}).get('device_index',0))
 
     def resource_matches(self,path,identity):
         # ZIP extraction changes timestamp precision. Content identity survives
@@ -187,6 +315,7 @@ class MultimodalService:
                 raise DataError('此模型尚未完成真实 CPU 推理验证，请先运行交付诊断',409)
             if value['options']['device']=='cuda' and not capability['gpu_ready']:
                 raise DataError('此模型的 GPU 路线尚未通过实测，请使用 CPU',409)
+            if kind=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
             inputs=[]
             for source in value['inputs']:
                 asset=self.registry.get(workspace,source['asset_id'])
@@ -197,107 +326,145 @@ class MultimodalService:
                 if suffix not in allowed:raise DataError('当前模型不支持此格式；请保留原件并选择适用工具')
                 inputs.append({**source,'original_name':asset.original_name,'suffix':suffix})
             identifier='m'+uuid.uuid4().hex
-            marker=self.root.parent/'product-reader-requirements.json'
-            requirements=json.loads(marker.read_text('utf-8')) if marker.exists() else {'format':'clear-product-reader-requirements-v1','reader_features':[]}
-            requirements['reader_features']=sorted(set(requirements['reader_features'])|{'manual-multimodal-v1','source-media-segment-v1'})
-            temporary=marker.with_suffix('.json.new');temporary.write_text(encoded(requirements),encoding='utf-8');os.replace(temporary,marker)
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent,'manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
             item={'schema_version':'1.0','job_id':identifier,'workspace_id':workspace,'request_id':value['request_id'],
                   'kind':kind,'inputs':inputs,'options':value['options'],'status':'queued','stage':'queued','revision':1,
-                  'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1}
+                  'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1,
+                  'progress':{},'actual_device':None}
             db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',(identifier,workspace,value['request_id'],digest,encoded(item)))
             self.sync_projection(db,item)
-        self.pool.submit(self.run,workspace,identifier)
+        self.wake.set()
         return self.public(item)
 
     def run(self,workspace,job):
-        process=None
+        epoch=uuid.uuid4().hex
+        generation=None
         try:
             with self.transaction() as db:
                 item=self.row(db,workspace,job)
                 if item['status']!='queued':return
-                item.update(status='running',stage='prepare',updated_at=now());self.save(db,item)
+                if item['kind']=='audio':self._check_disk_budget(db)
+                generation=item['generation']
+                item.update(status='running',stage='prepare',worker_epoch=epoch,updated_at=now());self.save(db,item)
             output=f_path(self.root/job/f"attempt-{item['generation']}");output.mkdir(parents=True,exist_ok=True)
+            checkpoints=local_path(self.root/job/'audio-checkpoints');checkpoints.mkdir(parents=True,exist_ok=True)
+            reduced=item.get('oom_retries',0)>0
             value={'kind':item['kind'],'options':item['options'],'models':str(self.models),'program':str(self.program),'inputs':[],
-                   'references':self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else []}
+                   'references':self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else [],
+                   'runner':{'protocol':PROTOCOL,'worker_epoch':epoch,'launch_id':self.launch_id,'instance_id':self.instance_id,
+                       'job_id':job,'generation':generation,'checkpoint_root':str(checkpoints),
+                       'audio_batch_size_s':self.config.get('audio',{}).get('reduced_batch_size_s' if reduced else 'batch_size_s',15 if reduced else 30),
+                       'catnet_tile_size':self.config.get('catnet',{}).get('reduced_tile_size' if reduced else 'tile_size',512 if reduced else 1024)}}
             with ExitStack() as stack:
                 for index,source in enumerate(item['inputs']):
                     staged=stack.enter_context(self.registry.stage_verified(workspace,source['asset_id'],revision=source['asset_revision'],blob_hash=source['blob_hash']))
                     destination=output/f"input-{index}{source['suffix']}"
-                    shutil.copyfile(staged,destination)
-                    if hashlib.file_digest(destination.open('rb'),'sha256').hexdigest()!=source['blob_hash']:raise DataError('原件副本校验失败',409)
+                    with self.transaction() as db:self._stage_input(db,staged,destination,source['blob_hash'])
                     value['inputs'].append({**source,'path':str(destination)})
                 (output/'request.json').write_text(encoded(value),encoding='utf-8')
-                env=os.environ.copy()
-                for key in ('TEMP','TMP','TMPDIR','APPDATA','LOCALAPPDATA','HF_HOME','MODELSCOPE_CACHE','TORCH_HOME','MPLCONFIGDIR','XDG_CACHE_HOME','NUMBA_CACHE_DIR','PADDLE_PDX_CACHE_HOME'):
-                    location=f_path(output/'runtime'/key.lower());location.mkdir(parents=True,exist_ok=True);env[key]=str(location)
-                env.update(HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',HF_HUB_DISABLE_TELEMETRY='1',DO_NOT_TRACK='1',
-                           PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK='True',PYTHONDONTWRITEBYTECODE='1',PYTHONUTF8='1',PYTHONIOENCODING='utf-8',OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2')
-                if item['options']['device']=='cpu':env['CUDA_VISIBLE_DEVICES']=''
-                if item['kind']=='seal':env.update(OMP_NUM_THREADS='1',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='1')
                 runtime=next(x['runtime'] for x in self.capabilities()['items'] if x['kind']==item['kind'])
-                start=time.monotonic()
-                with (output/'worker.log').open('wb') as log:
-                    process=subprocess.Popen([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal/worker.py'),str(output/'request.json')],
-                        cwd=output,env=env,stdout=log,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                env=worker_environment(output,self.program/runtime,gpu=item['options']['device']=='cuda',device_index=self.config.get('gpu',{}).get('device_index',0))
+                if item['kind']=='seal':env.update(OMP_NUM_THREADS='1',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='1')
+                def cancelled():
+                    if self.stopping.is_set():return True
+                    with closing(self.db()) as db:current=self.row(db,workspace,job)
+                    return (current['status'] in {'cancelling','needs_verification'} or current['generation']!=generation
+                            or current.get('worker_epoch')!=epoch)
+                def progress(update):
+                    with self.transaction() as db:
+                        current=self.row(db,workspace,job)
+                        if current['generation']!=generation or current.get('worker_epoch')!=epoch or current['status']!='running':return
+                        information={**current.get('progress',{}),**{key:value for key,value in update.items() if key not in {'stage','worker_epoch','event','checkpoint'}}}
+                        information.pop('queue_position',None)
+                        if 'total_ms' in information:information['duration_ms']=information.pop('total_ms')
+                        if 'chunks_total' in information:information['total_chunks']=information.pop('chunks_total')
+                        stage=str(update.get('stage',current['stage']))[:128]
+                        if stage!=current['stage'] or information!=current.get('progress'):
+                            current.update(stage=stage,progress=information,updated_at=now());self.save(db,current)
+                def committed(event):
+                    progress({**event,'stage':'音频分块检查点已提交','completed_chunks':event['chunk_index']+1})
+                def track(process):
                     with self.lock:self.processes[job]=process
-                    while process.poll() is None:
-                        current=self.get(workspace,job)
-                        if current['status']=='cancelling':process.terminate();process.wait(timeout=15);break
-                        if time.monotonic()-start>self.config['worker_timeouts'][item['kind']]:
-                            process.kill();process.wait();raise TimeoutError('分析超过当前模型的任务时限')
-                        progress=output/'progress.json'
-                        if progress.exists():
-                            try:
-                                stage=json.loads(progress.read_text('utf-8'))['stage']
-                                with self.transaction() as db:
-                                    current=self.row(db,workspace,job)
-                                    if current['stage']!=str(stage)[:128]:
-                                        current.update(stage=str(stage)[:128],updated_at=now());self.save(db,current)
-                            except (ValueError,OSError,KeyError):pass
-                        time.sleep(.3)
+                outcome=self.runner.run([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal/worker.py'),str(output/'request.json')],
+                    output,env,value,request_id=item.get('gpu_request_id'),cancelled=cancelled,progress=progress,committed=committed,
+                    process_started=track,timeout=self.config['worker_timeouts'][item['kind']])
                 with self.transaction() as db:
                     current=self.row(db,workspace,job)
+                    if current['generation']!=generation or current.get('worker_epoch')!=epoch:return
                     if current['status']=='needs_verification':return
-                    if current['status']=='cancelling':current.update(status='cancelled',stage='cancelled')
-                    elif process.returncode:
-                        tail=(output/'worker.log').read_text('utf-8',errors='replace')[-2400:]
-                        current.update(status='failed',stage='failed',error='模型执行失败：'+tail)
+                    current['active_seconds']=current.get('active_seconds',0)+outcome.elapsed_seconds
+                    if outcome.status=='needs_verification':
+                        current.update(status='needs_verification',stage='cleanup_unconfirmed',error=outcome.error)
+                    elif current['status']=='cancelling' or outcome.status=='cancelled':
+                        current.update(status='cancelled',stage='cancelled',error=None)
+                    elif outcome.status in {'yielded','waiting'}:
+                        current.update(status='queued',stage='waiting_gpu',error=None)
+                    elif outcome.status=='oom' and not current.get('oom_retries'):
+                        current.update(status='queued',stage='retry_reduced_load',error=None,oom_retries=1)
+                        current['progress']={**current.get('progress',{}),'load_reduced':True}
+                    elif outcome.status!='succeeded':
+                        current.update(status='failed',stage='failed',error=outcome.error)
                     else:
                         result=json.loads((output/'result.json').read_text('utf-8'))
+                        actual=result.get('device')
+                        if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)
                         for segment in result.get('segments',[]):
                             source=current['inputs'][0]
                             segment['source']=SourceLocator.model_validate({'schema_version':'1.0','kind':'media_segment',
                                 'asset_id':source['asset_id'],'asset_revision':source['asset_revision'],'blob_hash':source['blob_hash'],
-                                'precision':'approximate','start_ms':segment['start_ms'],'end_ms':segment['end_ms'],'channel':None}).model_dump(mode='json')
+                                'precision':'approximate','start_ms':segment['start_ms'],'end_ms':segment['end_ms'],'channel':current['options'].get('channel')}).model_dump(mode='json')
                         self.attach_regions(current,result)
+                        from .revisions import attach_row_ids
+                        attach_row_ids(current,result)
                         result['output_files']={path.name:{'bytes':path.stat().st_size,'sha256':self.file_hash(path)}
                             for path in output.iterdir() if path.is_file() and (path.suffix in {'.png','.wav','.npy'} or path.name=='asr-original.json') and not path.name.startswith('input-')}
-                        current.update(status='succeeded',stage='completed',result=result,result_hash=fingerprint(result),error=None)
+                        current.update(status='succeeded',stage='completed',result=result,result_hash=fingerprint(result),error=None,actual_device=actual)
+                        if current['kind']=='audio' and result.get('audio'):
+                            duration=result['audio']['duration_ms'];chunks=result.get('performance',{}).get('total_chunks',0)
+                            current['progress']={**current.get('progress',{}),'processed_ms':duration,'duration_ms':duration,
+                                'completed_chunks':chunks,'total_chunks':chunks}
+                    if current['status']!='queued':self._cancel_pending(current)
                     current.update(updated_at=now());self.save(db,current)
         except Exception as error:
             with self.transaction() as db:
                 item=self.row(db,workspace,job)
+                if generation is not None and (item['generation']!=generation or item.get('worker_epoch')!=epoch):return
+                if item['status']=='needs_verification':return
+                self._cancel_pending(item)
                 item.update(status='cancelled' if item['status']=='cancelling' else 'failed',error=str(error)[:2400],updated_at=now());self.save(db,item)
         finally:
-            if process is not None and process.poll() is None:process.kill();process.wait()
-            with self.lock:self.processes.pop(job,None)
+            with self.lock:
+                self.processes.pop(job,None)
+                self.inflight.pop(job,None)
+            self.wake.set()
 
     def control(self,workspace,job,action):
         with self.transaction() as db:
             item=self.row(db,workspace,job)
             if action=='cancel':
-                if item['status']=='queued':item.update(status='cancelled',stage='cancelled')
+                if item['status']=='queued':
+                    self._cancel_pending(item)
+                    item.update(status='cancelled',stage='cancelled')
                 elif item['status'] in ACTIVE:item['status']='cancelling'
                 else:raise DataError('任务已结束',409)
-            elif action=='retry':
+            elif action in {'retry','retry_cpu'}:
                 if item['status'] not in {'failed','cancelled','needs_verification'}:raise DataError('当前任务不能重试',409)
+                if item.get('gpu_request_id') and self.coordinator.snapshot().owner_request_id==item['gpu_request_id']:
+                    raise DataError('原任务 GPU 进程清理尚未核实，请等待可信恢复；不能并发写入音频检查点',409)
                 capability=next(value for value in self.capabilities()['items'] if value['kind']==item['kind'])
-                if not capability['cpu_ready' if item['options']['device']=='cpu' else 'gpu_ready']:
+                target='cpu' if action=='retry_cpu' else item['options']['device']
+                if not capability['cpu_ready' if target=='cpu' else 'gpu_ready']:
                     raise DataError('模型或运行环境已变化，请完成推理验证后重试',409)
-                item.update(status='queued',stage='queued',error=None,generation=item['generation']+1)
+                if item['kind']=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
+                self._cancel_pending(item)
+                if action=='retry_cpu':
+                    item['options']={**item['options'],'device':'cpu'}
+                    item['progress']={**item.get('progress',{}),'explicit_cpu_retry':True,'device_change_note':'已确认块可复用；CPU/GPU 浮点结果可能存在差异'}
+                item.update(status='queued',stage='queued',error=None,generation=item['generation']+1,oom_retries=0,active_seconds=0,gpu_request_id=None,actual_device=None)
             else:raise DataError('任务操作无效')
             item['updated_at']=now();self.save(db,item)
-        if action=='retry':self.pool.submit(self.run,workspace,job)
+        self.wake.set()
         return self.public(item)
 
     def review(self,workspace,job,payload):
@@ -319,11 +486,9 @@ class MultimodalService:
             field='segments' if item['kind']=='audio' else 'seals' if item['kind']=='seal' else None
             rows=(item.get('result') or {}).get(field,[]) if field else []
             if edits and not field:raise DataError('此工具只支持人工结论与备注')
-            for edit in edits:
-                if set(edit)-{'index','text','speaker','subject','number'} or type(edit.get('index')) is not int or not 0<=edit['index']<len(rows):raise DataError('修订行无效')
-                if any(not isinstance(v,str) or len(v)>10000 for k,v in edit.items() if k!='index'):raise DataError('修订字段无效')
-                if field=='segments' and set(edit)-{'index','text','speaker'}:raise DataError('音频修订字段无效')
-                if field=='seals' and set(edit)-{'index','text','subject','number'}:raise DataError('印章修订字段无效')
+            if edits:
+                from .revisions import normalized_edits
+                value['edits']=normalized_edits(item,field,edits)
             item.update(revision=item['revision']+1,review={**value,'created_at':now()},updated_at=now())
             self.save(db,item);receipt=self.public(item)
             db.execute('INSERT INTO manual_review VALUES(?,?,?,?)',(workspace,value['request_id'],digest,encoded(receipt)))
@@ -392,32 +557,9 @@ class MultimodalService:
                 'blob_hash':source['blob_hash'],'page_number':page,'precision':'page_only'}).model_dump(mode='json')
 
     def export(self,workspace,job):
-        item=self.get(workspace,job)
-        if item['status']!='succeeded':raise DataError('分析尚未完成',409)
-        result=copy.deepcopy(item['result']);field='segments' if item['kind']=='audio' else 'seals'
-        for edit in (item.get('review') or {}).get('edits',[]):result[field][edit['index']].update({k:v for k,v in edit.items() if k!='index'})
-        files={'result.json':encoded({**item,'result':result}).encode('utf-8')}
-        rows=result.get(field,[])
-        if rows:
-            buffer=io.StringIO(newline='');writer=csv.writer(buffer)
-            writer.writerow(['序号','文字','说话人','主体','编号','原件','页码','开始毫秒','结束毫秒'])
-            for index,row in enumerate(rows):writer.writerow([index+1,row.get('text',''),row.get('speaker',''),row.get('subject',''),row.get('number',''),item['inputs'][0]['original_name'],row.get('page_number',''),row.get('start_ms',''),row.get('end_ms','')])
-            files['reviewed.csv']=buffer.getvalue().encode('utf-8-sig')
-        if item['kind']=='audio':
-            files['transcript.txt']='\n'.join(f"{r.get('speaker','')}: {r['text']}" for r in rows).encode('utf-8')
-            def stamp(ms,comma):
-                ms=int(ms);return f'{ms//3600000:02d}:{ms//60000%60:02d}:{ms//1000%60:02d}{comma}{ms%1000:03d}'
-            for extension,comma in [('srt',','),('vtt','.')]:
-                text=('WEBVTT\n\n' if extension=='vtt' else '')+'\n\n'.join(f"{i+1}\n{stamp(r['start_ms'],comma)} --> {stamp(r['end_ms'],comma)}\n{r['text']}" for i,r in enumerate(rows))
-                files['transcript.'+extension]=text.encode('utf-8')
-        for name in result.get('output_files',{}):
-            path,_=self.output(workspace,job,name);files[name]=path.read_bytes()
-        manifest={name:{'bytes':len(content),'sha256':hashlib.sha256(content).hexdigest()} for name,content in files.items()}
-        files['manifest.json']=encoded(manifest).encode('utf-8')
-        output=io.BytesIO()
-        with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
-            for name,content in files.items():archive.writestr(name,content)
-        return output.getvalue(),files
+        from .exports import export_files
+        with self.lock:
+            return export_files(self,workspace,job)
 
     def collect(self,workspace,job):
         with self.lock:return self._collect(workspace,job)
@@ -437,8 +579,8 @@ class MultimodalService:
                 'revision':s['asset_revision'],'sha256':s['blob_hash']} for s in item['inputs']]
             provenance={'kind':'manual_seal_fields','analysis_id':job,'review_revision':item['revision'],
                 'result_hash':item['result_hash'],'review':item['review'],
-                'rows':[{'csv_row':i+2,'source':row['source']} for i,row in enumerate(item['result']['seals'])]}
-            result=install(files['reviewed.csv'],f'印章核准字段-{job}-v{item["revision"]}.csv','text/csv',sources,
+                'rows':[{'csv_row':i+2,'row_id':row['row_id'],'source':row['source']} for i,row in enumerate(item['result']['seals'])]}
+            result=install(files['reviewed.csv'].read_bytes(),f'印章核准字段-{job}-v{item["revision"]}.csv','text/csv',sources,
                 [s['asset_id'] for s in item['inputs']],provenance,replace(ctx,operation_id=key))['data']
             data=self.app.state.data_workbench
             session=data.create('印章字段核对 · '+item['inputs'][0]['original_name'][:60],request_key=key,workspace_id=workspace)
@@ -475,10 +617,11 @@ class MultimodalService:
         with center.store.publication_lock(job+'v'+str(item['revision'])):
             try:return get_bundle(center,workspace,identifier)
             except ArtifactUnavailable:pass
-            for name,content in files.items():
-                artifact=center.store.publish_managed(workspace,io.BytesIO(content),expected_hash=hashlib.sha256(content).hexdigest(),expected_size=len(content),
-                    job_ref=ref,source_refs=source_refs,media_type=mimetypes.guess_type(name)[0] or 'application/octet-stream',
-                    application_version='clear-manual-multimodal-1',rule_or_model_version=fingerprint(item['result'].get('model_hashes',{})))
+            for name,path in files.items():
+                with path.open('rb') as content:
+                    artifact=center.store.publish_managed(workspace,content,expected_hash=self.file_hash(path),expected_size=path.stat().st_size,
+                        job_ref=ref,source_refs=source_refs,media_type=mimetypes.guess_type(name)[0] or 'application/octet-stream',
+                        application_version='clear-manual-multimodal-1',rule_or_model_version=fingerprint(item['result'].get('model_hashes',{})))
                 artifacts.append({'name':name,'artifact_id':artifact.artifact_id,'revision':artifact.revision})
         bundle={'schema_version':'1.0','bundle_id':'b'+job[1:]+'v'+str(item['revision']),'kind':'manual_analysis',
             'title':LABELS[item['kind']]+' · '+item['inputs'][0]['original_name'],'created_at':item['review']['created_at'],

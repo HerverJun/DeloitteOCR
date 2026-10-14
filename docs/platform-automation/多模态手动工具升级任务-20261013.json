@@ -1,95 +1,793 @@
 {
   "format": "clear-multimodal-upgrade-tasks-v1",
   "baseline_version": "0.9.4",
-  "run_root": "F:/OCR/output/multimodal-manual-upgrade-20261013-001",
-  "scope": "四方向实用基础版、开源免费、Windows离线单机优先",
+  "run_root": "F:\\OCR\\output\\gpu-long-audio-20261014-001",
+  "scope": "四方向实用基础版；Windows离线单机；通用单NVIDIA16GiB/32GiB；工程、业务与独立现场分开验收",
   "tasks": [
     {
       "id": "M0-baseline",
       "status": "complete",
-      "title": "保全已有改动、模型许可与真实推理验证"
+      "title": "保全已有改动、模型许可与真实推理验证",
+      "completed_scope_version": "0.10.0"
     },
     {
       "id": "M1-contracts",
-      "status": "cpu_engineering_complete",
+      "status": "engineering_complete",
       "title": "时间来源、能力状态、后台任务与隔离worker",
-      "remaining": "新增 GPU 资源协调与显存恢复待交付"
+      "remaining": "独立业务与现场资格分别登记",
+      "stage": "共享GPU账本、隔离worker、可核实取消/恢复及CPU/GPU独立派发已实现并有工程测试证据",
+      "evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-incremental.xml"
     },
     {
       "id": "M1-face",
       "status": "complete",
-      "title": "YuNet/SFace检测、两图比对和项目参考库"
+      "title": "YuNet/SFace检测、两图比对和项目参考库",
+      "completed_scope_version": "0.10.0"
     },
     {
       "id": "M1-audio",
       "status": "complete",
-      "title": "音频播放、频谱、Paraformer转写和匿名说话人分段"
+      "title": "音频播放、频谱、Paraformer转写和匿名说话人分段",
+      "completed_scope_version": "0.10.0"
     },
     {
       "id": "M1-seal",
       "status": "complete",
-      "title": "Paddle印章检测识别和原页坐标"
+      "title": "Paddle印章检测识别和原页坐标",
+      "completed_scope_version": "0.10.0"
     },
     {
       "id": "M1-catnet",
       "status": "complete",
-      "title": "CAT-Net Windows适配与热图"
+      "title": "CAT-Net Windows适配与热图",
+      "completed_scope_version": "0.10.0"
     },
     {
       "id": "M2-review",
       "status": "complete",
-      "title": "人工修订、导出、Data核对与审计成果"
+      "title": "人工修订、导出、Data核对与审计成果",
+      "completed_scope_version": "0.10.0",
+      "current_phase_status": "engineering_complete",
+      "current_phase_evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\offline-acceptance-003.json"
     },
     {
       "id": "M3-package",
-      "status": "engineering_complete",
-      "title": "独立运行包、模型哈希、断网及空缓存验证",
-      "stage": "ZIP 逐文件校验、新路径解压及空缓存真实处理复验通过",
-      "remaining": "物理断网和目标机独立验收"
+      "status": "blocked_storage",
+      "title": "候选运行包、模型哈希、同机空缓存与独立离线介质验证",
+      "stage": "最终四CPU、稳定ID校订/Range/导出/Data与175文件冷备恢复通过；seal005封存和ZIP精确计数通过，ZIP创建受F盘容量阻塞",
+      "remaining": "完整ZIP创建/逐成员读取校验、中文路径ZIP恢复及完整物理解压受F盘容量阻塞；未删除旧资料或转盘",
+      "evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json"
     },
     {
       "id": "M3-business",
       "status": "awaiting_validation",
-      "title": "独立业务样本及目标A4000/A6000验收",
-      "reason": "用户暂无业务样本；目标 A4000/A6000 未现场验证"
+      "title": "独立业务样本校准与最终测试",
+      "reason": "用户暂无独立业务样本；现有公开回归模板及合成压力材料不构成业务准确率验收"
     },
     {
       "id": "M4-release",
       "status": "complete",
-      "title": "数据兼容、备份、正式切换与回退演练"
+      "title": "数据兼容、备份、正式切换与回退演练",
+      "completed_scope_version": "0.10.0",
+      "current_phase_status": "candidate_not_formally_switched",
+      "current_phase_note": "0.10.0历史正式切换/回退已完成；本轮只有候选冷备恢复通过，未执行0.11.0正式入口切换"
     },
     {
       "id": "M1-gpu",
-      "status": "pending",
-      "title": "新增模型共享 GPU 协调、显存不足恢复与 GPU 真实推理"
+      "status": "engineering_complete",
+      "title": "通用16GiB共享GPU协调、受控降载与本机真实推理资格",
+      "stage": "真实音频/CAT-Net CUDA及manual→ocr→classification→manual轮转有通过记录；音频自动让位后复用1块并恢复，最终账本空闲",
+      "evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\gpu-competition-001\\receipt.json",
+      "qualification_scope": "同机工程；分类仅官方ResNet18一次CUDA编码器前向，不冒充完整业务分类验收",
+      "remaining": "独立现场物理断网验收另列；新DATA须按本机资格规则验证",
+      "final_model_evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-model-verification-003.json"
     },
     {
       "id": "M3-target-hardware",
       "status": "awaiting_validation",
-      "title": "A4000/A6000 与物理断网现场验收"
+      "title": "通用NVIDIA16GiB独立现场空缓存与物理断网验收",
+      "reason": "同机候选与Python网络拦截证据已建立；独立现场物理断网未完成，不设特定显卡型号门槛"
     },
     {
       "id": "M3-long-audio",
-      "status": "pending",
-      "title": "大音频上传扩容、长录音和复杂多声道专项验证"
+      "status": "engineering_complete",
+      "title": "4小时AND4GiB音频、格式/声道、取消续算与边界专项",
+      "stage": "4小时48块连续、32块异常恢复、2块取消续46块、真实应用重启自动回收及续算、跨边界、MP3/M4A和左右声道真实处理通过",
+      "upload_evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\actual-four-gib-upload.json",
+      "historical_four_hours_evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-four-hours-comparison.json",
+      "historical_four_hours_is_final_gate": false,
+      "remaining": "自然长录音/真实复杂多人业务效果另验",
+      "evidence": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-four-hours-comparison-003.json"
     }
   ],
   "overall_upgrade_complete": false,
-  "updated_at": "2026-10-13T16:36:55.025739+00:00",
-  "candidate_version": "0.10.0",
+  "updated_at": "2026-10-14T16:31:20.507033+08:00",
+  "candidate_version": "0.11.0",
   "formal_version": "0.10.0",
   "product_version": "0.10.0",
   "released_scope": "四方向 CPU 工程版及完整离线介质",
   "report": "F:\\OCR\\docs\\platform-automation\\多模态手动工具升级交付记录-20261013.md",
   "deferred": [
-    "业务校准和最终测试",
-    "A4000/A6000现场资格",
-    "新增GPU资源协调与显存恢复",
-    "大音频与长录音稳定性"
+    "独立业务样本、阈值校准和最终测试",
+    "通用NVIDIA16GiB独立现场空缓存与物理断网资格",
+    "自然长录音及真实复杂多人业务表现"
   ],
   "artifacts": {
     "archive": "F:\\OCR\\output\\multimodal-manual-upgrade-20261013-001\\delivery\\Clear-0.10.0-Windows-offline.zip",
     "archive_sha256": "0afdc351f879f8f7ca532e10f3d03189f022589c125d9770fd081834d6eb9cc1",
-    "formal_candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0"
+    "formal_candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0",
+    "active_candidate": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-candidate-001",
+    "candidate_archive": null,
+    "candidate_archive_sha256": null,
+    "candidate_archive_verification": null,
+    "candidate_restore_report": null
+  },
+  "phase_history": [
+    {
+      "run_root": "F:/OCR/output/multimodal-manual-upgrade-20261013-001",
+      "candidate_version": "0.10.0",
+      "formal_version": "0.10.0",
+      "released_scope": "四方向 CPU 工程版及完整离线介质",
+      "report": "F:\\OCR\\docs\\platform-automation\\多模态手动工具升级交付记录-20261013.md",
+      "artifacts": {
+        "archive": "F:\\OCR\\output\\multimodal-manual-upgrade-20261013-001\\delivery\\Clear-0.10.0-Windows-offline.zip",
+        "archive_sha256": "0afdc351f879f8f7ca532e10f3d03189f022589c125d9770fd081834d6eb9cc1",
+        "formal_candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0"
+      },
+      "scope": "0.10.0 CPU工程版及原ZIP、冷备与回退历史记录保留；不代替0.11.0新封包或本轮最终资格"
+    }
+  ],
+  "phase_baseline_version": "0.10.0",
+  "source_control": {
+    "platform_repository": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
+    "platform_branch": "codex/clear-automation-platform-20261002",
+    "platform_commit": "eeea058fe4ac01716a89c0617e0815141888f426",
+    "root_source_snapshot": "products/Clear/platform",
+    "source_snapshot_manifest": "products/Clear/source-manifest.json",
+    "source_snapshot_verified_files": 1699
+  },
+  "candidate_status": "engineering_candidate_packaging_blocked",
+  "active_report": "F:\\OCR\\docs\\platform-automation\\通用16GiB与长录音工程升级说明-20261014.md",
+  "design_baseline": {
+    "gpu_vendor": "NVIDIA",
+    "gpu_count": 1,
+    "gpu_vram_gib": 16,
+    "system_memory_gib": 32,
+    "gpu_model_allowlist": [],
+    "gpu_enabled_kinds_after_local_qualification": [
+      "audio",
+      "catnet"
+    ],
+    "cpu_only_new_kinds": [
+      "face",
+      "seal"
+    ],
+    "audio_max_duration_seconds": 14400,
+    "audio_max_size_bytes": 4294967296,
+    "audio_limits_relation": "AND",
+    "old_upload_max_bytes": 134217728
+  },
+  "remaining_engineering": [
+    "完整ZIP创建/逐成员核验（F盘空间阻塞）",
+    "新中文空格路径ZIP恢复验收（上游ZIP容量阻塞）"
+  ],
+  "current_validation": {
+    "qualification_scope": "same_computer_isolated_candidate_engineering",
+    "offline_candidate_workflow": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\offline-acceptance-003.json",
+      "empty_cache": true,
+      "four_cpu_ready": true,
+      "isolated_workspace_gpu_ready": false,
+      "backup_files": 175,
+      "includes": [
+        "four_models_cpu_inference",
+        "human_revision",
+        "save_collect_export",
+        "seal_to_data",
+        "six_classic_forensics",
+        "running_cancel_retry",
+        "cold_backup_restore_reopen"
+      ],
+      "audio_range_206": true,
+      "stable_row_id_review": true,
+      "latest_source": true
+    },
+    "four_gib_transport": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\actual-four-gib-upload.json",
+      "bytes": 4294967296,
+      "chunks": 512,
+      "seconds": 257.265,
+      "scope": "synthetic_zero_byte_transport_not_playable_audio_or_ASR_accuracy"
+    },
+    "gpu_competition": {
+      "status": "passed_engineering_scope_recorded",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\gpu-competition-001\\receipt.json",
+      "owner_requester_order": [
+        "manual",
+        "ocr",
+        "classification",
+        "manual"
+      ],
+      "final_owner": null,
+      "final_pending": [],
+      "classification_scope": "One official ResNet18 CUDA forward, not full classifier training/inference job API",
+      "current_model_qualification_receipts": [
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-final-004\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-gpu-final-004\\receipt.json"
+      ],
+      "note": "Competition retained for unchanged scheduling implementation; final source has separate real model qualifications. Classification scope remains encoder forward, not full business job API."
+    },
+    "short_gpu_receipts": [
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-final-004\\receipt.json",
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-gpu-final-004\\receipt.json"
+    ],
+    "tests": {
+      "final-core.xml": {
+        "tests": 111,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 6,
+        "passed": 105,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-core.xml"
+      },
+      "final-audio-codecs.xml": {
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 14,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-audio-codecs.xml"
+      },
+      "final-reader.xml": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 27,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-reader.xml"
+      },
+      "final-real-multimodal.xml": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 5,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-real-multimodal.xml"
+      },
+      "audio-upload-windows-cancel.xml": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 5,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-upload-windows-cancel.xml"
+      },
+      "review-csv-identities.xml": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\review-csv-identities.xml"
+      },
+      "final-incremental.xml": {
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 26,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-incremental.xml"
+      },
+      "audio-wrapper-no-periodic-dump.xml": {
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 17,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-wrapper-no-periodic-dump.xml"
+      },
+      "final-completion-progress.xml": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 11,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-completion-progress.xml"
+      }
+    },
+    "frontend": {
+      "original": {
+        "tests": 141,
+        "failures": 11,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 130,
+        "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-frontend.xml"
+      },
+      "original_failures": 11,
+      "failures_with_later_passing_test_identity": 11,
+      "rerun_reports": [
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\frontend-serial-retry.xml",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\frontend-navigation-retry.xml",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\frontend-baseline-selectors-final.xml"
+      ],
+      "single_clean_full_run": false,
+      "original_failure_records_preserved": true
+    },
+    "fixed_public_regression": {
+      "source_status": "hashes_and_templates_verified",
+      "samples": 11,
+      "cases": 8,
+      "manifest": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evaluation\\fixed-public-regression-manifest.json",
+      "accuracy_evaluation_status": "not_run_no_independent_labels",
+      "business_calibration_set": [],
+      "business_final_test_set": []
+    },
+    "business_accuracy": "awaiting_validation",
+    "independent_physical_offline_site": "awaiting_validation",
+    "browser_incremental_sha256": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\browser-sha256-four-gib.json",
+      "bytes": 4294967296,
+      "chunks": 512,
+      "max_buffer_bytes": 8388608,
+      "seconds": 51.5129416,
+      "sha256": "8479e43911dc45e89f934fe48d01297e16f51d17aa561d4d1c216b1ae0fcddca",
+      "source_sha256": "a347a61d4e015d5fa8fbdba8c9c0c9ff9bf1a76b0af8380d88a19f8354904f08",
+      "scope": "exact_frontend_TS_algorithm_transpiled_not_full_browser_interaction"
+    },
+    "stereo_control": {
+      "status": "passed_cuda_engineering",
+      "manifest": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\fixtures\\stereo-fixture.json",
+      "sha256": "1d4c97a6d01be1d84927a4f7571d674954b35e1cd923336de82165327b16d5b5",
+      "scope": "Engineering channel selection/noise control; same source family, not real multiperson evidence",
+      "channel_0_cuda_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-stereo-channel-0-003\\receipt.json",
+      "channel_1_cuda_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-stereo-channel-1-003\\receipt.json"
+    },
+    "final_model_verification": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-model-verification-003.json",
+      "worker_modules": {
+        "audio_processing.py": "474ab08522c40a0f347b46b853bc9676037554e9108a0022c2cbc17bb22031f2",
+        "worker.py": "e65e48bd7353f0d5f449c99e6e12a28777c4f27158f58a04b280e8d09b45b759",
+        "worker_protocol.py": "06f5996a21a3ea98d0117a4785c1fe26ddc3221eb185104a484577aa73efb672"
+      },
+      "cpu_receipts": [
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\face-cpu-final-003\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-cpu-final-003\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\seal-cpu-final-003\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-cpu-final-003\\receipt.json"
+      ],
+      "gpu_receipts": [
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-4hours-continuous-003\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-gpu-final-003\\receipt.json"
+      ],
+      "current_service_gpu_receipts": [
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-final-004\\receipt.json",
+        "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-gpu-final-004\\receipt.json"
+      ]
+    },
+    "four_hours_engineering": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-four-hours-comparison-003.json",
+      "passed": true,
+      "continuous_duration_ms": 14400000,
+      "segments": 1200,
+      "total_chunks": 48,
+      "continuous_seconds": 229.234,
+      "resumed_seconds": 127.359,
+      "interrupted_after_chunks": 2,
+      "resumed_reused_chunks": 2,
+      "resumed_fresh_chunks": 46,
+      "decode_reused": true,
+      "reused_checkpoint_sha_ids_text_times_unchanged": true,
+      "independent_inference_text_and_speakers_identical": true,
+      "independent_inference_max_time_delta_ms": 61,
+      "engineering_timing_tolerance_ms": 250,
+      "verification_note": "Initial exact independent inference ID/time assertion rejected GPU estimate jitter; completed checkpoints are now strictly checked against original commit SHA/IDs/text/times. No production result or old evidence was changed.",
+      "no_missing_or_duplicate_minute_occurrences": true,
+      "continuous_peak_device_mib": 3194.0,
+      "continuous_rtf": 0.01591902777777778,
+      "continuous_peak_working_set_bytes": 4419719168,
+      "scope": "Four-hour engineering stress: repeated public 13-second utterance once/minute plus silence; not natural speech accuracy/throughput or independent site qualification"
+    },
+    "metrics": {
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-engineering-metrics-003.json",
+      "cancel_commit_to_cleanup_receipt_wall_seconds": 0.52
+    },
+    "native_failure_recovery": {
+      "status": "retained_failure_and_successful_checkpoint_recovery",
+      "failure": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-4hours-continuous-002\\receipt.json",
+      "audit": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-native-crash-audit.json",
+      "recovery": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-4hours-native-crash-resumed-003\\receipt.json",
+      "reused_chunks": 32,
+      "fresh_chunks": 16,
+      "root_cause_confirmed": false,
+      "note": "Removed default periodic stack dumping; final new continuous and independent cancel/resume succeeded. This does not prove the native crash root cause."
+    },
+    "long_format_receipts": [
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-1hour-mp3-003\\receipt.json",
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-15min-m4a-003\\receipt.json"
+    ],
+    "cross_chunk_alignment": {
+      "status": "passed_engineering",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-seam-final-comparison.json",
+      "maximum_estimated_time_delta_ms": 400,
+      "boundary_review_events_retained": true
+    },
+    "test_environment": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\test-environment.json",
+    "completion_progress_fix": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-completion-progress.xml",
+      "detail": "Read worker performance.total_chunks; retain completed_chunks/total_chunks at 48 after success"
+    },
+    "sealed_launcher": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\sealed-launcher-002.json"
+    },
+    "full_http_long_audio": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\http-long-audio-003\\report.json"
+    },
+    "actual_application_restart": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\http-audio-restart-001\\report.json",
+      "checks": {
+        "real_launcher_process_tree_terminated": true,
+        "stale_lease_preserved": true,
+        "dead_owner_and_children_verified": true,
+        "new_application_automatic_reclaim": true,
+        "explicit_api_retry": true,
+        "completed_checkpoints_sha_rows_times_preserved": true,
+        "final_progress_48_of_48": true,
+        "final_1200_unique_sentences": true,
+        "remaining_chunks_fresh_cuda": true,
+        "subsequent_short_fresh_cuda_succeeded": true,
+        "earlier_workflow_preserved": true
+      },
+      "phases": {
+        "first_start_seconds": 12.141,
+        "actual_process_tree_termination_seconds": 0.016,
+        "reopen_and_automatic_lease_recovery_seconds": 25.563,
+        "retry_to_complete_seconds": 135.61
+      },
+      "server_cleanup_confirmed": true,
+      "gpu_cleanup_confirmed": true,
+      "scope": "Real launcher process-tree termination and automatic stale-lease recovery, explicit same-job retry; same machine engineering only"
+    },
+    "archive_workflow": {
+      "size_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-size-002.json",
+      "create_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json",
+      "verification_report": null,
+      "restoration_report": null,
+      "full_physical_extraction_capacity_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-full-extraction-capacity-002.json",
+      "created_and_verified": false,
+      "same_machine_only": true,
+      "measured_capacity": {
+        "format": "clear-exact-zip-size-v1",
+        "passed": true,
+        "status": "size_measured",
+        "candidate": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-candidate-001",
+        "inventory_sha256": "e84beff860169a729b9bb99ba2458daa3f65fad068c84098ffc610ee71f350e9",
+        "input_files": 128104,
+        "uncompressed_bytes": 39736245861,
+        "zip_bytes": 27852913643,
+        "zip_sha256": "302542e4703390009426afa5578457533db299b55a0122e10f21a03234710646",
+        "size_is_exact": true,
+        "sizing_large_files_written": false,
+        "free_bytes_at_measurement": 23397957632,
+        "required_create_bytes": 28389784555,
+        "fits_create_now": false,
+        "reuse_restore_link_min_bytes": 1048576,
+        "reuse_restore_physical_bytes": 3014054188,
+        "required_create_and_reuse_restore_bytes": 31403838743,
+        "fits_create_and_reuse_restore_now": false,
+        "margin_bytes": 536870912,
+        "scope": "Exact streamed level-9 deflate size and SHA256; no ZIP was written",
+        "seconds": 3388.734
+      },
+      "capacity_blocker": {
+        "format": "clear-archive-operation-failure-v1",
+        "passed": false,
+        "status": "blocked",
+        "mode": "create",
+        "candidate": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-candidate-001",
+        "output": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-Windows-offline.zip",
+        "error": "F: cannot hold the exact ZIP plus 512 MiB reserve; no archive created",
+        "details": {
+          "required_bytes": 28389784555,
+          "available_bytes": 23286657024,
+          "missing_bytes": 5103127531
+        },
+        "seconds": 55.437,
+        "preservation": "No old files deleted; a task-created partial ZIP/restore may remain for inspection"
+      },
+      "full_physical_extraction_capacity": {
+        "format": "clear-full-physical-extraction-capacity-v1",
+        "status": "capacity_blocked_no_archive",
+        "passed": false,
+        "capacity_calculation_completed": true,
+        "recorded_at": "2026-10-14T16:12:16.313339+08:00",
+        "candidate": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-candidate-001",
+        "candidate_inventory_sha256": "e84beff860169a729b9bb99ba2458daa3f65fad068c84098ffc610ee71f350e9",
+        "evidence_bindings": {
+          "candidate-final-seal-005.json": {
+            "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\candidate-final-seal-005.json",
+            "sha256": "23dddba13bc63fddbbd8e8b92644df49b90b78a79b0bc81b5597f37ca8b5fd21",
+            "bytes": 4890
+          },
+          "archive-size-002.json": {
+            "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-size-002.json",
+            "sha256": "2ef9d9f0dcf8a92845b6590c96e2dd4c0df49b2e90db88bb676a85e874403cee",
+            "bytes": 54306558
+          },
+          "archive-create-002.json": {
+            "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json",
+            "sha256": "b3040e351b6987f8f7fbb28f62288a6c911b66d777b2473b34ad61c5044fdbf9",
+            "bytes": 652
+          }
+        },
+        "physical_zip_exists": false,
+        "physical_zip_path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-Windows-offline.zip",
+        "archive_member_verification_performed": false,
+        "zip_extraction_performed": false,
+        "measured_zip_bytes": 27852913643,
+        "measured_zip_identity": {
+          "sha256": "302542e4703390009426afa5578457533db299b55a0122e10f21a03234710646",
+          "kind": "predicted_stream_identity_from_exact_size_measurement",
+          "physical_zip_written": false
+        },
+        "uncompressed_candidate_bytes": 39736245861,
+        "reserve_bytes": 536870912,
+        "full_physical_expansion_without_zip_required_bytes": 40273116773,
+        "full_physical_expansion_without_zip_scope": "Theoretical disk capacity for a full independently copied expansion plus reserve if no physical ZIP is present. No expansion was executed.",
+        "physical_zip_plus_reserve_required_bytes": 28389784555,
+        "physical_zip_plus_full_expansion_plus_reserve_required_bytes": 68126030416,
+        "capacity_snapshots": [
+          {
+            "phase": "after_size_receipt_before_original_same_machine_mirror",
+            "source": "Root read-only F: capacity observation supplied to archive worker",
+            "available_bytes": 23343656960,
+            "zip_plus_reserve_missing_bytes": 5046127595,
+            "full_expansion_without_zip_missing_bytes": 16929459813
+          },
+          {
+            "phase": "create002_preflight_during_same_machine_mirror",
+            "source": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json",
+            "available_bytes": 23286657024,
+            "zip_plus_reserve_missing_bytes": 5103127531,
+            "full_expansion_without_zip_missing_bytes": 16986459749
+          },
+          {
+            "phase": "same_machine_mirror_resume_in_progress_not_complete",
+            "recorded_at": "2026-10-14T16:12:16.313339+08:00",
+            "source": "shutil.disk_usage(F:\\)",
+            "available_bytes": 22292611072,
+            "zip_plus_reserve_missing_bytes": 6097173483,
+            "full_expansion_without_zip_missing_bytes": 17980505701,
+            "full_expansion_without_zip_fits": false
+          }
+        ],
+        "same_machine_mirror_scope": "Separate candidate content-reuse mirror, initially interrupted then resumed by another worker; no successful completion is claimed in this receipt. It is not ZIP extraction or independent-site qualification.",
+        "capacity_interpretation": "The measured ZIP byte count is constant. Changes in available F: space reflect separate mirror/report activity and do not indicate ZIP size growth.",
+        "pending": "A separate preserved capacity receipt will record successful mirror completion and any following CPU workflow capacity snapshot.",
+        "preservation": "No existing files deleted or overwritten; no candidate/current changes; no physical ZIP, verification, or extraction executed by this operation."
+      },
+      "final_capacity_snapshot_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-capacity-after-mirror-002.json",
+      "final_capacity_snapshot": {
+        "format": "clear-archive-capacity-after-mirror-v1",
+        "status": "capacity_blocked_no_archive",
+        "passed": false,
+        "capacity_calculation_completed": true,
+        "recorded_at_utc": "2026-10-14T08:30:08.610033+00:00",
+        "candidate": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-candidate-001",
+        "candidate_inventory_sha256": "e84beff860169a729b9bb99ba2458daa3f65fad068c84098ffc610ee71f350e9",
+        "seal_proof": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\candidate-final-seal-005.json",
+          "identity": {
+            "bytes": 4890,
+            "sha256": "23dddba13bc63fddbbd8e8b92644df49b90b78a79b0bc81b5597f37ca8b5fd21"
+          },
+          "candidate_identity": {
+            "bytes": 374359,
+            "sha256": "724f1dcdd7a3d5837940dfddd4076999deedfe12c384a88d33e3ad20d0ddb186"
+          },
+          "package_manifest_identity": {
+            "bytes": 28112643,
+            "sha256": "10f826cdb6bdb632a8065b87dea7259b55c447d474efb6c1918a945c1f7d6d2e"
+          }
+        },
+        "exact_size_full_hash_proof": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-size-002.json",
+          "identity": {
+            "bytes": 54306558,
+            "sha256": "2ef9d9f0dcf8a92845b6590c96e2dd4c0df49b2e90db88bb676a85e874403cee"
+          },
+          "inventory_sha256": "e84beff860169a729b9bb99ba2458daa3f65fad068c84098ffc610ee71f350e9",
+          "all_streamed_file_stats_match_before_and_after": true
+        },
+        "mirror_receipt": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-mirror-002.json",
+          "bytes": 3976,
+          "sha256": "2b116fd3febdccc70e4c6b4e9def3acf2d06a2ec072de578bf438a888b8606dd"
+        },
+        "workflow_receipt": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-workflow-001\\report.json",
+          "bytes": 59299,
+          "sha256": "f7990025a351c3d0e82d3f7554e489588c00257252180820e632a553ad5edc32"
+        },
+        "previous_capacity_receipt": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-full-extraction-capacity-002.json",
+          "bytes": 3943,
+          "sha256": "56687bb49a035a13f3b8b272fc07a4c1ecd3910cb9928f81457edcac211b0c0c"
+        },
+        "blocked_create_receipt": {
+          "path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json",
+          "bytes": 652,
+          "sha256": "b3040e351b6987f8f7fbb28f62288a6c911b66d777b2473b34ad61c5044fdbf9"
+        },
+        "physical_zip_path": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\delivery\\Clear-0.11.0-Windows-offline.zip",
+        "physical_zip_exists": false,
+        "physical_zip_created": false,
+        "archive_member_verification_performed": false,
+        "zip_extraction_performed": false,
+        "full_physical_zip_extraction_performed": false,
+        "same_machine_mirror_passed": true,
+        "same_machine_cpu_workflow_passed": true,
+        "independent_device_qualification": false,
+        "server_cleanup_confirmed": true,
+        "gpu_cleanup_confirmed": true,
+        "measured_zip_bytes": 27852913643,
+        "uncompressed_candidate_bytes": 39736245861,
+        "reserve_bytes": 536870912,
+        "final_available_bytes": 19913744384,
+        "final_available_origin": "Live shutil.disk_usage(F:\\) after mirror002 and workflow001 passed and cleanup confirmed, immediately before this receipt was written",
+        "capacity_options": {
+          "zip_plus_reserve": {
+            "required_bytes": 28389784555,
+            "available_bytes": 19913744384,
+            "missing_bytes": 8476040171,
+            "fits": false
+          },
+          "full_physical_expansion_without_zip_plus_reserve": {
+            "required_bytes": 40273116773,
+            "available_bytes": 19913744384,
+            "missing_bytes": 20359372389,
+            "fits": false
+          },
+          "zip_and_full_physical_expansion_plus_reserve": {
+            "required_bytes": 68126030416,
+            "available_bytes": 19913744384,
+            "missing_bytes": 48212286032,
+            "fits": false
+          }
+        },
+        "capacity_snapshots": [
+          {
+            "phase": "before_original_same_machine_mirror",
+            "available_bytes": 23343656960,
+            "origin": "Root provided measurement immediately before original mirror"
+          },
+          {
+            "phase": "before_resumed_same_machine_mirror",
+            "available_bytes": 22454534144,
+            "origin": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-mirror-002.json"
+          },
+          {
+            "phase": "after_same_machine_mirror_passed",
+            "available_bytes": 19919368192,
+            "origin": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-mirror-002.json"
+          },
+          {
+            "phase": "after_same_machine_cpu_workflow_and_cleanup",
+            "available_bytes": 19913744384,
+            "recorded_at_utc": "2026-10-14T08:28:41.999588+00:00",
+            "origin": "GPU worker final read-only shutil.disk_usage observation"
+          },
+          {
+            "phase": "final_capacity_receipt_snapshot",
+            "available_bytes": 19913744384,
+            "recorded_at_utc": "2026-10-14T08:30:08.610033+00:00",
+            "origin": "Archive worker live shutil.disk_usage observation"
+          }
+        ],
+        "scope": "Same-machine verified-candidate content reuse and CPU workflow have passed. No physical ZIP, ZIP member verification, full physical ZIP extraction, or independent-site qualification has occurred.",
+        "capacity_interpretation": "The exact ZIP size remains 27,852,913,643 bytes. Later reductions in F: free space reflect preserved same-machine mirror and workflow artifacts, not ZIP size growth.",
+        "preservation": "No deletion or overwrite of existing evidence/candidate/current; no candidate hashes/counts/preflight scans rerun; only existing receipts were read and F: capacity sampled."
+      }
+    },
+    "historical_short_gpu_receipts": [
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-gpu-timestamps-001\\receipt.json",
+      "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\catnet-gpu-final-001\\receipt.json"
+    ],
+    "fault_injection_scope": {
+      "paths": [
+        "one_OOM_reduction_then_failure",
+        "explicit_CPU_retry",
+        "corrupt_checkpoint_quarantine_and_selective_recompute",
+        "disk_preflight_rejection"
+      ],
+      "scope": "Implemented and tested with fault injection; not evidence of real whole-device VRAM exhaustion or natural disk corruption"
+    },
+    "unicode_program_path": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-workflow-001\\report.json",
+      "origin": "same_machine_mirror",
+      "program_root": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\中文程序路径验证 空格\\Clear 0.11.0",
+      "phases": {
+        "server_start_seconds": 28.859,
+        "short_cpu_job_seconds": 98.969,
+        "reviewed_export_seconds": 0.156
+      },
+      "checks": {
+        "real_unicode_space_program_launched": true,
+        "unicode_space_data_and_empty_cache": true,
+        "four_cpu_ready": true,
+        "new_data_gpu_disabled": true,
+        "short_audio_fresh_cpu_succeeded": true,
+        "three_row_review": true,
+        "zip_csv_srt_and_member_hashes_verified": true,
+        "no_gpu_requests": true
+      },
+      "server_cleanup_confirmed": true,
+      "gpu_cleanup_confirmed": true,
+      "independent_site": false
+    },
+    "unicode_program_mirror": {
+      "status": "passed",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-mirror-002.json",
+      "scope": "Same-machine source-bound hardlink/copy mirror, not ZIP extraction or independent device qualification"
+    }
+  },
+  "finalization_pending": {
+    "new_four_hours_after_timestamp_fix": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\audio-four-hours-comparison-003.json"
+    },
+    "long_audio_formats_and_channels": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-model-verification-003.json"
+    },
+    "final_cpu_gpu_fingerprint": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-model-verification-003.json"
+    },
+    "final_incremental_tests": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\final-incremental.xml"
+    },
+    "candidate_seal": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\candidate-final-seal-005.json"
+    },
+    "archive_create_and_members": {
+      "status": "blocked_storage",
+      "size_report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-size-002.json",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\archive-create-002.json"
+    },
+    "new_chinese_space_path_restore": {
+      "status": "blocked_by_archive_storage",
+      "report": null,
+      "independent_device_qualification": false
+    },
+    "formal_switch": {
+      "status": "not_executed",
+      "formal_version": "0.10.0"
+    },
+    "full_http_long_audio": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\http-long-audio-003\\report.json"
+    },
+    "actual_application_restart": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\http-audio-restart-001\\report.json"
+    },
+    "unicode_program_empty_cache_workflow": {
+      "status": "complete",
+      "report": "F:\\OCR\\output\\gpu-long-audio-20261014-001\\evidence\\unicode-program-workflow-001\\report.json",
+      "independent_device_qualification": false
+    }
   }
 }

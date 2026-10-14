@@ -18,6 +18,7 @@ class ManualOptions(Payload):
     top_k: int = Field(default=5, ge=1, le=20)
     threshold: float = Field(default=.363, ge=-1, le=1, allow_inf_nan=False)
     expected_subject: str = Field(default='', max_length=256)
+    channel: int | None = Field(default=None, ge=0, le=63)
 
 class ManualAnalysisCreate(Payload):
     request_id: Id
@@ -37,7 +38,7 @@ class ManualReview(Payload):
     note: str = Field(min_length=1, max_length=10000)
     assessment: Literal['confirmed', 'needs_investigation', 'inconclusive']
     # Edits are versioned separately from the immutable model result.
-    edits: list[dict] = Field(default_factory=list, max_length=10000)
+    edits: list[dict] = Field(default_factory=list, max_length=50000)
     regions: list[ManualRegion] = Field(default_factory=list, max_length=200)
 
 class ManualFaceReferenceCreate(Payload):
@@ -48,6 +49,7 @@ class ManualFaceReferenceCreate(Payload):
     label: str = Field(min_length=1, max_length=128)
 
 class ManualSegment(Payload):
+    row_id: Id | None = None
     text: str
     speaker: str | None = None
     source: SourceLocator
@@ -70,6 +72,8 @@ class ManualAnalysis(Payload):
     result_hash: Hash | None = None
     review: dict | None
     error: str | None
+    progress: dict = Field(default_factory=dict)
+    actual_device: str | None = None
 
 class ManualAnalysisPage(Payload):
     items: list[ManualAnalysis]

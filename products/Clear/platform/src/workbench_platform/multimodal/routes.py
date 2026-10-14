@@ -45,7 +45,7 @@ def detail(workspace_id:str,job_id:str,request:Request):return service(request,w
 
 @router.post(BASE+'/jobs/{job_id}/review')
 async def review(workspace_id:str,job_id:str,request:Request):
-    value=service(request,workspace_id,True);payload=await json_body(request,1048576)
+    value=service(request,workspace_id,True);payload=await json_body(request,16*1024*1024)
     return await run_in_threadpool(value.review,workspace_id,job_id,payload)
 
 @router.post(BASE+'/jobs/{job_id}/control/{action}')
@@ -58,8 +58,8 @@ def file(workspace_id:str,job_id:str,name:str,request:Request):
 
 @router.get(BASE+'/jobs/{job_id}/download')
 def download(workspace_id:str,job_id:str,request:Request):
-    content,_=service(request,workspace_id).export(workspace_id,job_id)
-    return Response(content,media_type='application/zip',headers={'Content-Disposition':f'attachment; filename="{job_id}.zip"','Cache-Control':'no-store'})
+    path,_=service(request,workspace_id).export(workspace_id,job_id)
+    return FileResponse(path,media_type='application/zip',filename=f'{job_id}.zip',headers={'Cache-Control':'no-store'})
 
 @router.post(BASE+'/jobs/{job_id}/collect')
 async def collect(workspace_id:str,job_id:str,request:Request):

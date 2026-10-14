@@ -4,11 +4,11 @@
 
 | 本仓目录 | 原开发目录 | 本轮文件数 | 作用 |
 |---|---|---:|---|
-| [platform](platform/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\platform` | 558 | 门户、统一契约、Data、取证、多模态、审计与 Agent |
+| [platform](platform/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\platform` | 583 | 门户、统一契约、Data、取证、多模态、审计与 Agent |
 | [classification](classification/) | 同根 `classification` | 190 | 图像标注、训练、模型、推理与人工复核 |
 | [ocr](ocr/) | 同根 `ocr` | 926 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可 |
 
-每仓原 HEAD、分支、未提交状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照包含当时未提交的 UI、多模态和兼容性修改；不只截取 HEAD。来源仓库的 origin 是 F 盘本地开发仓库，本次不修改其远端，也不向它们执行提交或推送。
+每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。平台的通用 GPU、长录音及多模态改动已提交到原开发仓，提交号为 `eeea058fe4ac01716a89c0617e0815141888f426`，本目录按该提交后的状态刷新；来源仓库远端保持原配置。
 
 ## 与根仓和发行版本的区别
 

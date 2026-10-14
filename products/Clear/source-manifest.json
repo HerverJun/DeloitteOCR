@@ -68,71 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git",
-      "head": "8318e181376fb0f7a6e98c9274baac09fc2cd9c8",
+      "head": "eeea058fe4ac01716a89c0617e0815141888f426",
       "branch": "codex/clear-automation-platform-20261002",
-      "working_tree_status": [
-        " M apps/portal/src/App.tsx",
-        " M apps/portal/src/clear-ui/theme.ts",
-        " M apps/portal/src/clear-ui/tokens.css",
-        " M apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-        " M apps/portal/src/features/audit/AuditWorkbench.tsx",
-        " M apps/portal/src/features/catalog/ApplicationCards.tsx",
-        " M apps/portal/src/features/catalog/ToolIdentity.tsx",
-        " M apps/portal/src/features/data/DataWorkbench.tsx",
-        " M apps/portal/src/features/data/data.css",
-        " M apps/portal/src/features/forensics/ForensicWorkbench.tsx",
-        " M apps/portal/src/features/forensics/forensics.css",
-        " M apps/portal/src/features/start/QuickNativeWorkbench.tsx",
-        " M apps/portal/src/main.tsx",
-        " M apps/portal/src/router.tsx",
-        " M apps/portal/src/style.css",
-        " M packages/contracts/adapter.openapi.json",
-        " M packages/contracts/artifact.schema.json",
-        " M packages/contracts/asset-set.schema.json",
-        " M packages/contracts/audit-auditdirectevidenceref.schema.json",
-        " M packages/contracts/audit-auditevidenceref.schema.json",
-        " M packages/contracts/audit-auditevidencesnapshot.schema.json",
-        " M packages/contracts/audit-auditfinding.schema.json",
-        " M packages/contracts/audit-auditfindingcreate.schema.json",
-        " M packages/contracts/audit-auditfindingpage.schema.json",
-        " M packages/contracts/audit-auditfindingwrite.schema.json",
-        " M packages/contracts/audit-auditrequeststatus.schema.json",
-        " M packages/contracts/audit-directevidencesnapshot.schema.json",
-        " M packages/contracts/audit-itemevidence.schema.json",
-        " M packages/contracts/audit-workpaperbundle.schema.json",
-        " M packages/contracts/audit.py",
-        " M packages/contracts/forensics-forensicevidenceref.schema.json",
-        " M packages/contracts/forensics-forensicevidencesnapshot.schema.json",
-        " M packages/contracts/generate.py",
-        " M packages/contracts/models.py",
-        " M packages/contracts/source-locator.schema.json",
-        " M packages/contracts/types.generated.ts",
-        " M scripts/agent_native_preview.py",
-        " M scripts/backup_workspace.py",
-        " M scripts/product_compatibility.py",
-        " M src/workbench_platform/app.py",
-        " M src/workbench_platform/artifacts/center.py",
-        " M src/workbench_platform/audit/direct.py",
-        " M src/workbench_platform/audit/service.py",
-        " M src/workbench_platform/jobs/routes.py",
-        " M src/workbench_platform/supervisor/processes.py",
-        " M tests/agent/test_product_entry.py",
-        " M tests/integration/test_platform_backup.py",
-        "?? apps/portal/src/features/multimodal/",
-        "?? config/multimodal.json",
-        "?? modules/manual_multimodal/",
-        "?? packages/contracts/manual-manualanalysis.schema.json",
-        "?? packages/contracts/manual-manualanalysiscreate.schema.json",
-        "?? packages/contracts/manual-manualanalysispage.schema.json",
-        "?? packages/contracts/manual-manualfacereferencecreate.schema.json",
-        "?? packages/contracts/manual-manualreview.schema.json",
-        "?? packages/contracts/manual-manualsegment.schema.json",
-        "?? packages/contracts/multimodal.py",
-        "?? src/workbench_platform/multimodal/",
-        "?? tests/integration/test_manual_multimodal.py"
-      ],
+      "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 558,
+      "file_count": 583,
       "files": [
         {
           "path": "platform/.gitignore",
@@ -437,8 +377,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/UploadQueue.tsx",
           "source_path": "apps/portal/src/features/batches/UploadQueue.tsx",
-          "bytes": 10136,
-          "sha256": "cafd0ec719f1b005a10b97a59ea86a0e75a8e6cca4a0cae1a9c423ebfa7aba62"
+          "bytes": 16893,
+          "sha256": "6c193a29d07154e064424fe9369faf399b28df0121f0409fec27b1599f56d884"
         },
         {
           "path": "platform/apps/portal/src/features/batches/api.ts",
@@ -451,6 +391,30 @@
           "source_path": "apps/portal/src/features/batches/batches.css",
           "bytes": 4858,
           "sha256": "a9382508811086d025688aed1ea14ae01bee919e2f13f63894465163085bd26c"
+        },
+        {
+          "path": "platform/apps/portal/src/features/batches/fileHash.ts",
+          "source_path": "apps/portal/src/features/batches/fileHash.ts",
+          "bytes": 1703,
+          "sha256": "80c235bd99eee2fe86e3819a61ed99044f76a0b6703afd6f2807de45fe02c2d7"
+        },
+        {
+          "path": "platform/apps/portal/src/features/batches/fileHash.worker.ts",
+          "source_path": "apps/portal/src/features/batches/fileHash.worker.ts",
+          "bytes": 367,
+          "sha256": "e66e2587b86d67f02d7545cf1bc84f3e92126cefe93df29dd3d62f94249691be"
+        },
+        {
+          "path": "platform/apps/portal/src/features/batches/fileHashSlices.ts",
+          "source_path": "apps/portal/src/features/batches/fileHashSlices.ts",
+          "bytes": 951,
+          "sha256": "b503846874ac6f4903687dab3eade114959b10d565b3aa8ba21bd7b2d6142d4b"
+        },
+        {
+          "path": "platform/apps/portal/src/features/batches/sha256.ts",
+          "source_path": "apps/portal/src/features/batches/sha256.ts",
+          "bytes": 3811,
+          "sha256": "a347a61d4e015d5fa8fbdba8c9c0c9ff9bf1a76b0af8380d88a19f8354904f08"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ApplicationCards.tsx",
@@ -533,8 +497,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 29361,
-          "sha256": "7c8ba4fd29eb9e73c6ec8c1f08b04b66b4253a274b0fe8a21a91469bca7e9034"
+          "bytes": 31892,
+          "sha256": "7af6869aad433be48f808de4956262dfeb8d1b7b8ec00c216a16f10683379636"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
@@ -639,6 +603,12 @@
           "sha256": "50eae111a12b7730d3f0190f0911cad85049cc5a38a022189b5bc74c3a49e168"
         },
         {
+          "path": "platform/apps/portal/tests/audio-upload.test.tsx",
+          "source_path": "apps/portal/tests/audio-upload.test.tsx",
+          "bytes": 6865,
+          "sha256": "a82f849779fe7a12319b6910f2fba5a7f0744a94ba3adb9e103115c5b58d0b96"
+        },
+        {
           "path": "platform/apps/portal/tests/audit-workflow.test.tsx",
           "source_path": "apps/portal/tests/audit-workflow.test.tsx",
           "bytes": 19818,
@@ -655,6 +625,12 @@
           "source_path": "apps/portal/tests/catalog.test.tsx",
           "bytes": 24704,
           "sha256": "814f606285254a7fa94abf5aaad74ffbb8148b2a21ea8d96e12a1aa677f1f4d9"
+        },
+        {
+          "path": "platform/apps/portal/tests/file-hash.test.ts",
+          "source_path": "apps/portal/tests/file-hash.test.ts",
+          "bytes": 2790,
+          "sha256": "b035f475a06717c5b2f3294c72327060bc8dd228741abd6064f8bd09847dd3a9"
         },
         {
           "path": "platform/apps/portal/tests/finding-transfer.test.tsx",
@@ -681,6 +657,12 @@
           "sha256": "115327ca2fc07f61b5c6d395d26a0ae52840064056084b91cd88235ba3e99404"
         },
         {
+          "path": "platform/apps/portal/tests/multimodal-review.test.tsx",
+          "source_path": "apps/portal/tests/multimodal-review.test.tsx",
+          "bytes": 4159,
+          "sha256": "8de65daea06a52791b01097bdd01d29ee2cfc4789c49c78222e41f94e79f02bd"
+        },
+        {
           "path": "platform/apps/portal/tests/native-review-return.test.ts",
           "source_path": "apps/portal/tests/native-review-return.test.ts",
           "bytes": 705,
@@ -695,8 +677,8 @@
         {
           "path": "platform/apps/portal/tests/navigation.test.tsx",
           "source_path": "apps/portal/tests/navigation.test.tsx",
-          "bytes": 15685,
-          "sha256": "e0ff3e67c6638f8504182b015e4294354e5804246f1e9ed40715984e11935046"
+          "bytes": 15887,
+          "sha256": "d0e8d568de1a76ab3886ef00485dd862d68d10c5f8edd6bd763e66aef091b4c8"
         },
         {
           "path": "platform/apps/portal/tests/quick-start.test.tsx",
@@ -719,8 +701,8 @@
         {
           "path": "platform/apps/portal/tests/tool-project-entry.test.tsx",
           "source_path": "apps/portal/tests/tool-project-entry.test.tsx",
-          "bytes": 12415,
-          "sha256": "a3671fe9b4ce4c35fedf89ecf2b6ab184d4c0a615ca20014c6c207b1a536ca44"
+          "bytes": 12498,
+          "sha256": "8533ef5750d356ab300bdace6d47363b3a6001539e2652003edef63347f6122b"
         },
         {
           "path": "platform/apps/portal/tests/upload-recovery.test.tsx",
@@ -773,8 +755,8 @@
         {
           "path": "platform/config/multimodal.json",
           "source_path": "config/multimodal.json",
-          "bytes": 150,
-          "sha256": "d7094f16747fa29e2d86ff0e78d01cd6a5aae8434589df622bfd2d2b3d3e841b"
+          "bytes": 489,
+          "sha256": "98ded8cee8562ec10e3982efd16f13f4089cfca201a455c486512b6e615ee3b2"
         },
         {
           "path": "platform/config/runtime-locks/agent.json",
@@ -1125,10 +1107,22 @@
           "sha256": "9b6827d3b28127bcf2aa43b5a8e95f8b4a98be5ca3b6c1e6ba70136ccda25754"
         },
         {
+          "path": "platform/modules/manual_multimodal/audio_processing.py",
+          "source_path": "modules/manual_multimodal/audio_processing.py",
+          "bytes": 48961,
+          "sha256": "474ab08522c40a0f347b46b853bc9676037554e9108a0022c2cbc17bb22031f2"
+        },
+        {
           "path": "platform/modules/manual_multimodal/worker.py",
           "source_path": "modules/manual_multimodal/worker.py",
-          "bytes": 22634,
-          "sha256": "828c8087a9c8f3642ce428b3048944e2a534d43c9463dc07a5784d5e946f335c"
+          "bytes": 18342,
+          "sha256": "e65e48bd7353f0d5f449c99e6e12a28777c4f27158f58a04b280e8d09b45b759"
+        },
+        {
+          "path": "platform/modules/manual_multimodal/worker_protocol.py",
+          "source_path": "modules/manual_multimodal/worker_protocol.py",
+          "bytes": 6541,
+          "sha256": "06f5996a21a3ea98d0117a4785c1fe26ddc3221eb185104a484577aa73efb672"
         },
         {
           "path": "platform/packages/contracts/.gitignore",
@@ -1157,8 +1151,8 @@
         {
           "path": "platform/packages/contracts/adapter.openapi.json",
           "source_path": "packages/contracts/adapter.openapi.json",
-          "bytes": 446158,
-          "sha256": "cc7e982a81b0204f17772b6e58645db86d383c96923edbbf9d514ae067b437c2"
+          "bytes": 470893,
+          "sha256": "a9f6b0e1f5a6be9747a6bdc0bbfc7612f931f199775474a1f3b78ba350df31de"
         },
         {
           "path": "platform/packages/contracts/agent-agentcall.schema.json",
@@ -1775,20 +1769,20 @@
         {
           "path": "platform/packages/contracts/manual-manualanalysis.schema.json",
           "source_path": "packages/contracts/manual-manualanalysis.schema.json",
-          "bytes": 4282,
-          "sha256": "421cab9cff1213066779a20083d31e9e411a24b49dcf29825abc7a1c31e604b1"
+          "bytes": 4924,
+          "sha256": "634ea9f3a8038b10e3fbad2bd1a93d02c59e5a10322266a8d69f4a1a6b447cb9"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysiscreate.schema.json",
           "source_path": "packages/contracts/manual-manualanalysiscreate.schema.json",
-          "bytes": 2797,
-          "sha256": "55a0952722dea255692660d8c8cf3ac74d52d501c4d6656224bb7c839b25021c"
+          "bytes": 3108,
+          "sha256": "4405a768e8d3f0d66395b9d28fbc61fd8065d451ea36d668175157cda00ba6a6"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysispage.schema.json",
           "source_path": "packages/contracts/manual-manualanalysispage.schema.json",
-          "bytes": 5314,
-          "sha256": "cf2a8710781beae4f0914ee1bcb85b3cc8ce49a82673ce6033c525c104f9110e"
+          "bytes": 6024,
+          "sha256": "3eab117e73fbb2f8857a759eeb33c0fb6d29a659490913c7d14e28eca261dd5e"
         },
         {
           "path": "platform/packages/contracts/manual-manualfacereferencecreate.schema.json",
@@ -1800,13 +1794,13 @@
           "path": "platform/packages/contracts/manual-manualreview.schema.json",
           "source_path": "packages/contracts/manual-manualreview.schema.json",
           "bytes": 7767,
-          "sha256": "7388394116b5596da7eb85149b18f331badc4d1cae0889bc2799a70fd56a212e"
+          "sha256": "78cd974e69648ad58580af1087ee6805e66ffa6c2435c96f436ab93a599b3fef"
         },
         {
           "path": "platform/packages/contracts/manual-manualsegment.schema.json",
           "source_path": "packages/contracts/manual-manualsegment.schema.json",
-          "bytes": 5950,
-          "sha256": "35ea29db75a15967df0ee24e8a8fc4806b082bc64082804a4e538c7520ee0af5"
+          "bytes": 6234,
+          "sha256": "c50acdae57ff50c17774cebc9613892b5cedc5cc2abe7b3033b4388c292a6937"
         },
         {
           "path": "platform/packages/contracts/models.py",
@@ -1817,8 +1811,8 @@
         {
           "path": "platform/packages/contracts/multimodal.py",
           "source_path": "packages/contracts/multimodal.py",
-          "bytes": 4143,
-          "sha256": "ed281acdd47a0f4ccbd64b2ef729f83cedb2a6d742ba0daff58255592d51cafa"
+          "bytes": 4317,
+          "sha256": "8507bd08c6e821386b0e3aa728a020153907471b63afdcb2d10243f384d8d1ca"
         },
         {
           "path": "platform/packages/contracts/pyproject.toml",
@@ -1859,8 +1853,26 @@
         {
           "path": "platform/packages/contracts/types.generated.ts",
           "source_path": "packages/contracts/types.generated.ts",
-          "bytes": 37977,
-          "sha256": "d8b3082f617d4edc34c285c1baabc1aae007dc72fba5c9a6ca0daa91e1457609"
+          "bytes": 38758,
+          "sha256": "bd10215d4ac670308d7c486e4e5a4b98a13503ab15f1b1b8b562b2aabae0be37"
+        },
+        {
+          "path": "platform/packages/contracts/upload-audiouploadbinding.schema.json",
+          "source_path": "packages/contracts/upload-audiouploadbinding.schema.json",
+          "bytes": 1143,
+          "sha256": "773c6c0db046bc8808a5ce5b0fdb6861f3830f172fbd12120920cea8ff2a17d0"
+        },
+        {
+          "path": "platform/packages/contracts/upload-audiouploadreceipt.schema.json",
+          "source_path": "packages/contracts/upload-audiouploadreceipt.schema.json",
+          "bytes": 4358,
+          "sha256": "b14a4584d836a970504902bd343fc9cbf2fa4bcae50ed0677d56f550ec8bc6ce"
+        },
+        {
+          "path": "platform/packages/contracts/upload-audiouploadstatus.schema.json",
+          "source_path": "packages/contracts/upload-audiouploadstatus.schema.json",
+          "bytes": 8209,
+          "sha256": "eef37e744184f245d8ed8e8e69cd7f351ac95b086c01dbccb05f27d7043c7c07"
         },
         {
           "path": "platform/packages/contracts/upload-uploadbinding.schema.json",
@@ -1883,14 +1895,14 @@
         {
           "path": "platform/packages/contracts/uploads.py",
           "source_path": "packages/contracts/uploads.py",
-          "bytes": 3826,
-          "sha256": "068833ee3d231059793773ec411c3d7e3fd4562126b4449fadd0d20f2fa1f41a"
+          "bytes": 6356,
+          "sha256": "faa79205fc961eb5066debfe42fa566d0446c1b1aed36702833be2c43b131ecc"
         },
         {
           "path": "platform/packages/contracts/uploads_openapi.py",
           "source_path": "packages/contracts/uploads_openapi.py",
-          "bytes": 2582,
-          "sha256": "c6f135e8c9e655dae10d253dd0a2088ba84799f1f2bb8b508b6e62b360f73f9f"
+          "bytes": 5754,
+          "sha256": "31f7cbc2c6ba46f5e1f0b547234d6cd87752440e49ae316be743246bc5628831"
         },
         {
           "path": "platform/packages/contracts/workspace-create.schema.json",
@@ -2099,8 +2111,14 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 12766,
-          "sha256": "55942398ff60d0b85300949b01decbf72e36151f19cfe9df7038cd3abb794948"
+          "bytes": 13769,
+          "sha256": "e71e22dc900820a622f6462f2e814841c2d3e4b62d97e8c603fcd451a8313fa0"
+        },
+        {
+          "path": "platform/scripts/qualify_multimodal.py",
+          "source_path": "scripts/qualify_multimodal.py",
+          "bytes": 9549,
+          "sha256": "42bab3414ae1d58645777c51552a5fd47f999127d9ceb39b9b9f820c72e770b5"
         },
         {
           "path": "platform/scripts/real_cli_smoke.py",
@@ -2499,6 +2517,12 @@
           "sha256": "6f22196ff655ccb15fc73c8a00b2881266ad451bba1301eb3fab704df5424eaf"
         },
         {
+          "path": "platform/src/workbench_platform/assets/audio_uploads.py",
+          "source_path": "src/workbench_platform/assets/audio_uploads.py",
+          "bytes": 23993,
+          "sha256": "952fe109b0308dff3a728b94e8ec71cbf28298da66ed276a8781ab0e6b50d045"
+        },
+        {
           "path": "platform/src/workbench_platform/assets/registry.py",
           "source_path": "src/workbench_platform/assets/registry.py",
           "bytes": 28152,
@@ -2507,8 +2531,8 @@
         {
           "path": "platform/src/workbench_platform/assets/routes.py",
           "source_path": "src/workbench_platform/assets/routes.py",
-          "bytes": 14906,
-          "sha256": "ff80b85e733474f0eb92fc30a69d4d26e6dc406e99121d5332a1d1743f9f4c55"
+          "bytes": 15031,
+          "sha256": "87873dc2520390bdbdc65be8fafe459c3d2038d02e9e25ec1e232c8e2ed46643"
         },
         {
           "path": "platform/src/workbench_platform/assets/sets.py",
@@ -2787,22 +2811,58 @@
           "sha256": "fc507a5e2e25130ec5849a31715b72ab6a9cb3aa3040906aa3987bf7bcd1e88d"
         },
         {
+          "path": "platform/src/workbench_platform/multimodal/exports.py",
+          "source_path": "src/workbench_platform/multimodal/exports.py",
+          "bytes": 3489,
+          "sha256": "44f05269eee21b2370c7e3558fc54418d145cdc2242cf7b41bcd4d8a11f4fefd"
+        },
+        {
+          "path": "platform/src/workbench_platform/multimodal/qualification.py",
+          "source_path": "src/workbench_platform/multimodal/qualification.py",
+          "bytes": 6434,
+          "sha256": "d5e87a4fe42b0ae009786a44677bcc40fad2317bf4e4d6c3ad30c9aa5859305c"
+        },
+        {
+          "path": "platform/src/workbench_platform/multimodal/revisions.py",
+          "source_path": "src/workbench_platform/multimodal/revisions.py",
+          "bytes": 2761,
+          "sha256": "1559c07e60cef835609be18c0688b5429742308f9cf2cec446425e92fc78d187"
+        },
+        {
           "path": "platform/src/workbench_platform/multimodal/routes.py",
           "source_path": "src/workbench_platform/multimodal/routes.py",
-          "bytes": 4423,
-          "sha256": "067c97df8b1010ac24620554fb83ade223b93fa6753bea5bcc365c4ec0fbed29"
+          "bytes": 4390,
+          "sha256": "cf10857c779281118a5d73f0c0b6a34ea0619d205c4d0013e547cd286678730c"
+        },
+        {
+          "path": "platform/src/workbench_platform/multimodal/runner.py",
+          "source_path": "src/workbench_platform/multimodal/runner.py",
+          "bytes": 12498,
+          "sha256": "782d16af3cb344b0eb6ded24f081d8db6870b1c544070def8d165361ca6a9996"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 36076,
-          "sha256": "c9bf9091e5db128af1154c7f64cd1b1ffc339e7222b6f13d15d67f980d9c63b6"
+          "bytes": 45752,
+          "sha256": "fc9c40dd2e38dae99fcac3c94c2afa85861656c3fd79bbb3a2d04298aa7e92e7"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
           "source_path": "src/workbench_platform/resources/gpu.py",
           "bytes": 12298,
           "sha256": "463d7b689d711c88088b4a23ba43a3a1e038fe1818f92565f75d0859596f7a37"
+        },
+        {
+          "path": "platform/src/workbench_platform/resources/reader_features.py",
+          "source_path": "src/workbench_platform/resources/reader_features.py",
+          "bytes": 1191,
+          "sha256": "1cc8a45abc1eb4c68851c0c93a8521536c7e46a17806a458004a32261115a136"
+        },
+        {
+          "path": "platform/src/workbench_platform/resources/recovery.py",
+          "source_path": "src/workbench_platform/resources/recovery.py",
+          "bytes": 9614,
+          "sha256": "dabb8207ac83985830acf82e292015e5edcf09ceeb7fff67cf8ed16d3455bd66"
         },
         {
           "path": "platform/src/workbench_platform/store/__init__.py",
@@ -2981,8 +3041,8 @@
         {
           "path": "platform/tests/agent/test_product_entry.py",
           "source_path": "tests/agent/test_product_entry.py",
-          "bytes": 12433,
-          "sha256": "adc35611fb481503e3895b3f63029306955ea3923fa8eb8a067fbb13ebacf1be"
+          "bytes": 14079,
+          "sha256": "72ded7d3a403d033cb3a6f4908387733389fbb149c126168ca2c0a6a4fc477c1"
         },
         {
           "path": "platform/tests/agent/test_prompt_skills.py",
@@ -3255,6 +3315,12 @@
           "sha256": "b82e0c208cc28e2b6baa0d959be474fa98037e8bbac57a3b562803d20e9e1d14"
         },
         {
+          "path": "platform/tests/integration/test_audio_uploads.py",
+          "source_path": "tests/integration/test_audio_uploads.py",
+          "bytes": 16044,
+          "sha256": "79a81aa158052ca13279e43f24c548da986d7cf608dcb73f6774a77d8b59d57e"
+        },
+        {
           "path": "platform/tests/integration/test_audit_workflow.py",
           "source_path": "tests/integration/test_audit_workflow.py",
           "bytes": 13537,
@@ -3323,8 +3389,8 @@
         {
           "path": "platform/tests/integration/test_classification_resource_hooks.py",
           "source_path": "tests/integration/test_classification_resource_hooks.py",
-          "bytes": 7028,
-          "sha256": "717b869776952073e2dcc7f8353fd10a1a8212d69e1931b6a16984eb78cdd0e5"
+          "bytes": 7244,
+          "sha256": "018900318cb3bc3d792dc448712873ed4d5d4bd96885058743b5591d38e486ca"
         },
         {
           "path": "platform/tests/integration/test_development_runtime_sources.py",
@@ -3355,6 +3421,18 @@
           "source_path": "tests/integration/test_manual_multimodal.py",
           "bytes": 16100,
           "sha256": "b9a8dc28401e6920db45a7bface012ee282d761918dd77bd7176cfa7a4104cc3"
+        },
+        {
+          "path": "platform/tests/integration/test_multimodal_dispatch.py",
+          "source_path": "tests/integration/test_multimodal_dispatch.py",
+          "bytes": 10634,
+          "sha256": "7dc63785e14fe654277134b3682e05d1d8cd781c3426c7a094c3099540d9e3c8"
+        },
+        {
+          "path": "platform/tests/integration/test_multimodal_revisions.py",
+          "source_path": "tests/integration/test_multimodal_revisions.py",
+          "bytes": 4425,
+          "sha256": "b3db1d616c237cfacab8091ef740c93ccee28d1a5eb5df66c1602a665c90916f"
         },
         {
           "path": "platform/tests/integration/test_native_batches.py",
@@ -3401,8 +3479,8 @@
         {
           "path": "platform/tests/integration/test_ocr_resource_hooks.py",
           "source_path": "tests/integration/test_ocr_resource_hooks.py",
-          "bytes": 13582,
-          "sha256": "6f108a7b4b5e3bf787ab181f0723328eb9edccd5ee2bf5f50044b79a0cf10be0"
+          "bytes": 13696,
+          "sha256": "9c93c011f77f5c30c326480c6d1390c35997f672d8c3b746afbe78d106ab5685"
         },
         {
           "path": "platform/tests/integration/test_physical_development.py",
@@ -3465,10 +3543,22 @@
           "sha256": "addd71f9f07a4f95c1ac9059d9cc0cf1890f9a8dc67d381ebefe2b6d6783d34a"
         },
         {
+          "path": "platform/tests/unit/test_audio_processing.py",
+          "source_path": "tests/unit/test_audio_processing.py",
+          "bytes": 23840,
+          "sha256": "e4bc8a293e8638fa1f4246ea37840ed896bae41002e27774bed1fd960221afcb"
+        },
+        {
           "path": "platform/tests/unit/test_health.py",
           "source_path": "tests/unit/test_health.py",
           "bytes": 610,
           "sha256": "bfa6a151a0a2ebb66ef10db4451b96cccb2db6d7b6b230cba9de8a8a69fe5c9f"
+        },
+        {
+          "path": "platform/tests/unit/test_multimodal_gpu.py",
+          "source_path": "tests/unit/test_multimodal_gpu.py",
+          "bytes": 12056,
+          "sha256": "21d32aa05f4f9a18dec089f3d5607c1ffd3c68fdabd10f8bed9ea8b855eaed36"
         },
         {
           "path": "platform/tests/unit/test_workspaces.py",

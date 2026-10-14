@@ -306,7 +306,7 @@
         "additionalProperties": true,
         "type": "object"
       },
-      "maxItems": 10000,
+      "maxItems": 50000,
       "title": "Edits",
       "type": "array"
     },

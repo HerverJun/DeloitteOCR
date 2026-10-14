@@ -1,5 +1,9 @@
 {
   "program_root": "../../program",
   "max_reference_faces": 1000,
-  "worker_timeouts": {"face": 600, "audio": 7200, "seal": 3600, "catnet": 1800}
+  "worker_timeouts": {"face": 600, "audio": 1800, "seal": 3600, "catnet": 1800},
+  "gpu": {"device_index": 0, "peak_target_mib": 12288, "enabled_kinds": ["audio", "catnet"], "qualification_file": "gpu-qualification.json"},
+  "audio": {"chunk_seconds": 300, "context_seconds": 2, "batch_size_s": 30, "reduced_batch_size_s": 15},
+  "catnet": {"tile_size": 1024, "reduced_tile_size": 512},
+  "dispatch_poll_seconds": 0.25
 }

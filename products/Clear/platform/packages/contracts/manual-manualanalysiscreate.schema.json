@@ -42,6 +42,20 @@
           "title": "Action",
           "type": "string"
         },
+        "channel": {
+          "anyOf": [
+            {
+              "maximum": 63,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
         "device": {
           "default": "cpu",
           "enum": [

@@ -10,7 +10,7 @@ import time
 
 import pytest
 
-OCR_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/ocr/src")
+OCR_SRC = Path(__file__).resolve().parents[3] / 'ocr' / 'src'
 sys.path.insert(0, str(OCR_SRC))
 
 from ocr_workbench import adapter, cli, multimodal_runtime, platform_resources  # noqa: E402
@@ -135,11 +135,13 @@ def test_native_health_and_submission_do_not_advertise_unconfigured_gpu(tmp_path
         "review=create_app(bundle,root/'review','t'*32,start_queue=False,review_only=True,agent_enabled=False);"
         "assert next(r.endpoint for r in review.routes if r.path=='/api/health')()['status']=='ready'\n"
     )
-    ocr_python = OCR_SRC.parents[1] / 'ocr-test-venv/Scripts/python.exe'
+    ocr_python = OCR_SRC.parents[2] / 'program/bundles/ocr/runtimes/control/python.exe'
     environment = os.environ.copy()
     environment['PYTHONPATH'] = str(OCR_SRC)
+    environment['PYTHONDONTWRITEBYTECODE']='1'
     result = subprocess.run([str(ocr_python), '-c', script, str(bundle), str(tmp_path)],
-                            capture_output=True, text=True, env=environment, timeout=30)
+                            capture_output=True, text=True, env=environment, cwd=OCR_SRC.parent,
+                            stdin=subprocess.DEVNULL,timeout=60)
     assert result.returncode == 0, result.stderr
 
 

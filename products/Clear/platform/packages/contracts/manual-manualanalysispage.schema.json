@@ -3,6 +3,18 @@
     "ManualAnalysis": {
       "additionalProperties": false,
       "properties": {
+        "actual_device": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Device"
+        },
         "created_at": {
           "title": "Created At",
           "type": "string"
@@ -49,6 +61,11 @@
         },
         "options": {
           "$ref": "#/$defs/ManualOptions"
+        },
+        "progress": {
+          "additionalProperties": true,
+          "title": "Progress",
+          "type": "object"
         },
         "request_id": {
           "maxLength": 64,
@@ -165,6 +182,20 @@
           ],
           "title": "Action",
           "type": "string"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "maximum": 63,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
         },
         "device": {
           "default": "cpu",

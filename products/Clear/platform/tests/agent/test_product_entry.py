@@ -102,6 +102,26 @@ class CompatibilityTests(unittest.TestCase):
             db.execute('UPDATE manual_analysis SET body=?',(json.dumps(item),))
         self.readonly_admission(self.root,reject=True)
 
+    def test_managed_audio_internal_state_and_large_upload_require_new_reader(self):
+        item={'schema_version':'1.0','job_id':'mManaged','workspace_id':'wtest','request_id':'rManaged',
+              'kind':'audio','inputs':[],'options':{'channel':None},'status':'needs_verification','stage':'restart',
+              'revision':1,'generation':1,'created_at':'2026-10-14T00:00:00Z','updated_at':'2026-10-14T00:00:00Z',
+              'result':None,'review':None,'error':None,'gpu_request_id':None,'worker_epoch':'epoch',
+              'oom_retries':0,'active_seconds':0}
+        path=self.root/'jobs.sqlite3'
+        with closing(sqlite3.connect(path)) as db,db:
+            db.execute('CREATE TABLE manual_analysis(job_id TEXT,workspace_id TEXT,request_id TEXT,payload_hash TEXT,body TEXT)')
+            db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',('mManaged','wtest','rManaged','a'*64,json.dumps(item)))
+        self.assertTrue(check(self.root,DATA_COMPATIBILITY)['compatible'])
+        old=deepcopy(DATA_COMPATIBILITY);old['reader_features'].remove('manual-long-audio-v1')
+        with self.assertRaisesRegex(ValueError,'长录音'):check(self.root,old)
+        with closing(sqlite3.connect(path)) as db,db:db.execute('DELETE FROM manual_analysis')
+        with closing(sqlite3.connect(self.root/'assets.sqlite3')) as db,db:
+            db.execute('CREATE TABLE asset_audio_upload(body TEXT)')
+            db.execute('INSERT INTO asset_audio_upload VALUES(?)',('{}',))
+        with self.assertRaisesRegex(ValueError,'大音频'):check(self.root,old)
+        self.assertTrue(check(self.root,DATA_COMPATIBILITY)['compatible'])
+
     def test_formal_findings_origin_and_direct_refs_validate_without_migration(self):
         store=AuditStore(self.root/'audit')
         stamp='2026-10-05T00:00:00Z'

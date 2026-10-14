@@ -84,7 +84,9 @@ test('Clear tools share one directory and workflow groups preserve workspace nav
   for (const name of ['ClearData', 'ClearClassify', 'ClearOCR', 'ClearForensics']) {
     expect(await within(directory).findByRole('link', { name })).toHaveAttribute('href', expect.stringContaining('workspace=a'))
   }
-  expect(directory.querySelectorAll('.application-card')).toHaveLength(4)
+  expect(directory.querySelectorAll('.application-card')).toHaveLength(6)
+  expect(within(directory).getByRole('button', { name: '打开人脸比对' })).toBeInTheDocument()
+  expect(within(directory).getByRole('button', { name: '打开音频分析' })).toBeInTheDocument()
   const navigation = screen.getByRole('menu', { name: '主导航' })
   for (const entry of ['智能审计', '审计项目', '手动工具']) expect(within(navigation).getByText(entry)).toBeInTheDocument()
   expect(within(navigation).getAllByRole('menuitem')).toHaveLength(3)
