@@ -5,7 +5,7 @@ export type NativeTarget = { url: string; kind: 'base' | 'ticket' | 'session'; b
 export function platformHomeAddress(address: string, instanceId: string, platformOrigin: string, workspaceId: string | null): string {
   const id = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
   if (!id.test(instanceId) || (workspaceId !== null && !id.test(workspaceId))) throw new Error('平台首页关联无效')
-  const home = new URL(nativeAddress({ url: platformOrigin + '/', kind: 'base' }))
+  const home = new URL(new URL(platformOrigin).origin === window.location.origin ? platformOrigin + '/' : nativeAddress({ url: platformOrigin + '/', kind: 'base' }))
   if (workspaceId) home.searchParams.set('workspace', workspaceId)
   const native = new URL(address)
   const hash = new URLSearchParams(native.hash.slice(1))
@@ -16,6 +16,8 @@ export function platformHomeAddress(address: string, instanceId: string, platfor
 
 export function nativeAddress(target: NativeTarget): string {
   const url = new URL(target.url)
+  if (url.origin === window.location.origin && /^\/native\/[A-Za-z0-9_-]+\/(ocr|classification)\/[A-Za-z0-9_-]+\/$/.test(url.pathname)
+    && !url.username && !url.password && !url.search && !url.hash) return url.href
   const port = Number(url.port)
   if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.username || url.password
     || !Number.isInteger(port) || port < 1 || port > 65535 || url.pathname !== '/' || url.search)

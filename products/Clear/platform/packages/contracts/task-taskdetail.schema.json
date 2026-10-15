@@ -1,0 +1,706 @@
+{
+  "$defs": {
+    "TaskRun": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt": {
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "elapsed_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Elapsed Ms"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "queue_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Queue Ms"
+        },
+        "queued_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Queued At"
+        },
+        "request_snapshot": {
+          "additionalProperties": true,
+          "title": "Request Snapshot",
+          "type": "object"
+        },
+        "requested_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Requested By"
+        },
+        "scope": {
+          "additionalProperties": true,
+          "title": "Scope",
+          "type": "object"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "waiting_resource",
+            "running",
+            "waiting_user",
+            "pausing",
+            "paused",
+            "cancelling",
+            "cancelled",
+            "succeeded",
+            "partial",
+            "failed",
+            "needs_verification"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "task_id",
+        "attempt",
+        "generation",
+        "status",
+        "queued_at",
+        "started_at",
+        "finished_at",
+        "elapsed_ms",
+        "queue_ms",
+        "error",
+        "requested_by",
+        "request_snapshot",
+        "scope"
+      ],
+      "title": "TaskRun",
+      "type": "object"
+    },
+    "TaskStepRun": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "attempt": {
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "elapsed_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Elapsed Ms"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "input_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Id"
+        },
+        "native_generation": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Native Generation"
+        },
+        "native_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Native Id"
+        },
+        "reused_from_step_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reused From Step Run Id"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "step_key": {
+          "title": "Step Key",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "tool_id": {
+          "title": "Tool Id",
+          "type": "string"
+        },
+        "worker_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Worker Id"
+        }
+      },
+      "required": [
+        "id",
+        "task_id",
+        "run_id",
+        "input_id",
+        "step_key",
+        "attempt",
+        "tool_id",
+        "action",
+        "status",
+        "native_id",
+        "native_generation",
+        "worker_id",
+        "reused_from_step_run_id",
+        "started_at",
+        "finished_at",
+        "elapsed_ms",
+        "error",
+        "details"
+      ],
+      "title": "TaskStepRun",
+      "type": "object"
+    },
+    "TaskSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "archived": {
+          "title": "Archived",
+          "type": "boolean"
+        },
+        "availability": {
+          "title": "Availability",
+          "type": "string"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "created_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Created At"
+        },
+        "created_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Created By"
+        },
+        "creator_name_snapshot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Creator Name Snapshot"
+        },
+        "current_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Current Run Id"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "elapsed_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Elapsed Ms"
+        },
+        "file_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "File Count"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "input_total_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Total Bytes"
+        },
+        "last_verified_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Verified At"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "native_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Native Status"
+        },
+        "page_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Page Count"
+        },
+        "parent_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Run Id"
+        },
+        "parent_task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Task Id"
+        },
+        "progress_done": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Progress Done"
+        },
+        "progress_total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Progress Total"
+        },
+        "project_name_snapshot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Project Name Snapshot"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        },
+        "run_count": {
+          "title": "Run Count",
+          "type": "integer"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "waiting_resource",
+            "running",
+            "waiting_user",
+            "pausing",
+            "paused",
+            "cancelling",
+            "cancelled",
+            "succeeded",
+            "partial",
+            "failed",
+            "needs_verification"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "additionalProperties": true,
+          "title": "Summary",
+          "type": "object"
+        },
+        "task_code": {
+          "title": "Task Code",
+          "type": "string"
+        },
+        "tool_id": {
+          "title": "Tool Id",
+          "type": "string"
+        },
+        "tool_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tool Version"
+        },
+        "updated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Updated At"
+        },
+        "workspace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Workspace Id"
+        }
+      },
+      "required": [
+        "id",
+        "task_code",
+        "workspace_id",
+        "project_name_snapshot",
+        "created_by",
+        "creator_name_snapshot",
+        "name",
+        "description",
+        "tool_id",
+        "tool_version",
+        "action",
+        "source",
+        "parent_task_id",
+        "parent_run_id",
+        "status",
+        "stage",
+        "availability",
+        "native_status",
+        "current_run_id",
+        "run_count",
+        "revision",
+        "input_total_bytes",
+        "file_count",
+        "page_count",
+        "progress_done",
+        "progress_total",
+        "created_at",
+        "updated_at",
+        "last_verified_at",
+        "elapsed_ms",
+        "archived",
+        "summary",
+        "capabilities"
+      ],
+      "title": "TaskSummary",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "ai_calls": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Ai Calls",
+      "type": "array"
+    },
+    "artifacts": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "children": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Children",
+      "type": "array"
+    },
+    "collection_cursors": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Collection Cursors",
+      "type": "object"
+    },
+    "inputs": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/TaskRun"
+      },
+      "title": "Runs",
+      "type": "array"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/TaskStepRun"
+      },
+      "title": "Steps",
+      "type": "array"
+    },
+    "task": {
+      "$ref": "#/$defs/TaskSummary"
+    }
+  },
+  "required": [
+    "task",
+    "inputs",
+    "runs",
+    "steps",
+    "ai_calls",
+    "artifacts",
+    "children"
+  ],
+  "title": "TaskDetail",
+  "type": "object"
+}

@@ -152,7 +152,8 @@ async def upload_from_asset_set(session_id: str, request: Request):
 async def action(session_id: str, request: Request):
     value = service(request, True)
     payload = await body(request)
-    return value.submit(session_id, payload.get('action'), payload.get('payload', {}), payload.get('version'))
+    return value.submit(session_id, payload.get('action'), payload.get('payload', {}), payload.get('version'),
+                        request_key=request.headers.get('x-clear-step'))
 
 
 @router.get('/sessions/{session_id}/jobs/{job_id}')

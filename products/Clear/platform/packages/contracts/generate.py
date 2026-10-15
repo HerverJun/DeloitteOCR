@@ -20,6 +20,7 @@ from .forensics import FORENSICS_MODELS, forensics_paths
 from .agent import AGENT_MODELS
 from .agent_openapi import agent_paths
 from .multimodal import MULTIMODAL_MODELS, multimodal_paths
+from .tasks import TASK_MODELS, task_paths
 
 ROOT = Path(__file__).resolve().parent
 NAMES = {
@@ -37,7 +38,7 @@ def dump(value: object) -> str:
 
 def components() -> dict[str, dict]:
     result = {}
-    for model in [*MODELS, *AUTOMATION_MODELS, *AUDIT_MODELS, *UPLOAD_MODELS, *FORENSICS_MODELS, *AGENT_MODELS, *MULTIMODAL_MODELS]:
+    for model in [*MODELS, *AUTOMATION_MODELS, *AUDIT_MODELS, *UPLOAD_MODELS, *FORENSICS_MODELS, *AGENT_MODELS, *MULTIMODAL_MODELS, *TASK_MODELS]:
         schema = model.model_json_schema()
         definitions = schema.pop("$defs", {})
         for name, definition in definitions.items():
@@ -268,6 +269,7 @@ def openapi(definitions: dict[str, dict]) -> dict:
     paths.update(forensics_paths(ref, response, body, parameter))
     paths.update(multimodal_paths(ref, response, body, parameter))
     paths.update(agent_paths(ref, body, parameter))
+    paths.update(task_paths())
     return {"openapi": "3.1.0", "info": {"title": "Workbench adapter protocol", "version": VERSION},
             "paths": paths, "components": {"schemas": definitions}}
 
@@ -289,6 +291,8 @@ def artifacts() -> dict[Path, str]:
         result[ROOT / ('agent-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
     for model in MULTIMODAL_MODELS:
         result[ROOT / ('manual-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
+    for model in TASK_MODELS:
+        result[ROOT / ('task-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
     definitions = components()
     result[ROOT / "adapter.openapi.json"] = dump(openapi(definitions))
     result[ROOT / "types.generated.ts"] = render_types(definitions)

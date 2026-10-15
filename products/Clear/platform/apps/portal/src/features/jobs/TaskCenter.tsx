@@ -5,6 +5,8 @@ import { useSearchParams } from 'react-router-dom'
 
 import { brandName } from '../../clear-ui/theme'
 import { InspectionTasks } from '../forensics/ForensicWorkbench'
+import { useSession } from '../tasks/session'
+import { TaskHistory } from '../tasks/TaskHistory'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -65,6 +67,11 @@ function JobRow({ job, workspaceId, onRefresh }: { job: Job; workspaceId: string
 }
 
 export function TaskCenter() {
+  const { multiuser } = useSession()
+  return multiuser ? <TaskHistory /> : <LegacyTaskCenter />
+}
+
+function LegacyTaskCenter() {
   const [params] = useSearchParams()
   const workspaceId = params.get('workspace')
   const client = useQueryClient()

@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "idempotency_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "operation": {
+      "enum": [
+        "cancel",
+        "pause",
+        "resume",
+        "retry",
+        "verify",
+        "archive",
+        "unarchive"
+      ],
+      "title": "Operation",
+      "type": "string"
+    },
+    "scope": {
+      "additionalProperties": true,
+      "title": "Scope",
+      "type": "object"
+    }
+  },
+  "required": [
+    "operation",
+    "expected_revision",
+    "idempotency_key"
+  ],
+  "title": "TaskControl",
+  "type": "object"
+}

@@ -1,6 +1,6 @@
 {
   "format": "clear-authored-source-snapshot-v1",
-  "captured_on": "2026-10-14",
+  "captured_on": "2026-10-15",
   "release_pointer": "release/Clear/current.json",
   "purpose": "Reviewable authored working-tree sources; not an offline installation package.",
   "exclusions": {
@@ -66,19 +66,19 @@
   "sources": [
     {
       "name": "platform",
-      "source_path": "F:/OCR/output/forensics-stability-20261014/worktrees/platform",
-      "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform2",
-      "head": "0009ddcc440a7863c696e13712df76da6d025bc3",
-      "branch": "codex/forensics-stability-r1",
+      "source_path": "F:/OCR/output/task-history-multiuser-20261015/worktrees/platform",
+      "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform3",
+      "head": "4fcb0e870e2d8451e740496398077db788e2811c",
+      "branch": "codex/task-history-multiuser",
       "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 617,
+      "file_count": 698,
       "files": [
         {
           "path": "platform/.gitattributes.source",
           "source_path": ".gitattributes",
-          "bytes": 907,
-          "sha256": "96ef39891e1ef207e4ab4f83340721490bd664d5e39424109400a01849a96fa7"
+          "bytes": 917,
+          "sha256": "a21cb73a1ee78e33533badf61b7226cb2a70e360e083665415e6313591b09f33"
         },
         {
           "path": "platform/.gitignore",
@@ -449,8 +449,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/nativeWindow.ts",
           "source_path": "apps/portal/src/features/catalog/nativeWindow.ts",
-          "bytes": 3723,
-          "sha256": "95b0707571d94e76949bae25a9602b061b9a481172f90c9d866bb255c3df1d35"
+          "bytes": 4026,
+          "sha256": "bc21eaf30347f426cd204dbe63f9496e38c09604d6f51f6f769984b736282027"
         },
         {
           "path": "platform/apps/portal/src/features/classification/ClassificationWorkflow.tsx",
@@ -479,20 +479,20 @@
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicImageViewer.css",
           "source_path": "apps/portal/src/features/forensics/ForensicImageViewer.css",
-          "bytes": 1167,
-          "sha256": "ece4ef548babc8a2148ab933683ccf19315ac38c41e6bb1711b317eb865eedf3"
+          "bytes": 1178,
+          "sha256": "d8870e28c0687a4f2549578f96e9ce1564c7ad716bf5b79ba2c43f5a0fc238bf"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicImageViewer.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicImageViewer.tsx",
-          "bytes": 8938,
-          "sha256": "c4b60ae6b7f0641df330906dfcc66e77dcfc8b4d2fcf61c339622ca287edf2b1"
+          "bytes": 9051,
+          "sha256": "a93a52bf595ff3f323d3d310aed50f66e267d9f29c891362d01e5b8c983a2b07"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicWorkbench.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicWorkbench.tsx",
-          "bytes": 21037,
-          "sha256": "5172e159bfd92951f2ee98cdc082b72d31147c3bdc89926a2d6671cd43d68499"
+          "bytes": 21049,
+          "sha256": "6ccab4e0e3794679ff37144926f339ec054bf9d923f96d62fe1fbe2e5cca2473"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/forensics.css",
@@ -503,14 +503,14 @@
         {
           "path": "platform/apps/portal/src/features/forensics/geometry.ts",
           "source_path": "apps/portal/src/features/forensics/geometry.ts",
-          "bytes": 4706,
-          "sha256": "ddc75c556356b8facb6d4c8ebba2b97d445338e4fac483dc2e1d5e8ac2a07e92"
+          "bytes": 4779,
+          "sha256": "358bc9ccd1dc17083ccb87ab942da9e735722013f06febdee15dc6697e516ab1"
         },
         {
           "path": "platform/apps/portal/src/features/jobs/TaskCenter.tsx",
           "source_path": "apps/portal/src/features/jobs/TaskCenter.tsx",
-          "bytes": 8685,
-          "sha256": "d53ac41f167bf14792599c2e089493dc13fa8ac608ab0aede18605bb90275da7"
+          "bytes": 8919,
+          "sha256": "78b5666ae1631a2b4eefe33fa4eab497f28f0ba69f0270633f6cd9b4b6cde500"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/ManualEvidencePicker.tsx",
@@ -521,14 +521,14 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 33126,
-          "sha256": "55b01f5282718565d48f40983de7040273dc35d47b9bd12eac6ad8327dc33b77"
+          "bytes": 33137,
+          "sha256": "48dd213e403d5f9531770c45e5ac055641a9626e9b6e3a71bf7dc09c30283565"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
           "source_path": "apps/portal/src/features/multimodal/RegionReview.tsx",
-          "bytes": 5498,
-          "sha256": "3d156ac1c6895b99cabb2015c17bfbf399b0ad6106d6b78600e46cc33213dcea"
+          "bytes": 5509,
+          "sha256": "951cc4a64f5ab031d22a755519e0c53069aba5824cfcfc594e66f2ed75f60742"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/multimodal.css",
@@ -573,6 +573,30 @@
           "sha256": "51931fdb8213b3628c6b32abf680f97e49db4883a2b8f8b224fa5f02ccb3768a"
         },
         {
+          "path": "platform/apps/portal/src/features/tasks/AccountSettings.tsx",
+          "source_path": "apps/portal/src/features/tasks/AccountSettings.tsx",
+          "bytes": 6724,
+          "sha256": "614f5be6f63b2610f2dd395ec76337ca863b0e8b46d7755386a1a35b494fd023"
+        },
+        {
+          "path": "platform/apps/portal/src/features/tasks/TaskHistory.tsx",
+          "source_path": "apps/portal/src/features/tasks/TaskHistory.tsx",
+          "bytes": 23195,
+          "sha256": "6b3de84468e38cd310424226417ef5d2309833d87ed74d6733a5dd6e8f77250a"
+        },
+        {
+          "path": "platform/apps/portal/src/features/tasks/session.tsx",
+          "source_path": "apps/portal/src/features/tasks/session.tsx",
+          "bytes": 5471,
+          "sha256": "995d09a32093436422cf7dad4982afdc931d7715c1e34e8b4e97bcf981ebae51"
+        },
+        {
+          "path": "platform/apps/portal/src/features/tasks/tasks.css",
+          "source_path": "apps/portal/src/features/tasks/tasks.css",
+          "bytes": 1716,
+          "sha256": "a7953c9baf415d071486612625b1be7b4a3c1defa60fdcceaeb2976b97317075"
+        },
+        {
           "path": "platform/apps/portal/src/features/todos/ItemEvidenceView.tsx",
           "source_path": "apps/portal/src/features/todos/ItemEvidenceView.tsx",
           "bytes": 13076,
@@ -599,8 +623,8 @@
         {
           "path": "platform/apps/portal/src/router.tsx",
           "source_path": "apps/portal/src/router.tsx",
-          "bytes": 6467,
-          "sha256": "8cfab6218153564650ac0107538784809632a4a359e7a4e5b3f64f74be6a616d"
+          "bytes": 6684,
+          "sha256": "b27e71e1f3a2aad6e582368e73a292ea8141a84258a533a0439ee4a039eafef1"
         },
         {
           "path": "platform/apps/portal/src/style.css",
@@ -665,8 +689,8 @@
         {
           "path": "platform/apps/portal/tests/forensic-viewer.test.tsx",
           "source_path": "apps/portal/tests/forensic-viewer.test.tsx",
-          "bytes": 15315,
-          "sha256": "11b5950f0fffa4f887df8f82dc4dbd7f5ff9e8590fbf72491b762506e98ba3cf"
+          "bytes": 15524,
+          "sha256": "4d250eeaa7aea907169720614bb3495ac890b419036b6ab87b9f7ee40bc809cd"
         },
         {
           "path": "platform/apps/portal/tests/forensics-workflow.test.tsx",
@@ -717,6 +741,12 @@
           "sha256": "fec7842218fb29245fa6970366183f5b78e366392843ea96ca86eb49f37b445f"
         },
         {
+          "path": "platform/apps/portal/tests/task-history.test.tsx",
+          "source_path": "apps/portal/tests/task-history.test.tsx",
+          "bytes": 2666,
+          "sha256": "174d633c66110e3480cb262e5d886beed2b0dcf4386c9e0cf67c1801df7aa90e"
+        },
+        {
           "path": "platform/apps/portal/tests/template-setup.test.tsx",
           "source_path": "apps/portal/tests/template-setup.test.tsx",
           "bytes": 8791,
@@ -755,8 +785,8 @@
         {
           "path": "platform/apps/portal/vitest.forensics.config.ts",
           "source_path": "apps/portal/vitest.forensics.config.ts",
-          "bytes": 268,
-          "sha256": "a83d4e6732fde3a2e765a9b57934bd58a81daecfa16683bfb71dc5904b866c81"
+          "bytes": 275,
+          "sha256": "6c49752f905d2dab9b68987716b4361b3a5204d3aede5bb427a290f10f47f06d"
         },
         {
           "path": "platform/config/apps/classification.install.json",
@@ -891,6 +921,18 @@
           "sha256": "2419c7c8cbe2cccf79861fec906e194107159fa43bae2d56a30e6a0e264b0d55"
         },
         {
+          "path": "platform/config/task-layer.lock",
+          "source_path": "config/task-layer.lock",
+          "bytes": 284,
+          "sha256": "c56ee920b8e9428892822721311096a847434061ea995022b925d67cb2c058c1"
+        },
+        {
+          "path": "platform/config/task-requirements.txt",
+          "source_path": "config/task-requirements.txt",
+          "bytes": 79,
+          "sha256": "a1e060322bb77b9c052b166ede0bd79511ec9e2da430f4780be37f42afa0500e"
+        },
+        {
           "path": "platform/docs/adr/0001-module-boundaries.md",
           "source_path": "docs/adr/0001-module-boundaries.md",
           "bytes": 9995,
@@ -977,8 +1019,8 @@
         {
           "path": "platform/docs/forensics-stability-20261014.md",
           "source_path": "docs/forensics-stability-20261014.md",
-          "bytes": 6341,
-          "sha256": "ee3e4df241144d08842708b3cd3b6355e66661780b31450375254a9cf4d5e816"
+          "bytes": 6391,
+          "sha256": "331ede50a6903515382e376dcf6c234a8f7623fee42ca7252fc46ba37c07bbc2"
         },
         {
           "path": "platform/docs/local-development.md",
@@ -1009,6 +1051,18 @@
           "source_path": "docs/requirements-windows-py312.lock.txt",
           "bytes": 15993,
           "sha256": "faea2493d2d9d35335c81ea72cd498e2b676982675e3d0d817cde3686a60c9c1"
+        },
+        {
+          "path": "platform/docs/task-center-implementation.md",
+          "source_path": "docs/task-center-implementation.md",
+          "bytes": 7473,
+          "sha256": "9b0362fce441a319af6fe6a2ccb9a6d5d9df6af472fd9ba4401a37f930e8ab24"
+        },
+        {
+          "path": "platform/docs/task-center-operations.md",
+          "source_path": "docs/task-center-operations.md",
+          "bytes": 7084,
+          "sha256": "bf40bc10d43b266a74c029b02f9035932fe9c918426b8988629a817ae530f3a9"
         },
         {
           "path": "platform/modules/data_workbench/__init__.py",
@@ -1097,8 +1151,8 @@
         {
           "path": "platform/modules/image_forensics/.gitattributes.source",
           "source_path": "modules/image_forensics/.gitattributes",
-          "bytes": 135,
-          "sha256": "83e93fa2a4b515c4460f35f695a652c714a485eaad15c89dcccdb13fb95e26a1"
+          "bytes": 140,
+          "sha256": "a9418b830be8bfd3a2fdc68272f8e0807ef53a20a198a82b12a1739c8800b187"
         },
         {
           "path": "platform/modules/image_forensics/GEOMETRY.md",
@@ -1235,8 +1289,8 @@
         {
           "path": "platform/packages/contracts/adapter.openapi.json",
           "source_path": "packages/contracts/adapter.openapi.json",
-          "bytes": 470893,
-          "sha256": "a9f6b0e1f5a6be9747a6bdc0bbfc7612f931f199775474a1f3b78ba350df31de"
+          "bytes": 499649,
+          "sha256": "4329013d09dae758b2f2f75b9a7b68823bf34ac74fe7f0ebdc17f0b4f5497b90"
         },
         {
           "path": "platform/packages/contracts/agent-agentcall.schema.json",
@@ -1835,8 +1889,8 @@
         {
           "path": "platform/packages/contracts/generate.py",
           "source_path": "packages/contracts/generate.py",
-          "bytes": 20633,
-          "sha256": "34c908075603134474d5be155d05846c327d3309eed2321aa66ac426419c9f47"
+          "bytes": 20864,
+          "sha256": "84bbb6a22a89ad7b3d2671c8e6433d9b2cc737f51b4b9988fdbef3e67bfce043"
         },
         {
           "path": "platform/packages/contracts/handoff.schema.json",
@@ -1935,10 +1989,70 @@
           "sha256": "73e36336c5efe730718068bd5a3ac9bab2ed6d09968ec6868be4d64716b393a2"
         },
         {
+          "path": "platform/packages/contracts/task-taskcontrol.schema.json",
+          "source_path": "packages/contracts/task-taskcontrol.schema.json",
+          "bytes": 813,
+          "sha256": "81f72d77976f940f457441762d1a1c52d1de759a91288ff5eeed62915de833ab"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskcreate.schema.json",
+          "source_path": "packages/contracts/task-taskcreate.schema.json",
+          "bytes": 1893,
+          "sha256": "bf7a61a2f72e5b5e1c5b3989db574839dec407e2bf167c019d4e17ae449db780"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskdetail.schema.json",
+          "source_path": "packages/contracts/task-taskdetail.schema.json",
+          "bytes": 15334,
+          "sha256": "6e395ff3313bb607d70e86ab2ca83c3192a49041b1c3389fe7ae03507e47dc2c"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskedit.schema.json",
+          "source_path": "packages/contracts/task-taskedit.schema.json",
+          "bytes": 770,
+          "sha256": "08666f289a6f4a99d02214c1202ae7465fb31776a972a42a67f480b6ade82929"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskevent.schema.json",
+          "source_path": "packages/contracts/task-taskevent.schema.json",
+          "bytes": 1108,
+          "sha256": "9b85a360b307f3a0d41d4af47561f05b5c32eda62df4eb941d7f82eae8b6673a"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskpage.schema.json",
+          "source_path": "packages/contracts/task-taskpage.schema.json",
+          "bytes": 7592,
+          "sha256": "1622c8e3023094817d34403c6144238e208d6ead180a448b69ab0648edc61657"
+        },
+        {
+          "path": "platform/packages/contracts/task-taskrun.schema.json",
+          "source_path": "packages/contracts/task-taskrun.schema.json",
+          "bytes": 2578,
+          "sha256": "7c2bef5cf8aba58fd78cb5eacdaa030e74d7efbef11c50a1465c65a33ff8a223"
+        },
+        {
+          "path": "platform/packages/contracts/task-tasksteprun.schema.json",
+          "source_path": "packages/contracts/task-tasksteprun.schema.json",
+          "bytes": 2861,
+          "sha256": "aee283abfbc755e15afeee90e3ca9652a0cc77424db7ff964aa1ef4386a2cd81"
+        },
+        {
+          "path": "platform/packages/contracts/task-tasksummary.schema.json",
+          "source_path": "packages/contracts/task-tasksummary.schema.json",
+          "bytes": 5795,
+          "sha256": "e48d581f4c1d3c00fb1f508f333b73740e7718255324a641bc8f29d310db2a72"
+        },
+        {
+          "path": "platform/packages/contracts/tasks.py",
+          "source_path": "packages/contracts/tasks.py",
+          "bytes": 6616,
+          "sha256": "d152f10518c0d933df8c82cbd8a70822424b3d639f4fe12329ab253235da1a5c"
+        },
+        {
           "path": "platform/packages/contracts/types.generated.ts",
           "source_path": "packages/contracts/types.generated.ts",
-          "bytes": 38758,
-          "sha256": "bd10215d4ac670308d7c486e4e5a4b98a13503ab15f1b1b8b562b2aabae0be37"
+          "bytes": 42280,
+          "sha256": "2cff0016f14e6d483a70065518dc365fe4ee48c3fdc64111ed65009e86ab32cd"
         },
         {
           "path": "platform/packages/contracts/upload-audiouploadbinding.schema.json",
@@ -2003,8 +2117,8 @@
         {
           "path": "platform/pyproject.toml",
           "source_path": "pyproject.toml",
-          "bytes": 552,
-          "sha256": "e692e70a2b6b0b413272d484d83375818e1b10951111c7f63a12b0b28bccb8b3"
+          "bytes": 674,
+          "sha256": "3e781019c265fb78b255ab07d650c3f838165b581196c3d4a01ba1dbec988b52"
         },
         {
           "path": "platform/resources/candidate-licenses/bce_python_sdk-0.9.79/LICENSE",
@@ -2075,14 +2189,20 @@
         {
           "path": "platform/scripts/agent_native_preview.py",
           "source_path": "scripts/agent_native_preview.py",
-          "bytes": 7975,
-          "sha256": "3e9e93a1cab87cd69102fa0dc7fb979f870c5fef592324f28b4f12f583ace81f"
+          "bytes": 9711,
+          "sha256": "e2e986509892ef31a9c6b978ee8273e55d06807e810d7be0bb67b8a15dad7c60"
         },
         {
           "path": "platform/scripts/backup_workspace.py",
           "source_path": "scripts/backup_workspace.py",
           "bytes": 12330,
           "sha256": "694c90cee41bac5886d6f886db87a5bc04ab57c49087c261f1f979be178785bb"
+        },
+        {
+          "path": "platform/scripts/bootstrap_task_demo.py",
+          "source_path": "scripts/bootstrap_task_demo.py",
+          "bytes": 1115,
+          "sha256": "55e3791cf82358eb8f97a2f82ed8b633c600d7cc146a4a99f1ceb99d02dd84f4"
         },
         {
           "path": "platform/scripts/build_base_candidate.py",
@@ -2113,6 +2233,12 @@
           "source_path": "scripts/consolidate_dependencies.py",
           "bytes": 6581,
           "sha256": "3e2ffa963f3b95bc172caa0d50c2d444430f84c0697192c1f478c00f3201dc00"
+        },
+        {
+          "path": "platform/scripts/create_task_tls.py",
+          "source_path": "scripts/create_task_tls.py",
+          "bytes": 1918,
+          "sha256": "660f5d4291dca59da8196c102fcff99448b1068990c79ae3195bd77e089bc678"
         },
         {
           "path": "platform/scripts/development_native.py",
@@ -2241,6 +2367,12 @@
           "sha256": "b8cc2e285a309641418d6828f123ea2e718053b70fc305613ed6e06380e26483"
         },
         {
+          "path": "platform/scripts/package_task_candidate.py",
+          "source_path": "scripts/package_task_candidate.py",
+          "bytes": 8055,
+          "sha256": "1d3709dcf278e633d712c5fe4b88ec9f07ca62039c2f66dfc3a15ae2d63a4c3c"
+        },
+        {
           "path": "platform/scripts/physical_development.py",
           "source_path": "scripts/physical_development.py",
           "bytes": 7359,
@@ -2261,8 +2393,14 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 13957,
-          "sha256": "076d68663915bc83c7b214e850532a6548dacb72366551fb82504dd088bf95bf"
+          "bytes": 14647,
+          "sha256": "7347f824a745624b997c5d21f836a9d4738c713a677240fb75799afea2811373"
+        },
+        {
+          "path": "platform/scripts/provision_task_runtime.py",
+          "source_path": "scripts/provision_task_runtime.py",
+          "bytes": 2920,
+          "sha256": "ea8488d69cdb8af29a64a6ff105004d0f203d24b7cd3d91f48bf17c4f8962b93"
         },
         {
           "path": "platform/scripts/qualify_multimodal.py",
@@ -2307,6 +2445,18 @@
           "sha256": "ea2ed61796a8df003ed7fc7d01fba1498c05491e1e9b0c01b5932d7eb3f9fd59"
         },
         {
+          "path": "platform/scripts/serve_task_stack.py",
+          "source_path": "scripts/serve_task_stack.py",
+          "bytes": 6698,
+          "sha256": "90b5e6a843f17f13727f4ef080d5e0b6c5553b4f25d275c5dd51b1ed4ce28eb9"
+        },
+        {
+          "path": "platform/scripts/setup_task_postgres.ps1",
+          "source_path": "scripts/setup_task_postgres.ps1",
+          "bytes": 2708,
+          "sha256": "8959ea2bba0801b15f48b850eedf0681d6f5906d74bb9dc11be8307499e4b48d"
+        },
+        {
           "path": "platform/scripts/start_data_workbench.ps1",
           "source_path": "scripts/start_data_workbench.ps1",
           "bytes": 1390,
@@ -2317,6 +2467,54 @@
           "source_path": "scripts/state_tasks.py",
           "bytes": 8158,
           "sha256": "89b70f22e507af915f402e7332996765835ca506a146ea49ead34ae4e7889910"
+        },
+        {
+          "path": "platform/scripts/stop_task_worker.py",
+          "source_path": "scripts/stop_task_worker.py",
+          "bytes": 1025,
+          "sha256": "cb9b83e989d7922939c09a3d6faf01fcf296cbf6c1eaa7df388566871ee0d0ca"
+        },
+        {
+          "path": "platform/scripts/task_browser_check.mjs",
+          "source_path": "scripts/task_browser_check.mjs",
+          "bytes": 2731,
+          "sha256": "35de2f0cdc8d7a6fc8a32d112a00770495fe56568b6f626c5175f80ff83ece08"
+        },
+        {
+          "path": "platform/scripts/task_forensics_check.py",
+          "source_path": "scripts/task_forensics_check.py",
+          "bytes": 3478,
+          "sha256": "a5b50253256153bf8a312524f2bb20e658be4bdc93eb0bb1a02f33bf02974960"
+        },
+        {
+          "path": "platform/scripts/task_live_check.py",
+          "source_path": "scripts/task_live_check.py",
+          "bytes": 4575,
+          "sha256": "d427ab94a91f3bed10b14ab9a18e7ad5acbc0c05f038dee407a3483cb6b69905"
+        },
+        {
+          "path": "platform/scripts/task_pdf_check.py",
+          "source_path": "scripts/task_pdf_check.py",
+          "bytes": 5440,
+          "sha256": "b920c821747a78af8133effb84c90f58b5b0f2b6738d78b65182477a60025306"
+        },
+        {
+          "path": "platform/scripts/task_python.py",
+          "source_path": "scripts/task_python.py",
+          "bytes": 934,
+          "sha256": "3bb404a245fb8d77789be09465bb9e3c0ed6c41bcab9aa9c863b0115eca25287"
+        },
+        {
+          "path": "platform/scripts/task_restart_check.py",
+          "source_path": "scripts/task_restart_check.py",
+          "bytes": 3523,
+          "sha256": "d49e5635df86ec428d64ff2c2c0705d16f4de89e17ae75f02f1a6486b5a6ae00"
+        },
+        {
+          "path": "platform/scripts/task_status.py",
+          "source_path": "scripts/task_status.py",
+          "bytes": 1092,
+          "sha256": "0d8ecb0d82a2d17fbb181d35b257dbd1d62cffbd4d844d7e8fe9a97ce012c98e"
         },
         {
           "path": "platform/scripts/verify_agent_cold_restore.py",
@@ -2849,8 +3047,8 @@
         {
           "path": "platform/src/workbench_platform/data_api/routes.py",
           "source_path": "src/workbench_platform/data_api/routes.py",
-          "bytes": 8061,
-          "sha256": "ff5aa15cd3d600cec4b760a393d8336a0299de6c876795989b07a56c34c3292f"
+          "bytes": 8135,
+          "sha256": "57e41005a6e0940fac2478eb73bfd9c01d19656a6ddb43e113811045ed92b2d0"
         },
         {
           "path": "platform/src/workbench_platform/data_api/service.py",
@@ -3045,6 +3243,204 @@
           "sha256": "33113b59cf68173958c654b0c8160cd36457f12d4056fdbb09cbe8650e9017fc"
         },
         {
+          "path": "platform/src/workbench_platform/tasks/__init__.py",
+          "source_path": "src/workbench_platform/tasks/__init__.py",
+          "bytes": 73,
+          "sha256": "61aa1997e7837e5413eeeb08ca86be56a8caa260b9b1b4964ee6a27518e9d860"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/ai_services.py",
+          "source_path": "src/workbench_platform/tasks/ai_services.py",
+          "bytes": 3208,
+          "sha256": "2e3ae8d130196fce9daf0cb13b52bc5b93311ab07b378ac70f1c4d7710922cd6"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/benchmark.py",
+          "source_path": "src/workbench_platform/tasks/benchmark.py",
+          "bytes": 6098,
+          "sha256": "dd030eaa730deab718d624858d1f9569b5d7ac363bdaa97832940e532794c414"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/cli.py",
+          "source_path": "src/workbench_platform/tasks/cli.py",
+          "bytes": 2788,
+          "sha256": "74fa4e7ef35fb12b65dc3c8694f63e4d38de037e0703241a4fb170408d5052bc"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/database.py",
+          "source_path": "src/workbench_platform/tasks/database.py",
+          "bytes": 2258,
+          "sha256": "93b804935d9c4be9f905e9bfc29a0ee647f4f725272e9fa47c3830fcb02eef78"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/directory.py",
+          "source_path": "src/workbench_platform/tasks/directory.py",
+          "bytes": 1083,
+          "sha256": "1c38d6ec3f896d3bc5c4ea469d9ee068e0b86a34b7cd7c58f1caef8fe4ccefff"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/files.py",
+          "source_path": "src/workbench_platform/tasks/files.py",
+          "bytes": 2464,
+          "sha256": "97f469260589a71313295ac6b9d72a4a8b273bddfb3eb70e49d980a6f055b472"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/journal.py",
+          "source_path": "src/workbench_platform/tasks/journal.py",
+          "bytes": 4836,
+          "sha256": "5b85f2765916268f95b0aac6156184a0414fbc285af9709834d5754f1c576933"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/legacy.py",
+          "source_path": "src/workbench_platform/tasks/legacy.py",
+          "bytes": 9531,
+          "sha256": "3341d6709a076eb3af78ccc5e33a1b69da289c93201e270008f45e6fb2fd546b"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/legacy_evidence.py",
+          "source_path": "src/workbench_platform/tasks/legacy_evidence.py",
+          "bytes": 5971,
+          "sha256": "c9cd6517b217f0f35abde9fecd8757b36241e03743f7f2bf8f1df89748cff604"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/maintenance.py",
+          "source_path": "src/workbench_platform/tasks/maintenance.py",
+          "bytes": 18161,
+          "sha256": "3d2965791393d6ba38fa617c6d9d2dccdf8571b3033949025e79539e9701641a"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/migrations/env.py",
+          "source_path": "src/workbench_platform/tasks/migrations/env.py",
+          "bytes": 356,
+          "sha256": "5796e224ed59eb0f80b135759363a444e3daad009cf5eb8f69c9c077640e75d5"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/migrations/versions/0001_task_ledger.py",
+          "source_path": "src/workbench_platform/tasks/migrations/versions/0001_task_ledger.py",
+          "bytes": 554,
+          "sha256": "b12a052d043b15290e27be58a17b334d1b78eef7346e1eba3ee0e9fb66a34ff7"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/migrations/versions/0002_legacy_unknown_times.py",
+          "source_path": "src/workbench_platform/tasks/migrations/versions/0002_legacy_unknown_times.py",
+          "bytes": 451,
+          "sha256": "11f746309397f5d5f6bd2c71cf6906804a26b191d9d00b1ba0dc625d34131008"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/migrations/versions/0003_query_order_and_workers.py",
+          "source_path": "src/workbench_platform/tasks/migrations/versions/0003_query_order_and_workers.py",
+          "bytes": 1055,
+          "sha256": "2ee70e3bfcc6868987ef15acfffbaaf218a8a8fe1ca499538fd2eac1c2f15fac"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/migrations/versions/0004_search_and_ai_filters.py",
+          "source_path": "src/workbench_platform/tasks/migrations/versions/0004_search_and_ai_filters.py",
+          "bytes": 580,
+          "sha256": "feed0603ba49636be0afe6211ffeb1ba584f4b391da82013913d39c2d723cdf5"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/multipart.py",
+          "source_path": "src/workbench_platform/tasks/multipart.py",
+          "bytes": 2437,
+          "sha256": "6174c0115737cc1ed51a8f2f2ca4895e0666954d8b0a1da06bd9a065d15f54d4"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/native.py",
+          "source_path": "src/workbench_platform/tasks/native.py",
+          "bytes": 18563,
+          "sha256": "5b5fb1e739e21ee9e19edfe402dddde37dca6192f3080eaa96c5a0af7824bb18"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/native_import_extension.py",
+          "source_path": "src/workbench_platform/tasks/native_import_extension.py",
+          "bytes": 5320,
+          "sha256": "429a26a34ab7f4de388689360a2659b89cfaecf4579ef5958748f62776217e43"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/native_inputs.py",
+          "source_path": "src/workbench_platform/tasks/native_inputs.py",
+          "bytes": 4202,
+          "sha256": "1f95d0e624a16498f9c05a1cac2b1e905b1ef1397ce2a6e8e21fffebb0fc4550"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/ocr_extension.py",
+          "source_path": "src/workbench_platform/tasks/ocr_extension.py",
+          "bytes": 10796,
+          "sha256": "31dc8554c374e9d1d15f48b601cc42b987b295cfe4f601cabc1a97d539e6aaab"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/private_payloads.py",
+          "source_path": "src/workbench_platform/tasks/private_payloads.py",
+          "bytes": 2619,
+          "sha256": "9baa9884c12805ce7ff541b95c28f49d88c0bcea5c9664edc26a239466a9680f"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/recover.py",
+          "source_path": "src/workbench_platform/tasks/recover.py",
+          "bytes": 9528,
+          "sha256": "20455df9392d60e49260de852b691cdb86644a75c7b58db84f40cff50a3f7690"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/registry.py",
+          "source_path": "src/workbench_platform/tasks/registry.py",
+          "bytes": 6180,
+          "sha256": "d9f33c1f02de30eb07a169624264816eced0102d2d5bb15931ec2aa60a2051c0"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/scheduler.py",
+          "source_path": "src/workbench_platform/tasks/scheduler.py",
+          "bytes": 1106,
+          "sha256": "29f44d865fcd15f1837ad6143b91a18d7578608de78c6eb73e42ae7c41a785a4"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/schema_v1.py",
+          "source_path": "src/workbench_platform/tasks/schema_v1.py",
+          "bytes": 9635,
+          "sha256": "d34e0da7bad6cdf8abd09e05575b05ea36c5c52db16fd8c8878ab6ad999a8188"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/schema_v3.py",
+          "source_path": "src/workbench_platform/tasks/schema_v3.py",
+          "bytes": 488,
+          "sha256": "ebf7160624aea1e79efc424b37fdbd613399183dbc5b35555587742f8f661011"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/scope.py",
+          "source_path": "src/workbench_platform/tasks/scope.py",
+          "bytes": 2264,
+          "sha256": "fe70891ee49278a436a62460aab1acffa6f8c66403692c5b4e322d94a21d2f4c"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/server.py",
+          "source_path": "src/workbench_platform/tasks/server.py",
+          "bytes": 43440,
+          "sha256": "d2f567033744346d2b86df268a6ad425a4ba372f53d9fe1032961605a9ce8ce2"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/source_identity.py",
+          "source_path": "src/workbench_platform/tasks/source_identity.py",
+          "bytes": 532,
+          "sha256": "85b1fcf03a85533dc3e163146b4038ecd173469603ea22f4b226c224da0f9074"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/store.py",
+          "source_path": "src/workbench_platform/tasks/store.py",
+          "bytes": 39200,
+          "sha256": "a94f74044a18d37216b91e717178720dbf85d60afdfcd91d2c2046425950763d"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/worker.py",
+          "source_path": "src/workbench_platform/tasks/worker.py",
+          "bytes": 80315,
+          "sha256": "d384c5a7495569ff02653543671040fb8e2e53c77dab9725d9c1d13fad72464f"
+        },
+        {
+          "path": "platform/src/workbench_platform/tasks/workspaces.py",
+          "source_path": "src/workbench_platform/tasks/workspaces.py",
+          "bytes": 5834,
+          "sha256": "7108f7cdc3e3b0273bee35ba6c624c32c6fcfef66e15c32163f6ae2e29786dab"
+        },
+        {
           "path": "platform/src/workbench_platform/workspaces/__init__.py",
           "source_path": "src/workbench_platform/workspaces/__init__.py",
           "bytes": 32,
@@ -3053,8 +3449,8 @@
         {
           "path": "platform/src/workbench_platform/workspaces/routes.py",
           "source_path": "src/workbench_platform/workspaces/routes.py",
-          "bytes": 6789,
-          "sha256": "4a64738a1399d5a6881709866ef22fe558fd02da38be8de630c949918386e968"
+          "bytes": 7152,
+          "sha256": "9bb22b60d22b01fecf65f4c65492b4c21a64e1a22d98f7d4b4bfb9bb9d13fd91"
         },
         {
           "path": "platform/start-development.ps1",
@@ -3693,6 +4089,96 @@
           "sha256": "2905db467e74eda3cd38f4f856a09ef73493edeaebd0239842e167170ea567dd"
         },
         {
+          "path": "platform/tests/tasks/__init__.py",
+          "source_path": "tests/tasks/__init__.py",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "platform/tests/tasks/conftest.py",
+          "source_path": "tests/tasks/conftest.py",
+          "bytes": 1978,
+          "sha256": "454e7eec3635da269158b47bd735c29a17ab51996112d181d814c9bd62fceffd"
+        },
+        {
+          "path": "platform/tests/tasks/test_acceptance_recovery.py",
+          "source_path": "tests/tasks/test_acceptance_recovery.py",
+          "bytes": 2447,
+          "sha256": "5313d3e21fcc60e21dcb1c25b69dfc78c10bfaa6bc7a1e6a82b14b35567d2e99"
+        },
+        {
+          "path": "platform/tests/tasks/test_ai_services.py",
+          "source_path": "tests/tasks/test_ai_services.py",
+          "bytes": 2086,
+          "sha256": "595af5e1355444407f52705e25fc2f063894ac1e0f29a40f2c5a1296ca74e127"
+        },
+        {
+          "path": "platform/tests/tasks/test_api.py",
+          "source_path": "tests/tasks/test_api.py",
+          "bytes": 5562,
+          "sha256": "d4dbe8a7f832e653faa68202411eadd24e46cd979aae5f6684c1188a7c0e7523"
+        },
+        {
+          "path": "platform/tests/tasks/test_hardening.py",
+          "source_path": "tests/tasks/test_hardening.py",
+          "bytes": 8613,
+          "sha256": "34ed468534fb599c010e95e8256028754a3d45b74d5175fb10257fac44687a93"
+        },
+        {
+          "path": "platform/tests/tasks/test_journal.py",
+          "source_path": "tests/tasks/test_journal.py",
+          "bytes": 2041,
+          "sha256": "fe39ccfe3452871ff50c4baac78ed1114216f63ce4055921d052f98591517806"
+        },
+        {
+          "path": "platform/tests/tasks/test_legacy.py",
+          "source_path": "tests/tasks/test_legacy.py",
+          "bytes": 2006,
+          "sha256": "8689139f7614d0b11359d1022b7f5b0a1a20f6b4ec9ac157ea2e34789b14aec9"
+        },
+        {
+          "path": "platform/tests/tasks/test_multipart.py",
+          "source_path": "tests/tasks/test_multipart.py",
+          "bytes": 971,
+          "sha256": "098d5dd466fa91a6e934cb6bad2a321436720ea04a69d8a82bb664774076349a"
+        },
+        {
+          "path": "platform/tests/tasks/test_native_import_journal.py",
+          "source_path": "tests/tasks/test_native_import_journal.py",
+          "bytes": 2688,
+          "sha256": "04d28a2578b01c26f3be8e13bc8e6f413070d5cd94eb9c6249bb70fe8f01fdc9"
+        },
+        {
+          "path": "platform/tests/tasks/test_native_scope.py",
+          "source_path": "tests/tasks/test_native_scope.py",
+          "bytes": 1429,
+          "sha256": "c6431cebfeaf7be9b31053429d3a2d064dd7ac625c3a4d6c648507632600b878"
+        },
+        {
+          "path": "platform/tests/tasks/test_ocr_extension.py",
+          "source_path": "tests/tasks/test_ocr_extension.py",
+          "bytes": 4736,
+          "sha256": "f1ddb7a8514950fb3a0c62782d853e116e1240a24ca098e674a73f2d483447e8"
+        },
+        {
+          "path": "platform/tests/tasks/test_outbox_recovery.py",
+          "source_path": "tests/tasks/test_outbox_recovery.py",
+          "bytes": 1625,
+          "sha256": "8614e43f15a1c9b60dac5462e491e9877e077ee5d209a30749a763b28e5d3736"
+        },
+        {
+          "path": "platform/tests/tasks/test_restore_paths.py",
+          "source_path": "tests/tasks/test_restore_paths.py",
+          "bytes": 3683,
+          "sha256": "d14fbd3cc09aee661840abdb9e12adbe8f0d6ab1ad80bafafa297e27021149ec"
+        },
+        {
+          "path": "platform/tests/tasks/test_store.py",
+          "source_path": "tests/tasks/test_store.py",
+          "bytes": 6937,
+          "sha256": "46539cf279a90b1805e254751135fd5a170590c85fb706bf81ba79283e154599"
+        },
+        {
           "path": "platform/tests/unit/test_asset_identity.py",
           "source_path": "tests/unit/test_asset_identity.py",
           "bytes": 7922,
@@ -3725,8 +4211,8 @@
         {
           "path": "platform/tests/unit/test_forensic_geometry.py",
           "source_path": "tests/unit/test_forensic_geometry.py",
-          "bytes": 13093,
-          "sha256": "856ec9a93870d2640bc60f36a7a21f3189fdca82856379b4641a8afa8f24d6d9"
+          "bytes": 13340,
+          "sha256": "0f866b7dc3ba71eff8a30885f6a67c1d4918a5074d1da48bc19582036723bf43"
         },
         {
           "path": "platform/tests/unit/test_forensic_provenance.py",
@@ -3737,14 +4223,14 @@
         {
           "path": "platform/tests/unit/test_forensics_evaluation.py",
           "source_path": "tests/unit/test_forensics_evaluation.py",
-          "bytes": 2438,
-          "sha256": "3597ccee088a3b95753a1c65647822c41fb2557dd96897c479b79bec44d8601a"
+          "bytes": 2501,
+          "sha256": "f9d92673c28de0bafd78459e2ff316598d2cbbac258590e4d66dbff1228e0031"
         },
         {
           "path": "platform/tests/unit/test_forensics_native_temp.py",
           "source_path": "tests/unit/test_forensics_native_temp.py",
-          "bytes": 862,
-          "sha256": "0d26f48419d3e30c74caf9fa203cf29852d027320a7a8bdb46737cfca6230284"
+          "bytes": 882,
+          "sha256": "26afe1c7614b1219c9fb02215202a44b198fd46c0036099d19a8f51501e6bd62"
         },
         {
           "path": "platform/tests/unit/test_health.py",

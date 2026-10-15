@@ -3,7 +3,7 @@ from pathlib import Path
 from contextlib import closing
 import argparse, json, sqlite3, sys
 
-READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
+READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -61,6 +61,17 @@ def check(data, descriptor):
             raise ValueError('工作区读取能力记录不可识别，原文件保留')
         if set(requirements['reader_features'])-set(descriptor['reader_features']):
             raise ValueError('该候选缺少工作区所需记录读取能力，不能直接降级')
+        if 'task-ledger-pg-v1' in requirements['reader_features']:
+            from workbench_platform.tasks.database import engine_for,check_schema
+            from workbench_platform.tasks.directory import identity
+            engine=engine_for()
+            try:
+                check_schema(engine)
+                saved=json.loads((data/'central-db-identity.json').read_text('utf-8'))
+                expected=identity(engine)
+                if any(saved.get(name)!=expected[name] for name in ('provider','host','port','database')):
+                    raise ValueError('工作区与中央数据库登记不一致')
+            finally:engine.dispose()
     jobs=data/'jobs.sqlite3'
     if jobs.is_file():
         with closing(read_database(jobs)) as db:

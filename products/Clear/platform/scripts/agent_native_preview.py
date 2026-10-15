@@ -13,7 +13,7 @@ from workbench_platform.catalog import routes
 from workbench_platform.supervisor.processes import require_f_path, storage_environment
 
 
-SERVER = '''import json,os,subprocess,sys
+SERVER = '''import json,os,subprocess,sys,hashlib
 from pathlib import Path
 root=Path(__file__).resolve().parent
 binding=json.loads((root/'binding.json').read_text(encoding='utf-8'))
@@ -23,10 +23,27 @@ data.mkdir(parents=True,exist_ok=True)
 source=Path(binding['source'])
 sys.path[:0]=[str(source/'src')]
 asset=Path(binding['asset'])
+import_extension=None
+if binding.get('import_extension'):
+    import importlib.util
+    if hashlib.sha256(Path(binding['import_extension']).read_bytes()).hexdigest()!=binding['import_extension_sha256']:
+        raise ValueError('Native import extension identity changed')
+    spec=importlib.util.spec_from_file_location('clear_native_import_extension',binding['import_extension'])
+    import_extension=importlib.util.module_from_spec(spec);spec.loader.exec_module(import_extension)
 if binding['app_id']=='ocr':
-    from ocr_workbench.service import main
+    from ocr_workbench import service
+    if binding.get('task_extension'):
+        import importlib.util
+        import hashlib
+        if hashlib.sha256(Path(binding['task_extension']).read_bytes()).hexdigest()!=binding['task_extension_sha256']:
+            raise ValueError('OCR task extension identity changed')
+        spec=importlib.util.spec_from_file_location('clear_task_ocr_extension',binding['task_extension'])
+        extension=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(extension)
+        extension.install(service)
+    if import_extension:import_extension.install(service,'ocr')
     sys.argv=['ocr-workbench','--bundle',str(asset),'--web-root',binding['web_root'],'--data',str(data),'--token-file',str(data_root/'ocr-token.txt')]
-    main()
+    service.main()
 else:
     os.environ['ICP_DATA_DIR']=str(data)
     os.environ['HF_HOME']=str(data/'cache/huggingface')
@@ -44,6 +61,9 @@ else:
     sys.path.insert(0,str(asset/'src/image_platform'))
     from platform_weights import install_weights
     install_weights(asset,data)
+    if import_extension:
+        from image_platform import api
+        import_extension.install(api,'classification')
     from image_platform.cli import main
     with (data/'worker.log').open('ab') as log:
         worker=subprocess.Popen([sys.executable,'-I','-B','-u',str(root/'worker.py'),str(source/'src')],
@@ -106,6 +126,12 @@ def configure(source, program, data):
         binding = {'app_id': family, 'data_root': str(data), 'source': str(native_source), 'asset': str(asset), 'web_root': str(web_root),
                    'frontend_index_sha256': sha(web_root / 'index.html'),
                    'runtime_sha256': sha(runtime), 'asset_declaration_sha256': sha(asset / 'bundle.manifest.json')}
+        if family=='ocr' and os.environ.get('CLEAR_EXECUTION_MODE')=='worker':
+            binding['task_extension']=str(source/'src/workbench_platform/tasks/ocr_extension.py')
+            binding['task_extension_sha256']=sha(Path(binding['task_extension']))
+        if os.environ.get('CLEAR_EXECUTION_MODE')=='worker':
+            binding['import_extension']=str(source/'src/workbench_platform/tasks/native_import_extension.py')
+            binding['import_extension_sha256']=sha(Path(binding['import_extension']))
         save(bundle / 'binding.json', binding)
         (bundle / 'server.py').write_text(SERVER, encoding='utf-8')
         (bundle / 'worker.py').write_text(WORKER, encoding='utf-8')

@@ -26,6 +26,13 @@ MAX_SAFE = (1 << 53) - 1
 
 def configure_workspace_store(app) -> None:
     """Called at process startup; request data never chooses a database path."""
+    if os.environ.get('CLEAR_EXECUTION_MODE') == 'worker':
+        from workbench_platform.tasks.database import engine_for, check_schema
+        from workbench_platform.tasks.workspaces import CentralWorkspaceStore
+        engine = engine_for()
+        check_schema(engine)
+        app.state.workspace_store = CentralWorkspaceStore(engine)
+        return
     configured = os.environ.get("WORKBENCH_DATA_DIR")
     if not configured:
         app.state.workspace_store = None
