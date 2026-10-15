@@ -20,8 +20,9 @@ def sha(path):
     with path.open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
 
 def authored(source,target):
-    metadata=subprocess.check_output(['git','-C',str(source),'rev-parse','--absolute-git-dir'],text=True).strip();physical(metadata)
-    names=subprocess.check_output(['git','-C',str(source),'ls-files','-z','--cached','--others','--exclude-standard']).decode('utf-8').split('\0')
+    git=['git','-c','safe.directory='+source.as_posix(),'-C',str(source)]
+    metadata=subprocess.check_output([*git,'rev-parse','--absolute-git-dir'],text=True).strip();physical(metadata)
+    names=subprocess.check_output([*git,'ls-files','-z','--cached','--others','--exclude-standard']).decode('utf-8').split('\0')
     for name in sorted(set(names)-{''}):
         relative=Path(name)
         if any(part.lower() in EXCLUDE for part in relative.parts) or relative.suffix.lower() in SUFFIXES:continue
@@ -30,7 +31,7 @@ def authored(source,target):
         if not source_file.is_file():continue
         if not physical(source_file).is_relative_to(source):raise ValueError('Source file escapes repository')
         destination=target/relative;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source_file,destination)
-    return {'source':str(source),'head':subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()}
+    return {'source':str(source),'head':subprocess.check_output([*git,'rev-parse','HEAD'],text=True).strip()}
 
 def package(task_root,source_root,output):
     task_root,source_root,output=map(physical,(task_root,source_root,output))
