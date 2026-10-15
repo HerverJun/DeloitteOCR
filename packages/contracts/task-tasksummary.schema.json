@@ -1,0 +1,318 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "title": "Action",
+      "type": "string"
+    },
+    "archived": {
+      "title": "Archived",
+      "type": "boolean"
+    },
+    "availability": {
+      "title": "Availability",
+      "type": "string"
+    },
+    "capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "created_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Created At"
+    },
+    "created_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Created By"
+    },
+    "creator_name_snapshot": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Creator Name Snapshot"
+    },
+    "current_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Current Run Id"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "elapsed_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Elapsed Ms"
+    },
+    "file_count": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "File Count"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "input_total_bytes": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Input Total Bytes"
+    },
+    "last_verified_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Verified At"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "native_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Native Status"
+    },
+    "page_count": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Page Count"
+    },
+    "parent_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Run Id"
+    },
+    "parent_task_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Task Id"
+    },
+    "progress_done": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Progress Done"
+    },
+    "progress_total": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Progress Total"
+    },
+    "project_name_snapshot": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Project Name Snapshot"
+    },
+    "revision": {
+      "title": "Revision",
+      "type": "integer"
+    },
+    "run_count": {
+      "title": "Run Count",
+      "type": "integer"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "waiting_resource",
+        "running",
+        "waiting_user",
+        "pausing",
+        "paused",
+        "cancelling",
+        "cancelled",
+        "succeeded",
+        "partial",
+        "failed",
+        "needs_verification"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "additionalProperties": true,
+      "title": "Summary",
+      "type": "object"
+    },
+    "task_code": {
+      "title": "Task Code",
+      "type": "string"
+    },
+    "tool_id": {
+      "title": "Tool Id",
+      "type": "string"
+    },
+    "tool_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Tool Version"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Updated At"
+    },
+    "workspace_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Workspace Id"
+    }
+  },
+  "required": [
+    "id",
+    "task_code",
+    "workspace_id",
+    "project_name_snapshot",
+    "created_by",
+    "creator_name_snapshot",
+    "name",
+    "description",
+    "tool_id",
+    "tool_version",
+    "action",
+    "source",
+    "parent_task_id",
+    "parent_run_id",
+    "status",
+    "stage",
+    "availability",
+    "native_status",
+    "current_run_id",
+    "run_count",
+    "revision",
+    "input_total_bytes",
+    "file_count",
+    "page_count",
+    "progress_done",
+    "progress_total",
+    "created_at",
+    "updated_at",
+    "last_verified_at",
+    "elapsed_ms",
+    "archived",
+    "summary",
+    "capabilities"
+  ],
+  "title": "TaskSummary",
+  "type": "object"
+}

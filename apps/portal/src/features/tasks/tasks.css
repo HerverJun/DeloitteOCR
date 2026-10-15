@@ -1,0 +1,19 @@
+.task-history { min-width: 0; }
+.task-filters { display: grid; grid-template-columns: repeat(4, minmax(8rem, 1fr)); gap: 12px; padding: 20px 0; border-top: 1px solid var(--clear-border, #dce0d8); }
+.task-filters label { color: #5f695f; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.task-filters input[type=datetime-local] { min-width: 0; width: 100%; }
+.task-filters input[type=datetime-local] { border: 1px solid #dce0d8; border-radius: 4px; padding: 8px; color: #243028; background: #fff; font: inherit; }
+.task-table-toolbar, .task-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; }
+.task-table-toolbar .ant-select { min-width: 13rem; }
+.task-number, .task-history td { font-variant-numeric: tabular-nums; }
+.task-number { font-size: 12px; }
+.task-name-link { max-width: 100%; overflow: hidden; text-overflow: ellipsis; padding-inline: 0; }
+.task-controls, .task-detail-heading { margin-bottom: 20px; }
+.task-controls { margin-top: 16px; }
+.task-notice { margin-bottom: 16px; }
+.task-login { max-width: 390px; margin: 12vh auto; padding: 24px; }
+.task-login .ant-btn { margin-top: 20px; }
+.task-session-bar { display: flex; justify-content: flex-end; padding: 8px 24px; background: #f4f6f1; border-bottom: 1px solid #dce0d8; }
+.task-inspector .ant-table { font-size: 12px; }
+@media(max-width: 900px) { .task-filters { grid-template-columns: 1fr 1fr; } .task-table-toolbar { align-items: flex-start; flex-direction: column; } }
+@media(max-width: 520px) { .task-filters { grid-template-columns: 1fr; } .task-filters label { grid-column: auto; flex-wrap: wrap; } .task-pagination { align-items: flex-start; flex-direction: column; } }

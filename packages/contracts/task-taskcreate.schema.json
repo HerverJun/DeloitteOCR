@@ -1,0 +1,95 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Action",
+      "type": "string"
+    },
+    "ai_service_profile_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ai Service Profile Id"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 10000,
+      "title": "Description",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "maxItems": 10000,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "options": {
+      "additionalProperties": true,
+      "title": "Options",
+      "type": "object"
+    },
+    "tool_id": {
+      "enum": [
+        "ocr",
+        "visual_review",
+        "classification",
+        "data",
+        "forensics",
+        "face",
+        "audio",
+        "seal",
+        "catnet",
+        "batch",
+        "agent",
+        "assets",
+        "artifact"
+      ],
+      "title": "Tool Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,79}$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "tool_id",
+    "action",
+    "idempotency_key"
+  ],
+  "title": "TaskCreate",
+  "type": "object"
+}

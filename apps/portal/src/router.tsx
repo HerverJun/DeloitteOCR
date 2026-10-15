@@ -19,6 +19,8 @@ import { PlatformSettings } from './features/agent/PlatformSettings'
 import { FindingsWorkspace } from './features/agent/FindingsWorkspace'
 import { Projects } from './features/agent/ProjectHome'
 import { AuditHelp } from './features/agent/AuditHelp'
+import { SessionGate } from './features/tasks/session'
+import { AccountSettings } from './features/tasks/AccountSettings'
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: clearTheme.primary, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
@@ -72,7 +74,7 @@ function ManualToolsRedirect() {
 }
 
 export const routes: RouteObject[] = [{
-  path: '/', element: <App />, children: [
+  path: '/', element: <SessionGate><App /></SessionGate>, children: [
     { index: true, element: <Home /> },
     { path: 'projects', element: <Projects /> },
     { path: 'findings', element: <FindingsWorkspace /> },
@@ -101,6 +103,7 @@ export const routes: RouteObject[] = [{
     { path: 'agent', element: <AgentHomeRedirect /> },
     { path: 'manual', element: <ManualToolsRedirect /> },
     { path: 'settings', element: <PlatformSettings /> },
+    { path: 'settings/accounts', element: <AccountSettings /> },
     { path: '*', element: <Missing /> },
   ],
 }]
