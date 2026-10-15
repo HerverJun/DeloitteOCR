@@ -29,6 +29,13 @@ def sqlite_snapshot(source,target):
         src.backup(dst)
         if dst.execute('PRAGMA quick_check').fetchone()[0]!='ok':raise ValueError('SQLite backup integrity failed')
 
+def relocate_artifact_paths(db,old,new):
+    column=s.task_artifact_links.c.source_path
+    # PostgreSQL LIKE treats backslashes as escapes. Match a complete path
+    # prefix explicitly, including its separator, for Windows workspaces.
+    owned=(column==old) | func.left(column,len(old)+1).in_([old+'\\',old+'/'])
+    db.execute(update(s.task_artifact_links).where(owned).values(source_path=func.replace(column,old,new)))
+
 def relocate_native_request(root,command,relocate):
     """Move operational JSON paths while keeping task input snapshots intact.
 
@@ -197,7 +204,7 @@ def restore(engine,root,destination):
                         for identifier,raw in db.execute('SELECT dispatch_id,receipt FROM command_receipts WHERE receipt IS NOT NULL').fetchall():
                             db.execute('UPDATE command_receipts SET receipt=? WHERE dispatch_id=?',(json.dumps(relocate(json.loads(raw)),ensure_ascii=False),identifier))
         with restored.begin() as db:
-            db.execute(update(s.task_artifact_links).where(s.task_artifact_links.c.source_path.startswith(old)).values(source_path=func.replace(s.task_artifact_links.c.source_path,old,new)))
+            relocate_artifact_paths(db,old,new)
             db.execute(update(s.task_dispatches).where(s.task_dispatches.c.state.in_(['leased','observing'])).values(state='needs_verification'))
             from sqlalchemy import delete
             db.execute(delete(s.user_sessions))

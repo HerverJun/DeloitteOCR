@@ -45,3 +45,18 @@ os._exit(0)
     with sqlite3.connect(target) as db:
         assert db.execute('SELECT body=zeroblob(4000000) FROM values_').fetchone()[0]==1
     assert not source.with_name(source.name+'-journal').exists()
+
+def test_postgres_restore_matches_windows_path_separators_exactly(task_case):
+    from sqlalchemy import insert,select
+    from workbench_platform.tasks import schema_v1 as s
+    from workbench_platform.tasks.maintenance import relocate_artifact_paths
+    from .conftest import submission
+    ledger,admin,editor,viewer,other,workspace=task_case
+    task=ledger.submit(editor,submission(workspace,'windows-restore'),{})
+    old='F:\\restore-check\\workspace';new='F:\\restore-check\\new-workspace'
+    with ledger.engine.begin() as db:
+        for number,path in enumerate([old+'\\task-files\\report.json',old+'/task-files/page.png',old+'-other\\keep.json']):
+            db.execute(insert(s.task_artifact_links).values(id=task['id']+str(number),task_id=task['id'],run_id=task['current_run_id'],name=str(number),kind='output',source_path=path))
+        relocate_artifact_paths(db,old,new)
+        rows=db.execute(select(s.task_artifact_links.c.source_path).where(s.task_artifact_links.c.task_id==task['id']).order_by(s.task_artifact_links.c.name)).scalars().all()
+    assert rows==[new+'\\task-files\\report.json',new+'/task-files/page.png',old+'-other\\keep.json']
