@@ -57,6 +57,8 @@ def git(source: Path, *args: str) -> str:
 
 
 def included(relative: Path) -> bool:
+    if relative.as_posix() == 'agent_harness/runtime-local.json' or relative.parts[:2] == ('agent_harness', 'node'):
+        return False
     if relative.parts[0].lower() in EXCLUDED_ROOTS:
         return False
     if any(part.lower() in EXCLUDED_PARTS for part in relative.parts):

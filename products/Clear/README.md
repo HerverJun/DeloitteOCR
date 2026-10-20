@@ -1,23 +1,29 @@
+> GUI 升级候选（2026-10-19）：三套前端已统一为 Clear UI 1.3.0，0.15.0 candidate-002 试用入口为 http://127.0.0.1:8970/。本目录已同步 2014 个登记源码文件并通过哈希检查；正式 8879 仍为 0.14.0。详见[实施与验收](../../docs/platform-automation/Clear全平台GUI升级实施与验收-20261019.md)。
+
 # Clear 三应用源码与版本对应
 
-本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-15；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
+本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-19；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
 
 | 本仓目录 | 原开发目录 | 本轮文件数 | 作用 |
 |---|---|---:|---|
-| [platform](platform/) | `F:\OCR\output\task-history-multiuser-20261015\worktrees\platform` | 698 | 门户、统一契约、领域服务、多人任务中心、权限和持久执行器 |
-| [classification](classification/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\classification` | 190 | 图像标注、训练、模型、推理与人工复核 |
-| [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 926 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可 |
+| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 887 | 门户、Agent 工作台、Harness 适配、业务服务、多人任务中心与工具目录 |
+| [classification](classification/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\classification` | 195 | 图像标注、训练、模型、推理与人工复核 |
+| [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 932 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可 |
 
-每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。平台从包含取证稳定性改动的 `0009ddc` 建立分支 `codex/task-history-multiuser`，本轮最终提交为 `4fcb0e870e2d8451e740496398077db788e2811c`。原平台开发目录保留，后续续作使用清单登记的隔离源；分类、OCR 仍读取原登记目录。来源仓库远端保持原配置。
+每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。平台多人任务中心基线为 `4fcb0e870e2d8451e740496398077db788e2811c`；最新 `codex/frontend-workbench-20261015` 从该提交建立，门户框架与工具目录改版以未提交工作区差异登记。原平台开发目录与多人候选保留；分类、OCR 仍读取原登记目录。来源仓库远端保持原配置。
 
-本轮功能、工程验收范围与回退见[取证稳定性候选说明](platform/docs/forensics-stability-20261014.md)。独立完整候选在本机 `F:\OCR\output\forensics-stability-20261014\delivery`，正式入口保持 0.10.0；合成评测通过不代表业务准确率已验收。
+当前正式入口为 **0.14.0 agent-foundation candidate-006**、<http://127.0.0.1:8879/>。0.14.0 正式发布时核对的三应用快照共 **1997** 个自有源文件；本目录当前 GUI 升级快照共 **2014** 个文件（见上表），已逐项核对，包含DSH通用工具、自然收尾、一次搜索加载、业务组合、OCR选参及真实底稿。正式启动、旧会话/成果下载、冷备与旧版回退均有实际证据；见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述日期更早的候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
+
+新版前端的参考来源、改动与本机预览见[改版记录](../../docs/platform-automation/前端工作台改版与预览-20261015.md)。最新[门户首页补齐](../../docs/platform-automation/门户首页评估与补齐-20261015.md)将默认入口改为导航门户，AI 工作区独立为 `/agent`，保留旧会话链接；本轮 29 项定向回归、23 项首页和 21 项工具目录浏览器检查通过。预览首页为 <http://127.0.0.1:8910/>，正式入口继续使用 8879。
+
+此前取证稳定性功能、工程验收范围与回退见[取证稳定性候选说明](platform/docs/forensics-stability-20261014.md)。该阶段独立完整候选在本机 `F:\OCR\output\forensics-stability-20261014\delivery`，当时正式入口为 0.10.0；合成评测通过不代表业务准确率已验收。
 
 最新多人任务中心见[实现记录](platform/docs/task-center-implementation.md)、[运维说明](platform/docs/task-center-operations.md)与[验收报告](../../docs/platform-automation/Clear多人任务中心实施与验收-20261015.md)。候选在 `F:\OCR\output\task-history-multiuser-20261015\delivery-v2`，共享模型/运行时，不切换正式入口。
 
 ## 与根仓和发行版本的区别
 
 - 根仓 `src/`、`frontend/` 是独立 OCR 研发线，当前 schema 18，含较新的屏拍等功能。
-- 本目录 `ocr/` 是 Clear 原生 OCR 开发线，schema 17。它与正式发行根 `release/Clear/versions/0.10.0/ocr` 的运行源码对应；开发快照仍带未提交改动，不能直接声称全部字节与发行包一致。
+- 本目录 `ocr/` 是 Clear 原生 OCR 开发线，schema 17。当前运行源码取自 `current.json` 选择的0.14.0候选根 `ocr/`，0.10.0仅提供共享运行时/模型。开发快照仍带未提交改动，运行身份须以候选逐文件清单核对。
 - 正式 Clear 指针在 [current.json](../../release/Clear/current.json)。运行时 `launch.py` 从发行根的 `platform`、`ocr`、`classification` 加载代码，OCR 网页由发行根 `ocr/frontend/dist` 提供；`program/bundles/ocr` 中旧 `src/web` 是底层资产，不是实际界面基线。
 - `release/Clear/versions/` 里的完整离线安装目录留在本机并忽略。Python、模型、GPU DLL、依赖、编译产物、业务工作区及大型 ZIP 不进入 Git。其身份、兼容要求和完整包交付证据仍由登记与交付文档说明。
 
@@ -28,7 +34,7 @@
 ```powershell
 # 先按项目存储规范设置 F 盘 TEMP/TMP/LOCALAPPDATA/APPDATA。
 # 从 F:\OCR 运行；原开发仓须存在。
-python -B scripts/sync_clear_sources.py --platform-source F:\OCR\output\task-history-multiuser-20261015\worktrees\platform
+python -B scripts/sync_clear_sources.py --platform-source F:\OCR\output\frontend-workbench-20261015\worktrees\platform
 python -B scripts/sync_clear_sources.py --verify
 # 如需单独捕获此前取证稳定性隔离源：
 python -B scripts/sync_clear_sources.py --platform-source F:\OCR\output\forensics-stability-20261014\worktrees\platform

@@ -1,6 +1,6 @@
 {
   "format": "clear-authored-source-snapshot-v1",
-  "captured_on": "2026-10-15",
+  "captured_on": "2026-10-19",
   "release_pointer": "release/Clear/current.json",
   "purpose": "Reviewable authored working-tree sources; not an offline installation package.",
   "exclusions": {
@@ -66,13 +66,340 @@
   "sources": [
     {
       "name": "platform",
-      "source_path": "F:/OCR/output/task-history-multiuser-20261015/worktrees/platform",
-      "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform3",
+      "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
+      "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
       "head": "4fcb0e870e2d8451e740496398077db788e2811c",
-      "branch": "codex/task-history-multiuser",
-      "working_tree_status": [],
+      "branch": "codex/frontend-workbench-20261015",
+      "working_tree_status": [
+        " M .gitignore",
+        " M apps/portal/index.html",
+        " M apps/portal/package.json",
+        " M apps/portal/pnpm-lock.yaml",
+        " M apps/portal/src/App.tsx",
+        " M apps/portal/src/clear-ui/theme.ts",
+        " M apps/portal/src/clear-ui/tokens.css",
+        " M apps/portal/src/features/agent/AgentMessage.tsx",
+        " M apps/portal/src/features/agent/AgentWorkbench.tsx",
+        " M apps/portal/src/features/agent/AuditHelp.tsx",
+        " M apps/portal/src/features/agent/ContextBudget.tsx",
+        " M apps/portal/src/features/agent/ControllerSettings.tsx",
+        " M apps/portal/src/features/agent/FindingsWorkspace.tsx",
+        " M apps/portal/src/features/agent/ManualReturn.tsx",
+        " M apps/portal/src/features/agent/Materials.tsx",
+        " M apps/portal/src/features/agent/PlatformSettings.tsx",
+        " M apps/portal/src/features/agent/ProjectHome.tsx",
+        " M apps/portal/src/features/agent/RunStatus.tsx",
+        " M apps/portal/src/features/agent/TaskPanel.tsx",
+        " M apps/portal/src/features/agent/ToolActivity.tsx",
+        " M apps/portal/src/features/agent/agent.css",
+        " M apps/portal/src/features/agent/api.ts",
+        " M apps/portal/src/features/agent/conversationProjection.ts",
+        " M apps/portal/src/features/agent/referencePath.ts",
+        " M apps/portal/src/features/agent/useAgentEvents.ts",
+        " M apps/portal/src/features/agent/useConversationScroll.ts",
+        " M apps/portal/src/features/artifacts/ArtifactCenter.tsx",
+        " M apps/portal/src/features/catalog/ToolIdentity.tsx",
+        " M apps/portal/src/features/catalog/nativeWindow.ts",
+        " M apps/portal/src/features/data/DataWorkbench.tsx",
+        " M apps/portal/src/features/jobs/TaskCenter.tsx",
+        " M apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
+        " M apps/portal/src/features/start/QuickNativeWorkbench.tsx",
+        " M apps/portal/src/features/tasks/session.tsx",
+        " M apps/portal/src/main.tsx",
+        " M apps/portal/src/router.tsx",
+        " M apps/portal/src/style.css",
+        " M apps/portal/tests/agent-context-skills.test.tsx",
+        " M apps/portal/tests/agent-invocation.test.tsx",
+        " M apps/portal/tests/agent-streaming-ui.test.tsx",
+        " M apps/portal/tests/catalog.test.tsx",
+        " M apps/portal/tests/native-window.test.tsx",
+        " M apps/portal/tests/navigation.test.tsx",
+        " M apps/portal/tests/quick-start.test.tsx",
+        " M apps/portal/vite.config.ts",
+        " M config/skills/classification-training-preparation/SKILL.md",
+        " M config/skills/evidence-workpaper/SKILL.md",
+        " M config/skills/invoice-ocr-reconciliation/SKILL.md",
+        " M config/skills/payment-reconciliation/SKILL.md",
+        " M docs/agent/README.md",
+        " M modules/data_workbench/recipes/engine.py",
+        " M packages/contracts/adapter.openapi.json",
+        " M packages/contracts/agent-agentcall.schema.json",
+        " M packages/contracts/agent-agentjobprogress.schema.json",
+        " M packages/contracts/agent-agentmanualreturn.schema.json",
+        " M packages/contracts/agent-agentpublicactivity.schema.json",
+        " M packages/contracts/agent-agentref.schema.json",
+        " M packages/contracts/agent-agentresponsestate.schema.json",
+        " M packages/contracts/agent-agentsessioncreate.schema.json",
+        " M packages/contracts/agent-agenttaskwrite.schema.json",
+        " M packages/contracts/agent-agenttoolactivity.schema.json",
+        " M packages/contracts/agent-agenttoolresult.schema.json",
+        " M packages/contracts/agent-controllerdraft.schema.json",
+        " M packages/contracts/agent-controllermodelsdraft.schema.json",
+        " M packages/contracts/agent.py",
+        " M packages/contracts/agent_openapi.py",
+        " M packages/contracts/audit-auditevidencesnapshot.schema.json",
+        " M packages/contracts/audit-directevidencerequest.schema.json",
+        " M packages/contracts/audit-directevidencesnapshot.schema.json",
+        " M packages/contracts/generate.py",
+        " M packages/contracts/manual-manualanalysis.schema.json",
+        " M packages/contracts/manual-manualanalysiscreate.schema.json",
+        " M packages/contracts/manual-manualanalysispage.schema.json",
+        " M packages/contracts/multimodal.py",
+        " M packages/contracts/types.generated.ts",
+        " M scripts/agent_native_preview.py",
+        " M scripts/backup_workspace.py",
+        " M scripts/product_compatibility.py",
+        " M scripts/qualify_multimodal.py",
+        " M src/workbench_platform/agent/connection.py",
+        " M src/workbench_platform/agent/context.py",
+        " M src/workbench_platform/agent/dependencies.py",
+        " M src/workbench_platform/agent/environment.py",
+        " M src/workbench_platform/agent/progress.py",
+        " M src/workbench_platform/agent/providers.py",
+        " M src/workbench_platform/agent/registry.py",
+        " M src/workbench_platform/agent/routes.py",
+        " M src/workbench_platform/agent/runtime.py",
+        " M src/workbench_platform/agent/skills.py",
+        " M src/workbench_platform/agent/store.py",
+        " M src/workbench_platform/agent/streaming.py",
+        " M src/workbench_platform/agent/tasks.py",
+        " M src/workbench_platform/agent/tools/audit.py",
+        " M src/workbench_platform/agent/tools/classification.py",
+        " M src/workbench_platform/agent/tools/classification_management.py",
+        " M src/workbench_platform/agent/tools/context.py",
+        " M src/workbench_platform/agent/tools/data.py",
+        " M src/workbench_platform/agent/tools/forensics.py",
+        " M src/workbench_platform/agent/tools/history.py",
+        " M src/workbench_platform/agent/tools/jobs.py",
+        " M src/workbench_platform/agent/tools/ocr.py",
+        " M src/workbench_platform/agent/tools/ocr_management.py",
+        " M src/workbench_platform/agent/tools/ocr_processing.py",
+        " M src/workbench_platform/agent/tools/pdf.py",
+        " M src/workbench_platform/agent/tools/platform_management.py",
+        " M src/workbench_platform/agent/tools/results.py",
+        " M src/workbench_platform/app.py",
+        " M src/workbench_platform/application_services/job_lifecycle.py",
+        " M src/workbench_platform/application_services/manual.py",
+        " M src/workbench_platform/application_services/native.py",
+        " M src/workbench_platform/application_services/native_mapping.py",
+        " M src/workbench_platform/application_services/references.py",
+        " M src/workbench_platform/artifacts/center.py",
+        " M src/workbench_platform/artifacts/native_exports.py",
+        " M src/workbench_platform/artifacts/ocr_results.py",
+        " M src/workbench_platform/audit/direct.py",
+        " M src/workbench_platform/audit/draft_artifacts.py",
+        " M src/workbench_platform/audit/service.py",
+        " M src/workbench_platform/data_api/service.py",
+        " M src/workbench_platform/jobs/classification_handoff.py",
+        " M src/workbench_platform/jobs/native_ocr.py",
+        " M src/workbench_platform/jobs/ocr_handoff.py",
+        " M src/workbench_platform/jobs/projection.py",
+        " M src/workbench_platform/jobs/routes.py",
+        " M src/workbench_platform/multimodal/exports.py",
+        " M src/workbench_platform/multimodal/routes.py",
+        " M src/workbench_platform/multimodal/runner.py",
+        " M src/workbench_platform/multimodal/service.py",
+        " M src/workbench_platform/resources/gpu.py",
+        " M src/workbench_platform/resources/reader_features.py",
+        " M src/workbench_platform/supervisor/processes.py",
+        " M src/workbench_platform/tasks/server.py",
+        " M src/workbench_platform/tasks/store.py",
+        " M src/workbench_platform/tasks/worker.py",
+        " M tests/agent/test_audit_product.py",
+        " M tests/agent/test_backup.py",
+        " M tests/agent/test_convergence_control.py",
+        " M tests/agent/test_coverage_completion.py",
+        " M tests/agent/test_graph.py",
+        " M tests/agent/test_hardening.py",
+        " M tests/agent/test_invocation_fixes.py",
+        " M tests/agent/test_native_tools.py",
+        " M tests/agent/test_prompt_skills.py",
+        " M tests/agent/test_recovery.py",
+        " M tests/agent/test_skills.py",
+        " M tests/agent/test_streaming_production.py",
+        " M tests/agent/test_tool_progress.py",
+        " M tests/agent/test_wire_context.py",
+        " M tests/integration/test_job_projection.py",
+        " M tests/integration/test_manual_multimodal.py",
+        " M tests/integration/test_multimodal_dispatch.py",
+        " M tests/integration/test_ocr_artifacts.py",
+        " M tests/integration/test_supervisor.py",
+        " M tests/tasks/test_api.py",
+        " M tests/unit/test_multimodal_gpu.py",
+        "?? agent_harness/",
+        "?? apps/portal/public/brand/fonts/",
+        "?? apps/portal/src/clear-ui/common.css",
+        "?? apps/portal/src/clear-ui/experience.css",
+        "?? apps/portal/src/clear-ui/navigation.ts",
+        "?? apps/portal/src/clear-ui/recentVisits.ts",
+        "?? apps/portal/src/clear-ui/workspace.css",
+        "?? apps/portal/src/features/agent/DirectImageTextButton.tsx",
+        "?? apps/portal/src/features/agent/DirectPdfTextButton.tsx",
+        "?? apps/portal/src/features/agent/IntegrationSettings.tsx",
+        "?? apps/portal/src/features/agent/PlatformTools.tsx",
+        "?? apps/portal/src/features/agent/ReadableText.tsx",
+        "?? apps/portal/src/features/agent/conversationMotion.tsx",
+        "?? apps/portal/src/features/agent/experience.css",
+        "?? apps/portal/src/features/agent/platform-tools.css",
+        "?? apps/portal/src/features/agent/statusLabels.ts",
+        "?? apps/portal/src/features/agent/task-panel.css",
+        "?? apps/portal/src/features/agent/tool-activity.css",
+        "?? apps/portal/src/features/agent/workbench-visual.css",
+        "?? apps/portal/src/features/agent/workbenchView.ts",
+        "?? apps/portal/src/features/catalog/ToolDirectory.tsx",
+        "?? apps/portal/src/features/catalog/directory.css",
+        "?? apps/portal/src/features/catalog/toolCatalog.ts",
+        "?? apps/portal/src/features/home/",
+        "?? apps/portal/src/queryClient.ts",
+        "?? apps/portal/tests/agent-harness-ui.test.tsx",
+        "?? apps/portal/tests/agent-motion.test.tsx",
+        "?? apps/portal/tests/agent-platform-tools.test.tsx",
+        "?? apps/portal/tests/agent-task-panel.test.tsx",
+        "?? apps/portal/tests/agent-workbench-visual.test.tsx",
+        "?? apps/portal/tests/architecture-revision.test.tsx",
+        "?? apps/portal/tests/gui-experience.test.tsx",
+        "?? apps/portal/tests/home-routing.test.tsx",
+        "?? apps/portal/tests/multimodal-agent-results.test.tsx",
+        "?? docs/agent/architecture-revision-20261017.md",
+        "?? docs/agent/general-foundation-20261019.md",
+        "?? docs/agent/platform-tools-013.md",
+        "?? packages/contracts/agent_integrations.py",
+        "?? packages/contracts/data_operations.py",
+        "?? packages/contracts/direct-dataactionrequest.schema.json",
+        "?? packages/contracts/direct-imagetextrequest.schema.json",
+        "?? packages/contracts/direct-integrations.schema.json",
+        "?? packages/contracts/direct-pdftextrequest.schema.json",
+        "?? packages/contracts/direct-predictrequest.schema.json",
+        "?? packages/contracts/direct.py",
+        "?? packages/contracts/direct_classification.py",
+        "?? packages/contracts/direct_data.py",
+        "?? packages/contracts/manual-manualcontrol.schema.json",
+        "?? packages/contracts/manual-manualdrafttransfer.schema.json",
+        "?? packages/contracts/manual-manualdrafttransferreceipt.schema.json",
+        "?? packages/contracts/manual-manualoperationreceipt.schema.json",
+        "?? packages/contracts/manual-manualreferencedelete.schema.json",
+        "?? packages/contracts/manual-manualresultsnapshot.schema.json",
+        "?? scripts/build_clear_ui_font.py",
+        "?? scripts/classification_worker_compat.py",
+        "?? scripts/harness_candidate_launch.py",
+        "?? scripts/harness_candidate_smoke.mjs",
+        "?? scripts/harness_io_guard.py",
+        "?? scripts/harness_offline_guard.mjs",
+        "?? scripts/harness_tool_smoke.py",
+        "?? scripts/measure_ocr_performance.py",
+        "?? scripts/package_harness_candidate.py",
+        "?? scripts/platform_business_oracle.py",
+        "?? scripts/platform_review_oracle.py",
+        "?? scripts/platform_tool_acceptance.py",
+        "?? scripts/serve_harness_candidate.py",
+        "?? src/workbench_platform/agent/auxiliary.py",
+        "?? src/workbench_platform/agent/available_results.py",
+        "?? src/workbench_platform/agent/capabilities.py",
+        "?? src/workbench_platform/agent/delivery_jobs.py",
+        "?? src/workbench_platform/agent/delivery_policy.py",
+        "?? src/workbench_platform/agent/delivery_staging.py",
+        "?? src/workbench_platform/agent/general.py",
+        "?? src/workbench_platform/agent/general_outputs.py",
+        "?? src/workbench_platform/agent/general_python.py",
+        "?? src/workbench_platform/agent/goal_interpreter.py",
+        "?? src/workbench_platform/agent/goal_progress.py",
+        "?? src/workbench_platform/agent/harness.py",
+        "?? src/workbench_platform/agent/harness_materialize.py",
+        "?? src/workbench_platform/agent/harness_migration.py",
+        "?? src/workbench_platform/agent/harness_service.py",
+        "?? src/workbench_platform/agent/images.py",
+        "?? src/workbench_platform/agent/integrations.py",
+        "?? src/workbench_platform/agent/model_profiles.py",
+        "?? src/workbench_platform/agent/native_tools.py",
+        "?? src/workbench_platform/agent/requirement_coverage.py",
+        "?? src/workbench_platform/agent/task_recovery.py",
+        "?? src/workbench_platform/agent/tools/multimodal.py",
+        "?? src/workbench_platform/agent/windows_workspace.py",
+        "?? src/workbench_platform/agent/workspace_outputs.py",
+        "?? src/workbench_platform/application_services/action_admission.py",
+        "?? src/workbench_platform/application_services/classification_action.py",
+        "?? src/workbench_platform/application_services/cleaned_downloads.py",
+        "?? src/workbench_platform/application_services/composed.py",
+        "?? src/workbench_platform/application_services/context.py",
+        "?? src/workbench_platform/application_services/data_action.py",
+        "?? src/workbench_platform/application_services/decisions.py",
+        "?? src/workbench_platform/application_services/direct_actions.py",
+        "?? src/workbench_platform/application_services/direct_scope.py",
+        "?? src/workbench_platform/application_services/errors.py",
+        "?? src/workbench_platform/application_services/execution.py",
+        "?? src/workbench_platform/application_services/goal_fixed_actions.py",
+        "?? src/workbench_platform/application_services/goal_routing.py",
+        "?? src/workbench_platform/application_services/identity.py",
+        "?? src/workbench_platform/application_services/image_text.py",
+        "?? src/workbench_platform/application_services/job_observations.py",
+        "?? src/workbench_platform/application_services/ocr_tuning.py",
+        "?? src/workbench_platform/application_services/operations/",
+        "?? src/workbench_platform/application_services/pdf_text.py",
+        "?? src/workbench_platform/application_services/requirement_coverage.py",
+        "?? src/workbench_platform/application_services/result_text.py",
+        "?? src/workbench_platform/application_services/review_provenance.py",
+        "?? src/workbench_platform/artifacts/text_outputs.py",
+        "?? src/workbench_platform/data_api/table_schema.py",
+        "?? src/workbench_platform/multimodal/cpu_validation.py",
+        "?? src/workbench_platform/resources/native.py",
+        "?? tests/agent/test_architecture_services.py",
+        "?? tests/agent/test_backup_read_only.py",
+        "?? tests/agent/test_cancel_route_loop.py",
+        "?? tests/agent/test_classification_worker_compat.py",
+        "?? tests/agent/test_data_export_schema.py",
+        "?? tests/agent/test_delivery_native_status.py",
+        "?? tests/agent/test_delivery_policy.py",
+        "?? tests/agent/test_delivery_staging.py",
+        "?? tests/agent/test_delivery_text_artifacts.py",
+        "?? tests/agent/test_direct_admission.py",
+        "?? tests/agent/test_direct_backup.py",
+        "?? tests/agent/test_direct_business_actions.py",
+        "?? tests/agent/test_direct_fallback.py",
+        "?? tests/agent/test_direct_followups.py",
+        "?? tests/agent/test_direct_image_text.py",
+        "?? tests/agent/test_direct_not_submitted.py",
+        "?? tests/agent/test_direct_not_submitted_families.py",
+        "?? tests/agent/test_direct_pdf_text.py",
+        "?? tests/agent/test_direct_recovery_windows.py",
+        "?? tests/agent/test_formal_delivery_policy.py",
+        "?? tests/agent/test_general_agent.py",
+        "?? tests/agent/test_general_integrations.py",
+        "?? tests/agent/test_goal_interpreter.py",
+        "?? tests/agent/test_harness_backup_archive.py",
+        "?? tests/agent/test_harness_delivery_checks.py",
+        "?? tests/agent/test_harness_draft_delivery.py",
+        "?? tests/agent/test_harness_materialize.py",
+        "?? tests/agent/test_harness_migration.py",
+        "?? tests/agent/test_harness_model_profiles.py",
+        "?? tests/agent/test_harness_packaging.py",
+        "?? tests/agent/test_harness_provider_limits.py",
+        "?? tests/agent/test_harness_recovery.py",
+        "?? tests/agent/test_harness_task_connection.py",
+        "?? tests/agent/test_harness_tool_retention.py",
+        "?? tests/agent/test_legacy_failed_resume_entry.py",
+        "?? tests/agent/test_local_catalog_goals.py",
+        "?? tests/agent/test_multimodal_bindings.py",
+        "?? tests/agent/test_multimodal_security.py",
+        "?? tests/agent/test_native_binding_delivery.py",
+        "?? tests/agent/test_native_prepare_race.py",
+        "?? tests/agent/test_native_reader_service.py",
+        "?? tests/agent/test_ocr_worker_source_binding.py",
+        "?? tests/agent/test_partial_goal_continuation.py",
+        "?? tests/agent/test_platform_business_acceptance.py",
+        "?? tests/agent/test_platform_business_relations.py",
+        "?? tests/agent/test_platform_reader_gate.py",
+        "?? tests/agent/test_readable_text.py",
+        "?? tests/agent/test_registry_stage_errors.py",
+        "?? tests/agent/test_requirement_coverage.py",
+        "?? tests/agent/test_results_artifact_text.py",
+        "?? tests/agent/test_user_flow_progress_scope.py",
+        "?? tests/agent/test_user_flow_recovery_results.py",
+        "?? tests/agent/test_user_goal_routing.py",
+        "?? tests/integration/test_multimodal_agent_native.py",
+        "?? tests/unit/test_native_gpu_recovery.py"
+      ],
       "excluded_count": 0,
-      "file_count": 698,
+      "file_count": 887,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -83,8 +410,8 @@
         {
           "path": "platform/.gitignore",
           "source_path": ".gitignore",
-          "bytes": 178,
-          "sha256": "fde8bb5e11a0aa3d58de792c31d4a1a853f413f99e90095df51fd77ce29c3e16"
+          "bytes": 262,
+          "sha256": "fd766f3ae8edaa9ff7335218c24585e6cc923273dc6d4a635ad5cfce187cf2dc"
         },
         {
           "path": "platform/adapters/classification/adapter.py",
@@ -111,22 +438,52 @@
           "sha256": "a03dbbfe8f6240d22b38ca7f6838ba7671c57104c74d6b4da6f36d1949b2988d"
         },
         {
+          "path": "platform/agent_harness/foundation.mjs",
+          "source_path": "agent_harness/foundation.mjs",
+          "bytes": 7059,
+          "sha256": "46573232ebd385c21b84c9303c192d5b89f2471d5a869f996a18155d3f3bbc03"
+        },
+        {
+          "path": "platform/agent_harness/host.mjs",
+          "source_path": "agent_harness/host.mjs",
+          "bytes": 37619,
+          "sha256": "4890fc7a076ac33d91edfc1a7f8c508e24633afac2597f08675e8dc6cb1e3f15"
+        },
+        {
+          "path": "platform/agent_harness/package-lock.json",
+          "source_path": "agent_harness/package-lock.json",
+          "bytes": 123322,
+          "sha256": "b31acd4fbb7ec20f56221223e543a80ad586050110e20ffb6ffbfa93eaa82b7e"
+        },
+        {
+          "path": "platform/agent_harness/package.json",
+          "source_path": "agent_harness/package.json",
+          "bytes": 2734,
+          "sha256": "4bbb45f6942fddf61967b9695cd1f80e6f8bdc5d52e69e724af315afcc3c2dc2"
+        },
+        {
+          "path": "platform/agent_harness/tests/host.test.mjs",
+          "source_path": "agent_harness/tests/host.test.mjs",
+          "bytes": 34464,
+          "sha256": "a8c24a56cc7fcbabc260e0e36c42d98de2ea7dc2565c1a6ce5a50c323651a414"
+        },
+        {
           "path": "platform/apps/portal/index.html",
           "source_path": "apps/portal/index.html",
-          "bytes": 465,
-          "sha256": "59ad23f2659e731b2f494002bdd0c2c167f983a58b269a139a218efdf401c06f"
+          "bytes": 589,
+          "sha256": "c87419b4595b9ab7339c562cc3b089faf7010f5fa53fdf13ede322086feb425a"
         },
         {
           "path": "platform/apps/portal/package.json",
           "source_path": "apps/portal/package.json",
-          "bytes": 876,
-          "sha256": "8130db2689b7155f8738c29dc3b02a1601d2ac7b1af039adfe0395e60407fbd1"
+          "bytes": 911,
+          "sha256": "a022154b9380df2ab97321bed6318ce46810c957836a34c1e34038b4c25ce373"
         },
         {
           "path": "platform/apps/portal/pnpm-lock.yaml",
           "source_path": "apps/portal/pnpm-lock.yaml",
-          "bytes": 120601,
-          "sha256": "e6f99651bb03a2ba4d27ba9bffbb8401873b6a5291feac123fd9d7b90ce3a4f4"
+          "bytes": 120725,
+          "sha256": "aa5a87addebc0d5e7c43944c543ccccf2d51447bcc2ceff7b0e93a5417a42e28"
         },
         {
           "path": "platform/apps/portal/public/brand/clear-mark.svg",
@@ -141,52 +498,106 @@
           "sha256": "1194594fa887b4175bb673d0acd9aa414493b09b388954f29c27ad63868c8ace"
         },
         {
+          "path": "platform/apps/portal/public/brand/fonts/OFL.txt",
+          "source_path": "apps/portal/public/brand/fonts/OFL.txt",
+          "bytes": 4388,
+          "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+        },
+        {
+          "path": "platform/apps/portal/public/brand/fonts/clear-sans-sc.woff2",
+          "source_path": "apps/portal/public/brand/fonts/clear-sans-sc.woff2",
+          "bytes": 195656,
+          "sha256": "e4b00ba7ff4704847f83323f027d2aa96d04f3041a834e1679ff776c5c6382ce"
+        },
+        {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 19429,
-          "sha256": "c0dff73f87dd8b72dc6399c24125810a15bdd0f9b121da6fd3871d10460b66d8"
+          "bytes": 21872,
+          "sha256": "ed618d6b33bb5bc8c44c38c20e287bbabfd2b6a946318fe3ad0b7442266e6c75"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/common.css",
+          "source_path": "apps/portal/src/clear-ui/common.css",
+          "bytes": 920,
+          "sha256": "a9f786cf216470d529a7ed76d1288413ed6ef724eca2cd52a98f2c8cab3617c7"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/experience.css",
+          "source_path": "apps/portal/src/clear-ui/experience.css",
+          "bytes": 5032,
+          "sha256": "522d80901917e9f67211ff14ff418468533db425de47398fd06b1286485ef7fd"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/navigation.ts",
+          "source_path": "apps/portal/src/clear-ui/navigation.ts",
+          "bytes": 740,
+          "sha256": "ceab7ae7db433f641d326fbc5ee80536929d7bd8c6bae94dd1597f074b50659f"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/recentVisits.ts",
+          "source_path": "apps/portal/src/clear-ui/recentVisits.ts",
+          "bytes": 2390,
+          "sha256": "4be64fd694490ed3576644dc63b847509c9247703f6c01d24978d13b36f351fc"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/theme.ts",
           "source_path": "apps/portal/src/clear-ui/theme.ts",
-          "bytes": 2100,
-          "sha256": "e25bbb0d6a0e4b83d6f2599ec0d0e3b2ba0b78d32a8c3d5b1d040ec8a8b3aefa"
+          "bytes": 2083,
+          "sha256": "445c919671336f71a6ba76e0ce1477c1bfe0978e62db11b3e5c2daf538ad82df"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/tokens.css",
           "source_path": "apps/portal/src/clear-ui/tokens.css",
-          "bytes": 1683,
-          "sha256": "68c115be9f5b1bfc0406941b25d80938b43d730d0d350f4555aa2af732a102ba"
+          "bytes": 1697,
+          "sha256": "4138f3b0f7117ddde52f5d30bcde7a14234d8691f949345b5cf0c522f207478b"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/workspace.css",
+          "source_path": "apps/portal/src/clear-ui/workspace.css",
+          "bytes": 6247,
+          "sha256": "9d20375bcf3f7583d6050619bf6aff4b40721fad575c82dba09f841e1bfc6a71"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AgentMessage.tsx",
           "source_path": "apps/portal/src/features/agent/AgentMessage.tsx",
-          "bytes": 4533,
-          "sha256": "c395a90c448048280cad2e93fdb710d12b291862c89d0974c81ca2f4159b4a24"
+          "bytes": 5790,
+          "sha256": "8b7d3a0cb29a0f475c3398179227933d0d0f6a0c66bf5ba452cf3ffafd575a0e"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
           "source_path": "apps/portal/src/features/agent/AgentWorkbench.tsx",
-          "bytes": 29561,
-          "sha256": "1d5419277e88f9cef3af0a2fd7a8ee86e50875d3e20a6a54da0e6b43df308aef"
+          "bytes": 44259,
+          "sha256": "5c4a4a375cb17132b175fda1211332d0d9b3a72e41c26e8273d0269fa2605a5d"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AuditHelp.tsx",
           "source_path": "apps/portal/src/features/agent/AuditHelp.tsx",
-          "bytes": 3033,
-          "sha256": "47f033ce0b3aad55d5183ce07d898a023170739c8ed23c7f0ca4ddd2b63d23e1"
+          "bytes": 3411,
+          "sha256": "8ff493663a3e89497a2b67270b230c27f8313bde9769f26b9dd4624454b290f2"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ContextBudget.tsx",
           "source_path": "apps/portal/src/features/agent/ContextBudget.tsx",
-          "bytes": 6971,
-          "sha256": "0b9d6cd3cdbbe52b8f1368b88cb9387da2510a7d1f4c931774bf1086c37ea8a8"
+          "bytes": 11524,
+          "sha256": "b6b34b394872aa120db501337f21cf764bb26c09246dfbaeeca0ff1b0e9b97b5"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ControllerSettings.tsx",
           "source_path": "apps/portal/src/features/agent/ControllerSettings.tsx",
-          "bytes": 7272,
-          "sha256": "7717125593c8642d65e6478f33b07e4795ca455cf7e4b947f7c53688ce6f3c6f"
+          "bytes": 13295,
+          "sha256": "13431101442d177c22bcd0a4146c9928c833e896a59c90f2cab263091fa4e0bb"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/DirectImageTextButton.tsx",
+          "source_path": "apps/portal/src/features/agent/DirectImageTextButton.tsx",
+          "bytes": 4018,
+          "sha256": "9a0e811e8d2f530cc9b6d2e9ac2fc67180f53910d6964e94d9135c8c83f04f1b"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/DirectPdfTextButton.tsx",
+          "source_path": "apps/portal/src/features/agent/DirectPdfTextButton.tsx",
+          "bytes": 1606,
+          "sha256": "6c6ea06978f02a825f72bfc14759eafd62a2ae5de9a08695c6c5d29a81bfb378"
         },
         {
           "path": "platform/apps/portal/src/features/agent/EvidenceContent.tsx",
@@ -203,8 +614,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/FindingsWorkspace.tsx",
           "source_path": "apps/portal/src/features/agent/FindingsWorkspace.tsx",
-          "bytes": 12922,
-          "sha256": "e73b98389d7b0c2a0dcfe476ef954ea140c09d6830e897a84d0b626a43a74d92"
+          "bytes": 16633,
+          "sha256": "9e97f95722597ffb71f3a29fdf69ab913c8f09c473e16564d8e112c9f8f942bd"
         },
         {
           "path": "platform/apps/portal/src/features/agent/FixedNativeEvidence.tsx",
@@ -213,16 +624,22 @@
           "sha256": "b482ee7a21dee1c7473de8751aa3bec4643e1cfcf95e89b5c50d703ab421003e"
         },
         {
+          "path": "platform/apps/portal/src/features/agent/IntegrationSettings.tsx",
+          "source_path": "apps/portal/src/features/agent/IntegrationSettings.tsx",
+          "bytes": 3395,
+          "sha256": "ce444113850e8332a5a968fe02dcb3915d29cde1b609adc4fa45dd01a3793045"
+        },
+        {
           "path": "platform/apps/portal/src/features/agent/ManualReturn.tsx",
           "source_path": "apps/portal/src/features/agent/ManualReturn.tsx",
-          "bytes": 13387,
-          "sha256": "d5357ef68a35abc9bad78bf6c2fb3aee34a1e7b21b41a96c42148f8d0eac155d"
+          "bytes": 13392,
+          "sha256": "2a02e3eb7d72230d7a4f17455339dacfef80cba64e9c1a94ea3517531a09b242"
         },
         {
           "path": "platform/apps/portal/src/features/agent/Materials.tsx",
           "source_path": "apps/portal/src/features/agent/Materials.tsx",
-          "bytes": 4765,
-          "sha256": "fa7754b1213d56ac98f5ac6cf59e46a59308b4f969e259021b36aeb903c20143"
+          "bytes": 4777,
+          "sha256": "e7d69d3125c9e39138fd557f5ba718ac85e182655d7e8d73a3963f948ce8e9d4"
         },
         {
           "path": "platform/apps/portal/src/features/agent/NativeResultPreview.tsx",
@@ -233,14 +650,20 @@
         {
           "path": "platform/apps/portal/src/features/agent/PlatformSettings.tsx",
           "source_path": "apps/portal/src/features/agent/PlatformSettings.tsx",
-          "bytes": 4416,
-          "sha256": "b0fb4b6e6a843801393bf1190cefabb5de536142020d1cbf2111fe8812977aed"
+          "bytes": 5012,
+          "sha256": "3ab9f7a7c58537b5b55857c2d173193ea731e2dd407758321c25579b0d38b841"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/PlatformTools.tsx",
+          "source_path": "apps/portal/src/features/agent/PlatformTools.tsx",
+          "bytes": 12580,
+          "sha256": "e17330ff64625a73f13f4ad7c89c54dfc511beccbbd789c80c5d2869a9cc9737"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ProjectHome.tsx",
           "source_path": "apps/portal/src/features/agent/ProjectHome.tsx",
-          "bytes": 4688,
-          "sha256": "4057f52e4ecd5ea5fd0b15d902d9938ec1b87225d94fbca5c59397bc8a1dae80"
+          "bytes": 4759,
+          "sha256": "b0e5c26e53c9fc1a0610283c91c9616d2862ed957b30905c824e90cf441fb7df"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ProjectNavigation.tsx",
@@ -249,10 +672,16 @@
           "sha256": "c7115813f962c6fce9d8e2e68f21c7bd6b5dabde223cab54b59eceb6762e0a8d"
         },
         {
+          "path": "platform/apps/portal/src/features/agent/ReadableText.tsx",
+          "source_path": "apps/portal/src/features/agent/ReadableText.tsx",
+          "bytes": 4172,
+          "sha256": "b58182dc24ae5788070a135c40315fbdd7c0ec37f06a4934459cd3b16244c488"
+        },
+        {
           "path": "platform/apps/portal/src/features/agent/RunStatus.tsx",
           "source_path": "apps/portal/src/features/agent/RunStatus.tsx",
-          "bytes": 4089,
-          "sha256": "4678ca64bb8d52ae09c2e62fc0e096c7f0bd70f990608302773fcd1e974442bb"
+          "bytes": 6239,
+          "sha256": "706a4d173947a6fb9592f111f4591343f540d39beaa16718f43abdbc0e6185e7"
         },
         {
           "path": "platform/apps/portal/src/features/agent/SkillsPanel.tsx",
@@ -263,56 +692,104 @@
         {
           "path": "platform/apps/portal/src/features/agent/TaskPanel.tsx",
           "source_path": "apps/portal/src/features/agent/TaskPanel.tsx",
-          "bytes": 4445,
-          "sha256": "c4166a350003e25fdb773286a0f1d015ecee29ce1982b2111326ab0c647659f8"
+          "bytes": 13627,
+          "sha256": "1ac71e34df01eae2bb251053580335931231149caec09b050c501e214fb3d2f1"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ToolActivity.tsx",
           "source_path": "apps/portal/src/features/agent/ToolActivity.tsx",
-          "bytes": 6091,
-          "sha256": "551574fe5de4286983e16f818c290e16bc9f7c12d91929b0c1f6941d8d171991"
+          "bytes": 9168,
+          "sha256": "4bf8ebed56e0a7ab4b12104127c4491e5cd2f22ab24b59f406f9800093fd5faa"
         },
         {
           "path": "platform/apps/portal/src/features/agent/agent.css",
           "source_path": "apps/portal/src/features/agent/agent.css",
-          "bytes": 19022,
-          "sha256": "12cd809b0bedbd87764d15b6a468d3d29921d140e47245ee7b82e18aa03e9d2e"
+          "bytes": 20410,
+          "sha256": "f9e0c35474420376379cefad88a3742be36f1cfaa356d0c68b02d465013a2471"
         },
         {
           "path": "platform/apps/portal/src/features/agent/api.ts",
           "source_path": "apps/portal/src/features/agent/api.ts",
-          "bytes": 5298,
-          "sha256": "56d2264e6ca06775db4221c6ad70d45131889a6979e9fccfabb63f7897157705"
+          "bytes": 7066,
+          "sha256": "da4603e15d01906914a7d7a2e207dd889249ddc8b28a9cf6a1e18ccb8d7608ec"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/conversationMotion.tsx",
+          "source_path": "apps/portal/src/features/agent/conversationMotion.tsx",
+          "bytes": 4675,
+          "sha256": "b374df57d85b94d320d43fe80b1dfc371ef0422fd6e24fdbd06ec28c2577972e"
         },
         {
           "path": "platform/apps/portal/src/features/agent/conversationProjection.ts",
           "source_path": "apps/portal/src/features/agent/conversationProjection.ts",
-          "bytes": 11875,
-          "sha256": "9d3215cf7eedd8f3fab81e6d5b0d32a918a3b2126c57ecbb65047a71e28d8b0f"
+          "bytes": 17839,
+          "sha256": "eabcf918f7bf149be33da973ed2a0d1c367c012b7c0ec10ae9b79ae66f2e10e9"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/experience.css",
+          "source_path": "apps/portal/src/features/agent/experience.css",
+          "bytes": 1888,
+          "sha256": "83395102bbe746d173bb705f1574ee33542855a1be1a262ac5536c1edb45bab4"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/platform-tools.css",
+          "source_path": "apps/portal/src/features/agent/platform-tools.css",
+          "bytes": 2349,
+          "sha256": "62b88e6a4d67216d3996f8f946559072b6310ff1e7178ee06c1794cb1097c9f7"
         },
         {
           "path": "platform/apps/portal/src/features/agent/referencePath.ts",
           "source_path": "apps/portal/src/features/agent/referencePath.ts",
-          "bytes": 1684,
-          "sha256": "be164c2d2cfd20ed4e5b7a48b1890d7ae3b46be944e31753daabc3974aa8a80c"
+          "bytes": 2668,
+          "sha256": "3430264d9a30c0e41014fefc30358b1b76e950b42a24c3de4e42fb293a4db3eb"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/statusLabels.ts",
+          "source_path": "apps/portal/src/features/agent/statusLabels.ts",
+          "bytes": 527,
+          "sha256": "0d35e7b8d6cac61a6c524dffa0c7e6014ddc047549748b322aebf04a91bc3f8e"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/task-panel.css",
+          "source_path": "apps/portal/src/features/agent/task-panel.css",
+          "bytes": 9670,
+          "sha256": "7830cb857a550a3ea3ec539c3a75316a17742f9de656d384fd768ddc952768ff"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/tool-activity.css",
+          "source_path": "apps/portal/src/features/agent/tool-activity.css",
+          "bytes": 3709,
+          "sha256": "c03141b7e5e90d02fafe8d833f8f070f613897a866816322da54511179a61ccc"
         },
         {
           "path": "platform/apps/portal/src/features/agent/useAgentEvents.ts",
           "source_path": "apps/portal/src/features/agent/useAgentEvents.ts",
-          "bytes": 5975,
-          "sha256": "85b383ee5b4fb777ae428f09a3c22c18322591f645a1170920fe5e7cbaf4dfff"
+          "bytes": 7669,
+          "sha256": "adffc1f929bac4238c1f2fd98193444e0cb4cfb184cc21b0a00b4cd8717f7698"
         },
         {
           "path": "platform/apps/portal/src/features/agent/useConversationScroll.ts",
           "source_path": "apps/portal/src/features/agent/useConversationScroll.ts",
-          "bytes": 4067,
-          "sha256": "fa208219f8008960592f8ed3d18004804f4d57dfd78835cc9f93a3a08666c645"
+          "bytes": 11449,
+          "sha256": "0de1343261c535d705064669f4a49a6cef5b86dcc0e611a6be9bcce313828a75"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/workbench-visual.css",
+          "source_path": "apps/portal/src/features/agent/workbench-visual.css",
+          "bytes": 13120,
+          "sha256": "4b4e688e935bcd19fbbf26877676fa33776347ebc6e71400e40f8cd77987e058"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/workbenchView.ts",
+          "source_path": "apps/portal/src/features/agent/workbenchView.ts",
+          "bytes": 8371,
+          "sha256": "130189853024f3d4767d479b1a331fd46388fb27f14e806024b4743fe8e28d2f"
         },
         {
           "path": "platform/apps/portal/src/features/artifacts/ArtifactCenter.tsx",
           "source_path": "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-          "bytes": 22882,
-          "sha256": "9b72c8996a2fb702ca724879c1ebd278cc88c0e0f8fd37a2225c8813c72b8e15"
+          "bytes": 23918,
+          "sha256": "bd4a2a67444e3b68dc37af184892bf9079848581ff4c3a83fbb862ef1df4e3e2"
         },
         {
           "path": "platform/apps/portal/src/features/artifacts/artifacts.css",
@@ -435,10 +912,22 @@
           "sha256": "8cd8d29bd0b19c6bc900fe7e09a2c9b133867dc41f48b51ef9879efdd5e5e875"
         },
         {
+          "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
+          "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
+          "bytes": 9754,
+          "sha256": "cf3c53ea22ca27a2d6e6da72a2c00e25ef6ef92ecb38c8e5df2754364266a6b5"
+        },
+        {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolIdentity.tsx",
-          "bytes": 1258,
-          "sha256": "917aa7597e63026b4503d8356e03ff7e8597cc107bb9df9843c874ff549fb6a2"
+          "bytes": 1095,
+          "sha256": "f8dea4790ce7b5767a87643dfc90f9d4fd32d82ebfa2e0e02f4ac5995c5c7234"
+        },
+        {
+          "path": "platform/apps/portal/src/features/catalog/directory.css",
+          "source_path": "apps/portal/src/features/catalog/directory.css",
+          "bytes": 11125,
+          "sha256": "56c8fbf82ae50054f9760bf737b8aa0a277c14015e5e74d85a770509b2a3a005"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/nativeReviewReturn.ts",
@@ -449,8 +938,14 @@
         {
           "path": "platform/apps/portal/src/features/catalog/nativeWindow.ts",
           "source_path": "apps/portal/src/features/catalog/nativeWindow.ts",
-          "bytes": 4026,
-          "sha256": "bc21eaf30347f426cd204dbe63f9496e38c09604d6f51f6f769984b736282027"
+          "bytes": 4755,
+          "sha256": "38621041c68a3e7cd3a557244f13a7edeed62065dd93e260f5f80d2a29832daf"
+        },
+        {
+          "path": "platform/apps/portal/src/features/catalog/toolCatalog.ts",
+          "source_path": "apps/portal/src/features/catalog/toolCatalog.ts",
+          "bytes": 1159,
+          "sha256": "d04d2b640196b611c5230313fb9d5fd351f94f6482c121ed0702960029a441db"
         },
         {
           "path": "platform/apps/portal/src/features/classification/ClassificationWorkflow.tsx",
@@ -467,8 +962,8 @@
         {
           "path": "platform/apps/portal/src/features/data/DataWorkbench.tsx",
           "source_path": "apps/portal/src/features/data/DataWorkbench.tsx",
-          "bytes": 45466,
-          "sha256": "bc21c4a2d5d3ef1b8c7cda99b14f509025a6f7d0b6ba704c4d51f868e0b2e07c"
+          "bytes": 45302,
+          "sha256": "8d8998fe7541c722876a58e3004d94a9deb645d71ed7af50f05b071cb245a7e6"
         },
         {
           "path": "platform/apps/portal/src/features/data/data.css",
@@ -507,10 +1002,22 @@
           "sha256": "358bc9ccd1dc17083ccb87ab942da9e735722013f06febdee15dc6697e516ab1"
         },
         {
+          "path": "platform/apps/portal/src/features/home/PortalHome.tsx",
+          "source_path": "apps/portal/src/features/home/PortalHome.tsx",
+          "bytes": 7250,
+          "sha256": "1dc8af4941e12f6f303168a1c7a35c81068d47ba10b299dab5882d65196cd9b5"
+        },
+        {
+          "path": "platform/apps/portal/src/features/home/home.css",
+          "source_path": "apps/portal/src/features/home/home.css",
+          "bytes": 5347,
+          "sha256": "9aa0221f8f5c62664fc422113c3e1b421fde0992317e9560ffb6f4b649043806"
+        },
+        {
           "path": "platform/apps/portal/src/features/jobs/TaskCenter.tsx",
           "source_path": "apps/portal/src/features/jobs/TaskCenter.tsx",
-          "bytes": 8919,
-          "sha256": "78b5666ae1631a2b4eefe33fa4eab497f28f0ba69f0270633f6cd9b4b6cde500"
+          "bytes": 9319,
+          "sha256": "84cc86830809dcf8489208d53da87e1e0cece889f3aeac1018a9bc6a9ed8db7c"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/ManualEvidencePicker.tsx",
@@ -521,8 +1028,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 33137,
-          "sha256": "48dd213e403d5f9531770c45e5ac055641a9626e9b6e3a71bf7dc09c30283565"
+          "bytes": 38186,
+          "sha256": "7855e32cc1f0e0c3858c75209bb52de8e1b1a4f5e9e5b9d1610f73265b4dce15"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
@@ -563,8 +1070,8 @@
         {
           "path": "platform/apps/portal/src/features/start/QuickNativeWorkbench.tsx",
           "source_path": "apps/portal/src/features/start/QuickNativeWorkbench.tsx",
-          "bytes": 8269,
-          "sha256": "72e3de9dd8c30f38a608dcf5ced6cbf780d46ce798aa4de44a263f6e200deb60"
+          "bytes": 9622,
+          "sha256": "6a7308413bab826aa297b1177a17eca401fdad5d8266ba1c8ce870a655f7f026"
         },
         {
           "path": "platform/apps/portal/src/features/start/QuickStart.tsx",
@@ -587,8 +1094,8 @@
         {
           "path": "platform/apps/portal/src/features/tasks/session.tsx",
           "source_path": "apps/portal/src/features/tasks/session.tsx",
-          "bytes": 5471,
-          "sha256": "995d09a32093436422cf7dad4982afdc931d7715c1e34e8b4e97bcf981ebae51"
+          "bytes": 5476,
+          "sha256": "b26a60331ddc4750cd04855e648ef7faadfdd95883d3d2b93771fc09a6fb0dc0"
         },
         {
           "path": "platform/apps/portal/src/features/tasks/tasks.css",
@@ -617,38 +1124,80 @@
         {
           "path": "platform/apps/portal/src/main.tsx",
           "source_path": "apps/portal/src/main.tsx",
-          "bytes": 639,
-          "sha256": "fc8d8f7d9e33efde3c0b4c15b7ebc829b4b224adae818df1fb3afe3225a58e52"
+          "bytes": 725,
+          "sha256": "27ab398dd3b1a0d26bf122d55397745e58de8f6b46337671723c316cf6e0b8cf"
+        },
+        {
+          "path": "platform/apps/portal/src/queryClient.ts",
+          "source_path": "apps/portal/src/queryClient.ts",
+          "bytes": 281,
+          "sha256": "dafd7148ab9997111852ff3d7f6d2e460278a13cdb65eaac5c18601f6d9e2494"
         },
         {
           "path": "platform/apps/portal/src/router.tsx",
           "source_path": "apps/portal/src/router.tsx",
-          "bytes": 6684,
-          "sha256": "b27e71e1f3a2aad6e582368e73a292ea8141a84258a533a0439ee4a039eafef1"
+          "bytes": 7529,
+          "sha256": "4521994ce1680a7d87d242c4f7db0f6afd0212da53ba819bddc3d31ec3d93a8c"
         },
         {
           "path": "platform/apps/portal/src/style.css",
           "source_path": "apps/portal/src/style.css",
-          "bytes": 12634,
-          "sha256": "a7fd7d75e1ae90eb69652f7ffa61d3ea80104dfcec57b20aa2275676a0e1211d"
+          "bytes": 12497,
+          "sha256": "347b99ddcd6be2c0585bd0a546b81e76db8db4b04b6b6ad1da9bac89728c0e52"
         },
         {
           "path": "platform/apps/portal/tests/agent-context-skills.test.tsx",
           "source_path": "apps/portal/tests/agent-context-skills.test.tsx",
-          "bytes": 20333,
-          "sha256": "d8f1f48abcf7947ae5d9fb03e28528d2862d6215b02979925d9b50b3b9a47570"
+          "bytes": 20088,
+          "sha256": "8973c848364567d689d449ca1745312bad01c0772cbf8ea5604e4cec92fcbeaa"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-harness-ui.test.tsx",
+          "source_path": "apps/portal/tests/agent-harness-ui.test.tsx",
+          "bytes": 15642,
+          "sha256": "3475d2072039ce2167f31ae809b86b4eeea7d5569c2a39e6d2ab35304336f005"
         },
         {
           "path": "platform/apps/portal/tests/agent-invocation.test.tsx",
           "source_path": "apps/portal/tests/agent-invocation.test.tsx",
-          "bytes": 15259,
-          "sha256": "4b9e417c2667133a78651eda54865fa1bf7a5bef77f5631605e063d18be41f5b"
+          "bytes": 19090,
+          "sha256": "3e99b62dbedf3fb67c238968aa182f77d98612da7044f5c0f85550ed576c86d4"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-motion.test.tsx",
+          "source_path": "apps/portal/tests/agent-motion.test.tsx",
+          "bytes": 14010,
+          "sha256": "4d11c8bf36fd324eca5d23f24daed89654db383394b2cc46b24d9341c2149d24"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-platform-tools.test.tsx",
+          "source_path": "apps/portal/tests/agent-platform-tools.test.tsx",
+          "bytes": 14620,
+          "sha256": "809a27d00018d48b2735c717efa1d6b002bc9ad365108783f8b6cde4020d8a2c"
         },
         {
           "path": "platform/apps/portal/tests/agent-streaming-ui.test.tsx",
           "source_path": "apps/portal/tests/agent-streaming-ui.test.tsx",
-          "bytes": 25515,
-          "sha256": "7925d35a0b6fd16ae372e425e893bc5084061f7a59a5943811dddd868db0bb25"
+          "bytes": 27296,
+          "sha256": "b7e5b67f55ce1adf366a98ec656cc04a8e956d211bb366fa3aa4898ef5ded2cb"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-task-panel.test.tsx",
+          "source_path": "apps/portal/tests/agent-task-panel.test.tsx",
+          "bytes": 11679,
+          "sha256": "4da4bd581581eddefec8d2599f418ad713878d88b874ca839400d4b3020a3b93"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-workbench-visual.test.tsx",
+          "source_path": "apps/portal/tests/agent-workbench-visual.test.tsx",
+          "bytes": 5950,
+          "sha256": "b2a7b30cc9c64c060686d2fa33a2a7e0cbc6b3d5247934c5e3be0f6d2dcaf568"
+        },
+        {
+          "path": "platform/apps/portal/tests/architecture-revision.test.tsx",
+          "source_path": "apps/portal/tests/architecture-revision.test.tsx",
+          "bytes": 18185,
+          "sha256": "8142a7aef237da19acfb4cf6f6fdb0c6c3e84371a223a89364b7f406aadb90b9"
         },
         {
           "path": "platform/apps/portal/tests/audio-upload.test.tsx",
@@ -671,8 +1220,8 @@
         {
           "path": "platform/apps/portal/tests/catalog.test.tsx",
           "source_path": "apps/portal/tests/catalog.test.tsx",
-          "bytes": 25120,
-          "sha256": "a029fc02fefbf59b2fc0734fdd2083229054de3038e929fabab8d469bdf4e8ac"
+          "bytes": 25667,
+          "sha256": "146ac6ee87723d4134bc21b57b9a8d1b83a5403b0fa394ad7cc64b49894709f3"
         },
         {
           "path": "platform/apps/portal/tests/file-hash.test.ts",
@@ -699,6 +1248,18 @@
           "sha256": "a442513aae0e429fd3e521c35453c55527f76813b7081f94567b87d2e144e28f"
         },
         {
+          "path": "platform/apps/portal/tests/gui-experience.test.tsx",
+          "source_path": "apps/portal/tests/gui-experience.test.tsx",
+          "bytes": 5312,
+          "sha256": "52886061d29ce3dcdab8acb2a869c3c3132d104d4a5688d31dd635721d4921ff"
+        },
+        {
+          "path": "platform/apps/portal/tests/home-routing.test.tsx",
+          "source_path": "apps/portal/tests/home-routing.test.tsx",
+          "bytes": 5432,
+          "sha256": "52a5a3860c3e29708226b32c348e869e24a56ba7ef984dc2033cace076e1389a"
+        },
+        {
           "path": "platform/apps/portal/tests/item-evidence.test.tsx",
           "source_path": "apps/portal/tests/item-evidence.test.tsx",
           "bytes": 10470,
@@ -709,6 +1270,12 @@
           "source_path": "apps/portal/tests/jobs.test.tsx",
           "bytes": 3112,
           "sha256": "0cd10b74031917f800dfe529c6381935b0020fc293bcd14d903b2d2ebf4bff9c"
+        },
+        {
+          "path": "platform/apps/portal/tests/multimodal-agent-results.test.tsx",
+          "source_path": "apps/portal/tests/multimodal-agent-results.test.tsx",
+          "bytes": 5187,
+          "sha256": "1eb71d73c1cc1040788661c15ed6069285529b8d7c7526462a1eb3fff5d89227"
         },
         {
           "path": "platform/apps/portal/tests/multimodal-review.test.tsx",
@@ -725,20 +1292,20 @@
         {
           "path": "platform/apps/portal/tests/native-window.test.tsx",
           "source_path": "apps/portal/tests/native-window.test.tsx",
-          "bytes": 2582,
-          "sha256": "0205ce544af4573310d0b5186b5cb834c79241781554a4541e6847a3176a3ecd"
+          "bytes": 3155,
+          "sha256": "47a6e7933921bb43ab29ed8057607b4445e857a3b7063f9efa4335eea5f21dfd"
         },
         {
           "path": "platform/apps/portal/tests/navigation.test.tsx",
           "source_path": "apps/portal/tests/navigation.test.tsx",
-          "bytes": 15887,
-          "sha256": "d0e8d568de1a76ab3886ef00485dd862d68d10c5f8edd6bd763e66aef091b4c8"
+          "bytes": 15860,
+          "sha256": "b80101c469605b8c1d0dc16e60d71ab03ea3ebdcfd1d3c067ccd8b76bc58c5af"
         },
         {
           "path": "platform/apps/portal/tests/quick-start.test.tsx",
           "source_path": "apps/portal/tests/quick-start.test.tsx",
-          "bytes": 10742,
-          "sha256": "fec7842218fb29245fa6970366183f5b78e366392843ea96ca86eb49f37b445f"
+          "bytes": 10736,
+          "sha256": "409bc7c35545ed65eebbbf318011a24cac274d5e158420f0727685374745121d"
         },
         {
           "path": "platform/apps/portal/tests/task-history.test.tsx",
@@ -779,8 +1346,8 @@
         {
           "path": "platform/apps/portal/vite.config.ts",
           "source_path": "apps/portal/vite.config.ts",
-          "bytes": 231,
-          "sha256": "5f88a0800e3d8d553df87d0c45bd5710669aff9d9687ca2b3f93cd04bd6ff73a"
+          "bytes": 460,
+          "sha256": "3f4d9f0deb3c210dc46beb6af59f700201b3e7a3530f944e1f1acd5ea19d99e0"
         },
         {
           "path": "platform/apps/portal/vitest.forensics.config.ts",
@@ -851,8 +1418,8 @@
         {
           "path": "platform/config/skills/classification-training-preparation/SKILL.md",
           "source_path": "config/skills/classification-training-preparation/SKILL.md",
-          "bytes": 3801,
-          "sha256": "f430e92a789181ea9415a7171648333f099c9b69ca9bd81e10f2e435899fcfe2"
+          "bytes": 3309,
+          "sha256": "3bf128ef902f12c34848aeb4bf77ddeeb27ab25b43a02be82686846f743eda7a"
         },
         {
           "path": "platform/config/skills/classification-training-preparation/assets/training-record-template.md",
@@ -869,8 +1436,8 @@
         {
           "path": "platform/config/skills/evidence-workpaper/SKILL.md",
           "source_path": "config/skills/evidence-workpaper/SKILL.md",
-          "bytes": 2511,
-          "sha256": "8c519da0dd9ea981b8b938319ded469f707ca0e243ff80afa001c374ed171b28"
+          "bytes": 2852,
+          "sha256": "5c903d47ea010686fc6f69c88d4e871eab83a527994b1cad99f74f0b139b03b7"
         },
         {
           "path": "platform/config/skills/evidence-workpaper/assets/finding-workpaper-template.md",
@@ -887,8 +1454,8 @@
         {
           "path": "platform/config/skills/invoice-ocr-reconciliation/SKILL.md",
           "source_path": "config/skills/invoice-ocr-reconciliation/SKILL.md",
-          "bytes": 3633,
-          "sha256": "565c8409e6dcaa891ca0e3fb599ab5a55e1df47368a97413aae49456d953055c"
+          "bytes": 3349,
+          "sha256": "8374e8e3b360d12949a7310cf49437224c2e5243b735bc265e99a286ebda78fd"
         },
         {
           "path": "platform/config/skills/invoice-ocr-reconciliation/assets/invoice-workpaper-template.md",
@@ -905,8 +1472,8 @@
         {
           "path": "platform/config/skills/payment-reconciliation/SKILL.md",
           "source_path": "config/skills/payment-reconciliation/SKILL.md",
-          "bytes": 2898,
-          "sha256": "f871b6937cd397c4b012273e2f69dbc5b19ebbb3fbefb348955cf91bf9837e45"
+          "bytes": 3157,
+          "sha256": "daef684f53c9b6125f2bf4d2edef3b8d97a4eb6f9cdc9ba284cc65ee960ba7d8"
         },
         {
           "path": "platform/config/skills/payment-reconciliation/assets/workpaper-template.md",
@@ -941,8 +1508,14 @@
         {
           "path": "platform/docs/agent/README.md",
           "source_path": "docs/agent/README.md",
-          "bytes": 11726,
-          "sha256": "29f281f2549f4737626a51f94e60bc901064c0ce4cedc30f94b3c296ddb39bb0"
+          "bytes": 12804,
+          "sha256": "da4051c994efb3b6ad36da559b90a297180c8ce0a901c36c05a9480275fd8b0c"
+        },
+        {
+          "path": "platform/docs/agent/architecture-revision-20261017.md",
+          "source_path": "docs/agent/architecture-revision-20261017.md",
+          "bytes": 3931,
+          "sha256": "9cccd750be71fe7dc700ba70d06bf53931c22cbc3b3a0166f8fbc77dafe2b51a"
         },
         {
           "path": "platform/docs/agent/baseline.md",
@@ -963,10 +1536,22 @@
           "sha256": "7ce690e27f95a3f894dbe46a49f71f4a3a7d548cb299e11949abfcd0ee1070d4"
         },
         {
+          "path": "platform/docs/agent/general-foundation-20261019.md",
+          "source_path": "docs/agent/general-foundation-20261019.md",
+          "bytes": 3082,
+          "sha256": "c2cda4b62d53b77f15dbe0ded05a92386a1164363e193852d2237eeb9463bab1"
+        },
+        {
           "path": "platform/docs/agent/invocation-fixes-20261005.md",
           "source_path": "docs/agent/invocation-fixes-20261005.md",
           "bytes": 7051,
           "sha256": "23b873ebea74d639ef4ce7a5af2e8d3aa43af5bb9932645a95646aeb20d13af1"
+        },
+        {
+          "path": "platform/docs/agent/platform-tools-013.md",
+          "source_path": "docs/agent/platform-tools-013.md",
+          "bytes": 3090,
+          "sha256": "06a31e06ca1e35d0c3484f57885d60f7f5c18bc54376987704857ad9e911a57a"
         },
         {
           "path": "platform/docs/agent/product-delivery-20261004.md",
@@ -1133,8 +1718,8 @@
         {
           "path": "platform/modules/data_workbench/recipes/engine.py",
           "source_path": "modules/data_workbench/recipes/engine.py",
-          "bytes": 23043,
-          "sha256": "028293c093eec7e3e8a7c8a4f69195fb22a323d7061b75147bf134dd51070f4f"
+          "bytes": 23820,
+          "sha256": "0539853b9ccdf44361a3daa09809edb4f399d068c656607c0fba33c287b1ce67"
         },
         {
           "path": "platform/modules/data_workbench/runtime.py",
@@ -1289,14 +1874,14 @@
         {
           "path": "platform/packages/contracts/adapter.openapi.json",
           "source_path": "packages/contracts/adapter.openapi.json",
-          "bytes": 499649,
-          "sha256": "4329013d09dae758b2f2f75b9a7b68823bf34ac74fe7f0ebdc17f0b4f5497b90"
+          "bytes": 564767,
+          "sha256": "2636425cfa8604afd630b4646d5281ed55d71502f6ca002702bdf55d2712991f"
         },
         {
           "path": "platform/packages/contracts/agent-agentcall.schema.json",
           "source_path": "packages/contracts/agent-agentcall.schema.json",
-          "bytes": 574,
-          "sha256": "81a14e28707db92a734929a87e100eb33f5bad9fb68fcc452756986109ce28d3"
+          "bytes": 581,
+          "sha256": "d65eb7a2628add980a1cf833c55b1d6efd9b1aebea32632fffc0704bab9e92a3"
         },
         {
           "path": "platform/packages/contracts/agent-agentcancel.schema.json",
@@ -1307,14 +1892,14 @@
         {
           "path": "platform/packages/contracts/agent-agentjobprogress.schema.json",
           "source_path": "packages/contracts/agent-agentjobprogress.schema.json",
-          "bytes": 7444,
-          "sha256": "174daeeb17d9ffba3b01cbe55f689a86f78200a3ad0b9413afa7ddfebe786367"
+          "bytes": 7498,
+          "sha256": "4667066e70febf228662df1bc0620ee75bdd89847ddf54bc096b7cd26cca28c9"
         },
         {
           "path": "platform/packages/contracts/agent-agentmanualreturn.schema.json",
           "source_path": "packages/contracts/agent-agentmanualreturn.schema.json",
-          "bytes": 3900,
-          "sha256": "7d45114ca221fded965f26c6c07bc36c0af8af4dabc268b99cdaf35efabbfacb"
+          "bytes": 3927,
+          "sha256": "1ce2653d41b59892973db414daef5cde0f19cec41b44cddbf5c83fc747e2774d"
         },
         {
           "path": "platform/packages/contracts/agent-agentmessage.schema.json",
@@ -1331,14 +1916,14 @@
         {
           "path": "platform/packages/contracts/agent-agentpublicactivity.schema.json",
           "source_path": "packages/contracts/agent-agentpublicactivity.schema.json",
-          "bytes": 5080,
-          "sha256": "1f208f4316bf778bd05721737771e6cb19de6d6d4834b77c069db60fd9629844"
+          "bytes": 5149,
+          "sha256": "6de5032c6f9d18500264524d956666333b13bb936c775de5722173886b5d8dfa"
         },
         {
           "path": "platform/packages/contracts/agent-agentref.schema.json",
           "source_path": "packages/contracts/agent-agentref.schema.json",
-          "bytes": 2955,
-          "sha256": "994dba8a4e1c99343aac9e79c777984ec3cdd5321265ca2e43f1ccf5e3673fe4"
+          "bytes": 2982,
+          "sha256": "28914c37b33780b54402994738e56b5fa020e8d9a0665143f29bbbd81ced2644"
         },
         {
           "path": "platform/packages/contracts/agent-agentreferencerequest.schema.json",
@@ -1361,14 +1946,14 @@
         {
           "path": "platform/packages/contracts/agent-agentresponsestate.schema.json",
           "source_path": "packages/contracts/agent-agentresponsestate.schema.json",
-          "bytes": 4316,
-          "sha256": "850fe5d07d9b330efca88e2519e1a1f7688ee58481409a761646f8e4c7e33320"
+          "bytes": 4343,
+          "sha256": "8acd3d3fdceb8dffd3489c8761f1f4d14c1d82c46eb01a5d72a768729292d1ac"
         },
         {
           "path": "platform/packages/contracts/agent-agentsessioncreate.schema.json",
           "source_path": "packages/contracts/agent-agentsessioncreate.schema.json",
-          "bytes": 3764,
-          "sha256": "8b41b835f054c00dd6b01050312f7d43ea3322403028f10a291f06e80f264096"
+          "bytes": 4236,
+          "sha256": "9330bf0cbcb4ade1d9215e18599c059e8f50077cac7427542d29f99aae4451cd"
         },
         {
           "path": "platform/packages/contracts/agent-agentskillactivate.schema.json",
@@ -1391,20 +1976,20 @@
         {
           "path": "platform/packages/contracts/agent-agenttaskwrite.schema.json",
           "source_path": "packages/contracts/agent-agenttaskwrite.schema.json",
-          "bytes": 4525,
-          "sha256": "0e50a4e8bd0f38140f50aad2793807812e8b0373311b515da0ccb5779fb20e7e"
+          "bytes": 5263,
+          "sha256": "cb53aa947caa4c67c8a1d48cdfe8e65063532efd8fe120e34982ffba65eabff4"
         },
         {
           "path": "platform/packages/contracts/agent-agenttoolactivity.schema.json",
           "source_path": "packages/contracts/agent-agenttoolactivity.schema.json",
-          "bytes": 4230,
-          "sha256": "ce44a67409d25ce904eca7c5750636ce22d69ddb1013e6b24a948df1f9555e4d"
+          "bytes": 4257,
+          "sha256": "a6474cb8c781ee31e666f8ed854e2efb8247203e3846f31ea9fe1f118ca6ca47"
         },
         {
           "path": "platform/packages/contracts/agent-agenttoolresult.schema.json",
           "source_path": "packages/contracts/agent-agenttoolresult.schema.json",
-          "bytes": 5590,
-          "sha256": "5c5fe6d5f9c5fe8fc44d45e9f90d0804809931c3fa748982f0fba2f484b6ebd0"
+          "bytes": 5617,
+          "sha256": "3b5893624a0b6a576b4041a3cc3aa40c8db9e1623c6659c762b1b22899445c50"
         },
         {
           "path": "platform/packages/contracts/agent-auditprojectprofile.schema.json",
@@ -1415,26 +2000,32 @@
         {
           "path": "platform/packages/contracts/agent-controllerdraft.schema.json",
           "source_path": "packages/contracts/agent-controllerdraft.schema.json",
-          "bytes": 1544,
-          "sha256": "75bc8440104fbde7fc8255cc0d3181316f3e290027344e0d68061b4bbea0181e"
+          "bytes": 3599,
+          "sha256": "4f3c8e5b0ba4590f3100d46b9046db75fb32134e551d75c2cc0bb7831b2f057e"
         },
         {
           "path": "platform/packages/contracts/agent-controllermodelsdraft.schema.json",
           "source_path": "packages/contracts/agent-controllermodelsdraft.schema.json",
-          "bytes": 1535,
-          "sha256": "58b67d2e46b139ce23961d4506a682dad5db43aae4d76e384a7e4b332b8fcc18"
+          "bytes": 3590,
+          "sha256": "acab8ddd3dcccbc8d7cfe148e5932edd6f7fb0f72b99eda3a5c764685ab6d91b"
         },
         {
           "path": "platform/packages/contracts/agent.py",
           "source_path": "packages/contracts/agent.py",
-          "bytes": 9543,
-          "sha256": "24adb659d8e283ad22423355e9a8f31a9c33b7c1aae31ef25d4f7671fe1affcb"
+          "bytes": 11227,
+          "sha256": "f53d580712b8698b90db0af86e81dab8d08aaa631a58b51f358fc3ebd6ece3bb"
+        },
+        {
+          "path": "platform/packages/contracts/agent_integrations.py",
+          "source_path": "packages/contracts/agent_integrations.py",
+          "bytes": 1800,
+          "sha256": "fe63e19e0059d5d174c4cde992bcb142750d4819b36a91ea9f0328c23b0d25b3"
         },
         {
           "path": "platform/packages/contracts/agent_openapi.py",
           "source_path": "packages/contracts/agent_openapi.py",
-          "bytes": 7124,
-          "sha256": "1337fc002ca305be1f39d86639ad00919b0e9a5667f44d306d1733b9920c3a19"
+          "bytes": 8823,
+          "sha256": "4cd5baaff8c1373405c298355adc27285bcaec1a656bc33c9b0c6276859c1b83"
         },
         {
           "path": "platform/packages/contracts/app-manifest.schema.json",
@@ -1487,8 +2078,8 @@
         {
           "path": "platform/packages/contracts/audit-auditevidencesnapshot.schema.json",
           "source_path": "packages/contracts/audit-auditevidencesnapshot.schema.json",
-          "bytes": 27162,
-          "sha256": "7d6bf0980a85a41f8ae12a1eca72d88052b011332404f69f37f754461ad6c017"
+          "bytes": 27189,
+          "sha256": "def32acc3a810b8a085996a92d12672a1d63bfc8b68efbc42ab81e14a16a7a2f"
         },
         {
           "path": "platform/packages/contracts/audit-auditfinding.schema.json",
@@ -1595,14 +2186,14 @@
         {
           "path": "platform/packages/contracts/audit-directevidencerequest.schema.json",
           "source_path": "packages/contracts/audit-directevidencerequest.schema.json",
-          "bytes": 3399,
-          "sha256": "db9c243695cc0474937847cd0f2a46b76936f028107a1eb626ca6de7b0401b8a"
+          "bytes": 3426,
+          "sha256": "fa8ee2a525ca5bd2fb1de56822b43aa99930c4297d0216124d764fe0cfc8b155"
         },
         {
           "path": "platform/packages/contracts/audit-directevidencesnapshot.schema.json",
           "source_path": "packages/contracts/audit-directevidencesnapshot.schema.json",
-          "bytes": 10451,
-          "sha256": "675351cfd64a3d466732aaa419f8e79ab7dee69a4f8be9b8f1381ebdbb3d55be"
+          "bytes": 10478,
+          "sha256": "96cafcd297aaa2e90609c298abff007956aca704209efd46a56ba410f007e130"
         },
         {
           "path": "platform/packages/contracts/audit-drafttransfersource.schema.json",
@@ -1797,6 +2388,60 @@
           "sha256": "66b1f8fa737e5220c91cf65e2ef1ff3ebcde7497b36595e0b3799410bb93f0c8"
         },
         {
+          "path": "platform/packages/contracts/data_operations.py",
+          "source_path": "packages/contracts/data_operations.py",
+          "bytes": 5795,
+          "sha256": "b905b659be9a8c9fb7e462c04e238263e8e85f11d4b10d42bfde5300dddbeb9a"
+        },
+        {
+          "path": "platform/packages/contracts/direct-dataactionrequest.schema.json",
+          "source_path": "packages/contracts/direct-dataactionrequest.schema.json",
+          "bytes": 13664,
+          "sha256": "71798068a31e3f47905d5f7a2488840e389327624da17197dd00f5783accd75b"
+        },
+        {
+          "path": "platform/packages/contracts/direct-imagetextrequest.schema.json",
+          "source_path": "packages/contracts/direct-imagetextrequest.schema.json",
+          "bytes": 1025,
+          "sha256": "8ed7c04029b0126a5b117dc5608f95d7c26e96f40b1b9aaf7ca256074d33d519"
+        },
+        {
+          "path": "platform/packages/contracts/direct-integrations.schema.json",
+          "source_path": "packages/contracts/direct-integrations.schema.json",
+          "bytes": 2339,
+          "sha256": "efa920a0eb7d699d13ffd1983454b9cc8fd589101040873f45d1e52b87628045"
+        },
+        {
+          "path": "platform/packages/contracts/direct-pdftextrequest.schema.json",
+          "source_path": "packages/contracts/direct-pdftextrequest.schema.json",
+          "bytes": 1400,
+          "sha256": "7765704ce4d56f44405b556210580d20cda03ea4282a9cb794e2b1da697d6c5e"
+        },
+        {
+          "path": "platform/packages/contracts/direct-predictrequest.schema.json",
+          "source_path": "packages/contracts/direct-predictrequest.schema.json",
+          "bytes": 1626,
+          "sha256": "f58c28fba1e8f00781d37a82493511b8291d4ceaab57d842e3716230c6edb8b4"
+        },
+        {
+          "path": "platform/packages/contracts/direct.py",
+          "source_path": "packages/contracts/direct.py",
+          "bytes": 1149,
+          "sha256": "ad92fa31247b15b9356bf648da73d3c25dc801df5a4a24109cbb475f9e550cf9"
+        },
+        {
+          "path": "platform/packages/contracts/direct_classification.py",
+          "source_path": "packages/contracts/direct_classification.py",
+          "bytes": 969,
+          "sha256": "877bf01edd6d0bcb2ce5a39c34f35d5e2806fc6e9b4ba0a728e1b0d0de29473c"
+        },
+        {
+          "path": "platform/packages/contracts/direct_data.py",
+          "source_path": "packages/contracts/direct_data.py",
+          "bytes": 1850,
+          "sha256": "4a4dd768b38678cf61f7094ff033100e205bd8b6190d2ab08357646d157dd734"
+        },
+        {
           "path": "platform/packages/contracts/error.schema.json",
           "source_path": "packages/contracts/error.schema.json",
           "bytes": 1641,
@@ -1889,8 +2534,8 @@
         {
           "path": "platform/packages/contracts/generate.py",
           "source_path": "packages/contracts/generate.py",
-          "bytes": 20864,
-          "sha256": "84bbb6a22a89ad7b3d2671c8e6433d9b2cc737f51b4b9988fdbef3e67bfce043"
+          "bytes": 21751,
+          "sha256": "fa0f90754ca654d4aa5c67f1ac05aedc1937d9da5b8506ff63d1f4faaa2d99dd"
         },
         {
           "path": "platform/packages/contracts/handoff.schema.json",
@@ -1907,26 +2552,62 @@
         {
           "path": "platform/packages/contracts/manual-manualanalysis.schema.json",
           "source_path": "packages/contracts/manual-manualanalysis.schema.json",
-          "bytes": 4924,
-          "sha256": "634ea9f3a8038b10e3fbad2bd1a93d02c59e5a10322266a8d69f4a1a6b447cb9"
+          "bytes": 5570,
+          "sha256": "734fffe0255aa6dcd932a8d7c26b971890393a422766d5263509a186a853e544"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysiscreate.schema.json",
           "source_path": "packages/contracts/manual-manualanalysiscreate.schema.json",
-          "bytes": 3108,
-          "sha256": "4405a768e8d3f0d66395b9d28fbc61fd8065d451ea36d668175157cda00ba6a6"
+          "bytes": 3576,
+          "sha256": "d6ad41c73e0c8b86baa9b59a6b5a156d882bd6a139cddf53d6a7764bec89234f"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysispage.schema.json",
           "source_path": "packages/contracts/manual-manualanalysispage.schema.json",
-          "bytes": 6024,
-          "sha256": "3eab117e73fbb2f8857a759eeb33c0fb6d29a659490913c7d14e28eca261dd5e"
+          "bytes": 6706,
+          "sha256": "73430baebd75e2836cb211c5679c92f61493242ff3e6800d564e577c95a3732d"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualcontrol.schema.json",
+          "source_path": "packages/contracts/manual-manualcontrol.schema.json",
+          "bytes": 907,
+          "sha256": "06873e69e22c15c691de2c6f768f5ad296e8aa5eba5ce31e361ecee1336f3120"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualdrafttransfer.schema.json",
+          "source_path": "packages/contracts/manual-manualdrafttransfer.schema.json",
+          "bytes": 954,
+          "sha256": "a2d9610c28d606162c4f0ca2c5fc674beef13f1b9ea08d4f61a4e1bb0a92d33c"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualdrafttransferreceipt.schema.json",
+          "source_path": "packages/contracts/manual-manualdrafttransferreceipt.schema.json",
+          "bytes": 1016,
+          "sha256": "1699c506645cbfffef8c20901b2e9c09ba9aa4cb76e1d9aa39ecd53a55ef19f5"
         },
         {
           "path": "platform/packages/contracts/manual-manualfacereferencecreate.schema.json",
           "source_path": "packages/contracts/manual-manualfacereferencecreate.schema.json",
           "bytes": 921,
           "sha256": "003197d4c8dd5d394044aa34fd89c7c338537134ef6a4e9f78c82f076eac169a"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualoperationreceipt.schema.json",
+          "source_path": "packages/contracts/manual-manualoperationreceipt.schema.json",
+          "bytes": 891,
+          "sha256": "0f5fe830d1905601a5b4510db019be5478d3e225151d1138a0c64fc5c90ed251"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualreferencedelete.schema.json",
+          "source_path": "packages/contracts/manual-manualreferencedelete.schema.json",
+          "bytes": 662,
+          "sha256": "5e60585ca585f17b6ed2cc8ac334171f986bddf1128ccfc76d25e204c5cf3325"
+        },
+        {
+          "path": "platform/packages/contracts/manual-manualresultsnapshot.schema.json",
+          "source_path": "packages/contracts/manual-manualresultsnapshot.schema.json",
+          "bytes": 8765,
+          "sha256": "fce1ca9d67fc5c90c0c9572b3295a88f15d84d5a3b8b8ed801840a44935fc8bc"
         },
         {
           "path": "platform/packages/contracts/manual-manualreview.schema.json",
@@ -1949,8 +2630,8 @@
         {
           "path": "platform/packages/contracts/multimodal.py",
           "source_path": "packages/contracts/multimodal.py",
-          "bytes": 4416,
-          "sha256": "16a06df1b0c62fdbc4f4d7ff7f0cf34b7da439eefaf5ead4f33e8256c53bc5b3"
+          "bytes": 7515,
+          "sha256": "55b418eb5f5ef117942fc0f718a8089230637f71be4d23ac163a0dbb32d08d27"
         },
         {
           "path": "platform/packages/contracts/pyproject.toml",
@@ -2051,8 +2732,8 @@
         {
           "path": "platform/packages/contracts/types.generated.ts",
           "source_path": "packages/contracts/types.generated.ts",
-          "bytes": 42280,
-          "sha256": "2cff0016f14e6d483a70065518dc365fe4ee48c3fdc64111ed65009e86ab32cd"
+          "bytes": 47538,
+          "sha256": "90e3499b0ddd94558cb8276ea8bd508facac84014faf0a4ab1d6cd4520e64fed"
         },
         {
           "path": "platform/packages/contracts/upload-audiouploadbinding.schema.json",
@@ -2189,14 +2870,14 @@
         {
           "path": "platform/scripts/agent_native_preview.py",
           "source_path": "scripts/agent_native_preview.py",
-          "bytes": 9711,
-          "sha256": "e2e986509892ef31a9c6b978ee8273e55d06807e810d7be0bb67b8a15dad7c60"
+          "bytes": 20709,
+          "sha256": "546ca18be710e4988f2ef554f5ee6355d20b485799c83d676645ecaa3c422cd1"
         },
         {
           "path": "platform/scripts/backup_workspace.py",
           "source_path": "scripts/backup_workspace.py",
-          "bytes": 12330,
-          "sha256": "694c90cee41bac5886d6f886db87a5bc04ab57c49087c261f1f979be178785bb"
+          "bytes": 15608,
+          "sha256": "1bcc8c2983ee6021d0bbac428ef2066339046badac2eae62df6bb95229d5744f"
         },
         {
           "path": "platform/scripts/bootstrap_task_demo.py",
@@ -2209,6 +2890,12 @@
           "source_path": "scripts/build_base_candidate.py",
           "bytes": 36406,
           "sha256": "e2709696a81309064a5228ffe79f3e54549e97ab8e5b99871b10cd9402ee68d2"
+        },
+        {
+          "path": "platform/scripts/build_clear_ui_font.py",
+          "source_path": "scripts/build_clear_ui_font.py",
+          "bytes": 1110,
+          "sha256": "77a2f294ea7f2251a2caf1a6d262b6f19b7839db35e91947b7bf12c29c15bd1c"
         },
         {
           "path": "platform/scripts/candidate_bootstrap.py",
@@ -2227,6 +2914,12 @@
           "source_path": "scripts/candidate_verify.py",
           "bytes": 2615,
           "sha256": "9a220eb26ff57f927077b2a762cc0cb6e21034430873600d67d7093e48379c19"
+        },
+        {
+          "path": "platform/scripts/classification_worker_compat.py",
+          "source_path": "scripts/classification_worker_compat.py",
+          "bytes": 9376,
+          "sha256": "69114da51b3f78da0f0ff911a3a3af2853814c336016b7d05bc499df7e002b88"
         },
         {
           "path": "platform/scripts/consolidate_dependencies.py",
@@ -2343,10 +3036,40 @@
           "sha256": "64b13b99a6523d2fcd6d189a13dca7a267162e88bf820e95e5545e036d30d283"
         },
         {
+          "path": "platform/scripts/harness_candidate_launch.py",
+          "source_path": "scripts/harness_candidate_launch.py",
+          "bytes": 7544,
+          "sha256": "93d933f43183ed4a3d13fa9b1771403c4fad0bc415dba833a41461b18f5796f9"
+        },
+        {
+          "path": "platform/scripts/harness_candidate_smoke.mjs",
+          "source_path": "scripts/harness_candidate_smoke.mjs",
+          "bytes": 7068,
+          "sha256": "fe646455ada8032b6871bb96a4a0cf994ae8e0cc6745fa530f4f88c2956cdb83"
+        },
+        {
           "path": "platform/scripts/harness_child.py",
           "source_path": "scripts/harness_child.py",
           "bytes": 894,
           "sha256": "b6d5200ea1415a294b4f7b0b153d2e97f8c32570871a0609fb6a08b09844bdd9"
+        },
+        {
+          "path": "platform/scripts/harness_io_guard.py",
+          "source_path": "scripts/harness_io_guard.py",
+          "bytes": 2775,
+          "sha256": "bfd8096dba0aef2cc7aa35a925d775bd3ba1f57d844cbd2df56ac60c3c6cd6c5"
+        },
+        {
+          "path": "platform/scripts/harness_offline_guard.mjs",
+          "source_path": "scripts/harness_offline_guard.mjs",
+          "bytes": 3866,
+          "sha256": "f5db4e2b4f7cae54cfe61084b6a75cad7c3dd3c28cf89ebf0eab8f64e6e62bf8"
+        },
+        {
+          "path": "platform/scripts/harness_tool_smoke.py",
+          "source_path": "scripts/harness_tool_smoke.py",
+          "bytes": 20723,
+          "sha256": "5e840dcc6d68843170b4f329fd641ae54e42ff4edb2b5f6542c8d6473d0e530e"
         },
         {
           "path": "platform/scripts/import_legacy.py",
@@ -2361,10 +3084,22 @@
           "sha256": "2c7bc25a7175625cb2bd3d543cf7a638cd90e5f66a2f8b189768e468edc39623"
         },
         {
+          "path": "platform/scripts/measure_ocr_performance.py",
+          "source_path": "scripts/measure_ocr_performance.py",
+          "bytes": 13015,
+          "sha256": "33bee4f505cde981fefb56b9881964044fe7d114727a51c54b7a79401cb5f371"
+        },
+        {
           "path": "platform/scripts/package_agent_candidate.py",
           "source_path": "scripts/package_agent_candidate.py",
           "bytes": 8904,
           "sha256": "b8cc2e285a309641418d6828f123ea2e718053b70fc305613ed6e06380e26483"
+        },
+        {
+          "path": "platform/scripts/package_harness_candidate.py",
+          "source_path": "scripts/package_harness_candidate.py",
+          "bytes": 21098,
+          "sha256": "a7b8024a8fcb897d7f20cd70e70affd6866cad5ef5521f76992e0f083877e82b"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -2377,6 +3112,24 @@
           "source_path": "scripts/physical_development.py",
           "bytes": 7359,
           "sha256": "e49662a2216753040574d6e77283339db73d6aeddd3fe3f13a78d8c7e9d76345"
+        },
+        {
+          "path": "platform/scripts/platform_business_oracle.py",
+          "source_path": "scripts/platform_business_oracle.py",
+          "bytes": 9847,
+          "sha256": "cc1a12691771e0d1b20d7b734c62b0f5f10d2a87646ad1d0d260c67ce248faa3"
+        },
+        {
+          "path": "platform/scripts/platform_review_oracle.py",
+          "source_path": "scripts/platform_review_oracle.py",
+          "bytes": 8577,
+          "sha256": "0853b4094a74f0ce0910b398bd64db90d6171635079964637ba34890daf914f8"
+        },
+        {
+          "path": "platform/scripts/platform_tool_acceptance.py",
+          "source_path": "scripts/platform_tool_acceptance.py",
+          "bytes": 61362,
+          "sha256": "e40e0c4945c454183316f8a08518a66bd49f91310420e662404a5873e490eea0"
         },
         {
           "path": "platform/scripts/prepare_agent_layer.py",
@@ -2393,8 +3146,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 14647,
-          "sha256": "7347f824a745624b997c5d21f836a9d4738c713a677240fb75799afea2811373"
+          "bytes": 19620,
+          "sha256": "84588f799cb5c6c2f035603c5f25e7c700b2620cdefa871340fc7114d154a394"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -2405,8 +3158,8 @@
         {
           "path": "platform/scripts/qualify_multimodal.py",
           "source_path": "scripts/qualify_multimodal.py",
-          "bytes": 9904,
-          "sha256": "ceac11d0653b1c175d5266f9df27893ee88137641137540e2c619adcda8a1975"
+          "bytes": 11356,
+          "sha256": "9da3e50b1424a0097e3da98d36c555bc864515c58876def79bbfd3da97c02551"
         },
         {
           "path": "platform/scripts/real_cli_smoke.py",
@@ -2443,6 +3196,12 @@
           "source_path": "scripts/serial_reverify_smoke.py",
           "bytes": 6358,
           "sha256": "ea2ed61796a8df003ed7fc7d01fba1498c05491e1e9b0c01b5932d7eb3f9fd59"
+        },
+        {
+          "path": "platform/scripts/serve_harness_candidate.py",
+          "source_path": "scripts/serve_harness_candidate.py",
+          "bytes": 6877,
+          "sha256": "225c5bbbc9447c6f61129d0e74f7ccfa04dd9127571d260aa48921ae19cf5fe3"
         },
         {
           "path": "platform/scripts/serve_task_stack.py",
@@ -2547,16 +3306,34 @@
           "sha256": "52b6896010772a7f51812024ddc1060e06da753f4c0382a5c7da377dbf3040e5"
         },
         {
+          "path": "platform/src/workbench_platform/agent/auxiliary.py",
+          "source_path": "src/workbench_platform/agent/auxiliary.py",
+          "bytes": 4076,
+          "sha256": "1d73a10adac346b9f4a07911b560ed062dfc2a88c02e332e6d5d5617ec96bf2e"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/available_results.py",
+          "source_path": "src/workbench_platform/agent/available_results.py",
+          "bytes": 7396,
+          "sha256": "92fe8c7e80c9b45db319ddb89646159dbd50d8094f767960296e1de367770556"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/capabilities.py",
+          "source_path": "src/workbench_platform/agent/capabilities.py",
+          "bytes": 3432,
+          "sha256": "12c4f01efe54ca4302ae7a105e2d71cd0927d7addcd60a72195c5514771fb752"
+        },
+        {
           "path": "platform/src/workbench_platform/agent/connection.py",
           "source_path": "src/workbench_platform/agent/connection.py",
-          "bytes": 15029,
-          "sha256": "99127e79675a283160c33733402d53ee0a5082bb944575db5d09ff3ecdcd784b"
+          "bytes": 19037,
+          "sha256": "378321316cb2d5f43607dff759c3a2c5b7faf3763f69aa83fef449130ec37595"
         },
         {
           "path": "platform/src/workbench_platform/agent/context.py",
           "source_path": "src/workbench_platform/agent/context.py",
-          "bytes": 19724,
-          "sha256": "b607df351b4b2b64ed4a2dc435bd3265ec77116ef221cc24d61b1f4a5f635087"
+          "bytes": 20822,
+          "sha256": "9c6747b4f11fa2761b8be7e863b5b1175cd03997660fb74c7bbe6e4b57f0d534"
         },
         {
           "path": "platform/src/workbench_platform/agent/credentials.py",
@@ -2565,16 +3342,64 @@
           "sha256": "40f7d7c39571c75a41de9f47918d6782ef089f9b7b7deab1ecde536bc0aa8210"
         },
         {
+          "path": "platform/src/workbench_platform/agent/delivery_jobs.py",
+          "source_path": "src/workbench_platform/agent/delivery_jobs.py",
+          "bytes": 6197,
+          "sha256": "9328889b754d772b7cc6ba75c913d53782991048d04f9abf5b8146b297273cc8"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/delivery_policy.py",
+          "source_path": "src/workbench_platform/agent/delivery_policy.py",
+          "bytes": 4019,
+          "sha256": "6c3c7cd863ff1c8cf9b08b535dbddee98d84ce0f86ad959960dde562c37ef951"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/delivery_staging.py",
+          "source_path": "src/workbench_platform/agent/delivery_staging.py",
+          "bytes": 8324,
+          "sha256": "31216110bad9d1b9393d04847854c97bd1184aa311d083724e8da55dc1e63b4d"
+        },
+        {
           "path": "platform/src/workbench_platform/agent/dependencies.py",
           "source_path": "src/workbench_platform/agent/dependencies.py",
-          "bytes": 918,
-          "sha256": "9a1ec3da8efb0bb116f4c93b190679a68aed5611553699c786dd917e09d14cb7"
+          "bytes": 1058,
+          "sha256": "92281067a8be364432226853203dbcc272e10ccb0d84f785ad2b26f9de7f7b3c"
         },
         {
           "path": "platform/src/workbench_platform/agent/environment.py",
           "source_path": "src/workbench_platform/agent/environment.py",
-          "bytes": 2494,
-          "sha256": "fbb1cd54e4c74701bd3d29defff67909d68c37cd84b6b7e4e30fc52e58e8c7f0"
+          "bytes": 3081,
+          "sha256": "ec63a9dfc58eb07d90007ad95d8631ed84974ddbf46bb56faed89bd2290d9610"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/general.py",
+          "source_path": "src/workbench_platform/agent/general.py",
+          "bytes": 4775,
+          "sha256": "c1c921c01a019904de01c08533b7b26159edcf578c8968b20a7f06545e0c6acf"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/general_outputs.py",
+          "source_path": "src/workbench_platform/agent/general_outputs.py",
+          "bytes": 5627,
+          "sha256": "1882c8b19b8708d8044b3829fa4f4e68cc2d57e7ab77e1bc4b4d3a6865e8a2ef"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/general_python.py",
+          "source_path": "src/workbench_platform/agent/general_python.py",
+          "bytes": 2022,
+          "sha256": "b8b9d81c512558770c1469c719c7c28db43d93b4347cbbd025a65b5e3dc7c546"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/goal_interpreter.py",
+          "source_path": "src/workbench_platform/agent/goal_interpreter.py",
+          "bytes": 11139,
+          "sha256": "4383654650882d2ec1519ef44b3ca69cff88230be3bfaba3344a6c5a2f565999"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/goal_progress.py",
+          "source_path": "src/workbench_platform/agent/goal_progress.py",
+          "bytes": 4816,
+          "sha256": "0f4a7e5fbe03908cf65540bd9c44dc827ac0da51d913d0e6cf77adbe27d07321"
         },
         {
           "path": "platform/src/workbench_platform/agent/graph.py",
@@ -2583,40 +3408,94 @@
           "sha256": "30ddbcd5f01851e907b6dfec91b121e1ac0cb147f3982ec50011dd565a7c7843"
         },
         {
+          "path": "platform/src/workbench_platform/agent/harness.py",
+          "source_path": "src/workbench_platform/agent/harness.py",
+          "bytes": 26077,
+          "sha256": "51fd3cd7fc994bf7ea7c62a7c80121fcf2281e795a5b6fdfbcdc16c9c61fc913"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/harness_materialize.py",
+          "source_path": "src/workbench_platform/agent/harness_materialize.py",
+          "bytes": 16266,
+          "sha256": "395601adeece9faba8ff40dd00657cd55103e9534cab8225d8a955caf6497283"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/harness_migration.py",
+          "source_path": "src/workbench_platform/agent/harness_migration.py",
+          "bytes": 24138,
+          "sha256": "11abd0103e6d611edb9498effcd78dd45a7c6506994f879974f36af08fad703e"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/harness_service.py",
+          "source_path": "src/workbench_platform/agent/harness_service.py",
+          "bytes": 45356,
+          "sha256": "6a7cd770b008f904f4df18d144e1d4556fb326283a681603bc53b40fc96ea0a6"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/images.py",
+          "source_path": "src/workbench_platform/agent/images.py",
+          "bytes": 2050,
+          "sha256": "80a7d4b7783a6beedf6c3484289b2504deea34e955ac4679dde7ec14632ff27c"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/integrations.py",
+          "source_path": "src/workbench_platform/agent/integrations.py",
+          "bytes": 4263,
+          "sha256": "69cdaeb9e6df974a6cc043f5401c9399ecaa671bdc4ec3bab640d2753b06db20"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/model_profiles.py",
+          "source_path": "src/workbench_platform/agent/model_profiles.py",
+          "bytes": 7694,
+          "sha256": "13a1a49e7fa108a2deebc4e508eaaaaa91dbea3a34b5d9e29f503e592948d183"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/native_tools.py",
+          "source_path": "src/workbench_platform/agent/native_tools.py",
+          "bytes": 8787,
+          "sha256": "dd20e55a8c701592c97994e97d6c191e03a73362a3d725192802dd56d42797ae"
+        },
+        {
           "path": "platform/src/workbench_platform/agent/progress.py",
           "source_path": "src/workbench_platform/agent/progress.py",
-          "bytes": 3315,
-          "sha256": "54441688caf6568f313664b25ecbb22c8c09617b28dd92ade2a24dba6ea114f5"
+          "bytes": 137,
+          "sha256": "c9a3cc11dc0e5ba6673e67ddd8c4f00eab0ad5fe155a9596a7cdaa36c3146364"
         },
         {
           "path": "platform/src/workbench_platform/agent/providers.py",
           "source_path": "src/workbench_platform/agent/providers.py",
-          "bytes": 18751,
-          "sha256": "6d9ca63d17376a4080f3b31381dead40b2623d0830df84fb9717e0ae80923ce8"
+          "bytes": 27389,
+          "sha256": "e9fa4e594d2af61a1a0927e6d82f3b4e54d7b5f0f454289dfc0a9e9d94089045"
         },
         {
           "path": "platform/src/workbench_platform/agent/registry.py",
           "source_path": "src/workbench_platform/agent/registry.py",
-          "bytes": 14995,
-          "sha256": "2faa221172fd635cffd0567464a3c64c50c1fad84f87f643441b5519ae39c6d7"
+          "bytes": 21864,
+          "sha256": "e8d5585ecdc25c969638c6b1fcb7f140a5e5ef7d78091c3a00103a055cb0a971"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/requirement_coverage.py",
+          "source_path": "src/workbench_platform/agent/requirement_coverage.py",
+          "bytes": 245,
+          "sha256": "edce10dcec7bb201ce6d4644a315438cd0a741da45ac72fcb3eb0b2274570427"
         },
         {
           "path": "platform/src/workbench_platform/agent/routes.py",
           "source_path": "src/workbench_platform/agent/routes.py",
-          "bytes": 25192,
-          "sha256": "556dfab4c921ce5483e8dc46c281b08db6fa26731c93f81bfd54706f0f9626d9"
+          "bytes": 34331,
+          "sha256": "a869fd65e4a3cf93201620ffcc83e64754ea3de07bcdd6d77c8a1a682a78eefb"
         },
         {
           "path": "platform/src/workbench_platform/agent/runtime.py",
           "source_path": "src/workbench_platform/agent/runtime.py",
-          "bytes": 41236,
-          "sha256": "bc1c8cfa1f187c554d6e40892a942b34392fd389087cb0a5e932ae1d2a7d04aa"
+          "bytes": 62935,
+          "sha256": "364092f832a2da1c140b3f146115a91cf79baf4b5a5b72428e0e9302f30f76c3"
         },
         {
           "path": "platform/src/workbench_platform/agent/skills.py",
           "source_path": "src/workbench_platform/agent/skills.py",
-          "bytes": 30942,
-          "sha256": "8f244b047cce4bf147c3688a901f4a9ec2ac8496bea97d7b031279bf32e8b460"
+          "bytes": 31705,
+          "sha256": "30d4179da29708779c8c992890734c1a1bfb856ec0fdcbf2beb29e9ff6e13b70"
         },
         {
           "path": "platform/src/workbench_platform/agent/skills_routes.py",
@@ -2633,20 +3512,26 @@
         {
           "path": "platform/src/workbench_platform/agent/store.py",
           "source_path": "src/workbench_platform/agent/store.py",
-          "bytes": 24304,
-          "sha256": "e22683fc47f4d74265ffa60f7ddfc1d4c5986c93d993057c31817b309955845e"
+          "bytes": 31806,
+          "sha256": "18def06cf7c0681241c150ae726b980f312c7f056f737dc41dbc49a8602d1a45"
         },
         {
           "path": "platform/src/workbench_platform/agent/streaming.py",
           "source_path": "src/workbench_platform/agent/streaming.py",
-          "bytes": 18314,
-          "sha256": "c5e84f8c5be5432eaab8ca1ba4c9bcc09fba8de93949e6fc425b7961c94e70b1"
+          "bytes": 20004,
+          "sha256": "b16c03d496fe2d4082f7604613595c4d2fc9ba74af0ca89b5dfb0c35fbaaf3ff"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/task_recovery.py",
+          "source_path": "src/workbench_platform/agent/task_recovery.py",
+          "bytes": 7893,
+          "sha256": "a45de713901b5a027a59a50803cb46167169f0f69befcef878bcf07033685a36"
         },
         {
           "path": "platform/src/workbench_platform/agent/tasks.py",
           "source_path": "src/workbench_platform/agent/tasks.py",
-          "bytes": 14714,
-          "sha256": "a81ccb8bf6bdfcbfb8179b07d53421e5bfc9a2bf881c3eccccc5b952d13a9cfa"
+          "bytes": 20468,
+          "sha256": "bb9410e4409adfb6ad5673d174771dac43a49754dd95b262ea84c337f4cab2d4"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/__init__.py",
@@ -2657,32 +3542,32 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/audit.py",
           "source_path": "src/workbench_platform/agent/tools/audit.py",
-          "bytes": 9805,
-          "sha256": "8395e445ade75fe35640a85995a39444f53c0b52f63461e99c6fb99948acd250"
+          "bytes": 3150,
+          "sha256": "8b3d22a1951dd9a211720b3bc630123c6be8971f88595a4687ec47270126fef3"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/classification.py",
           "source_path": "src/workbench_platform/agent/tools/classification.py",
-          "bytes": 9692,
-          "sha256": "2019ac4932c66b68e98462519829dbae98b2c4817c6d10ed146127400daf2609"
+          "bytes": 1636,
+          "sha256": "bf26962e6dacc2bc6fe51f509a16081b8ac54262d1c716073cd020cb1ed52dd9"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/classification_management.py",
           "source_path": "src/workbench_platform/agent/tools/classification_management.py",
-          "bytes": 17573,
-          "sha256": "b5246ae27465e7f3a8ec166e4134139a743d67a337013e490ba6f09724487d17"
+          "bytes": 2382,
+          "sha256": "0df2ef5e721b389aa269739ce73dd2302f9edd626bdcec20b2edce31bd9e03bc"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/context.py",
           "source_path": "src/workbench_platform/agent/tools/context.py",
-          "bytes": 12736,
-          "sha256": "653eff2c0d7ad0b1b2a3360f6be700433b94e26f0b94df56d88f19487531c307"
+          "bytes": 46202,
+          "sha256": "d73d663fd0f850d0f8a316e5245aee1325fe4d27f477e5b5a437b763bca4eab9"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/data.py",
           "source_path": "src/workbench_platform/agent/tools/data.py",
-          "bytes": 16487,
-          "sha256": "969e0e5e0c46361ac4f8e0647095538f8e507506570685454174f70a65393975"
+          "bytes": 2538,
+          "sha256": "c80720901048e879537f74c8738eaf86973879288cc6b58b45f3bdf405f01ecf"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/documents.py",
@@ -2693,20 +3578,26 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/forensics.py",
           "source_path": "src/workbench_platform/agent/tools/forensics.py",
-          "bytes": 5902,
-          "sha256": "a0f774ab55fe0754bb30806dac9240794fb30f51cc60cf5a782c7e4f381c4d5a"
+          "bytes": 1109,
+          "sha256": "236dfb4d5c0fbf8e1495950768c18e931280d9bb3c6369006c4e4e091beaa10c"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/history.py",
           "source_path": "src/workbench_platform/agent/tools/history.py",
-          "bytes": 3424,
-          "sha256": "097f29268b682161dc86e45ff06f98b7a821769234f44f7bcb4162d861602422"
+          "bytes": 6979,
+          "sha256": "2f060380ad98cec0316d59c079720aec7a1ca9a1babe4126c3ab1fb1dfc4854e"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/jobs.py",
           "source_path": "src/workbench_platform/agent/tools/jobs.py",
-          "bytes": 9623,
-          "sha256": "c386db0e08349ca1ec4694793b459ef7d1eff2f9ca6a8940561918181f640805"
+          "bytes": 1057,
+          "sha256": "a7bc7078ee310184db3ffd36d03d87a4df70ccdcd4e7b094d9fce6b1b8f67557"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/tools/multimodal.py",
+          "source_path": "src/workbench_platform/agent/tools/multimodal.py",
+          "bytes": 3777,
+          "sha256": "994dc9068db9998666722006fd17ab2c859a4802ac17045464ec787ab0c1f7be"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/native_catalog.py",
@@ -2717,38 +3608,38 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/ocr.py",
           "source_path": "src/workbench_platform/agent/tools/ocr.py",
-          "bytes": 8191,
-          "sha256": "332d93302b518d4c8cd05afb49b57ac1669b0749cedd99917f6715490bbfd832"
+          "bytes": 1949,
+          "sha256": "2b50afd74a9ff39d7afe0d05413ab9db97b6d81d7935e18dd5ae2e2eb7ace017"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/ocr_management.py",
           "source_path": "src/workbench_platform/agent/tools/ocr_management.py",
-          "bytes": 10838,
-          "sha256": "8a948cc2ebb18be0af4bd7c247a646755699c7101ebba6b02052b2cb925a2188"
+          "bytes": 1589,
+          "sha256": "0dfbf2eb8176b7dbfa19d3edc8644339f07e656a87da5af36ab879eccc6440df"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/ocr_processing.py",
           "source_path": "src/workbench_platform/agent/tools/ocr_processing.py",
-          "bytes": 5826,
-          "sha256": "cea24e3d0002d84568d0f0c1619cd7301736ad0d2a0d847b4a24c679da52da8b"
+          "bytes": 1075,
+          "sha256": "a543630f13b50664feeb784f78e3214a3698a1a06b191e93295f8fc41164c8c2"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/pdf.py",
           "source_path": "src/workbench_platform/agent/tools/pdf.py",
-          "bytes": 11709,
-          "sha256": "7d43fde49aa0a85ba4067468eb5559c40161fc168a1b167e1b33ac9d1c30dc7e"
+          "bytes": 1701,
+          "sha256": "6b33c3ea4c5cc67aa013247892136688c2742f3b59de563abe55a84eb17d2e8c"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/platform_management.py",
           "source_path": "src/workbench_platform/agent/tools/platform_management.py",
-          "bytes": 23444,
-          "sha256": "2d4d2f5537e2c9b024c0b616238e9d388e7e84c7cf5c5f9f593c66544028e023"
+          "bytes": 4366,
+          "sha256": "570667dedf3df4d9d704fbad218217deb7038257529623f21430047ce6e2f507"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/results.py",
           "source_path": "src/workbench_platform/agent/tools/results.py",
-          "bytes": 10511,
-          "sha256": "4e9e5561ea5cc6a62bc452be00d3024eac2a90124a94304e67ebfacdf2f48817"
+          "bytes": 12227,
+          "sha256": "3e83272895d40b157d22388d4cb6249da78734e2cd90ef04e8e0d621691e16f1"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/skills.py",
@@ -2757,10 +3648,22 @@
           "sha256": "efa531cebf7b34a3241ea5e248f667c7fc591021fed49fce07ba264ea01b9bf0"
         },
         {
+          "path": "platform/src/workbench_platform/agent/windows_workspace.py",
+          "source_path": "src/workbench_platform/agent/windows_workspace.py",
+          "bytes": 4199,
+          "sha256": "9c607218c64e3b6a77f68311b3671b2997acc50968c60ca70129cc280aa87adf"
+        },
+        {
+          "path": "platform/src/workbench_platform/agent/workspace_outputs.py",
+          "source_path": "src/workbench_platform/agent/workspace_outputs.py",
+          "bytes": 5634,
+          "sha256": "0c4e0268ddb7873bea184eb4a6c44cb00bf21a84f968c47dc199f732c44a963e"
+        },
+        {
           "path": "platform/src/workbench_platform/app.py",
           "source_path": "src/workbench_platform/app.py",
-          "bytes": 6714,
-          "sha256": "856857fea075729d392d5a9da099a1d26872fe09b36e5973f7520faf0412407e"
+          "bytes": 6857,
+          "sha256": "bbe0e4dd257fff8f6991cb39fbca2809e1ec5368abcf3e438e65b1c3a59b2f07"
         },
         {
           "path": "platform/src/workbench_platform/application_services/__init__.py",
@@ -2769,34 +3672,130 @@
           "sha256": "2e1c48ce1fe98c989e8e7897d98eafd1500a81a2198463fd411b13cba5fa95ab"
         },
         {
+          "path": "platform/src/workbench_platform/application_services/action_admission.py",
+          "source_path": "src/workbench_platform/application_services/action_admission.py",
+          "bytes": 1895,
+          "sha256": "6b977b8dadbb61df14db2e48d48bf2665db8eb719e9a5cb2ecd46b8595414160"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/classification_action.py",
+          "source_path": "src/workbench_platform/application_services/classification_action.py",
+          "bytes": 6603,
+          "sha256": "ee06aa08c449eed9ffb2227052aa739ef17492dba7be600db4ff916e79594ac6"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/cleaned_downloads.py",
+          "source_path": "src/workbench_platform/application_services/cleaned_downloads.py",
+          "bytes": 4562,
+          "sha256": "d41790c28f85df62c9b3fee9afe4acc93a17d312f39eb36eecb087929c03fb94"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/composed.py",
+          "source_path": "src/workbench_platform/application_services/composed.py",
+          "bytes": 17401,
+          "sha256": "5169e8b6ff1be394360514068803e0590b15ab39cc4204b277a2c7384c261f05"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/context.py",
+          "source_path": "src/workbench_platform/application_services/context.py",
+          "bytes": 2425,
+          "sha256": "6045e5ca7bdb84808c35204effc063513cd502dfc5f5b5b93af757fab9ba3f89"
+        },
+        {
           "path": "platform/src/workbench_platform/application_services/data.py",
           "source_path": "src/workbench_platform/application_services/data.py",
           "bytes": 6115,
           "sha256": "b072edf88049b83ce8d05071d73483ab0cb3f2156d4226b08eac0c47a3d8c30e"
         },
         {
+          "path": "platform/src/workbench_platform/application_services/data_action.py",
+          "source_path": "src/workbench_platform/application_services/data_action.py",
+          "bytes": 5902,
+          "sha256": "cdfb361566153ef271868c565431561ba947f4b99a8f08c87a4984f84e5882a2"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/decisions.py",
+          "source_path": "src/workbench_platform/application_services/decisions.py",
+          "bytes": 746,
+          "sha256": "df6ecc98d12a9b98f55be4e2ec7211f6a50a1c2c4acc3bb8f194e17fbccedc7d"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/direct_actions.py",
+          "source_path": "src/workbench_platform/application_services/direct_actions.py",
+          "bytes": 9421,
+          "sha256": "8336aa715c9541615ce1d998c2b76b8b8264411d798509d7504159858b4e6c12"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/direct_scope.py",
+          "source_path": "src/workbench_platform/application_services/direct_scope.py",
+          "bytes": 5347,
+          "sha256": "b8c5b8da68f665936a2c26a63f5ff24687bcc13983efd5916f70a22ec4e10bfd"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/errors.py",
+          "source_path": "src/workbench_platform/application_services/errors.py",
+          "bytes": 1153,
+          "sha256": "b65ed6b57803cdf22cc0f54fd609664132cc6d454ac5612e5082c823907569da"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/execution.py",
+          "source_path": "src/workbench_platform/application_services/execution.py",
+          "bytes": 1504,
+          "sha256": "b5cde1cf6d4462acf49da48095ded742c415d537878c6462852dcd69f13ac113"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/goal_fixed_actions.py",
+          "source_path": "src/workbench_platform/application_services/goal_fixed_actions.py",
+          "bytes": 5978,
+          "sha256": "7cb0ee8897157290fe8abf806d26f40b7294edf5f20aab10be595b6ac08d5031"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/goal_routing.py",
+          "source_path": "src/workbench_platform/application_services/goal_routing.py",
+          "bytes": 6365,
+          "sha256": "0dd7d2cedaf2344da306e7a42add74dd7aa3ab9d21f99c622b0714d2041a5f12"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/identity.py",
+          "source_path": "src/workbench_platform/application_services/identity.py",
+          "bytes": 610,
+          "sha256": "f49c60e6e2818e021e121c3f2ee6212315791ff44c2163b42ca07a32340a8f0a"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/image_text.py",
+          "source_path": "src/workbench_platform/application_services/image_text.py",
+          "bytes": 25554,
+          "sha256": "d6015f8635c368cd6ace34afe3f23396db9331e67ddfe75aa8c95a801bcc3402"
+        },
+        {
           "path": "platform/src/workbench_platform/application_services/job_lifecycle.py",
           "source_path": "src/workbench_platform/application_services/job_lifecycle.py",
-          "bytes": 8213,
-          "sha256": "8aaaa315052f450a5d1131aae6ffb6b3977cba06a9573d900739cc975ef1a86c"
+          "bytes": 12481,
+          "sha256": "f83e7c01dd62c1f57999931ce2885a69a694d6077760fd9ca0fe2665ae67a085"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/job_observations.py",
+          "source_path": "src/workbench_platform/application_services/job_observations.py",
+          "bytes": 4653,
+          "sha256": "d2b5558e4363188d38f3029bda1cb72fc9f6a8b914cc50b98ae04ba6bf5f743a"
         },
         {
           "path": "platform/src/workbench_platform/application_services/manual.py",
           "source_path": "src/workbench_platform/application_services/manual.py",
-          "bytes": 10180,
-          "sha256": "aafeec93c6b03af6a0c77fd403c8f4f30805df8192c75524c5ffb748f2a12a4c"
+          "bytes": 10240,
+          "sha256": "bc211c668723b1654797ff3ad58599d6237136c5ea1c3e6e62a1694d4f86a47b"
         },
         {
           "path": "platform/src/workbench_platform/application_services/native.py",
           "source_path": "src/workbench_platform/application_services/native.py",
-          "bytes": 12970,
-          "sha256": "d851963949553016df83a1f0753ce49ee60bcafd977033a227d36f97189c04f6"
+          "bytes": 16706,
+          "sha256": "da72de47289198dfcd9dc6ad91421be0dfb21b06e572da276b60ce52c72addfd"
         },
         {
           "path": "platform/src/workbench_platform/application_services/native_mapping.py",
           "source_path": "src/workbench_platform/application_services/native_mapping.py",
-          "bytes": 12859,
-          "sha256": "64c9041bba79afb916eca0a22f43a0b52b969147e2875fff1fc734729dde3648"
+          "bytes": 14467,
+          "sha256": "5a6df18121b6df464293a7c20e70261adc4ceac6ed65653a1afac83df541adab"
         },
         {
           "path": "platform/src/workbench_platform/application_services/native_operations.py",
@@ -2805,10 +3804,118 @@
           "sha256": "0e0b9a18f6a52bc0d1e0f06cae693e052e176853ced20de05793d836b1cc24ce"
         },
         {
+          "path": "platform/src/workbench_platform/application_services/ocr_tuning.py",
+          "source_path": "src/workbench_platform/application_services/ocr_tuning.py",
+          "bytes": 12227,
+          "sha256": "0bd83b8ab409b981c311fbc1f87c1dc967a49100567eb11d1e49f6853c984e2e"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/__init__.py",
+          "source_path": "src/workbench_platform/application_services/operations/__init__.py",
+          "bytes": 82,
+          "sha256": "3cb8dd8e68d704fc24445671f3a2717e3d003bf048143020615d3ac8366a2078"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/audit.py",
+          "source_path": "src/workbench_platform/application_services/operations/audit.py",
+          "bytes": 14436,
+          "sha256": "07834bc68bf610d5ecc6c56885d146f0542239902381908ce0e870b4cd65cd5d"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/classification.py",
+          "source_path": "src/workbench_platform/application_services/operations/classification.py",
+          "bytes": 9094,
+          "sha256": "c2d0743033f570f56e6e6c5d78dbb023b6474a34a4420a4c175d81fc01bf0821"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/classification_management.py",
+          "source_path": "src/workbench_platform/application_services/operations/classification_management.py",
+          "bytes": 15420,
+          "sha256": "273e3e76b2e08e932ba209a904c276baacaeb0b70e873df3628d97c4897f4412"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/data.py",
+          "source_path": "src/workbench_platform/application_services/operations/data.py",
+          "bytes": 11009,
+          "sha256": "119e1ea7a9d89936ce34ec24742af082d033795270f2ca6301f6e0c469dba835"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/forensics.py",
+          "source_path": "src/workbench_platform/application_services/operations/forensics.py",
+          "bytes": 4954,
+          "sha256": "03a4b4c8d996b83967be27ce5ac65d170031493c3c4ae227313e04f1d8153b9b"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/jobs.py",
+          "source_path": "src/workbench_platform/application_services/operations/jobs.py",
+          "bytes": 9446,
+          "sha256": "62e8b074783a8f6f95422883663da17449646be442b8f66c03f5d7cf3eaec0ce"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/multimodal.py",
+          "source_path": "src/workbench_platform/application_services/operations/multimodal.py",
+          "bytes": 30626,
+          "sha256": "4491d6a7e47cf37f404dac4b3984b613e822fb74089c2341bac59950b67d49f0"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/ocr.py",
+          "source_path": "src/workbench_platform/application_services/operations/ocr.py",
+          "bytes": 8094,
+          "sha256": "511a84865f39f20c4c1fbbe7095d8d131974c04f99c77fea04b54f8e40a890b7"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/ocr_management.py",
+          "source_path": "src/workbench_platform/application_services/operations/ocr_management.py",
+          "bytes": 9438,
+          "sha256": "70f9d3ee427afed3eebe5edeff61bb06aa152bfdb1d0d61aff8d4a4b6a2cad8e"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/ocr_processing.py",
+          "source_path": "src/workbench_platform/application_services/operations/ocr_processing.py",
+          "bytes": 4940,
+          "sha256": "46f52d6d120d339aec53e838baf78791f64a35e6225a0fae641a2838891272f2"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/pdf.py",
+          "source_path": "src/workbench_platform/application_services/operations/pdf.py",
+          "bytes": 12714,
+          "sha256": "3d077be7f1a1a268d3a97e384cf840c6df6c29fb142c6ca7a2664fffb5aa274a"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/operations/platform_management.py",
+          "source_path": "src/workbench_platform/application_services/operations/platform_management.py",
+          "bytes": 19277,
+          "sha256": "b343cbf1ea1af55a95d00c1b749ea4bf39386b2a3e1e9008fcbfb1a0f9d3f861"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/pdf_text.py",
+          "source_path": "src/workbench_platform/application_services/pdf_text.py",
+          "bytes": 11654,
+          "sha256": "9953317472b27184f24bad0d1872ccb46242c8288ec5d818de5fa2fe29bdf145"
+        },
+        {
           "path": "platform/src/workbench_platform/application_services/references.py",
           "source_path": "src/workbench_platform/application_services/references.py",
-          "bytes": 15603,
-          "sha256": "21e084e0926a051d05eb674b48fcfd134e7813d635ba82d4cf856c1d01afcf64"
+          "bytes": 19609,
+          "sha256": "23a1f8ac65179a0a1f29326a44d58ee40bbc699318f97bebc9d98da994f908f0"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/requirement_coverage.py",
+          "source_path": "src/workbench_platform/application_services/requirement_coverage.py",
+          "bytes": 16622,
+          "sha256": "d9368aab57cecc3f28cb1046d9ff86ffb7ada1ccf404d42e8360952a7aeab90d"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/result_text.py",
+          "source_path": "src/workbench_platform/application_services/result_text.py",
+          "bytes": 16340,
+          "sha256": "58a3bf15ce0199712dfcc729817d469639afa1818a9f0879a3e7f4e0ff7e1ba5"
+        },
+        {
+          "path": "platform/src/workbench_platform/application_services/review_provenance.py",
+          "source_path": "src/workbench_platform/application_services/review_provenance.py",
+          "bytes": 13492,
+          "sha256": "bc1a4419e63cf5a9a8e95d3737e05e8bc3644204e2dcd94c384fe40cf753a52c"
         },
         {
           "path": "platform/src/workbench_platform/application_services/search.py",
@@ -2825,8 +3932,8 @@
         {
           "path": "platform/src/workbench_platform/artifacts/center.py",
           "source_path": "src/workbench_platform/artifacts/center.py",
-          "bytes": 44428,
-          "sha256": "ebd3fb8ffa184caa9b855c2d467ffbde2fc6fdfedf9ebe18ac0dd2b6f4a4f163"
+          "bytes": 47999,
+          "sha256": "03c6df9f180adf97d1f5f1743e43015eab89e0ac98d66c25290d802d437f2911"
         },
         {
           "path": "platform/src/workbench_platform/artifacts/classification_results.py",
@@ -2837,14 +3944,14 @@
         {
           "path": "platform/src/workbench_platform/artifacts/native_exports.py",
           "source_path": "src/workbench_platform/artifacts/native_exports.py",
-          "bytes": 4848,
-          "sha256": "5927abbf94519a45acef1f11eaa03ec126cbece67b7eaed0cda2c9a33c0f398c"
+          "bytes": 4866,
+          "sha256": "9ddae9ef2df8b972fc63192b3fb5a86c777f4082fa2639910d637392b30eaeb8"
         },
         {
           "path": "platform/src/workbench_platform/artifacts/ocr_results.py",
           "source_path": "src/workbench_platform/artifacts/ocr_results.py",
-          "bytes": 9366,
-          "sha256": "28be535b4b00a159fd41abe1a76a3d389e8f9c27dacb76351d79edfe8cd8e629"
+          "bytes": 10985,
+          "sha256": "58a94b8a2bebee5dacba81fde9f83e650cb779591752153b30679565f2cfae88"
         },
         {
           "path": "platform/src/workbench_platform/artifacts/routes.py",
@@ -2857,6 +3964,12 @@
           "source_path": "src/workbench_platform/artifacts/store.py",
           "bytes": 20137,
           "sha256": "3be68ba6d7c6bf15e51850fcf0db4840d10890aeb050e4f87698176856f9b9d0"
+        },
+        {
+          "path": "platform/src/workbench_platform/artifacts/text_outputs.py",
+          "source_path": "src/workbench_platform/artifacts/text_outputs.py",
+          "bytes": 8222,
+          "sha256": "b7f92ebf39926069495ae88d20c526675d46deefa580379f906e98f9fc77e7dd"
         },
         {
           "path": "platform/src/workbench_platform/assets/__init__.py",
@@ -2897,14 +4010,14 @@
         {
           "path": "platform/src/workbench_platform/audit/direct.py",
           "source_path": "src/workbench_platform/audit/direct.py",
-          "bytes": 6712,
-          "sha256": "314953ac127f31ab5fba23ea39857c401c9f2537d78e6ac0c7ccaaf1caa6dba6"
+          "bytes": 7991,
+          "sha256": "03d13dcec5da866233c5ada460dd937701862cfdd521c1535bf2490bb4d3dc4d"
         },
         {
           "path": "platform/src/workbench_platform/audit/draft_artifacts.py",
           "source_path": "src/workbench_platform/audit/draft_artifacts.py",
-          "bytes": 9552,
-          "sha256": "466c4d2a1369a5fdb3966a8880f371a5f635ff8e896a9b123c8d09e4e7bbac2c"
+          "bytes": 9617,
+          "sha256": "1d8f96f0663471bc3f0f1813428da5dc670f84926a6552d6d7cda628e8434c2a"
         },
         {
           "path": "platform/src/workbench_platform/audit/drafts.py",
@@ -2933,8 +4046,8 @@
         {
           "path": "platform/src/workbench_platform/audit/service.py",
           "source_path": "src/workbench_platform/audit/service.py",
-          "bytes": 49955,
-          "sha256": "bbc00b7bf901474dd121ffe0a5dee31962bd365878d3f8bd8b91a74f74117992"
+          "bytes": 51279,
+          "sha256": "69f556a095a4182ff1691698686fab68a8306b6666875900b83eb29bd1ec6637"
         },
         {
           "path": "platform/src/workbench_platform/audit/store.py",
@@ -3053,8 +4166,14 @@
         {
           "path": "platform/src/workbench_platform/data_api/service.py",
           "source_path": "src/workbench_platform/data_api/service.py",
-          "bytes": 30935,
-          "sha256": "212b263917c74b63c45f97300b94fdf9886759689c755453e180da9cb3e46c39"
+          "bytes": 32723,
+          "sha256": "8daf9436d92056dc06cbec73f1537b12777f51105289bc7ac3cea971d1972384"
+        },
+        {
+          "path": "platform/src/workbench_platform/data_api/table_schema.py",
+          "source_path": "src/workbench_platform/data_api/table_schema.py",
+          "bytes": 2127,
+          "sha256": "d2aa1d5bcdffe897e76d170377b35b2baa8954f30319cd382cf987ee3ff94ec3"
         },
         {
           "path": "platform/src/workbench_platform/forensics/__init__.py",
@@ -3089,8 +4208,8 @@
         {
           "path": "platform/src/workbench_platform/jobs/classification_handoff.py",
           "source_path": "src/workbench_platform/jobs/classification_handoff.py",
-          "bytes": 27246,
-          "sha256": "5604c61219d455efb553c7803acd93bbaca127e121d19de3e4ac9f81a97922de"
+          "bytes": 27949,
+          "sha256": "cb656ea8e50ca8d4cf0d36936f00d8f8e6e0b42a43de4fcf6e9c689de965a158"
         },
         {
           "path": "platform/src/workbench_platform/jobs/classification_navigation.py",
@@ -3113,14 +4232,14 @@
         {
           "path": "platform/src/workbench_platform/jobs/native_ocr.py",
           "source_path": "src/workbench_platform/jobs/native_ocr.py",
-          "bytes": 38413,
-          "sha256": "6590293f4dd83f9bf340d45a81f5f9458668ab33f51563d9644359cf59576336"
+          "bytes": 38704,
+          "sha256": "1ea80aad035dc1953f16192c696daa4b18ac1e118b568697c3a996406ae8f5a1"
         },
         {
           "path": "platform/src/workbench_platform/jobs/ocr_handoff.py",
           "source_path": "src/workbench_platform/jobs/ocr_handoff.py",
-          "bytes": 37904,
-          "sha256": "ab071b0356b475e6a16fd6d1f516e07f51e1965ac54af794938f5aa459995c3e"
+          "bytes": 38316,
+          "sha256": "5c9d4ef9dc330276f351b396f6cff3fc3bbead4ff3f375883c0d94c38a0ff4e7"
         },
         {
           "path": "platform/src/workbench_platform/jobs/ocr_navigation.py",
@@ -3137,14 +4256,14 @@
         {
           "path": "platform/src/workbench_platform/jobs/projection.py",
           "source_path": "src/workbench_platform/jobs/projection.py",
-          "bytes": 26693,
-          "sha256": "307e6b2fe769d3bd66b9d4b62a14ecb724222065b16b5bd4d86c36bd3b4e8d37"
+          "bytes": 27205,
+          "sha256": "2351ac493650bb61986893bfa17072c370f3855cf3190b07429759febd4193ac"
         },
         {
           "path": "platform/src/workbench_platform/jobs/routes.py",
           "source_path": "src/workbench_platform/jobs/routes.py",
-          "bytes": 17766,
-          "sha256": "ce10d37925af7831cd15caf737f9c8a33c3a032830e5225c4ef6ee8ff7cfca5a"
+          "bytes": 18157,
+          "sha256": "71fb100bf3056f7308c4740c069121e3f4acaaa92b85e6c2ee372df41b74d131"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/__init__.py",
@@ -3159,10 +4278,16 @@
           "sha256": "6b3190b0a0c63d8569fb2f8c75bfce074fbb4c4769b5d574f56f292cf0915403"
         },
         {
+          "path": "platform/src/workbench_platform/multimodal/cpu_validation.py",
+          "source_path": "src/workbench_platform/multimodal/cpu_validation.py",
+          "bytes": 4127,
+          "sha256": "454d6414b69bf38b9660858eafdaf1bf2142bb03fab4d2305f3f1db63d162081"
+        },
+        {
           "path": "platform/src/workbench_platform/multimodal/exports.py",
           "source_path": "src/workbench_platform/multimodal/exports.py",
-          "bytes": 3561,
-          "sha256": "267cbb316cb3f1eafe4263c432717f85571aee63f48061dbd694554f7b027092"
+          "bytes": 3764,
+          "sha256": "7bc5ac51532ca2156a8861788f30b94a9aad88191da4a3c3ccf190a5f566dd11"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/qualification.py",
@@ -3179,32 +4304,38 @@
         {
           "path": "platform/src/workbench_platform/multimodal/routes.py",
           "source_path": "src/workbench_platform/multimodal/routes.py",
-          "bytes": 4473,
-          "sha256": "efb6ca33a79e70fe066beb18acc304f57e20a229292428f0aa245e5ecc57b5f2"
+          "bytes": 6518,
+          "sha256": "9a4d6e50777b6af10b7247a88f0e7de7801d471318f072493666c293493d153c"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/runner.py",
           "source_path": "src/workbench_platform/multimodal/runner.py",
-          "bytes": 12927,
-          "sha256": "cc3511e066f7f85bb9f081966a4e5d7de9e24e69dd4b985970f5cb0467d5b9b5"
+          "bytes": 14643,
+          "sha256": "024aa478f486a9597c979505890542ee9c70b3fcb2d5ac3ed554d3fbfce06dfe"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 45834,
-          "sha256": "b7716e87057a17b08600335aebf85cb81c048ba8531ca7c74ad6921bd572c5c8"
+          "bytes": 81121,
+          "sha256": "aeece8d2695ffafec3e91adeb257e4b24e1fdffea0f2c4786d855edfaa6b0d68"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
           "source_path": "src/workbench_platform/resources/gpu.py",
-          "bytes": 12559,
-          "sha256": "6a5db43b041e59dacf4d921ea7820acc3eaab75c4b0f430603b0e816842111a1"
+          "bytes": 12910,
+          "sha256": "97dc9a007be8b59fc0ca511ef7574ea97f86149c34ba6231cdd7215551c14cb5"
+        },
+        {
+          "path": "platform/src/workbench_platform/resources/native.py",
+          "source_path": "src/workbench_platform/resources/native.py",
+          "bytes": 11773,
+          "sha256": "8960e99bf40a28fd0016000fd72e0b524090ac0c91ead6ae2a2ed34c0dacabaf"
         },
         {
           "path": "platform/src/workbench_platform/resources/reader_features.py",
           "source_path": "src/workbench_platform/resources/reader_features.py",
-          "bytes": 1219,
-          "sha256": "9c06b00de2837572d26f00aa36af8c7a96ada79d2ec04ec21c64b1495037e7b4"
+          "bytes": 1307,
+          "sha256": "1deac444bc9103050c90d72318461beb3c4cf221e60281667baa0380f969cdb3"
         },
         {
           "path": "platform/src/workbench_platform/resources/recovery.py",
@@ -3239,8 +4370,8 @@
         {
           "path": "platform/src/workbench_platform/supervisor/processes.py",
           "source_path": "src/workbench_platform/supervisor/processes.py",
-          "bytes": 33605,
-          "sha256": "33113b59cf68173958c654b0c8160cd36457f12d4056fdbb09cbe8650e9017fc"
+          "bytes": 36397,
+          "sha256": "5cdf8991291c47c38888906670abe9b75a36d61bb5f132c7643355d02847588c"
         },
         {
           "path": "platform/src/workbench_platform/tasks/__init__.py",
@@ -3413,8 +4544,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/server.py",
           "source_path": "src/workbench_platform/tasks/server.py",
-          "bytes": 43440,
-          "sha256": "d2f567033744346d2b86df268a6ad425a4ba372f53d9fe1032961605a9ce8ce2"
+          "bytes": 44663,
+          "sha256": "1dddc6cb1abb7eed1667d849ad2fd53ff64c0cde91aac5f4906b7cf187d24bd1"
         },
         {
           "path": "platform/src/workbench_platform/tasks/source_identity.py",
@@ -3425,14 +4556,14 @@
         {
           "path": "platform/src/workbench_platform/tasks/store.py",
           "source_path": "src/workbench_platform/tasks/store.py",
-          "bytes": 39200,
-          "sha256": "a94f74044a18d37216b91e717178720dbf85d60afdfcd91d2c2046425950763d"
+          "bytes": 39219,
+          "sha256": "6a09ab88b7bb0fe8cec70febf10eb326ec6145f3db7549d9f660e05b779ff280"
         },
         {
           "path": "platform/src/workbench_platform/tasks/worker.py",
           "source_path": "src/workbench_platform/tasks/worker.py",
-          "bytes": 80315,
-          "sha256": "d384c5a7495569ff02653543671040fb8e2e53c77dab9725d9c1d13fad72464f"
+          "bytes": 82777,
+          "sha256": "6bf1dcbbde3fd7de05343a05f5a8d08fef6682edc182fd1d325b32a6027b76f2"
         },
         {
           "path": "platform/src/workbench_platform/tasks/workspaces.py",
@@ -3495,16 +4626,40 @@
           "sha256": "3416249846923c65c95e4c33e701d18046e19f2109498f67caa5d010acada058"
         },
         {
+          "path": "platform/tests/agent/test_architecture_services.py",
+          "source_path": "tests/agent/test_architecture_services.py",
+          "bytes": 7277,
+          "sha256": "aae8e6ef1f0c5975464b2b393c565a560b62ce99ede2183587f8384a876f4f3e"
+        },
+        {
           "path": "platform/tests/agent/test_audit_product.py",
           "source_path": "tests/agent/test_audit_product.py",
-          "bytes": 27937,
-          "sha256": "6eaa2629e507ac0bf49eea4d8a18bfd094f8768a345b8a21f90bf5c30e5bd984"
+          "bytes": 33583,
+          "sha256": "8139240bf87a54a2eeacfeed7ec9fc3efdedd8dbacf61faddc7b4b20df9d3233"
         },
         {
           "path": "platform/tests/agent/test_backup.py",
           "source_path": "tests/agent/test_backup.py",
-          "bytes": 5592,
-          "sha256": "9618808adfba4d85a394c92cc77970652cd45a28e3d917d79fd0a093e861638c"
+          "bytes": 7837,
+          "sha256": "5124fd3e035df6f4c38f1f4254bc88bf0ace323d4e80ceb2cbd42c0da43b13b3"
+        },
+        {
+          "path": "platform/tests/agent/test_backup_read_only.py",
+          "source_path": "tests/agent/test_backup_read_only.py",
+          "bytes": 2106,
+          "sha256": "96c1ba6ca89ea5d2580435cfa7cdca0b8f05c7f699dc17b99635f38138a19f7c"
+        },
+        {
+          "path": "platform/tests/agent/test_cancel_route_loop.py",
+          "source_path": "tests/agent/test_cancel_route_loop.py",
+          "bytes": 910,
+          "sha256": "672c1915b97918a668991d5a8810627f66b2dd395e522c39c4756f97c514ec98"
+        },
+        {
+          "path": "platform/tests/agent/test_classification_worker_compat.py",
+          "source_path": "tests/agent/test_classification_worker_compat.py",
+          "bytes": 13191,
+          "sha256": "d216b7c16beaa193de6c41fc5c31aa248cb4cf658d48cda81ed223ddfafa9940"
         },
         {
           "path": "platform/tests/agent/test_context_budget.py",
@@ -3515,20 +4670,116 @@
         {
           "path": "platform/tests/agent/test_convergence_control.py",
           "source_path": "tests/agent/test_convergence_control.py",
-          "bytes": 8242,
-          "sha256": "286213a9e4f0cbfd7a327d915af439f8bafe9d0f41633fdcbe629bb95641bb44"
+          "bytes": 8317,
+          "sha256": "9c03fd2e86af379b5624ccabfc180e68082b1cca6a0799a85a5793fb47d16e0c"
         },
         {
           "path": "platform/tests/agent/test_coverage_completion.py",
           "source_path": "tests/agent/test_coverage_completion.py",
-          "bytes": 42516,
-          "sha256": "54dd286f957bae43f2796954f19dbb5265b172eaeb9f0a5c5b6213a20e522dcd"
+          "bytes": 43294,
+          "sha256": "60458e05fa0e3cda6dc9e9c99d8912789572f9b35c57e0274fcee33562d36d1b"
+        },
+        {
+          "path": "platform/tests/agent/test_data_export_schema.py",
+          "source_path": "tests/agent/test_data_export_schema.py",
+          "bytes": 10771,
+          "sha256": "9d545ea3819cd385a18b9323b412d9f796bc5466d2088cc02d054e13cd5fbb9d"
         },
         {
           "path": "platform/tests/agent/test_data_tools.py",
           "source_path": "tests/agent/test_data_tools.py",
           "bytes": 12211,
           "sha256": "22012aed72b431e327bb1b2fe5b634f2105427399396c40e63ddf29df280cc72"
+        },
+        {
+          "path": "platform/tests/agent/test_delivery_native_status.py",
+          "source_path": "tests/agent/test_delivery_native_status.py",
+          "bytes": 4964,
+          "sha256": "04ea97c62ce6bfc6f56457ec2af8e6063019100af6b90f701f862caba43ea999"
+        },
+        {
+          "path": "platform/tests/agent/test_delivery_policy.py",
+          "source_path": "tests/agent/test_delivery_policy.py",
+          "bytes": 12634,
+          "sha256": "2de741ae4e3298bfb6a6fcc41cecd3746abd8c95bf8282dcbd0ad29fbd749577"
+        },
+        {
+          "path": "platform/tests/agent/test_delivery_staging.py",
+          "source_path": "tests/agent/test_delivery_staging.py",
+          "bytes": 15698,
+          "sha256": "17c5664078f234024a8efbe6889d22a5cbdafab721d14aa22b7166e054ebbd03"
+        },
+        {
+          "path": "platform/tests/agent/test_delivery_text_artifacts.py",
+          "source_path": "tests/agent/test_delivery_text_artifacts.py",
+          "bytes": 17514,
+          "sha256": "31915f251567336fd35b75b7ce6861e7a7c78e6d30b314ee805e202d43bf927c"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_admission.py",
+          "source_path": "tests/agent/test_direct_admission.py",
+          "bytes": 4117,
+          "sha256": "bb076b39b15e35892cc75b7ddd635adfc61a01dd9053a47552a02b0feee7034f"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_backup.py",
+          "source_path": "tests/agent/test_direct_backup.py",
+          "bytes": 3560,
+          "sha256": "6bc811489ac5fb100c4cc098a250ecfd0cd1dae9caffe967d4618c3188bb1611"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_business_actions.py",
+          "source_path": "tests/agent/test_direct_business_actions.py",
+          "bytes": 7165,
+          "sha256": "bcd1212430c2fff458cffedceaaf7d8a8f16cf0192c72ef865d23772ff55e283"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_fallback.py",
+          "source_path": "tests/agent/test_direct_fallback.py",
+          "bytes": 9079,
+          "sha256": "5b0560371cc53fc29f02f5094bc2c39382eaa80fddae0aafaf0fd3d4984daeb5"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_followups.py",
+          "source_path": "tests/agent/test_direct_followups.py",
+          "bytes": 4800,
+          "sha256": "60399ccba88124cdea5e62fbe2a7e080c6006f9a81b96144b8e60e5d2878ea22"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_image_text.py",
+          "source_path": "tests/agent/test_direct_image_text.py",
+          "bytes": 15560,
+          "sha256": "16952fbb33ac6fd34e4b7ad82182a3d8d426484792b46a3f8ba5840c12533717"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_not_submitted.py",
+          "source_path": "tests/agent/test_direct_not_submitted.py",
+          "bytes": 17860,
+          "sha256": "6fc9217273280b5dab7d5583dd5c8334efb22239d0c0b3e8d9d212a74a0a0766"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_not_submitted_families.py",
+          "source_path": "tests/agent/test_direct_not_submitted_families.py",
+          "bytes": 15391,
+          "sha256": "0124057b2152c92ec93ec2e589b373d8f64caf7481d031daec7bdfe830c2718d"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_pdf_text.py",
+          "source_path": "tests/agent/test_direct_pdf_text.py",
+          "bytes": 9978,
+          "sha256": "f13d841ed7899b35728886f4d5c9878ea8440f5be5ca81848dba1206b68e2aee"
+        },
+        {
+          "path": "platform/tests/agent/test_direct_recovery_windows.py",
+          "source_path": "tests/agent/test_direct_recovery_windows.py",
+          "bytes": 13679,
+          "sha256": "b9f327d232a794f7b5d01770bbefba4fd354fee0e3463963bcf2c378ed9e4271"
+        },
+        {
+          "path": "platform/tests/agent/test_formal_delivery_policy.py",
+          "source_path": "tests/agent/test_formal_delivery_policy.py",
+          "bytes": 3741,
+          "sha256": "4679444b6d203289f6cb4ac81e5865365a0a87c3e182e677ac0495c103cbfd8e"
         },
         {
           "path": "platform/tests/agent/test_formal_transfer.py",
@@ -3543,22 +4794,118 @@
           "sha256": "fc4eaf5ef4601cc8737561cf4486ac12fc3132c4cb8f372d2fb29ad9645ec028"
         },
         {
+          "path": "platform/tests/agent/test_general_agent.py",
+          "source_path": "tests/agent/test_general_agent.py",
+          "bytes": 22818,
+          "sha256": "d6e6e2bc8674df51ee50b34a3dc474e0ce7f40a6ad84bcbaa03a6a5de2c01e50"
+        },
+        {
+          "path": "platform/tests/agent/test_general_integrations.py",
+          "source_path": "tests/agent/test_general_integrations.py",
+          "bytes": 23385,
+          "sha256": "f17d5ebe05982e57976f0a38d535009d62d7fbe23e2d0ba76594eb6eeb6d9b20"
+        },
+        {
+          "path": "platform/tests/agent/test_goal_interpreter.py",
+          "source_path": "tests/agent/test_goal_interpreter.py",
+          "bytes": 7464,
+          "sha256": "f38c491a0cbb82da8ce21dad2b453c33c720505f2daa7b0a766f85896510483a"
+        },
+        {
           "path": "platform/tests/agent/test_graph.py",
           "source_path": "tests/agent/test_graph.py",
-          "bytes": 8207,
-          "sha256": "8eebcef29966f2e40999d53e46c0d3d78b03f64e25952e361a262f531f147451"
+          "bytes": 8234,
+          "sha256": "24d3ae3b98a82ec1d005f5f523908d5e62c4e0c364650df90b4d336a2bc4796b"
         },
         {
           "path": "platform/tests/agent/test_hardening.py",
           "source_path": "tests/agent/test_hardening.py",
-          "bytes": 9775,
-          "sha256": "b796ccc2eccffc58af630c5511dfa33fb6c82a54fcdcdaa300793771ea949fb4"
+          "bytes": 12580,
+          "sha256": "b0bafcd1b1a6c6c9532df9adf15aaffcbd8a7e2d661fd4789f2ea1c435187ef9"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_backup_archive.py",
+          "source_path": "tests/agent/test_harness_backup_archive.py",
+          "bytes": 5697,
+          "sha256": "c365e942f8409374d0a2ab83b26c2ce8dfbbe48697d476b4104ec4fe960c8fd7"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_delivery_checks.py",
+          "source_path": "tests/agent/test_harness_delivery_checks.py",
+          "bytes": 16301,
+          "sha256": "61bbf113427edcb74f781a60d2013f2eec7cfd773fa470ba7e2fab301c63b4bb"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_draft_delivery.py",
+          "source_path": "tests/agent/test_harness_draft_delivery.py",
+          "bytes": 13682,
+          "sha256": "d4a421004445eb5780aacf58050ed5175a502dd0164ed04cddddba532a2a50f0"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_materialize.py",
+          "source_path": "tests/agent/test_harness_materialize.py",
+          "bytes": 10397,
+          "sha256": "60db6c2e845ffdb9e4159cf60161538b655dfbdca99d191cc3497a5974cf2f94"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_migration.py",
+          "source_path": "tests/agent/test_harness_migration.py",
+          "bytes": 23152,
+          "sha256": "f356b5b0d0c805f314f5a93b3b7d0848daeb0ac2caf438bd8a2a7a4194a1b36a"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_model_profiles.py",
+          "source_path": "tests/agent/test_harness_model_profiles.py",
+          "bytes": 21823,
+          "sha256": "c0deb979e0b0aefdef72936396eaab12996740add26875818c556efd49b29526"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_packaging.py",
+          "source_path": "tests/agent/test_harness_packaging.py",
+          "bytes": 11350,
+          "sha256": "80fe1a89ae39660bbb984d8dae2ccfb6b91bd9dd41768c651d71f36b59cc3363"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_provider_limits.py",
+          "source_path": "tests/agent/test_harness_provider_limits.py",
+          "bytes": 9282,
+          "sha256": "cfe2c25c5169db39be5ce6880f8b0cb8de2d268fca3d142c66d7ab6b7762ce6b"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_recovery.py",
+          "source_path": "tests/agent/test_harness_recovery.py",
+          "bytes": 19406,
+          "sha256": "c17ee06a8901089875b62230fe05250ed342a578ea54fb8e994d71f54ddb2250"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_task_connection.py",
+          "source_path": "tests/agent/test_harness_task_connection.py",
+          "bytes": 6873,
+          "sha256": "dbdf79e9a2c82ca8edddcd7cf57a22e9310100cfd58391e7a23d629175c53715"
+        },
+        {
+          "path": "platform/tests/agent/test_harness_tool_retention.py",
+          "source_path": "tests/agent/test_harness_tool_retention.py",
+          "bytes": 8610,
+          "sha256": "8de40c48df151dd7cc615b71bfa6802bc0ec6a2b01f991df139168dd08b29c35"
         },
         {
           "path": "platform/tests/agent/test_invocation_fixes.py",
           "source_path": "tests/agent/test_invocation_fixes.py",
-          "bytes": 28307,
-          "sha256": "eadfe12e36594fe0d4d325fe08f902f17edffe2db1f1705a31e955ff01036854"
+          "bytes": 29327,
+          "sha256": "080989391eed62dcb4bad415b50bb38d25ddee9b9afd1f6edffac89d2bb7938a"
+        },
+        {
+          "path": "platform/tests/agent/test_legacy_failed_resume_entry.py",
+          "source_path": "tests/agent/test_legacy_failed_resume_entry.py",
+          "bytes": 3874,
+          "sha256": "885ef921cfa04438b7f6ac6b76bf42eaa1214fb1b7eefa68313a46757dead130"
+        },
+        {
+          "path": "platform/tests/agent/test_local_catalog_goals.py",
+          "source_path": "tests/agent/test_local_catalog_goals.py",
+          "bytes": 8619,
+          "sha256": "72e265c6f1cf61565609b1503d8f2ec3b43eedabb0b98a0f20346fe4cb471979"
         },
         {
           "path": "platform/tests/agent/test_manual_related.py",
@@ -3573,16 +4920,76 @@
           "sha256": "7e60e7c76e1fa534194878c8f3d1cea01cb96afe312f89e5c119de1c1fa3180f"
         },
         {
+          "path": "platform/tests/agent/test_multimodal_bindings.py",
+          "source_path": "tests/agent/test_multimodal_bindings.py",
+          "bytes": 10095,
+          "sha256": "0485898c3b7e836ab2c25fc87a49313935590f57946b11848edb124217145182"
+        },
+        {
+          "path": "platform/tests/agent/test_multimodal_security.py",
+          "source_path": "tests/agent/test_multimodal_security.py",
+          "bytes": 25601,
+          "sha256": "ae325bf40430104c08be91b6a1a80731ca70a5aa520f628be23bab533849da75"
+        },
+        {
           "path": "platform/tests/agent/test_native_availability.py",
           "source_path": "tests/agent/test_native_availability.py",
           "bytes": 6817,
           "sha256": "8a697cae35d0adfc2f299863ee873f2da3a25ea1651ffc0953c3020c7edc9fbd"
         },
         {
+          "path": "platform/tests/agent/test_native_binding_delivery.py",
+          "source_path": "tests/agent/test_native_binding_delivery.py",
+          "bytes": 11553,
+          "sha256": "1a6bd96b6da83f896df23f682f9390758e9256636413fa4e9a6a7345121a45b0"
+        },
+        {
+          "path": "platform/tests/agent/test_native_prepare_race.py",
+          "source_path": "tests/agent/test_native_prepare_race.py",
+          "bytes": 4294,
+          "sha256": "3b59d1346de738696bedbdc4ce4df2cd1390d358d4aeb474d113d546afceb442"
+        },
+        {
+          "path": "platform/tests/agent/test_native_reader_service.py",
+          "source_path": "tests/agent/test_native_reader_service.py",
+          "bytes": 9646,
+          "sha256": "8fb71a903c6ecc3ca833c12f10f202411044f634b24009b2d8d185c17a73bebb"
+        },
+        {
           "path": "platform/tests/agent/test_native_tools.py",
           "source_path": "tests/agent/test_native_tools.py",
-          "bytes": 22342,
-          "sha256": "ca0b6280a338ab309b3c734c3fc6517a7b397e44763fa61803e0a6d57661f6d6"
+          "bytes": 25870,
+          "sha256": "49022491461ebf1471005af6b36852c446139fd5b7c0d5de4929596d7b198540"
+        },
+        {
+          "path": "platform/tests/agent/test_ocr_worker_source_binding.py",
+          "source_path": "tests/agent/test_ocr_worker_source_binding.py",
+          "bytes": 1104,
+          "sha256": "236418720ae7bb1d6db2293369900ae3c6091e9be090cb7cb58b27df4648b6bf"
+        },
+        {
+          "path": "platform/tests/agent/test_partial_goal_continuation.py",
+          "source_path": "tests/agent/test_partial_goal_continuation.py",
+          "bytes": 12370,
+          "sha256": "ec272dd295f8a8e0e5e35592cfc59abd8adeb005220a09733a48fd3608c1e6f2"
+        },
+        {
+          "path": "platform/tests/agent/test_platform_business_acceptance.py",
+          "source_path": "tests/agent/test_platform_business_acceptance.py",
+          "bytes": 24342,
+          "sha256": "6d05c2244d2e738e3b00a517e515394b28c3c3cd69a5170cab3aed4c698e533e"
+        },
+        {
+          "path": "platform/tests/agent/test_platform_business_relations.py",
+          "source_path": "tests/agent/test_platform_business_relations.py",
+          "bytes": 3999,
+          "sha256": "c524c7e10a50645b27babca756c81950614575559204cb00a2fb9efc1698fd18"
+        },
+        {
+          "path": "platform/tests/agent/test_platform_reader_gate.py",
+          "source_path": "tests/agent/test_platform_reader_gate.py",
+          "bytes": 5669,
+          "sha256": "bfe3ccfa276c6e0b1c9d3f9fbef8df8feb79318451ffee544bf9768bb5a76241"
         },
         {
           "path": "platform/tests/agent/test_product_entry.py",
@@ -3593,8 +5000,8 @@
         {
           "path": "platform/tests/agent/test_prompt_skills.py",
           "source_path": "tests/agent/test_prompt_skills.py",
-          "bytes": 5782,
-          "sha256": "720372cb44f97637845e43423feef65f9961fac2ead92075f4cc9d65b1da25a5"
+          "bytes": 5974,
+          "sha256": "bfdb4831d30aff34b33d30c79f866945f7e612bce8b5872719e8ef3b8dc0e947"
         },
         {
           "path": "platform/tests/agent/test_public_events.py",
@@ -3603,16 +5010,40 @@
           "sha256": "23eb1c730589d01a3cb62d254e573792bd5e50663dbe8bb6422f3d8f91619f5e"
         },
         {
+          "path": "platform/tests/agent/test_readable_text.py",
+          "source_path": "tests/agent/test_readable_text.py",
+          "bytes": 3444,
+          "sha256": "7abad6f88537f334b30b2b31b54469bb0227bd463dce7d89f9e9ae1276d76f7c"
+        },
+        {
           "path": "platform/tests/agent/test_recovery.py",
           "source_path": "tests/agent/test_recovery.py",
-          "bytes": 14099,
-          "sha256": "47f2525ae6af1ef302b044b0549531ff600454bed07a2ad4b23696770606fb70"
+          "bytes": 14847,
+          "sha256": "5c6644e687eb81e66eade950494b29408d0042f841329296d77f74b46c185af4"
+        },
+        {
+          "path": "platform/tests/agent/test_registry_stage_errors.py",
+          "source_path": "tests/agent/test_registry_stage_errors.py",
+          "bytes": 2629,
+          "sha256": "3e8114c53fb7f8787c6fc930e4645ce304032b4a7499fac2b37c59a18e7512a0"
         },
         {
           "path": "platform/tests/agent/test_request_snapshot.py",
           "source_path": "tests/agent/test_request_snapshot.py",
           "bytes": 12253,
           "sha256": "54b52937b62d76ac4af8d03fa438403afdc0f9a09f57b8c570dbd0563a56fb00"
+        },
+        {
+          "path": "platform/tests/agent/test_requirement_coverage.py",
+          "source_path": "tests/agent/test_requirement_coverage.py",
+          "bytes": 18435,
+          "sha256": "119fbcc1813732128ad59a5525fae33d53a628024fe41a02441a959853839336"
+        },
+        {
+          "path": "platform/tests/agent/test_results_artifact_text.py",
+          "source_path": "tests/agent/test_results_artifact_text.py",
+          "bytes": 16532,
+          "sha256": "cd27c9e2b2c4e231daf6eb36efb7dc4c26bc5f33468003426ba2fdf66c786e3d"
         },
         {
           "path": "platform/tests/agent/test_routes.py",
@@ -3623,8 +5054,8 @@
         {
           "path": "platform/tests/agent/test_skills.py",
           "source_path": "tests/agent/test_skills.py",
-          "bytes": 25025,
-          "sha256": "e7e6f37eaeb00df040a43bba67b907d6bfd066ec8ce1858b09f80063a741f68f"
+          "bytes": 25445,
+          "sha256": "cf20a99759dfd85824faa240dc81e707f5657a77b76aae67acf45d2fc467ff11"
         },
         {
           "path": "platform/tests/agent/test_streaming_preview.py",
@@ -3635,20 +5066,38 @@
         {
           "path": "platform/tests/agent/test_streaming_production.py",
           "source_path": "tests/agent/test_streaming_production.py",
-          "bytes": 15142,
-          "sha256": "f9427bf6fa4da95448a3c630ecdcac8ec6fcda61368bc91df88357b88fbae719"
+          "bytes": 15763,
+          "sha256": "46791790dc38d24bef3730eb294e28f3cdddff75de4a9abee8a0d26ced535ac8"
         },
         {
           "path": "platform/tests/agent/test_tool_progress.py",
           "source_path": "tests/agent/test_tool_progress.py",
-          "bytes": 31476,
-          "sha256": "fb0de25f263fb486081b8e31ac54f5b3df483fe9df002e801533b69d57ee8cf6"
+          "bytes": 32899,
+          "sha256": "4b40099740325794ae7e02984d7f7d3180ad584d77f842198d67c0ce0e00ee4c"
+        },
+        {
+          "path": "platform/tests/agent/test_user_flow_progress_scope.py",
+          "source_path": "tests/agent/test_user_flow_progress_scope.py",
+          "bytes": 11407,
+          "sha256": "ec0db852102003901146ddd3499e033d86d4257d6e2f8c07967b920d805cd283"
+        },
+        {
+          "path": "platform/tests/agent/test_user_flow_recovery_results.py",
+          "source_path": "tests/agent/test_user_flow_recovery_results.py",
+          "bytes": 18569,
+          "sha256": "676efef15567b8e0a72a466d043381be3ceb9612b029295064520692be712ddb"
+        },
+        {
+          "path": "platform/tests/agent/test_user_goal_routing.py",
+          "source_path": "tests/agent/test_user_goal_routing.py",
+          "bytes": 2777,
+          "sha256": "8bd49e711597f70ffe956305bd2d2320781705cc75cbb4e33495bd9ade533f4c"
         },
         {
           "path": "platform/tests/agent/test_wire_context.py",
           "source_path": "tests/agent/test_wire_context.py",
-          "bytes": 18777,
-          "sha256": "a421f59441fbce4df00616e894687d7662dcb176c0a96c62284a98e49fe1dd16"
+          "bytes": 21157,
+          "sha256": "19b63571442c8b63f2934ebabfe2d2c6c0a68f4b16d24ab08faa90b0acbccdc0"
         },
         {
           "path": "platform/tests/contract/test_audit_contracts.py",
@@ -3971,20 +5420,26 @@
         {
           "path": "platform/tests/integration/test_job_projection.py",
           "source_path": "tests/integration/test_job_projection.py",
-          "bytes": 22666,
-          "sha256": "8ee9795d35ec256f5c70840434f90922e33611c699da59e7e7095ea208f08a26"
+          "bytes": 23387,
+          "sha256": "92252c24d9f2edc8f0ebce05c8962af98e048f5236aa2a48aa0baec097109902"
         },
         {
           "path": "platform/tests/integration/test_manual_multimodal.py",
           "source_path": "tests/integration/test_manual_multimodal.py",
-          "bytes": 16317,
-          "sha256": "400429650260e61cfeced6b6802862ee1c49ea8d23fbb11005c572f44c9e1bfa"
+          "bytes": 17736,
+          "sha256": "e05b79bc0126d16a94fa6e30db027a825c3020a497e229750f34ab2b4de33653"
+        },
+        {
+          "path": "platform/tests/integration/test_multimodal_agent_native.py",
+          "source_path": "tests/integration/test_multimodal_agent_native.py",
+          "bytes": 26357,
+          "sha256": "a17a4858b7267bc6ea627d16550351df45433e805cc2522b77e2b7f20d5a142f"
         },
         {
           "path": "platform/tests/integration/test_multimodal_dispatch.py",
           "source_path": "tests/integration/test_multimodal_dispatch.py",
-          "bytes": 10847,
-          "sha256": "4e6cf459ac52cfee8c56ec1a6a2a2b7e8290747e8fcd084e4dbb951fa89cf181"
+          "bytes": 11309,
+          "sha256": "b66e3cdf84342350e05f8c2c6b4b029f6a3ba5c98bc1cc2bad873a0e54a6a2f0"
         },
         {
           "path": "platform/tests/integration/test_multimodal_revisions.py",
@@ -4013,8 +5468,8 @@
         {
           "path": "platform/tests/integration/test_ocr_artifacts.py",
           "source_path": "tests/integration/test_ocr_artifacts.py",
-          "bytes": 11978,
-          "sha256": "81331cbc419a970be5b61d86bd93af0118d4da6c086c7a9bf871edef4726c242"
+          "bytes": 12099,
+          "sha256": "cc6a3d4519fdc9b721e948a73b5b5382d112a9267372f23ae85ddf9dd19570ea"
         },
         {
           "path": "platform/tests/integration/test_ocr_handoff.py",
@@ -4067,8 +5522,8 @@
         {
           "path": "platform/tests/integration/test_supervisor.py",
           "source_path": "tests/integration/test_supervisor.py",
-          "bytes": 26419,
-          "sha256": "07b1ca7552098bc139240249ed33bbdf3de5ac5bead302d58caee96311f075a1"
+          "bytes": 27655,
+          "sha256": "f51c318df28d4b2914b8fc88b5dc30d6f462d5e3581c305dc1902a49d5febd19"
         },
         {
           "path": "platform/tests/integration/test_upload_recovery.py",
@@ -4115,8 +5570,8 @@
         {
           "path": "platform/tests/tasks/test_api.py",
           "source_path": "tests/tasks/test_api.py",
-          "bytes": 5562,
-          "sha256": "d4dbe8a7f832e653faa68202411eadd24e46cd979aae5f6684c1188a7c0e7523"
+          "bytes": 10485,
+          "sha256": "a15c9186a1a3b71f1b150038eb1a865f6dda3e59f525b33c48ec59f4956e5b76"
         },
         {
           "path": "platform/tests/tasks/test_hardening.py",
@@ -4241,8 +5696,14 @@
         {
           "path": "platform/tests/unit/test_multimodal_gpu.py",
           "source_path": "tests/unit/test_multimodal_gpu.py",
-          "bytes": 12301,
-          "sha256": "25f6150c0057af5d11e26067e86ce8da3d78cd5d293d2eac3a1212a69cd33501"
+          "bytes": 12455,
+          "sha256": "9d54b551a72e28a5f63972ea7159f7c55a412422c7e01395c565a27ed0ed51c9"
+        },
+        {
+          "path": "platform/tests/unit/test_native_gpu_recovery.py",
+          "source_path": "tests/unit/test_native_gpu_recovery.py",
+          "bytes": 10789,
+          "sha256": "a8ab96b58dfe5323583e06317e3b10d5e30d51d0b2bc8bf9d3a17e033e826727"
         },
         {
           "path": "platform/tests/unit/test_paddle_cache.py",
@@ -4277,10 +5738,14 @@
         " M apps/web/src/style.css",
         " M apps/web/src/views/assets.tsx",
         " M apps/web/src/views/jobs.tsx",
-        " M apps/web/src/workbench.tsx"
+        " M apps/web/src/workbench.tsx",
+        "?? apps/web/public/brand/fonts/",
+        "?? apps/web/src/clear-ui/common.css",
+        "?? apps/web/src/clear-ui/experience.css",
+        "?? apps/web/src/platformTaskReturn.ts"
       ],
       "excluded_count": 0,
-      "file_count": 190,
+      "file_count": 195,
       "files": [
         {
           "path": "classification/.gitattributes.source",
@@ -4373,6 +5838,18 @@
           "sha256": "1194594fa887b4175bb673d0acd9aa414493b09b388954f29c27ad63868c8ace"
         },
         {
+          "path": "classification/apps/web/public/brand/fonts/OFL.txt",
+          "source_path": "apps/web/public/brand/fonts/OFL.txt",
+          "bytes": 4388,
+          "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+        },
+        {
+          "path": "classification/apps/web/public/brand/fonts/clear-sans-sc.woff2",
+          "source_path": "apps/web/public/brand/fonts/clear-sans-sc.woff2",
+          "bytes": 195656,
+          "sha256": "e4b00ba7ff4704847f83323f027d2aa96d04f3041a834e1679ff776c5c6382ce"
+        },
+        {
           "path": "classification/apps/web/scripts/tutorial-flow.mjs",
           "source_path": "apps/web/scripts/tutorial-flow.mjs",
           "bytes": 16502,
@@ -4385,22 +5862,34 @@
           "sha256": "31245273f615a72a62deff763725638e2a4f70b1f4cd6bb3db2eefcace48912a"
         },
         {
+          "path": "classification/apps/web/src/clear-ui/common.css",
+          "source_path": "apps/web/src/clear-ui/common.css",
+          "bytes": 920,
+          "sha256": "a9f786cf216470d529a7ed76d1288413ed6ef724eca2cd52a98f2c8cab3617c7"
+        },
+        {
+          "path": "classification/apps/web/src/clear-ui/experience.css",
+          "source_path": "apps/web/src/clear-ui/experience.css",
+          "bytes": 2473,
+          "sha256": "a56e0ece4b1a21fe086a42e7a4becb7fad00298cbdaf5a760fe9470c7780944c"
+        },
+        {
           "path": "classification/apps/web/src/clear-ui/theme.ts",
           "source_path": "apps/web/src/clear-ui/theme.ts",
-          "bytes": 1484,
-          "sha256": "7ff73c1f4d7e5db0cf88f579fa1d99f8e6303be2764b5486e2499fa0f19ada94"
+          "bytes": 1479,
+          "sha256": "9b80f821907504209da88dd7bf0216799b8962b761d9c936cd5de7752c24e396"
         },
         {
           "path": "classification/apps/web/src/clear-ui/tokens.css",
           "source_path": "apps/web/src/clear-ui/tokens.css",
-          "bytes": 1683,
-          "sha256": "68c115be9f5b1bfc0406941b25d80938b43d730d0d350f4555aa2af732a102ba"
+          "bytes": 1697,
+          "sha256": "4138f3b0f7117ddde52f5d30bcde7a14234d8691f949345b5cf0c522f207478b"
         },
         {
           "path": "classification/apps/web/src/main.tsx",
           "source_path": "apps/web/src/main.tsx",
-          "bytes": 3513,
-          "sha256": "b4407c858e4f944c6c79e3e1e05bd77f6fd7fa84739cb2c3fbc6e1f60a6a26bc"
+          "bytes": 3657,
+          "sha256": "b87eca039f491a629470eb3ace2f72d6072cd7cf2cc257189ae53737f08a2ca3"
         },
         {
           "path": "classification/apps/web/src/panels.tsx",
@@ -4421,6 +5910,12 @@
           "sha256": "82a03c71c271df458dd9e465aba5be9c642dedf154ce9a47579a0bc0b534d67a"
         },
         {
+          "path": "classification/apps/web/src/platformTaskReturn.ts",
+          "source_path": "apps/web/src/platformTaskReturn.ts",
+          "bytes": 1794,
+          "sha256": "c6d6e32ef5bc44c8489b0fe57afd4178396a14f5a3706edaabb41d9fd7d712a8"
+        },
+        {
           "path": "classification/apps/web/src/style.css",
           "source_path": "apps/web/src/style.css",
           "bytes": 26781,
@@ -4435,8 +5930,8 @@
         {
           "path": "classification/apps/web/src/views/jobs.tsx",
           "source_path": "apps/web/src/views/jobs.tsx",
-          "bytes": 19504,
-          "sha256": "ef05427dcb6800c7f14ce84b78b2f792dc5560802f5c835eb335cc59c8eeccd8"
+          "bytes": 20010,
+          "sha256": "4e741fdd0f662b0f0b18fa1880084d4ede9544b7d81fdfb698e7824564a8158e"
         },
         {
           "path": "classification/apps/web/src/views/models.tsx",
@@ -4453,8 +5948,8 @@
         {
           "path": "classification/apps/web/src/workbench.tsx",
           "source_path": "apps/web/src/workbench.tsx",
-          "bytes": 17599,
-          "sha256": "cd75ea6e1429a2415ed6535231c98933c13f2b341a8d692fe172b3e24a2304f4"
+          "bytes": 18594,
+          "sha256": "b4fe44932d04ccb92350464d8e6ee2992b224d0f0bc2812bec439a2a2c647e87"
         },
         {
           "path": "classification/apps/web/tsconfig.json",
@@ -5431,13 +6926,27 @@
       "head": "b85129bf87eacd5ba2b6deb7f24ae1acfbb47871",
       "branch": "codex/clear-automation-ocr-20261002",
       "working_tree_status": [
+        " M frontend/src/App.tsx",
         " M frontend/src/WorkspaceLayout.tsx",
         " M frontend/src/clear-ui/theme.ts",
         " M frontend/src/clear-ui/tokens.css",
-        " M frontend/src/editor.css"
+        " M frontend/src/editor.css",
+        " M frontend/src/main.tsx",
+        " M src/ocr_workbench/adapter.py",
+        " M src/ocr_workbench/engine_host.py",
+        " M src/ocr_workbench/errors.py",
+        " M src/ocr_workbench/store.py",
+        " M src/ocr_workbench/task_queue.py",
+        " M src/ocr_workbench/worker.py",
+        "?? frontend/public/brand/fonts/clear-sans-sc.woff2",
+        "?? frontend/src/clear-ui/common.css",
+        "?? frontend/src/clear-ui/experience.css",
+        "?? frontend/src/platformTaskReturn.test.ts",
+        "?? frontend/src/platformTaskReturn.ts",
+        "?? tests/test_engine_error_stages.py"
       ],
       "excluded_count": 1135,
-      "file_count": 926,
+      "file_count": 932,
       "files": [
         {
           "path": "ocr/.gitattributes.source",
@@ -6340,6 +7849,12 @@
           "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
         },
         {
+          "path": "ocr/frontend/public/brand/fonts/clear-sans-sc.woff2",
+          "source_path": "frontend/public/brand/fonts/clear-sans-sc.woff2",
+          "bytes": 195656,
+          "sha256": "e4b00ba7ff4704847f83323f027d2aa96d04f3041a834e1679ff776c5c6382ce"
+        },
+        {
           "path": "ocr/frontend/scripts/navigation-regressions.mjs",
           "source_path": "frontend/scripts/navigation-regressions.mjs",
           "bytes": 21914,
@@ -6414,8 +7929,8 @@
         {
           "path": "ocr/frontend/src/App.tsx",
           "source_path": "frontend/src/App.tsx",
-          "bytes": 87395,
-          "sha256": "41bc5451a3154852bf4143617e6d0645658be47e4a541cf9af193196dde762a1"
+          "bytes": 85653,
+          "sha256": "ce88ff9661f427dc74371b749d2c7e5149a73bb5fb642d02fabb989222eb269d"
         },
         {
           "path": "ocr/frontend/src/BrandHeader.tsx",
@@ -6552,8 +8067,8 @@
         {
           "path": "ocr/frontend/src/WorkspaceLayout.tsx",
           "source_path": "frontend/src/WorkspaceLayout.tsx",
-          "bytes": 7253,
-          "sha256": "8e98b76031e6c07bf8fdcb86ad672bbeda3c2e7123c771653f1b1bf8354bd126"
+          "bytes": 7249,
+          "sha256": "fb6e5cc907717e51fceb971785071fcba9a9291e2f63fbdd9d39845496033068"
         },
         {
           "path": "ocr/frontend/src/agent.css",
@@ -6592,16 +8107,28 @@
           "sha256": "92704572da82d1e9346f0ce156df4cbc1c6a126e852580e8b69c571cfc49a93a"
         },
         {
+          "path": "ocr/frontend/src/clear-ui/common.css",
+          "source_path": "frontend/src/clear-ui/common.css",
+          "bytes": 920,
+          "sha256": "a9f786cf216470d529a7ed76d1288413ed6ef724eca2cd52a98f2c8cab3617c7"
+        },
+        {
+          "path": "ocr/frontend/src/clear-ui/experience.css",
+          "source_path": "frontend/src/clear-ui/experience.css",
+          "bytes": 2978,
+          "sha256": "2f9bb5cd25d9fefc41a65d4b50b5ed8c5c30075b6b1b6d0672a6afe258daf52f"
+        },
+        {
           "path": "ocr/frontend/src/clear-ui/theme.ts",
           "source_path": "frontend/src/clear-ui/theme.ts",
-          "bytes": 1248,
-          "sha256": "72c20dd7638a9c2045bd17b27d28bbcb5608a4cc26dde82c92cc259d4d4810ce"
+          "bytes": 1244,
+          "sha256": "195c94d7322941793c0acad3715f6ca20b9bc64a4599ca45e6087ef6208bc008"
         },
         {
           "path": "ocr/frontend/src/clear-ui/tokens.css",
           "source_path": "frontend/src/clear-ui/tokens.css",
-          "bytes": 1683,
-          "sha256": "68c115be9f5b1bfc0406941b25d80938b43d730d0d350f4555aa2af732a102ba"
+          "bytes": 1697,
+          "sha256": "4138f3b0f7117ddde52f5d30bcde7a14234d8691f949345b5cf0c522f207478b"
         },
         {
           "path": "ocr/frontend/src/comparisonOps.ts",
@@ -6684,8 +8211,8 @@
         {
           "path": "ocr/frontend/src/main.tsx",
           "source_path": "frontend/src/main.tsx",
-          "bytes": 550,
-          "sha256": "f3130beb011d87a947e99fe551ac749122f1b3ffecf435511f6e64d646ea9aac"
+          "bytes": 617,
+          "sha256": "99a4e9838d51be706d388479e6b565ca2f545399e74267a588704f46f6de0742"
         },
         {
           "path": "ocr/frontend/src/multimodal.css",
@@ -6740,6 +8267,18 @@
           "source_path": "frontend/src/platformNavigation.ts",
           "bytes": 4667,
           "sha256": "4a9cdf38f630568877b10531e55d7d82a955f0100f6179da1a4a19fdce4a7272"
+        },
+        {
+          "path": "ocr/frontend/src/platformTaskReturn.test.ts",
+          "source_path": "frontend/src/platformTaskReturn.test.ts",
+          "bytes": 2189,
+          "sha256": "59b7aacbd1d5bc684523ce5880a94766118ad027cb58ac5098bf494a6e9a6fa4"
+        },
+        {
+          "path": "ocr/frontend/src/platformTaskReturn.ts",
+          "source_path": "frontend/src/platformTaskReturn.ts",
+          "bytes": 1794,
+          "sha256": "c6d6e32ef5bc44c8489b0fe57afd4178396a14f5a3706edaabb41d9fd7d712a8"
         },
         {
           "path": "ocr/frontend/src/professional.css",
@@ -9792,8 +11331,8 @@
         {
           "path": "ocr/src/ocr_workbench/adapter.py",
           "source_path": "src/ocr_workbench/adapter.py",
-          "bytes": 9554,
-          "sha256": "dfc425dd1cc12fd67568ea59564c17574c2ae85589324a78d6a34e8fa5b19e90"
+          "bytes": 16334,
+          "sha256": "babaf716c9baeb6911801e2c83903d9ee8ee67b9e003ffe2cf22b884dd2e56d0"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/__init__.py",
@@ -10032,8 +11571,8 @@
         {
           "path": "ocr/src/ocr_workbench/engine_host.py",
           "source_path": "src/ocr_workbench/engine_host.py",
-          "bytes": 7726,
-          "sha256": "81fa1679fda7a30e758545ab3fff1db4b60662872a7ef46405a3d29e7d128fe5"
+          "bytes": 8366,
+          "sha256": "785b66f19a6e6b72a438f0b5522a1db5d54f84c70d4174e41089f84eb3799a5e"
         },
         {
           "path": "ocr/src/ocr_workbench/engine_packages.py",
@@ -10044,8 +11583,8 @@
         {
           "path": "ocr/src/ocr_workbench/errors.py",
           "source_path": "src/ocr_workbench/errors.py",
-          "bytes": 623,
-          "sha256": "139aa18cfcf29e0a92a405edc4ea259cb3b233494dd453e465e8928d8bb1ae6e"
+          "bytes": 3764,
+          "sha256": "4ab42766fb7de47462a8249779270c0d6fe743526b16baa852857b7bc2cce631"
         },
         {
           "path": "ocr/src/ocr_workbench/exporting.py",
@@ -10308,8 +11847,8 @@
         {
           "path": "ocr/src/ocr_workbench/store.py",
           "source_path": "src/ocr_workbench/store.py",
-          "bytes": 50275,
-          "sha256": "81e5534cf206d96bc819fa7816fb0a87190baaa87bb10925bc512999bfe62beb"
+          "bytes": 50664,
+          "sha256": "2ac3779979cb8519d20080d18e419c3573c2ff6c1216198993352c629b615fcf"
         },
         {
           "path": "ocr/src/ocr_workbench/structure_arbitration.py",
@@ -10392,8 +11931,8 @@
         {
           "path": "ocr/src/ocr_workbench/task_queue.py",
           "source_path": "src/ocr_workbench/task_queue.py",
-          "bytes": 24945,
-          "sha256": "67383fd7c7b08eb4dabc30a6c3a15cd73f08bc8195e19c85389ee48ed0914a9e"
+          "bytes": 27156,
+          "sha256": "fde4e91cfa33e852b1559e06cd3bdbc9ce9bedcd5edcb0974dd195edaf959177"
         },
         {
           "path": "ocr/src/ocr_workbench/verification_cache.py",
@@ -10410,8 +11949,8 @@
         {
           "path": "ocr/src/ocr_workbench/worker.py",
           "source_path": "src/ocr_workbench/worker.py",
-          "bytes": 9973,
-          "sha256": "76bfd613a4b9af345c856a9d69496d96fbd5549c1dce6fb1f3fee677c0d2a2e7"
+          "bytes": 10876,
+          "sha256": "2878936bcc00a686936d9856b26776a7032b9728b1fae4188516447fa7229c34"
         },
         {
           "path": "ocr/tests/agent_fixtures/README.md",
@@ -10724,6 +12263,12 @@
           "source_path": "tests/test_editing.py",
           "bytes": 9484,
           "sha256": "9c20680ade9c173fafc506d5ba136f7d1de51e372213a806ecc7ebd23ca8f06f"
+        },
+        {
+          "path": "ocr/tests/test_engine_error_stages.py",
+          "source_path": "tests/test_engine_error_stages.py",
+          "bytes": 7203,
+          "sha256": "808c4a8abcc86ed3e8142c92d1d0fd614ad587d4236f5e7d4246f5958cb876f4"
         },
         {
           "path": "ocr/tests/test_engine_packages.py",
