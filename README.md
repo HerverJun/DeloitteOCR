@@ -1,8 +1,10 @@
 # Clear 审计平台与 DeloitteOCR
 
-当前统一入口为 **Clear v0.10.0 多模态手动工具 CPU 版**，登记见 [release/Clear/current.json](release/Clear/current.json)。本机双击 `F:\OCR\release\Clear\启动智能审计.cmd`，打开 [手动工具](http://127.0.0.1:8879/apps)。平台包含智能审计、审计项目、手动工具三个主导航；现有六个工具入口为 ClearOCR、ClearClassify、ClearData、ClearForensics、人脸比对和音频分析，印章及 CAT-Net 位于 OCR/取证扩展入口。正式启动器默认关闭 Agent。
+当前统一入口为 **Clear v0.14.0 通用工作能力与审计工具版**，登记见 [release/Clear/current.json](release/Clear/current.json)。双击 `F:\OCR\release\Clear\启动智能审计.cmd`，打开[门户首页](http://127.0.0.1:8879/)或[智能审计](http://127.0.0.1:8879/agent)。Agent先提供正常对话、文件搜索编辑、PowerShell/Python脚本与多轮执行，再按需调用文字提取、多列清洗、OCR选参和底稿等专业服务。普通任务自然结束；原件、固定成果、故障续作及人工复核机制继续保留。原DATA、11个旧会话与历史下载已核对，冷备和旧版回退副本已实际启动验证。见[实施与验收](docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)、[最终矩阵](docs/platform-automation/Agent通用能力恢复最终验收矩阵-20261019.md)及[调研计划](docs/platform-automation/Agent通用能力恢复与审计增强调研升级计划-20261019.md)。
 
 **完整说明文档（2026-10-14）：**
+
+2026-10-15 [Agent 自主业务链路核验](docs/platform-automation/Agent自主业务链路核验-20261015.md)：真实主控通过 16 轮、20 次工具调用完成 10 万行 CSV 导入/清洗/交付，三次异步等待后自动续接，全量读回通过；原 16K 上下文不足已调整，新增多模态 Agent 工具及数小时资格仍待补齐。
 
 - [平台主界面与完整使用说明书](docs/Clear审计平台使用说明书.md)：启动、项目/资料、智能审计、正式档案、待办、批次、成果、备份与故障定位。
 - [各手动工具详细使用说明](docs/Clear手动工具使用说明.md)：Data、分类、取证、人脸、音频、印章，含实际按钮、输入限制、修订、保存与导出。
@@ -13,6 +15,7 @@
 - [取证稳定性首轮实施记录](docs/platform-automation/取证稳定性首轮实施记录-20261014.md)：2026-10-15 完成候选封存、完整性检查、启动验收与回退说明；保留实验低召回及业务准确率未验收限制。
 - [本轮整理与验证记录](docs/Clear文档与源码整理记录-20261014.md)：提交范围、版本核对、源码完整性和实际 CPU 检查结果。
 - [多人任务中心实施与验收](docs/platform-automation/Clear多人任务中心实施与验收-20261015.md)：PostgreSQL 持久任务、内置账号、项目权限、执行历史、百万任务查询及含成果备份恢复；本机候选已封存，正式入口未切换。
+- [前端工作台改版与预览](docs/platform-automation/前端工作台改版与预览-20261015.md)：参考 Ant Design Pro 与 Supabase Studio，升级门户框架、工具目录、搜索筛选和窄屏导航；最新[门户首页补齐](docs/platform-automation/门户首页评估与补齐-20261015.md)使 8910 根地址先进入导航门户，AI 对话独立为 `/agent`；正式入口仍为 8879。
 
 新增多模态能力当前为 CPU 工程范围；业务精度、A4000/A6000 目标机及新增 GPU 路线尚未验收。模型、运行时、缓存、数据库、业务资料和大型离线包保留本机，不进入 GitHub。GitHub 提供源码、说明书、配置、锁文件和交付记录，不能替代完整离线介质。部署与当前限制见[多模态交付记录](docs/platform-automation/多模态手动工具升级交付记录-20261013.md)和[内网部署说明](docs/platform-automation/多模态手动审计验收与内网部署说明.md)。
 

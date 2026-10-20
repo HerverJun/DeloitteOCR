@@ -1,0 +1,1485 @@
+{
+  "format": "clear-architecture-revision-plan-v1",
+  "plan_date": "2026-10-16",
+  "status": "implemented_with_open_acceptance",
+  "plan_document": "docs/platform-automation/Clear全平台架构修订计划-20261016.md",
+  "baseline": {
+    "product_version": "0.12.1",
+    "candidate": "F:\\OCR\\output\\clear-visual-upgrade-20261016\\delivery\\Clear-0.12.1-visual-candidate-003",
+    "candidate_manifest_sha256": "733293fd0dd41fdf1242e951006208f751462b3d35211544cce4bb70365dc501",
+    "architecture_evidence": "F:\\OCR\\output\\architecture-revision-plan-20261016\\evidence\\architecture-scan.json"
+  },
+  "path_roots": {
+    "platform": "F:\\OCR\\output\\frontend-workbench-20261015\\worktrees\\platform",
+    "ocr": "F:\\OCR\\output\\clear-automation-dev-20261002\\worktrees\\ocr",
+    "classification": "F:\\OCR\\output\\clear-automation-dev-20261002\\worktrees\\classification",
+    "docs": "F:\\OCR\\docs",
+    "release": "F:\\OCR\\release",
+    "products": "F:\\OCR\\products"
+  },
+  "execution_policy": {
+    "implementation_started": true,
+    "starts_automation": false,
+    "requires_new_scheduler": false,
+    "storage": "All project outputs, caches, temporary files and subprocess writes stay on local F drive.",
+    "scope_changes": "Record concrete reason and affected contracts; routine implementation does not create a new approval workflow.",
+    "central_deployment": "Validate separately; never make PostgreSQL a prerequisite for the active local deployment.",
+    "verification_cases": "V01—V21 are defined in the plan document; evidence must distinguish actual model runs from deterministic controllers."
+  },
+  "phases": [
+    {
+      "id": "A",
+      "title": "基线与契约",
+      "task_ids": [
+        "AR-001",
+        "AR-002",
+        "AR-003",
+        "AR-004"
+      ],
+      "effort_budget_person_days": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "B",
+      "title": "正确性先修",
+      "task_ids": [
+        "AR-005",
+        "AR-006",
+        "AR-007",
+        "AR-008",
+        "AR-009",
+        "AR-010"
+      ],
+      "effort_budget_person_days": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "C",
+      "title": "服务收敛与首条短路径",
+      "task_ids": [
+        "AR-011",
+        "AR-012",
+        "AR-013",
+        "AR-014",
+        "AR-015",
+        "AR-016",
+        "AR-017"
+      ],
+      "effort_budget_person_days": [
+        4,
+        6
+      ]
+    },
+    {
+      "id": "D",
+      "title": "性能与跨工具推广",
+      "task_ids": [
+        "AR-018",
+        "AR-019",
+        "AR-020",
+        "AR-021",
+        "AR-022",
+        "AR-023",
+        "AR-024"
+      ],
+      "effort_budget_person_days": [
+        4,
+        8
+      ]
+    },
+    {
+      "id": "E",
+      "title": "审计/中央兼容与交付",
+      "task_ids": [
+        "AR-025",
+        "AR-026",
+        "AR-027",
+        "AR-028",
+        "AR-029",
+        "AR-030"
+      ],
+      "effort_budget_person_days": [
+        3,
+        5
+      ]
+    }
+  ],
+  "effort_note": "14—25 person-days is an initial planning budget, not a completion promise; revise after baseline and performance measurement.",
+  "tasks": [
+    {
+      "id": "AR-001",
+      "phase": "A",
+      "priority": "P0",
+      "status": "completed",
+      "title": "冻结实际基线和现有调用路径",
+      "responsibility": "平台维护",
+      "depends_on": [],
+      "primary_paths": [
+        "release/Clear/current.json",
+        "products/Clear/source-manifest.json",
+        "platform/src/workbench_platform/app.py",
+        "platform/scripts/agent_native_preview.py"
+      ],
+      "deliverables": [
+        "基线身份与未提交修改清单",
+        "手动、Agent、批次、中央服务入口与实际源码绑定图",
+        "事故重放引用"
+      ],
+      "acceptance": [
+        "明确正式程序、共享资产、开发源、审阅快照和 DATA 的区别",
+        "已知故障可用离线证据复放，不重新发送正式业务"
+      ],
+      "verification_cases": [
+        "V01",
+        "V19"
+      ],
+      "rollback_or_containment": "仅生成隔离证据，不更改正式入口或既有未提交内容。",
+      "implementation_result": "保存原有脏工作树基线、源码/正式入口/DATA地图及原事故离线重放；未覆盖既有工作。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\baseline-source.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\original-coverage-replay.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-002",
+      "phase": "A",
+      "priority": "P0",
+      "status": "completed",
+      "title": "建立精简跨领域样本和用户目标矩阵",
+      "responsibility": "业务验证",
+      "depends_on": [
+        "AR-001"
+      ],
+      "primary_paths": [
+        "platform/tests/agent",
+        "platform/tests/integration",
+        "platform/tests/tasks",
+        "platform/apps/portal/tests"
+      ],
+      "deliverables": [
+        "V01—V21 样本清单、使用条件与可用性",
+        "原图/结果固定身份及质量核对口径"
+      ],
+      "acceptance": [
+        "复用已有合成/已授权本机样本",
+        "每个场景定义用户实际可拿到的结果，模型与设备不可用项如实标注"
+      ],
+      "verification_cases": [
+        "V01",
+        "V06",
+        "V07",
+        "V08",
+        "V10",
+        "V11",
+        "V12",
+        "V20"
+      ],
+      "rollback_or_containment": "样本和真值保留在 F 盘隔离目录，不覆盖业务资料。",
+      "implementation_result": "建立V01—V21证据矩阵；真实、合成故障注入、旧基线和未验场景分别注明。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\baseline-source.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\original-coverage-replay.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-003",
+      "phase": "A",
+      "priority": "P0",
+      "status": "completed",
+      "title": "确定状态、要求覆盖、输出和恢复契约",
+      "responsibility": "应用服务与契约",
+      "depends_on": [
+        "AR-001"
+      ],
+      "primary_paths": [
+        "platform/packages/contracts",
+        "platform/src/workbench_platform/jobs/projection.py",
+        "platform/src/workbench_platform/agent/tasks.py",
+        "platform/src/workbench_platform/agent/tools/context.py"
+      ],
+      "deliverables": [
+        "事实权威与字段映射表",
+        "原件/范围/要求到有效尝试的覆盖规则",
+        "输出、驱动与恢复兼容决定"
+      ],
+      "acceptance": [
+        "执行、要求覆盖、文件可用性和人工待办能独立表达",
+        "指定多引擎、未处理页和回执未知不会被后备成功掩盖",
+        "不新增独立任务系统或四套状态机"
+      ],
+      "verification_cases": [
+        "V02",
+        "V03",
+        "V04",
+        "V12",
+        "V14",
+        "V19"
+      ],
+      "rollback_or_containment": "契约草案先离线验证，旧读写契约继续保留。",
+      "implementation_result": "固定要求覆盖、输出、恢复与事实权威契约；四驱动复用原run/operation/native账本。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\baseline-source.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\original-coverage-replay.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-004",
+      "phase": "A",
+      "priority": "P0",
+      "status": "completed",
+      "title": "定义测量、范围和阶段退出条件",
+      "responsibility": "平台维护与验证",
+      "depends_on": [
+        "AR-001",
+        "AR-002",
+        "AR-003"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent",
+        "platform/src/workbench_platform/supervisor",
+        "platform/src/workbench_platform/resources",
+        "ocr/src/ocr_workbench"
+      ],
+      "deliverables": [
+        "最小分阶段计时规范",
+        "各阶段投入预算与关键依赖",
+        "实施 F 盘路径和变更边界登记"
+      ],
+      "acceptance": [
+        "区分模型耗时、排队、加载、推理和交付",
+        "固定原事故调用/耗时/输出基线",
+        "不引入额外监控服务、调度器或自动消息"
+      ],
+      "verification_cases": [
+        "V01",
+        "V16",
+        "V21"
+      ],
+      "rollback_or_containment": "只记录测量规格；后续代码埋点可以逐项关闭。",
+      "implementation_result": "固定输入、硬件、model-cold/model-warm、排队/加载/处理/交付测量口径及F盘边界。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\baseline-source.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\original-coverage-replay.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-005",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "补齐所有共用生命周期的终态发布",
+      "responsibility": "应用服务与运行时",
+      "depends_on": [
+        "AR-003"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/harness_service.py",
+        "platform/src/workbench_platform/application_services/job_lifecycle.py",
+        "platform/src/workbench_platform/agent/progress.py",
+        "platform/src/workbench_platform/jobs/projection.py"
+      ],
+      "deliverables": [
+        "终态观察与公开事件的一致处理",
+        "各生命周期的成功/失败终态证据"
+      ],
+      "acceptance": [
+        "结算成功或失败后发布同一身份终态",
+        "重复事件幂等且旧代次不能覆盖新状态",
+        "覆盖 OCR、PDF、Data、分类、训练、融合、视觉审校、取证、批次的既有生命周期"
+      ],
+      "verification_cases": [
+        "V02",
+        "V04",
+        "V06",
+        "V08",
+        "V10",
+        "V14",
+        "V15"
+      ],
+      "rollback_or_containment": "保持旧事件消费者兼容；关闭新展示时仍可读原生权威快照。",
+      "implementation_result": "结果先提交后发布终态；补提交/事件中断窗口，公共生命周期回归通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-targeted-tests.log",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\final-actions-tests-002.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-006",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "按用户要求修复历史失败与成功重试的完成度",
+      "responsibility": "应用服务与契约",
+      "depends_on": [
+        "AR-003"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/tools/context.py",
+        "platform/src/workbench_platform/agent/delivery_jobs.py",
+        "platform/src/workbench_platform/application_services/references.py",
+        "platform/src/workbench_platform/agent/tools/jobs.py"
+      ],
+      "deliverables": [
+        "有规则版本的覆盖核算",
+        "明确的修复/未解决尝试映射"
+      ],
+      "acceptance": [
+        "原事故允许后备成功后完整交付，历史失败原文不变",
+        "只消除同原件同要求的已修复缺失",
+        "指定引擎、尚有失败输入、未知回执继续阻止完整交付"
+      ],
+      "verification_cases": [
+        "V02",
+        "V03",
+        "V04",
+        "V14",
+        "V19"
+      ],
+      "rollback_or_containment": "回退派生投影规则；不把新判定写回历史尝试终态。",
+      "implementation_result": "同原件/版本/页/引擎核算覆盖；最终交付v2仅解除已证明的历史辅助拒绝，原记录不改。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\v18-completion-v2-replay.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-completion-v2-final-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\state.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-007",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "补齐用户可读输出与全文契约",
+      "responsibility": "成果服务与门户",
+      "depends_on": [
+        "AR-003"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/artifacts/ocr_results.py",
+        "platform/src/workbench_platform/agent/tools/ocr.py",
+        "platform/src/workbench_platform/agent/tools/context.py",
+        "platform/apps/portal/src/features/agent/AgentMessage.tsx"
+      ],
+      "deliverables": [
+        "OCR 全文与 UTF-8 TXT",
+        "结构化结果的预览和实际下载要求"
+      ],
+      "acceptance": [
+        "本例直接呈现 1764 字符原文并支持复制/TXT",
+        "超过 8000 字符时有完整分页/文件，明确预览截断",
+        "原有 JSON、来源哈希和下载身份继续有效"
+      ],
+      "verification_cases": [
+        "V01",
+        "V05",
+        "V06",
+        "V19"
+      ],
+      "rollback_or_containment": "新增可读格式与旧格式共存；不替换旧成果字节。",
+      "implementation_result": "1764字符原文、完整分页/复制、UTF-8 TXT；旧JSON/下载身份保留，长文合同通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\coverage-output-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\restored-http-verification.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\browser-receipt.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-008",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "把错误明确归到实际阶段和可处理原因",
+      "responsibility": "原生与运行时",
+      "depends_on": [
+        "AR-003",
+        "AR-004"
+      ],
+      "primary_paths": [
+        "ocr/src/ocr_workbench/adapter.py",
+        "ocr/src/ocr_workbench/task_queue.py",
+        "platform/src/workbench_platform/agent/registry.py",
+        "platform/src/workbench_platform/agent/providers.py"
+      ],
+      "deliverables": [
+        "加载、推理、导出、权限及回执未知的错误映射",
+        "公开错误与私有诊断边界"
+      ],
+      "acceptance": [
+        "加载超时不再提示缩小输入",
+        "权限拒绝和未知写入不会导致盲目重试",
+        "错误含可定位尝试与稳定原因且不泄露凭据"
+      ],
+      "verification_cases": [
+        "V02",
+        "V13",
+        "V14",
+        "V16"
+      ],
+      "rollback_or_containment": "保留旧错误码兼容映射，诊断增强不改变写入重放权限。",
+      "implementation_result": "加载/推理/导出/权限/未知回执分开；保留稳定原因与私有诊断，未知写入不重放。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\ocr-errors-binding-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\image-recovery-006-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\性能诊断与测量报告.md"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-009",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "让门户用权威快照修复进度并简化完成展示",
+      "responsibility": "门户与状态接口",
+      "depends_on": [
+        "AR-005",
+        "AR-006",
+        "AR-007"
+      ],
+      "primary_paths": [
+        "platform/apps/portal/src/features/agent/conversationProjection.ts",
+        "platform/apps/portal/src/features/agent/workbenchView.ts",
+        "platform/apps/portal/src/features/agent/useAgentEvents.ts",
+        "platform/apps/portal/src/features/agent/TaskPanel.tsx"
+      ],
+      "deliverables": [
+        "终态进度同步与重连快照",
+        "执行、成果和待办清楚区分的展示"
+      ],
+      "acceptance": [
+        "原事故回放不再保留两个运行中作业",
+        "刷新/乱序/重复事件不回退已确认终态",
+        "快照不可读时显示未核实，不猜成功或运行中"
+      ],
+      "verification_cases": [
+        "V01",
+        "V15",
+        "V19"
+      ],
+      "rollback_or_containment": "保留旧数据读取适配；回退 UI 不回退业务记录。",
+      "implementation_result": "SSE补齐与jobs权威快照；终态不回退，不可读显示未核实；006外部浏览器验证。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\portal-tests-runtime-disabled.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\browser-receipt.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\state.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-010",
+      "phase": "B",
+      "priority": "P0",
+      "status": "completed",
+      "title": "封存第一批正确性修复候选",
+      "responsibility": "验证与发行",
+      "depends_on": [
+        "AR-002",
+        "AR-005",
+        "AR-006",
+        "AR-007",
+        "AR-008",
+        "AR-009"
+      ],
+      "primary_paths": [
+        "platform/tests/agent",
+        "platform/apps/portal/tests",
+        "platform/scripts/product_compatibility.py",
+        "platform/scripts/backup_workspace.py"
+      ],
+      "deliverables": [
+        "事故离线回放和隔离真实执行结果",
+        "第一批候选的明确差异与未解决性能问题"
+      ],
+      "acceptance": [
+        "用户可读交付、修复覆盖和终态三项均通过",
+        "不把仍慢的原生性能标作已解决",
+        "保持正式 DATA 和旧下载不变"
+      ],
+      "verification_cases": [
+        "V01",
+        "V02",
+        "V03",
+        "V04",
+        "V05",
+        "V15",
+        "V19"
+      ],
+      "rollback_or_containment": "候选独立保存，是否切换按具体受测候选处理。",
+      "implementation_result": "正确性候选独立封存；原事故离线和隔离真实执行成功，性能不足单列。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\final-actions-tests-002.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\direct-projection-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-review.md"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-011",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "抽取中立执行上下文与兼容基础函数",
+      "responsibility": "应用服务与存储",
+      "depends_on": [
+        "AR-003",
+        "AR-010"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/registry.py",
+        "platform/src/workbench_platform/agent/store.py",
+        "platform/src/workbench_platform/application_services/native.py",
+        "platform/src/workbench_platform/application_services/native_operations.py",
+        "platform/packages/contracts/agent.py"
+      ],
+      "deliverables": [
+        "最小共用上下文/操作记录接口",
+        "canonical/digest 原位置的兼容导出"
+      ],
+      "acceptance": [
+        "手动与直接执行不要求加载 Harness",
+        "中立任务记录和应用服务初始化不依赖模型凭据、连接探针或 Harness 安装",
+        "范围、代次、身份和未知写入保护保持",
+        "历史 canonical 字节和 digest 完全不变",
+        "不新建通用执行框架或任务数据库"
+      ],
+      "verification_cases": [
+        "V13",
+        "V14",
+        "V17",
+        "V19"
+      ],
+      "rollback_or_containment": "原导入位置与记录格式保留，分步切换调用者。",
+      "implementation_result": "中立身份/上下文/执行基础；禁Agent导入探针和缺可选支持/Harness的直接运行回归通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-no-agent-import-final.log",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\isolation-final-tests.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-012",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "把结果读取和作业业务实现从 Agent 工具下移",
+      "responsibility": "应用服务",
+      "depends_on": [
+        "AR-011"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/application_services/job_lifecycle.py",
+        "platform/src/workbench_platform/application_services/manual.py",
+        "platform/src/workbench_platform/application_services/references.py",
+        "platform/src/workbench_platform/agent/tools/ocr.py",
+        "platform/src/workbench_platform/agent/tools/pdf.py",
+        "platform/src/workbench_platform/agent/tools/classification.py"
+      ],
+      "deliverables": [
+        "共用 OCR/PDF/分类结果与生命周期服务",
+        "薄 Agent 工具适配器",
+        "删除 7 处应用服务到 agent.tools 的反向 import"
+      ],
+      "acceptance": [
+        "静态依赖扫描不再存在上述反向工具依赖",
+        "手动带回、Agent 和原生结果引用核验一致",
+        "公开 API/结果引用兼容，不改变已保存版本"
+      ],
+      "verification_cases": [
+        "V06",
+        "V08",
+        "V14",
+        "V19"
+      ],
+      "rollback_or_containment": "业务实现逐族搬移；旧工具保持相同契约的委托包装。",
+      "implementation_result": "12族业务实现搬入中立operations；业务层AST反向Agent工具导入为0，兼容导出保留。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-final-source-review-006.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-013",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "实现复用现有账本的直接执行驱动",
+      "responsibility": "运行时与应用服务",
+      "depends_on": [
+        "AR-011",
+        "AR-012"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/runtime.py",
+        "platform/src/workbench_platform/agent/routes.py",
+        "platform/src/workbench_platform/agent/store.py",
+        "platform/src/workbench_platform/jobs/routes.py",
+        "platform/src/workbench_platform/application_services"
+      ],
+      "deliverables": [
+        "持久化驱动身份和最小恢复阶段",
+        "直接执行的等待/控制/恢复绑定"
+      ],
+      "acceptance": [
+        "聊天记录与操作身份保留，直接任务不创建 Harness 子进程",
+        "停止、范围修订和恢复与现有代次隔离一致",
+        "重启按原驱动恢复且不重复提交已接受写入",
+        "手动明确操作在 Agent 停用时仍可用",
+        "workspace 独占约束的调整先验证会话代次、对象版本和资源冲突；不直接删索引放开写入",
+        "无关暂停会话不阻断同项目纯读取和已证明互不影响的操作；同对象冲突有可解释等待或版本拒绝"
+      ],
+      "verification_cases": [
+        "V13",
+        "V14",
+        "V17",
+        "V19",
+        "V21"
+      ],
+      "rollback_or_containment": "新请求可停用直接驱动；已接受任务必须由支持该驱动的版本恢复。",
+      "implementation_result": "持久直接驱动、对象准入及未知写入保护；006真实停机/恢复同原生ID，无重复提交。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\cohorts\\Clear-0.13.0-architecture-candidate-006\\recovery-v14-001\\state.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\image-recovery-006-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-shared-wait-recovery-tests-v2.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-014",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "交付首个 OCR 组合业务动作",
+      "responsibility": "OCR 应用服务",
+      "depends_on": [
+        "AR-007",
+        "AR-008",
+        "AR-012",
+        "AR-013"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/application_services",
+        "platform/src/workbench_platform/jobs/ocr_handoff.py",
+        "platform/src/workbench_platform/agent/tools/ocr.py",
+        "platform/src/workbench_platform/artifacts/ocr_results.py"
+      ],
+      "deliverables": [
+        "范围校验到全文/TXT 的完整组合动作",
+        "有限且满足用户要求的技术后备策略"
+      ],
+      "acceptance": [
+        "内部固定输入、准备、提交、等待和交付无需模型逐项决定",
+        "默认提取与指定结构/引擎要求分别满足",
+        "同一请求重放幂等，失败子集不会重做成功项"
+      ],
+      "verification_cases": [
+        "V01",
+        "V02",
+        "V03",
+        "V04",
+        "V05"
+      ],
+      "rollback_or_containment": "保留旧低层 API；组合入口停用只影响新请求。",
+      "implementation_result": "固定图像输入到全文交付零模型；有限后备仅限明确引擎失败及原失败输入。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\cohorts\\Clear-0.13.0-architecture-candidate-006\\measurements.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-fallback-tests.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-015",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "让首页、聊天和手动入口选择正确执行路径",
+      "responsibility": "门户与入口契约",
+      "depends_on": [
+        "AR-013",
+        "AR-014"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/routes.py",
+        "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
+        "platform/apps/portal/src/features/start/QuickNativeWorkbench.tsx",
+        "platform/apps/portal/src/features/ocr/OcrWorkflow.tsx"
+      ],
+      "deliverables": [
+        "确定性按钮入口与自然语言目标的类型化路由",
+        "驱动选择、升级原因和已完成事实保存"
+      ],
+      "acceptance": [
+        "明确动作零模型调用；本例自然语言总目标 1—2 次",
+        "复合或歧义目标不被关键词误降为 OCR",
+        "无模型时本地明确动作可用，分析限制准确",
+        "恢复时不重新分类或重做已完成步骤"
+      ],
+      "verification_cases": [
+        "V01",
+        "V13",
+        "V14",
+        "V17",
+        "V18"
+      ],
+      "rollback_or_containment": "路由按候选开关切回旧路径用于新请求；不改变已接受运行驱动。",
+      "implementation_result": "完整提取命令走直接路径，复合要求保留Harness；006真实原句/messages零模型通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\cohorts\\Clear-0.13.0-architecture-candidate-006\\recovery-v14-001\\state.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\state.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-016",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "按任务装配工具、计划和模型当前事实",
+      "responsibility": "Agent 与上下文",
+      "depends_on": [
+        "AR-012",
+        "AR-015"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/providers.py",
+        "platform/src/workbench_platform/agent/context.py",
+        "platform/src/workbench_platform/agent/harness_service.py",
+        "platform/src/workbench_platform/agent/skills.py"
+      ],
+      "deliverables": [
+        "相关工具组与按需审计上下文",
+        "必要事实摘要和完整历史的引用分离"
+      ],
+      "acceptance": [
+        "本例无工具目录发现、模型计划维护或上下文整理",
+        "长任务仍可发现工具并安全整理",
+        "实际请求测量和提供商 usage 分开报告",
+        "历史/事实去重不丢目标、未解决事项或固定交付条件"
+      ],
+      "verification_cases": [
+        "V01",
+        "V05",
+        "V12",
+        "V18",
+        "V19"
+      ],
+      "rollback_or_containment": "保留旧提示版本和历史读取；按任务配置回退，不重放已提交工具。",
+      "implementation_result": "简单任务不发现目录/维护计划/压缩上下文；长分析保持按需工具与安全整理。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\isolation-final-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\image-recovery-006-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-shared-wait-recovery-tests-v2.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-017",
+      "phase": "C",
+      "priority": "P1",
+      "status": "completed",
+      "title": "收敛简单任务的用户界面",
+      "responsibility": "门户",
+      "depends_on": [
+        "AR-009",
+        "AR-015",
+        "AR-016"
+      ],
+      "primary_paths": [
+        "platform/apps/portal/src/features/agent/AgentMessage.tsx",
+        "platform/apps/portal/src/features/agent/TaskPanel.tsx",
+        "platform/apps/portal/src/features/agent/RunStatus.tsx",
+        "platform/apps/portal/src/features/agent/ToolActivity.tsx"
+      ],
+      "deliverables": [
+        "全文/复制/下载与单一清楚状态的默认展示",
+        "按需展开的来源、尝试历史和诊断"
+      ],
+      "acceptance": [
+        "不要求用户理解 handoff、operation ID、上下文容量或审计计划才能取结果",
+        "分析/审计仍能查看安排、来源和人工待办",
+        "不通过隐藏失败和限制制造简洁"
+      ],
+      "verification_cases": [
+        "V01",
+        "V05",
+        "V12",
+        "V15"
+      ],
+      "rollback_or_containment": "仅替换展示组合，不改业务事实和历史事件。",
+      "implementation_result": "明确按钮、实际进度和全文/TXT入口；分析与人工待办保持各自状态。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\browser-receipt.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\review\\门户与PDF审查.md"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-018",
+      "phase": "D",
+      "priority": "P1",
+      "status": "completed",
+      "title": "测量冷启动、热任务和资源等待",
+      "responsibility": "原生性能与验证",
+      "depends_on": [
+        "AR-004",
+        "AR-010",
+        "AR-014"
+      ],
+      "primary_paths": [
+        "ocr/src/ocr_workbench/adapter.py",
+        "ocr/src/ocr_workbench/engine_host.py",
+        "ocr/src/ocr_workbench/worker.py",
+        "platform/src/workbench_platform/supervisor",
+        "platform/src/workbench_platform/resources"
+      ],
+      "deliverables": [
+        "至少 5 次冷/10 次热的逐次阶段记录",
+        "直接原生、手动、旧 Agent、新组合入口比较"
+      ],
+      "acceptance": [
+        "硬件/模型/输入/冷热条件明确",
+        "队列和用户等待不计为主动执行性能",
+        "定位 PaddleVL 加载超时与 PPOCR 加载/处理耗时，未定位处如实保留"
+      ],
+      "verification_cases": [
+        "V01",
+        "V02",
+        "V16"
+      ],
+      "rollback_or_containment": "埋点默认低开销可关闭；不得改正式模型或释放未经核实的 GPU 所有者。",
+      "implementation_result": "006独立5模型冷/10模型热及原始阶段证据；OS缓存和背景GPU条件如实记录。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\性能诊断与测量报告.md",
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\cohorts\\Clear-0.13.0-architecture-candidate-006\\statistics.json"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-019",
+      "phase": "D",
+      "priority": "P1",
+      "status": "partial",
+      "title": "按实测瓶颈优化运行时和引擎选择",
+      "responsibility": "原生与资源管理",
+      "depends_on": [
+        "AR-018"
+      ],
+      "primary_paths": [
+        "ocr/src/ocr_workbench/adapter.py",
+        "ocr/src/ocr_workbench/engine_host.py",
+        "ocr/src/ocr_workbench/task_queue.py",
+        "platform/src/workbench_platform/application_services/native.py",
+        "platform/src/workbench_platform/resources/gpu.py"
+      ],
+      "deliverables": [
+        "有前后对照的瓶颈修正",
+        "明确的冷热/近期执行健康和速度质量策略"
+      ],
+      "acceptance": [
+        "复用现有 resident/所有权，避免全模型预热和隐式换设备",
+        "同输入同要求质量不降",
+        "每项性能改动有阶段数据；未达到的原生目标继续记录为未完成",
+        "完整性缓存优化有失效和负面测试",
+        "观察不可达时退避并公开未核实原因，不强行重放；GPU/原生队列仍是资源准入权威"
+      ],
+      "verification_cases": [
+        "V01",
+        "V02",
+        "V03",
+        "V16",
+        "V21"
+      ],
+      "rollback_or_containment": "独立关闭模型复用或策略优化；保持旧设备路线、哈希校验和原生请求身份。",
+      "implementation_result": "重复观察不再重复落盘，复用原资源所有权；控制和可读延迟目标未通过，不能关闭。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\性能诊断与测量报告.md",
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\cohorts\\Clear-0.13.0-architecture-candidate-006\\statistics.json"
+      ],
+      "remaining_acceptance": [
+        "继续按逐事务/锁等待/轮询/校验计时定位开销；同候选满足控制≤2秒、可读≤2秒并探测TXT首次可下载≤5秒后再关闭。"
+      ]
+    },
+    {
+      "id": "AR-020",
+      "phase": "D",
+      "priority": "P1",
+      "status": "completed",
+      "title": "将短路径推广到明确 PDF 提取",
+      "responsibility": "PDF 应用服务",
+      "depends_on": [
+        "AR-012",
+        "AR-014",
+        "AR-015"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/agent/tools/pdf.py",
+        "platform/src/workbench_platform/application_services",
+        "platform/src/workbench_platform/jobs/ocr_handoff.py",
+        "platform/apps/portal/src/features/ocr"
+      ],
+      "deliverables": [
+        "PDF 原文/指定页 OCR 的组合动作与可读输出"
+      ],
+      "acceptance": [
+        "可直接提取文本时不强制 OCR",
+        "扫描件只处理用户指定页",
+        "页级后备、来源、长文完整性和结果选择一致"
+      ],
+      "verification_cases": [
+        "V05",
+        "V06",
+        "V14"
+      ],
+      "rollback_or_containment": "旧 PDF 工具继续可调用；不重写已有页/结果版本。",
+      "implementation_result": "原文PDF不强制OCR；真实无文本层扫描PDF仅2/5页，长文/60页固定refs回归通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\state.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-recovery-final-tests-002.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-021",
+      "phase": "D",
+      "priority": "P1",
+      "status": "completed",
+      "title": "收敛 Data 明确清洗和核对的执行交付",
+      "responsibility": "Data 应用服务",
+      "depends_on": [
+        "AR-012",
+        "AR-013",
+        "AR-015"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/data_api/service.py",
+        "platform/src/workbench_platform/application_services/data.py",
+        "platform/src/workbench_platform/agent/tools/data.py",
+        "platform/modules/data_workbench",
+        "platform/apps/portal/src/features/data"
+      ],
+      "deliverables": [
+        "明确算子/核对组合动作",
+        "结果预览和适合使用的 CSV/Parquet 下载"
+      ],
+      "acceptance": [
+        "已有算子执行数据，不让模型抄表或重算",
+        "金额 Decimal、前导零、原值与来源行保持",
+        "用户要求与实际导出机检一致",
+        "相同参数各入口结果一致"
+      ],
+      "verification_cases": [
+        "V07",
+        "V14",
+        "V18"
+      ],
+      "rollback_or_containment": "复用现有数据 session/revision，原操作和导出身份不变。",
+      "implementation_result": "既有严格算子与真实Data worker完成清洗/双表核对及实际下载；Decimal/原值/前导零/来源保留。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-business-tests-v2.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-review.md"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-022",
+      "phase": "D",
+      "priority": "P1",
+      "status": "partial",
+      "title": "收敛已有模型分类预测与失败子集",
+      "responsibility": "分类应用服务",
+      "depends_on": [
+        "AR-012",
+        "AR-013",
+        "AR-015"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/jobs/classification_handoff.py",
+        "platform/src/workbench_platform/agent/tools/classification.py",
+        "platform/src/workbench_platform/application_services",
+        "classification/src/image_platform",
+        "platform/apps/portal/src/features/classification"
+      ],
+      "deliverables": [
+        "已有模型预测组合动作",
+        "模型/标签/输入与重试覆盖绑定"
+      ],
+      "acceptance": [
+        "无模型不隐式训练",
+        "预测和人工标签/采用不混淆",
+        "成功后备映射同一要求，指定模型要求不被替换",
+        "训练长任务仍保留现有恢复与权限"
+      ],
+      "verification_cases": [
+        "V08",
+        "V09",
+        "V13",
+        "V14"
+      ],
+      "rollback_or_containment": "旧推理/训练入口和模型版本保留；新入口不迁移或替换已发布模型。",
+      "implementation_result": "真实已有模型预测、人工失败子集重试、缺模型拒绝通过；自动跨尝试完整覆盖及全入口资格仍需补验。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\classification-v08-006\\qualification-report.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-final-source-review-006.json"
+      ],
+      "remaining_acceptance": [
+        "补分类直接路径跨失败/重试的要求覆盖及手动/Agent/批次同固定模型输入的完整对照；不隐式换模型或训练。"
+      ]
+    },
+    {
+      "id": "AR-023",
+      "phase": "D",
+      "priority": "P1",
+      "status": "partial",
+      "title": "统一取证和多模态的状态与可用结果",
+      "responsibility": "取证、多模态与门户",
+      "depends_on": [
+        "AR-005",
+        "AR-007",
+        "AR-012",
+        "AR-013"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/forensics",
+        "platform/src/workbench_platform/multimodal",
+        "platform/src/workbench_platform/agent/tools/forensics.py",
+        "platform/apps/portal/src/features/forensics",
+        "platform/apps/portal/src/features/multimodal"
+      ],
+      "deliverables": [
+        "取证报告的组合交付",
+        "当前开放多模态的公共观察与成果映射"
+      ],
+      "acceptance": [
+        "适用性、执行失败、质量限制与人工结论分开",
+        "报告、热图和转写等实际输出可读取",
+        "硬取消能力及 CPU/GPU 开放边界如实",
+        "未注册 Agent 能力不假称自动可用"
+      ],
+      "verification_cases": [
+        "V10",
+        "V11",
+        "V15",
+        "V16",
+        "V17"
+      ],
+      "rollback_or_containment": "保留现有算法与模型，不扩大设备/Agent 能力开放；新展示可独立停用。",
+      "implementation_result": "共用观察/交付与业务下移完成；取证与四类已开放多模态的本候选完整真实矩阵未重跑。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\state.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-completion-v2-proof-tests.xml",
+        "F:\\OCR\\output\\architecture-revision-20261017\\review\\门户与PDF审查.md"
+      ],
+      "remaining_acceptance": [
+        "用本候选重跑取证混合适用/不适用/失败、音频/人脸/印章/深度取证的真实开放能力样本。"
+      ]
+    },
+    {
+      "id": "AR-024",
+      "phase": "D",
+      "priority": "P1",
+      "status": "partial",
+      "title": "让批次复用业务操作并统一完成度",
+      "responsibility": "批次与应用服务",
+      "depends_on": [
+        "AR-006",
+        "AR-012",
+        "AR-014",
+        "AR-020",
+        "AR-021",
+        "AR-022",
+        "AR-023"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/batches/service.py",
+        "platform/src/workbench_platform/batches/native.py",
+        "platform/src/workbench_platform/batches/data.py",
+        "platform/src/workbench_platform/agent/tools/platform_management.py"
+      ],
+      "deliverables": [
+        "批次调用共用服务的绑定",
+        "按输入/要求核算的执行与复核展示"
+      ],
+      "acceptance": [
+        "成功项不重复、失败子集来源不丢",
+        "执行完成不冒充复核/索引完成",
+        "与手动/Agent 相同业务参数产生一致结果"
+      ],
+      "verification_cases": [
+        "V04",
+        "V07",
+        "V08",
+        "V12",
+        "V14",
+        "V21"
+      ],
+      "rollback_or_containment": "旧批次模板和记录可读；新模板使用明确版本，旧运行按原契约恢复。",
+      "implementation_result": "批次复用既有handoff/JobService/Data服务；执行与复核分开；三入口全领域同参数真实对照未补齐。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-review.md",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-final-source-review-006.json"
+      ],
+      "remaining_acceptance": [
+        "补批次与手动/Agent同参数真实输入、失败子集和复核/索引状态对照。"
+      ]
+    },
+    {
+      "id": "AR-025",
+      "phase": "E",
+      "priority": "P1",
+      "status": "partial",
+      "title": "让正式审计成为按需业务层",
+      "responsibility": "审计领域",
+      "depends_on": [
+        "AR-012",
+        "AR-016",
+        "AR-024"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/audit/service.py",
+        "platform/src/workbench_platform/audit/direct.py",
+        "platform/src/workbench_platform/audit/drafts.py",
+        "platform/src/workbench_platform/agent/tools/audit.py",
+        "platform/apps/portal/src/features/agent/FindingsWorkspace.tsx"
+      ],
+      "deliverables": [
+        "普通任务与正式档案的清晰边界",
+        "workspace/证据核验解除不必要 BatchService 依赖"
+      ],
+      "acceptance": [
+        "简单工具任务不强制创建正式档案、底稿或签署",
+        "固定证据、草稿修订、正式快照和人工署名保持",
+        "正常分析能按需形成有真实引用的发现"
+      ],
+      "verification_cases": [
+        "V01",
+        "V12",
+        "V19"
+      ],
+      "rollback_or_containment": "保持旧审计档案和人工记录原样；普通任务的简化不回填正式记录。",
+      "implementation_result": "普通操作不强制正式档案，workspace查询解除Batch依赖；正式人工复核/署名真实资格未执行。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-review.md",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-recovery-tests.log"
+      ],
+      "remaining_acceptance": [
+        "由真实审阅者完成固定证据、草稿转正式档案与署名，禁止以测试署名冒充人工批准。"
+      ]
+    },
+    {
+      "id": "AR-026",
+      "phase": "E",
+      "priority": "P1",
+      "status": "partial",
+      "title": "核对中央任务路径与共用服务兼容",
+      "responsibility": "任务中心与契约",
+      "depends_on": [
+        "AR-005",
+        "AR-006",
+        "AR-011",
+        "AR-012",
+        "AR-013",
+        "AR-024"
+      ],
+      "primary_paths": [
+        "platform/src/workbench_platform/tasks/server.py",
+        "platform/src/workbench_platform/tasks/worker.py",
+        "platform/src/workbench_platform/tasks/registry.py",
+        "platform/src/workbench_platform/tasks/journal.py",
+        "platform/tests/tasks"
+      ],
+      "deliverables": [
+        "本地/中央能力和字段映射",
+        "命令回执、原生 outbox 与新驱动兼容结果"
+      ],
+      "acceptance": [
+        "本地部署不新增 PostgreSQL 依赖",
+        "中央路径不重复实现同一业务或重放未知命令",
+        "宣称中央路径兼容前跑真实 PG 适配验证；无环境则该声明保持未验，不影响只发布已验本地范围"
+      ],
+      "verification_cases": [
+        "V14",
+        "V15",
+        "V20",
+        "V21"
+      ],
+      "rollback_or_containment": "中央部署独立候选与迁移；不强制迁移当前本机 DATA。",
+      "implementation_result": "本地未引入PG；没有真实PG部署/outbox资格，且旧中央normalized映射缺口保留为未验范围。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-final-source-review-006.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\services-review.md"
+      ],
+      "remaining_acceptance": [
+        "在独立PG部署验证命令/outbox/原生状态和控制权限；修正并验证answered/incomplete等中央归一化映射后才扩大声明。"
+      ]
+    },
+    {
+      "id": "AR-027",
+      "phase": "E",
+      "priority": "P1",
+      "status": "completed",
+      "title": "验证旧数据、直接驱动迁移和回退",
+      "responsibility": "存储与恢复",
+      "depends_on": [
+        "AR-010",
+        "AR-013",
+        "AR-024",
+        "AR-025",
+        "AR-026"
+      ],
+      "primary_paths": [
+        "platform/scripts/backup_workspace.py",
+        "platform/scripts/product_compatibility.py",
+        "platform/src/workbench_platform/resources/reader_features.py",
+        "platform/src/workbench_platform/agent/harness_migration.py",
+        "platform/tests/agent/test_backup.py"
+      ],
+      "deliverables": [
+        "最小 schema/reader feature 变更清单",
+        "隔离迁移、旧 reader 拒写与回退演练"
+      ],
+      "acceptance": [
+        "旧下载/哈希/会话/人工修改不变",
+        "新任务按已保存驱动恢复",
+        "派生完成度回填不改历史尝试",
+        "不兼容回退使用新 F 盘恢复目录，不覆盖正式库或丢接受回执"
+      ],
+      "verification_cases": [
+        "V13",
+        "V14",
+        "V19",
+        "V20"
+      ],
+      "rollback_or_containment": "关闭新入口只影响新请求；已接受新驱动任务保留支持版本，完整恢复另用一致性副本。",
+      "implementation_result": "006对隔离平台/OCR/分类数据冷备恢复到新F目录；行/回执/下载/模型哈希与旧reader拒写实证通过。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\cold006-main-restore.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\cold006-ocr-restore.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\restored-http-verification.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\direct-backup-final-tests.xml"
+      ],
+      "remaining_acceptance": []
+    },
+    {
+      "id": "AR-028",
+      "phase": "E",
+      "priority": "P1",
+      "status": "partial",
+      "title": "按用户目标做真实模型端到端验收",
+      "responsibility": "业务验证与门户",
+      "depends_on": [
+        "AR-017",
+        "AR-019",
+        "AR-020",
+        "AR-021",
+        "AR-022",
+        "AR-023",
+        "AR-024",
+        "AR-025",
+        "AR-027"
+      ],
+      "primary_paths": [
+        "platform/tests/agent",
+        "platform/tests/integration",
+        "platform/apps/portal/tests",
+        "platform/tests/e2e"
+      ],
+      "deliverables": [
+        "V01—V21 状态明确的结果矩阵",
+        "真实模型入口证据、全文与实际下载核对",
+        "冷热性能和模型用量对照"
+      ],
+      "acceptance": [
+        "V01/V02/V06/V07/V08/V12/V18 至少各一例真实模型和用户入口验证",
+        "确定性故障注入补恢复边界，不冒充模型验收",
+        "质量/覆盖不降，本例模型输入目标减少至少 80%",
+        "未具备条件的能力不扩大发布声明"
+      ],
+      "verification_cases": [
+        "V01",
+        "V02",
+        "V03",
+        "V04",
+        "V05",
+        "V06",
+        "V07",
+        "V08",
+        "V09",
+        "V10",
+        "V11",
+        "V12",
+        "V13",
+        "V14",
+        "V15",
+        "V16",
+        "V17",
+        "V18",
+        "V19",
+        "V20",
+        "V21"
+      ],
+      "rollback_or_containment": "失败证据保留；仅扩大验证已通过的范围，不用补说明代替行为修复。",
+      "implementation_result": "真实图片/PDF/Data worker/分类/复合分析和恢复已验证；人工质量、V10/11/12/20等完整资格未齐。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\pdf-analysis\\验收报告.md",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\classification-v08-006\\qualification-report.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\performance\\性能诊断与测量报告.md"
+      ],
+      "remaining_acceptance": [
+        "补矩阵中未验真实域、人工OCR真值及完整入口对照；不以确定性控制器替代真实模型资格。"
+      ]
+    },
+    {
+      "id": "AR-029",
+      "phase": "E",
+      "priority": "P1",
+      "status": "partial",
+      "title": "封存受测候选与具体切换回退方案",
+      "responsibility": "发行维护",
+      "depends_on": [
+        "AR-027",
+        "AR-028"
+      ],
+      "primary_paths": [
+        "platform/scripts",
+        "release/Clear/current.json",
+        "release/Clear/product-entry.ps1",
+        "products/Clear/source-manifest.json"
+      ],
+      "deliverables": [
+        "固定候选清单、源码身份与明确发布范围",
+        "一致性备份和具体切换/回退检查单"
+      ],
+      "acceptance": [
+        "功能、性能和恢复证据绑定同一候选身份",
+        "未改封存共享程序和模型",
+        "正式切换前有活动任务处理办法与已接受任务恢复能力",
+        "独立隔离环境停止后再做收口"
+      ],
+      "verification_cases": [
+        "V01",
+        "V14",
+        "V19",
+        "V20"
+      ],
+      "rollback_or_containment": "保留旧发行与新 F 盘恢复副本；切换仅对已受测具体候选操作。",
+      "implementation_result": "006清单/源码/功能/5冷10热/恢复同身份绑定，回退副本可审阅；完整性能与扩展资格门槛仍未关闭。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\candidate-package-006.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\cold006-main-restore.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\cold006-ocr-restore.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\restored-http-verification.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\final-shutdown.json"
+      ],
+      "remaining_acceptance": [
+        "完整资格未齐，不作正式切换；保留006与旧发行，按受测部署范围及冷备/活动任务检查决定后续发行。"
+      ]
+    },
+    {
+      "id": "AR-030",
+      "phase": "E",
+      "priority": "P1",
+      "status": "completed",
+      "title": "更新文档并撤除过渡重复路径",
+      "responsibility": "文档与维护",
+      "depends_on": [
+        "AR-029"
+      ],
+      "primary_paths": [
+        "docs/Clear架构设计与实现思路.md",
+        "docs/Clear审计平台使用说明书.md",
+        "docs/platform-automation/README.md",
+        "platform/docs/agent",
+        "products/Clear"
+      ],
+      "deliverables": [
+        "实际架构、使用和兼容边界文档",
+        "旧 API/提示词/投影的保留或撤除清单",
+        "源码快照同步身份"
+      ],
+      "acceptance": [
+        "文档版本、入口和当前受测能力一致",
+        "已完成任务只凭实际证据关闭",
+        "未再被调用的过渡实现有测试后移除，仍有历史引用的兼容入口保留",
+        "不把源码同步当作发布成功"
+      ],
+      "verification_cases": [
+        "V19"
+      ],
+      "rollback_or_containment": "文档与代码兼容说明随候选保留；历史版本和失败证据不删除。",
+      "implementation_result": "文档、计划、保留兼容入口及1952文件源码快照一致；同步不等于发行，正式入口未切换。",
+      "verification_scope": "本机候选与列明的合同/真实样本；不自动扩大到未验域或中央部署。",
+      "evidence": [
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\source-snapshot-final-verify.json",
+        "F:\\OCR\\output\\architecture-revision-20261017\\evidence\\implementation-delta.json"
+      ],
+      "remaining_acceptance": []
+    }
+  ],
+  "implementation_updated_on": "2026-10-17",
+  "review_document": "docs/platform-automation/Clear全平台架构修订实施与审查-20261017.md",
+  "candidate": {
+    "candidate": "F:\\OCR\\output\\architecture-revision-20261017\\delivery\\Clear-0.13.0-architecture-candidate-006",
+    "product_version": "0.13.0",
+    "files": 3799,
+    "bytes": 167115287,
+    "manifest_sha256": "af191d7f40bad6699f1e1305679ff0c698bf32881468e973747836c9554e8894",
+    "shared_program": "F:\\OCR\\release\\Clear\\versions\\0.10.0\\program",
+    "network_requests": 0
+  },
+  "verification_summary": {
+    "all_plan_acceptance_passed": false,
+    "formal_release_switched": false,
+    "performance_passed": false,
+    "human_formal_review": "not_run",
+    "central_postgresql": "not_run",
+    "report": "docs/platform-automation/Clear全平台架构修订实施与审查-20261017.md",
+    "qualification_note": "Completed task status applies to the stated local contract scope; open acceptance is not silently waived."
+  },
+  "task_status_counts": {
+    "completed": 22,
+    "partial": 8
+  }
+}

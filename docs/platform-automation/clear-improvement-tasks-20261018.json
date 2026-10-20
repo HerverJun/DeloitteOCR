@@ -1,0 +1,444 @@
+{
+  "format": "clear-user-journey-improvement-plan-v2",
+  "date": "2026-10-18",
+  "status": "implemented_final_candidate_validation_in_progress",
+  "implementation_started": true,
+  "focus": "真实用户目标→必要动作→持续执行→可用成果；严重流程复杂与中断问题优先",
+  "supersedes": "F:\\OCR\\output\\current-baseline-review-20261018\\user-journeys\\history\\engineering-tasks-superseded.json",
+  "engineering_backlog_role": "辅助检查，非当前主线；不删除历史证据，不恢复无关历史待办。",
+  "baseline": {
+    "formal_version": "0.12.1",
+    "reviewed_candidate": "F:\\OCR\\output\\architecture-revision-20261017\\delivery\\Clear-0.13.0-architecture-candidate-006",
+    "candidate_manifest_sha256": "af191d7f40bad6699f1e1305679ff0c698bf32881468e973747836c9554e8894"
+  },
+  "findings": [
+    {
+      "id": "UF-R1",
+      "title": "简单任务仍可能被做成复杂Agent流程",
+      "evidence_level": "当前代码确认；自然表达的完整模型轨迹待首跑",
+      "finding": "八句图片口令以外的自然说法、PDF页提取等不走现有图片短路。主发送按钮又以模型连接为前提；用户必须学会换句话说或找专用按钮。",
+      "tasks": [
+        "UF-001",
+        "UF-004"
+      ]
+    },
+    {
+      "id": "UF-R2",
+      "title": "短暂故障容易变成无法原地继续的任务失败",
+      "evidence_level": "当前候选精确方法复现",
+      "finding": "provider_unavailable、harness_exited、truncated_response、限流异常离开模型重试层后均被置failed；reconcile拒绝failed。未知模型响应则提示结束本轮、以新目标继续。",
+      "tasks": [
+        "UF-002",
+        "UF-005"
+      ]
+    },
+    {
+      "id": "UF-R3",
+      "title": "“补充并继续”与实际行为冲突",
+      "evidence_level": "当前候选精确方法复现及界面调用点确认",
+      "finding": "直接任务waiting_job和paused两种状态下追加后续比较要求都被拒绝；提示建议暂停后修订，但暂停后仍不接受。没有发现追加要求被静默接收的证据，当前是明确拒绝。",
+      "tasks": [
+        "UF-003"
+      ]
+    },
+    {
+      "id": "UF-R4",
+      "title": "不同工具间反复碰同一障碍，现有防空转保护识别不到",
+      "evidence_level": "当前计数逻辑复现；不宣称实际无限循环已复现",
+      "finding": "AAA触发三次重复保护；交付失败A与结果读取B交替8次，计数一直为1。工具切换不等于用户任务有进展。",
+      "tasks": [
+        "UF-004",
+        "UF-007"
+      ]
+    },
+    {
+      "id": "UF-R5",
+      "title": "暂停任务可能把无关项目一并挡住",
+      "evidence_level": "当前候选冲突判断复现并核对start_run调用",
+      "finding": "有暂停Harness任务时，另一workspace独立原生项目的图片操作仍被判冲突；start_run对所有活跃run应用该判断，用户会被迫处理无关旧任务。",
+      "tasks": [
+        "UF-006"
+      ]
+    },
+    {
+      "id": "UF-R6",
+      "title": "工具已有结果，整体分析失败时是否仍能直接拿到成果未形成闭环",
+      "evidence_level": "当前结构风险；须做真实断点验收，未冒称已复现结果丢失",
+      "finding": "直接动作发布位于驱动末尾；后台观察只调度waiting_job/waiting_user。failed分析的独立成果收取、展示和继续需真实验证，不能用“原回执保留”代替用户拿到结果。",
+      "tasks": [
+        "UF-002",
+        "UF-005",
+        "UF-007"
+      ]
+    }
+  ],
+  "journeys": [
+    {
+      "id": "J01",
+      "goal": "同一图片提取目标换6种自然说法，含无模型连接",
+      "user_acceptance": "上传/选资料→描述目标→拿全文/TXT；无需内部准备、指定执行模式或碰巧说中口令。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "014真实冷主UI与009六表达；016未变分支按逐文件身份继承。"
+    },
+    {
+      "id": "J02",
+      "goal": "读取PDF第2、5页并比较金额、保留原文；答复一次真实口径歧义",
+      "user_acceptance": "只处理所选页；用户答复后继续并交付，无重复提取、无交付/读取空转。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "009/014新目标主UI与真实口径澄清；015/016失败历史保留，017原run恢复完成；018冷继承并另跑全新主UI目标，精确2/5页与实际全文下载。"
+    },
+    {
+      "id": "J03",
+      "goal": "清理表格和用已有模型分类",
+      "user_acceptance": "系统处理准备步骤；只问缺少的必要业务选择，不要求用户认识handoff/asset_set，不隐式训练。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "实际公共主messages入口：014无模型Data三格式与009真实已有ONNX分类；分别记录API入口，不冒称浏览器UI首跑。"
+    },
+    {
+      "id": "J04",
+      "goal": "浏览器断线/刷新、模型明确503、认证修复",
+      "user_acceptance": "原用户任务可继续，已完成工作不重做；不要求重述目标、重新选资料。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "真实503/401/TLS故障、UI继续及连接revision修复；018恢复及来源覆盖回归与受影响分支identity绑定。"
+    },
+    {
+      "id": "J05",
+      "goal": "接受写入后及工具完成后关闭自有Harness，再恢复；另测未知回执",
+      "user_acceptance": "原回执核对后续作；无重复native提交，已完成成果可读；未知写入不盲目重发。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "真实原生完成后终止仅自有Harness、同run重建与暂停时实际TXT下载；018恢复/冷备检查。"
+    },
+    {
+      "id": "J06",
+      "goal": "3项里1项失败，后续只补失败项",
+      "user_acceptance": "2项成功先可用，补1项后目标完整；用户无需拼找三个历史任务的结果。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "014首跑、015续作失败轨迹保留；016原J06仅补第三资料并完整完成，018同DATA冷继承、核三格式实际文件与下载。"
+    },
+    {
+      "id": "J07",
+      "goal": "暂停项目A分析，同时处理独立项目B；再试同对象竞争",
+      "user_acceptance": "无关任务可用，真正冲突有保护，不让用户停掉全部工作。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "014真实paused Harness A期间独立B主UI完成、同native alias409与纯读200；018继承的恢复重新准入回归。"
+    },
+    {
+      "id": "J08",
+      "goal": "OCR进行中追加“再比较金额”，暂停后修改后续要求",
+      "user_acceptance": "承接已完成步骤和结果，追加要求确实执行；按钮、提示和实际行为一致。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "真实已接受追加/暂停修订，014冷续原intent任务；范围增减/主动停止及原回执保护由真实API/native边界核验。"
+    },
+    {
+      "id": "J09",
+      "goal": "长任务、多阶段有真实进展，含GPU排队与上下文整理",
+      "user_acceptance": "健康等待不烧模型、不被固定轮数误停；真正无进展自动收束，关键目标与成果不因整理丢失。",
+      "fresh_live_run": "accepted_with_candidate_bound_evidence",
+      "evidence_scope": "真实长任务三段模型/整理日志审计，014真实GPU排队；工程provider长worker回放单独记录。"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "UF-001",
+      "status": "completed",
+      "priority": "P1",
+      "title": "同一用户目标走同一条简洁流程，不依赖固定口令或专用按钮",
+      "user_problem": "用户说法稍变就进入完整Agent；聊天发送还要求模型连接，本来能做的本地操作被入口挡住。",
+      "changes": [
+        "依据目标、资料类型和必要参数统一识别图片提取、PDF页提取、明确Data操作及已有模型预测；常规前置准备由服务端完成。",
+        "明确操作继续零模型；确需自然语言解析时使用有边界的一次解析，把参数交给已有业务动作，不让模型逐步搬内部ID。",
+        "复合目标保留所有条件；结果分析才用模型，不能因出现“文字”就吞掉比较/解释/制表要求。",
+        "用户输入框按任务实际能力启用；模型未连接时已支持的明确本地任务仍能从主流程发起。"
+      ],
+      "acceptance": [
+        "J01各自然说法、图片/PDF入口及正常参数不要求用户知道执行模式、原生项目ID或服务准备。",
+        "同样的明确目标不能因“谢谢”等修饰触发完整工具发现/计划维护/上下文整理；专用按钮是便利入口而非唯一可靠入口。",
+        "复杂要求进入分析且不降低交付条件；模型次数按任务必要性记录，简单提取不再出现十几二十轮。"
+      ],
+      "depends_on": [
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/runtime.py:submit",
+        "application_services/*_action.py",
+        "application_services/image_text.py",
+        "application_services/pdf_text.py",
+        "portal/AgentWorkbench.tsx"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-002",
+      "status": "completed",
+      "priority": "P1",
+      "title": "短暂故障后继续原任务，不让用户重新开始",
+      "user_problem": "模型连接、限流重试耗尽或Harness中断后任务进入failed；现有继续接口拒绝failed，未知模型响应还要求结束本轮后另起目标。",
+      "changes": [
+        "区分明确未执行/明确拒绝、控制器故障、未知模型响应、未知业务写入；为每类提供原用户任务的恢复路径。",
+        "已明确安全的短暂连接故障做有界恢复；需要修连接时保存任务，修好后一个“继续”从最后有效进度续作。",
+        "Harness进程退出先重建原日志和操作回执，再继续；未知业务写入始终先查原生回执，不盲目重发。",
+        "内部可新增合法尝试，但用户目标、已完成成果和接受的原生作业保持连续；不要求重新描述目标或重新选资料。"
+      ],
+      "acceptance": [
+        "J04/J05分别在工具提交前、接受后、工具完成后和交付前打断；恢复后只补未完成步骤，原生已接受作业不增加。",
+        "恢复失败明确告诉用户“已完成什么、剩什么、需要你做哪一件事”；不能只写“查看步骤/以新目标继续”。",
+        "认证错误修复后也能续作；用户主动停止不被自动恢复，未知写入不被当成可安全重试。"
+      ],
+      "depends_on": [
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/runtime.py:drive/reconcile",
+        "agent/providers.py",
+        "agent/harness.py",
+        "agent/harness_service.py",
+        "portal/RunStatus.tsx"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-003",
+      "status": "completed",
+      "priority": "P1",
+      "title": "让补充要求、暂停和继续形成可用的一条工作链",
+      "user_problem": "界面说“补充并继续”，直接任务运行中和暂停后却都拒绝追加；用户只能停掉再想办法重开。",
+      "changes": [
+        "把追加要求固定到同一用户任务；已接受的原输入/参数保持不变，后续步骤接续新要求并复用已产出结果。",
+        "兼容的追加安排在当前步骤之后；真正冲突的范围/引擎变更说明影响并给继续原任务或建立关联修订的明确选择。",
+        "暂停后可以修订后续目标，再继续；界面文案、可用按钮和后端行为一致。"
+      ],
+      "acceptance": [
+        "J08中OCR运行时追加“再比较金额”，无需停止重做OCR，后续比较确实完成。",
+        "暂停后修订能够生效；不能把409拒绝当成已接收，也不能接受后静默丢掉后续要求。",
+        "原件版本、范围和旧尝试保留；缩小范围、增加资料与用户停止分别验证，不篡改已接受写入。"
+      ],
+      "depends_on": [
+        "UF-002",
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/runtime.py:submit/pause/reconcile",
+        "agent/tasks.py",
+        "application_services/direct_actions.py",
+        "portal/AgentWorkbench.tsx"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-004",
+      "status": "completed",
+      "priority": "P1",
+      "title": "阻止跨工具空转，按用户目标是否推进决定下一步",
+      "user_problem": "当前连续重复保护只看紧邻同一动作；失败交付和结果读取交替发生时不会触发，仍可能反复消耗模型。",
+      "changes": [
+        "用要求覆盖、实际新增结果、已解决障碍和用户新信息判断业务进展，不以工具名称或参数变化冒充进展。",
+        "同一未解决问题经不同工具反复出现时，先执行有界的已知修复；仍无进展则保存可用成果并给具体阻碍。",
+        "常规提取/导出/等待由共用业务动作完成；复杂任务按需加载工具，避免重复发现目录、准备项目和核验同一结果。"
+      ],
+      "acceptance": [
+        "J02和交替失败回放不会连续绕同一障碍；真实业务长流程允许超过20步，健康原生等待不被误判为空转。",
+        "没有实质业务歧义时不要求用户替系统选择内部修复步骤；有歧义只问影响结果的必要问题。",
+        "无法完成时交付真实已有成果和缺失条件，不通过删要求或伪造成功收口。"
+      ],
+      "depends_on": [
+        "UF-001",
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/harness_service.py:harness_prepare/harness_tool",
+        "agent/harness_service.py:harness_prompt",
+        "application_services/operations"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-005",
+      "status": "completed",
+      "priority": "P1",
+      "title": "计算结果先可用，后续分析中断也不锁住成果",
+      "user_problem": "现有完整交付依赖运行驱动走到发布步骤；控制器失败后的自动成果收取与直接呈现尚缺真实断点验收。",
+      "changes": [
+        "已完成工具的原文/表格/预测及下载进入当前任务成果区，不等待最后一次模型总结。",
+        "分析未完成时分别展示“原文已完成、比较待继续”等业务状态，避免一个失败标记遮住全部有效结果。",
+        "模型或Harness中断后仍可读取原生已完成结果，按原版本发布；恢复时复用而非重算。"
+      ],
+      "acceptance": [
+        "J04/J05在工具完成后断开模型或关闭自有Harness，用户仍能从原任务拿到完整结果与实际文件。",
+        "J06中成功2项立即可用，失败1项恢复后完整交付；用户不需进运行日志找工具ID或手动重新导出。",
+        "最终分析不完整继续如实标注；保存部分成果不冒充全部目标成功。"
+      ],
+      "depends_on": [
+        "UF-002",
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/runtime.py:observe_jobs/finish_error",
+        "application_services/job_lifecycle.py",
+        "artifacts/text_outputs.py",
+        "portal/TaskPanel.tsx",
+        "portal/AgentMessage.tsx"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-006",
+      "status": "completed",
+      "priority": "P1",
+      "title": "一个暂停任务不再拖住无关项目",
+      "user_problem": "当前start_run扫描全部活跃任务；存在Harness任务时对非Data新任务保守冲突，独立项目图片任务也会被挡住。",
+      "changes": [
+        "把冲突约束落实到可能写入的实际原生对象和所属范围；同会话顺序继续保留。",
+        "暂停分析的未知对象范围只保守覆盖其真正可访问资源，不能无条件阻塞另一独立项目。",
+        "跨workspace指向同一原生项目的链接仍识别为同一对象，不通过删锁换并发。"
+      ],
+      "acceptance": [
+        "J07暂停项目A的分析后，项目B的独立图片提取和纯读取能继续。",
+        "真正同对象冲突仍排队或版本拒绝；用户看到明确关联任务，无需停止无关任务或重启软件。"
+      ],
+      "depends_on": [
+        "UF-007"
+      ],
+      "target_paths": [
+        "agent/store.py:start_run",
+        "application_services/direct_scope.py",
+        "application_services/identity.py"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-007",
+      "status": "completed",
+      "priority": "P1",
+      "title": "用真实用户目标建立复现与回归，先跑失败场景",
+      "user_problem": "此前验证偏向原句快捷路径和缺陷修复后的复核，不能证明自然表达、首次完整流程及中断体验普遍可用。",
+      "changes": [
+        "先复现J01/J04/J05/J07，再执行完整J01—J09；从主输入入口开始，不在提示里注入工具名、内部ID、oracle或“按正确步骤执行”。",
+        "存下第一轮原始轨迹：用户点了几次、被问了什么、首次结果何时出现、模型和业务动作多少次、卡在哪里、如何恢复。",
+        "真实模型验收与确定性故障回放分开；修复后的新目标首跑与旧历史复核分开。"
+      ],
+      "acceptance": [
+        "所有严重路径有可重复触发和用户可见结果；没有运行的场景明确待验，不能以静态代码推理冒称实测。",
+        "结果/范围正确、无重复原生提交、无无意义人工干预、故障后可续作，才关闭对应用户问题。"
+      ],
+      "depends_on": [],
+      "target_paths": [
+        "tests/e2e",
+        "portal/tests",
+        "F:/OCR/output/<实施日期对应的用户流程修复目录>/journeys"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    },
+    {
+      "id": "UF-008",
+      "status": "completed",
+      "priority": "P1",
+      "title": "把通过的用户流程真正交付到正式入口",
+      "user_problem": "006候选的局部修复未发布，正式用户仍在0.12.1；仅宣称候选通过不能解决日常使用问题。",
+      "changes": [
+        "让UF-001—006的用户结果在同一最终候选复验；保留旧版、正式数据及已接受任务的恢复能力。",
+        "在明确发布范围内检查既有工具兼容、真实下载和冷恢复；工程完整性作为必要辅助，不替代用户流程通过。",
+        "按具体检查结果及用户授权交付；中央部署/新算法资格单独安排，不用它们掩盖本机主流程缺陷。"
+      ],
+      "acceptance": [
+        "日常固定入口得到的是通过J01—J09受影响场景的版本，而非只有开发预览修好。",
+        "当前用户资料、历史结果与未完成任务可继续；发布失败可恢复，不能丢已接受的工作。"
+      ],
+      "depends_on": [
+        "UF-001",
+        "UF-002",
+        "UF-003",
+        "UF-004",
+        "UF-005",
+        "UF-006",
+        "UF-007"
+      ],
+      "target_paths": [
+        "release/Clear/current.json",
+        "release/Clear/product-entry.ps1",
+        "scripts/backup_workspace.py"
+      ],
+      "execution_storage": "F:/OCR/output/user-flow-fixes-20261018",
+      "evidence": [
+        "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+        "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+        "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json"
+      ],
+      "accepted_candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018"
+    }
+  ],
+  "first_execution": [
+    "UF-007:先复现J01/J04/J05/J07",
+    "UF-001",
+    "UF-002",
+    "UF-006",
+    "UF-003",
+    "UF-004",
+    "UF-005",
+    "UF-008"
+  ],
+  "non_negotiable": [
+    "所有新项目文件及缓存/临时/模型/浏览器产物仅在F盘。",
+    "保留范围/版本/权限/原生回执保护；未知业务写入不自动重发。",
+    "原生接受作业不因恢复而重算；用户主动停止不自动重启。",
+    "仅有静态或确定性证据时不声称真实模型或浏览器端到端通过。",
+    "本轮不修改业务源码、正式入口或正式DATA，不以修文档代替修用户问题。"
+  ],
+  "implementation": {
+    "date": "2026-10-18",
+    "authorization": "用户明确要求完成本计划修复",
+    "root": "F:/OCR/output/user-flow-fixes-20261018",
+    "authoritative_source": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
+    "report": "docs/platform-automation/Clear用户流程修复与验收-20261018.md",
+    "formal_entry_switched": true,
+    "scope_note": "原non_negotiable最后一条“不修改源码/入口”描述的是制定计划阶段；本次用户后续明确授权实施，仍须遵守保护原资料、回执、版本及真实证据的约束。",
+    "completed_on": "2026-10-19",
+    "candidate": "F:\\OCR\\output\\user-flow-fixes-20261018\\delivery\\Clear-0.13.0-user-flow-candidate-018",
+    "candidate_manifest_sha256": "365cc7c4f65456c330b42a89610f0e705a5655cde46bd43ac7a9386014984881",
+    "formal_readback": "output\\user-flow-fixes-20261018\\evidence\\formal018-readback.json",
+    "release_gate": "output\\user-flow-fixes-20261018\\evidence\\candidate018-user-flow-release-gate.json",
+    "status": "completed_local_delivery",
+    "evidence_policy": "原候选首跑计数/截图保持原归属；最终新验与未变分支继承依据分列，不声称每条旅程均016从零重跑。"
+  }
+}
