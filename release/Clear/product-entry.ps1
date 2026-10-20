@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('start','status','stop')][string]$Action = 'start',
     [string]$RegistrationFile = (Join-Path $PSScriptRoot 'current.json')
 )
@@ -69,6 +69,9 @@ while (-not $productLease) {
 try {
 $productRegistration = Read-ProductJson $productRegistrationPath
 if ($productRegistration.format -ne 'clear-current-product-v1') { throw '当前产品登记格式无效' }
+$productAgentSetting = $productRegistration.PSObject.Properties['agent_enabled']
+if ($productAgentSetting -and $productAgentSetting.Value -isnot [bool]) { throw 'Agent 启用登记必须是布尔值' }
+$productAgentEnabled = $productAgentSetting -and $productAgentSetting.Value -eq $true
 $productRoot = Resolve-ProductPath $productRegistration.candidate
 $productData = Resolve-ProductPath $productRegistration.data
 $productProgram = Resolve-ProductPath $productRegistration.shared_program
@@ -153,7 +156,9 @@ if ($productListener -and (-not $productProcess -or
 if ($Action -eq 'status') {
     @{status=$(if ($productProcess) {'running'} else {'stopped'});url="http://127.0.0.1:$productPort/";
       pid=$(if ($productProcess) {$productProcess.ProcessId} else {$null});product_version=$productManifest.product_version;
-      candidate=$productRoot;data=$productData;compatible=$productCheck.compatible} | ConvertTo-Json
+      candidate=$productRoot;data=$productData;compatible=$productCheck.compatible;
+      agent_requested=[bool]$productAgentEnabled;
+      agent_process_enabled=$(if ($productProcess) { [bool]($productProcess.CommandLine -match '(?:^|\s)--enable-agent(?:\s|$)') } else { $false })} | ConvertTo-Json
     return
 }
 if ($Action -eq 'stop') {
@@ -170,18 +175,24 @@ if ($Action -eq 'stop') {
     @{status='stopped';pid=$productProcess.ProcessId} | ConvertTo-Json
     return
 }
-if ($productProcess) { @{status='already_running';url="http://127.0.0.1:$productPort/";pid=$productProcess.ProcessId} | ConvertTo-Json; return }
+if ($productProcess) {
+    $productRunningAgent = [bool]($productProcess.CommandLine -match '(?:^|\s)--enable-agent(?:\s|$)')
+    if ($productRunningAgent -ne [bool]$productAgentEnabled) { throw 'Agent 启用设置已改变，请先停止本产品再重新启动' }
+    @{status='already_running';url="http://127.0.0.1:$productPort/";pid=$productProcess.ProcessId;agent_requested=[bool]$productAgentEnabled} | ConvertTo-Json; return
+}
 $productLaunchId = [guid]::NewGuid().ToString('N')
+$productAgentArguments = @()
+if ($productAgentEnabled) { $productAgentArguments += '--enable-agent' }
 $productDetached = & $productPython -I -B (Resolve-ProductPath (Join-Path $productScriptRoot 'product-launch.py')) `
     --launcher $productLauncher --data $productData --port $productPort `
     --stdout (Join-Path $productRuntimeRoot ("logs\start-$productLaunchId.stdout.log")) `
-    --stderr (Join-Path $productRuntimeRoot ("logs\start-$productLaunchId.stderr.log"))
+    --stderr (Join-Path $productRuntimeRoot ("logs\start-$productLaunchId.stderr.log")) @productAgentArguments
 if ($LASTEXITCODE -ne 0) { throw '后台服务启动失败，查看本地日志' }
 $productChild = Get-Process -Id ([int](($productDetached | ConvertFrom-Json).pid))
 $productOwnedProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $($productChild.Id)"
 if (-not $productOwnedProcess) { throw '产品进程启动后已退出，查看本地日志' }
 Write-ProductJson $productReceiptPath @{format='clear-product-process-v1';pid=$productChild.Id;candidate=$productRoot;
-    data=$productData;port=$productPort;created=$productOwnedProcess.CreationDate.ToUniversalTime().ToString('o')}
+    data=$productData;port=$productPort;created=$productOwnedProcess.CreationDate.ToUniversalTime().ToString('o');agent_enabled=[bool]$productAgentEnabled}
 $productDeadline = [DateTime]::UtcNow.AddSeconds(60)
 do {
     if ($productChild.HasExited) { throw '产品启动失败，查看本地日志；当前登记未改变' }
@@ -192,6 +203,7 @@ do {
     if (-not $productReady) { Start-Sleep -Milliseconds 250 }
 } until ($productReady -or [DateTime]::UtcNow -gt $productDeadline)
 if (-not $productReady) { throw '启动尚未完成；可查询状态和本地日志，未重复启动' }
+if ($productAgentEnabled -and -not $productHealth.enabled) { throw '平台已启动，但 Agent 初始化失败；请检查依赖及本地日志，未重复启动' }
 $productReaderMarker = Join-Path $productData 'product-reader-requirements.json'
 $productStartupFeatures = if ($null -ne $productManifest.startup_reader_features) { @($productManifest.startup_reader_features) } else { @($productManifest.data_compatibility.reader_features) }
 if ([IO.File]::Exists($productReaderMarker)) { $productStartupFeatures += @((Read-ProductJson $productReaderMarker).reader_features) }
@@ -200,7 +212,7 @@ Write-ProductJson $productReaderMarker @{
     candidate_manifest_sha256=$productRegistration.candidate_manifest_sha256;at=[DateTime]::UtcNow.ToString('o')}
 Write-ProductJson (Join-Path $productRuntimeRoot ("logs\start-$productLaunchId.json")) @{
     status='running';pid=$productChild.Id;candidate=$productRoot;data=$productData;compatibility=$productCheck;at=[DateTime]::UtcNow.ToString('o')}
-@{status='running';url="http://127.0.0.1:$productPort/";pid=$productChild.Id} | ConvertTo-Json
+@{status='running';url="http://127.0.0.1:$productPort/";pid=$productChild.Id;agent_enabled=[bool]$productHealth.enabled} | ConvertTo-Json
 } finally {
     if ($productLease) { $productLease.Dispose() }
 }

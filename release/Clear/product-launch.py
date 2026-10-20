@@ -11,10 +11,13 @@ def checked(value):
 parser=argparse.ArgumentParser()
 for name in ('launcher','data','stdout','stderr'): parser.add_argument('--'+name,required=True,type=checked)
 parser.add_argument('--port',required=True,type=int)
+parser.add_argument('--enable-agent',action='store_true')
 args=parser.parse_args()
+command=[str(checked(sys.executable)),'-I','-B','-u',str(args.launcher),
+    '--data',str(args.data),'--port',str(args.port)]
+if args.enable_agent:command.append('--enable-agent')
 with args.stdout.open('xb') as out,args.stderr.open('xb') as err:
-    child=subprocess.Popen([str(checked(sys.executable)),'-I','-B','-u',str(args.launcher),
-        '--data',str(args.data),'--port',str(args.port)],cwd=args.launcher.parent,
+    child=subprocess.Popen(command,cwd=args.launcher.parent,
         stdin=subprocess.DEVNULL,stdout=out,stderr=err,close_fds=True,
         creationflags=subprocess.CREATE_NO_WINDOW|subprocess.CREATE_NEW_PROCESS_GROUP)
 print(json.dumps({'pid':child.pid}))

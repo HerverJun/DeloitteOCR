@@ -1,19 +1,35 @@
 {
   "format": "clear-current-product-v1",
-  "product_version": "0.10.0",
-  "candidate": "F:\\OCR\\release\\Clear\\versions\\0.10.0",
-  "candidate_manifest_sha256": "852e27bb337b2e9ccd8f4c4a0cbe17e021f578f5dd5e8ec8c260a625d75407dc",
+  "product_version": "0.14.0",
+  "candidate": "F:\\OCR\\output\\agent-foundation-upgrade-20261019\\delivery\\Clear-0.14.0-agent-foundation-candidate-006",
+  "candidate_manifest_sha256": "2cab9df7fede570a57de0c30da6ab0a782bb85f1b0ba4eb9c75f656fa28dacd6",
   "shared_program": "F:\\OCR\\release\\Clear\\versions\\0.10.0\\program",
   "data": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\workspace",
   "port": 8879,
   "data_compatibility": {
     "format": "clear-data-compatibility-v1",
     "reader_features": [
+      "agent-general-v1",
+      "agent-harness-v1",
+      "agent-multimodal-v1",
       "agent-request-snapshot-v1",
-      "formal-direct-evidence-v1",
+      "bounded-goal-interpretation-v1",
+      "direct-catalog-goals-v1",
+      "direct-classification-predict-v1",
+      "direct-data-action-v1",
+      "direct-image-text-v1",
+      "direct-pdf-text-v1",
+      "direct-resource-claims-v1",
       "fixed-draft-transfer-v1",
+      "formal-direct-evidence-v1",
+      "harness-native-scope-v1",
+      "independent-results-v1",
+      "manual-long-audio-v1",
       "manual-multimodal-v1",
-      "source-media-segment-v1"
+      "partial-goal-continuation-v1",
+      "same-goal-continuation-v1",
+      "source-media-segment-v1",
+      "task-ledger-pg-v1"
     ],
     "sqlite": {
       "workspaces.sqlite3": {
@@ -174,17 +190,13 @@
         2
       ],
       "request_snapshot_formats": [
+        "clear-goal-interpretation-v1",
+        "clear-harness-input-v1",
         "clear-model-input-v1"
       ]
     }
   },
-  "release_name": "多模态手动工具 CPU 版",
+  "release_name": "智能审计工作台 · 通用工作能力与审计工具",
   "ui_contract_version": "1.2.0",
-  "published_at": "2026-10-13T16:31:12.192815+00:00",
-  "acceptance": {
-    "engineering_cpu": true,
-    "business_accuracy": false,
-    "a4000_a6000": false,
-    "new_gpu_routes": false
-  }
+  "agent_enabled": true
 }
