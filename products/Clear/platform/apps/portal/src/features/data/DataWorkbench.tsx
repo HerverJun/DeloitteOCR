@@ -306,6 +306,12 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
 export function DataWorkbench() {
   const [params, setParams] = useSearchParams()
   const sessionId = params.get('session')
+  const [stage, setStage] = useState('inputs')
+  useEffect(() => {
+    const sync = () => setStage(window.location.hash === '#data-results' ? 'results' : window.location.hash === '#data-compare' ? 'compare' : 'inputs')
+    sync(); window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [sessionId])
   const workspaceId = params.get('workspace')
   const [historyPage, setHistoryPage] = useState({ workspaceId, page: 1 })
   const sessionPage = historyPage.workspaceId === workspaceId ? historyPage.page : 1
@@ -421,11 +427,7 @@ export function DataWorkbench() {
         {current.jobs[0] && <Tag aria-live="polite" color={job ? 'processing' : current.jobs[0].status === 'failed' ? 'error' : current.jobs[0].status === 'succeeded' ? 'success' : 'default'}>
           {jobNames[(job || current.jobs[0]).action] || '操作'}{jobStatusNames[(job || current.jobs[0]).status] || (job || current.jobs[0]).status}</Tag>}
         </div>}</div>
-    {current && <nav className="data-flow-nav" aria-label="数据工作步骤">
-      <a href="#data-inputs"><span className="data-step-number" aria-hidden="true">01</span><span>输入与清洗<small>已导入 {Object.keys(current.state.tables).length}/2 份表格</small></span></a>
-      <a href="#data-compare"><span className="data-step-number" aria-hidden="true">02</span><span>比对设置<small>匹配键、字段与金额策略</small></span></a>
-      <a href="#data-results"><span className="data-step-number" aria-hidden="true">03</span><span>结果与导出<small>{current.state.result_id ? '查看比对结果与来源' : '完成比对后查看结果'}</small></span></a>
-    </nav>}
+    {current && <nav className="data-stage-tabs" aria-label="数据工作步骤">{[['inputs', '输入与清洗'], ['compare', '比对设置'], ['results', '结果与导出']].map(([value, label]) => <Button key={value} type="text" aria-pressed={stage === value} onClick={() => { setStage(value); history.replaceState(null, '', window.location.pathname + window.location.search + (value === 'inputs' ? '#data-inputs' : value === 'compare' ? '#data-compare' : '#data-results')) }}>{label}</Button>)}</nav>}
     {workspaceId && assetSetId && <section className="panel data-asset-selection"><div className="section-head"><Title level={3}>从资料库导入</Title>
       <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}&set=${encodeURIComponent(assetSetId)}`}>返回资料库</Link></div>
       {assetSet.isError && <Alert type="error" title={assetSet.error.message} action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}
@@ -440,9 +442,9 @@ export function DataWorkbench() {
     {job && <Alert role="status" aria-live="polite" type="info" showIcon icon={<Spin size="small" />} title={`${jobNames[job.action] || '操作'}${job.status === 'queued' ? '等待执行' : job.status === 'cancelling' ? '正在取消' : '进行中'}`}
       action={<Button disabled={job.status === 'cancelling'} onClick={() => void post(`/sessions/${current!.id}/jobs/${job.id}/cancel`, {}).then(refresh).catch(failure => setError(failure.message))}>取消</Button>} />}
     {!job && current?.jobs[0]?.error && <Alert type="warning" title={current.jobs[0].error} />}
-    {current ? <><FixedTable session={current} /><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
+    {current ? <><FixedTable session={current} /><div hidden={stage !== 'inputs'}><div id="data-inputs" className="data-input-grid"><InputPanel key={current.id + '-left'} session={current} side="left" busy={busy} run={run} upload={upload} />
       <InputPanel key={current.id + '-right'} session={current} side="right" busy={busy} run={run} upload={upload} /></div>
-      <ComparePanel key={current.id} session={current} busy={busy} run={run} /><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></> :
+      </div><div hidden={stage !== 'compare'}><ComparePanel key={current.id} session={current} busy={busy} run={run} /></div><div hidden={stage !== 'results'}><Results key={current.id + '-results'} session={current} busy={busy} run={run} workspaceId={workspaceId} /></div></> :
       <div className="empty-panel"><Empty description={session.isPending && sessionId ? '正在读取作业…' : '点击开始新的比对，或继续已有作业。'} /></div>}
   </div>
 }

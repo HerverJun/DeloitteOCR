@@ -1,3 +1,4 @@
+import { resolveTaskReturn } from './platformTaskReturn';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
@@ -169,6 +170,7 @@ export function App() {
   const editor = useEditor(onError);
   const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
   const [platformHome, setPlatformHome] = useState<string | null>(null);
+  const [taskReturn, setTaskReturn] = useState<string | null>(null);
   const [platformLaunchError, setPlatformLaunchError] = useState(false);
   useEffect(() => {
     let active = true;
@@ -178,6 +180,7 @@ export function App() {
     void Promise.resolve(pending).then(async value => {
       if (active) setPlatformNavigation(value);
       const returnUrl = value && safeReturnUrl(value);
+      if (active && value) setTaskReturn(resolveTaskReturn(returnUrl, value));
       const home = returnUrl ? platformHomeUrl(returnUrl)
         : await platformHomeFromLaunch('ocr', () => api('/platform/v1/identity'));
       if (active) setPlatformHome(home);
@@ -769,9 +772,9 @@ export function App() {
         <p>请返回平台重新打开所选项目；当前页面不会自动改开其他项目。</p></div>}
       <BrandHeader homeUrl={platformHome}>
         {platformNavigation && safeReturnUrl(platformNavigation) && (
-          <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
-            target="_blank" rel="noopener noreferrer" aria-label={`在新标签页返回 ${brands.platform}`}>
-            返回 {brands.platform} ↗
+          <a className="platform-return" href={taskReturn || safeReturnUrl(platformNavigation)!}
+            aria-label={taskReturn ? '返回原任务' : '返回平台'}>
+            {taskReturn ? '返回原任务' : '返回平台'} ↗
           </a>
         )}
         <span className="offline-status">

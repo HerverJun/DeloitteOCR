@@ -1,8 +1,16 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { nativeAddress, useNativeWindow, type NativeTarget } from '../src/features/catalog/nativeWindow'
+import { nativeAddress, nativeTaskReturnAddress, useNativeWindow, type NativeTarget } from '../src/features/catalog/nativeWindow'
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const target: NativeTarget = { url: 'http://127.0.0.1:12345/#platform_ticket=' + 't'.repeat(43), kind: 'ticket' }
+test('verified native launch carries only validated conversation and workspace IDs', () => {
+  const address = nativeAddress(target)
+  const hash = new URLSearchParams(new URL(nativeTaskReturnAddress(address, '?workspace=w1&task_return=s1')).hash.slice(1))
+  expect(hash.get('platform_ticket')).toBe('t'.repeat(43))
+  expect(hash.get('platform_task_return')).toBe('s1')
+  expect(hash.get('platform_task_workspace')).toBe('w1')
+  expect(nativeTaskReturnAddress(address, '?workspace=w1&task_return=https://outside.example')).toBe(address)
+})
 function Control({ scope, resolve }: { scope: string; resolve: (signal: AbortSignal) => Promise<NativeTarget> }) {
   const native = useNativeWindow(scope)
   return <><button onClick={() => native.open(resolve)}>open</button><span>{native.opening ? 'opening' : 'idle'}</span><p>{native.error}</p></>

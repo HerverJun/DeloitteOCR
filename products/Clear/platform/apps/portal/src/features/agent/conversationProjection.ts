@@ -2,18 +2,73 @@ import type { AgentEvent, AgentRef } from './api'
 
 export type MessageSegment = { type: 'message'; id: string; seq: number; runId: string | null; generation: number; created: string; role: 'user' | 'assistant'; content: string; source: string; status: 'preview' | 'generated' | 'confirmed' | 'interrupted'; revision: number; references: AgentRef[]; reason?: string; queued?: boolean; delivery?: AgentEvent; truncated?: boolean }
 export type ToolStep = { id: string; callId: string; operationId?: string; tool: string; phase: string; status: string; summary: string; created: string; seq: number; jobRefs: AgentRef[]; events: AgentEvent[] }
-export type JobProgress = { id: string; jobRef: AgentRef; status: string; stage: string; processed?: number; total?: number; counts?: Record<string, number>; sampledAt?: string; observation?: string; availability?: string; hasError?: boolean; needsResume?: boolean; resumeMessage?: string; seq: number }
+export type JobProgress = { id: string; jobRef: AgentRef; status: string; stage: string; processed?: number; total?: number; counts?: Record<string, number>; sampledAt?: string; observation?: string; availability?: string; hasError?: boolean; needsResume?: boolean; resumeMessage?: string; seq: number; generation?: number; runId?: string | null }
 export type ActivityGroup = { type: 'activity'; id: string; seq: number; runId: string | null; generation: number; created: string; tools: ToolStep[]; jobs: JobProgress[]; diagnostics: AgentEvent[] }
 export type TimelineEvent = { type: 'event'; id: string; seq: number; event: AgentEvent }
 export type ConversationItem = MessageSegment | ActivityGroup | TimelineEvent
 export type RunActivity = { runId: string; generation: number; phase: string; created: string; seq: number; payload: Record<string, unknown> }
-export type ConversationProjection = { items: ConversationItem[]; activities: Record<string, RunActivity>; generations: Record<string, number>; seen: Set<number>; events: AgentEvent[]; protocolIssue?: string }
+export type ConversationProjection = { items: ConversationItem[]; activities: Record<string, RunActivity>; generations: Record<string, number>; seen: Set<number>; events: AgentEvent[]; protocolIssue?: string; jobVerification?: 'verified' | 'unavailable'; replayCursor?: number }
 export const createProjection = (): ConversationProjection => ({ items: [], activities: {}, generations: {}, seen: new Set(), events: [] })
 const terminalPhases = new Set(['completed', 'failed', 'stopped', 'cancelled', 'manual', 'answered', 'succeeded', 'partial', 'incomplete'])
 export const terminalActivity = (phase: string) => terminalPhases.has(phase)
 const generationOf = (event: AgentEvent) => typeof event.payload.generation === 'number' ? event.payload.generation : 0
 const references = (value: unknown): AgentRef[] => Array.isArray(value) ? value as AgentRef[] : []
-const jobKey = (ref: AgentRef) => [ref.application, ref.parent_id, ref.object_id].join(':')
+export const jobKey = (ref: AgentRef) => [ref.workspace_id, ref.application, ref.parent_id, ref.object_id].join(':')
+export const terminalJob = (status: string) => ['succeeded', 'success', 'completed', 'failed', 'error', 'cancelled', 'stopped', 'partial', 'incomplete'].includes(status)
+type JobFact = Record<string, unknown> & { job_ref: AgentRef }
+export type JobSnapshot = { jobs: JobFact[]; sampled_at: string }
+export const validJobSnapshot = (value: unknown): value is JobSnapshot => {
+  if (!value || typeof value !== 'object') return false
+  const snapshot = value as JobSnapshot
+  return typeof snapshot.sampled_at === 'string' && Array.isArray(snapshot.jobs) && snapshot.jobs.every(job => job && typeof job === 'object' && job.job_ref?.kind === 'job' && typeof job.job_ref.workspace_id === 'string' && typeof job.job_ref.object_id === 'string' && typeof job.status === 'string')
+}
+function jobProgress(p: JobFact, seq: number, sampledAt?: string, runId?: string | null): JobProgress {
+  return { id: jobKey(p.job_ref), jobRef: p.job_ref, status: String(p.status || ''), stage: String(p.stage || ''), seq,
+    runId: typeof p.run_id === 'string' ? p.run_id : runId,
+    generation: typeof p.generation === 'number' ? p.generation : undefined,
+    processed: typeof p.progress_done === 'number' ? p.progress_done : typeof p.processed === 'number' ? p.processed : undefined,
+    total: typeof p.progress_total === 'number' ? p.progress_total : typeof p.total === 'number' ? p.total : undefined,
+    counts: p.counts && typeof p.counts === 'object' ? p.counts as Record<string, number> : undefined,
+    sampledAt: typeof p.sampled_at === 'string' ? p.sampled_at : sampledAt,
+    observation: typeof p.observation === 'string' ? p.observation : undefined,
+    availability: typeof p.availability === 'string' ? p.availability : undefined,
+    hasError: typeof p.has_error === 'boolean' ? p.has_error : undefined, needsResume: p.needs_resume === true,
+    resumeMessage: typeof p.resume_message === 'string' ? p.resume_message : undefined }
+}
+function mergeJob(old: JobProgress | undefined, value: JobProgress): JobProgress {
+  if (!old) return value
+  if (old.runId === value.runId && typeof old.generation === 'number' && typeof value.generation === 'number' && value.generation < old.generation) return old
+  // A late queue/running observation never reverses a persisted terminal receipt.
+  if (terminalJob(old.status) && !terminalJob(value.status)) return { ...old, seq: Math.max(old.seq, value.seq), jobRef: value.jobRef,
+    ...(value.observation === 'unavailable' ? { observation: 'unavailable', availability: value.availability, hasError: value.hasError, sampledAt: value.sampledAt || old.sampledAt } : {}) }
+  if (value.seq >= 0 && old.seq > value.seq) return old
+  const oldTime = Date.parse(old.sampledAt || ''), nextTime = Date.parse(value.sampledAt || '')
+  if (Number.isFinite(oldTime) && Number.isFinite(nextTime) && nextTime < oldTime) return old
+  return { ...value, seq: Math.max(old.seq, value.seq) }
+}
+const latestJob = (jobs: JobProgress[]) => jobs.reduce<JobProgress | undefined>((previous, job) => !previous || job.seq > previous.seq || job.seq === previous.seq && Date.parse(job.sampledAt || '') > Date.parse(previous.sampledAt || '') ? job : previous, undefined)
+/** Snapshot reads update the projection without inventing events or advancing the SSE cursor. */
+export function applyJobSnapshot(previous: ConversationProjection, snapshot?: JobSnapshot): ConversationProjection {
+  const items = previous.items.map(item => item.type === 'activity' ? { ...item, jobs: item.jobs.map(job => ({ ...job, ...(snapshot ? {} : { observation: 'unavailable' }) })) } : item)
+  const result: ConversationProjection = { ...previous, items, jobVerification: snapshot ? 'verified' : 'unavailable' }
+  if (!snapshot) return result
+  const present = new Set(snapshot.jobs.map(job => jobKey(job.job_ref)))
+  for (const item of items) if (item.type === 'activity') item.jobs = item.jobs.map(job => present.has(job.id) ? job : { ...job, observation: 'unavailable' })
+  for (const fact of snapshot.jobs) {
+    const id = jobKey(fact.job_ref), matching = items.filter((item): item is ActivityGroup => item.type === 'activity' && item.jobs.some(job => job.id === id))
+    const old = latestJob(matching.flatMap(group => group.jobs).filter(job => job.id === id))
+    if (typeof fact.run_id === 'string' && typeof fact.generation === 'number' && fact.generation < (result.generations[fact.run_id] || 0)) continue
+    const value = mergeJob(old, jobProgress(fact, typeof fact.seq === 'number' ? fact.seq : -1, snapshot.sampled_at))
+    if (matching.length) for (const group of matching) group.jobs = group.jobs.map(job => job.id === id ? value : job)
+    else {
+      const runId = typeof fact.run_id === 'string' ? fact.run_id : null, groupId = `activity:${runId || 'session'}`
+      let group = items.find((item): item is ActivityGroup => item.type === 'activity' && item.id === groupId)
+      if (!group) { group = { type: 'activity', id: groupId, runId, generation: value.generation || 0, seq: value.seq, created: snapshot.sampled_at, tools: [], jobs: [], diagnostics: [] }; items.push(group) }
+      group.jobs.push(value)
+    }
+  }
+  return result
+}
 
 export function applyConversationEvents(previous: ConversationProjection, incoming: AgentEvent[]): ConversationProjection {
   const result: ConversationProjection = { ...previous, items: [...previous.items], activities: { ...previous.activities }, generations: { ...previous.generations }, seen: new Set(previous.seen), events: [...previous.events] }
@@ -40,6 +95,19 @@ export function applyConversationEvents(previous: ConversationProjection, incomi
     const p = event.payload, generation = generationOf(event), run = event.run_id || 'session'
     const stale = generation < (result.generations[run] || 0)
     if (typeof p.generation === 'number') result.generations[run] = Math.max(result.generations[run] || 0, generation)
+    if (event.kind === 'run_resumed') {
+      if (!stale) result.activities[run] = { runId: run, generation, phase: 'preparing_request', created: event.created, seq: event.seq, payload: p }
+      continue
+    }
+    if (event.kind === 'result_available') {
+      const available = p.result && typeof p.result === 'object' ? p.result as Record<string, unknown> : undefined
+      if (!available) continue
+      const delivered = { ...event, payload: { ...p, status: 'available', delivery: available, content: '已完成成果可读取和下载；后续分析待继续。' } }
+      const item = message(delivered)
+      item.status = 'confirmed'; item.source = 'available_result'; item.content = String(delivered.payload.content); item.delivery = delivered
+      item.references = [...references(available.result_refs), ...references(available.artifact_refs)]
+      put(item); continue
+    }
     if (event.kind === 'agent_activity') {
       if (stale || p.version !== 1 || typeof p.phase !== 'string') continue
       const current = result.activities[run]
@@ -95,15 +163,21 @@ export function applyConversationEvents(previous: ConversationProjection, incomi
     if (event.kind === 'job_progress') {
       if (stale || !p.job_ref || typeof p.job_ref !== 'object') continue
       const item = group(event), ref = p.job_ref as AgentRef, id = jobKey(ref)
-      const value: JobProgress = { id, jobRef: ref, status: String(p.status || ''), stage: String(p.stage || ''), seq: event.seq, processed: typeof p.progress_done === 'number' ? p.progress_done : typeof p.processed === 'number' ? p.processed : undefined, total: typeof p.progress_total === 'number' ? p.progress_total : typeof p.total === 'number' ? p.total : undefined, counts: p.counts && typeof p.counts === 'object' ? p.counts as Record<string, number> : undefined, sampledAt: typeof p.sampled_at === 'string' ? p.sampled_at : undefined, observation: typeof p.observation === 'string' ? p.observation : undefined, availability: typeof p.availability === 'string' ? p.availability : undefined, hasError: typeof p.has_error === 'boolean' ? p.has_error : undefined, needsResume: p.needs_resume === true, resumeMessage: typeof p.resume_message === 'string' ? p.resume_message : undefined }
+      const old = latestJob(result.items.flatMap(item => item.type === 'activity' ? item.jobs : []).filter(job => job.id === id))
+      const value = mergeJob(old, jobProgress(p as JobFact, event.seq, undefined, event.run_id))
       const index = item.jobs.findIndex(job => job.id === id)
       if (index < 0) item.jobs.push(value); else item.jobs[index] = value
       put(item); continue
     }
     if (['model_request', 'usage', 'context_injection', 'model_transport', 'response_transport', 'stream_capability'].includes(event.kind)) { const item = group(event); item.diagnostics.push(event); put(item); continue }
+    if (event.kind === 'context_compaction' || event.kind === 'delivery_check') {
+      if (stale) continue
+      const id = event.kind === 'delivery_check' ? `delivery-check:${run}` : p.compaction_id ? `compaction:${run}:${String(p.compaction_id)}` : `event:${event.seq}`
+      put({ type: 'event', id, seq: event.seq, event }); continue
+    }
     if (event.kind === 'cancelled' || event.kind === 'error' || event.kind === 'task_control' && p.manual) interrupt(event.run_id, String(p.message || (p.manual ? '已切换人工处理' : '本轮已停止')))
     if (event.kind === 'message') put({ type: 'message', id: `event:${event.seq}`, seq: event.seq, runId: event.run_id, generation, created: event.created, role: 'user', content: String(p.content || ''), source: 'user', status: 'confirmed', revision: 1, references: references(p.references), queued: p.queued === true })
-    else if (['question', 'error', 'cancelled', 'task_control', 'skill_activated', 'skill_deactivated'].includes(event.kind)) put({ type: 'event', id: `event:${event.seq}`, seq: event.seq, event })
+    else if (['question', 'error', 'cancelled', 'task_control', 'skill_activated', 'skill_deactivated', 'context_compaction', 'delivery_check'].includes(event.kind)) put({ type: 'event', id: `event:${event.seq}`, seq: event.seq, event })
   }
   return result
 }

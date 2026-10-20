@@ -1,26 +1,27 @@
+import { lazy } from 'react'
 import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
-import { QueryClient } from '@tanstack/react-query'
+export { queryClient } from './queryClient'
 import type { ThemeConfig } from 'antd'
-import { App, Home, Workspaces, Applications, Application, Missing } from './App'
-import { TaskCenter } from './features/jobs/TaskCenter'
-import { DataWorkbench } from './features/data/DataWorkbench'
-import { AssetLibrary } from './features/assets/AssetLibrary'
-import { ArtifactCenter } from './features/artifacts/ArtifactCenter'
-import { OcrWorkflow } from './features/ocr/OcrWorkflow'
-import { ClassificationWorkflow } from './features/classification/ClassificationWorkflow'
-import { BatchCenter } from './features/batches/BatchCenter'
-import { AuditWorkbench } from './features/audit/AuditWorkbench'
-import { TodoCenter } from './features/todos/TodoCenter'
-import { ForensicWorkbench } from './features/forensics/ForensicWorkbench'
-import { MultimodalWorkbench } from './features/multimodal/MultimodalWorkbench'
+import { App, Home, AgentHome, Workspaces, Applications, Application, Missing } from './App'
+const TaskCenter = lazy(() => import('./features/jobs/TaskCenter').then(module => ({ default: module.TaskCenter })))
+const DataWorkbench = lazy(() => import('./features/data/DataWorkbench').then(module => ({ default: module.DataWorkbench })))
+const AssetLibrary = lazy(() => import('./features/assets/AssetLibrary').then(module => ({ default: module.AssetLibrary })))
+const ArtifactCenter = lazy(() => import('./features/artifacts/ArtifactCenter').then(module => ({ default: module.ArtifactCenter })))
+const OcrWorkflow = lazy(() => import('./features/ocr/OcrWorkflow').then(module => ({ default: module.OcrWorkflow })))
+const ClassificationWorkflow = lazy(() => import('./features/classification/ClassificationWorkflow').then(module => ({ default: module.ClassificationWorkflow })))
+const BatchCenter = lazy(() => import('./features/batches/BatchCenter').then(module => ({ default: module.BatchCenter })))
+const AuditWorkbench = lazy(() => import('./features/audit/AuditWorkbench').then(module => ({ default: module.AuditWorkbench })))
+const TodoCenter = lazy(() => import('./features/todos/TodoCenter').then(module => ({ default: module.TodoCenter })))
+const ForensicWorkbench = lazy(() => import('./features/forensics/ForensicWorkbench').then(module => ({ default: module.ForensicWorkbench })))
+const MultimodalWorkbench = lazy(() => import('./features/multimodal/MultimodalWorkbench').then(module => ({ default: module.MultimodalWorkbench })))
 import { clearTheme } from './clear-ui/theme'
-import { QuickNativeWorkbench } from './features/start/QuickNativeWorkbench'
-import { PlatformSettings } from './features/agent/PlatformSettings'
-import { FindingsWorkspace } from './features/agent/FindingsWorkspace'
-import { Projects } from './features/agent/ProjectHome'
-import { AuditHelp } from './features/agent/AuditHelp'
+const QuickNativeWorkbench = lazy(() => import('./features/start/QuickNativeWorkbench').then(module => ({ default: module.QuickNativeWorkbench })))
+const PlatformSettings = lazy(() => import('./features/agent/PlatformSettings').then(module => ({ default: module.PlatformSettings })))
+const FindingsWorkspace = lazy(() => import('./features/agent/FindingsWorkspace').then(module => ({ default: module.FindingsWorkspace })))
+const Projects = lazy(() => import('./features/agent/ProjectHome').then(module => ({ default: module.Projects })))
+const AuditHelp = lazy(() => import('./features/agent/AuditHelp').then(module => ({ default: module.AuditHelp })))
 import { SessionGate } from './features/tasks/session'
-import { AccountSettings } from './features/tasks/AccountSettings'
+const AccountSettings = lazy(() => import('./features/tasks/AccountSettings').then(module => ({ default: module.AccountSettings })))
 
 export const theme: ThemeConfig = {
   token: { colorPrimary: clearTheme.primary, colorLink: clearTheme.link, colorLinkHover: clearTheme.link,
@@ -47,9 +48,6 @@ export const theme: ThemeConfig = {
   },
 }
 
-export const queryClient = new QueryClient({ defaultOptions: {
-  queries: { retry: false, staleTime: 15_000, refetchOnWindowFocus: false },
-} })
 
 function LegacyForensicsRedirect() {
   const { search, hash } = useLocation()
@@ -59,11 +57,6 @@ function LegacyForensicsRedirect() {
 function LegacyDataRedirect() {
   const { search, hash } = useLocation()
   return <Navigate replace to={`/apps/data${search}${hash}`} />
-}
-
-function AgentHomeRedirect() {
-  const { search, hash } = useLocation()
-  return <Navigate replace to={`/${search}${hash}`} />
 }
 
 function ManualToolsRedirect() {
@@ -100,7 +93,7 @@ export const routes: RouteObject[] = [{
     { path: 'assets', element: <AssetLibrary /> },
     { path: 'jobs', element: <TaskCenter /> },
     { path: 'artifacts', element: <ArtifactCenter /> },
-    { path: 'agent', element: <AgentHomeRedirect /> },
+    { path: 'agent', element: <AgentHome /> },
     { path: 'manual', element: <ManualToolsRedirect /> },
     { path: 'settings', element: <PlatformSettings /> },
     { path: 'settings/accounts', element: <AccountSettings /> },

@@ -1,0 +1,30 @@
+/* Clear 1.3 — Fluent UI adapter; document and table editing remain native. */
+.app-header { background: var(--clear-header); color: var(--clear-text); border-bottom: 1px solid var(--clear-border); }
+.app-header .brand strong, .app-header .brand span { color: var(--clear-text); }
+.app-header .brand > span:last-child { color: var(--clear-muted); border-color: var(--clear-border); }
+.app-header .header-right, .app-header .header-right .fui-Button { color: var(--clear-text); }
+.app-header .header-right .fui-Button { background: transparent; border-color: var(--clear-border); min-height: 36px; }
+.app-header .header-right .fui-Button:hover { background: var(--clear-subtle); }
+.sidebar { background: var(--clear-navigation); color: var(--clear-text); border-color: var(--clear-border); }
+.sidebar .section-label, .sidebar .project-name, .sidebar .project-menu, .sidebar .document-control, .sidebar .queue-summary, .sidebar .sidebar-footer { color: var(--clear-text); }
+.sidebar :is(input, select, .project-menu-content) { background: var(--clear-panel); color: var(--clear-text); border-color: var(--clear-border); }
+.sidebar .photo-item { border-color: transparent; }
+.sidebar .photo-item.active { background: var(--clear-selected); border-color: var(--clear-primary); }
+.sidebar .photo-item .photo-name, .sidebar .document-select { color: var(--clear-text); }
+.sidebar .sidebar-footer, .sidebar .document-review, .sidebar .project-control { border-color: var(--clear-border); }
+.sidebar .queue-summary small, .sidebar .photo-meta { color: var(--clear-muted); }
+.workspace-title h1 { font-size: 23px; }
+.workspace-heading { padding-block: 12px; }
+.workspace-breadcrumb { font-size: 12px; }
+.workbench-toolbar { border-color: var(--clear-border); }
+.workspace-grid { font-family: var(--clear-font); }
+.queue-panel, .result-panel, .image-panel { box-shadow: none; }
+.result-heading h2, .image-heading h2 { font-size: 17px; }
+.workspace-grid[data-density="compact"] { --workbench-gap: 12px; }
+.recognition-settings summary { min-height: 36px; }
+.platform-return { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px; border: 1px solid var(--clear-border); border-radius: 8px; color: var(--clear-text); }
+.platform-return:hover { background: var(--clear-selected); color: var(--clear-primary); }
+@media(max-width: 680px) { .app-header .brand > span:last-child { display: none; } .app-header .header-right { gap: 6px; } .platform-return { padding-inline: 8px; } }
+
+.sidebar { --ink: var(--clear-text); --muted: var(--clear-muted); --border: var(--clear-border); --surface: var(--clear-panel); --brand-ink: var(--clear-primary); --editor-hover: var(--clear-subtle); --editor-selected: var(--clear-selected); --editor-success: var(--clear-success); --editor-warning: var(--clear-warning); --editor-danger: var(--clear-error); --focus: var(--clear-focus); }
+.sidebar .import-actions > button:first-child { color: var(--clear-primary-text); }

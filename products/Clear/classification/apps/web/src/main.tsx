@@ -37,7 +37,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         Form: { itemMarginBottom: 16, verticalLabelPadding: '0 0 6px' },
         Layout: { bodyBg: clearTheme.workspace, siderBg: clearTheme.navigation },
         Menu: { darkItemBg: clearTheme.navigation, darkSubMenuItemBg: clearTheme.navigation,
-          darkItemColor: clearTheme.navigationText, darkItemSelectedBg: '#283429', darkItemSelectedColor: clearTheme.accent,
+          darkItemColor: clearTheme.navigationText, darkItemSelectedBg: clearTheme.selected, darkItemSelectedColor: clearTheme.primary,
+          itemBg: clearTheme.navigation, itemSelectedBg: clearTheme.selected, itemSelectedColor: clearTheme.primary,
           itemHeight: 40, itemBorderRadius: clearTheme.controlRadius },
         Tabs: { itemColor: clearTheme.muted, itemSelectedColor: clearTheme.link, inkBarColor: clearTheme.link },
         Spin: { colorPrimary: clearTheme.link },
@@ -49,3 +50,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+import './clear-ui/common.css'
+import './clear-ui/experience.css'

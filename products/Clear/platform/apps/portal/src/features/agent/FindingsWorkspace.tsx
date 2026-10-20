@@ -12,6 +12,9 @@ export type Finding = { draft_id: string; task_id: string; revision: number; tit
   transfer_source?: { task_id: string; draft_id: string; revision: number; snapshot_hash: string; scope_revision: number; project_context_revision: number };
   formal_links?: { project_id: string; procedure_id: string; finding_id: string; source_revision: number; source_changed: boolean }[] }
 type Evidence = { evidence_id: string; summary: string; reference: AgentRef; sources: { asset_id: string; asset_revision: number; page_number?: number; row_number?: number; sheet_name?: string }[]; observation: unknown; location_url: string; stale?: boolean }
+type FixedFinding = Pick<Finding, 'draft_id' | 'task_id' | 'revision' | 'title' | 'facts' | 'interpretation' | 'missing_information' | 'recommendations' | 'rule' | 'evidence_ids' | 'status' | 'author'> & {
+  content_sha256: string; source_assets: string[]; workspace_id?: string
+}
 const blank: Finding = { draft_id: '', task_id: '', revision: 0, title: '', facts: '', interpretation: '', missing_information: '', recommendations: '', rule: '', evidence_ids: [], status: 'draft', outdated: false, outdated_reasons: [], author: { kind: 'human' } }
 
 export function FindingsWorkspace() {
@@ -22,6 +25,16 @@ export function FindingsWorkspace() {
   const tasks = useQuery({ queryKey: ['audit-tasks', workspace], enabled: !!workspace, queryFn: () => agentRequest<{ items: AuditTask[] }>(`/workspaces/${workspace}/audit-tasks`) })
   const task = useQuery({ queryKey: ['audit-task', taskId], enabled: !!taskId, queryFn: () => agentRequest<AuditTask>(`/agent/sessions/${taskId}/task`) })
   const list = useQuery({ queryKey: ['audit-findings', taskId], enabled: !!taskId, queryFn: () => agentRequest<{ items: Finding[]; total: number }>(`/agent/sessions/${taskId}/findings`) })
+  const draftId = params.get('draft'), revision = params.get('revision'), hash = params.get('sha256')
+  const fixedOpen = !!draftId || params.has('revision') || params.has('sha256')
+  const fixedValid = !!(taskId && draftId && revision && /^[1-9]\d*$/.test(revision) && Number.isSafeInteger(Number(revision)) && hash && /^[a-f0-9]{64}$/.test(hash))
+  const fixed = useQuery({ queryKey: ['audit-draft-revision', workspace, taskId, draftId, revision, hash], enabled: !!workspace && fixedValid,
+    queryFn: async () => {
+      const value = await agentRequest<FixedFinding>(`/agent/sessions/${encodeURIComponent(taskId!)}/findings/${encodeURIComponent(draftId!)}/revisions/${revision}?sha256=${hash}`)
+      if (value.draft_id !== draftId || value.task_id !== taskId || value.revision !== Number(revision) || value.content_sha256 !== hash || value.workspace_id && value.workspace_id !== workspace) throw new Error('读取的草稿与固定版本链接不一致，请重新核实交付引用。')
+      return value
+    } })
+  const closeFixed = () => { const next = new URLSearchParams(params); for (const key of ['draft', 'revision', 'sha256']) next.delete(key); setParams(next) }
   const evidenceId = params.get('evidence')
   useEffect(() => {
     let current = true
@@ -67,10 +80,10 @@ export function FindingsWorkspace() {
   return <div className="audit-findings"><Typography.Title level={1}>发现与底稿</Typography.Title><Typography.Paragraph type="secondary">从实际工具结果组织观察事实，编辑解释与待补信息，并生成可下载的底稿草稿。</Typography.Paragraph>
     {!workspace ? <Alert type="info" title="选择项目后查看审计发现" /> : <>
       <Space wrap><Select aria-label="发现所属任务" style={{ minWidth: 260 }} value={taskId || undefined} placeholder="选择审计任务" options={tasks.data?.items.map(item => ({ value: item.id, label: item.title }))}
-        onChange={id => { const next = new URLSearchParams(params); next.set('session', id); setParams(next); setError('') }} />
+        onChange={id => { const next = new URLSearchParams(params); next.set('session', id); for (const key of ['draft', 'revision', 'sha256']) next.delete(key); setParams(next); setError('') }} />
         <Button disabled={!taskId} onClick={() => setEditing({ ...blank, task_id: taskId || '' })}>新建发现草稿</Button>
         <Button disabled={!list.data?.items.length || busy} onClick={() => void exportAll()}>生成底稿草稿</Button>
-        <Link to={`/?workspace=${workspace}${taskId ? `&session=${taskId}` : ''}`}>回到审计对话</Link></Space>
+        <Link to={`/agent?workspace=${workspace}${taskId ? `&session=${taskId}` : ''}`}>回到审计对话</Link></Space>
       {(error || list.error || tasks.error) && <Alert type="error" title={error || list.error?.message || tasks.error?.message} />}
       {(() => { const pending = pendingAudit(workspace); return pending && 'source_draft' in pending.payload ? <Alert type="warning" title="有草稿转档回执待核实" action={<Button onClick={() => setRecoverTransfer(true)}>核实原转档</Button>} /> : null })()}
       {list.data?.items.length ? <Table<Finding> rowKey="draft_id" dataSource={list.data.items} pagination={{ pageSize: 10 }} columns={[
@@ -91,6 +104,19 @@ export function FindingsWorkspace() {
           onChange={index => { const refs = [...(task.data?.result_refs || []), ...(task.data?.artifact_refs || []), ...(task.data?.initial_refs || [])]; void bind(refs[index]) }} />
         <label className="audit-field">处理状态<Select value={editing.status} options={[{ value: 'draft', label: '草稿' }, { value: 'confirmed', label: '已确认' }, { value: 'dismissed', label: '已排除' }]} onChange={value => change('status', value)} /></label>
       </>}
+    </Modal>
+    <Modal title={`草稿历史版本${fixedValid ? ` · v${revision}` : ''}`} open={fixedOpen} onCancel={closeFixed} width={820}
+      footer={<Button onClick={closeFixed}>返回当前草稿列表</Button>}>
+      <Typography.Paragraph type="secondary">此处显示交付时保存的固定版本，只读查看。当前草稿可从任务列表另行编辑。</Typography.Paragraph>
+      {!fixedValid ? <Alert type="warning" title="草稿版本链接不完整或无效，请从交付成果重新打开。" /> : fixed.error ? <Alert type="error" title={fixed.error.message} /> : fixed.isPending ? <Typography.Paragraph role="status">正在核实固定版本与来源…</Typography.Paragraph> : fixed.data && <div aria-label="固定草稿只读内容">
+        <Typography.Title level={3}>{fixed.data.title}</Typography.Title>
+        <Space wrap><Tag>v{fixed.data.revision} · 只读</Tag><Tag>{({ draft: '草稿', confirmed: '已确认', dismissed: '已排除' } as Record<string, string>)[fixed.data.status] || fixed.data.status}</Tag></Space>
+        {([['facts', '观察事实'], ['interpretation', '解释与判断'], ['rule', '采用口径'], ['missing_information', '待补信息'], ['recommendations', '处理建议']] as const).map(([key, label]) => <section className="audit-fixed-draft-section" key={key}><Typography.Text strong>{label}</Typography.Text><Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>{fixed.data[key] || '未填写'}</Typography.Paragraph></section>)}
+        {!!fixed.data.evidence_ids.length && <Space wrap>{fixed.data.evidence_ids.map(id => <Button key={id} onClick={() => void showEvidence(id, fixed.data!.task_id)}>查看固定证据 {id.slice(0, 10)}</Button>)}</Space>}
+        <details className="audit-fixed-draft-section"><summary>版本与来源</summary><Typography.Paragraph>内容 SHA256：<Typography.Text code>{fixed.data.content_sha256}</Typography.Text></Typography.Paragraph>
+          <Typography.Paragraph type="secondary">{fixed.data.source_assets.length} 份来源资料；固定证据保留保存时的来源版本。</Typography.Paragraph>
+        </details>
+      </div>}
     </Modal>
     <Modal title="固定证据与来源" open={!!evidence} onCancel={() => setEvidence(null)} footer={<Button onClick={() => setEvidence(null)}>关闭</Button>} width={820}>
       {evidence && <>{evidence.stale && <Alert type="warning" title="结果已有更新，以下为保存时的固定快照" />}<Typography.Paragraph>{evidence.summary}</Typography.Paragraph><Link to={evidence.location_url}>打开工具中的结果版本 →</Link>

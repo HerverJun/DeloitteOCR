@@ -6,10 +6,12 @@ import { useWorkspaceId } from '../../App'
 import { agentRequest, type Controller } from './api'
 import { ControllerSettings } from './ControllerSettings'
 import { SkillsPanel } from './SkillsPanel'
+import { IntegrationSettings } from './IntegrationSettings'
 import './agent.css'
 
 export function PlatformSettings() {
   const [open, setOpen] = useState(false), [skills, setSkills] = useState(false)
+  const [integrations, setIntegrations] = useState(false)
   const [params] = useSearchParams()
   const workspace = useWorkspaceId()
   const health = useQuery({ queryKey: ['agent-health'], queryFn: () => agentRequest<{ enabled: boolean; reason: string }>('/agent/health') })
@@ -36,10 +38,12 @@ export function PlatformSettings() {
         const item = capabilities.data.tools.find(tool => tool.name === name)
         return <span key={name} className="audit-capability-status" title={item?.availability.reason} data-state={item?.availability.state || 'unknown'}>{({ ocr_run: 'OCR', data_compare: '数据处理', classification_infer: '分类', forensics_inspect: '取证' })[name]} · {item?.availability.state === 'ready' ? '可用' : item?.availability.state === 'preparable' ? '可按需启动' : item?.availability.state === 'unavailable' ? '不可用' : item?.availability.state === 'disabled' ? '未启用' : '未确认'}</span>
       })}</Space>}
-      <div className="audit-settings-links"><Link to={scoped('/apps')}>打开手动工具</Link><Link to={`/${params.toString() ? `?${params}` : ''}`}>返回智能审计</Link></div>
+      <div className="audit-settings-links"><Link to={scoped('/apps')}>打开手动工具</Link><Link to={`/agent${params.toString() ? `?${params}` : ''}`}>返回智能审计</Link></div>
     </section>
     <section className="audit-settings-section"><Typography.Title level={3}>Agent 技能</Typography.Title><Typography.Paragraph>Agent 按目标选择已登记的方法。可以查看技能目录，在已有任务中调整采用的技能。</Typography.Paragraph><Button disabled={!health.data?.enabled} onClick={() => setSkills(true)}>浏览技能目录</Button></section>
     <ControllerSettings open={open} close={() => setOpen(false)} />
+    <section className="audit-settings-section"><Typography.Title level={3}>Agent 通用能力</Typography.Title><Typography.Paragraph>支持文件与代码处理、运行脚本、后台任务和网页读取；MCP 连接与子助手可按需配置。</Typography.Paragraph><Button disabled={!health.data?.enabled} onClick={() => setIntegrations(true)}>配置扩展</Button></section>
+    <IntegrationSettings open={integrations} close={() => setIntegrations(false)} />
     <SkillsPanel open={skills} close={() => setSkills(false)} workspace={workspace} sessionId={null} />
   </div>
 }

@@ -1,10 +1,10 @@
-/* Clear UI contract v1.2.0 — canonical copy: platform portal. */
+/* Clear UI contract v1.3.0 — canonical copy: platform portal. */
 :root {
-  --clear-header: #161c1f;
-  --clear-navigation: #161c1f;
-  --clear-navigation-text: #e7edf0;
-  --clear-navigation-muted: #a4b1b9;
-  --clear-workspace: #f5f7f8;
+  --clear-header: #ffffff;
+  --clear-navigation: #fafbfa;
+  --clear-navigation-text: #323b35;
+  --clear-navigation-muted: #6e7971;
+  --clear-workspace: #f6f8f7;
   --clear-panel: #ffffff;
   --clear-subtle: #f0f3f4;
   --clear-selected: #eff5e7;
@@ -24,7 +24,7 @@
   --clear-warning: #8a641e;
   --clear-error: #b84646;
   --clear-info: #56697e;
-  --clear-header-height: 48px;
+  --clear-header-height: 56px;
   --clear-control-height: 36px;
   --clear-primary-height: 40px;
   --clear-page-padding: 24px;
@@ -34,7 +34,7 @@
   --clear-toolbar-gap: 8px;
   --clear-panel-radius: 12px;
   --clear-control-radius: 8px;
-  --clear-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --clear-font: 'Clear Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
   --clear-font-size: 14px;
   --clear-caption-size: 13px;
   --clear-title-size: 28px;

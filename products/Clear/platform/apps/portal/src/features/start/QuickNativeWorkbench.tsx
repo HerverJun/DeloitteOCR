@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Input, Select, Space, Typography } from 'antd'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceId, useWorkspaces, Workspaces } from '../../App'
 import { applicationDescriptions, brandName } from '../../clear-ui/theme'
 import { useNativeWindow } from '../catalog/nativeWindow'
+import { Materials } from '../agent/Materials'
+import { DirectImageTextButton } from '../agent/DirectImageTextButton'
+import { DirectPdfTextButton } from '../agent/DirectPdfTextButton'
 
 const { Title, Text, Paragraph } = Typography
 type NativeProject = { project_id: string; name: string; link_id: string | null }
@@ -24,7 +27,8 @@ export function QuickNativeWorkbench({ appId }: { appId: 'ocr' | 'classification
 }
 
 function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'ocr' | 'classification' }) {
-  const workspaces = useWorkspaces(), client = useQueryClient()
+  const workspaces = useWorkspaces(), client = useQueryClient(), navigate = useNavigate()
+  const [materials, setMaterials] = useState(false), [selectedAssets, setSelectedAssets] = useState<string[]>([])
   const base = `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/${appId}`
   const queryKey = [`${appId}-projects`, workspaceId]
   const projects = useQuery({ queryKey, queryFn: ({ signal }) => api<{ items: NativeProject[] }>(`${base}/projects`, { signal }) })
@@ -93,7 +97,14 @@ function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'oc
       disabled={projects.isPending || projects.isError || !projectName || !!legacyName || (!pending && !chosen && appId === 'classification' && !categoriesValid)}
       onClick={open}>{pending ? '继续确认并打开' : chosen ? '打开并开始处理' : '开始处理'}</Button>
       <Button disabled={native.opening} onClick={() => void projects.refetch()}>刷新状态</Button>
-      <Link to={`/?workspace=${encodeURIComponent(workspaceId)}&tool=${appId}`}>返回工具选择</Link></Space>
+      <Link to={`/apps?workspace=${encodeURIComponent(workspaceId)}&tool=${appId}`}>返回工具选择</Link></Space>
     {native.error && <Alert className="application-message" type="error" title={native.error} />}
+    {appId === 'ocr' && <div className="application-message"><Paragraph>选择项目图片或一份 PDF，直接提取文字并下载 TXT；PDF 需填写页码。</Paragraph><Space wrap>
+      <Button onClick={() => setMaterials(true)}>选择资料{selectedAssets.length ? ` · ${selectedAssets.length} 份` : ''}</Button>
+      <DirectImageTextButton workspace={workspaceId} selectedAssets={selectedAssets} linkId={chosen?.link_id || undefined}
+        onAccepted={id => navigate(`/agent?workspace=${encodeURIComponent(workspaceId)}&session=${encodeURIComponent(id)}`)} />
+      <DirectPdfTextButton workspace={workspaceId} selectedAssets={selectedAssets} linkId={chosen?.link_id || undefined}
+        onAccepted={id => navigate(`/agent?workspace=${encodeURIComponent(workspaceId)}&session=${encodeURIComponent(id)}`)} />
+    </Space><Materials open={materials} workspace={workspaceId} selected={selectedAssets} close={() => setMaterials(false)} save={async ids => setSelectedAssets(ids)} /></div>}
   </section>
 }

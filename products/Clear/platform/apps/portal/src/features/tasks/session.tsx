@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { Alert, Button, Form, Input, Skeleton, Space, Typography } from 'antd'
-import { queryClient } from '../../router'
+import { queryClient } from '../../queryClient'
 
 export type SessionUser = { id: string; username: string; display_name: string; is_admin: boolean; disabled?: boolean }
 type Session = { multiuser: boolean; user: SessionUser | null }

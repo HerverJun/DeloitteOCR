@@ -50,7 +50,7 @@ export function WorkspaceLayout({
   );
   const [density, setDensity] = usePreference<"comfortable" | "compact">(
     "ocr-ui-density",
-    "comfortable",
+    "compact",
     (v): v is "comfortable" | "compact" =>
       v === "comfortable" || v === "compact",
   );

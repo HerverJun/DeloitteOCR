@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Button, Empty, Pagination, Space, Tag, Typography } from 'antd'
+import { Alert, Button, Empty, Pagination, Input as SearchInput, Select, Space, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ProjectDataOutputs } from '../start/ProjectDataOutputs'
 import { ProjectNativeOutputs } from '../start/ProjectNativeOutputs'
@@ -176,13 +176,14 @@ export function ArtifactCenter() {
 
 function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | null; bundleId: string | null }) {
   const [page, setPage] = useState(1)
+  const [keyword, setKeyword] = useState(''), [kind, setKind] = useState<string>(), [nativeOutputs, setNativeOutputs] = useState(false)
   const base = workspaceId ? `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/artifacts` : ''
   const list = useQuery({ queryKey: ['artifact-bundles', workspaceId, page], enabled: !!workspaceId && !bundleId,
     queryFn: ({ signal }) => read<BundlePage>(`${base}?offset=${(page - 1) * 20}&limit=20`, signal) })
   const detail = useQuery({ queryKey: ['artifact-bundle', workspaceId, bundleId], enabled: !!workspaceId && !!bundleId,
     queryFn: ({ signal }) => read<Bundle>(`${base}/${encodeURIComponent(bundleId || '')}`, signal) })
   return <div className="artifact-center"><div className="artifact-heading"><Text className="eyebrow">OUTPUTS / WORKSPACE</Text>
-    <Title level={1}>输出</Title><Paragraph>查看当前项目已生成的文件，直接下载或继续处理。</Paragraph></div>
+    <Title level={1}>成果</Title><Paragraph>查看当前项目已生成的文件，直接下载或继续处理。</Paragraph></div>
     {!workspaceId ? <Empty description="先选择项目" /> : bundleId ? <>
       <div className="artifact-back"><Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}`}>返回全部成果</Link></div>
       {detail.isPending && <Text>正在读取成果…</Text>}
@@ -191,13 +192,13 @@ function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | n
       {detail.data && <><Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(detail.data.bundle_id)}`}><Button>交给 Agent 继续处理</Button></Link>
         <BundleDetails bundle={detail.data} workspaceId={workspaceId} base={base} /></>}
     </> : <>
-      <ProjectDataOutputs key={workspaceId} workspaceId={workspaceId} />
-      <ProjectNativeOutputs workspaceId={workspaceId} />
+      <div className="artifact-toolbar"><SearchInput.Search aria-label="搜索本页成果" placeholder="搜索本页成果名称或文件" value={keyword} allowClear onChange={event => setKeyword(event.target.value)} /><Select aria-label="成果类型" placeholder="全部类型" allowClear value={kind} onChange={setKind} options={[...new Map((list.data?.items || []).map(item => [item.kind, {value: item.kind, label: kindName(item)}])).values()]} /></div>
+      <details className="artifact-native-outputs" onToggle={event => setNativeOutputs(event.currentTarget.open)}><summary>工具内输出与导出</summary>{nativeOutputs && <><ProjectDataOutputs key={workspaceId} workspaceId={workspaceId} /><ProjectNativeOutputs workspaceId={workspaceId} /></>}</details>
       {list.isError && <Alert type="error" title={list.error.message}
         action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
       {list.isPending && <Text>正在读取成果…</Text>}
       {list.data?.total === 0 && <Text type="secondary">暂无其他工具输出</Text>}
-      <div className="artifact-list">{list.data?.items.map(bundle => <article key={bundle.bundle_id}>
+      <div className="artifact-list">{list.data?.items.filter(bundle => (!kind || bundle.kind === kind) && `${bundle.title} ${bundle.files.map(file => file.name).join(' ')}`.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())).map(bundle => <article key={bundle.bundle_id}>
         <div><Tag>{kindName(bundle)}</Tag><Title level={3}>{bundle.title}</Title>
           {isReview(bundle) && <Tag color={bundle.status === 'current' ? 'success' : 'warning'}>{bundle.status === 'current' ? '当前复核版本' : '已过期复核版本'} · 平台版本 {bundle.batch_revision}</Tag>}
           <Text type="secondary">{new Date(bundle.created_at).toLocaleString('zh-CN')}</Text></div>
@@ -209,6 +210,7 @@ function WorkspaceArtifacts({ workspaceId, bundleId }: { workspaceId: string | n
           <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(bundle.bundle_id)}`}>全部文件与详情</Link></Space>
         <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(bundle.bundle_id)}`}>交给 Agent</Link>
       </article>)}</div>
+      {list.data && !list.data.items.some(bundle => (!kind || bundle.kind === kind) && (bundle.title + ' ' + bundle.files.map(file => file.name).join(' ')).toLocaleLowerCase().includes(keyword.toLocaleLowerCase())) && <Empty description="本页没有匹配的成果" />}
       {(list.data?.total || 0) > 20 && <Pagination current={page} pageSize={20} total={list.data?.total}
         onChange={setPage} showSizeChanger={false} />}
     </>}
