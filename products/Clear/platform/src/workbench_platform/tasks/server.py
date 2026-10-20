@@ -224,10 +224,10 @@ def create_app(engine,worker_client=None):
         session_path=command['path'].rsplit('/',1)[0]
         response=await request.app.state.worker.get(session_path,headers=worker_headers(actor(request),workspace))
         if not response.is_success:return None
-        active=next((run for run in response.json().get('runs',[]) if run['status'] in {'running','waiting_job','waiting_user'}),None)
+        active=next((run for run in response.json().get('runs',[]) if run['status'] in {'running','waiting_job','waiting_user','paused'}),None)
         if not active:return None
         with engine.connect() as db:
-            linked=db.execute(select(s.task_source_links).where(s.task_source_links.c.namespace=='agent.runs',s.task_source_links.c.source_id==active['id'],s.task_source_links.c.source_generation==active['generation'])).mappings().first()
+            linked=db.execute(select(s.task_source_links).where(s.task_source_links.c.namespace=='agent.runs',s.task_source_links.c.source_id==active['id'],s.task_source_links.c.source_generation<=active['generation']).order_by(s.task_source_links.c.source_generation.desc()).limit(1)).mappings().first()
             if not linked:raise LedgerError('原 Agent 运行未绑定任务，请由管理员核实',409)
             ledger._task(db,actor(request),linked['task_id'],control=True)
         return dict(linked)
@@ -376,7 +376,7 @@ def create_app(engine,worker_client=None):
         controls=[(r'/multimodal/jobs/([A-Za-z0-9_-]+)/control/(cancel|retry|retry_cpu)','manual.manual_analysis'),
                   (r'/forensics/([A-Za-z0-9_-]+)/(resume)','forensics.inspections'),
                   (r'/jobs/([A-Za-z0-9_-]+)/actions/(cancel|pause|resume|retry_failed)','projection'),
-                  (r'/agent/runs/([A-Za-z0-9_-]+)/(cancel|resume)','agent.runs'),
+                  (r'/agent/runs/([A-Za-z0-9_-]+)/(cancel|pause|resume)','agent.runs'),
                   (r'/data/sessions/[A-Za-z0-9_-]+/jobs/([A-Za-z0-9_-]+)/(cancel)','data.jobs')]
         control_match=None
         for pattern,namespace in controls:
@@ -395,6 +395,18 @@ def create_app(engine,worker_client=None):
                 response=await request.app.state.worker.get(target.rsplit('/control/',1)[0] if '/control/' in target else target.rsplit('/actions/',1)[0] if '/actions/' in target else target.rsplit('/',1)[0],headers=worker_headers(user,workspace))
                 value=response.json() if response.status_code==200 else {'request_state':'recorded'}
                 return JSONResponse(value,status_code=200,headers={'X-Clear-Task-ID':linked['id']})
+            if namespace=='agent.runs':raise LedgerError('Agent 运行未绑定任务，请由管理员核实',409)
+        if request.method=='POST' and re.fullmatch(r'agent/sessions/[A-Za-z0-9_-]+/compact',path):
+            session_response=await request.app.state.worker.get(target.rsplit('/',1)[0],headers=worker_headers(user,workspace))
+            if not session_response.is_success:raise LedgerError('Agent 会话不可核实',409)
+            candidate=next(iter(session_response.json().get('runs',[])),None)
+            if candidate:
+                with engine.connect() as db:
+                    linked=db.execute(select(s.task_source_links).where(s.task_source_links.c.namespace=='agent.runs',
+                        s.task_source_links.c.source_id==candidate['id'],s.task_source_links.c.source_generation<=candidate['generation'])
+                        .order_by(s.task_source_links.c.source_generation.desc()).limit(1)).mappings().first()
+                    if not linked:raise LedgerError('Agent 运行未绑定任务，请由管理员核实',409)
+                    ledger._task(db,user,linked['task_id'],control=True)
         command=match(request.method,target,payload)
         headers=worker_headers(user,workspace)
         if command and command['tool_id']=='agent':

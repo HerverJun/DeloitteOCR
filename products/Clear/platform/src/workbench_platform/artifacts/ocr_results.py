@@ -30,6 +30,29 @@ def _content_digest(data: bytes, media_type: str) -> str:
     return hashlib.sha256(_canonical(files)).hexdigest()
 
 
+def _readable_export(snapshot):
+    """Read only the fixed exported JSON; never reconstruct text from tables."""
+    if snapshot['media_type'] == 'application/zip':
+        with zipfile.ZipFile(io.BytesIO(snapshot['export'])) as archive:
+            values = [json.loads(archive.read(name)) for name in sorted(archive.namelist())
+                      if name.casefold().endswith('.json')]
+    else:
+        values = [json.loads(snapshot['export'])]
+    results = {value.get('id'): value for value in values}
+    texts = []
+    for item in snapshot['items']:
+        value = results.get(item['native_result_id'])
+        if not value or value.get('revision') != item['revision']:
+            raise ArtifactUnavailable('SOURCE_FAILED')
+        text = (value.get('edited') or {}).get('text')
+        # Old exports without a text field remain readable as their original
+        # format. They cannot be advertised as complete plain text.
+        if not isinstance(text, str):
+            return None
+        texts.append(text)
+    return '\n\n'.join(texts)
+
+
 class OcrResults:
     def __init__(self, store: ArtifactStore, handoff):
         self.store, self.handoff = store, handoff
@@ -123,6 +146,14 @@ class OcrResults:
             identity = {"results": snapshot["items"],
                         "content": _content_digest(snapshot["export"], snapshot["media_type"]),
                         "provenance": hashlib.sha256(payloads["provenance.json"][0]).hexdigest()}
+            text = _readable_export(snapshot)
+            if text is not None:
+                payloads['ocr-text.txt'] = (text.encode('utf-8'), 'text/plain')
+                # A new format creates a new immutable bundle. Existing bundle
+                # hashes, JSON bytes, provenance and download identities stay
+                # exactly as saved by previous readers.
+                identity['readable_format'] = 'ocr-readable-text-v1'
+                identity['text_sha256'] = hashlib.sha256(text.encode('utf-8')).hexdigest()
             digest = hashlib.sha256(_canonical(identity)).hexdigest()
             with closing(self._connect()) as db:
                 row = db.execute("SELECT * FROM ocr_artifact_bundle WHERE workspace_id=? "

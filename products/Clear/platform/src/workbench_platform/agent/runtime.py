@@ -1,4 +1,4 @@
-"""Persistent platform runtime around one LangGraph, with native job observers."""
+"""Clear's durable business supervisor around DeepSeek Harness."""
 from __future__ import annotations
 
 import asyncio
@@ -13,19 +13,26 @@ from .connection import ControllerConnection
 from .context import prepare_request, core_tools
 from .environment import compose, environment
 from .skills import SkillService, registration
-from .dependencies import load_dependencies
-from .graph import build_graph
+from .dependencies import load_support_dependencies
+from .harness import HarnessEngine
+from .harness_service import HarnessService
 from .providers import payload_for, request, ProviderFault, SYSTEM, SYSTEM_VERSION, SYSTEM_PROMPTS
 from .registry import ToolContext, ToolRegistry, invoke, tool_activity
 from .store import AgentStore, Conflict, RunSuperseded, canonical, digest, now
 from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history
+from .tools import multimodal
 from workbench_platform.application_services.native import model_projection
 
+DIRECT_DRIVERS = {'image-text-v1': 'image_text', 'pdf-text-v1': 'pdf_text',
+                  'data-action-v1': 'data_action', 'classification-predict-v1': 'classification_action'}
 
-class AgentRuntime:
+
+class AgentRuntime(HarnessService):
     def __init__(self, root: Path, services, *, model_provider=None):
         self.store = AgentStore(root)
         self.services = services
+        from workbench_platform.application_services.direct_scope import resolve_harness_scope
+        self.store.scope_resolver = lambda run: resolve_harness_scope(self, self.store.session(run['session_id']))
         self.registry = ToolRegistry()
         context.register(self.registry)
         data.register(self.registry)
@@ -36,6 +43,7 @@ class AgentRuntime:
         classification_management.register(self.registry)
         native_catalog.register(self.registry)
         forensics.register(self.registry)
+        multimodal.register(self.registry)
         jobs.register(self.registry)
         pdf.register(self.registry)
         results.register(self.registry)
@@ -44,30 +52,62 @@ class AgentRuntime:
         platform_management.register(self.registry)
         skills.register(self.registry)
         history.register(self.registry)
-        load_dependencies()
-        self.skills = SkillService(self.store, registry=self.registry, **registration())
-        self.registry.tool_guard = lambda call, ctx: call['tool'] in self.skills.allowed_tools(
-            ctx.session_id, [call['tool']], core=core_tools(self.registry))
+        from .workspace_outputs import register as register_workspace_outputs
+        register_workspace_outputs(self.registry)
+        from workbench_platform.application_services.composed import register as register_composed
+        register_composed(self.registry)
+        from workbench_platform.application_services.ocr_tuning import register as register_tuning
+        register_tuning(self.registry)
+        self.agent_enabled = os.environ.get('WORKBENCH_AGENT_ENABLED', '1') != '0'
+        self.agent_unavailable_reason = '' if self.agent_enabled else 'Agent 已停用；明确的本地操作仍可使用'
+        if self.agent_enabled:
+            try:
+                load_support_dependencies()
+            except (ImportError, FileNotFoundError, ValueError):
+                self.agent_enabled = False
+                self.agent_unavailable_reason = 'Agent 依赖未就绪；明确的本地操作仍可使用'
+        self.skills = SkillService(self.store, registry=self.registry, scripts_supported=True, **registration())
+        def tool_allowed(call, ctx):
+            from .general import enabled as general_enabled
+            graph = getattr(self, 'graph', None)
+            if graph is not None and general_enabled(graph.load(ctx.run_id)):
+                return True
+            return call['tool'] in self.skills.allowed_tools(ctx.session_id, [call['tool']], core=core_tools(self.registry))
+        self.registry.tool_guard = tool_allowed
         self.connection = ControllerConnection(self.store, production_preflight=self.production_preflight)
         from .tasks import AuditTasks
         self.tasks = AuditTasks(self)
         self.model_provider = model_provider
-        self.round_limit = int(os.environ.get('WORKBENCH_AGENT_ROUND_LIMIT', '20'))
-        self.tool_limit = int(os.environ.get('WORKBENCH_AGENT_TOOL_LIMIT', '60'))
-        if not 1 <= self.round_limit <= 200 or not 1 <= self.tool_limit <= 600:
+        self.round_limit = int(os.environ['WORKBENCH_AGENT_ROUND_LIMIT']) if os.environ.get('WORKBENCH_AGENT_ROUND_LIMIT') else None
+        self.tool_limit = int(os.environ['WORKBENCH_AGENT_TOOL_LIMIT']) if os.environ.get('WORKBENCH_AGENT_TOOL_LIMIT') else None
+        if any(value is not None and value < 1 for value in (self.round_limit, self.tool_limit)):
             raise ValueError('Agent预算配置无效')
         self.stack = AsyncExitStack()
         self.graph = None
         self.running = {}
         self.reschedules = {}
+        self.resume_tasks = {}
         self.observer_task = None
+        self.maintenance = {}
+        self.result_collectors = {}
         self.closing = False
         self.model_projection = model_projection
 
     async def start(self):
-        _, Saver = load_dependencies()
-        saver = await self.stack.enter_async_context(Saver.from_conn_string(str(self.store.root / 'checkpoints.sqlite3')))
-        self.graph = build_graph(self, saver)
+        if self.agent_enabled:
+            try:
+                self.graph = HarnessEngine(self)
+            except (ImportError, FileNotFoundError, ValueError):
+                self.agent_enabled = False
+                self.agent_unavailable_reason = 'Harness 依赖未就绪；明确的本地操作仍可使用'
+        if self.graph is not None:
+            from .harness_migration import migrate_legacy
+            await migrate_legacy(self)
+            from .harness_materialize import materialize_legacy
+            await materialize_legacy(self)
+        if self.graph is not None and self.store.rows('SELECT 1 FROM harness_events LIMIT 1'):
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.store.root.parent, 'agent-harness-v1')
         # Business terminal status may commit immediately before the display
         # projection. Repair that cold-stop window without replaying a request,
         # graph node or native submission.
@@ -80,6 +120,11 @@ class AgentRuntime:
             self.store.finish_public(run['id'], run['status'], run.get('error') or '', generation=run['generation'])
         self.observer_task = asyncio.create_task(self.observe(), name='platform-agent-native-observer')
         for run in self.store.rows("SELECT * FROM runs WHERE status IN ('running','waiting_job','waiting_user')"):
+            if run.get('driver') in DIRECT_DRIVERS:
+                self.schedule(run['id'], None)
+                continue
+            if self.graph is None:
+                continue
             snapshot = await self.graph.aget_state(self.options(run['id']))
             if snapshot.values:
                 # Business status can commit just before the interrupt's
@@ -97,10 +142,13 @@ class AgentRuntime:
         self.closing = True
         if self.observer_task:
             self.observer_task.cancel()
-        tasks = list(self.running.values())
+        tasks = [*self.running.values(), *self.maintenance.values(), *self.result_collectors.values(), *self.resume_tasks.values()]
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, *([self.observer_task] if self.observer_task else []), return_exceptions=True)
+        if self.graph:
+            await self.graph.close()
+            self.graph.event_db.close()
         await self.stack.aclose()
 
     def context(self, state):
@@ -178,6 +226,7 @@ class AgentRuntime:
         return incoming, sorted(received | {value['id'] for value in rows})
 
     async def model(self, state):
+        """Validate archived request receipts; Harness owns live model requests."""
         run = self.current(state)
         self.activity(state, 'preparing_request')
         if self.model_provider:
@@ -327,18 +376,21 @@ class AgentRuntime:
                 'context_metrics': metrics, 'injection': injection, 'tools': selected,
                 'scope': '首轮核心工具与可信环境本地预检；实际任务/技能按每次请求重新计量'}
 
-    async def settle(self, result, state):
+    async def settle(self, result, state, *, context=None):
         from workbench_platform.application_services.job_lifecycle import adapter
         self.current(state)
         outputs = []
         for reference in result['job_refs']:
             self.current(state)
             lifecycle = adapter(reference)
-            context = self.context(state)
+            context = context if context is not None else self.context(state)
+            context.current()
             if lifecycle.prepare:
                 await invoke(lifecycle.prepare, reference, context)
+            context.current()
             self.current(state)
             value = await invoke(lifecycle.settle, reference, context)
+            context.current()
             self.current(state)
             if value is None:
                 return None
@@ -358,43 +410,145 @@ class AgentRuntime:
     def options(self, run_id):
         # The server alone chooses checkpoint identity and generation. A browser
         # cannot select thread_id, a graph node or a resume command payload.
-        return {'configurable': {'thread_id': run_id}, 'recursion_limit': 600}
+        return {'configurable': {'thread_id': run_id}}
 
     def schedule(self, run_id, input):
         if self.closing:
             return
         if run_id in self.running:
-            if input is not None:
-                self.reschedules[run_id] = input
+            self.reschedules[run_id] = input
             return
         task = asyncio.create_task(self.drive(run_id, input), name='platform-agent-' + run_id)
         self.running[run_id] = task
         def finished(_):
             self.running.pop(run_id, None)
-            pending = self.reschedules.pop(run_id, None)
-            if pending is not None:
-                self.schedule(run_id, pending)
+            if run_id in self.reschedules:
+                pending = self.reschedules.pop(run_id)
+                if isinstance(pending, dict) and pending.get('_resume_after_handoff') and not self.closing:
+                    resumed = asyncio.create_task(self.resume_after_handoff(run_id))
+                    self.resume_tasks[run_id] = resumed
+                    resumed.add_done_callback(lambda _, identifier=run_id: self.resume_tasks.pop(identifier, None))
+                    return
+                if self.store.run(run_id)['status'] in {'running', 'waiting_job', 'waiting_user'}:
+                    self.schedule(run_id, pending)
         task.add_done_callback(finished)
 
-    async def drive(self, run_id, input):
+    async def resume_after_handoff(self, run_id):
+        try:
+            await self.reconcile(run_id)
+        except (Conflict, ValueError) as error:
+            run = self.store.run(run_id)
+            self.store.event(run['session_id'], run_id, run_id + ':resume-deferred:' + now(),
+                'continuation_deferred', {'reason': str(error)[:500], 'input_preserved': True,
+                    'version': 1, 'generation': run['generation']})
+
+    async def drive(self, run_id, input, *, _recovery_attempt=0):
         generation = self.store.run(run_id)['generation']
         try:
-            await self.graph.ainvoke(input, self.options(run_id), durability='sync')
+            driver = self.store.run(run_id).get('driver', 'harness')
+            if driver in DIRECT_DRIVERS:
+                import importlib
+                module = importlib.import_module('workbench_platform.application_services.' + DIRECT_DRIVERS[driver])
+                await module.drive(self, run_id)
+                await self.continue_direct_followups(run_id)
+            elif self.graph is not None:
+                from .goal_interpreter import maybe_route
+                route = json.loads(self.store.run(run_id).get('driver_state') or '{}')
+                if route.get('local_goal_to_parse') and not self.graph.load(run_id) and isinstance(input, dict):
+                    self.graph.save(input)
+                if await maybe_route(self, run_id):
+                    return
+                saved_route = json.loads(self.store.run(run_id).get('driver_state') or '{}')
+                if saved_route.get('interpretation_complete'):
+                    parsed_state = input if isinstance(input, dict) else self.graph.load(run_id)
+                    if parsed_state:
+                        parsed_state['step'] = max(parsed_state.get('step', 0), self.store.run(run_id)['rounds'])
+                        self.graph.save(parsed_state)
+                await self.graph.ainvoke(input, self.options(run_id), durability='sync')
         except asyncio.CancelledError:
             raise
         except RunSuperseded:
             pass
-        except Conflict:
-            self.finish_error(run_id, generation, 'failed', 'execution_conflict',
-                              '执行身份或配置版本已变化，请读取当前状态后继续')
+        except Conflict as error:
+            from workbench_platform.application_services.image_text import ReceiptUnknown
+            from workbench_platform.application_services.errors import ResourceBusy
+            if isinstance(error, ResourceBusy):
+                self.finish_error(run_id, generation, 'paused', 'resource_busy', str(error) + ' 关联任务释放后点击继续原任务。')
+            elif isinstance(error, ReceiptUnknown):
+                self.finish_error(run_id, generation, 'needs_verification', 'response_unknown', str(error))
+            else:
+                self.finish_error(run_id, generation, 'failed', 'execution_conflict',
+                                  '执行身份或配置版本已变化，请读取当前状态后继续')
         except ProviderFault as error:
-            status = 'needs_verification' if error.code == 'response_unknown' else 'failed'
-            self.finish_error(run_id, generation, status, error.code, str(error), context_metrics=error.context_metrics)
+            if self.store.run(run_id)['status'] == 'paused':
+                return
+            from .task_recovery import RECOVERABLE, AUTO_RETRY, recovery_message
+            unknown = self.store.rows("SELECT id FROM model_requests WHERE run_id=? AND state='sent'", (run_id,))
+            if error.code in AUTO_RETRY and _recovery_attempt < 1 and not unknown:
+                self.store.public_event(run_id, generation, run_id + ':controller-retry:' + str(
+                    self.store.rows('SELECT COUNT(*) AS n FROM model_requests WHERE run_id=?', (run_id,))[0]['n']),
+                    'controller_retry', {'reason': error.code, 'attempt': 1})
+                if self.graph is not None and driver not in DIRECT_DRIVERS:
+                    state = self.graph.load(run_id)
+                    state.pop('last_bridge_error', None)
+                    self.graph.save(state)
+                await self.collect_available_results(run_id)
+                await asyncio.sleep(.2)
+                current = self.store.run(run_id)
+                if current['generation'] != generation or current['status'] in {'paused', 'cancelled'}:
+                    return
+                await self.drive(run_id, None, _recovery_attempt=1)
+                return
+            status = 'needs_verification' if error.code == 'response_unknown' else 'paused' if error.code in RECOVERABLE else 'failed'
+            message = recovery_message(self, run_id, error.code, str(error)) if error.code in RECOVERABLE else str(error)
+            self.finish_error(run_id, generation, status, error.code, message, context_metrics=error.context_metrics,
+                              response_diagnostics=getattr(error, 'response_diagnostics', None))
+        except ValueError as error:
+            from workbench_platform.application_services.errors import DirectActionFault
+            if isinstance(error, DirectActionFault):
+                saved = json.loads(self.store.run(run_id).get('driver_state') or '{}')
+                self.finish_error(run_id, generation, 'failed', error.code, str(error))
+                self.store.event(self.store.run(run_id)['session_id'], run_id,
+                    run_id + ':business-error:' + str(generation), 'business_error', {
+                        'code': error.code, 'message': str(error), 'stage': saved.get('stage', 'validation'),
+                        'accepted_write': bool(saved.get('receipts', {}).get('submitted')),
+                        'retryable': False, 'user_action': error.user_action})
+            else:
+                self.finish_error(run_id, generation, 'failed', 'direct_action_failed' if
+                    self.store.run(run_id).get('driver') in DIRECT_DRIVERS else 'runtime_failed',
+                    '操作未完成；请读取当前任务与服务状态，已有回执保留')
         except Exception:
             self.finish_error(run_id, generation, 'failed', 'runtime_failed',
                               '运行未完成；请查看步骤与实际任务状态，已有成果保留')
+        finally:
+            if not self.closing:
+                await self.collect_available_results(run_id)
 
-    def finish_error(self, run_id, generation, status, code, message, *, context_metrics=None):
+    async def collect_available_results(self, run_id):
+        # Completion observers and tool callbacks can race on one operation.
+        # The event identity is durable; this guard also avoids duplicate work.
+        collecting = getattr(self, '_collecting_results', None)
+        if collecting is None:
+            self._collecting_results = collecting = set()
+        if run_id in collecting:
+            return
+        collecting.add(run_id)
+        try:
+            from .available_results import collect
+            await collect(self, run_id)
+        except RunSuperseded:
+            pass
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            run = self.store.run(run_id)
+            self.store.event(run['session_id'], run_id,
+                run_id + ':result-observer-error:' + digest(str(error))[:16], 'result_collection_error',
+                {'message': str(error)[:500], 'generation': run['generation']})
+        finally:
+            collecting.discard(run_id)
+
+    def finish_error(self, run_id, generation, status, code, message, *, context_metrics=None, response_diagnostics=None):
         try:
             self.store.status(run_id, generation, status, message)
         except RunSuperseded:
@@ -402,95 +556,84 @@ class AgentRuntime:
         run = self.store.run(run_id)
         self.store.event(run['session_id'], run_id, run_id + ':error:' + code + ':' + str(generation),
                          'error', {'code': code, 'message': message,
+                                   **({'response_diagnostics': response_diagnostics} if response_diagnostics else {}),
                                    **({'context_metrics': context_metrics} if context_metrics else {})})
         self.store.finish_public(run_id, status, message, generation=generation)
 
     async def observe(self):
-        from langgraph.types import Command
+        observation = 0
         while not self.closing:
-            await asyncio.sleep(0.5)
-            for run in self.store.rows("SELECT * FROM runs WHERE status='waiting_user'"):
-                if run['id'] in self.running:
+            await asyncio.sleep(.5)
+            for run in self.store.rows("SELECT * FROM runs WHERE status IN ('waiting_job','waiting_user')"):
+                if self.graph is None and run.get('driver') not in DIRECT_DRIVERS:
                     continue
-                snapshot = await self.graph.aget_state(self.options(run['id']))
-                questions = [item.value.get('decision_id') for task in snapshot.tasks for item in task.interrupts
-                             if isinstance(item.value, dict) and item.value.get('kind') == 'question']
-                for question in questions:
-                    answered = self.store.rows('SELECT id FROM decisions WHERE id=? AND run_id=? AND reply IS NOT NULL',
-                                               (question, run['id']))
-                    if answered:
-                        self.schedule(run['id'], Command(resume={'bound_decision': question}))
-                        break
-            for run in self.store.rows("SELECT * FROM runs WHERE status='waiting_job'"):
-                if run['id'] in self.running:
-                    continue
-                snapshot = await self.graph.aget_state(self.options(run['id']))
-                if not snapshot.values or not snapshot.next:
-                    continue
-                try:
-                    state = snapshot.values
-                    from .progress import progress_for
-                    for reference in state['results'][-1].get('job_refs', []):
-                        try:
-                            progress = await invoke(progress_for, reference, self.context(state))
-                            stamp = digest(progress)
-                            self.store.public_event(run['id'], run['generation'],
-                                run['id'] + ':progress:' + digest(reference) + ':' + stamp, 'job_progress',
-                                {**progress, 'job_ref': reference, 'sampled_at': now()})
-                        except RunSuperseded:
-                            raise
-                        except Exception:
-                            # Display sampling and persistence are optional;
-                            # their failure must not
-                            # interrupt settling the original native operation.
-                            pass
-                    if await self.settle(state['results'][-1], state) is not None:
-                        self.schedule(run['id'], Command(resume={'observer': True}))
-                except Conflict:
-                    continue
-                except Exception:
-                    self.store.status(run['id'], run['generation'], 'needs_verification', '原生任务状态需要核实')
-                    self.store.finish_public(run['id'], 'needs_verification', '原生任务状态需要核实', generation=run['generation'])
+                if run['id'] not in self.running:
+                    self.schedule(run['id'], None)
+            observation += 1
+            if observation % 4:
+                continue
+            # Reading accepted jobs and exporting fixed results does not need
+            # a live model, Harness process or a resumable analysis status.
+            for run in self.store.rows("""SELECT r.* FROM runs r WHERE r.status!='cancelled'
+                AND EXISTS (SELECT 1 FROM operations o WHERE o.run_id=r.id AND o.result IS NOT NULL)"""):
+                if run['id'] not in self.result_collectors:
+                    task = asyncio.create_task(self.collect_available_results(run['id']))
+                    self.result_collectors[run['id']] = task
+                    task.add_done_callback(lambda _, identifier=run['id']: self.result_collectors.pop(identifier, None))
 
     async def reconcile(self, run_id):
         run = self.store.run(run_id)
+        from .task_recovery import RECOVERABLE, last_fault, prepare_resume, can_resume_run
+        if run['status'] == 'cancelled':
+            raise Conflict('用户已停止此任务，不会恢复后续步骤')
+        recoverable_failure = run['status'] == 'failed' and last_fault(self, run_id) in RECOVERABLE
+        if run.get('driver') in DIRECT_DRIVERS:
+            if run['status'] not in {'paused', 'running', 'waiting_job', 'needs_verification'} and not recoverable_failure:
+                raise Conflict('此运行当前不可继续')
+            if run['status'] in {'paused', 'needs_verification'} or recoverable_failure:
+                self.store.status(run_id, run['generation'], 'running')
+                self.store.public_event(run_id, run['generation'], run_id + ':resumed:' + now(),
+                    'run_resumed', {'reason': '继续原目标，保留已接受的作业与成果'})
+            self.schedule(run_id, None)
+            return self.store.run(run_id)
+        if not self.agent_enabled or self.graph is None:
+            raise Conflict('分析执行依赖尚未就绪，原运行和回执已保留；请恢复 Agent 后继续')
+        if run['session_id'] in self.maintenance:
+            raise Conflict('会话正在整理上下文，请稍后继续')
+        if can_resume_run(self, run):
+            if run_id in self.running:
+                self.reschedules[run_id] = {'_resume_after_handoff': True}
+                # Command acceptance remains valid after a turn becomes paused
+                # and before its old session writer has finished closing.
+                self.store.event(run['session_id'], run_id, run_id + ':resume-queued:' + now(),
+                    'continuation_queued', {'reason': '追加要求已接收，当前操作保存后自动继续',
+                        'version': 1, 'generation': run['generation']})
+                return {**run, 'continuation_queued': True}
+            await prepare_resume(self, run)
+            self.store.resume_harness_run(run_id, run['generation'])
+            self.store.public_event(run_id, run['generation'], run_id + ':resumed:' + now(),
+                'run_resumed', {'reason': '继续原目标，保留已接受的作业与成果'})
+            self.schedule(run_id, None)
+            return self.store.run(run_id)
         if run['status'] in {'running', 'waiting_job'}:
             self.schedule(run_id, None)
             return run
-        if run['status'] != 'needs_verification' or run_id in self.running:
-            raise Conflict('此运行当前不可核对')
-        unknown = self.store.rows("SELECT id FROM model_requests WHERE run_id=? AND state!='received'", (run_id,))
-        if unknown:
-            raise Conflict('主控回包未知，无法从原生任务核实；请结束本轮后以新目标继续')
-        snapshot = await self.graph.aget_state(self.options(run_id))
-        state = snapshot.values
-        if not state or not state.get('calls') or not state.get('results'):
-            raise Conflict('没有可核实的原生操作')
-        call = state['calls'][state['cursor']]
-        specification = self.registry.tools[call['tool']]
-        records = self.store.rows('SELECT id FROM operations WHERE run_id=? AND call_id=?', (run_id, call['call_id']))
-        if not records or not specification.lookup_operation:
-            raise Conflict('此工具没有原生回执查询入口；原操作保留')
-        from dataclasses import replace
-        context = replace(self.context(state), operation_id=records[0]['id'])
-        recovered = await invoke(specification.lookup_operation, specification.input_schema.model_validate(call['arguments']), context)
-        self.current(state)
-        if recovered is None:
-            raise Conflict('原生系统尚无可核实回执，未重新提交操作')
-        recovered = self.registry.validated_result(specification, recovered, context)
-        self.store.finish_operation(records[0]['id'], recovered)
-        await self.graph.aupdate_state(self.options(run_id), {'results': [*state['results'][:-1], recovered]}, as_node='dispatch')
-        self.store.status(run_id, run['generation'], 'running')
-        tool_activity(context, call, 'restored', recovered)
-        self.schedule(run_id, None)
-        return self.store.run(run_id)
+        raise Conflict('此运行当前不可继续')
 
     async def submit(self, session_id, content, request_id):
         session = self.store.session(session_id)
+        if session_id in self.maintenance:
+            raise Conflict('会话正在整理上下文，请稍后发送')
         if self.tasks.get(session_id)['manual']:
             raise ValueError('任务正在人工处理，请先返回智能审计')
         previous_request = self.store.rows('SELECT * FROM runs WHERE request_id=?', (request_id,))
         if previous_request:
+            saved = json.loads(previous_request[0].get('driver_state') or '{}')
+            if previous_request[0].get('driver') in DIRECT_DRIVERS or saved.get('request', {}).get('source_text') is not None:
+                original = saved.get('request', {}).get('source_text')
+                if original != content or previous_request[0]['session_id'] != session_id:
+                    raise Conflict('请求身份与原目标不同')
+                return previous_request[0]
             if previous_request[0]['fingerprint'] != digest([session_id, content]):
                 raise Conflict('请求身份与原目标不同')
             return previous_request[0]
@@ -499,13 +642,22 @@ class AgentRuntime:
             if (previous_inbox[0]['session_id'], previous_inbox[0]['content']) != (session_id, content):
                 raise Conflict('追加请求身份与原目标不同')
             return self.store.run(previous_inbox[0]['run_id'])
-        view = self.connection.view()
-        if not self.model_provider and not view.get('available'):
-            raise ValueError('请先在主控设置中配置并测试模型连接')
-        active = self.store.rows("SELECT * FROM runs WHERE session_id=? AND status IN ('running','waiting_job','waiting_user')",
+        active = self.store.rows("SELECT * FROM runs WHERE session_id=? AND status IN ('running','waiting_job','waiting_user','paused')",
                                  (session_id,))
+        if not active:
+            from .task_recovery import can_resume_run
+            latest = self.store.rows('SELECT * FROM runs WHERE session_id=? ORDER BY created DESC LIMIT 1', (session_id,))
+            if latest and latest[0]['status'] in {'failed', 'partial', 'needs_verification'} and can_resume_run(self, latest[0]):
+                active = latest
         if active:
             run = active[0]
+            if run.get('driver') in DIRECT_DRIVERS:
+                import re
+                if re.search(r'改用|换用|改成|重新识别|重新提取|重做|只识别|仅提取', content):
+                    raise Conflict('本次修改会改变已接受操作的参数。可继续原任务并保留原结果；如需修订，请先“停止后续步骤”，'
+                                   '再在本任务调整资料并发送完整修订要求，旧尝试与原生回执会保留。')
+                from workbench_platform.resources.reader_features import require_features
+                require_features(self.store.root.parent, 'same-goal-continuation-v1')
             with self.store.transaction() as db:
                 old = db.execute('SELECT * FROM inbox WHERE id=?', (request_id,)).fetchone()
                 if old and (old['run_id'], old['content']) != (run['id'], content):
@@ -515,15 +667,88 @@ class AgentRuntime:
                 db.execute('INSERT OR IGNORE INTO inbox(id,run_id,content,created) VALUES(?,?,?,?)',
                            (request_id, run['id'], content, now()))
             self.store.event(session_id, run['id'], request_id, 'message', {'role': 'user', 'content': content, 'queued': True})
+            self.tasks.record_goal(session_id, content, request_id)
+            if run['status'] in {'paused', 'failed', 'partial', 'needs_verification'}:
+                await self.reconcile(run['id'])
             return self.store.run(run['id'])
-        run, fresh = self.store.start_run(session_id, content, request_id, view.get('revision', 0), self.round_limit, self.tool_limit)
+        # Typed buttons/APIs retain the zero-model action path. All new free
+        # text belongs to the one DSH loop, including compound requirements.
+        # An unavailable controller still permits the established exact local
+        # extraction commands; accepted old drivers keep their original path.
+        if not self.agent_enabled or (not self.model_provider and not self.connection.view().get('available')):
+            from workbench_platform.application_services.goal_routing import submit_local_goal
+            local = await submit_local_goal(self, session_id, content, request_id)
+            if local is not None:
+                return local
+        if not self.agent_enabled:
+            raise ValueError('分析依赖尚未就绪；明确的图片或指定 PDF 页文字提取仍可直接发送')
+        view = self.connection.view()
+        if not self.model_provider and not view.get('available'):
+            raise ValueError('该目标需要模型分析，请在主控设置中修复连接后继续；明确的图片或指定 PDF 页文字提取可直接发送')
+        from .general import CONTRACT
+        from workbench_platform.resources.reader_features import require_features
+        route_state = {'scope_claims': self.store.scope_resolver({'session_id': session_id}),
+                       'execution_contract': CONTRACT}
+        require_features(self.store.root.parent, 'agent-general-v1')
+        run, fresh = self.store.start_run(session_id, content, request_id, view.get('revision', 0),
+            self.round_limit or view.get('round_limit'), self.tool_limit or view.get('tool_limit'),
+            driver_state=route_state)
         if fresh:
-            self.tasks.record_goal(session_id, content)
+            self.tasks.record_goal(session_id, content, request_id)
             self.schedule(run['id'], self.initial_state(run, content))
         return run
 
+    async def continue_direct_followups(self, run_id):
+        """Keep the accepted operation immutable; reason over its fixed output.
+
+        The inbox and receipts are durable before the handover. A lost model
+        connection leaves the same run resumable at the completed local step.
+        """
+        run = self.store.run(run_id)
+        if run.get('driver') not in DIRECT_DRIVERS or run['status'] not in {'succeeded', 'partial'}:
+            return
+        additions = self.store.rows('SELECT * FROM inbox WHERE run_id=? ORDER BY created,id', (run_id,))
+        saved = json.loads(run.get('driver_state') or '{}')
+        if not additions and not saved.get('analysis_goal'):
+            return
+        from workbench_platform.resources.reader_features import require_features
+        require_features(self.store.root.parent, 'same-goal-continuation-v1')
+        view = self.connection.view()
+        if self.graph is None or not self.agent_enabled or (not self.model_provider and not view.get('available')):
+            self.finish_error(run_id, run['generation'], 'paused', 'followup_connection_required',
+                '原文或表格已完成，可在任务成果中使用；补充分析已保存。请修复模型连接后点击继续任务。')
+            return
+        original = self.store.rows("SELECT payload FROM events WHERE run_id=? AND identity=? AND kind='message'",
+                                   (run_id, run['request_id']))
+        content = json.loads(original[0]['payload'])['content']
+        state = self.initial_state(run, content)
+        delivery = saved.get('receipts', {}).get('delivery') or {}
+        state['business_started'] = True
+        state['messages'].append({'id': run_id + ':fixed-local-output', 'role': 'user',
+            'content': '[服务器已完成的原请求及固定成果；原文可直接读取，不能重复提交已完成识别。'
+                       '接续全部用户补充要求，最终交付须同时保留原成果与新增分析。]\n' + canonical(delivery)})
+        # Saving first is safe: the direct driver ignores this prepared graph
+        # state after a cold stop. Only the atomic driver transition activates it.
+        self.graph.save(state)
+        from workbench_platform.application_services.direct_scope import resolve_harness_scope
+        claims = resolve_harness_scope(self, self.store.session(run['session_id']))
+        with self.store.transaction() as db:
+            current = db.execute('SELECT * FROM runs WHERE id=?', (run_id,)).fetchone()
+            if current['status'] == 'cancelled' or current['generation'] != run['generation']:
+                return
+            # Accepted direct parameters/receipts remain byte-for-byte intact;
+            # additional claims describe only the future analysis phase.
+            saved['scope_claims'] = claims
+            saved['direct_origin_driver'] = run['driver']
+            db.execute("UPDATE runs SET driver='harness',status='running',error=NULL,connection_revision=?,driver_state=? WHERE id=?",
+                       (view.get('revision', 0), canonical(saved), run_id))
+        self.store.public_event(run_id, run['generation'], run_id + ':followup-started', 'run_resumed',
+            {'message': '原成果已完成，正在继续补充要求', 'request_ids': [item['id'] for item in additions]})
+        self.schedule(run_id, state)
+
     def initial_state(self, run, content):
         session = self.store.session(run['session_id'])
+        execution_contract = json.loads(run.get('driver_state') or '{}').get('execution_contract')
         previous = self.store.rows("SELECT payload FROM events WHERE session_id=? AND kind='delivery' AND run_id!=? ORDER BY seq DESC LIMIT 1", (session['id'], run['id']))
         inputs = [{'id': run['request_id'], 'role': 'user', 'content': content}]
         history = self.session_facts(run)
@@ -537,8 +762,12 @@ class AgentRuntime:
             canonical({'workspace_id': session['workspace_id'], 'selected_assets': session['selected_assets'],
                        'initial_refs': session['initial_refs']})})
         return {'run_id': run['id'], 'session_id': session['id'], 'workspace_id': session['workspace_id'],
-            'generation': run['generation'], 'messages': inputs, 'step': 0, 'tool_count': 0,
-            'visible': core_tools(self.registry), 'protected_tools': [],
+            'generation': run['generation'], 'messages': inputs,
+            'execution_contract': execution_contract,
+            'step': run.get('rounds', 0) if json.loads(run.get('driver_state') or '{}').get('interpretation_request_id') else 0,
+            'tool_count': 0,
+            'business_started': bool(history.get('task', {}).get('delivery_requirements', {}).get('stages')),
+            'visible': core_tools(self.registry, contract=execution_contract), 'protected_tools': [],
             'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0}
 
     def session_facts(self, run, *, task=None):
@@ -574,6 +803,13 @@ class AgentRuntime:
                  'full_record_access': {'task': 'audit_get_task', 'project_rules': 'audit_get_project',
                                         'history': 'session_read_history'},
                  'omitted_history': {'discussion': 0, 'operations': 0, 'goals': 0}}
+        facts['task']['authorized_reference_ids'] = task.get('authorized_reference_ids', [])
+        from .delivery_policy import effective_policy
+        facts['task']['delivery_policy'] = effective_policy(task)
+        requirements = task.get('delivery_requirements', {})
+        facts['task']['delivery_requirements'] = {
+            'version': requirements.get('version', 1), 'stages': requirements.get('stages', []),
+            'history_count': len(requirements.get('history', [])), 'history_tool': 'audit_get_task'}
         while len(canonical(facts).encode('utf-8')) > 16000 and (operations or goals or discussion):
             if discussion:
                 discussion.pop(0)
@@ -599,6 +835,8 @@ class AgentRuntime:
             changed = self.store.cancel_in_transaction(db, run_id=run_id)
         if not changed:
             return self.store.run(run_id)
+        if self.graph and run_id in self.graph.processes:
+            asyncio.create_task(self.graph.processes[run_id].call('cancel', {}, timeout=10))
         native = []
         if cancel_owned_jobs:
             for record in self.store.rows("SELECT result FROM operations WHERE run_id=? AND state='pending'", (run_id,)):
@@ -616,8 +854,97 @@ class AgentRuntime:
                                  generation=changed[0]['generation'])
         return self.store.run(run_id)
 
+    async def pause(self, run_id):
+        run = self.store.run(run_id)
+        if run['status'] == 'paused':
+            return run
+        if run['status'] not in {'running', 'waiting_job', 'waiting_user'}:
+            raise Conflict('此运行当前不能暂停')
+        if run.get('driver') in DIRECT_DRIVERS:
+            with self.store.transaction() as db:
+                changed = db.execute("UPDATE runs SET status='paused',generation=generation+1,updated=? "
+                    "WHERE id=? AND generation=? AND status IN ('running','waiting_job','waiting_user')",
+                    (now(), run_id, run['generation'])).rowcount
+                if not changed:
+                    raise Conflict('运行状态已改变')
+            state = {'run_id': run_id, 'generation': run['generation'] + 1}
+            self.activity(state, 'paused', reason='用户暂停；原生作业保留，继续时核对回执')
+            return self.store.run(run_id)
+        process = self.graph.processes.get(run_id)
+        state = dict(process.state) if process else self.graph.load(run_id)
+        with self.store.transaction() as db:
+            changed = db.execute("UPDATE runs SET status='paused',generation=generation+1,updated=? "
+                "WHERE id=? AND generation=? AND status IN ('running','waiting_job','waiting_user')",
+                (now(), run_id, run['generation'])).rowcount
+            if not changed:
+                raise Conflict('运行状态已改变')
+            db.execute("UPDATE model_requests SET state='cancelled',response=? WHERE run_id=? AND state='sent'",
+                (canonical({'reason': 'user_requested_pause', 'response_may_be_unknown': True}), run_id))
+        state.update(generation=run['generation'] + 1, continuation_authorized=True)
+        state.pop('pending_model_request', None)
+        self.graph.save(state)
+        self.activity(state, 'paused', reason='用户暂停；原生作业保留，继续时核对回执')
+        if process:
+            try:
+                await process.call('pause', {}, timeout=10)
+            except (ProviderFault, TimeoutError, ConnectionError):
+                pass
+        return self.store.run(run_id)
+
+    async def compact(self, session_id):
+        runs = self.store.rows("SELECT id FROM runs WHERE session_id=? AND status IN ('running','waiting_job','waiting_user','paused') "
+                               'ORDER BY created DESC LIMIT 1', (session_id,))
+        if runs and runs[0]['id'] in self.running:
+            run_id = runs[0]['id']
+            process = self.graph.processes.get(run_id)
+            state = process.state if process else self.graph.load(run_id)
+            state['compact_requested'] = True
+            self.graph.save(state)
+            self.store.event(session_id, run_id, session_id + ':compact-request:' + uuid.uuid4().hex,
+                             'context_compaction', {'phase': 'queued', 'message': '已安排在下一次模型请求前整理上下文'})
+            return {'queued': True, 'run_id': run_id}
+        if session_id in self.maintenance:
+            raise Conflict('此会话已经在整理上下文')
+        idle = self.store.rows("SELECT * FROM runs WHERE session_id=? AND status!='cancelled' ORDER BY created DESC LIMIT 1", (session_id,))
+        if not idle:
+            raise Conflict('此会话还没有可整理的任务历史')
+        run = idle[0]
+        state = self.graph.load(run['id'])
+        if not state:
+            message = self.store.rows('SELECT payload FROM events WHERE identity=?', (run['request_id'],))
+            state = self.initial_state(run, json.loads(message[0]['payload'])['content'])
+        self.maintenance[session_id] = asyncio.current_task()
+        from .harness import HarnessProcess
+        process, reused = None, False
+        try:
+            previous_writer = self.running.get(run['id'])
+            if previous_writer:
+                await asyncio.shield(previous_writer)
+            process = self.graph.idle_processes.pop(session_id, None)
+            reused = bool(process and process.process and process.process.returncode is None)
+            if process and not reused:
+                await process.close()
+            process = process if reused else HarnessProcess(self.graph, state)
+            process.state = state
+            if not reused:
+                await process.start()
+            result = await process.call('compact', {})
+            return {'queued': False, 'run_id': run['id'], **result}
+        finally:
+            try:
+                if reused and not self.closing and process.process.returncode is None:
+                    process.resources = await process.call('idle', {}, timeout=10)
+                    self.graph.idle_processes[session_id] = process
+                elif process:
+                    await process.close()
+            except (Exception, asyncio.CancelledError):
+                if process:
+                    await process.close()
+                raise
+            finally:
+                self.maintenance.pop(session_id, None)
+
     async def reply(self, decision_id, content, revision, request_id):
-        from langgraph.types import Command
         with self.store.transaction() as db:
             decision = db.execute('SELECT * FROM decisions WHERE id=?', (decision_id,)).fetchone()
             if not decision or decision['revision'] != revision:
@@ -633,9 +960,10 @@ class AgentRuntime:
                 raise Conflict('此问题已收到不同答复')
             db.execute('UPDATE decisions SET reply=?,request_id=? WHERE id=?', (content, request_id, decision_id))
             if decision['kind'] == 'budget' and content == '继续（增加20轮、60次工具）':
-                db.execute('UPDATE runs SET round_limit=round_limit+20,tool_limit=tool_limit+60 WHERE id=?', (decision['run_id'],))
+                db.execute('UPDATE runs SET round_limit=CASE WHEN round_limit=0 THEN 0 ELSE round_limit+20 END,'
+                           'tool_limit=CASE WHEN tool_limit=0 THEN 0 ELSE tool_limit+60 END WHERE id=?', (decision['run_id'],))
         self.store.event(run['session_id'], run['id'], request_id, 'message', {'role': 'user', 'content': content, 'decision_id': decision_id})
         self.store.event(run['session_id'], run['id'], decision_id + ':answered', 'question_answered',
                          {'decision_id': decision_id, 'content': content})
-        self.schedule(run['id'], Command(resume={'bound_decision': decision_id}))
+        self.schedule(run['id'], None)
         return self.store.run(run['id'])

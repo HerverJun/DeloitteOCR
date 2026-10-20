@@ -64,6 +64,7 @@ class TaskStatus:
     image_id: str
     version_id: str
     error: str | None
+    error_details: dict | None = None
 
 
 @dataclass(frozen=True)
@@ -668,5 +669,9 @@ def _task(row: dict) -> TaskStatus:
             or not _is_native_id(row.get("image_id")) or not _is_native_id(row.get("version_id"))):
         raise OcrUnavailable()
     error = row.get("error")
+    details = row.get('error_details')
+    if details is not None and (not isinstance(details, dict) or details.get('version') != 1
+                                or details.get('attempt_id') != row['id']):
+        raise OcrUnavailable()
     return TaskStatus(row["id"], status, row["phase"], result_id, row["image_id"],
-                      row["version_id"], error if isinstance(error, str) else None)
+                      row["version_id"], error if isinstance(error, str) else None, details)

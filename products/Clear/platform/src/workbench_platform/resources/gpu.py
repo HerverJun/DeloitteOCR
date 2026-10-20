@@ -252,6 +252,12 @@ class GpuCoordinator:
                 raise StaleOwner("Request is not pending")
             db.execute("UPDATE gpu_requests SET status='cancelled' WHERE request_id=?", (request_id,))
 
+    def pending_requests(self) -> tuple[dict, ...]:
+        """Read identities for witnessed queue recovery; never infer their owner."""
+        with self._transaction() as db:
+            return tuple(dict(row) for row in db.execute(
+                "SELECT request_id,requester,status FROM gpu_requests WHERE status='pending' ORDER BY seq"))
+
     def snapshot(self) -> Snapshot:
         with self._transaction() as db:
             state = db.execute("SELECT * FROM gpu_state WHERE id=1").fetchone()

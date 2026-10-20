@@ -31,8 +31,19 @@ class InvocationFixTests(unittest.IsolatedAsyncioTestCase):
     call = data_tests.DataToolTests.call
     create = data_tests.DataToolTests.create
     import_asset = data_tests.DataToolTests.import_asset
-    make_runtime = graph_tests.GraphTests.make_runtime
     wait_status = graph_tests.GraphTests.wait_status
+
+    async def make_runtime(self, provider):
+        runtime, session = await graph_tests.GraphTests.make_runtime(self, provider)
+        async def submit_legacy(session_id, content, request_id):
+            # These fixtures exercise accepted pre-upgrade tool/receipt flows.
+            run, fresh = runtime.store.start_run(session_id, content, request_id, runtime.connection.view().get('revision', 0))
+            if fresh:
+                runtime.tasks.record_goal(session_id, content, request_id)
+                runtime.schedule(run['id'], runtime.initial_state(run, content))
+            return run
+        runtime.submit = submit_legacy
+        return runtime, session
 
     async def asyncSetUp(self):
         asyncio.get_running_loop().slow_callback_duration = 60
@@ -47,7 +58,7 @@ class InvocationFixTests(unittest.IsolatedAsyncioTestCase):
     async def test_revision_conflict_is_observed_and_model_can_read_then_correct(self):
         self.enable_audit()
         async def provider(state, schemas):
-            previous = state['messages'][-1]
+            previous = next((message for message in reversed(state['messages']) if message['role'] == 'tool'), None)
             if state['step'] == 0:
                 return graph_tests.response(state, 'audit_write_finding', {'expected_revision': 1, 'title': '待补', 'missing_information': '缺资料'})
             if state['step'] == 1:
@@ -57,12 +68,13 @@ class InvocationFixTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(previous['result']['status'], 'success')
                 return graph_tests.response(state, 'audit_write_finding', {'expected_revision': 0, 'title': '待补', 'missing_information': '缺资料'})
             self.assertEqual(previous['result']['status'], 'success')
-            return graph_tests.response(state, 'conversation_answer', {'content': '已按最新版本保存待补信息。'})
+            return graph_tests.response(state, 'delivery_publish', {'summary': '已按最新版本保存并核实待补信息草稿。',
+                'result_refs': previous['result']['result_refs']})
         runtime, session = await self.make_runtime(provider)
         try:
             run = await runtime.submit(session['id'], '保存待补信息', 'fixconflict')
-            final = await self.wait_status(runtime, run['id'], {'answered', 'failed'})
-            self.assertEqual(final['status'], 'answered', runtime.store.events(session['id']))
+            final = await self.wait_status(runtime, run['id'], {'succeeded', 'partial', 'failed', 'paused'})
+            self.assertEqual(final['status'], 'succeeded', runtime.store.events(session['id']))
             self.assertEqual(len(runtime.store.rows('SELECT * FROM operations WHERE run_id=?', (run['id'],))), 4)
             self.assertEqual(len(self.services.audit_service.drafts.list(replace(self.ctx, session_id=session['id'], store=runtime.store))['items']), 1)
         finally:
@@ -131,16 +143,17 @@ class InvocationFixTests(unittest.IsolatedAsyncioTestCase):
         async def provider(state, schemas):
             if state['step'] == 0:
                 return graph_tests.response(state, 'audit_read_evidence', {'evidence_id': saved_id})
-            previous = state['messages'][-1]['result']
+            previous = next(message['result'] for message in reversed(state['messages']) if message['role'] == 'tool')
             if state['step'] == 1:
                 self.assertTrue(previous['data']['stale'])
                 self.assertEqual(previous['data']['observation']['items'][0]['human_label'], 'old')
                 return graph_tests.response(state, 'delivery_publish', {'summary': '交付保存时的历史分类事实，来源已更新', 'result_refs': previous['result_refs']})
+            self.assertEqual(previous['status'], 'success', previous)
             return graph_tests.response(state, content='已交付')
         runtime, session = await self.make_runtime(provider)
         try:
             ctx = replace(self.ctx, session_id=session['id'], run_id='', store=runtime.store, selected_assets=(asset.asset_id,))
-            with patch('workbench_platform.agent.tools.classification.snapshot', side_effect=lambda *args: current):
+            with patch('workbench_platform.application_services.operations.classification.snapshot', side_effect=lambda *args: current):
                 bound = drafts.bind(DirectEvidenceRequest(reference=original), ctx)
                 saved_id = bound['evidence_id']
                 from workbench_platform.audit.direct import snapshot
@@ -293,8 +306,8 @@ class CandidatePagingTests(unittest.TestCase):
                 return {'result_refs': [ref('h1', i) for i in range(args.offset, min(args.offset+args.limit, 63))], 'next_offset': args.offset+args.limit if args.offset+args.limit < 63 else None}
             return {'result_refs': [ref(args.handoff_id, 0)], 'next_offset': None}
         with patch('workbench_platform.application_services.manual.verify', return_value={}), patch('workbench_platform.application_services.manual.reference_assets', return_value=[]), \
-             patch('workbench_platform.agent.tools.ocr.read', side_effect=read), patch('workbench_platform.agent.tools.pdf.bound', return_value=(None, None, adapter, ['document'])), \
-             patch('workbench_platform.agent.tools.pdf.read', side_effect=lambda args, ctx: {'result_refs': [ref('h0', args.page_number)]}):
+             patch('workbench_platform.application_services.operations.ocr.read', side_effect=read), patch('workbench_platform.application_services.operations.pdf.bound', return_value=(None, None, adapter, ['document'])), \
+             patch('workbench_platform.application_services.operations.pdf.read', side_effect=lambda args, ctx: {'result_refs': [ref('h0', args.page_number)]}):
             all_items = []; offset = 0
             while True:
                 page = candidates(ctx, offset, 50)

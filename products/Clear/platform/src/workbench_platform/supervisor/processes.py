@@ -160,7 +160,8 @@ def _require(ok):
 
 class _OwnedJob:
     def __init__(self):
-        self.handle = KERNEL.CreateJobObjectW(None, None)
+        self.name = 'Local\\ClearGpu-' + uuid.uuid4().hex
+        self.handle = KERNEL.CreateJobObjectW(None, self.name)
         _require(self.handle)
         limits = _ExtendedLimit()
         limits.BasicLimitInformation.LimitFlags = 0x2000  # KILL_ON_JOB_CLOSE; no breakaway.
@@ -353,6 +354,7 @@ class _Entry:
     future: Future[LaunchReceipt]
     job: _OwnedJob | None = None
     broker: subprocess.Popen | None = None
+    resource_record: Path | None = None
 
 
 class Supervisor:
@@ -370,6 +372,19 @@ class Supervisor:
         self._current: dict[str, tuple[int, str]] = {}
         self._closed = False
         self._closed_event = threading.Event()
+        self.resource_recovery_error = None
+        self._reconcile_native_gpu()
+
+    def _reconcile_native_gpu(self):
+        if not self.data_root or not (self.data_root / 'gpu.sqlite3').is_file():
+            return
+        from workbench_platform.resources.gpu import GpuCoordinator
+        from workbench_platform.resources.native import recover_native_resources
+        try:
+            report = recover_native_resources(GpuCoordinator(self.data_root / 'gpu.sqlite3'), self.data_root)
+            self.resource_recovery_error = report['blockers'][0] if report['blockers'] else None
+        except (OSError, ValueError, KeyError) as error:
+            self.resource_recovery_error = str(error)
 
     def _reserve(self, launch_id: str, identity: tuple) -> tuple[_Entry, bool]:
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", launch_id):
@@ -441,6 +456,15 @@ class Supervisor:
             environment.update(storage_environment(self.data_root))
             environment.update({"WORKBENCH_GPU_LEDGER": str(require_f_path(self.data_root / "gpu.sqlite3")),
                                 "LOCALAPPDATA": str(self.data_root / "native-local")})
+        if app_id == 'ocr' and 'CLEAR_OCR_LOAD_TIMEOUT_SECONDS' in os.environ:
+            raw_timeout = os.environ['CLEAR_OCR_LOAD_TIMEOUT_SECONDS']
+            try:
+                timeout = int(raw_timeout)
+            except (TypeError, ValueError):
+                raise LaunchFailure('OCR loading timeout configuration is invalid') from None
+            if str(timeout) != raw_timeout or not 1 <= timeout <= 1800:
+                raise LaunchFailure('OCR loading timeout must be an integer from 1 to 1800 seconds')
+            environment['CLEAR_OCR_LOAD_TIMEOUT_SECONDS'] = raw_timeout
         job = _OwnedJob()
         with self._lock:
             entry.job = job  # close() waits for the future before cleanup.
@@ -455,6 +479,14 @@ class Supervisor:
             broker.kill()  # Only this just-created, still-gated broker.
             broker.wait(timeout=5)
             raise
+        if app_id in {'ocr', 'classification'}:
+            from workbench_platform.resources.native import launch_record
+            record, record_hash = launch_record(self.data_root / 'native-launches', requester=app_id,
+                launch_id=launch_id, instance_id=instance_id, job_name=job.name,
+                broker_pid=broker.pid, broker_creation_time=process_creation_time(broker.pid))
+            entry.resource_record = record
+            environment.update(WORKBENCH_NATIVE_LAUNCH_RECORD=str(record),
+                               WORKBENCH_NATIVE_LAUNCH_SHA256=record_hash)
         payload = {"argv": [str(install.executable), *install.allowed_arguments],
                    "cwd": str(install.working_directory), "environment": environment}
         broker.stdin.write(json.dumps(payload) + "\n")
@@ -604,8 +636,10 @@ class Supervisor:
 
     def _cleanup(self, entry: _Entry) -> None:
         with self._lock:
+            drained = False
             if entry.job:
                 entry.job.terminate()
+                drained = entry.job.active() == 0
                 entry.job.close()  # Close only after the entire owned tree exited.
                 entry.job = None
             if entry.broker:
@@ -615,6 +649,15 @@ class Supervisor:
                     entry.broker.kill()
                     entry.broker.wait(timeout=5)
                 entry.broker = None
+            if drained and entry.resource_record:
+                from workbench_platform.resources.recovery import atomic_json
+                record = json.loads(entry.resource_record.read_text('utf-8'))
+                atomic_json(entry.resource_record.with_suffix('.cleanup.json'), {
+                    'format': 'clear-native-job-cleanup-v1', 'launch_id': record['launch_id'],
+                    'instance_id': record['instance_id'], 'job_name': record['job_name'],
+                    'launch_record_sha256': hashlib.sha256(entry.resource_record.read_bytes()).hexdigest(),
+                    'active_processes': 0, 'drained': True})
+            self._reconcile_native_gpu()
 
     def close(self) -> None:
         with self._lock:

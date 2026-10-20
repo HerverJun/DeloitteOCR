@@ -34,14 +34,14 @@ if mode=='descendant':
 if mode=='wait':
     time.sleep(120)
 if mode=='progress':
-    for index in range(8):
+    for index in range(20):
         (out/'progress.new').write_text(json.dumps({'worker_epoch':epoch,'stage':'decoding','processed_ms':index+1}))
         for attempt in range(20):
             try:
                 (out/'progress.new').replace(out/'progress.json')
                 break
             except PermissionError:time.sleep(.01)
-        time.sleep(.3)
+        time.sleep(.4)
 if mode=='chunk':
     for index in range(2):
         checkpoint=out/('chunk-%d.json'%index)
@@ -177,8 +177,10 @@ def test_timeout_drains_before_releasing(worker):
 
 def test_continued_progress_does_not_hit_a_total_task_timeout(worker):
     _,execute=worker
-    outcome,_,_=execute('progress',timeout=1.5)
-    assert outcome.status=='succeeded' and outcome.elapsed_seconds>2,outcome
+    # Leave startup/metadata headroom under concurrent Windows native loading,
+    # while the 8-second stream still exceeds the five-second idle limit.
+    outcome,_,_=execute('progress',timeout=5)
+    assert outcome.status=='succeeded' and outcome.elapsed_seconds>5,outcome
 
 
 def test_event_rejects_stale_epoch_and_modified_checkpoint(tmp_path):

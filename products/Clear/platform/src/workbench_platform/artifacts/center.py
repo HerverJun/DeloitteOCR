@@ -48,6 +48,7 @@ class ArtifactCenter:
                                if classification_handoff is not None else None)
         self.ocr = OcrResults(self.store, ocr_handoff) if ocr_handoff is not None else None
         self.lock = threading.RLock()
+        self._data_table_schemas = {}
         self.batch_store = None
         self.audit_service = None
         from workbench_platform.forensics.artifacts import configure
@@ -117,7 +118,7 @@ class ArtifactCenter:
             files.append({"name": name, "artifact_id": artifact_id,
                           "revision": artifact.revision, "media_type": artifact.media_type,
                           "size_bytes": artifact.size_bytes, "availability": artifact.availability})
-        return {"bundle_id": row["bundle_id"], "workspace_id": row["workspace_id"],
+        value = {"bundle_id": row["bundle_id"], "workspace_id": row["workspace_id"],
                 "kind": "data_comparison" if row["result_id"] else "data_cleaned",
                 "title": row["session_name"],
                 "session_id": row["session_id"], "session_name": row["session_name"],
@@ -126,6 +127,53 @@ class ArtifactCenter:
                 "input_set_id": row["asset_set_id"],
                 "input_set_revision": row["asset_set_revision"],
                 "inputs": json.loads(row["input_json"]), "files": files}
+        if not row['result_id']:
+            schema = self._data_table_schema(row, mapping)
+            if schema is not None:
+                value['table_schema'] = schema
+        return value
+
+    def read_file_context(self, workspace_id, artifact_id):
+        """Find an exact fixed Data file binding without guessing a parent."""
+        with closing(self._connect()) as db:
+            rows = db.execute("SELECT b.*,f.key AS file_name FROM data_artifact_bundle b "
+                "JOIN json_each(b.files_json) f WHERE b.workspace_id=? AND b.status='ready' "
+                "AND f.value=? LIMIT 2", (workspace_id, artifact_id)).fetchall()
+        if len(rows) != 1:
+            return None
+        row = rows[0]
+        return {'bundle_id': row['bundle_id'], 'file_name': row['file_name'],
+                'table_schema': self._data_table_schema(row, json.loads(row['files_json'])) if not row['result_id'] else None}
+
+    def _data_table_schema(self, row, mapping):
+        """Describe fixed published bytes, including bundles from older runs."""
+        from workbench_platform.data_api.table_schema import schema_from_export
+        # Legacy/manual catalog entries may have only a CSV and no fixed
+        # business-column manifest. Keep them readable without inventing one.
+        if not {'summary.json', 'cleaned.csv'} <= mapping.keys():
+            return {'status': 'unknown', 'reason': '历史成果缺少固定摘要或CSV目录，无法确认业务列与来源定位列；原有文件仍可读取。'}
+        try:
+            summary_file = self.store.get(row['workspace_id'], mapping['summary.json'])
+            csv_file = self.store.get(row['workspace_id'], mapping['cleaned.csv'])
+            if summary_file.availability != 'available' or csv_file.availability != 'available':
+                return {'status': 'unknown', 'reason': '固定摘要或CSV当前不可读，无法核实列目录；其余文件保留原有读取路径。'}
+            key = (row['workspace_id'], row['bundle_id'], summary_file.blob_hash, csv_file.blob_hash)
+            if key not in self._data_table_schemas:
+                with self.store.stage_download(row['workspace_id'], summary_file.artifact_id,
+                        expected_revision=summary_file.revision, expected_hash=summary_file.blob_hash) as path:
+                    summary = json.loads(path.read_text(encoding='utf-8'))
+                if 'columns' not in summary:
+                    return {'status': 'unknown', 'reason': '历史摘要未登记固定业务列目录，未推测业务列数或导出列数。'}
+                with self.store.stage_download(row['workspace_id'], csv_file.artifact_id,
+                        expected_revision=csv_file.revision, expected_hash=csv_file.blob_hash) as path:
+                    with path.open(encoding='utf-8-sig', newline='') as stream:
+                        headers = next(csv.reader(stream))
+                self._data_table_schemas[key] = schema_from_export(summary, headers)
+            # Callers may decorate a result, but never mutate the cached contract.
+            return json.loads(_json(self._data_table_schemas[key]))
+        except (ArtifactUnavailable, OSError, ValueError, KeyError, TypeError, StopIteration):
+            # A missing legacy manifest must not hide other available files.
+            return {'status': 'unknown', 'reason': '固定摘要、CSV表头或内容校验暂不可核实，未推测列数；原有文件目录保留。'}
 
     def list(self, workspace_id: str, offset: int, limit: int):
         from workbench_platform.multimodal.artifacts import configure as configure_manual

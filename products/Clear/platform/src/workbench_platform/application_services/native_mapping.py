@@ -10,7 +10,7 @@ from pathlib import Path
 from packages.contracts.agent import AgentRef
 from packages.contracts.models import AssetSetItem, SourceLocator
 from packages.contracts.uploads import UploadBinding
-from workbench_platform.agent.store import digest, canonical
+from workbench_platform.application_services.identity import digest, canonical
 from workbench_platform.application_services.references import asset_allowed
 from workbench_platform.supervisor.processes import require_f_path
 
@@ -143,8 +143,22 @@ def verify_sources(ctx, value):
             pass
 
 
+def fixed_source_member(ctx, value, source):
+    """Read the original fixed member; never backfill binding metadata."""
+    from .native import scoped_set
+    fixed = scoped_set(ctx, value['asset_set_id'], value['asset_set_revision'])
+    matches = [member for member in fixed.items if
+        (member.asset_id, member.asset_revision, member.blob_hash) ==
+        (source['asset_id'], source['asset_revision'], source['blob_hash'])]
+    if len(matches) != 1:
+        raise ValueError('原生回传来源与固定输入成员不一致')
+    return matches[0]
+
+
 def read(ctx, value):
     verify_sources(ctx, value)
+    from .native import ensure_read_service
+    ensure_read_service(ctx, value['application'], value['link_id'])
     adapter = adapter_for(ctx, value['application'], value['link_id'])
     if value['application'] == 'ocr':
         result = next(item for item in adapter.results(value['native_items']) if item.native_result_id == value['object_id'])
@@ -185,22 +199,36 @@ def verify_reference(ctx, ref, value):
     verify_sources(ctx, value)
     if value['application'] != ref.application or value['object_id'] != ref.object_id:
         raise ValueError('原生回传身份变化')
+    source_members = ({key: fixed_source_member(ctx, value, source) for key, source in value['sources'].items()}
+                      if ref.application == 'ocr' else {})
+    from .native import ensure_read_service
+    ensure_read_service(ctx, ref.application, value['link_id'])
     if ref.application == 'classification':
         snapshot = classification_snapshot(ctx, value)
         if ref.sha256 != digest(snapshot['items']) or ref.revision != digest(snapshot['items']):
             raise ValueError('分类回传版本变化')
         return snapshot
     adapter = adapter_for(ctx, 'ocr', value['link_id'])
-    result = next(item for item in adapter.results(value['native_items']) if item.native_result_id == ref.object_id)
+    matches = [item for item in adapter.results(value['native_items']) if item.native_result_id == ref.object_id]
+    if len(matches) != 1:
+        raise ValueError('原生回传结果的成功任务无法核实')
+    result = matches[0]
     snapshot = adapter.result_snapshot(result, ref.revision); tables = adapter.result_tables(result, ref.revision)
     if not snapshot['available'] or ref.sha256 != tables['content_sha256']:
         raise ValueError('OCR回传版本变化')
-    source = value['sources'].get(result.locator.get('document_id') or result.image_id)
+    source_key = result.locator.get('document_id') or result.image_id
+    source = value['sources'].get(source_key)
     if source is None or snapshot['original_sha256'] != next(image['sha256'] for image in adapter.snapshot()['images'] if image['id'] == result.image_id):
         raise ValueError('OCR原资料身份变化')
     state = adapter.snapshot()
     native_sources = state['documents'] if source['native_kind'] == 'document' else state['images']
     if not any(item['id'] == source['native_id'] and item['sha256'] == source['blob_hash'] for item in native_sources):
         raise ValueError('OCR原件映射内容变化')
-    return {'snapshot': snapshot, 'table_snapshot': tables, 'locator': result.locator, 'source_asset': source,
+    member = source_members[source_key]
+    page = result.locator.get('page_number')
+    if (ref.coverage.get('page_number') is not None and ref.coverage['page_number'] != page
+            or member.source_locator.kind == 'page' and member.source_locator.page_number != page):
+        raise ValueError('原生回传页码与固定来源范围不同')
+    projected_source = {**source, 'source_locator': member.source_locator.model_dump(mode='json')}
+    return {'snapshot': snapshot, 'table_snapshot': tables, 'locator': result.locator, 'source_asset': projected_source,
             'selected': result.selected, 'current_revision': adapter.result_revision(result)}

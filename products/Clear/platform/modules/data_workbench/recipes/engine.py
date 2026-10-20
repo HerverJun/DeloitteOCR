@@ -25,7 +25,7 @@ from modules.data_workbench.importing.tables import ImportedTable
 
 _REVISION = re.compile(r"v[0-9a-f]{64}\Z")
 _COLUMN = re.compile(r"c[1-9][0-9]{0,2}\Z")
-_OPERATORS = frozenset({"trim", "rename", "map", "cast", "filter", "duplicates", "filter_compare", "group_summary"})
+_OPERATORS = frozenset({"trim", "trim_columns", "rename", "map", "cast", "filter", "duplicates", "filter_compare", "group_summary"})
 _MAX_SNAPSHOT = 128 * 1024 * 1024
 _MAX_ERRORS = 20
 
@@ -69,6 +69,12 @@ def _parameters(step: Step, columns: list[dict]) -> dict:
             raise RecipeError("Column is unavailable")
         return value
 
+    if step.operator == 'trim_columns':
+        selected = parameters.get('columns')
+        if (set(parameters) != {'columns'} or not isinstance(selected, list) or not selected
+                or any(not isinstance(value, str) for value in selected) or len(set(selected)) != len(selected)):
+            raise RecipeError('Invalid multi-column trim parameters')
+        return {'columns': [column(value) for value in selected]}
     if step.operator == "trim":
         if set(parameters) != {"column"}:
             raise RecipeError("Invalid trim parameters")
@@ -192,7 +198,14 @@ def _operate(snapshot: dict, operator: str, parameters: dict) -> tuple[dict, dic
     positions = {item["column_id"]: index for index, item in enumerate(columns)}
     errors, excluded, duplicate_groups = [], [], []
     input_rows = len(rows)
-    if operator == "rename":
+    if operator == 'trim_columns':
+        selected = [positions[value] for value in parameters['columns']]
+        for row in rows:
+            for position in selected:
+                cell = row['cells'][position]
+                if cell['kind'] == 'text':
+                    cell['value'] = cell['value'].strip()
+    elif operator == "rename":
         columns[positions[parameters["column"]]]["header"] = parameters["header"]
     elif operator in {"trim", "map", "cast"}:
         position = positions[parameters["column"]]

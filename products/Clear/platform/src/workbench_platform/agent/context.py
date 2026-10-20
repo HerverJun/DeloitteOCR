@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 
 from .providers import ProviderFault, SYSTEM, payload_for
+from .model_profiles import resolve_profile
 
 
 CORE_TOOLS = (
@@ -22,8 +23,13 @@ CORE_TOOLS = (
 )
 
 
-def core_tools(registry):
-    return [name for name in CORE_TOOLS if name in registry.tools]
+GENERAL_CORE_TOOLS = ('tools_search', 'workspace_get_context', 'ask_user', 'session_read_history',
+                      'workspace_publish_outputs', 'extract_text', 'data_clean_files')
+
+
+def core_tools(registry, *, contract=None):
+    names = GENERAL_CORE_TOOLS if contract == 'clear-general-agent-v1' else CORE_TOOLS
+    return [name for name in names if name in registry.tools]
 
 
 def wire_json(value):
@@ -91,14 +97,19 @@ def _system_components(system, sections=None):
 def request_metrics(config, payload, *, messages, system, system_components=None, estimator=None):
     estimator = estimator or TokenEstimator(config.get('model', ''))
     serialized = wire_json(payload)
-    total = estimator.count(serialized)
+    from .images import budget_payload
+    priced, image_count = budget_payload(payload)
+    # Conservative visual allowance for the host's <=1600px request images.
+    # This is labelled an estimate, never the provider's actual token usage.
+    visual_tokens = image_count * 4096
+    total = estimator.count(wire_json(priced)) + visual_tokens
     components = {key: 0 for key in ('system', 'environment', 'skills', 'tools', 'user', 'facts', 'tool_results', 'assistant', 'overhead')}
     for name, value in _system_components(system, system_components).items():
         if value:
             components[name] += estimator.count(wire_json(value))
     components['tools'] = estimator.count(payload['tools'])
     protocol = config['protocol']
-    wire = payload['messages'][1:] if protocol == 'openai_chat_completions' else payload['messages']
+    wire = priced['messages'][1:] if protocol == 'openai_chat_completions' else priced['messages']
     for message in wire:
         if message['role'] == 'assistant':
             component = 'assistant'
@@ -115,16 +126,22 @@ def request_metrics(config, payload, *, messages, system, system_components=None
         largest = max(components, key=components.get)
         components[largest] = max(0, components[largest] - (used - total))
     components['overhead'] = max(0, total - sum(components.values()))
-    capacity, reserve = config.get('context_cap', 16384), config.get('max_output_tokens', 2048)
+    profile = resolve_profile(config)
+    capacity, reserve = profile['effective_context_window'], profile['output_reserve']
     return {'estimation_method': estimator.method, 'is_estimate': True,
             'payload_bytes': len(serialized.encode('utf-8')), 'input_tokens_estimate': total,
+            'image_count': image_count, 'visual_tokens_estimate': visual_tokens,
+            'payload_sha256': hashlib.sha256(serialized.encode('utf-8')).hexdigest(),
+            'serialization': 'httpx_compact_utf8_json',
             'output_reserve': reserve, 'context_cap': capacity,
-            'available_input_tokens': max(0, capacity - reserve), 'component_tokens': components}
+            'available_input_tokens': profile['available_input_tokens'], 'component_tokens': components,
+            'model_profile': profile, 'safety_margin_tokens': profile['safety_margin_tokens'],
+            'pressure_ratio': total / max(1, profile['available_input_tokens'])}
 
 
 PREVIEW_LISTS = {'rows', 'items', 'sample', 'tools', 'models', 'results', 'history', 'hits', 'matches', 'records'}
 BODY_KEYS = {'text', 'content', 'body', 'markdown', 'raw_text', 'html', 'caption'}
-GENERATED_SNAPSHOTS = {'batch', 'bundle', 'artifact', 'artifacts', 'template', 'receipts', 'files'}
+GENERATED_SNAPSHOTS = {'batch', 'bundle', 'artifact', 'artifacts', 'template', 'receipts', 'files', 'snapshot'}
 RISK_KEYS = {'warnings', 'error', 'reason', 'message'}
 
 

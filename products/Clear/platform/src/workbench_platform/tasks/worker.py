@@ -44,6 +44,8 @@ def scoped_observation(body,namespace):
     value=observation(body);state=normalized(body)
     if namespace in {'data.jobs','manual.manual_analysis','agent.runs','batches.batches'} and state not in TERMINAL|{'needs_verification'}:
         value['summary']['native_capabilities']=['cancel']+(['resume'] if namespace=='batches.batches' and state=='waiting_user' else [])
+        if namespace=='agent.runs':
+            value['summary']['native_capabilities']=['cancel','resume'] if state=='paused' else ['cancel','pause']
     return value
 
 def as_date(value):
@@ -167,6 +169,45 @@ class ExecutionHost:
         if step:headers['X-Clear-Step']=step
         return await self.client.request(method,path,json=payload if method not in {'GET','HEAD'} else None,headers=headers)
 
+    def frozen_agent_profile(self,current):
+        """Validate the run's archived connection without publishing a new default."""
+        from workbench_platform.agent.providers import ProviderFault
+        from urllib.parse import urlsplit
+        agent=getattr(self.legacy.state,'agent',None)
+        connection=getattr(agent,'connection',None)
+        if not callable(getattr(connection,'resolve',None)):
+            raise LedgerError('Agent 原连接版本不能核实，请检查执行环境',409)
+        revision=current.get('connection_revision')
+        if type(revision) is not int or revision<0:
+            raise LedgerError('Agent 原运行缺少可核实的连接版本',409)
+        try:
+            config,_=connection.resolve(revision)
+        except ProviderFault as error:
+            raise LedgerError(str(error),409) from None
+        label=config['model']+' · '+str(urlsplit(config.get('base_url','')).hostname or config['protocol'])
+        return {'id':'ai'+digest(config)[:32],'name':label[:200],
+                'provider':config['protocol'],'model':config['model']}
+
+    async def agent_request_profile(self,command,request_snapshot):
+        if command.get('retry_of'):
+            with self.engine.connect() as db:
+                old=db.execute(select(s.task_dispatches).where(s.task_dispatches.c.run_id==command['retry_of'],s.task_dispatches.c.kind=='execute')).mappings().one()
+            binding=old['receipt'].get('binding')
+            if binding and binding[0]=='agent.runs':
+                response=await self.call('GET',binding[2])
+                if not response.is_success:raise LedgerError('无法核实 Agent 原运行',409)
+                return self.frozen_agent_profile(response.json())
+        path=command.get('path','')
+        if path.startswith('/api/platform/v1/agent/sessions/') and path.endswith('/messages'):
+            response=await self.call('GET',path.rsplit('/',1)[0])
+            if not response.is_success:raise LedgerError('无法核实 Agent 会话',409)
+            active=[run for run in response.json().get('runs',[]) if run.get('status') in {'running','waiting_job','waiting_user','paused'}]
+            if len(active)>1:raise LedgerError('Agent 会话存在多个活动运行，需要核实',409)
+            if active:return self.frozen_agent_profile(active[0])
+        from .ai_services import capture_current,activate
+        profile_id=request_snapshot.get('ai_service_profile_id') or command.get('resolved_ai_service',{}).get('id')
+        return activate(self.engine,self.legacy,self.root,profile_id) if profile_id else capture_current(self.engine,self.legacy,self.root)
+
     async def execute(self,dispatch):
         heartbeat=asyncio.create_task(self.heartbeats(dispatch))
         try:
@@ -202,9 +243,7 @@ class ExecutionHost:
                     db.execute(update(s.tasks).where(s.tasks.c.id==dispatch['task_id']).values(tool_version=tool_version))
                     db.execute(update(s.task_runs).where(s.task_runs.c.id==dispatch['run_id']).values(request_snapshot=request_snapshot))
                 if command['tool_id']=='agent':
-                    from .ai_services import capture_current,activate
-                    profile_id=request_snapshot.get('ai_service_profile_id') or command.get('resolved_ai_service',{}).get('id')
-                    profile=activate(self.engine,self.legacy,self.root,profile_id) if profile_id else capture_current(self.engine,self.legacy,self.root)
+                    profile=await self.agent_request_profile(command,request_snapshot)
                     if profile:
                         snapshot={name:profile.get(name) for name in ('id','name','provider','model')}
                         with self.engine.begin() as db:db.execute(update(s.task_runs).where(s.task_runs.c.id==dispatch['run_id']).values(request_snapshot={**request_snapshot,'resolved_ai_service':snapshot}))
@@ -396,8 +435,9 @@ class ExecutionHost:
             self.native_generation(namespace,identifier,dispatch['generation'])
             return 'POST',path+'/control',{'operation':'retry'}
         if namespace=='agent.runs':
-            current=(await self.call('GET',path)).json()
-            if current.get('connection_revision')!=self.legacy.state.agent.connection._read().get('revision'):raise LedgerError('Agent 连接版本已变化，请从工作台发起新的任务以使用新连接',409)
+            response=await self.call('GET',path)
+            if not response.is_success:raise LedgerError('无法核实 Agent 原运行',409)
+            self.frozen_agent_profile(response.json())
             return 'POST',path+'/resume',{}
         payload=dict(command.get('payload',{}))
         if namespace=='data.jobs':

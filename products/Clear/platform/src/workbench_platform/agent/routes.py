@@ -16,7 +16,8 @@ from workbench_platform.assets.routes import json_body, library
 from workbench_platform.workspaces.routes import _loopback_host, _same_loopback_origin
 from .connection import probe
 from .providers import ProviderFault
-from .registry import invoke, ToolContext
+from .registry import invoke
+from workbench_platform.application_services.context import SessionContext as ToolContext
 from .runtime import AgentRuntime
 from .store import Conflict
 
@@ -27,7 +28,7 @@ async def configure_agent(app):
     app.state.agent = None
     app.state.agent_unavailable_reason = 'Agent 尚未启用或未配置独立依赖层'
     root = os.environ.get('WORKBENCH_DATA_DIR')
-    if not root or os.environ.get('WORKBENCH_AGENT_ENABLED', '1') == '0':
+    if not root:
         return
     runtime = None
     try:
@@ -80,13 +81,35 @@ def health(request: Request):
     if not _loopback_host(request):
         raise HTTPException(403, '请从本机平台页面操作')
     value = getattr(request.app.state, 'agent', None)
-    return {'enabled': value is not None,
-            'reason': getattr(request.app.state, 'agent_unavailable_reason', '')}
+    return {'enabled': value is not None and value.agent_enabled, 'direct_enabled': value is not None,
+            'engine': 'deepseek-harness' if value is not None and value.agent_enabled else None,
+            'engine_version': '0.2.1-alpha.4' if value is not None and value.agent_enabled else None,
+            'reason': value.agent_unavailable_reason if value is not None else
+                      getattr(request.app.state, 'agent_unavailable_reason', '')}
 
 
 @router.get('/agent/connection')
 def connection(request: Request):
     return runtime(request).connection.view()
+
+
+@router.get('/agent/integrations')
+def integrations(request: Request):
+    from .integrations import view
+    return view(runtime(request))
+
+
+@router.put('/agent/integrations')
+async def save_integrations(request: Request):
+    from .integrations import Integrations, save
+    agent = runtime(request, write=True)
+    draft = await parsed(request, Integrations)
+    try:
+        return save(agent, draft)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from None
 
 
 @router.put('/agent/connection')
@@ -128,6 +151,7 @@ def capabilities(workspace_id: str, request: Request):
     value = runtime(request)
     library(request, workspace_id)
     return {'tools': [value.registry.describe(name, value.services) for name in value.registry.tools],
+            'capabilities': value.registry.capability_catalog(value.services),
             'controller': value.connection.view()}
 
 
@@ -156,7 +180,11 @@ async def create_session(workspace_id: str, request: Request):
         references = [ref.model_dump() for ref in payload.initial_refs]
         for ref in references:
             verify(ref, context)
-        return value.store.create_session(workspace_id, payload.name, payload.selected_assets, payload.request_id, references)
+        from .tools.multimodal import validate_reference_ids
+        validate_reference_ids(value.services, workspace_id, payload.authorized_reference_ids)
+        return value.store.create_session(workspace_id, payload.name, payload.selected_assets, payload.request_id,
+                                          initial_refs=references, authorized_reference_ids=payload.authorized_reference_ids,
+                                          delivery_policy=payload.delivery_policy)
     except Conflict:
         raise HTTPException(409, '创建请求与原会话不同') from None
     except ValueError:
@@ -199,7 +227,9 @@ def sessions(workspace_id: str, request: Request, offset: int = Query(0, ge=0), 
 def session(session_id: str, request: Request):
     value = runtime(request)
     result = session_scope(value, request, session_id)
-    return {**result, 'runs': value.store.rows('SELECT * FROM runs WHERE session_id=? ORDER BY created DESC LIMIT 20', (session_id,))}
+    from .task_recovery import can_resume_run
+    runs = value.store.rows('SELECT * FROM runs WHERE session_id=? ORDER BY created DESC LIMIT 20', (session_id,))
+    return {**result, 'runs': [{**run, 'can_resume': can_resume_run(value, run)} for run in runs]}
 
 
 @router.post('/agent/sessions/{session_id}/messages', status_code=202)
@@ -208,11 +238,102 @@ async def message(session_id: str, request: Request):
     session_scope(value, request, session_id, True)
     payload = await parsed(request, AgentMessage)
     try:
-        return await value.submit(session_id, payload.content, payload.request_id)
-    except Conflict:
-        raise HTTPException(409, '当前项目运行状态或请求身份冲突') from None
-    except ValueError:
-        raise HTTPException(400, '主控尚未配置或目标参数无效，请查看主控设置') from None
+        result = await value.submit(session_id, payload.content, payload.request_id)
+        value.tasks.record_goal(session_id, payload.content, payload.request_id)
+        return result
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from None
+
+
+@router.post('/agent/sessions/{session_id}/direct/image-text', status_code=202)
+async def direct_image_text(session_id: str, request: Request):
+    from workbench_platform.application_services.image_text import ImageTextRequest, submit
+    value = runtime(request, True)
+    session_scope(value, request, session_id, True)
+    payload = await parsed(request, ImageTextRequest)
+    try:
+        return await submit(value, session_id, payload)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from None
+
+
+async def direct_request(session_id, request, module_name, schema_name):
+    import importlib
+    module = importlib.import_module('workbench_platform.application_services.' + module_name)
+    value = runtime(request, True)
+    session_scope(value, request, session_id, True)
+    payload = await parsed(request, getattr(module, schema_name))
+    try:
+        return await module.submit(value, session_id, payload)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from None
+
+
+@router.post('/agent/sessions/{session_id}/direct/pdf-text', status_code=202)
+async def direct_pdf_text(session_id: str, request: Request):
+    return await direct_request(session_id, request, 'pdf_text', 'PdfTextRequest')
+
+
+@router.post('/agent/sessions/{session_id}/direct/data-action', status_code=202)
+async def direct_data_action(session_id: str, request: Request):
+    return await direct_request(session_id, request, 'data_action', 'DataActionRequest')
+
+
+@router.post('/agent/sessions/{session_id}/direct/classification-predict', status_code=202)
+async def direct_classification_predict(session_id: str, request: Request):
+    return await direct_request(session_id, request, 'classification_action', 'PredictRequest')
+
+
+@router.get('/agent/sessions/{session_id}/jobs')
+async def session_jobs(session_id: str, request: Request):
+    from .store import now
+    value = runtime(request)
+    session = session_scope(value, request, session_id)
+    records = value.store.rows('SELECT o.result,r.id AS run_id,r.generation FROM operations o '
+        'JOIN runs r ON r.id=o.run_id WHERE r.session_id=? AND o.result IS NOT NULL ORDER BY o.created', (session_id,))
+    jobs = {}
+    for record in records:
+        ctx = ToolContext(session['workspace_id'], session_id, record['run_id'], record['generation'], 0, '',
+                          tuple(session['selected_assets']), value.services, value.store)
+        for ref in json.loads(record['result']).get('job_refs', []):
+            # Read-only snapshots of terminal runs use the same ownership check
+            # without reopening the run or authorizing a new operation.
+            from .progress import snapshot_for
+            progress = await invoke(snapshot_for, ref, ctx)
+            jobs[(ref['workspace_id'], ref['application'], ref.get('parent_id'), ref['object_id'])] = {**progress, 'job_ref': ref,
+                'run_id': record['run_id'], 'generation': record['generation'], 'sampled_at': now()}
+    return {'jobs': list(jobs.values()), 'sampled_at': now()}
+
+
+@router.get('/agent/sessions/{session_id}/results/text')
+async def session_text(session_id: str, request: Request, reference: str = Query(max_length=16000),
+                       offset: int = Query(0, ge=0), limit: int = Query(8000, ge=1, le=32000)):
+    from workbench_platform.application_services.context import snapshot_context
+    from workbench_platform.application_services.references import verify
+    from workbench_platform.artifacts.text_outputs import text_page, verified_text
+    value = runtime(request)
+    session = session_scope(value, request, session_id)
+    try:
+        ref = AgentRef.model_validate(json.loads(reference)).model_dump(mode='json')
+        if ref['application'] != 'ocr' or ref['kind'] != 'result':
+            raise ValueError('不是可读文字结果')
+        rows = value.store.rows('SELECT o.result,r.* FROM operations o JOIN runs r ON r.id=o.run_id '
+                               'WHERE r.session_id=? AND o.result IS NOT NULL ORDER BY o.created DESC', (session_id,))
+        owner = next((row for row in rows if ref in json.loads(row['result']).get('result_refs', [])), None)
+        if owner is None:
+            raise ValueError('结果不属于本会话')
+        ctx = snapshot_context(ToolContext(session['workspace_id'], session_id, owner['id'], owner['generation'], 0, '',
+                        tuple(session['selected_assets']), value.services, value.store))
+        result = await invoke(verify, ref, ctx)
+        return {**text_page(verified_text(result), offset=offset, limit=limit), 'reference': ref}
+    except (ValueError, KeyError, TypeError):
+        raise HTTPException(404, '固定文字结果暂不可读取') from None
 
 
 @router.get('/agent/sessions/{session_id}/events')
@@ -265,7 +386,9 @@ async def stream(session_id: str, request: Request, after: int = Query(0, ge=0))
 @router.get('/agent/runs/{run_id}')
 def run(run_id: str, request: Request):
     value = runtime(request)
-    return run_scope(value, request, run_id)
+    from .task_recovery import can_resume_run
+    item = run_scope(value, request, run_id)
+    return {**item, 'can_resume': can_resume_run(value, item)}
 
 
 @router.post('/agent/runs/{run_id}/cancel')
@@ -273,7 +396,9 @@ async def cancel(run_id: str, request: Request):
     value = runtime(request, True)
     run_scope(value, request, run_id, True)
     payload = await parsed(request, AgentCancel)
-    return await invoke(value.cancel, run_id, payload.cancel_owned_jobs)
+    # cancel fences the run and signals its asyncio-owned Harness process.
+    # Moving it to a worker thread loses the running event loop after commit.
+    return value.cancel(run_id, payload.cancel_owned_jobs)
 
 
 @router.post('/agent/runs/{run_id}/resume')
@@ -288,6 +413,32 @@ async def resume(run_id: str, request: Request):
         raise HTTPException(409, str(error)) from None
     except ValueError:
         raise HTTPException(409, '原生回执暂不可核实，未重新提交') from None
+
+
+@router.post('/agent/runs/{run_id}/pause')
+async def pause(run_id: str, request: Request):
+    value = runtime(request, True)
+    run_scope(value, request, run_id, True)
+    if await json_body(request) != {}:
+        raise HTTPException(400, '暂停参数无效')
+    try:
+        return await value.pause(run_id)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+
+
+@router.post('/agent/sessions/{session_id}/compact', status_code=202)
+async def compact(session_id: str, request: Request):
+    value = runtime(request, True)
+    session_scope(value, request, session_id, True)
+    if await json_body(request) != {}:
+        raise HTTPException(400, '整理参数无效')
+    try:
+        return await value.compact(session_id)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ProviderFault as error:
+        raise HTTPException(400, str(error)) from None
 
 
 @router.post('/agent/decisions/{decision_id}/reply')
@@ -324,7 +475,11 @@ async def update_task(session_id: str, request: Request):
     session = session_scope(value, request, session_id, True)
     payload = await parsed(request, AgentTaskWrite)
     try:
-        selected = payload.selected_assets if payload.selected_assets is not None else session['selected_assets']
+        pending = value.tasks.get(session_id).get('pending_scope') or {}
+        selected = payload.selected_assets if payload.selected_assets is not None else pending.get('selected_assets', session['selected_assets'])
+        if payload.authorized_reference_ids is not None:
+            from .tools.multimodal import validate_reference_ids
+            validate_reference_ids(value.services, session['workspace_id'], payload.authorized_reference_ids)
         for identifier in selected:
             value.services.asset_library[0].get(session['workspace_id'], identifier)
         if payload.initial_refs is not None:
@@ -369,7 +524,8 @@ async def update_profile(workspace_id: str, request: Request):
 
 
 def product_context(value, session):
-    return ToolContext(session['workspace_id'], session['id'], '', 0, 0, '', tuple(session['selected_assets']), value.services, value.store)
+    from workbench_platform.application_services.context import SessionContext
+    return SessionContext(session['workspace_id'], session['id'], '', 0, 0, '', tuple(session['selected_assets']), value.services, value.store)
 
 
 @router.get('/agent/sessions/{session_id}/manual-results')
@@ -482,6 +638,20 @@ async def findings(session_id: str, request: Request):
     value = runtime(request)
     session = session_scope(value, request, session_id)
     return await invoke(value.services.audit_service.drafts.list, product_context(value, session), session_id)
+
+
+@router.get('/agent/sessions/{session_id}/findings/{draft_id}/revisions/{revision}')
+async def fixed_finding(session_id: str, draft_id: str, revision: int, request: Request,
+                        sha256: str = Query(..., min_length=64, max_length=64, pattern=r'^[a-f0-9]{64}$')):
+    value = runtime(request)
+    session = session_scope(value, request, session_id)
+    try:
+        reference = AgentRef(kind='result', workspace_id=session['workspace_id'], object_id=draft_id,
+            revision=revision, sha256=sha256, parent_id=session_id, application='platform', coverage={'kind': 'audit_draft'})
+        from workbench_platform.application_services.references import verify
+        return await invoke(verify, reference.model_dump(), product_context(value, session))
+    except ValueError:
+        raise HTTPException(409, '固定草稿版本、内容哈希或当前资料范围不可核实') from None
 
 
 @router.post('/agent/sessions/{session_id}/evidence')

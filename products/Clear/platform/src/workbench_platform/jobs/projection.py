@@ -423,6 +423,13 @@ class JobProjectionStore:
                     projected["capabilities"] = (projected["capabilities"]
                                                   if context.role in {"owner", "editor"} else [])
                     projected["availability"] = "ready"
+                # Polling an unchanged fact must not grow the durable event
+                # log or force another disk commit. Fresh observation time is
+                # carried by the response/SSE snapshot's sampled_at field.
+                if ({key: value for key, value in projected.items() if key != 'updated_at'} ==
+                        {key: value for key, value in previous.items() if key != 'updated_at'}):
+                    db.execute('COMMIT')
+                    return self._view(row)
                 projected["updated_at"] = _utc()
                 encoded = json.dumps(projected, ensure_ascii=False, separators=(",", ":"))
                 next_seq = expected_event_seq + 1

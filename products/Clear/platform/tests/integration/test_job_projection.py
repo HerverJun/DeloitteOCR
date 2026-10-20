@@ -18,8 +18,8 @@ from workbench_platform.jobs.routes import JobService, router as jobs_router
 from workbench_platform.jobs.native_classification import ClassificationUnavailable
 from workbench_platform.store import WorkspaceStore
 
-CLASSIFICATION_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/classification/src")
-OCR_SRC = Path("E:/project/platform-dev-runs/dev-20260925-001/workspaces/ocr/src")
+CLASSIFICATION_SRC = Path("F:/OCR/output/clear-automation-dev-20261002/worktrees/classification/src")
+OCR_SRC = Path("F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr/src")
 sys.path.insert(0, str(CLASSIFICATION_SRC))
 sys.path.insert(0, str(OCR_SRC))
 
@@ -49,6 +49,19 @@ def item(item_id, state):
 def classification_status(job_id, state, *, total, done, failed):
     return JobStatus(job_id, "inference", state, "native stage", total, done, failed,
                      ("retry_failed",) if state == "failed" else ("cancel",), False)
+
+
+def test_identical_native_observation_does_not_append_or_change_cursor(tmp_path):
+    ledger = JobProjectionStore(tmp_path / 'projection.sqlite3')
+    ctx = context()
+    register(ledger, ctx, ['jobA'])
+    status = classification_status('jobA', 'running', total=1, done=0, failed=0)
+    first = ledger.observe(ctx, 'platformJobA', generation=7, expected_event_seq=0,
+                           native=status, items=[item('assetA', 'pending')])
+    second = ledger.observe(ctx, 'platformJobA', generation=7, expected_event_seq=first['last_event_seq'],
+                            native=status, items=[item('assetA', 'pending')])
+    assert second == first
+    assert len(ledger.events_since('workspaceA')) == 2
 
 
 def test_classification_failed_retains_real_native_pending_items(tmp_path):

@@ -239,7 +239,7 @@ class Ledger:
             if (row['status']=='needs_verification' and row.get('summary',{}).get('verification_available',True)) or row.get('summary',{}).get('control_verification_required'):actions.append('verify')
             if row['status'] in {'failed','partial','cancelled','needs_verification'} and row.get('summary',{}).get('replayable',True) and not row.get('summary',{}).get('retry_blocked',False): actions.append('retry')
             elif row['status']=='queued' or row['status'] not in TERMINAL|{'cancelling','needs_verification'} and 'cancel' in row.get('summary',{}).get('native_capabilities',[]): actions.append('cancel')
-            if 'pause' in row.get('summary',{}).get('native_capabilities',[]) and row['status']=='running': actions.append('pause')
+            if 'pause' in row.get('summary',{}).get('native_capabilities',[]) and row['status'] in {'running','waiting_user'}: actions.append('pause')
             if row['status']=='paused' or row['status']=='waiting_user' and 'resume' in row.get('summary',{}).get('native_capabilities',[]): actions.append('resume')
             actions.append('edit')
         if actor['is_admin'] or role=='owner': actions.append('unarchive' if row['archived'] else 'archive')

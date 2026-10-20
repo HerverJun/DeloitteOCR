@@ -16,6 +16,8 @@ def require_features(root, *features):
     with LOCK:
         value=json.loads(path.read_text('utf-8')) if path.exists() else {'format':'clear-product-reader-requirements-v1','reader_features':[]}
         if value.get('format')!='clear-product-reader-requirements-v1':raise ValueError('Unknown reader requirements marker')
+        if set(features) <= set(value.get('reader_features', [])):
+            return
         value['reader_features']=sorted(set(value['reader_features'])|set(features))
         temporary=path.with_name(path.name+'.'+uuid.uuid4().hex+'.new')
         temporary.write_text(json.dumps(value,ensure_ascii=False),encoding='utf-8')

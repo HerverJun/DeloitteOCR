@@ -7,8 +7,9 @@ import threading
 
 from .credentials import CredentialVault, normalize_url
 from packages.contracts.agent import ControllerDraft
-from .store import Conflict, now
+from .store import Conflict, digest, now
 from .providers import ProviderFault, payload_for, request
+from .model_profiles import candidate, catalog_key, normalize_config
 
 SETTING = "agent_controller_connection"
 PROTOCOLS = {"openai_chat_completions", "anthropic_messages"}
@@ -119,10 +120,10 @@ class ControllerConnection:
                 available, reason = True, ""
             except ValueError:
                 available, reason = False, "此 Windows 用户无法读取主控凭据，请重新配置"
-            return {k: v for k, v in config.items() if k != "credential_ref"} | {"configured": True, "available": available, "reason": reason}
+            return normalize_config({k: v for k, v in config.items() if k != "credential_ref"}) | {"configured": True, "available": available, "reason": reason}
 
     def draft(self, body):
-        ControllerDraft.model_validate(body)
+        validated = ControllerDraft.model_validate(body)
         if not isinstance(body, dict):
             raise ValueError("连接配置字段无效")
         if body.get("protocol") not in PROTOCOLS:
@@ -133,21 +134,29 @@ class ControllerConnection:
         key = body.get("api_key", "")
         if not isinstance(key, str) or len(key) > 8192 or any(not 32 <= ord(c) <= 126 for c in key):
             raise ValueError("API Key 格式无效")
-        config = {"protocol": body["protocol"], "base_url": normalize_url(body.get("base_url")), "model": model.strip(),
-                  "token_parameter": body.get("token_parameter", "max_completion_tokens"),
-                  "context_cap": body.get("context_cap", 16384), "max_output_tokens": body.get("max_output_tokens", 2048), "total_seconds": body.get("total_seconds", 180), "streaming": body.get('streaming', True)}
+        config = {k: v for k, v in validated.model_dump().items() if k != 'api_key'}
+        config.update(base_url=normalize_url(body.get('base_url')), model=model.strip())
         if config["token_parameter"] not in {"max_tokens", "max_completion_tokens"}:
             raise ValueError("不支持的输出 token 参数")
-        if type(config["context_cap"]) is not int or not 4096 <= config["context_cap"] <= 200000:
-            raise ValueError("上下文上限须为 4096–200000")
-        if type(config["max_output_tokens"]) is not int or not 256 <= config["max_output_tokens"] <= min(8192, config["context_cap"] // 2):
-            raise ValueError("输出 token 上限无效")
         with self.guard:
             old = self._read()
             if not key.strip():
                 if old.get("deleted") or any(config[k] != old[k] for k in ("protocol", "base_url")):
                     raise ValueError("首次连接或更换地址、协议后请填写 API Key（本地匿名端点可填 local）")
                 key = self.vault.read(old["credential_ref"])
+            key = key.strip()
+            cached = self.store.rows('SELECT value FROM settings WHERE key=?', (catalog_key(config),))
+            if cached:
+                catalog = json.loads(cached[0]['value'])
+                if (isinstance(catalog, dict)
+                        and catalog.get('credential_fingerprint') == digest(['model-catalog', key])):
+                    config['endpoint_model_metadata'] = next((item for item in catalog.get('models', [])
+                                                              if item['id'] == config['model']), {})
+            config = normalize_config(config)
+            profile = config['model_profile']
+            if profile['available_input_tokens'] <= 0 or (profile['model_max_output_tokens'] is not None and
+                                                         config['max_output_tokens'] > profile['model_max_output_tokens']):
+                raise ValueError("输出 token 上限无效")
             return config, key.strip(), old["revision"]
 
     async def save(self, body, *, transport=None):
@@ -161,44 +170,63 @@ class ControllerConnection:
             if old["revision"] != revision:
                 raise Conflict("主控连接已在另一窗口更新，请重新测试")
             reference = self.vault.save(key)
-            saved = {**config, "revision": revision + 1, "credential_ref": reference, "tested_at": now(), "capabilities": capabilities}
+            saved = normalize_config({**config, "revision": revision + 1, "credential_ref": reference, "tested_at": now(), "capabilities": capabilities})
             try:
                 with self.store.transaction() as db:
+                    if not old.get('deleted'):
+                        db.execute('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)',
+                                   ('agent-controller-revision:' + str(old['revision']), json.dumps(old)))
                     db.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (SETTING, json.dumps(saved)))
             except BaseException:
                 self.vault.delete(reference)
                 raise
-            if not old.get("deleted"):
-                try:
-                    self.vault.delete(old["credential_ref"])
-                except OSError:
-                    pass
+            # A running task owns its frozen connection revision. Keep its DPAPI
+            # reference; changing the default must not revoke an in-flight run.
             return self.view()
 
     def clear(self):
         with self.guard:
             old = self._read()
+            # Revoke the archived revision identities transactionally. Merely
+            # deleting their files lets them become addressable after a later
+            # save (and file deletion itself can fail).
+            archived = self.store.rows("SELECT value FROM settings WHERE key LIKE 'agent-controller-revision:%'")
             with self.store.transaction() as db:
                 db.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (SETTING, json.dumps({"revision": old["revision"] + 1, "deleted": True})))
+                db.execute("DELETE FROM settings WHERE key LIKE 'agent-controller-revision:%'")
             if not old.get("deleted"):
                 try:
                     self.vault.delete(old["credential_ref"])
                 except OSError:
+                    pass
+            for row in archived:
+                try:
+                    self.vault.delete(json.loads(row['value'])['credential_ref'])
+                except (OSError, ValueError, KeyError):
                     pass
             return self.view()
 
     def resolve(self, revision):
         with self.guard:
             current = self._read()
-            if current.get("deleted") or current["revision"] != revision:
-                raise ProviderFault("config_changed", "主控连接已更改或删除，请核对后开始新运行")
-            key = self.vault.read(current["credential_ref"])
-            return {k: v for k, v in current.items() if k != "credential_ref"}, key
+            if current.get('deleted'):
+                raise ProviderFault('config_changed', '主控连接已删除，后续发送已停止')
+            if current['revision'] != revision:
+                rows = self.store.rows('SELECT value FROM settings WHERE key=?', ('agent-controller-revision:' + str(revision),))
+                if not rows:
+                    raise ProviderFault('config_changed', '原连接版本不可读取，请核对后开始新运行')
+                current = json.loads(rows[0]['value'])
+            try:
+                key = self.vault.read(current['credential_ref'])
+            except (ValueError, KeyError):
+                raise ProviderFault('config_changed', '原连接凭据不可读取，请重新配置后开始新运行') from None
+            return normalize_config({k: v for k, v in current.items() if k != 'credential_ref'}), key
 
     def assert_current(self, revision):
         with self.guard:
             current = self._read()
-            if current.get("deleted") or current["revision"] != revision:
+            if current.get("deleted") or (current["revision"] != revision and not self.store.rows(
+                    'SELECT key FROM settings WHERE key=?', ('agent-controller-revision:' + str(revision),))):
                 raise ProviderFault("config_changed", "主控连接已变化，后续发送已停止")
 
     async def models(self, body, *, transport=None):
@@ -207,10 +235,14 @@ class ControllerConnection:
         from .providers import strict_json, redact, MAX_RESPONSE_BYTES
         if not isinstance(body, dict):
             raise ValueError('Invalid model-list parameters')
-        config, secret, _ = self.draft({**body, 'model': body.get('model') or 'model-list-probe'})
+        # Discovery must remain possible while correcting an invalid model
+        # budget. Authenticate/normalize only connection fields; it neither
+        # saves the draft nor tests a model call.
+        params = {key: body[key] for key in ('protocol', 'base_url', 'api_key') if key in body}
+        config, secret, _ = self.draft({**params, 'model': 'model-list-probe', 'streaming': False})
         headers = {'authorization': 'Bearer ' + secret} if config['protocol'] == 'openai_chat_completions' else {
             'x-api-key': secret, 'anthropic-version': '2023-06-01'}
-        items, cursor = [], None
+        items, cursor, seen_cursors, received = {}, None, set(), 0
         try:
             async with httpx.AsyncClient(transport=transport, trust_env=False, follow_redirects=False, timeout=30) as client:
                 for _ in range(10):
@@ -224,21 +256,45 @@ class ControllerConnection:
                                 raise ValueError('Model response exceeds limit')
                             content.extend(chunk)
                     raw = redact(strict_json(content), secret)
-                    if not isinstance(raw, dict) or not isinstance(raw.get('data'), list):
+                    if not isinstance(raw, dict):
                         raise ValueError('Invalid model list')
-                    for model in raw['data']:
-                        identifier = model.get('id') if isinstance(model, dict) else None
-                        if isinstance(identifier, str) and 0 < len(identifier) <= 256:
-                            items.append({'id': identifier})
-                    if len(items) > 1000:
+                    models = []
+                    if isinstance(raw.get('data'), list):
+                        models.extend(raw['data'])
+                    if isinstance(raw.get('models'), dict):
+                        models.extend({**value, 'id': name} for name, value in raw['models'].items() if isinstance(value, dict))
+                    if not isinstance(raw.get('data'), list) and not isinstance(raw.get('models'), dict):
+                        raise ValueError('Invalid model list')
+                    received += len(models)
+                    if received > 1000:
                         raise ValueError('Too many models')
+                    for model in models:
+                        parsed = candidate(model)
+                        if parsed:
+                            # data[] and models{} may describe the same id.
+                            # Enrich missing fields without guessing aliases.
+                            existing = items.setdefault(parsed['id'], parsed)
+                            for field in ('context_window', 'max_output_tokens', 'max_input_tokens'):
+                                if existing[field] is None:
+                                    existing[field] = parsed[field]
                     if not raw.get('has_more') or config['protocol'] == 'openai_chat_completions':
-                        return {'models': items, 'protocol_test_required': True}
+                        values = list(items.values())
+                        with self.store.transaction() as db:
+                            db.execute('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)',
+                                       (catalog_key(config), json.dumps({'models': values, 'fetched_at': now(),
+                                           'credential_fingerprint': digest(['model-catalog', secret])})))
+                        return {'models': values, 'protocol_test_required': True}
                     next_cursor = raw.get('last_id')
-                    if not isinstance(next_cursor, str) or not next_cursor or next_cursor == cursor:
+                    if (not isinstance(next_cursor, str) or not 0 < len(next_cursor) <= 256
+                            or next_cursor in seen_cursors):
                         raise ValueError('Invalid model cursor')
+                    seen_cursors.add(next_cursor)
                     cursor = next_cursor
         except httpx.HTTPError:
             raise ProviderFault('models_unavailable', '模型列表连接失败；可手填模型ID并运行探针') from None
+        except (ValueError, UnicodeError) as error:
+            if isinstance(error, ProviderFault):
+                raise
+            raise ProviderFault('models_unavailable', '模型列表格式无效或超过大小上限；可手填模型ID并运行探针') from None
         raise ProviderFault('models_unavailable', '模型列表超过分页上限；可手填模型ID并运行探针')
 

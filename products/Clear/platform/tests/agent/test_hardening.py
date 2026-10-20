@@ -102,6 +102,9 @@ class BoundaryGraphTests(graph_tests.GraphTests):
     test_stop_fences_late_controller_response = None
     test_no_delivery_cannot_be_marked_success = None
 
+    async def asyncSetUp(self):
+        asyncio.get_running_loop().slow_callback_duration = 60
+
     async def test_append_during_native_wait_withholds_rest_of_batch(self):
         ready = asyncio.Event(); release = asyncio.Event()
         async def provider(state, schemas):
@@ -122,8 +125,8 @@ class BoundaryGraphTests(graph_tests.GraphTests):
             await ready.wait()
             await runtime.submit(session['id'], '只保留第一个作业', 'narrow_goal')
             release.set()
-            final = await self.wait_status(runtime, run['id'], {'incomplete', 'failed'})
-            self.assertEqual(final['status'], 'incomplete')
+            final = await self.wait_status(runtime, run['id'], {'paused', 'failed'})
+            self.assertEqual(final['status'], 'paused')
             self.assertEqual([item['name'] for item in self.native.list('wtest')], ['first'])
             self.assertEqual(len(runtime.store.rows('SELECT * FROM operations WHERE run_id=?', (run['id'],))), 1)
         finally:
@@ -140,8 +143,8 @@ class BoundaryGraphTests(graph_tests.GraphTests):
         self.services.agent = reopened
         await reopened.start()
         try:
-            final = await self.wait_status(reopened, run['id'], {'incomplete', 'failed'})
-            self.assertEqual(final['status'], 'incomplete')
+            final = await self.wait_status(reopened, run['id'], {'paused', 'failed'})
+            self.assertEqual(final['status'], 'paused')
             duplicate = await reopened.submit(session['id'], '启动回执已保存', 'initial_request')
             self.assertEqual(duplicate['id'], run['id'])
             self.assertEqual(len(reopened.store.rows('SELECT * FROM runs')), 1)
@@ -160,9 +163,58 @@ class BoundaryGraphTests(graph_tests.GraphTests):
             await self.wait_status(runtime, run['id'], {'waiting_user'})
             question = runtime.store.rows('SELECT * FROM decisions WHERE run_id=?', (run['id'],))[0]
             await runtime.reply(question['id'], '继续（增加20轮、60次工具）', 1, 'budget_reply')
-            await self.wait_status(runtime, run['id'], {'incomplete', 'failed'})
+            await self.wait_status(runtime, run['id'], {'paused', 'failed'})
             await runtime.reply(question['id'], '继续（增加20轮、60次工具）', 1, 'budget_reply')
             self.assertEqual(runtime.store.run(run['id'])['round_limit'], 21)
-            self.assertEqual(runtime.store.run(run['id'])['tool_limit'], 120)
+            self.assertIsNone(runtime.store.run(run['id'])['tool_limit'])
         finally:
+            await runtime.close()
+
+    async def test_pause_then_immediate_resume_while_old_child_closes_fences_late_reply(self):
+        pending, old_reply, late_returned = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        closing, allow_close = asyncio.Event(), asyncio.Event()
+        calls = []
+        async def provider(state, schemas):
+            calls.append(state['generation'])
+            if len(calls) == 1:
+                pending.set()
+                try:
+                    await old_reply.wait()
+                except asyncio.CancelledError:
+                    pass
+                late_returned.set()
+                return response(state, 'data_create_session', {'name': 'old generation must not write'})
+            return response(state, 'conversation_answer', {'content': '已按原目标恢复并完成讨论。'})
+        runtime, session = await self.make_runtime(provider)
+        try:
+            run = await runtime.submit(session['id'], '讨论后暂停再继续', 'pause_immediate_resume')
+            await asyncio.wait_for(pending.wait(), 60)
+            process = runtime.graph.processes[run['id']]
+            original_close = process.close
+            async def gated_close():
+                closing.set()
+                await allow_close.wait()
+                await original_close()
+            process.close = gated_close
+            paused = await runtime.pause(run['id'])
+            self.assertEqual(paused['status'], 'paused')
+            self.assertEqual(paused['generation'], run['generation'] + 1)
+            await asyncio.wait_for(closing.wait(), 60)
+            resumed = await runtime.reconcile(run['id'])
+            self.assertEqual(resumed['status'], 'running')
+            self.assertIn(run['id'], runtime.running)
+            self.assertIn(run['id'], runtime.reschedules)
+            old_reply.set()
+            await asyncio.wait_for(late_returned.wait(), 60)
+            self.assertEqual(self.native.list('wtest'), [])
+            allow_close.set()
+            final = await self.wait_status(runtime, run['id'], {'answered', 'failed', 'needs_verification'})
+            self.assertEqual(final['status'], 'answered', runtime.store.events(session['id']))
+            self.assertEqual(calls, [run['generation'], paused['generation']])
+            self.assertEqual(self.native.list('wtest'), [])
+            self.assertEqual([row['tool'] for row in runtime.store.rows('SELECT tool FROM operations')], ['conversation_answer'])
+            self.assertEqual(len(runtime.store.rows("SELECT id FROM model_requests WHERE state='cancelled'")), 1)
+        finally:
+            old_reply.set()
+            allow_close.set()
             await runtime.close()

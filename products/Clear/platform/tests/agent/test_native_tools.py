@@ -9,18 +9,26 @@ import json
 import os
 from pathlib import Path
 import time
+import traceback
 import unittest
 import uuid
+from contextlib import nullcontext
 from dataclasses import replace
+from unittest import mock
 
 from fastapi.testclient import TestClient
 from scripts.agent_native_preview import configure
 from workbench_platform.app import app
 from workbench_platform.agent.registry import ToolContext
+from workbench_platform.agent.registry import invoke
 from workbench_platform.agent.tools import data, ocr, classification, forensics, pdf
 
 SOURCE = Path(__file__).resolve().parents[2]
-PROGRAM = SOURCE.parent.parent / 'program'
+# The development checkout is independent of the sealed native installations.
+# Native frontends/runtimes must come from one verified release, not siblings
+# that happen to exist next to this Git worktree.
+NATIVE_RELEASE = Path('F:/OCR/release/Clear/versions/0.10.0')
+PROGRAM = NATIVE_RELEASE / 'program'
 RUN = Path('F:/OCR/output/platform-agent-dev-20261004')
 
 
@@ -29,7 +37,8 @@ class NativeToolTests(unittest.TestCase):
     def setUpClass(cls):
         cls.root = RUN / 'evidence/native' / ('run-' + uuid.uuid4().hex[:12])
         cls.previous = dict(os.environ)
-        configure(SOURCE, PROGRAM, cls.root)
+        configure(NATIVE_RELEASE / 'platform', PROGRAM, cls.root)
+        os.environ['WORKBENCH_AGENT_ENABLED'] = '1'
         cls.client = TestClient(app, base_url='http://127.0.0.1:8867')
         cls.client.__enter__()
         cls.services = app.state
@@ -60,15 +69,65 @@ class NativeToolTests(unittest.TestCase):
         self.counter += 1
         call = {'call_id': call_id or 'call_' + str(self.counter), 'tool': tool, 'arguments': arguments}
         self.agent.registry.validate_batch([call], self.agent.registry.tools)
-        result = asyncio.run(self.agent.registry.dispatch(call, self.ctx))
+        spec = self.agent.registry.tools[tool]
+        failures = []
+        http_failures = []
+        from workbench_platform.jobs import native_classification
+        original_connection = native_classification.http.client.HTTPConnection
+        class DiagnosticConnection(original_connection):
+            def request(self, method, url, *args, **kwargs):
+                self.diagnostic_path = url
+                return super().request(method, url, *args, **kwargs)
+            def getresponse(self):
+                try:
+                    response = super().getresponse()
+                except Exception as caught:
+                    http_failures.append({'path': getattr(self, 'diagnostic_path', ''),
+                                          'type': type(caught).__name__, 'message': str(caught)[:500]})
+                    raise
+                if response.status not in {200, 201, 202}:
+                    http_failures.append({'path': getattr(self, 'diagnostic_path', ''),
+                        'status': response.status, 'body': response.read(8192).decode('utf-8', errors='replace')})
+                return response
+        async def execute_once(*args):
+            try:
+                return await invoke(spec.execute, *args)
+            except Exception as caught:
+                failures.append({'type': type(caught).__name__, 'message': str(caught)[:500],
+                                 'traceback': traceback.format_exc()})
+                raise
+        self.agent.registry.tools[tool] = replace(spec, execute=execute_once)
+        try:
+            diagnostic = (mock.patch.object(native_classification.http.client, 'HTTPConnection', DiagnosticConnection)
+                          if tool == 'classification_infer' else nullcontext())
+            with diagnostic:
+                result = asyncio.run(self.agent.registry.dispatch(call, self.ctx))
+        finally:
+            self.agent.registry.tools[tool] = spec
+            if failures:
+                (self.root / (self.workspace + '-' + str(self.counter) + '-execute-failures.json')).write_text(
+                    json.dumps(failures, ensure_ascii=False, indent=2), encoding='utf-8')
+            if http_failures:
+                (self.root / (self.workspace + '-' + str(self.counter) + '-http-failures.json')).write_text(
+                    json.dumps(http_failures, ensure_ascii=False, indent=2), encoding='utf-8')
+        launch_failures = []
         if result['status'] == 'error':
-            operation = self.agent.store.rows('SELECT id FROM operations WHERE run_id=? AND call_id=?', (self.run['id'], call['call_id']))[0]['id']
-            # Engineering-only diagnostic over the same idempotent operation.
-            spec = self.agent.registry.tools[tool]
-            spec.execute(spec.input_schema.model_validate(arguments), replace(self.ctx, operation_id=operation))
+            # Preserve the first startup failure. Re-executing a failed launch
+            # under the same reservation only reports410 and hides its cause.
+            supervisor = self.services.supervisor
+            with supervisor._lock:
+                entries = list(supervisor._entries.values())
+            for entry in entries:
+                if entry.future.done() and entry.future.exception() is not None:
+                    failure = entry.future.exception()
+                    launch_failures.append({'app_id': entry.identity[1],
+                        'type': type(failure).__name__, 'message': str(failure)[:500]})
         if result['status'] == 'pending':
+            from workbench_platform.application_services.job_lifecycle import adapter
             deadline = time.monotonic() + timeout
-            handler = {'data': data.settle, 'ocr': ocr.settle, 'classification': classification.settle, 'forensics': forensics.settle}[result['job_refs'][0]['application']]
+            # PDF page requests and image OCR both belong to OCR, but their
+            # persisted receipts use different native job lifecycles.
+            handler = adapter(result['job_refs'][0]).settle
             while time.monotonic() < deadline:
                 value = handler(result['job_refs'][0], self.ctx)
                 if value is not None:
@@ -80,7 +139,10 @@ class NativeToolTests(unittest.TestCase):
             else:
                 self.fail('Native timeout: ' + tool)
         (self.root / (self.workspace + '-' + str(self.counter) + '.json')).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
-        self.assertEqual(result['status'], 'success', result)
+        if launch_failures:
+            (self.root / (self.workspace + '-' + str(self.counter) + '-launch-failures.json')).write_text(
+                json.dumps(launch_failures, ensure_ascii=False, indent=2), encoding='utf-8')
+        self.assertEqual(result['status'], 'success', {'result': result, 'launch_failures': launch_failures})
         return result
 
     def fixed_set(self, names):

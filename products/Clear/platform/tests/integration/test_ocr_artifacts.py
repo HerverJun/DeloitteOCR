@@ -51,7 +51,8 @@ def test_ocr_bundle_replay_revision_and_workspace_scope(tmp_path, monkeypatch):
         created = client.post(base + "/ocr-exports", headers=LOCAL, json=payload)
         assert created.status_code == 201, created.text
         first = created.json()
-        assert first["kind"] == "ocr_result" and len(first["files"]) == 2
+        assert first["kind"] == "ocr_result" and len(first["files"]) == 3
+        assert client.get(base + f"/{first['bundle_id']}/files/ocr-text.txt").content == '原始文字'.encode('utf-8')
         replay = client.post(base + "/ocr-exports", headers=LOCAL, json=payload)
         assert replay.status_code == 201 and replay.json()["bundle_id"] == first["bundle_id"]
         def stale(*_args):

@@ -3,7 +3,8 @@ from pathlib import Path
 from contextlib import closing
 import argparse, json, sqlite3, sys
 
-READER_FEATURES = ('agent-request-snapshot-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1')
+READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
+                   'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -27,7 +28,7 @@ DATA_COMPATIBILITY = {
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},
     },
     'records': {'audit_evidence_versions':['1.0'], 'direct_evidence_snapshot_versions':[1,2],
-                'request_snapshot_formats':['clear-model-input-v1']},
+                'request_snapshot_formats':['clear-model-input-v1','clear-harness-input-v1','clear-goal-interpretation-v1']},
 }
 
 
@@ -72,10 +73,22 @@ def check(data, descriptor):
                 if any(saved.get(name)!=expected[name] for name in ('provider','host','port','database')):
                     raise ValueError('工作区与中央数据库登记不一致')
             finally:engine.dispose()
+    cpu_validation=data/'multimodal-cpu-validation.json'
+    if 'agent-multimodal-v1' not in descriptor['reader_features']:
+        for directory in ('native-launches', 'gpu-requests', 'gpu-recovery-receipts'):
+            native_records=f_path(data/directory)
+            if native_records.is_dir() and any(path.is_file() for path in native_records.glob('*.json')):
+                raise ValueError('该候选缺少原生 GPU 作业归属与恢复读取能力，不能直接降级')
+    if cpu_validation.is_file() and cpu_validation.stat().st_size and 'agent-multimodal-v1' not in descriptor['reader_features']:
+        raise ValueError('该候选缺少 Agent 多模态本机准备读取能力，不能直接降级')
     jobs=data/'jobs.sqlite3'
     if jobs.is_file():
         with closing(read_database(jobs)) as db:
             tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            business_tables = tables & {'manual_operation', 'manual_result_snapshot'}
+            if 'agent-multimodal-v1' not in descriptor['reader_features']:
+                if any(db.execute('SELECT 1 FROM "'+table+'" LIMIT 1').fetchone() for table in business_tables):
+                    raise ValueError('该候选缺少 Agent 多模态固定结果与恢复读取能力，不能直接降级')
             if 'manual_analysis' in tables:
                 required={'job_id','workspace_id','request_id','payload_hash','body'}
                 if not required<={row[1] for row in db.execute('PRAGMA table_info(manual_analysis)')}:
@@ -86,11 +99,15 @@ def check(data, descriptor):
                 if rows:
                     from packages.contracts.multimodal import ManualAnalysis
                     internal={'gpu_request_id','worker_epoch','oom_retries','active_seconds'}
+                    business_internal={'frozen_references','recovery_receipt','termination_receipt','recovery_intent'}
                     for row in rows:
                         item=json.loads(row[0])
+                        if (any(item.get(name) for name in business_internal) or 'purpose' in item
+                                or 'reference_ids' in item.get('options',{})) and 'agent-multimodal-v1' not in descriptor['reader_features']:
+                            raise ValueError('该候选缺少 Agent 多模态授权参考与恢复读取能力，不能直接降级')
                         if (set(item)&internal or 'channel' in item.get('options',{})) and 'manual-long-audio-v1' not in descriptor['reader_features']:
                             raise ValueError('该候选缺少长录音与受管任务读取能力，不能直接降级')
-                        ManualAnalysis.model_validate({key:value for key,value in item.items() if key not in internal})
+                        ManualAnalysis.model_validate({key:value for key,value in item.items() if key not in internal|business_internal})
     assets=data/'assets.sqlite3'
     if assets.is_file():
         with closing(read_database(assets)) as db:
@@ -154,12 +171,41 @@ def check(data, descriptor):
                             'evidence_refs':item.get('evidence_refs'),'origin':item.get('origin'),
                             'records':list(item.get('records',{}).values()),'records_current':False,
                             'created_at':item.get('created_at'),'updated_at':item.get('updated_at')})
+            if relative=='agent/operations.sqlite3':
+                if 'runs' in tables:
+                    columns = {row[1] for row in db.execute('PRAGMA table_info(runs)')}
+                    if 'driver' in columns:
+                        drivers = {row[0] for row in db.execute("SELECT DISTINCT driver FROM runs WHERE driver!='harness'")}
+                        if any('direct-' + driver not in descriptor['reader_features'] for driver in drivers):
+                            raise ValueError('该候选缺少直接执行驱动读取能力，不能直接降级')
+                        if 'direct-resource-claims-v1' not in descriptor['reader_features']:
+                            for (encoded,) in db.execute("SELECT driver_state FROM runs WHERE driver!='harness'"):
+                                if 'resource_object' in json.loads(encoded):
+                                    raise ValueError('该候选缺少直接操作对象冲突读取能力，不能直接降级')
+                if 'audit_tasks' in tables and 'agent-multimodal-v1' not in descriptor['reader_features']:
+                    for (encoded,) in db.execute('SELECT body FROM audit_tasks'):
+                        task = json.loads(encoded)
+                        if (task.get('delivery_policy', 'auto') not in (None, 'auto')
+                                or task.get('delivery_policy_inference')
+                                or task.get('authorized_reference_ids')
+                                or (task.get('pending_scope') or {}).get('authorized_reference_ids')):
+                            raise ValueError('该候选缺少 Agent 交付策略与授权范围读取能力，不能直接降级')
+                if ('agent-multimodal-v1' not in descriptor['reader_features']
+                        and any(db.execute('SELECT 1 FROM "'+table+'" LIMIT 1').fetchone()
+                                for table in tables & {'multimodal_user_actions', 'multimodal_operation_snapshots', 'audit_policy_user_inputs'})):
+                    raise ValueError('该候选缺少 Agent 多模态用户核准读取能力，不能直接降级')
             if relative=='agent/operations.sqlite3' and 'events' in tables:
+                harness_tables = tables & {'harness_runs','harness_events','harness_model_calls','harness_model_payloads','harness_migrations','harness_sessions'}
+                if 'agent-harness-v1' not in descriptor['reader_features']:
+                    if any(db.execute('SELECT 1 FROM "'+table+'" LIMIT 1').fetchone() for table in harness_tables):
+                        raise ValueError('该候选缺少 Harness 会话读取能力，不能直接降级')
                 for (encoded,) in db.execute("SELECT payload FROM events WHERE kind='model_request'"):
                     snapshot=json.loads(encoded).get('request_snapshot')
                     if snapshot is not None and (not isinstance(snapshot,dict) or
                         snapshot.get('format') not in descriptor['records']['request_snapshot_formats']):
                         raise ValueError('Agent请求快照记录格式不兼容')
+                    if isinstance(snapshot,dict) and snapshot.get('format')=='clear-harness-input-v1' and 'agent-harness-v1' not in descriptor['reader_features']:
+                        raise ValueError('该候选缺少 Harness 请求读取能力，不能直接降级')
             checked.append({'database':relative,'user_version':version,'tables':len(tables)})
     return {'compatible':True,'data':str(data),'reader_features':descriptor['reader_features'],
             'databases':checked,'writes':0}

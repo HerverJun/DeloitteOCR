@@ -9,11 +9,11 @@ from workbench_platform.data_api.service import DataError
 from .revisions import reviewed_result
 
 
-def export_files(service, workspace, job):
+def export_files(service, workspace, job, *, destination=None):
     item = service.get(workspace, job)
     if item['status'] != 'succeeded':
         raise DataError('分析尚未完成', 409)
-    destination = service.root / job / 'exports' / ('v' + str(item['revision']))
+    destination = destination or service.root / job / 'exports' / ('g'+str(item.get('generation',1))+'v' + str(item['revision']))
     destination.mkdir(parents=True, exist_ok=True)
     result = reviewed_result(item)
     field = 'segments' if item['kind'] == 'audio' else 'seals'
@@ -29,17 +29,18 @@ def export_files(service, workspace, job):
 
     write('result.json', encoded({**item, 'result': result}))
     if rows:
-        path = destination / 'reviewed.csv'
-        temporary = path.with_name('reviewed.' + uuid.uuid4().hex + '.tmp')
+        filename = 'reviewed.csv' if item.get('review') else 'draft.csv'
+        path = destination / filename
+        temporary = path.with_name(filename + '.' + uuid.uuid4().hex + '.tmp')
         with temporary.open('w', encoding='utf-8-sig', newline='') as stream:
             writer = csv.writer(stream)
-            writer.writerow(['序号', '文字', '说话人', '主体', '编号', '原件', '页码', '开始毫秒', '结束毫秒', '结果ID'])
+            writer.writerow(['序号', '文字', '说话人', '主体', '编号', '原件', '页码', '开始毫秒', '结束毫秒', '结果ID', '复核状态'])
             for index, row in enumerate(rows):
                 writer.writerow([index + 1, row.get('text', ''), row.get('speaker', ''), row.get('subject', ''),
                     row.get('number', ''), item['inputs'][0]['original_name'], row.get('page_number', ''),
-                    row.get('start_ms', ''), row.get('end_ms', ''), row.get('row_id', '')])
+                    row.get('start_ms', ''), row.get('end_ms', ''), row.get('row_id', ''), '已复核' if item.get('review') else '未复核'])
         os.replace(temporary, path)
-        files['reviewed.csv'] = path
+        files[filename] = path
     if item['kind'] == 'audio':
         write('transcript.txt', '\n'.join(f"{r.get('speaker', '')}: {r['text']}" for r in rows))
 

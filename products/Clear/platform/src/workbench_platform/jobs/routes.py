@@ -140,12 +140,21 @@ class JobService:
         try:
             native, items = self._snapshot(context, ref["native_job_ids"])
         except (ClassificationUnavailable, OcrUnavailable):
+            observation = {'failure': 'unreachable'}
+        else:
+            observation = {'native': native, 'items': items}
+        try:
             return self.ledger.observe(context, ref["platform_job_id"],
                                        generation=ref["generation"],
-                                       expected_event_seq=ref["last_event_seq"], failure="unreachable")
-        return self.ledger.observe(context, ref["platform_job_id"],
-                                   generation=ref["generation"],
-                                   expected_event_seq=ref["last_event_seq"], native=native, items=items)
+                                       expected_event_seq=ref["last_event_seq"], **observation)
+        except ProjectionConflict:
+            latest = self.ledger.get(workspace_id, ref['platform_job_id'])
+            fields = ('workspace_id', 'link_id', 'app_id', 'module_project_id', 'instance_id', 'generation',
+                      'operation_id', 'input_manifest_hash', 'native_job_ids')
+            if (all(latest[name] == ref[name] for name in fields)
+                    and latest['last_event_seq'] > ref['last_event_seq']):
+                return latest
+            raise
 
     def action(self, workspace_id: str, platform_job_id: str, action: str) -> dict:
         ref = self.ledger.get(workspace_id, platform_job_id)

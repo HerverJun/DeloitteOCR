@@ -1,4 +1,4 @@
-"""Execution identities and UI projections; model history belongs to LangGraph."""
+"""Execution identities and UI projections; model history belongs to Harness."""
 from __future__ import annotations
 
 from contextlib import contextmanager, closing
@@ -14,24 +14,7 @@ import uuid
 from workbench_platform.supervisor.processes import require_f_path
 
 
-def now():
-    return datetime.now(timezone.utc).isoformat()
-
-
-def canonical(value):
-    return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False)
-
-
-def digest(value):
-    return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
-
-
-class Conflict(ValueError):
-    pass
-
-
-class RunSuperseded(Conflict):
-    """The executing generation lost authority; never continue its tool batch."""
+from workbench_platform.application_services.identity import now, canonical, digest, Conflict, RunSuperseded
 
 
 class AgentStore:
@@ -80,9 +63,18 @@ class AgentStore:
             if 'initial_refs' not in {row[1] for row in db.execute('PRAGMA table_info(sessions)')}:
                 db.execute("ALTER TABLE sessions ADD COLUMN initial_refs TEXT NOT NULL DEFAULT '[]'")
             columns = {row[1] for row in db.execute('PRAGMA table_info(runs)')}
+            if 'driver' not in columns:
+                db.execute("ALTER TABLE runs ADD COLUMN driver TEXT NOT NULL DEFAULT 'harness'")
+            if 'driver_state' not in columns:
+                db.execute("ALTER TABLE runs ADD COLUMN driver_state TEXT NOT NULL DEFAULT '{}'")
             for name, default in [('round_limit', 20), ('tool_limit', 60)]:
                 if name not in columns:
                     db.execute(f'ALTER TABLE runs ADD COLUMN {name} INTEGER NOT NULL DEFAULT {default}')
+            db.execute('DROP INDEX IF EXISTS active_workspace_run')
+            db.execute("CREATE UNIQUE INDEX active_workspace_run ON runs(workspace_id) WHERE "
+                       "driver='harness' AND status IN ('running','waiting_job','waiting_user','needs_verification','paused')")
+            db.execute("CREATE UNIQUE INDEX IF NOT EXISTS active_session_run ON runs(session_id) WHERE "
+                       "status IN ('running','waiting_job','waiting_user','needs_verification','paused')")
             if 'kind' not in {row[1] for row in db.execute('PRAGMA table_info(decisions)')}:
                 db.execute("ALTER TABLE decisions ADD COLUMN kind TEXT NOT NULL DEFAULT 'clarification'")
             if 'truncated' not in {row[1] for row in db.execute('PRAGMA table_info(public_responses)')}:
@@ -166,7 +158,10 @@ class AgentStore:
     def public_event(self, run_id, generation, identity, kind, payload):
         with self.transaction() as db:
             run = self._public_run(db, run_id, generation,
-                terminal=kind == 'agent_activity' and payload.get('phase') in {'completed', 'failed', 'needs_verification'})
+                terminal=(kind in {'context_compaction', 'engine_ready', 'result_available'} or
+                          kind == 'tool_activity' and payload.get('phase') == 'restored' or
+                          kind == 'agent_activity' and payload.get('phase') in
+                          {'completed', 'failed', 'needs_verification', 'paused', 'compacting'}))
             self._public_insert(db, run, identity, kind, payload)
         self._signal(run['session_id'])
 
@@ -251,7 +246,8 @@ class AgentStore:
                     continue
                 self._response_state(db, run, row['request_id'], row['display_id'], 'interrupted',
                     reason=reason or '本轮生成已结束，未确认的候选内容保留')
-            phase = 'stopped' if status == 'cancelled' else 'needs_verification' if status == 'needs_verification' else 'failed' if status == 'failed' else 'completed'
+            phase = ('stopped' if status == 'cancelled' else 'needs_verification' if status == 'needs_verification'
+                     else 'failed' if status == 'failed' else 'paused' if status == 'paused' else 'completed')
             self._public_insert(db, run, run_id + ':public-terminal:' + str(run['generation']) + ':' + status,
                 'agent_activity', {'phase': phase, 'status': status, 'reason': reason})
         self._signal(run['session_id'])
@@ -272,9 +268,19 @@ class AgentStore:
         value['initial_refs'] = json.loads(value['initial_refs'])
         return value
 
-    def create_session(self, workspace_id, name, selected_assets, request_id, initial_refs=None):
+    def create_session(self, workspace_id, name, selected_assets, request_id, initial_refs=None, authorized_reference_ids=None, delivery_policy='auto'):
         initial_refs = initial_refs or []
+        if delivery_policy not in {'auto', 'draft', 'reviewed'}:
+            raise ValueError('交付策略无效')
         fingerprint = digest([workspace_id, name, selected_assets, initial_refs] if initial_refs else [workspace_id, name, selected_assets])
+        if authorized_reference_ids:
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'agent-multimodal-v1')
+            fingerprint = digest([fingerprint, sorted(set(authorized_reference_ids))])
+        if delivery_policy != 'auto':
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'agent-multimodal-v1')
+            fingerprint = digest([fingerprint, {'delivery_policy': delivery_policy}])
         with self.transaction() as db:
             old = db.execute('SELECT * FROM sessions WHERE request_id=?', (request_id,)).fetchone()
             if old:
@@ -285,17 +291,36 @@ class AgentStore:
                 identifier = 's' + uuid.uuid4().hex
                 db.execute('INSERT INTO sessions(id,workspace_id,name,selected_assets,created,request_id,fingerprint,initial_refs) VALUES(?,?,?,?,?,?,?,?)',
                            (identifier, workspace_id, name, canonical(selected_assets), now(), request_id, fingerprint, canonical(initial_refs)))
+                if authorized_reference_ids or delivery_policy != 'auto':
+                    body = {'title': name, 'goal': '', 'scope_revision': 1, 'plan': [], 'plan_revision': 0,
+                            'manual': False, 'pending_scope': None,
+                            'authorized_reference_ids': sorted(set(authorized_reference_ids or [])),
+                            'delivery_policy': delivery_policy}
+                    db.execute('INSERT INTO audit_tasks VALUES(?,1,?,?)', (identifier, canonical(body), now()))
         return self.session(identifier)
 
     def run(self, run_id):
         rows = self.rows('SELECT * FROM runs WHERE id=?', (run_id,))
         if not rows:
             raise ValueError('运行不存在')
-        return rows[0]
+        value = rows[0]
+        for name in ('round_limit', 'tool_limit'):
+            if value.get(name) == 0:
+                value[name] = None
+        return value
 
-    def start_run(self, session_id, content, request_id, connection_revision, round_limit=20, tool_limit=60):
+    def start_run(self, session_id, content, request_id, connection_revision, round_limit=None, tool_limit=None,
+                  *, driver='harness', driver_state=None):
+        if driver not in {'harness', 'image-text-v1', 'pdf-text-v1', 'data-action-v1', 'classification-predict-v1'}:
+            raise ValueError('未知执行驱动')
         session = self.session(session_id)
-        fingerprint = digest([session_id, content])
+        fingerprint = digest([session_id, content] if driver == 'harness' else [session_id, content, driver, driver_state])
+        if driver != 'harness':
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'direct-' + driver, 'direct-resource-claims-v1')
+        elif (driver_state or {}).get('scope_claims'):
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'harness-native-scope-v1')
         with self.transaction() as db:
             old = db.execute('SELECT * FROM runs WHERE request_id=?', (request_id,)).fetchone()
             if old:
@@ -303,22 +328,83 @@ class AgentStore:
                     raise Conflict('请求身份与原目标不同')
                 return dict(old), False
             identifier = 'r' + uuid.uuid4().hex
+            from workbench_platform.application_services.direct_scope import conflicts
+            active = db.execute("SELECT * FROM runs WHERE status IN "
+                "('running','waiting_job','waiting_user','needs_verification','paused')").fetchall()
+            claimed = {**(driver_state or {}), 'scope_workspace_id': session['workspace_id']}
+            claimed = json.loads(self._resource_claims({'driver': driver, 'workspace_id': session['workspace_id'],
+                'session_id': session_id, 'driver_state': canonical(claimed)})['driver_state'])
+            for row in active:
+                other = self._resource_claims(dict(row))
+                if row['session_id'] == session_id or conflicts(driver, claimed, other):
+                    raise Conflict('本会话或同一业务对象已有未结束操作（关联任务 ' + row['id'] + '）；请继续原任务或等待冲突解除')
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='audit_tasks'").fetchone():
                 task = db.execute('SELECT body FROM audit_tasks WHERE session_id=?', (session_id,)).fetchone()
                 if task and json.loads(task['body'])['manual']:
                     raise Conflict('任务正在人工处理，请先返回智能审计')
             try:
                 db.execute('INSERT INTO runs(id,session_id,workspace_id,status,generation,connection_revision,'
-                           'created,updated,request_id,fingerprint) VALUES(?,?,?,?,?,?,?,?,?,?)',
+                           'created,updated,request_id,fingerprint,driver,driver_state) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
                            (identifier, session_id, session['workspace_id'], 'running', 1,
-                            connection_revision, now(), now(), request_id, fingerprint))
+                            connection_revision, now(), now(), request_id, fingerprint, driver, canonical(claimed)))
                 db.execute('INSERT INTO events(session_id,run_id,identity,kind,payload,created) VALUES(?,?,?,?,?,?)',
                            (session_id, identifier, request_id, 'message', canonical({'role': 'user', 'content': content}), now()))
-                db.execute('UPDATE runs SET round_limit=?,tool_limit=? WHERE id=?', (round_limit, tool_limit, identifier))
+                db.execute('UPDATE runs SET round_limit=?,tool_limit=? WHERE id=?', (round_limit or 0, tool_limit or 0, identifier))
             except sqlite3.IntegrityError:
                 raise Conflict('当前项目已有 Agent 运行；可在原会话追加目标或停止') from None
         self._signal(session_id)
         return self.run(identifier), True
+
+    def _resource_claims(self, run):
+        from workbench_platform.application_services.direct_scope import merge_scope, FAMILIES
+        state = json.loads(run.get('driver_state') or '{}')
+        resolver = getattr(self, 'scope_resolver', None)
+        if run['driver'] == 'harness' and resolver:
+            state['scope_workspace_id'] = run['workspace_id']
+            state['scope_claims'] = merge_scope(state.get('scope_claims'), resolver(run))
+        elif resolver and run['driver'] in FAMILIES and FAMILIES[run['driver']] != 'data':
+            state['scope_native_projects'] = resolver(run).get('projects', {}).get(FAMILIES[run['driver']], [])
+        return {**run, 'driver_state': canonical(state)}
+
+    def claim_harness_scope(self, run_id, generation):
+        return self.claim_run_scope(run_id, generation)
+
+    def claim_run_scope(self, run_id, generation):
+        """Refresh actual accessible objects atomically before a native write."""
+        from workbench_platform.application_services.direct_scope import conflicts
+        from workbench_platform.application_services.errors import ResourceBusy
+        with self.transaction() as db:
+            run = self._public_run(db, run_id, generation)
+            run = self._resource_claims(dict(run))
+            state = json.loads(run['driver_state'])
+            for row in db.execute("SELECT * FROM runs WHERE id!=? AND status IN "
+                    "('running','waiting_job','waiting_user','needs_verification','paused')", (run_id,)):
+                other = self._resource_claims(dict(row))
+                if conflicts(run['driver'], state, other):
+                    raise ResourceBusy('同一业务对象已有未结束操作（关联任务 ' + row['id'] + '）；本次写入尚未提交')
+            db.execute('UPDATE runs SET driver_state=? WHERE id=? AND generation=?',
+                       (canonical(state), run_id, generation))
+
+    def save_driver_state(self, run_id, generation, state):
+        with self.transaction() as db:
+            self._public_run(db, run_id, generation)
+            db.execute('UPDATE runs SET driver_state=?,updated=? WHERE id=?', (canonical(state), now(), run_id))
+
+    def resume_harness_run(self, run_id, generation):
+        """Reacquire current resource claims and activate in one transaction."""
+        from workbench_platform.application_services.direct_scope import conflicts
+        with self.transaction() as db:
+            run = self._resource_claims(dict(self._public_run(db, run_id, generation, terminal=True)))
+            if run['driver'] != 'harness' or run['status'] not in {'paused', 'needs_verification', 'failed', 'partial'}:
+                raise Conflict('此运行当前不可继续')
+            claims = json.loads(run['driver_state'])
+            for row in db.execute("SELECT * FROM runs WHERE id!=? AND status IN "
+                    "('running','waiting_job','waiting_user','needs_verification','paused')", (run_id,)):
+                other = self._resource_claims(dict(row))
+                if row['session_id'] == run['session_id'] or conflicts('harness', claims, other):
+                    raise Conflict('本会话或同一业务对象已有未结束操作（关联任务 ' + row['id'] + '）；原成果保留，冲突解除后继续')
+            db.execute("UPDATE runs SET driver_state=?,status='running',error=NULL,updated=? WHERE id=? AND generation=?",
+                       (canonical(claims), now(), run_id, generation))
 
     def status(self, run_id, generation, status, error=None):
         with self.transaction() as db:
@@ -345,7 +431,8 @@ class AgentStore:
             raise ValueError('指定一个运行或会话身份')
         column, identifier = ('id', run_id) if run_id is not None else ('session_id', session_id)
         active = db.execute(f'SELECT * FROM runs WHERE {column}=? AND '
-            "status IN ('running','waiting_job','waiting_user','needs_verification')", (identifier,)).fetchall()
+            "(status IN ('running','waiting_job','waiting_user','needs_verification','paused') "
+            "OR (status='partial' AND driver='harness'))", (identifier,)).fetchall()
         changed = []
         for row in active:
             updated = now()
