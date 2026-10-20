@@ -310,6 +310,19 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             for image in images:
                 image["review_status"] = reviews[image["id"]]["status"]
                 image["review_state"] = reviews[image["id"]]
+            tasks = [dict(row) for row in db.execute(
+                """SELECT t.*, mr.result_id AS review_result_id, mr.backend AS review_backend FROM tasks t
+                LEFT JOIN multimodal_requests mr ON mr.task_id=t.id
+                WHERE t.project_id=? ORDER BY t.created,t.id""", (key,))]
+            for task in tasks:
+                failure = self.root / 'task-errors' / (task['id'] + '.json')
+                if task['status'] == 'failed' and failure.is_file():
+                    try:
+                        details = json.loads(failure.read_text(encoding='utf-8'))
+                        if details.get('attempt_id') == task['id']:
+                            task['error_details'] = details
+                    except (OSError, ValueError):
+                        pass
             return {
                 "project": dict(
                     db.execute("SELECT * FROM projects WHERE id=?", (key,)).fetchone()
@@ -327,15 +340,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                         (key,),
                     )
                 ],
-                "tasks": [
-                    dict(row)
-                    for row in db.execute(
-                        """SELECT t.*, mr.result_id AS review_result_id, mr.backend AS review_backend FROM tasks t
-                        LEFT JOIN multimodal_requests mr ON mr.task_id=t.id
-                        WHERE t.project_id=? ORDER BY t.created,t.id""",
-                        (key,),
-                    )
-                ],
+                "tasks": tasks,
             }
 
     @contextmanager

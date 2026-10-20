@@ -193,8 +193,23 @@ class TaskQueue:
                 self.current = None
                 self.recovery_task = None
                 return True
+        failure_stage = 'input_validation'
+        def loading_progress(progress):
+            stages = progress.get('stages') or []
+            phase = stages[-1].get('phase') if stages else None
+            label = {'import_paddle': '导入 Paddle', 'cuda_check': '核实 CUDA',
+                     'import_paddleocr': '导入识别依赖', 'initialize_pipeline': '初始化模型权重',
+                     'ready': '模型已就绪'}.get(phase)
+            if label:
+                try:
+                    with self.store.transaction() as db:
+                        db.execute("UPDATE tasks SET phase=? WHERE id=? AND status='running'",
+                                   ('加载引擎 · ' + label, task['id']))
+                except (OSError, sqlite3.Error):
+                    logging.getLogger(__name__).exception('OCR loading progress could not be saved for %s', task['id'])
         try:
             if task.get("kind") == "multimodal":
+                failure_stage = 'inference'
                 self._run_multimodal(task)
                 return True
             from ocr_workbench.imaging import prepare_task
@@ -219,6 +234,7 @@ class TaskQueue:
                             raise Cancelled()
                         complete_geometry(self.store, task, json.loads(artifact.read_text('utf-8')), artifact, candidate_cache_hit=True)
                         return True
+            failure_stage = 'load'
             resolved = (
                 self.registry.resolve(
                     task["engine"], task.get("engine_package", "builtin")
@@ -234,13 +250,16 @@ class TaskQueue:
                         self.adapter = self.factory(resolved, 'geometry', self.store.root / 'sessions')
                         self.adapter.configure_geometry('context')
                         self.adapter.cancelled = self.cancel_event
+                        self.adapter.progress_callback = loading_progress
                     self.adapter.load()
                     context_output = self.store.root / 'task-results' / task['id'] / ('context-' + str(time.time_ns()))
                     context_output.mkdir(parents=True)
                     version = self.store.one('versions', task['version_id'])
+                    failure_stage = 'inference'
                     shared_context = self.adapter.recognize(self.store.file(version['path']), context_output,
                         {**geometry_snapshot, 'regions': regions})
                     self.unload()
+                    failure_stage = 'load'
             if self.adapter and (
                 self.adapter.engine != task["engine"]
                 or getattr(self.adapter, "bundle", self.bundle) != resolved
@@ -255,13 +274,16 @@ class TaskQueue:
                         self.store.root / "sessions",
                     )
                     self.adapter.cancelled = self.cancel_event
+                    self.adapter.progress_callback = loading_progress
                     if task.get('kind') == 'geometry' and hasattr(self.adapter, 'configure_geometry'):
                         self.adapter.configure_geometry(geometry_provider)
                 self.adapter.load()
             else:
                 self.adapter.cancelled = self.cancel_event
+                self.adapter.progress_callback = loading_progress
             if self.cancel_event.is_set() or self.stopping.is_set():
                 raise Cancelled()
+            failure_stage = 'inference'
             with self.store.transaction() as db:
                 if (
                     db.execute(
@@ -302,6 +324,7 @@ class TaskQueue:
                 data = self.adapter.recognize(input_image, output, allow_empty=True)
             else:
                 data = self.adapter.recognize(input_image, output)
+            failure_stage = 'result_commit'
             if task.get("kind") == "dewarp":
                 from ocr_workbench.imaging import save_version
                 from PIL import Image
@@ -345,13 +368,25 @@ class TaskQueue:
                 )
             self.unload()
         except Exception as error:
-            from ocr_workbench.errors import friendly_engine_error
+            from ocr_workbench.errors import engine_error_details
+            from ocr_workbench.atomic_files import write_json
+
+            details = engine_error_details(error, stage=failure_stage, attempt_id=task['id'])
+            details['engine_request_accepted'] = details['accepted_write']
+            details['accepted_write'] = True  # The identified native task was accepted before claim.
+            folder = self.store.root / 'task-errors'
+            try:
+                folder.mkdir(exist_ok=True)
+                write_json(folder / (task['id'] + '.json'), details, durable=True)
+            except OSError:
+                logging.getLogger(__name__).exception('Could not persist OCR attempt error details for %s', task['id'])
+            logging.getLogger(__name__).exception('OCR attempt %s failed at %s', task['id'], details['stage'])
 
             with self.store.transaction() as db:
                 db.execute(
                     "UPDATE tasks SET status='failed',phase=?,error=?,finished=? WHERE id=? AND status='running'",
-                    ("审校失败" if task.get("kind") == "multimodal" else "识别失败",
-                     friendly_engine_error(error), now(), task["id"]),
+                    ("审校失败" if task.get("kind") == "multimodal" else "加载失败" if details['stage'] == 'load' else "识别失败",
+                     details['message'] + details['user_action'], now(), task["id"]),
                 )
             self.unload()
         finally:

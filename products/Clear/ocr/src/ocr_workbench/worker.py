@@ -20,9 +20,14 @@ def json_safe(value):
     raise TypeError(f"Cannot serialize {type(value)}")
 
 
-def load_paddle(engine, models):
+def load_paddle(engine, models, progress=None):
+    def phase(name):
+        if progress is not None:
+            progress(name)
+    phase('import_paddle')
     import paddle
 
+    phase('cuda_check')
     if not paddle.is_compiled_with_cuda() or paddle.device.cuda.device_count() < 1:
         raise RuntimeError("Paddle CUDA GPU is required; CPU fallback is disabled")
     common = {
@@ -32,9 +37,11 @@ def load_paddle(engine, models):
         "use_doc_unwarping": False,
     }
     start = time.perf_counter()
+    phase('import_paddleocr')
     if engine == "ppocr":
         from paddleocr import PaddleOCR
 
+        phase('initialize_pipeline')
         pipe = PaddleOCR(
             **common,
             text_detection_model_name="PP-OCRv6_medium_det",
@@ -48,6 +55,7 @@ def load_paddle(engine, models):
     else:
         from paddleocr import PaddleOCRVL
 
+        phase('initialize_pipeline')
         pipe = PaddleOCRVL(
             **common,
             pipeline_version="v1.6",
@@ -57,7 +65,9 @@ def load_paddle(engine, models):
             vl_rec_backend="native",
             use_queues=False,
         )
-    return pipe, time.perf_counter() - start
+    loaded = time.perf_counter() - start
+    phase('ready')
+    return pipe, loaded
 
 
 def paddle_engine(engine, models, image, pipe=None, loaded=None):
@@ -177,6 +187,7 @@ def process_image(args, session, started):
         if not manifest.is_file():
             raise FileNotFoundError(f"Missing model provenance manifest: {manifest}")
         revisions[name] = json.loads(manifest.read_text(encoding="utf-8"))["revision"]
+    prepared_at = time.perf_counter()
     if session is not None:
         raw, blocks, loaded = session.recognize(prepared, args.output)
     elif args.engine in {"ppocr", "paddlevl"}:
@@ -194,6 +205,7 @@ def process_image(args, session, started):
         from ocr_workbench.hunyuan import recognize
 
         raw, blocks, loaded = recognize(args.bundle, prepared, args.output)
+    predicted_at = time.perf_counter()
     text = "\n".join(b["text"] for b in blocks)
     (args.output / "raw.json").write_text(
         json.dumps(raw, ensure_ascii=False, indent=2, default=json_safe),
@@ -217,6 +229,7 @@ def process_image(args, session, started):
                 "detail": str(error), "source": table.get("source"),
             })
     tables = usable_tables
+    postprocessed_at = time.perf_counter()
     result = {
         "schema_version": 1,
         "status": "success",
@@ -258,9 +271,17 @@ def process_image(args, session, started):
                 "detail": str(error),
             })
             result["artifacts"]["xlsx"] = {"status": "failed", "message": str(error)}
+    exported_at = time.perf_counter()
     from ocr_workbench.runtime_audit import inspect_runtime
 
     result["runtime_audit"] = inspect_runtime(args.bundle)
+    audited_at = time.perf_counter()
+    result['timings'] = {'version': 1, 'input_prepare_seconds': prepared_at - started,
+        'predict_call_seconds': predicted_at - prepared_at,
+        'postprocess_and_raw_export_seconds': postprocessed_at - predicted_at,
+        'readable_export_seconds': exported_at - postprocessed_at,
+        'runtime_verification_seconds': audited_at - exported_at,
+        'before_final_json_seconds': audited_at - started}
     pending = args.output / "result.json.tmp"
     pending.write_text(
         json.dumps(result, ensure_ascii=False, indent=2, default=json_safe),

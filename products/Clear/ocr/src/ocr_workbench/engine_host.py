@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import time
 import traceback
+import faulthandler
 from types import SimpleNamespace
 
 
@@ -20,6 +21,12 @@ class Resident:
         self.bundle, self.engine = bundle, engine
         self.stack = ExitStack()
         self.first = True
+        self.load_timings = []
+        load_started = time.perf_counter()
+        def progress(phase):
+            self.load_timings.append({'phase': phase, 'elapsed_seconds': time.perf_counter() - load_started})
+            publish(ipc / 'load-progress.json', {'version': 1, 'engine': engine,
+                                                'stages': self.load_timings})
         try:
             if engine == 'geometry' and geometry_provider in ('tableformer-raw', 'rapidtable'):
                 from ocr_workbench.geometry_candidate_worker import CandidateSession
@@ -54,7 +61,7 @@ class Resident:
                     )
                     self.loaded = time.perf_counter() - started
                 else:
-                    self.session, self.loaded = load_paddle(engine, self.models)
+                    self.session, self.loaded = load_paddle(engine, self.models, progress=progress)
             elif engine == "glm":
                 from ocr_workbench.glm import load_session
 
@@ -145,10 +152,13 @@ def main():
     install_guard(args.ipc / "network-blocked.log")
     session = None
     try:
+        faulthandler.enable()
+        faulthandler.dump_traceback_later(60, repeat=True)
         session = Resident(args.bundle, args.engine, args.ipc, args.geometry_provider)
+        faulthandler.cancel_dump_traceback_later()
         publish(
             args.ipc / "status.json",
-            {"status": "ready", "load_seconds": session.loaded},
+            {"status": "ready", "load_seconds": session.loaded, 'load_timings': session.load_timings},
         )
         while not (args.ipc / "stop.json").exists():
             request = args.ipc / "request.json"
@@ -195,6 +205,7 @@ def main():
         )
         raise
     finally:
+        faulthandler.cancel_dump_traceback_later()
         if session is not None:
             session.close()
 

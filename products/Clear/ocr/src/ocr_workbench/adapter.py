@@ -1,6 +1,7 @@
 """Single-GPU EngineAdapter contract for resident, isolated Windows workers."""
 
 import json
+import hashlib
 import msvcrt
 import os
 from pathlib import Path
@@ -11,10 +12,86 @@ import uuid
 from ocr_workbench.processes import ProcessJob
 from ocr_workbench.engine_host import publish
 from ocr_workbench.atomic_files import read_json
+from ocr_workbench.errors import EngineFailure, EngineTimeout
+
+
+WORKER_BOOTSTRAP = '''import hashlib,json,os,runpy,sys
+from pathlib import Path
+source=Path(sys.argv.pop(1)).resolve()
+if os.environ.get('CLEAR_OCR_WORKER_SOURCE_MANIFEST'):
+    manifest=Path(os.environ['CLEAR_OCR_WORKER_SOURCE_MANIFEST']).resolve()
+    if source.drive.upper()!='F:' or manifest.drive.upper()!='F:':
+        raise ValueError('Worker source escaped the local F drive')
+    payload=manifest.read_bytes()
+    if hashlib.sha256(payload).hexdigest()!=os.environ['CLEAR_OCR_WORKER_BINDING_SHA256']:
+        raise ValueError('Worker binding changed before child import')
+    binding=json.loads(payload)
+    if Path(binding['worker_source']).resolve()!=source or binding.get('app_id')!='ocr':
+        raise ValueError('Worker source differs from verified child binding')
+    declared=set()
+    for item in binding['worker_source_files']:
+        relative=Path(item['path']);member=(source/relative).resolve()
+        if relative.is_absolute() or '..' in relative.parts or not member.is_relative_to(source) or item['path'] in declared:
+            raise ValueError('Worker source declaration is invalid')
+        declared.add(item['path'])
+        if hashlib.sha256(member.read_bytes()).hexdigest()!=item['sha256']:
+            raise ValueError('Worker source changed before child import')
+    actual={member.relative_to(source).as_posix() for member in (source/'ocr_workbench').rglob('*') if member.is_file()}
+    if actual!=declared:
+        raise ValueError('Worker source contains missing or undeclared payload')
+sys.path.insert(0,str(source))
+runpy.run_module('ocr_workbench.engine_host',run_name='__main__')
+'''
 
 
 class Cancelled(Exception):
     pass
+
+
+def loading_timeout(environ=None):
+    """Loading has a separate bounded budget; inference remains unchanged."""
+    environ = os.environ if environ is None else environ
+    value = environ.get('CLEAR_OCR_LOAD_TIMEOUT_SECONDS', '240')
+    try:
+        timeout = int(value)
+    except (TypeError, ValueError):
+        raise ValueError('CLEAR_OCR_LOAD_TIMEOUT_SECONDS must be an integer from 1 to 1800') from None
+    if str(timeout) != str(value) or not 1 <= timeout <= 1800:
+        raise ValueError('CLEAR_OCR_LOAD_TIMEOUT_SECONDS must be an integer from 1 to 1800')
+    return timeout
+
+
+def configured_worker_source(environ=None):
+    """Only an explicit F-drive binding can override the packaged worker."""
+    environ = os.environ if environ is None else environ
+    if not environ.get('CLEAR_OCR_WORKER_SOURCE'):
+        return None
+    if not all(environ.get(key) for key in ('CLEAR_OCR_WORKER_SOURCE_MANIFEST', 'CLEAR_OCR_WORKER_BINDING_SHA256')):
+        raise ValueError('OCR worker source requires a complete verified binding')
+    source_path = Path(environ['CLEAR_OCR_WORKER_SOURCE']).absolute()
+    manifest_path = Path(environ['CLEAR_OCR_WORKER_SOURCE_MANIFEST']).absolute()
+    source, manifest = source_path.resolve(), manifest_path.resolve()
+    if any(path.drive.upper() != 'F:' for path in (source_path, manifest_path, source, manifest)):
+        raise ValueError('OCR worker source and manifest must remain on local F drive')
+    data = manifest.read_bytes()
+    if hashlib.sha256(data).hexdigest() != environ['CLEAR_OCR_WORKER_BINDING_SHA256']:
+        raise ValueError('OCR worker binding identity changed')
+    binding = json.loads(data)
+    if binding.get('app_id') != 'ocr' or Path(binding['worker_source']).resolve() != source:
+        raise ValueError('OCR worker source differs from its verified binding')
+    declared = set()
+    for item in binding['worker_source_files']:
+        relative = Path(item['path'])
+        member = (source / relative).resolve()
+        if relative.is_absolute() or '..' in relative.parts or not member.is_relative_to(source) or item['path'] in declared:
+            raise ValueError('OCR worker source declaration is invalid')
+        declared.add(item['path'])
+        if hashlib.sha256(member.read_bytes()).hexdigest() != item['sha256']:
+            raise ValueError('OCR worker source payload changed')
+    actual = {member.relative_to(source).as_posix() for member in (source / 'ocr_workbench').rglob('*') if member.is_file()}
+    if actual != declared or not {'ocr_workbench/engine_host.py', 'ocr_workbench/worker.py', 'ocr_workbench/adapter.py'} <= actual:
+        raise ValueError('OCR worker source has missing or undeclared modules')
+    return source
 
 
 def runtime_path(runtime, system_root):
@@ -38,9 +115,10 @@ def check_recognition_result(result, *, allow_empty=False):
 
 class EngineAdapter:
     def __init__(self, bundle, engine, session_root, *, worker_source=None):
+        self.load_timeout_seconds = loading_timeout()
         self.bundle = Path(bundle).resolve()
         self.engine = engine
-        self.worker_source = Path(worker_source).resolve() if worker_source else None
+        self.worker_source = Path(worker_source).resolve() if worker_source else configured_worker_source()
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
@@ -57,6 +135,10 @@ class EngineAdapter:
         self.reservation = None
         self.cancelled = threading.Event()
         self.load_seconds = 0
+        self.process_start_seconds = 0
+        self.load_wait_seconds = 0
+        self.load_progress = None
+        self.progress_callback = None
         self.ready = False
         self.geometry_provider = 'paddle'
 
@@ -67,7 +149,8 @@ class EngineAdapter:
             raise ValueError('Unknown geometry provider')
         self.geometry_provider = provider
         # Use the running application's reviewed source, including its protocol.
-        self.worker_source = Path(__file__).resolve().parents[1]
+        if self.worker_source is None:
+            self.worker_source = Path(__file__).resolve().parents[1]
 
     def load(self):
         if self.cancelled.is_set():
@@ -85,6 +168,9 @@ class EngineAdapter:
             raise
 
     def _load(self):
+        configured_source = configured_worker_source()
+        if configured_source is not None and self.worker_source != configured_source:
+            raise ValueError('Worker source differs from the verified private binding')
         gpu_required = self.reservation is not None or not (
             self.engine == 'geometry' and self.geometry_provider == 'rapidtable')
         if gpu_required:
@@ -103,20 +189,25 @@ class EngineAdapter:
         self.log = (self.ipc / "engine.log").open("w", encoding="utf-8")
         command = [str(runtime), "-B", "-X", "utf8", "-I"]
         if self.worker_source:
-            command += ["-c", "import sys,runpy;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('ocr_workbench.engine_host',run_name='__main__')", str(self.worker_source)]
+            command += ['-c', WORKER_BOOTSTRAP, str(self.worker_source)]
         else:
             command += ["-m", "ocr_workbench.engine_host"]
         command += ["--bundle", str(self.bundle), "--engine", self.engine, "--ipc", str(self.ipc)]
         if self.engine == 'geometry':
             command += ['--geometry-provider', self.geometry_provider]
+        process_started = time.perf_counter()
         self.process = subprocess.Popen(command, stdout=self.log, stderr=subprocess.STDOUT,
                                         env=environment, creationflags=subprocess.CREATE_NO_WINDOW)
+        self.process_start_seconds = time.perf_counter() - process_started
         self.job.assign(self.process)
         if self.reservation:
             self.reservation.track(self.process, self.job)
-        status = self.wait_for(self.ipc / "status.json", 240)
+        load_wait_started = time.perf_counter()
+        status = self.wait_for(self.ipc / "status.json", self.load_timeout_seconds, stage='load')
+        self.load_wait_seconds = time.perf_counter() - load_wait_started
         if status["status"] != "ready":
-            raise RuntimeError(status.get("message", "引擎加载失败"))
+            raise EngineFailure('engine_load_failed', 'load', '引擎权重加载失败；尚未开始识别。',
+                                user_action='查看该尝试的引擎日志、模型安装和可用资源；修复后再明确继续。')
         self.load_seconds = status["load_seconds"]
         self.ready = True
 
@@ -135,19 +226,31 @@ class EngineAdapter:
             self.gpu_lock = None
             raise RuntimeError("另一个 OCR 实例正在使用 GPU，请稍后重试")
 
-    def wait_for(self, path, timeout):
+    def wait_for(self, path, timeout, *, stage='inference'):
         deadline = time.monotonic() + timeout
+        next_progress_check = 0
         while time.monotonic() < deadline:
             if self.cancelled.is_set():
                 raise Cancelled("任务已取消")
             if path.exists():
                 return read_json(path)
+            if stage == 'load' and time.monotonic() >= next_progress_check:
+                next_progress_check = time.monotonic() + 1
+                progress_path = self.ipc / 'load-progress.json'
+                if progress_path.is_file():
+                    progress = read_json(progress_path)
+                    if progress != self.load_progress:
+                        self.load_progress = progress
+                        if self.progress_callback is not None:
+                            self.progress_callback(progress)
             if self.process is None or self.process.poll() is not None:
-                raise RuntimeError(f'引擎异常退出，请查看 {self.ipc / "engine.log"}')
+                raise EngineFailure('engine_worker_exited', stage, '引擎进程异常退出。',
+                    accepted_write=stage != 'load', user_action='查看该尝试的引擎日志；先核实原请求与进程状态，再明确恢复或创建新尝试。')
             self.cancelled.wait(0.05)
-        raise TimeoutError("识别超时，请缩小图片或换用其他引擎")
+        raise EngineTimeout(stage)
 
     def recognize(self, image, output, geometry_request=None, *, allow_empty=False):
+        request_started = time.perf_counter()
         key = uuid.uuid4().hex
         response = self.ipc / "response.json"
         response.unlink(missing_ok=True)
@@ -156,8 +259,12 @@ class EngineAdapter:
             {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
         )
         reply = self.wait_for(response, 900)
-        if reply.get("id") != key or reply["status"] != "success":
-            raise RuntimeError(reply.get("message", "识别失败"))
+        if reply.get('id') != key:
+            raise EngineFailure('engine_response_unknown', 'inference', '引擎响应身份无法核实；原请求不得自动重发。',
+                accepted_write=True, user_action='保留原尝试身份，检查回执和输出；核实处理结果后再继续。')
+        if reply['status'] != 'success':
+            raise EngineFailure('engine_inference_failed', 'inference', '引擎已接受请求，但识别执行失败。',
+                accepted_write=True, user_action='查看该尝试的引擎日志；按具体原因修复或选择用户允许的后备引擎。')
         if self.engine == "geometry":
             result = read_json(Path(output) / 'geometry.json')
             if result.get('status') != 'success':
@@ -176,6 +283,10 @@ class EngineAdapter:
             "id": self.ipc.name,
             "load_seconds": self.load_seconds,
             "pid": self.process.pid,
+            'process_start_seconds': self.process_start_seconds,
+            'load_wait_seconds': self.load_wait_seconds,
+            'load_timeout_seconds': self.load_timeout_seconds,
+            'request_response_seconds': time.perf_counter() - request_started,
         }
         return result
 
