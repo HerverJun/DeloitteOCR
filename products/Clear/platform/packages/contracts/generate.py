@@ -21,6 +21,12 @@ from .agent import AGENT_MODELS
 from .agent_openapi import agent_paths
 from .multimodal import MULTIMODAL_MODELS, multimodal_paths
 from .tasks import TASK_MODELS, task_paths
+from .direct import ImageTextRequest, PdfTextRequest
+from .direct_data import DataActionRequest
+from .direct_classification import PredictRequest
+from .agent_integrations import Integrations
+
+DIRECT_MODELS = [ImageTextRequest, PdfTextRequest, DataActionRequest, PredictRequest, Integrations]
 
 ROOT = Path(__file__).resolve().parent
 NAMES = {
@@ -38,7 +44,7 @@ def dump(value: object) -> str:
 
 def components() -> dict[str, dict]:
     result = {}
-    for model in [*MODELS, *AUTOMATION_MODELS, *AUDIT_MODELS, *UPLOAD_MODELS, *FORENSICS_MODELS, *AGENT_MODELS, *MULTIMODAL_MODELS, *TASK_MODELS]:
+    for model in [*MODELS, *AUTOMATION_MODELS, *AUDIT_MODELS, *UPLOAD_MODELS, *FORENSICS_MODELS, *AGENT_MODELS, *MULTIMODAL_MODELS, *TASK_MODELS, *DIRECT_MODELS]:
         schema = model.model_json_schema()
         definitions = schema.pop("$defs", {})
         for name, definition in definitions.items():
@@ -54,8 +60,12 @@ def components() -> dict[str, dict]:
 
 def rewrite_refs(value):
     if isinstance(value, dict):
-        return {key: (item.replace("#/$defs/", "#/components/schemas/") if key == "$ref" else rewrite_refs(item))
-                for key, item in value.items()}
+        result = {key: (item.replace("#/$defs/", "#/components/schemas/") if key == "$ref" else rewrite_refs(item))
+                  for key, item in value.items()}
+        if isinstance(result.get('discriminator'), dict) and isinstance(result['discriminator'].get('mapping'), dict):
+            result['discriminator']['mapping'] = {key: item.replace('#/$defs/', '#/components/schemas/')
+                for key, item in result['discriminator']['mapping'].items()}
+        return result
     if isinstance(value, list):
         return [rewrite_refs(item) for item in value]
     return value
@@ -71,6 +81,8 @@ def ts_type(schema: dict) -> str:
         return schema["$ref"][len(prefix):]
     if "anyOf" in schema:
         return " | ".join(ts_type(part) for part in schema["anyOf"])
+    if "oneOf" in schema:
+        return " | ".join(ts_type(part) for part in schema["oneOf"])
     if "const" in schema:
         return json.dumps(schema["const"])
     if "enum" in schema:
@@ -293,6 +305,8 @@ def artifacts() -> dict[Path, str]:
         result[ROOT / ('manual-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
     for model in TASK_MODELS:
         result[ROOT / ('task-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
+    for model in DIRECT_MODELS:
+        result[ROOT / ('direct-' + model.__name__.lower() + '.schema.json')] = dump(model.model_json_schema())
     definitions = components()
     result[ROOT / "adapter.openapi.json"] = dump(openapi(definitions))
     result[ROOT / "types.generated.ts"] = render_types(definitions)

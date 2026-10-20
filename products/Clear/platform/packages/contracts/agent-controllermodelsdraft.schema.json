@@ -1,6 +1,19 @@
 {
   "additionalProperties": false,
   "properties": {
+    "active_seconds_limit": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Active Seconds Limit"
+    },
     "api_key": {
       "default": "",
       "maxLength": 8192,
@@ -14,15 +27,15 @@
       "type": "string"
     },
     "context_cap": {
-      "default": 16384,
-      "maximum": 200000,
+      "default": 65536,
+      "maximum": 9007199254740991,
       "minimum": 4096,
       "title": "Context Cap",
       "type": "integer"
     },
     "max_output_tokens": {
       "default": 2048,
-      "maximum": 8192,
+      "maximum": 9007199254740991,
       "minimum": 256,
       "title": "Max Output Tokens",
       "type": "integer"
@@ -33,6 +46,34 @@
       "title": "Model",
       "type": "string"
     },
+    "model_context_window": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Context Window"
+    },
+    "model_max_output_tokens": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Max Output Tokens"
+    },
     "protocol": {
       "enum": [
         "openai_chat_completions",
@@ -41,9 +82,55 @@
       "title": "Protocol",
       "type": "string"
     },
+    "round_limit": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Round Limit"
+    },
+    "runtime_context_cap": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 4096,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Runtime Context Cap"
+    },
+    "safety_margin_tokens": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Safety Margin Tokens"
+    },
     "streaming": {
       "default": true,
       "title": "Streaming",
+      "type": "boolean"
+    },
+    "supports_images": {
+      "default": false,
+      "title": "Supports Images",
       "type": "boolean"
     },
     "token_parameter": {
@@ -54,6 +141,19 @@
       ],
       "title": "Token Parameter",
       "type": "string"
+    },
+    "tool_limit": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Limit"
     },
     "total_seconds": {
       "default": 180,

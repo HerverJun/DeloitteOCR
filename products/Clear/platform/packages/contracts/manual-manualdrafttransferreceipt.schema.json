@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "asset": {
+      "additionalProperties": true,
+      "title": "Asset",
+      "type": "object"
+    },
+    "draft": {
+      "const": true,
+      "title": "Draft",
+      "type": "boolean"
+    },
+    "job": {
+      "additionalProperties": true,
+      "title": "Job",
+      "type": "object"
+    },
+    "location": {
+      "title": "Location",
+      "type": "string"
+    },
+    "review_state": {
+      "const": "unreviewed",
+      "title": "Review State",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+      "title": "Snapshot Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "job",
+    "asset",
+    "snapshot_id",
+    "draft",
+    "review_state",
+    "location"
+  ],
+  "title": "ManualDraftTransferReceipt",
+  "type": "object"
+}

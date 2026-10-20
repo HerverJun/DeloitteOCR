@@ -38,7 +38,8 @@
             "data",
             "ocr",
             "classification",
-            "forensics"
+            "forensics",
+            "multimodal"
           ],
           "title": "Application",
           "type": "string"

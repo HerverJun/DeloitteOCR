@@ -1,6 +1,71 @@
 {
   "components": {
     "schemas": {
+      "ActionStep": {
+        "additionalProperties": false,
+        "properties": {
+          "side": {
+            "default": "left",
+            "enum": [
+              "left",
+              "right"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "step": {
+            "discriminator": {
+              "mapping": {
+                "cast": "#/components/schemas/Cast",
+                "duplicates": "#/components/schemas/Duplicates",
+                "filter": "#/components/schemas/Filter",
+                "filter_compare": "#/components/schemas/TypedCompare",
+                "group_summary": "#/components/schemas/GroupSummary",
+                "map": "#/components/schemas/MapValues",
+                "rename": "#/components/schemas/Rename",
+                "trim": "#/components/schemas/Trim",
+                "trim_columns": "#/components/schemas/TrimColumns"
+              },
+              "propertyName": "operator"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Trim"
+              },
+              {
+                "$ref": "#/components/schemas/TrimColumns"
+              },
+              {
+                "$ref": "#/components/schemas/Rename"
+              },
+              {
+                "$ref": "#/components/schemas/MapValues"
+              },
+              {
+                "$ref": "#/components/schemas/Cast"
+              },
+              {
+                "$ref": "#/components/schemas/Filter"
+              },
+              {
+                "$ref": "#/components/schemas/Duplicates"
+              },
+              {
+                "$ref": "#/components/schemas/TypedCompare"
+              },
+              {
+                "$ref": "#/components/schemas/GroupSummary"
+              }
+            ],
+            "title": "Step"
+          }
+        },
+        "required": [
+          "step"
+        ],
+        "title": "ActionStep",
+        "type": "object"
+      },
       "AgentCall": {
         "additionalProperties": false,
         "properties": {
@@ -17,7 +82,7 @@
             "type": "string"
           },
           "tool": {
-            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
             "title": "Tool",
             "type": "string"
           }
@@ -81,7 +146,8 @@
                   "data",
                   "ocr",
                   "classification",
-                  "forensics"
+                  "forensics",
+                  "multimodal"
                 ],
                 "type": "string"
               },
@@ -467,7 +533,9 @@
               "finalizing",
               "completed",
               "stopped",
-              "failed"
+              "failed",
+              "compacting",
+              "paused"
             ],
             "title": "Phase",
             "type": "string"
@@ -544,7 +612,8 @@
               "data",
               "ocr",
               "classification",
-              "forensics"
+              "forensics",
+              "multimodal"
             ],
             "title": "Application",
             "type": "string"
@@ -903,6 +972,25 @@
       "AgentSessionCreate": {
         "additionalProperties": false,
         "properties": {
+          "authorized_reference_ids": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Authorized Reference Ids",
+            "type": "array"
+          },
+          "delivery_policy": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "draft",
+              "reviewed"
+            ],
+            "title": "Delivery Policy",
+            "type": "string"
+          },
           "initial_refs": {
             "items": {
               "$ref": "#/components/schemas/AgentRef"
@@ -1033,6 +1121,40 @@
       "AgentTaskWrite": {
         "additionalProperties": false,
         "properties": {
+          "authorized_reference_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Authorized Reference Ids"
+          },
+          "delivery_policy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "auto",
+                  "draft",
+                  "reviewed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Delivery Policy"
+          },
           "expected_revision": {
             "minimum": 1,
             "title": "Expected Revision",
@@ -5049,6 +5171,117 @@
         "title": "BatchTemplateCreate",
         "type": "object"
       },
+      "Cast": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "operator": {
+            "const": "cast",
+            "title": "Operator",
+            "type": "string"
+          },
+          "target": {
+            "enum": [
+              "decimal",
+              "integer",
+              "boolean",
+              "date"
+            ],
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "column",
+          "target"
+        ],
+        "title": "Cast",
+        "type": "object"
+      },
+      "CompareSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_pairs": {
+            "description": "金额列对必须同时出现在 compare_pairs 中",
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "maxItems": 256,
+            "title": "Amount Pairs",
+            "type": "array"
+          },
+          "amount_tolerance": {
+            "default": "0",
+            "pattern": "^\\d+(\\.\\d+)?$",
+            "title": "Amount Tolerance",
+            "type": "string"
+          },
+          "casefold_text": {
+            "default": false,
+            "title": "Casefold Text",
+            "type": "boolean"
+          },
+          "compare_pairs": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "maxItems": 256,
+            "title": "Compare Pairs",
+            "type": "array"
+          },
+          "key_pairs": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Key Pairs",
+            "type": "array"
+          },
+          "null_policy": {
+            "default": "never_match",
+            "enum": [
+              "never_match",
+              "equal"
+            ],
+            "title": "Null Policy",
+            "type": "string"
+          },
+          "trim_text": {
+            "default": false,
+            "title": "Trim Text",
+            "type": "boolean"
+          },
+          "type_policy": {
+            "default": "strict",
+            "enum": [
+              "strict",
+              "text"
+            ],
+            "title": "Type Policy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key_pairs"
+        ],
+        "title": "CompareSpec",
+        "type": "object"
+      },
       "ContextIssueRequest": {
         "additionalProperties": false,
         "properties": {
@@ -5123,6 +5356,19 @@
       "ControllerDraft": {
         "additionalProperties": false,
         "properties": {
+          "active_seconds_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Active Seconds Limit"
+          },
           "api_key": {
             "default": "",
             "maxLength": 8192,
@@ -5136,15 +5382,15 @@
             "type": "string"
           },
           "context_cap": {
-            "default": 16384,
-            "maximum": 200000,
+            "default": 65536,
+            "maximum": 9007199254740991,
             "minimum": 4096,
             "title": "Context Cap",
             "type": "integer"
           },
           "max_output_tokens": {
             "default": 2048,
-            "maximum": 8192,
+            "maximum": 9007199254740991,
             "minimum": 256,
             "title": "Max Output Tokens",
             "type": "integer"
@@ -5155,6 +5401,34 @@
             "title": "Model",
             "type": "string"
           },
+          "model_context_window": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Context Window"
+          },
+          "model_max_output_tokens": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Max Output Tokens"
+          },
           "protocol": {
             "enum": [
               "openai_chat_completions",
@@ -5163,9 +5437,55 @@
             "title": "Protocol",
             "type": "string"
           },
+          "round_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Round Limit"
+          },
+          "runtime_context_cap": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 4096,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Context Cap"
+          },
+          "safety_margin_tokens": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Safety Margin Tokens"
+          },
           "streaming": {
             "default": true,
             "title": "Streaming",
+            "type": "boolean"
+          },
+          "supports_images": {
+            "default": false,
+            "title": "Supports Images",
             "type": "boolean"
           },
           "token_parameter": {
@@ -5176,6 +5496,19 @@
             ],
             "title": "Token Parameter",
             "type": "string"
+          },
+          "tool_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Limit"
           },
           "total_seconds": {
             "default": 180,
@@ -5196,6 +5529,19 @@
       "ControllerModelsDraft": {
         "additionalProperties": false,
         "properties": {
+          "active_seconds_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Active Seconds Limit"
+          },
           "api_key": {
             "default": "",
             "maxLength": 8192,
@@ -5209,15 +5555,15 @@
             "type": "string"
           },
           "context_cap": {
-            "default": 16384,
-            "maximum": 200000,
+            "default": 65536,
+            "maximum": 9007199254740991,
             "minimum": 4096,
             "title": "Context Cap",
             "type": "integer"
           },
           "max_output_tokens": {
             "default": 2048,
-            "maximum": 8192,
+            "maximum": 9007199254740991,
             "minimum": 256,
             "title": "Max Output Tokens",
             "type": "integer"
@@ -5228,6 +5574,34 @@
             "title": "Model",
             "type": "string"
           },
+          "model_context_window": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Context Window"
+          },
+          "model_max_output_tokens": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Max Output Tokens"
+          },
           "protocol": {
             "enum": [
               "openai_chat_completions",
@@ -5236,9 +5610,55 @@
             "title": "Protocol",
             "type": "string"
           },
+          "round_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Round Limit"
+          },
+          "runtime_context_cap": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 4096,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Context Cap"
+          },
+          "safety_margin_tokens": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Safety Margin Tokens"
+          },
           "streaming": {
             "default": true,
             "title": "Streaming",
+            "type": "boolean"
+          },
+          "supports_images": {
+            "default": false,
+            "title": "Supports Images",
             "type": "boolean"
           },
           "token_parameter": {
@@ -5249,6 +5669,19 @@
             ],
             "title": "Token Parameter",
             "type": "string"
+          },
+          "tool_limit": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Limit"
           },
           "total_seconds": {
             "default": 180,
@@ -5320,6 +5753,94 @@
           "pending"
         ],
         "title": "Counts",
+        "type": "object"
+      },
+      "DataActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "clean",
+              "compare"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "compare_spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompareSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "expected_scope_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Scope Revision"
+          },
+          "left_asset_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Left Asset Id",
+            "type": "string"
+          },
+          "left_options": {
+            "$ref": "#/components/schemas/InputOptions"
+          },
+          "name": {
+            "default": "明确数据处理",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "right_asset_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Right Asset Id"
+          },
+          "right_options": {
+            "$ref": "#/components/schemas/InputOptions"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ActionStep"
+            },
+            "maxItems": 32,
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "request_id",
+          "action",
+          "left_asset_id"
+        ],
+        "title": "DataActionRequest",
         "type": "object"
       },
       "DecimalValue": {
@@ -5515,6 +6036,36 @@
           "project_context_revision"
         ],
         "title": "DraftTransferSource",
+        "type": "object"
+      },
+      "Duplicates": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Columns",
+            "type": "array"
+          },
+          "include_null": {
+            "default": false,
+            "title": "Include Null",
+            "type": "boolean"
+          },
+          "operator": {
+            "const": "duplicates",
+            "title": "Operator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "columns"
+        ],
+        "title": "Duplicates",
         "type": "object"
       },
       "Error": {
@@ -5790,6 +6341,53 @@
           "source"
         ],
         "title": "EvidenceValue",
+        "type": "object"
+      },
+      "Filter": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "operator": {
+            "const": "filter",
+            "title": "Operator",
+            "type": "string"
+          },
+          "predicate": {
+            "enum": [
+              "equals",
+              "not_equals",
+              "is_null",
+              "not_null"
+            ],
+            "title": "Predicate",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Value"
+          }
+        },
+        "required": [
+          "operator",
+          "column",
+          "predicate"
+        ],
+        "title": "Filter",
         "type": "object"
       },
       "ForensicBundle": {
@@ -6130,6 +6728,39 @@
         "title": "ForensicEvidenceSnapshot",
         "type": "object"
       },
+      "GroupSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "title": "Amount Columns",
+            "type": "array"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Columns",
+            "type": "array"
+          },
+          "operator": {
+            "const": "group_summary",
+            "title": "Operator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "columns"
+        ],
+        "title": "GroupSummary",
+        "type": "object"
+      },
       "HandoffItem": {
         "additionalProperties": false,
         "properties": {
@@ -6330,6 +6961,56 @@
         "title": "Health",
         "type": "object"
       },
+      "ImageTextRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "engines": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Engines",
+            "type": "array"
+          },
+          "expected_scope_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Scope Revision"
+          },
+          "link_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Link Id"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "title": "ImageTextRequest",
+        "type": "object"
+      },
       "ImportOptions": {
         "additionalProperties": false,
         "properties": {
@@ -6361,6 +7042,56 @@
           "duplicate_policy"
         ],
         "title": "ImportOptions",
+        "type": "object"
+      },
+      "InputOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "delimiter": {
+            "default": ",",
+            "enum": [
+              ",",
+              "\t",
+              ";",
+              "|"
+            ],
+            "title": "Delimiter",
+            "type": "string"
+          },
+          "encoding": {
+            "default": "utf-8-sig",
+            "enum": [
+              "utf-8",
+              "utf-8-sig",
+              "gb18030",
+              "utf-16"
+            ],
+            "title": "Encoding",
+            "type": "string"
+          },
+          "header_row": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Header Row",
+            "type": "integer"
+          },
+          "sheet_name": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sheet Name"
+          }
+        },
+        "title": "InputOptions",
         "type": "object"
       },
       "Inspection": {
@@ -6721,6 +7452,32 @@
           "note"
         ],
         "title": "InspectionReview",
+        "type": "object"
+      },
+      "Integrations": {
+        "additionalProperties": false,
+        "properties": {
+          "mcp_servers": {
+            "items": {
+              "$ref": "#/components/schemas/McpServer"
+            },
+            "maxItems": 20,
+            "title": "Mcp Servers",
+            "type": "array"
+          },
+          "revision": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "subagents": {
+            "default": true,
+            "title": "Subagents",
+            "type": "boolean"
+          }
+        },
+        "title": "Integrations",
         "type": "object"
       },
       "ItemEvidence": {
@@ -7284,6 +8041,15 @@
             "title": "Progress",
             "type": "object"
           },
+          "purpose": {
+            "default": "analysis",
+            "enum": [
+              "analysis",
+              "preparation"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
           "request_id": {
             "maxLength": 64,
             "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
@@ -7449,6 +8215,151 @@
         "title": "ManualAnalysisPage",
         "type": "object"
       },
+      "ManualControl": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_generation": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Generation"
+          },
+          "expected_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Revision"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Id"
+          }
+        },
+        "title": "ManualControl",
+        "type": "object"
+      },
+      "ManualDraftTransfer": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Revision"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Id"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Id"
+          }
+        },
+        "title": "ManualDraftTransfer",
+        "type": "object"
+      },
+      "ManualDraftTransferReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "asset": {
+            "additionalProperties": true,
+            "title": "Asset",
+            "type": "object"
+          },
+          "draft": {
+            "const": true,
+            "title": "Draft",
+            "type": "boolean"
+          },
+          "job": {
+            "additionalProperties": true,
+            "title": "Job",
+            "type": "object"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "review_state": {
+            "const": "unreviewed",
+            "title": "Review State",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "job",
+          "asset",
+          "snapshot_id",
+          "draft",
+          "review_state",
+          "location"
+        ],
+        "title": "ManualDraftTransferReceipt",
+        "type": "object"
+      },
       "ManualEvidenceSelection": {
         "additionalProperties": false,
         "properties": {
@@ -7537,6 +8448,55 @@
         "title": "ManualInput",
         "type": "object"
       },
+      "ManualOperationReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "found": {
+            "title": "Found",
+            "type": "boolean"
+          },
+          "operation_type": {
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "resource_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Id"
+          }
+        },
+        "required": [
+          "found",
+          "operation_type",
+          "request_id",
+          "resource_id",
+          "receipt"
+        ],
+        "title": "ManualOperationReceipt",
+        "type": "object"
+      },
       "ManualOptions": {
         "additionalProperties": false,
         "properties": {
@@ -7588,6 +8548,24 @@
             "title": "Face Indices",
             "type": "array"
           },
+          "reference_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                  "type": "string"
+                },
+                "maxItems": 1000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reference Ids"
+          },
           "threshold": {
             "default": 0.363,
             "maximum": 1,
@@ -7604,6 +8582,40 @@
           }
         },
         "title": "ManualOptions",
+        "type": "object"
+      },
+      "ManualReferenceDelete": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Revision"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Id"
+          }
+        },
+        "title": "ManualReferenceDelete",
         "type": "object"
       },
       "ManualRegion": {
@@ -7652,6 +8664,120 @@
           "note"
         ],
         "title": "ManualRegion",
+        "type": "object"
+      },
+      "ManualResultSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis": {
+            "$ref": "#/components/schemas/ManualAnalysis"
+          },
+          "generation": {
+            "minimum": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "job_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "face",
+              "audio",
+              "seal",
+              "catnet"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model_identity": {
+            "additionalProperties": true,
+            "title": "Model Identity",
+            "type": "object"
+          },
+          "reference_scope": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Reference Scope",
+            "type": "array"
+          },
+          "result_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Result Hash",
+            "type": "string"
+          },
+          "review_revision": {
+            "minimum": 0,
+            "title": "Review Revision",
+            "type": "integer"
+          },
+          "review_state": {
+            "enum": [
+              "reviewed",
+              "unreviewed"
+            ],
+            "title": "Review State",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "workspace_id": {
+            "maxLength": 64,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_id",
+          "workspace_id",
+          "job_id",
+          "kind",
+          "generation",
+          "revision",
+          "review_revision",
+          "result_hash",
+          "model_identity",
+          "sources",
+          "reference_scope",
+          "review_state",
+          "analysis",
+          "snapshot_hash"
+        ],
+        "title": "ManualResultSnapshot",
         "type": "object"
       },
       "ManualReview": {
@@ -7759,6 +8885,116 @@
           "source"
         ],
         "title": "ManualSegment",
+        "type": "object"
+      },
+      "MapValues": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "operator": {
+            "const": "map",
+            "title": "Operator",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 1000,
+            "minProperties": 1,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "operator",
+          "column",
+          "values"
+        ],
+        "title": "MapValues",
+        "type": "object"
+      },
+      "McpServer": {
+        "additionalProperties": false,
+        "properties": {
+          "args": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Args",
+            "type": "array"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Command"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 100,
+            "title": "Env",
+            "type": "object"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 50,
+            "title": "Headers",
+            "type": "object"
+          },
+          "name": {
+            "pattern": "^[A-Za-z0-9_-]{1,32}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "transport": {
+            "enum": [
+              "stdio",
+              "streamable-http"
+            ],
+            "title": "Transport",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          }
+        },
+        "required": [
+          "name",
+          "transport"
+        ],
+        "title": "McpServer",
         "type": "object"
       },
       "ModuleProjectLink": {
@@ -8043,6 +9279,160 @@
           "limit"
         ],
         "title": "PageQuery",
+        "type": "object"
+      },
+      "PdfTextRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "default": "ppocr",
+            "enum": [
+              "ppocr",
+              "paddlevl",
+              "glm",
+              "hunyuan"
+            ],
+            "title": "Engine",
+            "type": "string"
+          },
+          "expected_scope_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Scope Revision"
+          },
+          "link_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Link Id"
+          },
+          "mode": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "native",
+              "ocr"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "page_numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Page Numbers",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "page_numbers"
+        ],
+        "title": "PdfTextRequest",
+        "type": "object"
+      },
+      "PredictRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "device": {
+            "default": "cpu",
+            "enum": [
+              "cpu",
+              "cuda"
+            ],
+            "title": "Device",
+            "type": "string"
+          },
+          "expected_scope_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Scope Revision"
+          },
+          "link_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Link Id"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Id"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Name"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "use_existing_model": {
+            "default": false,
+            "title": "Use Existing Model",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "title": "PredictRequest",
         "type": "object"
       },
       "ProcessingBatch": {
@@ -8357,6 +9747,34 @@
           "items"
         ],
         "title": "RecentWorkPage",
+        "type": "object"
+      },
+      "Rename": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "header": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Header",
+            "type": "string"
+          },
+          "operator": {
+            "const": "rename",
+            "title": "Operator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "column",
+          "header"
+        ],
+        "title": "Rename",
         "type": "object"
       },
       "ResourceGrant": {
@@ -10519,6 +11937,114 @@
         "title": "TodoQuery",
         "type": "object"
       },
+      "Trim": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "operator": {
+            "const": "trim",
+            "title": "Operator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "column"
+        ],
+        "title": "Trim",
+        "type": "object"
+      },
+      "TrimColumns": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Columns",
+            "type": "array"
+          },
+          "operator": {
+            "const": "trim_columns",
+            "title": "Operator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "columns"
+        ],
+        "title": "TrimColumns",
+        "type": "object"
+      },
+      "TypedCompare": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "pattern": "^c[1-9][0-9]{0,2}$",
+            "title": "Column",
+            "type": "string"
+          },
+          "operator": {
+            "const": "filter_compare",
+            "title": "Operator",
+            "type": "string"
+          },
+          "predicate": {
+            "enum": [
+              "gt",
+              "ge",
+              "lt",
+              "le",
+              "between"
+            ],
+            "title": "Predicate",
+            "type": "string"
+          },
+          "upper": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Upper"
+          },
+          "value": {
+            "maxLength": 4096,
+            "title": "Value",
+            "type": "string"
+          },
+          "value_kind": {
+            "enum": [
+              "decimal",
+              "date",
+              "text"
+            ],
+            "title": "Value Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator",
+          "column",
+          "predicate",
+          "value_kind",
+          "value"
+        ],
+        "title": "TypedCompare",
+        "type": "object"
+      },
       "UploadBinding": {
         "additionalProperties": false,
         "properties": {
@@ -11284,6 +12810,54 @@
         ]
       }
     },
+    "/api/platform/v1/agent/integrations": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      },
+      "put": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Integrations"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
     "/api/platform/v1/agent/runs/{run_id}": {
       "get": {
         "parameters": [
@@ -11334,6 +12908,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AgentCancel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/runs/{run_id}/pause": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object"
               }
             }
           },
@@ -11414,6 +13030,212 @@
         ],
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/compact": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/direct/classification-predict": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/direct/data-action": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/direct/image-text": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/direct/pdf-text": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PdfTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
             "content": {
               "application/json": {
                 "schema": {
@@ -11614,6 +13436,96 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/findings/{draft_id}/revisions/{revision}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sha256",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/jobs": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -11864,6 +13776,65 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Durable scoped Agent projection"
+          }
+        },
+        "tags": [
+          "platform-agent"
+        ]
+      }
+    },
+    "/api/platform/v1/agent/sessions/{session_id}/results/text": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reference",
+            "required": true,
+            "schema": {
+              "maxLength": 16000,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 8000,
+              "maximum": 32000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -17486,6 +19457,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualControl"
+              }
+            }
+          },
+          "required": false
+        },
         "responses": {
           "200": {
             "content": {
@@ -17582,6 +19563,95 @@
         }
       }
     },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/draft-to-data": {
+      "post": {
+        "operationId": "manualDraftToData",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualDraftTransfer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualDraftTransferReceipt"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/review": {
       "post": {
         "operationId": "reviewManualAnalysis",
@@ -17623,6 +19693,397 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ManualAnalysis"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/snapshot": {
+      "get": {
+        "operationId": "currentManualResultSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualResultSnapshot"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/snapshots/{snapshot_id}": {
+      "get": {
+        "operationId": "getManualResultSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualResultSnapshot"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/snapshots/{snapshot_id}/download": {
+      "get": {
+        "operationId": "exportManualResultSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Immutable snapshot ZIP with draft/reviewed state"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/jobs/{job_id}/snapshots/{snapshot_id}/files/{name}": {
+      "get": {
+        "operationId": "getManualSnapshotOutput",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hash-verified immutable output"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/platform/v1/workspaces/{workspace_id}/multimodal/operations/{operation_type}/{request_id}": {
+      "get": {
+        "operationId": "lookupManualOperation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "operation_type",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualOperationReceipt"
                 }
               }
             },

@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "found": {
+      "title": "Found",
+      "type": "boolean"
+    },
+    "operation_type": {
+      "title": "Operation Type",
+      "type": "string"
+    },
+    "receipt": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Receipt"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "resource_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resource Id"
+    }
+  },
+  "required": [
+    "found",
+    "operation_type",
+    "request_id",
+    "resource_id",
+    "receipt"
+  ],
+  "title": "ManualOperationReceipt",
+  "type": "object"
+}

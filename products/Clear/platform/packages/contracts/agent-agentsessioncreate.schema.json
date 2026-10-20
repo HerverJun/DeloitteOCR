@@ -10,7 +10,8 @@
             "data",
             "ocr",
             "classification",
-            "forensics"
+            "forensics",
+            "multimodal"
           ],
           "title": "Application",
           "type": "string"
@@ -126,6 +127,25 @@
   },
   "additionalProperties": false,
   "properties": {
+    "authorized_reference_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Authorized Reference Ids",
+      "type": "array"
+    },
+    "delivery_policy": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "draft",
+        "reviewed"
+      ],
+      "title": "Delivery Policy",
+      "type": "string"
+    },
     "initial_refs": {
       "items": {
         "$ref": "#/$defs/AgentRef"

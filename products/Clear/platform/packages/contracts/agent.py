@@ -18,7 +18,7 @@ class AgentRef(AgentModel):
     object_id: Identity
     revision: int | str
     sha256: Hash | None = None
-    application: Literal['platform', 'data', 'ocr', 'classification', 'forensics'] = 'platform'
+    application: Literal['platform', 'data', 'ocr', 'classification', 'forensics', 'multimodal'] = 'platform'
     native_id: Identity | None = None
     parent_id: Identity | None = None
     sources: list['AgentRef'] = Field(default_factory=list, max_length=100)
@@ -46,7 +46,7 @@ class AgentToolResult(AgentModel):
 
 class AgentCall(AgentModel):
     call_id: str = Field(min_length=1, max_length=256, pattern=r'^[A-Za-z0-9_-]+$')
-    tool: str = Field(pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    tool: str = Field(pattern=r'^[A-Za-z][A-Za-z0-9_-]{0,63}$')
     arguments: dict
 
 
@@ -56,15 +56,31 @@ class ControllerDraft(AgentModel):
     model: str = Field(min_length=1, max_length=256)
     api_key: str = Field(default='', max_length=8192, repr=False)
     token_parameter: Literal['max_tokens', 'max_completion_tokens'] = 'max_completion_tokens'
-    context_cap: int = Field(default=16384, ge=4096, le=200000)
-    max_output_tokens: int = Field(default=2048, ge=256, le=8192)
+    context_cap: int = Field(default=65536, ge=4096, le=2**53 - 1)
+    runtime_context_cap: int | None = Field(default=None, ge=4096, le=2**53 - 1)
+    model_context_window: int | None = Field(default=None, ge=1, le=2**53 - 1)
+    model_max_output_tokens: int | None = Field(default=None, ge=1, le=2**53 - 1)
+    safety_margin_tokens: int | None = Field(default=None, ge=0, le=2**53 - 1)
+    max_output_tokens: int = Field(default=2048, ge=256, le=2**53 - 1)
+    round_limit: int | None = Field(default=None, ge=1)
+    tool_limit: int | None = Field(default=None, ge=1)
+    active_seconds_limit: int | None = Field(default=None, ge=1)
     total_seconds: int = Field(default=180, ge=10, le=600)
     streaming: bool = True
+    supports_images: bool = False
 
     @model_validator(mode='after')
     def capacity(self):
-        if self.max_output_tokens > self.context_cap // 2:
+        if ({'context_cap', 'runtime_context_cap'} <= self.model_fields_set
+                and self.runtime_context_cap is not None and self.context_cap != self.runtime_context_cap):
+            raise ValueError('context_cap and runtime_context_cap must agree when both are supplied')
+        local = self.runtime_context_cap or self.context_cap
+        effective = min(local, self.model_context_window) if self.model_context_window else local
+        margin = self.safety_margin_tokens if self.safety_margin_tokens is not None else min(2048, max(256, effective // 32))
+        if self.max_output_tokens + margin >= effective:
             raise ValueError('Output exceeds context budget')
+        if self.model_max_output_tokens and self.max_output_tokens > self.model_max_output_tokens:
+            raise ValueError('Output exceeds declared model output capacity')
         return self
 
 
@@ -76,6 +92,8 @@ class AgentSessionCreate(AgentModel):
     name: str = Field(default='新任务', min_length=1, max_length=100)
     selected_assets: list[Identity] = Field(default_factory=list, max_length=100)
     initial_refs: list[AgentRef] = Field(default_factory=list, max_length=20)
+    authorized_reference_ids: list[Identity] = Field(default_factory=list, max_length=100)
+    delivery_policy: Literal['auto', 'draft', 'reviewed'] = 'auto'
     request_id: Identity
 
 
@@ -107,6 +125,8 @@ class AgentTaskWrite(AgentModel):
     goal: str | None = Field(default=None, max_length=16000)
     selected_assets: list[Identity] | None = Field(default=None, max_length=100)
     initial_refs: list[AgentRef] | None = Field(default=None, max_length=100)
+    authorized_reference_ids: list[Identity] | None = Field(default=None, max_length=100)
+    delivery_policy: Literal['auto', 'draft', 'reviewed'] | None = None
 
 
 class AgentTaskControl(AgentModel):
@@ -165,7 +185,7 @@ class AgentPublicActivity(AgentModel):
     generation: int = Field(ge=1)
     phase: Literal['preparing_request', 'model_wait', 'receiving_response', 'validating_calls',
                    'tool_dispatch', 'waiting_job', 'waiting_user', 'needs_verification',
-                   'finalizing', 'completed', 'stopped', 'failed']
+                   'finalizing', 'completed', 'stopped', 'failed', 'compacting', 'paused']
     request_id: str | None = None
     display_id: str | None = None
     tool: str | None = None
@@ -224,7 +244,7 @@ class AgentJobProgress(AgentModel):
     job_ref: AgentRef
     status: str
     stage: str | None = None
-    application: Literal['platform', 'data', 'ocr', 'classification', 'forensics'] | None = None
+    application: Literal['platform', 'data', 'ocr', 'classification', 'forensics', 'multimodal'] | None = None
     job_id: str | None = None
     native_kind: str | None = None
     counts: dict[str, int | None] = Field(default_factory=dict)
