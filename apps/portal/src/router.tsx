@@ -86,6 +86,7 @@ export const routes: RouteObject[] = [{
     { path: 'apps/audio', element: <MultimodalWorkbench kind="audio" /> },
     { path: 'apps/ocr/seals', element: <MultimodalWorkbench kind="seal" /> },
     { path: 'apps/forensics/deep', element: <MultimodalWorkbench kind="catnet" /> },
+    { path: 'apps/forensics/document', element: <MultimodalWorkbench kind="document_forensics" /> },
     { path: 'apps/ocr/start', element: <QuickNativeWorkbench appId="ocr" /> },
     { path: 'apps/classification/start', element: <QuickNativeWorkbench appId="classification" /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },

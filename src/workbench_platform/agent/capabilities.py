@@ -19,7 +19,8 @@ DECLARATIONS = (
     CapabilitySpec('face', '人脸分析', ('人脸', '比对', '参考检索'), ('人脸模型及验证回执',)),
     CapabilitySpec('audio', '音频分析', ('音频', '转写', '录音', '时间定位'), ('音频模型及验证回执',)),
     CapabilitySpec('seal', '印章识别', ('印章', '公章', '候选字段', '草稿'), ('印章模型及验证回执',)),
-    CapabilitySpec('catnet', '深度图像取证', ('CAT-Net', 'CATNet', '深度取证'), ('CAT-Net模型及验证回执',)),
+    CapabilitySpec('catnet', '深度图像取证', ('SAFIRE', 'CAT-Net', 'CATNet', '深度取证'), ('实际深度模型及本机工程验证回执',)),
+    CapabilitySpec('document_forensics', '文档篡改排查', ('改字', '金额篡改', '合同篡改', '文档取证'), ('SAFIRE模型及本机工程验证回执',)),
 )
 
 

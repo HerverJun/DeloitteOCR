@@ -7,7 +7,7 @@ P='/api/platform/v1'
 _ID=r'[A-Za-z0-9][A-Za-z0-9_-]{0,99}'
 
 def task_label(tool,action):
-    tools={'documents':'文档解析','ocr':'OCR','visual_review':'视觉审校','classification':'分类','data':'数据处理','forensics':'图像取证','face':'人脸比对','audio':'音频分析','seal':'印章分析','catnet':'深度取证','agent':'智能审计','batch':'批次','assets':'资料','artifact':'成果'}
+    tools={'documents':'文档解析','ocr':'OCR','visual_review':'视觉审校','classification':'分类','data':'数据处理','forensics':'图像取证','face':'人脸比对','audio':'音频分析','seal':'印章分析','catnet':'深度取证','document_forensics':'文档篡改排查','agent':'智能审计','batch':'批次','assets':'资料','artifact':'成果'}
     actions={'import':'导入','export':'导出','recognize':'识别','analyze':'分析','train':'训练','predict':'预测','evaluate':'评估','message':'执行','execute':'执行'}
     return tools.get(tool,tool)+' · '+actions.get(action,action)
 
@@ -42,7 +42,7 @@ def command_for(value):
     tool=value['tool_id']; action=value['action']; options=value.get('options',{})
     workspace=quote(value['workspace_id'],safe='')
     payload=dict(options.get('payload',options))
-    if tool in {'face','audio','seal','catnet'}:
+    if tool in {'face','audio','seal','catnet','document_forensics'}:
         path=f'{P}/workspaces/{workspace}/multimodal/jobs'
         payload={'schema_version':'1.0','kind':tool,'request_id':value['idempotency_key'],'inputs':value['inputs'],'options':options}
     elif tool=='documents':
@@ -83,7 +83,7 @@ def binding(command,body):
     if tool=='data':
         identifier=body.get('id') or body.get('job_id')
         return ('data.jobs',identifier,f'{P}/data/sessions/{groups[0]}/jobs/{identifier}') if identifier else None
-    if tool in {'face','audio','seal','catnet'}:
+    if tool in {'face','audio','seal','catnet','document_forensics'}:
         identifier=body.get('job_id')
         return ('manual.manual_analysis',identifier,f'{P}/workspaces/{groups[0]}/multimodal/jobs/{identifier}') if identifier else None
     if tool=='forensics' and command['action']!='export':

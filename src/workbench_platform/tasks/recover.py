@@ -44,7 +44,7 @@ async def binding(host,dispatch):
         session=re.search(r'/data/sessions/([A-Za-z0-9_-]+)/',path)
         row=one(host.root,'data-workbench/sessions.sqlite3','SELECT r.job_id,r.session_id FROM operation_requests r JOIN sessions s ON s.id=r.session_id WHERE r.request_key=? AND s.workspace_id=?',(dispatch['run_id'],workspace))
         if row and session and row['session_id']==session[1]:return ('data.jobs',row['job_id'],f'{prefix}/data/sessions/{row["session_id"]}/jobs/{row["job_id"]}')
-    elif tool in {'face','audio','seal','catnet'}:
+    elif tool in {'face','audio','seal','catnet','document_forensics'}:
         row=one(host.root,'jobs.sqlite3','SELECT job_id FROM manual_analysis WHERE workspace_id=? AND request_id=?',(workspace,request_id))
         if row:return ('manual.manual_analysis',row['job_id'],f'{prefix}/workspaces/{workspace}/multimodal/jobs/{row["job_id"]}')
     elif tool=='forensics':

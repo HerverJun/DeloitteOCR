@@ -47,6 +47,59 @@ def integration_runtime(manifest):
     return environment, (runtime_root,)
 
 
+def safire_runtime(manifest):
+    """Verify the separately sealed local SAFIRE inference payload read-only."""
+    integration = manifest.get('safire_integration')
+    backend = manifest.get('deep_forensics_backend')
+    if backend not in {None, 'safire', 'catnet'}:
+        raise ValueError('Unknown declared deep forensics backend')
+    if integration is None:
+        if backend == 'safire':
+            raise ValueError('SAFIRE default requires its pinned inference payload')
+        if backend == 'catnet':
+            return {'WORKBENCH_DEEP_FORENSICS_BACKEND': 'catnet'}, ()
+        return {}, ()
+    if integration.get('format') != 'clear-safire-integration-v1':
+        raise ValueError('Unknown SAFIRE integration declaration')
+    runtime_root = checked(integration['root'], exists=True)
+    identities = integration['files']
+    if not isinstance(identities, dict) or not identities:
+        raise ValueError('SAFIRE integration must pin its inference closure')
+    for name, expected in identities.items():
+        path = checked(runtime_root / name, exists=True)
+        if not path.is_file() or not path.is_relative_to(runtime_root) or sha(path) != expected:
+            raise ValueError('Pinned SAFIRE dependency changed: ' + name)
+    for name in integration['closed_directories']:
+        directory = checked(runtime_root / name, exists=True)
+        if not directory.is_relative_to(runtime_root):
+            raise ValueError('SAFIRE closure directory escapes its payload')
+        actual = set()
+        for path in directory.rglob('*'):
+            checked(path, exists=True)
+            if path.is_file() and '__pycache__' not in path.parts and path.suffix not in {'.pyc', '.pyo'}:
+                actual.add(path.relative_to(runtime_root).as_posix())
+        expected = {key for key in identities if key.startswith(name.rstrip('/') + '/')}
+        if actual != expected:
+            raise ValueError('SAFIRE dependency closure has missing or undeclared files: ' + name)
+    environment = integration['environment']
+    allowed = {'WORKBENCH_SAFIRE_ROOT', 'WORKBENCH_SAFIRE_PYTHON', 'WORKBENCH_DEEP_FORENSICS_BACKEND'}
+    if set(environment) != allowed or environment['WORKBENCH_DEEP_FORENSICS_BACKEND'] not in {'safire', 'catnet'}:
+        raise ValueError('Incomplete SAFIRE integration environment')
+    if backend is not None and environment['WORKBENCH_DEEP_FORENSICS_BACKEND'] != backend:
+        raise ValueError('Deep backend and SAFIRE environment declaration disagree')
+    if checked(environment['WORKBENCH_SAFIRE_ROOT'], exists=True) != runtime_root:
+        raise ValueError('SAFIRE root differs from its pinned payload')
+    runtime = checked(environment['WORKBENCH_SAFIRE_PYTHON'], exists=True)
+    program = checked(manifest['shared_program'], exists=True)
+    if runtime != program / 'runtimes/catnet/python.exe' or str(runtime) not in manifest['shared_identity']:
+        raise ValueError('SAFIRE runtime must be the pinned shared CUDA Python')
+    # Deployment DATA backups are a sibling under this asset root. Grant only
+    # inference directories, so this dependency cannot broaden workspace reads.
+    read_roots = tuple(checked(runtime_root / name, exists=True)
+                       for name in ('scripts', 'models', 'dependencies', 'upstream', 'evidence'))
+    return environment, read_roots
+
+
 def main():
     root = checked(Path(__file__).resolve().parent, exists=True)
     parser = argparse.ArgumentParser(description=__doc__)
@@ -75,6 +128,7 @@ def main():
         if not path.is_relative_to(program) or sha(path) != expected:
             raise ValueError('Pinned shared program identity changed: ' + name)
     document_environment, integration_roots = integration_runtime(manifest)
+    safire_environment, safire_roots = safire_runtime(manifest)
     if checked(sys.executable) != program / 'runtimes/platform/python.exe':
         raise ValueError('Use the candidate declared shared platform Python with -I -B')
     for key in list(os.environ):
@@ -130,8 +184,15 @@ def main():
             'server_started': False, 'data_changed': False}, ensure_ascii=False))
         return
     os.environ['CLEAR_PADDLE_TEMP'] = str(checked(data / 'cache/temp'))
+    native_temp = checked(data / 'cache/temp/native')
+    if not str(native_temp).isascii():
+        raise ValueError('Native temporary directory must be an ASCII F drive path')
+    native_temp.mkdir(parents=True, exist_ok=True)
+    os.environ['CLEAR_NATIVE_TEMP_ROOT'] = str(native_temp)
     from workbench_platform.supervisor.processes import storage_environment
     os.environ.update(storage_environment(data))
+    import tempfile
+    tempfile.tempdir = os.environ['TEMP']
     os.environ.update(TMPDIR=os.environ['TEMP'], WORKBENCH_PROGRAM_ROOT=str(program),
         WORKBENCH_AGENT_ENABLED='1' if args.enable_agent and not args.disable_agent else '0',
         WORKBENCH_PORTAL_DIST=str(root / 'platform/apps/portal/dist'), DSH_HOME=str(data / 'agent/harness'),
@@ -140,8 +201,9 @@ def main():
         PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK='True', PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1',
         LANGCHAIN_TRACING_V2='false', LANGSMITH_TRACING='false')
     os.environ.update(document_environment)
+    os.environ.update(safire_environment)
     from scripts.harness_io_guard import install_guard
-    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots))
+    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots, *safire_roots))
     from scripts.agent_native_preview import main as serve
     sys.argv = ['clear-harness', '--source', str(root / 'platform'), '--program', str(program),
                 '--data', str(data), '--port', str(args.port)]

@@ -54,10 +54,24 @@
             "face",
             "audio",
             "seal",
-            "catnet"
+            "catnet",
+            "document_forensics"
           ],
           "title": "Kind",
           "type": "string"
+        },
+        "model_binding": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Binding"
         },
         "options": {
           "$ref": "#/$defs/ManualOptions"

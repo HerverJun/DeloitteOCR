@@ -27,7 +27,7 @@ def owned(ctx, job_id):
         for ref in value.get('job_refs', []):
             if ref['object_id'] == job_id:
                 if ref['application'] == 'multimodal' and row['tool'] not in {
-                    'face_analyze', 'audio_transcribe', 'seal_extract', 'catnet_analyze',
+                    'face_analyze', 'audio_transcribe', 'seal_extract', 'catnet_analyze', 'document_forensics_analyze',
                     'multimodal_prepare', 'multimodal_retry', 'jobs_retry_failed'}:
                     continue
                 return row, ref

@@ -37,7 +37,7 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
         if ref.application == 'multimodal':
             query['analysis'] = ref.object_id
             path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
-                    'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
+                    'catnet': '/apps/forensics/deep', 'document_forensics':'/apps/forensics/document'}[ref.coverage['kind']]
         elif ref.coverage.get('kind') == 'batch':
             query['batch'] = ref.object_id; path = '/batches'
         else:
@@ -50,7 +50,7 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
     elif ref.application == 'multimodal':
         query.update(analysis=ref.parent_id, snapshot=ref.object_id, revision=str(ref.revision), sha256=ref.sha256)
         path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
-                'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
+                'catnet': '/apps/forensics/deep', 'document_forensics':'/apps/forensics/document'}[ref.coverage['kind']]
     elif ref.application in {'ocr', 'classification'}:
         if ref.coverage.get('origin') == 'native_binding':
             query['native_binding'] = ref.parent_id

@@ -36,7 +36,10 @@ def service(tmp_path,monkeypatch):
     from workbench_platform.multimodal import artifacts
     monkeypatch.setattr(artifacts,'configure',lambda center:None)
     monkeypatch.delenv('WORKBENCH_GPU_LEDGER',raising=False)
+    monkeypatch.setenv('WORKBENCH_DEEP_FORENSICS_BACKEND','catnet')
     monkeypatch.setenv('WORKBENCH_PROGRAM_ROOT',str(tmp_path/'program'))
+    legacy=tmp_path/'program/models/multimodal/catnet/CAT_full_v2.pth.tar'
+    legacy.parent.mkdir(parents=True);legacy.write_bytes(b'explicit synthetic model identity; no inference')
     # This fixture never decodes audio or loads a model. Give its synthetic
     # resource ledger virtual capacity; dedicated budget tests override this
     # probe and real native-service acceptance retains the actual disk guard.
@@ -52,7 +55,7 @@ def service(tmp_path,monkeypatch):
         @contextmanager
         def stage_verified(self,*args,**kwargs):
             yield raw
-    monkeypatch.setattr(MultimodalService,'capabilities',lambda self:{'items':[
+    monkeypatch.setattr(MultimodalService,'capabilities',lambda self,**kwargs:{'items':[
         {'kind':kind,'runtime':sys.executable,'cpu_ready':True,'gpu_ready':True,'missing':[]}
         for kind in ('catnet','face','audio','seal')]})
     app=SimpleNamespace(state=SimpleNamespace(asset_library=[Registry()],artifact_center=None))
@@ -73,6 +76,7 @@ def service(tmp_path,monkeypatch):
                 callbacks['committed']({'chunk_index':0,'processed_ms':300000,'total_ms':600000})
             if outcome=='succeeded':
                 result={'device':request['options']['device'],'outcome':'mock','segments':[]}
+                if request.get('model_binding'):result['model_binding']=request['model_binding']
                 if request['kind']=='audio':
                     result.update(audio={'duration_ms':14400000},performance={'total_chunks':48})
                 (output/'result.json').write_text(json.dumps(result))
@@ -101,6 +105,51 @@ def test_gpu_waiting_leaves_cpu_lane_free(service):
     value.coordinator.cancel_pending('externalFirst','ocr')
     value.wake.set()
     until(lambda:value.get('wTest',gpu['job_id'])['status']=='succeeded')
+
+
+def synthetic_safire(value,monkeypatch):
+    """Only lifecycle identity is synthetic; this is not model qualification."""
+    from workbench_platform.multimodal import deep_backend
+    original=deep_backend.bind
+    def binding(service,engine=None):
+        engine=engine or deep_backend.backend(service.config)
+        if engine=='catnet':return original(service,'catnet')
+        return {'engine':'safire','version':'synthetic-lifecycle-only','asset_root':str(value.root),
+                'resources':{},'runtime':sys.executable,'calibration':None}
+    monkeypatch.setattr(deep_backend,'bind',binding)
+    monkeypatch.setattr(MultimodalService,'safire_capability',lambda self,kind,*args:{
+        'kind':kind,'runtime':sys.executable,'cpu_ready':False,'gpu_ready':True,'missing':[]})
+    monkeypatch.setenv('WORKBENCH_DEEP_FORENSICS_BACKEND','safire')
+
+
+def test_safire_default_and_idempotency_remain_bound_across_rollback(service,monkeypatch):
+    value,create,calls,_=service
+    synthetic_safire(value,monkeypatch)
+    value.coordinator.request('holdSafire','ocr')
+    explicit=create('safireExplicit')
+    body={'request_id':'safireDefault','kind':'catnet','inputs':[
+        {key:row[key] for key in ('asset_id','asset_revision','blob_hash')} for row in explicit['inputs']]}
+    created=value.create('wTest',body)
+    assert created['options']['device']=='cuda' and created['model_binding']['engine']=='safire'
+    value.control('wTest',explicit['job_id'],'cancel')
+    monkeypatch.setenv('WORKBENCH_DEEP_FORENSICS_BACKEND','catnet')
+    replay=value.create('wTest',body)
+    assert replay['job_id']==created['job_id'] and replay['model_binding']==created['model_binding']
+    value.coordinator.cancel_pending('holdSafire','ocr');value.wake.set()
+    until(lambda:value.get('wTest',created['job_id'])['status']=='succeeded')
+    assert calls[-1]['model_binding']['engine']=='safire'
+
+
+def test_safire_oom_has_one_prompt_batch_retry_and_no_automatic_cpu(service,monkeypatch):
+    value,create,calls,outcomes=service
+    synthetic_safire(value,monkeypatch)
+    outcomes.extend(['oom','oom'])
+    item=create('safireOom')
+    until(lambda:value.get('wTest',item['job_id'])['status']=='failed')
+    assert [call['runner']['safire_points_per_batch'] for call in calls]==[64,32]
+    assert all(call['options']['device']=='cuda' for call in calls)
+    with pytest.raises(Exception,match='推理验证'):
+        value.control('wTest',item['job_id'],'retry_cpu')
 
 
 def test_yield_uses_new_fifo_request_without_new_business_generation(service):

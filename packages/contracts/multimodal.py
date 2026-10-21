@@ -39,7 +39,7 @@ class ManualDraftTransfer(Payload):
 
 class ManualAnalysisCreate(Payload):
     request_id: Id
-    kind: Literal['face', 'audio', 'seal', 'catnet']
+    kind: Literal['face', 'audio', 'seal', 'catnet', 'document_forensics']
     inputs: list[ManualInput] = Field(min_length=1, max_length=2)
     options: ManualOptions = Field(default_factory=ManualOptions)
 
@@ -76,7 +76,7 @@ class ManualAnalysis(Payload):
     job_id: Id
     workspace_id: Id
     request_id: Id
-    kind: Literal['face','audio','seal','catnet']
+    kind: Literal['face','audio','seal','catnet','document_forensics']
     inputs: list[dict]
     options: ManualOptions
     status: Literal['queued','running','cancelling','cancelled','failed','succeeded','needs_verification']
@@ -92,6 +92,7 @@ class ManualAnalysis(Payload):
     progress: dict = Field(default_factory=dict)
     actual_device: str | None = None
     purpose: Literal['analysis','preparation'] = 'analysis'
+    model_binding: dict | None = None
 
 class ManualAnalysisPage(Payload):
     items: list[ManualAnalysis]
@@ -102,7 +103,7 @@ class ManualResultSnapshot(Payload):
     snapshot_id: Id
     workspace_id: Id
     job_id: Id
-    kind: Literal['face','audio','seal','catnet']
+    kind: Literal['face','audio','seal','catnet','document_forensics']
     generation: Revision
     revision: Revision
     review_revision: int = Field(ge=0)

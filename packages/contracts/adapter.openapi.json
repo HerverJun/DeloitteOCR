@@ -8028,10 +8028,24 @@
               "face",
               "audio",
               "seal",
-              "catnet"
+              "catnet",
+              "document_forensics"
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "model_binding": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Binding"
           },
           "options": {
             "$ref": "#/components/schemas/ManualOptions"
@@ -8169,7 +8183,8 @@
               "face",
               "audio",
               "seal",
-              "catnet"
+              "catnet",
+              "document_forensics"
             ],
             "title": "Kind",
             "type": "string"
@@ -8688,7 +8703,8 @@
               "face",
               "audio",
               "seal",
-              "catnet"
+              "catnet",
+              "document_forensics"
             ],
             "title": "Kind",
             "type": "string"
@@ -9285,12 +9301,14 @@
         "additionalProperties": false,
         "properties": {
           "engine": {
-            "default": "ppocr",
+            "default": "auto",
             "enum": [
+              "auto",
               "ppocr",
               "paddlevl",
               "glm",
-              "hunyuan"
+              "hunyuan",
+              "mineru_pro"
             ],
             "title": "Engine",
             "type": "string"
@@ -10502,6 +10520,7 @@
               "audio",
               "seal",
               "catnet",
+              "document_forensics",
               "batch",
               "agent",
               "assets",

@@ -112,7 +112,7 @@ class JobService:
                                     native_job_ids=native_ids, generation=1)
 
     def refresh(self, workspace_id: str, ref: dict) -> dict:
-        if ref['app_id'] in {'face','audio','seal','catnet'}:
+        if ref['app_id'] in {'face','audio','seal','catnet','document_forensics'}:
             return ref
         try:
             context = self._context(workspace_id, ref["app_id"], ref["link_id"], ref["instance_id"])
@@ -158,7 +158,7 @@ class JobService:
 
     def action(self, workspace_id: str, platform_job_id: str, action: str) -> dict:
         ref = self.ledger.get(workspace_id, platform_job_id)
-        if ref['app_id'] in {'face','audio','seal','catnet'}:
+        if ref['app_id'] in {'face','audio','seal','catnet','document_forensics'}:
             self.manual_service.control(workspace_id,platform_job_id,'retry' if action=='retry_failed' else action)
             return self.ledger.get(workspace_id,platform_job_id)
         current = self.refresh(workspace_id, ref)

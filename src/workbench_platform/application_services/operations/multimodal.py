@@ -10,7 +10,7 @@ from packages.contracts.multimodal import ManualInput, ManualOptions
 from workbench_platform.application_services.identity import canonical, digest, Conflict
 from workbench_platform.application_services.references import asset_allowed
 
-KINDS = ('face', 'audio', 'seal', 'catnet')
+KINDS = ('face', 'audio', 'seal', 'catnet', 'document_forensics')
 
 
 class Analyze(AgentModel):
@@ -19,7 +19,7 @@ class Analyze(AgentModel):
 
 
 class Prepare(Analyze):
-    kind: Literal['face', 'audio', 'seal', 'catnet']
+    kind: Literal['face', 'audio', 'seal', 'catnet', 'document_forensics']
     inputs: list[ManualInput] = Field(min_length=1, max_length=1)
 
 
@@ -135,14 +135,14 @@ def lookup_prepare(args, ctx):
 def analyze(kind, args, ctx):
     if any(not asset_allowed(ctx, item.asset_id) for item in args.inputs):
         raise ValueError('分析资料超出当前任务范围')
-    options = args.options.model_dump()
+    options = args.options.model_dump(exclude_unset=True)
     if kind != 'face':
         options['action'] = 'analyze'
     references = options.get('reference_ids') or []
     if kind == 'face':
         if not set(references) <= authorized(ctx):
             raise ValueError('人脸检索参考未获本任务授权')
-        if options['action'] == 'search' and not references:
+        if options.get('action',args.options.action) == 'search' and not references:
             from workbench_platform.application_services.decisions import ask_user, AskUser
             return ask_user(AskUser(question='人脸检索需要明确参考范围，请在平台工具面板选择本任务授权的参考人脸。'), ctx)
     options['reference_ids'] = references if kind == 'face' else []

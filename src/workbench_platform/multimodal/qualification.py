@@ -12,7 +12,7 @@ import time
 
 from workbench_platform.resources.recovery import atomic_json, local_path
 
-GPU_KINDS = frozenset({'audio', 'catnet'})
+GPU_KINDS = frozenset({'audio', 'catnet', 'document_forensics'})
 FORMAT = 'clear-local-gpu-qualification-v1'
 
 
@@ -61,7 +61,7 @@ class Qualification:
     def binding(self, kind, runtime, source_files, resources, *, device_index=0):
         runtime = local_path(runtime)
         if kind not in GPU_KINDS:
-            raise ValueError('本阶段仅为音频与 CAT-Net 开放 GPU 资格')
+            raise ValueError('此能力尚未开放 GPU 工程资格')
         # Hash installed inference libraries, including Python glue and DLLs.
         # Stat-keyed content cache avoids re-reading large binaries on every UI poll.
         libraries = {}

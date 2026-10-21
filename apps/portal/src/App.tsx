@@ -162,7 +162,7 @@ export function Home() {
 
 export function AgentHome() { return <Suspense fallback={loadingPage}><AgentWorkbench /></Suspense> }
 
-export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/apps/ocr/start' | '/apps/ocr/documents' | '/apps/classification/start' | '/apps/face' | '/apps/audio' | '/apps/ocr/seals' | '/apps/forensics/deep' } = {}) {
+export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/apps/ocr/start' | '/apps/ocr/documents' | '/apps/classification/start' | '/apps/face' | '/apps/audio' | '/apps/ocr/seals' | '/apps/forensics/deep' | '/apps/forensics/document' } = {}) {
   const list = useWorkspaces(), workspaceId = useWorkspaceId(), client = useQueryClient(), navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
   const [params] = useSearchParams()

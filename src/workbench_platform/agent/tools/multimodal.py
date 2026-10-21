@@ -11,7 +11,8 @@ def register(registry):
         ('face', 'face_analyze', '人脸检测、比对或授权参考检索；search必须显式reference_ids且属于任务授权，不能扩大参考范围。'),
         ('audio', 'audio_transcribe', '原生音频转写、说话人和毫秒时间来源；保留不确定内容和未复核状态。'),
         ('seal', 'seal_extract', '原生印章区域与候选主体编号提取；未人工复核字段可进入草稿比对。'),
-        ('catnet', 'catnet_analyze', 'CAT-Net深度图像取证报告及热图；呈现线索和适用限制，不裁定真伪。')):
+        ('catnet', 'catnet_analyze', '深度图像定位报告及热图，实际模型以结果登记为准；未校准响应只建议复核，不裁定真伪。'),
+        ('document_forensics', 'document_forensics_analyze', '票据合同改字定位，JPEG及PNG真实深度分析，经典线索单列；未校准，不裁定真伪，可人工框选复核及固定导出。')):
         registry.register(ToolSpec(name, description, Analyze, partial(analyze, kind), capability=kind,
             effect='derive', availability=partial(availability, kind=kind), lookup_operation=partial(lookup_analysis, kind),
             idempotent=True, input_kinds=('asset',), output_kinds=('job',)))

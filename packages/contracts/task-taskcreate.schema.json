@@ -70,6 +70,7 @@
         "audio",
         "seal",
         "catnet",
+        "document_forensics",
         "batch",
         "agent",
         "assets",

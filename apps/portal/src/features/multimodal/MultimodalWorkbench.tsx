@@ -12,12 +12,17 @@ import { ManualReturn } from '../agent/ManualReturn'
 import './multimodal.css'
 
 const { Title, Paragraph, Text } = Typography
-type Kind = 'face' | 'audio' | 'seal' | 'catnet'
+type Kind = 'face' | 'audio' | 'seal' | 'catnet' | 'document_forensics'
 type Capability = { kind: Kind; title: string; state: string; cpu_ready: boolean; gpu_ready: boolean; missing: string[] }
 type Face = { face_index: number; box: number[]; detection_score: number; crop: string; quality: { usable: boolean; note: string } }
 type Segment = { row_id: string; review_index: number; start_ms: number; end_ms: number; text: string; speaker: string }
 type Seal = { row_id: string; review_index: number; page_number: number; box?: number[]; text: string; subject: string; number: string; subject_check: string }
 type Result = { outcome: string; algorithm: string; device: string; elapsed_seconds: number; limitations: string[];
+  engine?: string; detector?: { version?: string; commit?: string; calibration?: boolean };
+  assessment?: { state: string; label: string; reason: string; calibration?: boolean; calibration_id?: string };
+  deep_analysis?: { status: string; reason?: string };
+  candidate_regions?: { box: Mark['box']; pixel_box?: number[]; area?: number; score?: number }[];
+  classical?: { evidence: { tool: string; status: string; map_path?: string; reason?: string }[] };
   processing?: { geometry?: unknown; display_preview?: string; display_heatmap?: string }; output_files?: Record<string, { bytes: number; sha256: string }>;
   width?: number; height?: number; pages?: { page_number: number; width: number; height: number; preview: string }[];
   images?: { faces: Face[]; width: number; height: number; preview: string }[]; comparison?: { cosine_similarity: number; meets_reference_threshold: boolean } | null;
@@ -30,14 +35,17 @@ type Analysis = { job_id: string; kind: Kind; status: string; stage: string; rev
   review: { actor: string; note: string; assessment: string; edits: Edit[]; regions?: Mark[] } | null }
 type Reference = { reference_id: string; label: string; job_id: string; source: { original_name: string } }
 type AnalysisSnapshot = { snapshot_id: string; revision: number; review_revision: number; review_state: string; snapshot_hash: string; analysis: Analysis }
-const names: Record<Kind, string> = { face: '人脸比对', audio: '音频分析', seal: '印章识别', catnet: '深度图像取证' }
+const names: Record<Kind, string> = { face: '人脸比对', audio: '音频分析', seal: '印章识别', catnet: 'SAFIRE 深度定位', document_forensics: '文档篡改排查' }
+const forensicLabels: Record<string, string> = { metadata: '文件画像', noise: '噪声残差', frequency: '高频分布', jpeg: 'JPEG 重压缩', jpeg_grid: 'JPEG 块网格', copy_move: '重复区域' }
+const isDeepKind = (kind: Kind) => kind === 'catnet' || kind === 'document_forensics'
 const descriptions: Record<Kind, string> = {
   face: '检测照片中的人脸，进行两图比对或检索当前项目参考库，保存人工核对结果。',
   audio: '回听录音、查看波形与频谱，校正带时间定位和匿名说话人的中文转写。',
   seal: '定位文档中的多个印章，校正章内文字与编号，再核对主体名称。',
-  catnet: '使用 CAT-Net 查看 JPEG 可疑区域，并结合经典工具和原件进行人工排查。',
+  catnet: '使用 SAFIRE 定位图像可疑区域，支持 JPEG、PNG，结合原图与经典线索进行人工复核。',
+  document_forensics: '使用 SAFIRE 排查票据、合同与截图中的局部改字线索，保存定位区域和人工复核。',
 }
-const routes = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep' } as const
+const routes = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document' } as const
 const outcomes: Record<string, string> = { detected: '已检出人脸', no_face: '未检出可用人脸', compared: '比对已完成', quality_insufficient: '图片质量不足',
   candidates: '已找到参考候选', no_trusted_candidate: '未找到达到参考阈值的候选', transcribed: '转写已完成', no_speech: '未识别出语音', recognized: '已完成印章识别', no_seal: '未检出印章', analyzed: '分析已完成' }
 const clock = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`
@@ -62,9 +70,9 @@ export function MultimodalApplicationCard({ kind }: { kind: 'face' | 'audio' }) 
 
 function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
   const client = useQueryClient(), [params, setParams] = useSearchParams()
-  const [selectedInputs, setSelectedInputs] = useState<string[]>([]), [action, setAction] = useState('detect')
+  const [selectedInputs, setSelectedInputs] = useState<string[]>(() => params.get('asset') ? [params.get('asset')!] : []), [action, setAction] = useState('detect')
   const [faceIndices, setFaceIndices] = useState([0, 0]), [subject, setSubject] = useState('')
-  const [device, setDevice] = useState('cpu'), [referenceName, setReferenceName] = useState('')
+  const [device, setDevice] = useState(isDeepKind(kind) ? 'cuda' : 'cpu'), [referenceName, setReferenceName] = useState('')
   const [channel, setChannel] = useState<number | null>(null)
   const [referenceIds, setReferenceIds] = useState<string[]>([])
   const [page, setPage] = useState(1)
@@ -100,12 +108,13 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
     request_id: newRequestId(), job_id: selected, input_index: face.input, face_index: face.index, label: referenceName.trim(),
   }), onSuccess: () => { setReferenceName(''); void references.refetch() } })
   const removeReference = useMutation({ mutationFn: (id: string) => request(`${base(workspaceId)}/face-references/${id}`, { method: 'DELETE' }), onSuccess: () => { void references.refetch() } })
-  const suffixes: Record<Kind, RegExp> = { face: /\.(jpe?g|png|webp|bmp)$/i, audio: /\.(wav|mp3|m4a|flac|ogg|aac|wma)$/i, seal: /\.(jpe?g|png|webp|bmp|pdf)$/i, catnet: /\.jpe?g$/i }
+  const suffixes: Record<Kind, RegExp> = { face: /\.(jpe?g|png|webp|bmp)$/i, audio: /\.(wav|mp3|m4a|flac|ogg|aac|wma)$/i, seal: /\.(jpe?g|png|webp|bmp|pdf)$/i, catnet: /\.(jpe?g|png|webp|bmp|tiff?)$/i, document_forensics: /\.(jpe?g|png|webp|bmp|tiff?)$/i }
   const files = media.data?.filter(item => suffixes[kind].test(item.original_name)) || []
   const count = kind === 'face' && action === 'compare' ? 2 : 1
+  const deviceReady = device === 'cuda' ? capability?.gpu_ready : capability?.cpu_ready
   return <>
-    <details className="panel mm-input" open={!selected}><summary className="mm-input-heading"><span>选择资料与分析方式</span><Tag color={capability?.cpu_ready ? 'success' : 'default'}>
-      {capability?.cpu_ready ? 'CPU 已验证' : capability?.missing.length ? '资源未齐' : '待验证'}</Tag></summary>
+    <details className="panel mm-input" open={!selected}><summary className="mm-input-heading"><span>选择资料与分析方式</span><Tag color={deviceReady ? 'success' : 'default'}>
+      {deviceReady ? `${device === 'cuda' ? 'GPU' : 'CPU'} 已验证` : capability?.missing.length ? '资源未齐' : '待验证'}</Tag></summary>
       <UploadQueue workspaceId={workspaceId} compact allowLargeAudio={kind === 'audio'} onUploaded={assetId => { void media.refetch(); setSelectedInputs([assetId]) }} />
       {capabilities.isPending ? <Skeleton paragraph={{ rows: 2 }} /> : capability?.missing.length ? <Alert type="warning" title="此能力的模型或运行环境尚未备齐" description="可先导入资料；资源准备完成后开始分析。" /> : null}
       {(media.error || capabilities.error) && <Alert type="error" title={(media.error || capabilities.error)?.message} action={<Button onClick={() => { void media.refetch(); void capabilities.refetch() }}>重试</Button>} />}
@@ -116,7 +125,7 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
         {Array.from({ length: count }, (_, index) => <label key={index}>{count === 2 ? `照片 ${index + 1}` : '分析资料'}<Select showSearch optionFilterProp="label"
           value={selectedInputs[index]} placeholder="选择已导入资料" options={files.map(item => ({ value: item.asset_id, label: item.original_name }))}
           onChange={value => setSelectedInputs(previous => { const next = [...previous]; next[index] = value; return next })} /></label>)}
-        <label>运行设备<Select value={device} onChange={setDevice} options={[{ value: 'cpu', label: 'CPU' }, { value: 'cuda', label: 'GPU', disabled: !capability?.gpu_ready }]} /></label>
+        <label>运行设备<Select value={device} onChange={setDevice} options={[{ value: 'cpu', label: 'CPU', disabled: isDeepKind(kind) && !capability?.cpu_ready }, { value: 'cuda', label: 'GPU', disabled: !capability?.gpu_ready }]} /></label>
         {kind === 'audio' && <label>分析声道<Select value={channel === null ? 'mix' : 'selected'} onChange={value => setChannel(value === 'mix' ? null : 0)} options={[{ value: 'mix', label: '混合全部声道' }, { value: 'selected', label: '选择原始声道' }]} />{channel !== null && <InputNumber aria-label="原始声道序号" min={1} max={64} value={channel + 1} onChange={value => setChannel(Math.max(0, Number(value || 1) - 1))} />}</label>}
         {kind === 'face' && action !== 'detect' && Array.from({ length: count }, (_, index) => <label key={index}>照片 {index + 1} 的人脸序号<InputNumber min={1} max={100} value={faceIndices[index] + 1}
           onChange={value => setFaceIndices(previous => previous.map((old, i) => i === index ? Number(value || 1) - 1 : old))} /></label>)}
@@ -124,10 +133,12 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
           loading={references.isPending} options={references.data?.items.map(reference => ({ value: reference.reference_id, label: `${reference.label} · ${reference.source.original_name}` }))} /></label>}
         {kind === 'seal' && <label>待核对主体名称<Input value={subject} onChange={event => setSubject(event.target.value)} placeholder="可选：合同主体或供应商名称" maxLength={256} /></label>}
       </div>
-      <Space wrap><Button type="primary" loading={create.isPending} disabled={!pending.current && (!capability?.cpu_ready || selectedInputs.filter(Boolean).length !== count || kind === 'face' && action === 'search' && !referenceIds.length)} onClick={() => create.mutate()}>
+      <Space wrap><Button type="primary" loading={create.isPending} disabled={!pending.current && (!deviceReady || selectedInputs.filter(Boolean).length !== count || kind === 'face' && action === 'search' && !referenceIds.length)} onClick={() => create.mutate()}>
         {pending.current ? '核实原分析请求' : `开始${names[kind]}`}</Button><Button onClick={() => void media.refetch()}>刷新资料</Button></Space>
       {kind === 'face' && <Paragraph type="secondary">多人照片可先检测，再按标注序号选择人脸进行比对或检索。相似分数需人工核对。</Paragraph>}
       {kind === 'audio' && <Paragraph type="secondary">单文件同时满足不超过 4 小时、4 GiB。长录音分块保存进度，可在中断后恢复；说话人分组需要人工回听核对。</Paragraph>}
+      {isDeepKind(kind) && <Paragraph type="secondary">支持单帧 JPEG、PNG、WebP、BMP、TIFF，单图不超过 32 MiB、1200 万像素。定位线索尚未独立校准，区域需结合原件复核。</Paragraph>}
+      {isDeepKind(kind) && !capabilities.isPending && !deviceReady && !capability?.missing.length && <Alert type="warning" title="当前设备尚未通过 SAFIRE 推理验证" description="GPU 不可用时不能开始深度定位，请核查运行设备。" />}
       {create.error && <Alert type="error" title={create.error.message} action={<Button onClick={() => { pending.current = null; localStorage.removeItem(pendingKey); create.reset() }}>修改分析请求</Button>} />}
     </details>
     {selected && snapshotId && <section className="panel mm-result" aria-label="固定版本分析结果"><div className="section-head"><Title level={3}>固定版本分析结果</Title>
@@ -146,10 +157,10 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
       {detail.data && <><Space wrap><Tag>{stateNames[detail.data.status] || detail.data.status}</Tag><Text>{({ queued: '等待执行', prepare: '准备资料', completed: '分析完成', failed: '执行失败', cancelled: '已取消', interrupted: '上次执行中断', waiting_gpu: '等待 GPU', resuming: '恢复处理', yielding_gpu: '保存进度并让出 GPU' } as Record<string, string>)[detail.data.stage] || detail.data.stage}</Text>
         {['queued', 'running', 'cancelling'].includes(detail.data.status) && <Button danger loading={control.isPending} onClick={() => control.mutate('cancel')}>取消任务</Button>}
         {['failed', 'cancelled', 'needs_verification'].includes(detail.data.status) && <Button loading={control.isPending} onClick={() => control.mutate('retry')}>{kind === 'audio' ? '核验进度并恢复处理' : '重试此任务'}</Button>}
-        {['failed', 'cancelled', 'needs_verification'].includes(detail.data.status) && ['audio', 'catnet'].includes(kind) && <Button loading={control.isPending} onClick={() => control.mutate('retry_cpu')}>改用 CPU 重试</Button>}</Space>
-        {detail.data.progress && <Paragraph type="secondary">已处理 {clock(detail.data.progress.processed_ms || 0)} / {clock(detail.data.progress.duration_ms || 0)} · {detail.data.progress.completed_chunks || 0} / {detail.data.progress.total_chunks || 0} 块{detail.data.actual_device ? ` · 实际设备 ${detail.data.actual_device}` : ''}</Paragraph>}
+        {['failed', 'cancelled', 'needs_verification'].includes(detail.data.status) && (kind === 'audio' || isDeepKind(kind) && capability?.cpu_ready) && <Button loading={control.isPending} onClick={() => control.mutate('retry_cpu')}>改用 CPU 重试</Button>}</Space>
+        {detail.data.progress && <Paragraph type="secondary">{kind === 'audio' ? `已处理 ${clock(detail.data.progress.processed_ms || 0)} / ${clock(detail.data.progress.duration_ms || 0)} · ` : ''}{detail.data.progress.completed_chunks || 0} / {detail.data.progress.total_chunks || 0} 块{detail.data.actual_device ? ` · 实际设备 ${detail.data.actual_device}` : ''}</Paragraph>}
         <Paragraph>{detail.data.inputs.map(item => item.original_name).join(' / ')} · 复核版本 {detail.data.revision}</Paragraph>
-        {detail.data.error && <Alert type="error" title="分析未完成" description={<details><summary>查看失败原因</summary><pre className="mm-log">{detail.data.error}</pre></details>} />}
+        {detail.data.error && <Alert type="error" title={isDeepKind(kind) ? '无法判断：分析未完成' : '分析未完成'} description={<details><summary>查看失败原因</summary><pre className="mm-log">{detail.data.error}</pre></details>} />}
         {detail.data.kind === kind && detail.data.result && <ResultView key={`${selected}:${detail.data.revision}`} item={detail.data} workspaceId={workspaceId} refresh={refresh}
           referenceName={referenceName} setReferenceName={setReferenceName} onReference={(input, index) => addReference.mutate({ input, index })} referenceBusy={addReference.isPending} />}
       </>}
@@ -182,8 +193,14 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   const catGeometry = readGeometry(result.processing?.geometry)
   const displayPreview = result.processing?.display_preview
   const displayHeatmap = result.processing?.display_heatmap
-  const catCoordinatesReady = !!catGeometry && catGeometry.persisted_region_coordinate_system === 'stored_pixels'
-    && !!displayPreview && !!displayHeatmap && !!result.output_files?.[displayPreview] && !!result.output_files?.[displayHeatmap]
+  const deep = isDeepKind(item.kind)
+  const safire = result.engine?.toUpperCase() === 'SAFIRE' || /^SAFIRE\b/i.test(result.algorithm)
+  const detectorLabel = result.algorithm || result.engine || (item.kind === 'catnet' ? 'CAT-Net（历史结果）' : '未记录检测器')
+  const proposed = result.candidate_regions || []
+  const classicalOnly = item.kind === 'document_forensics' && result.deep_analysis?.status === 'not_applicable'
+  const catCoordinatesReady = !!catGeometry && catGeometry.persisted_region_coordinate_system === catGeometry.source_coordinate_system
+    && !!displayPreview && !!result.output_files?.[displayPreview]
+    && (classicalOnly || !!displayHeatmap && !!result.output_files?.[displayHeatmap])
   const catWarning = !catCoordinatesReady ? '旧版结果或预览缺少可核验的坐标元数据，保留历史原图与原保存坐标；热图仅独立查看，不能确认配准。' : undefined
   const audioRows = (result.segments || []).map((row, index) => ({ ...row, review_index: index }))
   const sealRows = (result.seals || []).map((row, index) => ({ ...row, review_index: index }))
@@ -223,7 +240,8 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   const merged = <T extends Segment | Seal>(row: T) => ({ ...row, ...edits.find(edit => edit.row_id ? edit.row_id === row.row_id : edit.index === row.review_index) })
   const seek = (milliseconds: number) => { if (audioRef.current) { audioRef.current.currentTime = milliseconds / 1000; void audioRef.current.play().catch(() => {}) } }
   return <div className="mm-result-body">
-    <Space wrap><Tag color="processing">{outcomes[result.outcome] || result.outcome}</Tag><Tag color={item.review ? 'success' : 'warning'}>{item.review ? '人工复核已保存' : '未复核 · 可用于草稿'}</Tag><Text>{result.algorithm}</Text><Text type="secondary">{result.device.toUpperCase()} · {result.elapsed_seconds.toFixed(1)} 秒</Text></Space>
+    <Space wrap><Tag color="processing">{outcomes[result.outcome] || result.outcome}</Tag><Tag color={item.review ? 'success' : 'warning'}>{item.review ? '人工复核已保存' : '未复核 · 可用于草稿'}</Tag><Text>{detectorLabel}</Text>{result.detector?.version && <Text type="secondary">{result.detector.version}</Text>}<Text type="secondary">{result.device.toUpperCase()} · {result.elapsed_seconds.toFixed(1)} 秒</Text>{safire && <Tag>未校准定位线索</Tag>}</Space>
+    {deep && result.assessment && <Alert type={result.assessment.state === 'review_recommended' ? 'warning' : 'info'} title={result.assessment.label || '无法判断'} description={result.assessment.reason} />}
     {item.kind === 'face' && <>
       {result.comparison && <div className="mm-score"><span>两图余弦相似度</span><strong>{result.comparison.cosine_similarity.toFixed(4)}</strong><Text type="secondary">{result.comparison.meets_reference_threshold ? '达到参考阈值，需人工核对' : '未达到参考阈值'}</Text></div>}
       {!readOnly && <label className="mm-reference-label">参考人脸名称<Input placeholder="登记前填写姓名或参考标签" value={referenceName} maxLength={128} onChange={event => setReferenceName(event.target.value)} /></label>}
@@ -267,11 +285,22 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
         {item.review?.assessment !== 'confirmed' && <Paragraph type="secondary">正式转换等待用户保存“已人工确认”复核；当前候选可继续草稿分析。</Paragraph>}
         {(toData.error || draftData.error) && <Alert type="error" title={(toData.error || draftData.error)?.message} />}</>}
     </>}
-    {item.kind === 'catnet' && <><RegionReview image={file(catCoordinatesReady ? displayPreview! : 'preview.png')}
+    {deep && <><RegionReview image={file(catCoordinatesReady ? displayPreview! : 'preview.png')}
       width={result.width || 1000} height={result.height || 1000} marks={marks} onChange={readOnly ? undefined : setMarks}
-      forensic={{ heatmap: file(catCoordinatesReady ? displayHeatmap! : 'heatmap.png'), geometry: catCoordinatesReady ? catGeometry : null,
+      forensic={{ heatmap: classicalOnly ? undefined : file(catCoordinatesReady ? displayHeatmap! : 'heatmap.png'), geometry: catCoordinatesReady ? catGeometry : null,
+        heatmapLabel: `${detectorLabel} 定位热图`, suggestions: catCoordinatesReady ? proposed.map((region, index) => ({ box: region.box, note: `建议区域 ${index + 1}` })) : [],
         registered: catCoordinatesReady, warning: catWarning }} />
+      {!!proposed.length && <section aria-label="模型建议区域"><Paragraph type="secondary">虚线框为模型建议区域，采纳后可修改边界与说明并保存人工复核。</Paragraph>
+        <Space wrap>{proposed.map((region, index) => <Button key={index} disabled={readOnly || !catCoordinatesReady || marks.length >= 200 || marks.some(mark => mark.box.every((value, position) => value === region.box[position]))}
+          onClick={() => setMarks(previous => [...previous, { box: region.box, note: `${detectorLabel} 建议区域 ${index + 1}，待人工复核` }])}>采纳建议区域 {index + 1}</Button>)}</Space></section>}
       <Link to={`/apps/forensics?workspace=${workspaceId}&asset=${item.inputs[0].asset_id}`}>使用经典取证工具继续核查</Link></>}
+    {item.kind === 'document_forensics' && !!result.classical?.evidence.length && <section aria-label="文档排查线索">
+      <Table size="small" pagination={false} rowKey="tool" dataSource={result.classical.evidence} columns={[
+        { title: '独立经典检查', dataIndex: 'tool', render: (value: string) => forensicLabels[value] || value },
+        { title: '执行情况', dataIndex: 'status', render: (value: string) => ({ completed: '已执行', skipped: '不适用', error: '执行失败' })[value] || value },
+        { title: '线索', render: (_, row) => row.map_path ? <a href={file(row.map_path)} target="_blank" rel="noreferrer">查看此工具热图</a> : row.reason || '无热图' },
+      ]} />
+    </section>}
     <ul className="mm-limitations">{result.limitations.map((value, index) => <li key={index}>{value}</li>)}</ul>
     {readOnly ? <Space wrap><a href={`${url}/download`}>下载此固定版本</a>{item.review && <Text type="secondary">复核人：{item.review.actor} · {item.review.note}</Text>}</Space> : <div className="mm-review"><Title level={4}>保存人工复核</Title><div className="mm-controls">
       <label>复核人<Input value={actor} maxLength={128} onChange={event => setActor(event.target.value)} /></label>
@@ -279,7 +308,7 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
     </div><Input.TextArea value={note} maxLength={10000} autoSize={{ minRows: 2 }} placeholder="填写复核依据、修改说明或待查事项" onChange={event => setNote(event.target.value)} />
       {draftError && <Alert type="warning" title={draftError} />}
       <Space wrap><Button type="primary" loading={review.isPending} disabled={!actor.trim() || !note.trim()} onClick={() => review.mutate()}>保存复核与校正</Button>
-        <a href={`${url}/download`}>下载已保存版本（含 JSON / CSV / 字幕）</a><Button disabled={!item.review} loading={collect.isPending} onClick={() => collect.mutate()}>归集到成果中心</Button>
+        <a href={`${url}/download`}>{deep ? '下载已保存版本（报告与热图）' : '下载已保存版本（含 JSON / CSV / 字幕）'}</a><Button disabled={!item.review} loading={collect.isPending} onClick={() => collect.mutate()}>归集到成果中心</Button>
         <Link to={`/artifacts?workspace=${workspaceId}`}>查看成果</Link></Space>
       {(review.error || collect.error) && <Alert type="error" title={(review.error || collect.error)?.message} />}
       {review.error && <Button onClick={() => { reviewIntent.current = null; localStorage.removeItem(`${draftKey}:request`); review.reset(); refresh() }}>刷新版本并修改复核请求</Button>}

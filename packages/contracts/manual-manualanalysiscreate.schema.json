@@ -132,7 +132,8 @@
         "face",
         "audio",
         "seal",
-        "catnet"
+        "catnet",
+        "document_forensics"
       ],
       "title": "Kind",
       "type": "string"
