@@ -5498,21 +5498,9 @@
       "name": "classification",
       "source_path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification/.git",
-      "head": "42215557269dc77e75b508d4e95d685b8ddb02ee",
+      "head": "1be916be64fcbe425cae356f28c106c586da3d7a",
       "branch": "codex/clear-automation-classification-20261002",
-      "working_tree_status": [
-        " M apps/web/src/clear-ui/theme.ts",
-        " M apps/web/src/clear-ui/tokens.css",
-        " M apps/web/src/main.tsx",
-        " M apps/web/src/style.css",
-        " M apps/web/src/views/assets.tsx",
-        " M apps/web/src/views/jobs.tsx",
-        " M apps/web/src/workbench.tsx",
-        "?? apps/web/public/brand/fonts/",
-        "?? apps/web/src/clear-ui/common.css",
-        "?? apps/web/src/clear-ui/experience.css",
-        "?? apps/web/src/platformTaskReturn.ts"
-      ],
+      "working_tree_status": [],
       "excluded_count": 0,
       "file_count": 195,
       "files": [
