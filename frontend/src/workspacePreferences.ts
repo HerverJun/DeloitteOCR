@@ -35,7 +35,7 @@ export const validMode = (v: unknown): v is string =>
   ["text", "handwriting", "table", "compare"].includes(v);
 export const validEngine = (v: unknown): v is string =>
   typeof v === "string" &&
-  ["ppocr", "paddlevl", "glm", "hunyuan", "all"].includes(v);
+  ["auto", "ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro", "all"].includes(v);
 export function imageStatus(id: string, tasks: Task[]): string {
   const relevant = tasks.filter(
     (t) => t.image_id === id && t.kind !== "dewarp" && t.engine !== "dewarp" && t.kind !== "multimodal" && t.engine !== "reviewer",

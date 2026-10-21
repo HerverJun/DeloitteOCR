@@ -94,7 +94,9 @@ def merge_page(native, ocr_results, version, doc, page, mode):
                          'table_tool': native.get('table_tool'),
                          'merge_provenance': provenance,
                          'sources': ['pdf-native'] if native_units else [],
-                         'ocr_sources': [r.get('engine') for r in ocr_results]},
+                         'ocr_sources': [r.get('engine') for r in ocr_results],
+                         'engine_routes': [r['engine_route'] for r in ocr_results if r.get('engine_route')]},
+            'warnings': [warning for result in ocr_results for warning in result.get('warnings', [])],
             'model_revisions': {k: v for result in ocr_results for k, v in result.get('model_revisions', {}).items()}}
 
 

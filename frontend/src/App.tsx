@@ -1,3 +1,4 @@
+import { resolveTaskReturn } from './platformTaskReturn';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
@@ -55,6 +56,7 @@ import { brands } from "./clear-ui/theme";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { EnhancedRecognition, EnhancedResultComparison } from "./EnhancedRecognition";
 import { ResultViewNavigation } from "./ResultViewNavigation";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import type { DiagnosticsResponse } from "./diagnostics";
@@ -169,6 +171,7 @@ export function App() {
   const editor = useEditor(onError);
   const [platformNavigation, setPlatformNavigation] = useState<PlatformNavigation | null>(null);
   const [platformHome, setPlatformHome] = useState<string | null>(null);
+  const [taskReturn, setTaskReturn] = useState<string | null>(null);
   const [platformLaunchError, setPlatformLaunchError] = useState(false);
   useEffect(() => {
     let active = true;
@@ -178,6 +181,7 @@ export function App() {
     void Promise.resolve(pending).then(async value => {
       if (active) setPlatformNavigation(value);
       const returnUrl = value && safeReturnUrl(value);
+      if (active && value) setTaskReturn(resolveTaskReturn(returnUrl, value));
       const home = returnUrl ? platformHomeUrl(returnUrl)
         : await platformHomeFromLaunch('ocr', () => api('/platform/v1/identity'));
       if (active) setPlatformHome(home);
@@ -510,7 +514,7 @@ export function App() {
     });
     setShowQueue(true);
     await refresh(projectId);
-    notify(`已加入 ${photos.length * (engine === "all" ? 4 : 1)} 项任务`);
+    notify(`已加入 ${photos.length * (engine === "all" ? Object.keys(engines).length : 1)} 项任务`);
   };
   const transform = async (op: unknown) => {
     if (!version) return;
@@ -769,9 +773,9 @@ export function App() {
         <p>请返回平台重新打开所选项目；当前页面不会自动改开其他项目。</p></div>}
       <BrandHeader homeUrl={platformHome}>
         {platformNavigation && safeReturnUrl(platformNavigation) && (
-          <a className="platform-return" href={safeReturnUrl(platformNavigation)!}
-            target="_blank" rel="noopener noreferrer" aria-label={`在新标签页返回 ${brands.platform}`}>
-            返回 {brands.platform} ↗
+          <a className="platform-return" href={taskReturn || safeReturnUrl(platformNavigation)!}
+            aria-label={taskReturn ? '返回原任务' : '返回平台'}>
+            {taskReturn ? '返回原任务' : '返回平台'} ↗
           </a>
         )}
         <span className="offline-status">
@@ -1166,6 +1170,8 @@ export function App() {
                 )}
                 {editor.result && (
                   <span>
+                    实际引擎：{engineNames[editor.result.original.engine] || editor.result.original.engine} · {" "}
+                    {!!editor.result.original.document?.ocr_sources?.length && <>扫描区域：{[...new Set(editor.result.original.document.ocr_sources)].map(id => engineNames[id] || id).join(" / ")} · {" "}</>}
                     {typeof editor.result.original.elapsed_seconds === "number" ? `${editor.result.original.elapsed_seconds.toFixed(2)} 秒` : "耗时未记录"}
                   </span>
                 )}
@@ -1329,6 +1335,10 @@ export function App() {
               </div>
             ) : (
               <>
+                <EnhancedRecognition key={`${editor.result.id}:${editor.result.revision}`} result={editor.result} disabled={busy || reviewOnly || !queueHealthy}
+                  beforeRun={editor.flush} currentResult={editor.getCurrent} onError={onError} onAccepted={async () => { setShowQueue(true); await refresh(projectId); }} />
+                <EnhancedResultComparison result={editor.result} />
+                {editor.result.original.engine_route?.fallback_reason && <p className="inline-warning" role="status">自动识别已回退：{editor.result.original.engine_route.fallback_reason}。实际使用 {engineNames[editor.result.original.engine] || editor.result.original.engine}。</p>}
                 {editor.saveState === "保存失败" && (
                   <div className="inline-warning" role="alert">
                     校对尚未保存，草稿仍保留。请重试保存或下载副本。

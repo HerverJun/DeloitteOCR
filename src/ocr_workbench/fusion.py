@@ -17,8 +17,8 @@ from ocr_workbench.fusion_alignment import (
     text_regions, topology, valid_polygon,
 )
 
-ENGINES = ("ppocr", "paddlevl", "glm", "hunyuan")
-STRUCTURAL_ENGINES = ("paddlevl", "glm", "hunyuan")
+ENGINES = ("ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro")
+STRUCTURAL_ENGINES = ("paddlevl", "glm", "hunyuan", "mineru_pro")
 TERMINAL = {"succeeded", "failed", "cancelled"}
 
 

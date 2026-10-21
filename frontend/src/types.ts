@@ -51,6 +51,9 @@ export type Result = {
       evidence_units: number;
     };
     warnings?: { code: string; stage: string; message: string }[];
+    engine_route?: { requested_engine?: string; actual_engine?: string; fallback_used?: boolean; fallback_reason?: string | null; baseline_result_id?: string; baseline_revision?: number; crop_box?: number[] | null; [key: string]: unknown };
+    enhancement?: { baseline_result_id?: string; box?: number[] | null; [key: string]: unknown };
+    document?: { ocr_sources?: string[]; [key: string]: unknown };
     engine: string;
     text: string;
     tables: Table[];
@@ -148,6 +151,8 @@ export type Engine = {
   };
 };
 export const engineNames: Record<string, string> = {
+  auto: "自动：结构解析 / MinerU Pro",
+  mineru_pro: "MinerU Pro",
   ppocr: "PP-OCRv6",
   paddlevl: "PaddleOCR-VL",
   glm: "GLM-OCR",

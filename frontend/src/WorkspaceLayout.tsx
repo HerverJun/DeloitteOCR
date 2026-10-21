@@ -50,7 +50,7 @@ export function WorkspaceLayout({
   );
   const [density, setDensity] = usePreference<"comfortable" | "compact">(
     "ocr-ui-density",
-    "comfortable",
+    "compact",
     (v): v is "comfortable" | "compact" =>
       v === "comfortable" || v === "compact",
   );
@@ -103,7 +103,7 @@ export function WorkspaceLayout({
               资料
             </Button>
             <div className="workspace-title">
-              <span className="workspace-breadcrumb">
+              <span className="workspace-breadcrumb" title={projectName || "新建项目"}>
                 工作空间 <span>/</span> {projectName || "新建项目"}
               </span>
               <h1>文档识别与校对</h1>

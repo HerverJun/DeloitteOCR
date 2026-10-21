@@ -687,6 +687,16 @@ input::placeholder {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+.workspace-grid[data-density="compact"] .main-workspace {
+  padding-inline: var(--clear-workbench-padding);
+}
+.workspace-grid[data-density="compact"] .workspace-heading {
+  min-height: 56px;
+  padding-block: 8px;
+}
+.workspace-grid[data-density="compact"] .result-heading {
+  padding-inline: var(--clear-workbench-panel-padding);
+}
 .workspace-grid[data-density="compact"] .editable-grid td textarea {
   min-height: 34px;
   padding: 5px 8px;

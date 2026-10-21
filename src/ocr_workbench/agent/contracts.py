@@ -104,7 +104,7 @@ class ProcessPages(StrictModel):
 
 class RunOCR(StrictModel):
     version_ids: Ids
-    engines: Annotated[list[Id], Field(min_length=1, max_length=4)]
+    engines: Annotated[list[Id], Field(min_length=1, max_length=5)]
     fusion_config_id: Id | None = None
 
     @model_validator(mode="after")

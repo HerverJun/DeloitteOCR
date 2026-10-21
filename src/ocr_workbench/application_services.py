@@ -52,7 +52,7 @@ class ApplicationServices:
         fusion = body.get("fusion")
         policy = load_policy(self.bundle, fusion.get("content_type", "table"), fusion.get("mode", "conservative")) if isinstance(fusion, dict) else None
         with self.maintenance.guard:
-            ids = self.store.enqueue(project_id, body.get("version_ids", []), body.get("engines", []),
+            ids = self.store.enqueue(project_id, body.get("version_ids", []), body.get("engines", ['auto']),
                                      body.get("preprocess", []), {name: spec["package_id"] for name, spec in self.registry.engines().items()},
                                      fusion_policy=policy, request_id=body.get("request_id"))
         self.queue.wake.set()
@@ -70,7 +70,7 @@ class ApplicationServices:
                 raise ValueError("页面范围无效；每批可显式选择最多 1000 页")
             pages = self.store.rows("SELECT id,page_number FROM pages WHERE document_id=? ORDER BY page_number", (document_id,))
             page_ids = [p["id"] for p in pages if numbers is None or p["page_number"] in numbers]
-            return {"stage_ids": self.documents.process_pages(page_ids, body.get("mode", "auto"), force=body.get("force", False), engine=body.get("engine", "ppocr"))}
+            return {"stage_ids": self.documents.process_pages(page_ids, body.get("mode", "auto"), force=body.get("force", False), engine=body.get("engine", "auto"))}
 
     def export(self, body):
         with self.maintenance.guard:

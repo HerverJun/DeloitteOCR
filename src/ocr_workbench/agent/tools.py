@@ -38,7 +38,7 @@ def register_processing_tools(registry, services, jobs):
     store = services.store
 
     def process(args, context):
-        parameters = services.documents.processing_parameters(args.mode, args.engine or "ppocr")
+        parameters = services.documents.processing_parameters(args.mode, args.engine or "auto")
         def effect(db, operation_id):
             rows = db.execute("SELECT id,page_number FROM pages WHERE document_id=? ORDER BY page_number", (args.document_id,)).fetchall()
             selected = [r["id"] for r in rows if r["page_number"] in args.page_numbers]

@@ -1,0 +1,9 @@
+@font-face { font-family: 'Clear Sans'; src: url('/brand/fonts/clear-sans-sc.woff2') format('woff2'); font-display: swap; font-weight: 100 900; }
+html { color-scheme: light; }
+body { -webkit-font-smoothing: antialiased; font-family: var(--clear-font); }
+:where(button, input, select, textarea) { font: inherit; }
+:where(button, a, summary, input, textarea, select, [tabindex]):focus-visible { outline: 2px solid var(--clear-focus); outline-offset: 3px; }
+:where(.ant-table, .data-preview, .table-editor) { font-variant-numeric: tabular-nums; }
+:where(.ant-tag, .ant-btn-sm, .eyebrow, .local-indicator) { font-size: max(12px, 0.85em); }
+:where(.ant-btn, .fui-Button) { transition: color 120ms, background-color 120ms, border-color 120ms; }
+@media(prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

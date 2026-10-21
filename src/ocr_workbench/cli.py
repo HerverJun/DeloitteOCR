@@ -11,7 +11,7 @@ import sys
 import time
 import uuid
 
-ENGINES = {'ppocr': 'ppocr', 'paddlevl': 'paddlevl', 'glm': 'glm', 'hunyuan': 'hunyuan'}
+ENGINES = {'ppocr': 'ppocr', 'paddlevl': 'paddlevl', 'glm': 'glm', 'hunyuan': 'hunyuan', 'mineru_pro': 'mineru_pro'}
 
 
 def bundle_root():

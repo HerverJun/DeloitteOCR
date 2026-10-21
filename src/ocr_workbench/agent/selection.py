@@ -20,7 +20,7 @@ class DocumentRange(StrictModel):
 class SelectionRequest(StrictModel):
     image_ids: Annotated[list[Id], Field(max_length=1000)] = Field(default_factory=list)
     document_ranges: Annotated[list[DocumentRange], Field(max_length=100)] = Field(default_factory=list)
-    engines: Annotated[list[Id], Field(max_length=4)] = Field(default_factory=list)
+    engines: Annotated[list[Id], Field(max_length=5)] = Field(default_factory=list)
     allow_processing: bool = False
     allow_export: bool = True
     allow_reprocess: bool = False

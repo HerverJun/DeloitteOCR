@@ -15,3 +15,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </FluentProvider>
   </React.StrictMode>,
 );
+
+import './clear-ui/common.css'
+import './clear-ui/experience.css'

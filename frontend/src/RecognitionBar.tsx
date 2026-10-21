@@ -29,7 +29,7 @@ export const modes = [
     id: "text",
     name: "照片文字",
     description: "快速提取文字与坐标",
-    engine: "ppocr",
+    engine: "auto",
     icon: ScanLine,
   },
   {
@@ -43,13 +43,13 @@ export const modes = [
     id: "table",
     name: "表格",
     description: "解析行列与合并关系",
-    engine: "paddlevl",
+    engine: "auto",
     icon: Table2,
   },
   {
     id: "compare",
     name: "模型对比",
-    description: "四种结果，独立校对",
+    description: "多种引擎结果，独立校对",
     engine: "all",
     icon: Columns3,
   },
@@ -90,7 +90,8 @@ export function RecognitionBar({
     "保留当前图像";
   const recommendedEngine = modes.find((item) => item.id === mode)?.engine;
   const engineLabel = engine === "all"
-    ? "四引擎顺序对比"
+    ? `${Object.keys(engines).length} 引擎顺序对比`
+    : engine === "auto" ? "自动：结构解析 / MinerU Pro"
     : engines[engine]?.name || engine;
   const settingsSummary = [
     mode === "compare" ? "模型对比" : "",
@@ -161,10 +162,11 @@ export function RecognitionBar({
                 value={engine}
                 onChange={(e) => setEngine(e.target.value)}
               >
+                <option value="auto">自动：结构解析 / MinerU Pro</option>
                 {Object.keys(engines).map((key) => (
                   <option key={key} value={key}>{engines[key].name}</option>
                 ))}
-                <option value="all">四引擎顺序对比</option>
+                <option value="all">{Object.keys(engines).length} 引擎顺序对比</option>
               </select>
             </label>
             <label className="ocr-recognition-popover__field">
@@ -189,7 +191,7 @@ export function RecognitionBar({
               >
                 模型对比
               </Button>
-              <p>顺序运行四种引擎，分别查看和采用识别结果。</p>
+              <p>顺序运行可用引擎，分别查看和采用识别结果。自动模式会显示实际使用的引擎。</p>
             </div>
           </PopoverSurface>
         </Popover>
