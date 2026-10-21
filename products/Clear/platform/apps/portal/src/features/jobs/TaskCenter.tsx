@@ -8,6 +8,7 @@ import { brandName } from '../../clear-ui/theme'
 import { InspectionTasks } from '../forensics/ForensicWorkbench'
 import { useSession } from '../tasks/session'
 import { TaskHistory } from '../tasks/TaskHistory'
+import { DocumentTasks } from '../documents/DocumentTasks'
 
 const { Title, Text, Paragraph } = Typography
 const availabilityLabels: Record<string, string> = { ready: '状态已核实', unavailable: '暂不可用', unknown: '待核实' }
@@ -98,6 +99,7 @@ function LegacyTaskCenter() {
   return <><div className="page-heading"><Text className="eyebrow">TASKS / NATIVE</Text>
     <Title level={1}>任务中心</Title><Paragraph>核实原生工具的任务状态、错误和可用操作。控制请求送达后仍需再次刷新确认。</Paragraph></div>
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <><InspectionTasks key={workspaceId} workspaceId={workspaceId} />
+      <DocumentTasks key={`documents-${workspaceId}`} workspace={workspaceId} />
       <details className="panel job-registration"><summary>高级：关联原生运行记录</summary><div className="section-head"><Title level={3}>跟踪原生任务</Title><Text type="secondary">仅已关联的项目</Text></div>
         <Space wrap><Select aria-label="关联项目" placeholder="选择关联项目" style={{ minWidth: 260 }} value={linkId}
           onChange={setLinkId} loading={links.isPending} options={links.data?.items.map(link => ({

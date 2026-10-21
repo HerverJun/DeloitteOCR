@@ -83,12 +83,16 @@ def cache_table(root, store, revision):
     return metadata
 
 
-def spec_from(value):
+def spec_from(value, *, saved_policy=False):
     allowed = {'key_pairs', 'compare_pairs', 'amount_pairs', 'type_policy', 'null_policy',
-               'amount_tolerance', 'trim_text', 'casefold_text'}
+               'amount_tolerance', 'trim_text', 'casefold_text', 'amount_format'}
     if not isinstance(value, dict) or set(value) - allowed:
         raise ValueError('比对参数无效')
     value = dict(value)
+    if saved_policy:
+        # Policies saved before formatted-money support intentionally omit the
+        # parser identity. Recomputing them must retain their original result ID.
+        value.setdefault('amount_format', 'plain-decimal-v1')
     for key in ('key_pairs', 'compare_pairs', 'amount_pairs'):
         value[key] = tuple(tuple(pair) for pair in value.get(key, []))
     return ComparisonSpec(**value)
@@ -257,7 +261,7 @@ def do_operation(request):
         left_snapshot = store.get(left['revision'])['snapshot']
         right_snapshot = store.get(right['revision'])['snapshot']
         compared = compare_exact(left_snapshot, right_snapshot, left_revision=left['revision'],
-                                 right_revision=right['revision'], spec=spec_from(summary['policy']))
+                                 right_revision=right['revision'], spec=spec_from(summary['policy'], saved_policy=True))
         if compared.comparison_id != identity:
             raise ValueError('结果版本不一致')
         folder = root / 'exports' / request['job_id']

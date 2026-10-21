@@ -24,13 +24,17 @@ import modules.data_workbench.exporting.results as export_module
 EXAMPLES = json.loads((Path(__file__).parents[2] / "packages/contracts/examples/positive.json").read_text("utf-8"))
 
 
-def setup(tmp_path: Path):
+def setup(tmp_path: Path, *, formatted_amounts=False, amount_format="financial-v1"):
     assets = []
+    left_amount = '"1,234.50"' if formatted_amounts else '-2.50'
+    right_amount = '1234.50' if formatted_amounts else '-2.50'
+    left_second = '(20.00)' if formatted_amounts else '0'
+    right_second = '-20.00' if formatted_amounts else '0'
     for name, content in (
-        ("left", 'id,amount,note\n00123456789012345678,-2.50,"=HYPERLINK(\"\"x\"\")"\n'
-         'K,0,""\n'),
-        ("right", 'id,amount,note\n00123456789012345678,-2.50,"=HYPERLINK(\"\"x\"\")"\n'
-         'K,0,\n'),
+        ("left", f'id,amount,note\n00123456789012345678,{left_amount},"=HYPERLINK(\"\"x\"\")"\n'
+         f'K,{left_second},""\n'),
+        ("right", f'id,amount,note\n00123456789012345678,{right_amount},"=HYPERLINK(\"\"x\"\")"\n'
+         f'K,{right_second},\n'),
     ):
         path = tmp_path / f"{name}.csv"
         path.write_text(content, encoding="utf-8")
@@ -43,7 +47,8 @@ def setup(tmp_path: Path):
     left, right = assets
     result = compare_exact(left[1], right[1], left_revision=left[0], right_revision=right[0],
                            spec=ComparisonSpec((('c1', 'c1'),), (('c2', 'c2'), ('c3', 'c3')),
-                                               amount_pairs=(('c2', 'c2'),), amount_tolerance="0"))
+                                               amount_pairs=(('c2', 'c2'),), amount_tolerance="0",
+                                               amount_format=amount_format))
     blobs, exports = tmp_path / "blobs", tmp_path / "exports"
     blobs.mkdir()
     exports.mkdir()
@@ -160,3 +165,33 @@ def test_source_descriptor_and_csv_formula_prefix_validation():
     for dangerous in ("=1+1", " +1+1", "\ufeff=1+1", "\t=1+1", "\r=1+1"):
         assert export_module._safe_csv(dangerous) == "'" + dangerous
     assert export_module._safe_csv("ordinary") == "ordinary"
+
+
+def test_saved_legacy_amount_policy_exports_without_reinterpreting_values(tmp_path: Path):
+    left, right, legacy, store, exports, job = setup(
+        tmp_path, formatted_amounts=True, amount_format="plain-decimal-v1")
+    # This is the persisted policy shape from before amount-format versioning.
+    saved = replace(legacy, policy=json.loads(json.dumps(legacy.policy)))
+    assert "amount_format" not in saved.policy
+    assert len(saved.different) == 2
+    assert all("c2:c2" in pair.different_columns for pair in saved.different)
+    current = compare_exact(left[1], right[1], left_revision=left[0], right_revision=right[0],
+        spec=ComparisonSpec((('c1', 'c1'),), (('c2', 'c2'), ('c3', 'c3')),
+                            amount_pairs=(('c2', 'c2'),)))
+    assert current.policy["amount_format"] == "financial-v1"
+    assert current.comparison_id != saved.comparison_id
+    assert len(current.same) == 1
+    before = json.dumps([left[1], right[1]], sort_keys=True)
+    bundle = export_and_publish(saved, left[1], right[1], left_source=left[2], right_source=right[2],
+        output_root=exports, artifact_store=store, workspace_id="workspaceA", job_ref=job,
+        application_version="1.0.0", rule_version="exact-v1")
+    summary = json.loads(bundle.files["summary.json"].read_text("utf-8"))
+    assert summary["comparison_id"] == saved.comparison_id
+    assert "amount_format" not in summary["policy"]
+    assert summary["coverage"]["different_pairs"] == 2
+    with bundle.files["results.csv"].open(encoding="utf-8-sig", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [row["category"] for row in rows] == ["different", "different"]
+    assert rows[0]["L_c2_value"] == "1,234.50"
+    assert rows[1]["L_c2_value"] == "(20.00)"
+    assert json.dumps([left[1], right[1]], sort_keys=True) == before

@@ -1,18 +1,18 @@
-> GUI 升级候选（2026-10-19）：三套前端已统一为 Clear UI 1.3.0，0.15.0 candidate-002 试用入口为 http://127.0.0.1:8970/。本目录已同步 2014 个登记源码文件并通过哈希检查；正式 8879 仍为 0.14.0。详见[实施与验收](../../docs/platform-automation/Clear全平台GUI升级实施与验收-20261019.md)。
+> 当前登记（2026-10-22）：正式 8879 为 Clear 0.16.0 SAFIRE；文档/Pro 候选 0.17.0 在 8985；本轮真实 Debug 候选 0.17.1 在 8986。本目录同步 2036 个登记源码文件，实际运行版本以各候选清单及正式登记为准。详见[项目总览与真实 Debug](../../docs/platform-automation/Clear项目总览与真实Debug-20261022.md)。
 
 # Clear 三应用源码与版本对应
 
-本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-19；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
+本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-22；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
 
 | 本仓目录 | 原开发目录 | 本轮文件数 | 作用 |
 |---|---|---:|---|
-| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 887 | 门户、Agent 工作台、Harness 适配、业务服务、多人任务中心与工具目录 |
+| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 906 | 门户、Agent 工作台、文档结构、Harness 适配、业务服务、任务中心与工具目录 |
 | [classification](classification/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\classification` | 195 | 图像标注、训练、模型、推理与人工复核 |
-| [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 932 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可 |
+| [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 935 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可，含 MinerU Pro 接入 |
 
-每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。平台多人任务中心基线为 `4fcb0e870e2d8451e740496398077db788e2811c`；最新 `codex/frontend-workbench-20261015` 从该提交建立，门户框架与工具目录改版以未提交工作区差异登记。原平台开发目录与多人候选保留；分类、OCR 仍读取原登记目录。来源仓库远端保持原配置。
+每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。本轮平台 HEAD 为 `e5ca875ed822643219b22c688d23be72c87b06e7`，OCR 为 `adab40a77ad294a5011f1212491dd4277ed8d772`，分类为 `1be916be64fcbe425cae356f28c106c586da3d7a`，捕获时三仓均干净。来源仓库和远端配置保留。
 
-当前正式入口为 **0.14.0 agent-foundation candidate-006**、<http://127.0.0.1:8879/>。0.14.0 正式发布时核对的三应用快照共 **1997** 个自有源文件；本目录当前 GUI 升级快照共 **2014** 个文件（见上表），已逐项核对，包含DSH通用工具、自然收尾、一次搜索加载、业务组合、OCR选参及真实底稿。正式启动、旧会话/成果下载、冷备与旧版回退均有实际证据；见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述日期更早的候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
+当前正式入口为 **0.16.0 SAFIRE**、<http://127.0.0.1:8879/>。本轮审阅源码和独立 Debug 候选包含文档/Pro 接入与金额、取消恢复、结构阅读修复，没有切换正式登记。此前 0.14.0 的通用 Agent 能力、旧会话/成果下载、冷备和回退历史证据见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述较早候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
 
 新版前端的参考来源、改动与本机预览见[改版记录](../../docs/platform-automation/前端工作台改版与预览-20261015.md)。最新[门户首页补齐](../../docs/platform-automation/门户首页评估与补齐-20261015.md)将默认入口改为导航门户，AI 工作区独立为 `/agent`，保留旧会话链接；本轮 29 项定向回归、23 项首页和 21 项工具目录浏览器检查通过。预览首页为 <http://127.0.0.1:8910/>，正式入口继续使用 8879。
 
@@ -23,7 +23,7 @@
 ## 与根仓和发行版本的区别
 
 - 根仓 `src/`、`frontend/` 是独立 OCR 研发线，当前 schema 18，含较新的屏拍等功能。
-- 本目录 `ocr/` 是 Clear 原生 OCR 开发线，schema 17。当前运行源码取自 `current.json` 选择的0.14.0候选根 `ocr/`，0.10.0仅提供共享运行时/模型。开发快照仍带未提交改动，运行身份须以候选逐文件清单核对。
+- 本目录 `ocr/` 是 Clear 原生 OCR 开发线。正式运行源码取自 `current.json` 选择的 0.16.0 候选根 `ocr/`，本轮 0.17.1 使用其独立候选源码；0.10.0 目录继续提供已登记的共享运行时/模型。运行身份须以各候选逐文件清单核对。
 - 正式 Clear 指针在 [current.json](../../release/Clear/current.json)。运行时 `launch.py` 从发行根的 `platform`、`ocr`、`classification` 加载代码，OCR 网页由发行根 `ocr/frontend/dist` 提供；`program/bundles/ocr` 中旧 `src/web` 是底层资产，不是实际界面基线。
 - `release/Clear/versions/` 里的完整离线安装目录留在本机并忽略。Python、模型、GPU DLL、依赖、编译产物、业务工作区及大型 ZIP 不进入 Git。其身份、兼容要求和完整包交付证据仍由登记与交付文档说明。
 

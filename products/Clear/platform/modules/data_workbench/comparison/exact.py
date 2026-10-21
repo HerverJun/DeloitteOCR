@@ -19,6 +19,8 @@ _REVISION = re.compile(r"v[0-9a-f]{64}\Z")
 _COLUMN = re.compile(r"c[1-9][0-9]{0,2}\Z")
 _ROW = re.compile(r"r[0-9a-f]{32}\Z")
 _KINDS = frozenset({"null", "text", "decimal", "integer", "boolean", "date", "error", "unknown_formula"})
+_GROUPED_AMOUNT = re.compile(r"[+-]?[0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?\Z")
+_ACCOUNTING_AMOUNT = re.compile(r"(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)\Z")
 
 
 class CompareError(ValueError):
@@ -35,6 +37,7 @@ class ComparisonSpec:
     amount_tolerance: str = "0"
     trim_text: bool = False
     casefold_text: bool = False
+    amount_format: str = "financial-v1"
 
 
 @dataclass(frozen=True)
@@ -149,6 +152,7 @@ def _policy(spec: ComparisonSpec, left: dict, right: dict) -> tuple[dict, Decima
     if (not set(amounts) <= set(values)
             or not isinstance(spec.type_policy, str) or spec.type_policy not in {"strict", "text"}
             or not isinstance(spec.null_policy, str) or spec.null_policy not in {"never_match", "equal"}
+            or not isinstance(spec.amount_format, str) or spec.amount_format not in {"financial-v1", "plain-decimal-v1"}
             or type(spec.trim_text) is not bool or type(spec.casefold_text) is not bool
             or not isinstance(spec.amount_tolerance, str) or len(spec.amount_tolerance) > 64):
         raise CompareError("Invalid comparison policy")
@@ -158,10 +162,13 @@ def _policy(spec: ComparisonSpec, left: dict, right: dict) -> tuple[dict, Decima
             raise InvalidOperation()
     except InvalidOperation:
         raise CompareError("Invalid amount tolerance") from None
-    return {"key_pairs": keys, "compare_pairs": values, "amount_pairs": amounts,
+    policy = {"key_pairs": keys, "compare_pairs": values, "amount_pairs": amounts,
             "type_policy": spec.type_policy, "null_policy": spec.null_policy,
             "amount_tolerance": str(tolerance), "trim_text": spec.trim_text,
-            "casefold_text": spec.casefold_text}, tolerance
+            "casefold_text": spec.casefold_text}
+    if amounts and spec.amount_format == "financial-v1":
+        policy["amount_format"] = spec.amount_format
+    return policy, tolerance
 
 
 def _text(value: object, policy: dict) -> str:
@@ -183,12 +190,26 @@ def _token(cell: dict, policy: dict):
     return [cell["kind"], cell["value"]]
 
 
-def _amount(cell: dict) -> Decimal | None:
+def _amount(cell: dict, formatted: bool = False) -> Decimal | None:
     if (cell["kind"] not in {"text", "decimal", "integer"}
             or isinstance(cell["value"], bool) or len(str(cell["value"])) > 256):
         return None
     try:
-        number = Decimal(str(cell["value"]))
+        text = str(cell["value"]).strip()
+        accounting = formatted and text.startswith("(") and text.endswith(")")
+        if accounting:
+            text = text[1:-1].strip()
+            if text.startswith(("+", "-")):
+                return None
+        if formatted and "," in text:
+            if not _GROUPED_AMOUNT.fullmatch(text):
+                return None
+            text = text.replace(",", "")
+        elif accounting and not _ACCOUNTING_AMOUNT.fullmatch(text):
+            return None
+        number = Decimal(text)
+        if accounting:
+            number = number.copy_negate()
         return number if number.is_finite() else None
     except (InvalidOperation, TypeError):
         return None
@@ -201,7 +222,8 @@ def _equal(left_cell: dict, right_cell: dict, policy: dict, amount: bool, tolera
             "null", "unknown_formula"}:
         return False
     if amount:
-        left_number, right_number = _amount(left_cell), _amount(right_cell)
+        formatted = policy.get("amount_format") == "financial-v1"
+        left_number, right_number = _amount(left_cell, formatted), _amount(right_cell, formatted)
         return left_number is not None and right_number is not None and abs(left_number - right_number) <= tolerance
     return _token(left_cell, policy) == _token(right_cell, policy)
 

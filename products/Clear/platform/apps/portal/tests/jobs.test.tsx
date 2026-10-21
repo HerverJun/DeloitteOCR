@@ -1,14 +1,17 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, configure, fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider } from 'antd'
 import { routes, theme } from '../src/router'
 
 beforeAll(() => {
+  configure({ asyncUtilTimeout: 5000 })
   window.matchMedia = vi.fn().mockImplementation(() => ({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }))
   globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
+  const computed = window.getComputedStyle.bind(window)
+  vi.spyOn(window, 'getComputedStyle').mockImplementation(element => computed(element))
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -24,6 +27,8 @@ test('task center restores native counts and leaves cancellation unconfirmed unt
     if (input.includes('/jobs/jobA/actions/cancel') && init?.method === 'POST') return { request_state: 'sent', job }
     if (input.includes('/jobs/links')) return { items: [{ link_id: 'linkA', app_id: 'ocr', module_project_id: 'projectA', role: 'editor' }] }
     if (input.includes('/jobs?')) return { items: [job], next_offset: null }
+    if (input.includes('/documents?')) return { items: [], total: 0, next_offset: null }
+    if (input.includes('/forensics?')) return { items: [], total: 0 }
     if (input.includes('/workspaces?')) return { items: [{ workspace_id: 'workspaceA', name: '工作空间' }], next_cursor: null, snapshot_revision: 1 }
     throw new Error(`Unexpected request ${input}`)
   } }))

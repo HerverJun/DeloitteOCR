@@ -1,12 +1,15 @@
 """A native heading must not hide scanned content on the same PDF page."""
 from copy import deepcopy
+from contextlib import closing
 from types import SimpleNamespace
 import threading
 from unittest.mock import Mock, patch
+import pytest
 
 from workbench_platform.documents.normalize import normalize
-from workbench_platform.documents.service import DocumentService, reconcile_native_tables, duplicate_table_block
+from workbench_platform.documents.service import Cancelled, DocumentService, reconcile_native_tables, duplicate_table_block, without_structured_html, readable_table_text
 from workbench_platform.documents.tables import parse_tables
+from workbench_platform.batches.store import encoded
 
 
 def test_pdf_coverage_reads_native_and_mixed_pages_and_keeps_actual_model_source():
@@ -161,3 +164,80 @@ def test_equal_table_coalescing_requires_the_same_source_structure_and_region():
     retained, repeated = reconcile_native_tables(deepcopy(native), 1, [candidate, shifted], image, source, identity)
     assert len(retained) == 1 and retained[0][1] == shifted and len(repeated) == 1
     assert not duplicate_table_block({**block, 'polygon': shifted['polygon']}, duplicates, image)
+
+
+@pytest.mark.parametrize('suffix', ['png', 'pdf'])
+def test_cancel_then_immediate_resume_cancels_the_old_accepted_native_child(tmp_path, suffix):
+    sets, handoff, adapter, jobs, workspace = Mock(), Mock(), Mock(), Mock(), Mock()
+    sets.create.return_value = SimpleNamespace(asset_set_id='set', revision=1)
+    handoff.begin.return_value = {'handoff_id': 'handoff'}
+    handoff._row.return_value = {'request_id': 'import'}
+    handoff._adapter.return_value = adapter
+    adapter.import_status.return_value = {'items': [{'target_document_id': 'native-document', 'page_count': 1}]}
+    workspace.get_workspace.return_value = SimpleNamespace(name='Original workspace')
+    app = SimpleNamespace(state=SimpleNamespace(asset_library=(Mock(), sets), ocr_handoff=handoff,
+        job_service=jobs, workspace_store=workspace))
+    service = DocumentService(app, tmp_path / 'documents')
+    service.executor.shutdown(wait=True)
+    service.executor = Mock()
+    service.execution.generation = 1
+    source = {'asset_id': 'asset', 'asset_revision': 1, 'blob_hash': 'a' * 64, 'original_name': 'debug.' + suffix}
+    value = {**source, 'source': source, 'workspace_id': 'workspace', 'document_id': 'document', 'generation': 1,
+             'status': 'running', 'stage': 'ocr', 'ocr_link_id': None, 'request_id': 'request'}
+    with closing(service.db()) as db:
+        db.execute('INSERT INTO documents VALUES(?,?,?,?,?)', ('document', 'workspace', 'request', 'b' * 64, encoded(value)))
+    accepted = {'running': False, 'cancelled': False}
+    def accept():
+        accepted['running'] = True
+        assert service.control('workspace', 'document', 'cancel')['status'] == 'cancelled'
+        assert service.control('workspace', 'document', 'resume')['generation'] == 2
+    def cancel(*_, **__):
+        accepted.update(running=False, cancelled=True)
+    def submit(*_, **__):
+        accept()
+        return {'job': {'platform_job_id': 'old-native-job'}}
+    def page_request(*_, body=None, action=None):
+        if action == 'cancel':
+            cancel()
+            return {'submitted': True, 'stages': []}
+        if body is None:
+            return {'submitted': False}
+        accept()
+        return {'submitted': True, 'stages': [{'status': 'running', 'page_number': 1}]}
+    handoff.submit.side_effect, adapter.page_request.side_effect, jobs.action.side_effect = submit, page_request, cancel
+    document = normalize({'pages': [{'page_idx': 0, 'blocks': []}]}, source, 'document')
+    try:
+        with patch('workbench_platform.application_services.native.prepare',
+                   return_value={'requires_project_selection': False, 'link_id': 'link'}), pytest.raises(Cancelled):
+            service.ocr_pages(value, document)
+        current = service.get('workspace', 'document')
+        assert current['status'] == 'queued' and current['generation'] == 2
+        assert accepted == {'running': False, 'cancelled': True}
+        service.executor.submit.assert_called_once()
+        if suffix == 'png':
+            jobs.action.assert_called_once_with('workspace', 'old-native-job', 'cancel')
+        else:
+            assert adapter.page_request.call_args.kwargs['action'] == 'cancel'
+    finally:
+        service.close()
+
+
+def test_structured_table_projection_keeps_caption_every_cell_and_surrounding_text():
+    rows = ''.join(f'<tr><td>编号-{number:03}</td><td>{number}.25</td></tr>' for number in range(40))
+    html = '<table><caption>币种 CNY · 完整明细</caption>' + rows + '</table>'
+    original = '页眉单位 CNY\n' + html + '\n脚注：括号为负数。'
+    table = parse_tables(original)[0]
+    before = deepcopy(table)
+    body = without_structured_html(original, [table])
+    readable = readable_table_text(table)
+    assert '<table' not in body and '<td' not in body
+    assert '页眉单位 CNY' in body and '脚注：括号为负数。' in body
+    assert table['caption'] in readable
+    assert '编号-039' in readable and '39.25' in readable
+    assert all(cell['text'] in readable for cell in table['cells'])
+    assert before == table
+    # Unrepresented HTML and literal code remain available rather than being
+    # stripped under the assumption that a structural table exists.
+    assert without_structured_html(original, []) == original
+    literal = '```html\n' + html + '\n```'
+    assert without_structured_html(literal, [table]) == literal

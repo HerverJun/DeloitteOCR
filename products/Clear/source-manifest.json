@@ -68,11 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
-      "head": "2024dd6868e89f3647e29d22011429cb13db08d1",
+      "head": "e5ca875ed822643219b22c688d23be72c87b06e7",
       "branch": "codex/frontend-workbench-20261015",
       "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 903,
+      "file_count": 906,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -645,10 +645,16 @@
           "sha256": "4403829cc13b65bec1b537f2f5571e5974c49da5cb815a9bceedb480a263b43f"
         },
         {
+          "path": "platform/apps/portal/src/features/documents/DocumentTasks.tsx",
+          "source_path": "apps/portal/src/features/documents/DocumentTasks.tsx",
+          "bytes": 2020,
+          "sha256": "ae50007c76b3d875c65f1653e4adf12b8735967d9b8955bc30196ab23830459c"
+        },
+        {
           "path": "platform/apps/portal/src/features/documents/DocumentWorkbench.tsx",
           "source_path": "apps/portal/src/features/documents/DocumentWorkbench.tsx",
-          "bytes": 15020,
-          "sha256": "cdcd88558ab79a5b77aeca7216565558f7733e34dab54f7c60d4690b28fa24ae"
+          "bytes": 15307,
+          "sha256": "c1f7b25d58eb76f2a44da5be8a3c6a62477efd5a94fb6166f57a44b22de91c45"
         },
         {
           "path": "platform/apps/portal/src/features/documents/api.ts",
@@ -707,8 +713,8 @@
         {
           "path": "platform/apps/portal/src/features/jobs/TaskCenter.tsx",
           "source_path": "apps/portal/src/features/jobs/TaskCenter.tsx",
-          "bytes": 9319,
-          "sha256": "84cc86830809dcf8489208d53da87e1e0cece889f3aeac1018a9bc6a9ed8db7c"
+          "bytes": 9459,
+          "sha256": "e439cf172d8802bae12ffc45c19989e67ee86e3dc86d70b9c793dd51e3710151"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/ManualEvidencePicker.tsx",
@@ -915,6 +921,18 @@
           "sha256": "146ac6ee87723d4134bc21b57b9a8d1b83a5403b0fa394ad7cc64b49894709f3"
         },
         {
+          "path": "platform/apps/portal/tests/documents-loading.test.tsx",
+          "source_path": "apps/portal/tests/documents-loading.test.tsx",
+          "bytes": 4113,
+          "sha256": "8a1eb9792e8afb8712a15adcac09e730736f12ff49f19b14ca95cdf92b22a15c"
+        },
+        {
+          "path": "platform/apps/portal/tests/documents-tasks.test.tsx",
+          "source_path": "apps/portal/tests/documents-tasks.test.tsx",
+          "bytes": 3177,
+          "sha256": "c706e7b851820712429e3a3a6f3b314f995ee6b61b4e93849d8fbd7c1f62c1d3"
+        },
+        {
           "path": "platform/apps/portal/tests/file-hash.test.ts",
           "source_path": "apps/portal/tests/file-hash.test.ts",
           "bytes": 2840,
@@ -959,8 +977,8 @@
         {
           "path": "platform/apps/portal/tests/jobs.test.tsx",
           "source_path": "apps/portal/tests/jobs.test.tsx",
-          "bytes": 3112,
-          "sha256": "0cd10b74031917f800dfe529c6381935b0020fc293bcd14d903b2d2ebf4bff9c"
+          "bytes": 3471,
+          "sha256": "f602c2f2a97108394a577e746a5e0b5ef36b752ccc4e4771d7219379d8e66fbc"
         },
         {
           "path": "platform/apps/portal/tests/multimodal-agent-results.test.tsx",
@@ -1355,8 +1373,8 @@
         {
           "path": "platform/modules/data_workbench/comparison/exact.py",
           "source_path": "modules/data_workbench/comparison/exact.py",
-          "bytes": 12932,
-          "sha256": "f7c9b00b2b0aaac88207c6274d5f6d6b0a29db189e7f45558194e943f3a4ad09"
+          "bytes": 14063,
+          "sha256": "33b2132a59116874dc36f49bc7d3b34ac3098502090b90df5b3db4c037c8abbd"
         },
         {
           "path": "platform/modules/data_workbench/exporting/__init__.py",
@@ -1367,8 +1385,8 @@
         {
           "path": "platform/modules/data_workbench/exporting/results.py",
           "source_path": "modules/data_workbench/exporting/results.py",
-          "bytes": 32845,
-          "sha256": "387ed7f37dc62bca652f509e60202c24de51dd6ddeae4dee08dac1e96cefab51"
+          "bytes": 32921,
+          "sha256": "11ef93d3ac2e71f81082a42213e3979af8994be9a8d8c17b3039f3aad2ac3c2c"
         },
         {
           "path": "platform/modules/data_workbench/importing/__init__.py",
@@ -1397,8 +1415,8 @@
         {
           "path": "platform/modules/data_workbench/interactive_worker.py",
           "source_path": "modules/data_workbench/interactive_worker.py",
-          "bytes": 18122,
-          "sha256": "821bd24512582c0977106162e7be5a6ed16f06d9b4c602b040687b9eb212df33"
+          "bytes": 18429,
+          "sha256": "55d960d679838caf7bb4d587aed03870a4cb115a9c740c3890e699f2fa988009"
         },
         {
           "path": "platform/modules/data_workbench/recipes/__init__.py",
@@ -2855,8 +2873,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 20951,
-          "sha256": "891dba30e5af9691f220f61ebbc14bc1f3219b2813150c451f52143d70ea48d2"
+          "bytes": 20978,
+          "sha256": "695f581c5529aceb66c8e90ddfdf0e05c1e7eb0f0799611fde6dafd62a902826"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -3881,8 +3899,8 @@
         {
           "path": "platform/src/workbench_platform/data_api/service.py",
           "source_path": "src/workbench_platform/data_api/service.py",
-          "bytes": 32723,
-          "sha256": "8daf9436d92056dc06cbec73f1537b12777f51105289bc7ac3cea971d1972384"
+          "bytes": 34170,
+          "sha256": "3452f97d5aa1e09dd94cc833fb52fc6387f1051193b4c6440480338407f1a4da"
         },
         {
           "path": "platform/src/workbench_platform/data_api/table_schema.py",
@@ -3911,8 +3929,8 @@
         {
           "path": "platform/src/workbench_platform/documents/service.py",
           "source_path": "src/workbench_platform/documents/service.py",
-          "bytes": 40497,
-          "sha256": "2fd52808b5094a483971d7ea60b052e3255e1a0ba902d74a000b1beea0dde12c"
+          "bytes": 42260,
+          "sha256": "2db413c995a19bcd8146b697eabb6c585e4ad2a90b6cf608305a89c07b4c1421"
         },
         {
           "path": "platform/src/workbench_platform/documents/tables.py",
@@ -4745,8 +4763,8 @@
         {
           "path": "platform/tests/agent/test_platform_reader_gate.py",
           "source_path": "tests/agent/test_platform_reader_gate.py",
-          "bytes": 5669,
-          "sha256": "bfe3ccfa276c6e0b1c9d3f9fbef8df8feb79318451ffee544bf9768bb5a76241"
+          "bytes": 6384,
+          "sha256": "fcdfc644e5a9973ae009de4ddbdabd05f41ce180ce94c47ddb8262d303c9b273"
         },
         {
           "path": "platform/tests/agent/test_product_entry.py",
@@ -4889,14 +4907,14 @@
         {
           "path": "platform/tests/data/test_exact_matching.py",
           "source_path": "tests/data/test_exact_matching.py",
-          "bytes": 5836,
-          "sha256": "ff24e5e02a5ccc8de24538eaa1debfd623fda8e5c2d5d6f06dc84878534a97e7"
+          "bytes": 8445,
+          "sha256": "0e4b41ef548bb8a2004edbc4be6e284b97c0b93a7971243d0248bb7f540f76ea"
         },
         {
           "path": "platform/tests/data/test_export_readback.py",
           "source_path": "tests/data/test_export_readback.py",
-          "bytes": 8841,
-          "sha256": "575092ed563339cfb0eaf24cf523904c6dfd5d606cd3f37986601eb54e90d9e4"
+          "bytes": 11142,
+          "sha256": "6184f4d1ea7c9a0f3fcaf68002bc00364d9a74c7dd1b4eecee2d36ee1f5793f9"
         },
         {
           "path": "platform/tests/data/test_import_fidelity.py",
@@ -4913,8 +4931,8 @@
         {
           "path": "platform/tests/data/test_regression_corpus.py",
           "source_path": "tests/data/test_regression_corpus.py",
-          "bytes": 6129,
-          "sha256": "27ba5b7a77936a3b694568d2945c8a10a72c630865152c4e7e85c5f1d4353fd2"
+          "bytes": 13467,
+          "sha256": "865cbd6e33373b7d80245415350275804408af37f345206529878b0dae607be8"
         },
         {
           "path": "platform/tests/data/test_review_long_text_export.py",
@@ -5423,8 +5441,8 @@
         {
           "path": "platform/tests/unit/test_documents_regressions.py",
           "source_path": "tests/unit/test_documents_regressions.py",
-          "bytes": 11416,
-          "sha256": "88b21a8dccc003e612e7972cd7cfbf3e4977717abe6ef5c23eabf11ce86e3102"
+          "bytes": 15961,
+          "sha256": "9868f1f17888a9d6ff8af7a5eaef724c7b3c388fb147e3ff70932990ae3c3900"
         },
         {
           "path": "platform/tests/unit/test_forensic_geometry.py",

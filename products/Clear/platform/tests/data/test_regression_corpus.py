@@ -118,3 +118,136 @@ def test_frozen_xlsx_and_parquet_preserve_long_ids_and_loss_markers():
     assert table.rows[0].cells[1].value == "000123456789012345678901234567"
     assert table.rows[0].cells[4].kind == "unknown_formula"
     assert table.rows[0].cells[4].formula == "=SUM(1,2)"
+
+
+def test_interactive_old_amount_result_keeps_identity_when_new_comparison_is_exported(tmp_path):
+    uploads = tmp_path / "uploads"
+    uploads.mkdir()
+    state = {"tables": {}, "recipes": [], "comparisons": [], "exports": [], "result_id": None}
+    counter = 0
+
+    def run(action, payload, *, filename=None, content=None):
+        nonlocal state, counter
+        counter += 1
+        request = {"session_dir": str(tmp_path), "state": state, "payload": payload,
+                   "action": action, "job_id": f"legacyExport{counter}"}
+        if filename:
+            path = uploads / filename
+            path.write_text(content, encoding="utf-8")
+            request["upload"] = {"id": f"legacyUpload{counter}", "name": filename,
+                "relative": "uploads/" + filename, "format": "csv",
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        state = do_operation(request)["state"]
+
+    run("import", {"side": "left"}, filename="left.csv",
+        content='id,amount\n001234567890,"1,234.50"\nK,(20.00)\n')
+    run("import", {"side": "right"}, filename="right.csv",
+        content='id,amount\n001234567890,1234.50\nK,-20.00\n')
+    spec = {"key_pairs": [["c1", "c1"]], "compare_pairs": [["c2", "c2"]],
+            "amount_pairs": [["c2", "c2"]], "amount_tolerance": "0.01"}
+    run("compare", {"spec": {**spec, "amount_format": "plain-decimal-v1"}})
+    legacy_id = state["result_id"]
+    assert "amount_format" not in state["comparison"]["spec"]
+    assert state["comparisons"][0]["coverage"]["different_pairs"] == 2
+    run("compare", {"spec": spec})
+    current_id = state["result_id"]
+    assert current_id != legacy_id
+    assert state["comparison"]["spec"]["amount_format"] == "financial-v1"
+    assert state["comparisons"][0]["coverage"]["same_pairs"] == 2
+    # Exporting the old result reloads its unversioned saved policy, rather
+    # than selecting the new default or overwriting the old comparison ID.
+    run("export", {"result_id": legacy_id})
+    exported = state["exports"][0]
+    files = {item["name"]: tmp_path / item["relative"] for item in exported["files"]}
+    summary = json.loads(files["summary.json"].read_text("utf-8"))
+    assert summary["comparison_id"] == legacy_id
+    assert "amount_format" not in summary["policy"]
+    assert summary["coverage"]["different_pairs"] == 2
+    with files["results.csv"].open(encoding="utf-8-sig", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [row["category"] for row in rows] == ["different", "different"]
+    assert rows[0]["L_c1_value"] == "001234567890"
+    assert rows[0]["L_c2_value"] == "1,234.50"
+    assert rows[1]["L_c2_value"] == "(20.00)"
+
+
+def test_real_financial_producer_marks_data_before_publication_and_blocks_previous_reader(tmp_path, monkeypatch):
+    import importlib.util
+    import time
+    import pytest
+    from workbench_platform.data_api.service import DataWorkbenchService
+    from workbench_platform.resources import reader_features
+    from scripts.product_compatibility import check, DATA_COMPATIBILITY
+
+    python = Path('F:/OCR/release/Clear/versions/0.10.0/program/runtimes/data/python.exe')
+    previous = Path('F:/OCR/output/clear-mineru-integration-20261021/continuation-20261021-001/delivery/Clear-0.17.0-documents-mineru-candidate-005')
+    if not python.is_file() or not previous.is_dir():
+        pytest.skip('Pinned local worker and previous candidate are required')
+    data = tmp_path / 'data'
+    service = DataWorkbenchService(data / 'data-workbench', python)
+    marker = data / 'product-reader-requirements.json'
+    session = service.create('金额历史与新格式门禁')
+    session_id = session['id']
+
+    def operation(action, payload):
+        current = service.get(session_id)
+        job = service.submit(session_id, action, payload, current['version'])
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            job = service.job(session_id, job['id'])
+            if job['status'] not in {'queued', 'running', 'cancelling'}:
+                assert job['status'] == 'succeeded', job
+                return service.get(session_id)
+            time.sleep(.05)
+        pytest.fail('Real data worker did not finish')
+
+    try:
+        for side, content in (('left', 'id,amount\n00123,"1,234.50"\nK,(20.00)\n'),
+                              ('right', 'id,amount\n00123,1234.50\nK,-20.00\n')):
+            path = service.session_dir(session_id) / 'uploads' / (side + '.csv')
+            path.write_text(content, encoding='utf-8')
+            uploaded = service.upload(session_id, 'u' + side, path.name, '.csv', path,
+                hashlib.sha256(path.read_bytes()).hexdigest(), path.stat().st_size)
+            operation('import', {'side': side, 'upload_id': uploaded['id']})
+        spec = {'key_pairs': [['c1', 'c1']], 'compare_pairs': [['c2', 'c2']],
+                'amount_pairs': [['c2', 'c2']], 'amount_tolerance': '0.01'}
+        legacy = operation('compare', {'spec': {**spec, 'amount_format': 'plain-decimal-v1'}})
+        legacy_id = legacy['state']['result_id']
+        assert not marker.exists()
+        operation('export', {'result_id': legacy_id})
+        assert not marker.exists(), 'Exporting a saved legacy policy must not upgrade DATA'
+        original = reader_features.require_features
+        observed = []
+
+        def mark_before_result(root, *features):
+            assert service.get(session_id)['state']['result_id'] == legacy_id
+            assert 'data-financial-amount-v1' in features
+            observed.append(True)
+            return original(root, *features)
+
+        monkeypatch.setattr(reader_features, 'require_features', mark_before_result)
+        from workbench_platform.data_api import service as service_module
+        original_popen = service_module.subprocess.Popen
+        launched = []
+
+        def child_after_marker(*args, **kwargs):
+            assert marker.is_file(), 'Reader marker must precede child result/response persistence'
+            launched.append(True)
+            return original_popen(*args, **kwargs)
+
+        monkeypatch.setattr(service_module.subprocess, 'Popen', child_after_marker)
+        current = operation('compare', {'spec': spec})
+        assert observed and launched and current['state']['result_id'] != legacy_id
+        assert current['state']['comparison']['spec']['amount_format'] == 'financial-v1'
+        assert 'data-financial-amount-v1' in json.loads(marker.read_text('utf-8'))['reader_features']
+        saved_marker = marker.read_bytes()
+        loader = importlib.util.spec_from_file_location('previous_financial_reader', previous / 'platform/scripts/product_compatibility.py')
+        previous_reader = importlib.util.module_from_spec(loader)
+        loader.loader.exec_module(previous_reader)
+        previous_descriptor = json.loads((previous / 'candidate.json').read_text('utf-8'))['data_compatibility']
+        with pytest.raises(ValueError, match='不能直接降级'):
+            previous_reader.check(data, previous_descriptor)
+        assert check(data, DATA_COMPATIBILITY)['compatible']
+        assert marker.read_bytes() == saved_marker
+    finally:
+        service.close()

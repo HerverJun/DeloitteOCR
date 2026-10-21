@@ -1,6 +1,10 @@
 # Clear 审计平台与 DeloitteOCR
 
-当前统一入口为 **Clear v0.14.0 通用工作能力与审计工具版**，登记见 [release/Clear/current.json](release/Clear/current.json)。双击 `F:\OCR\release\Clear\启动智能审计.cmd`，打开[门户首页](http://127.0.0.1:8879/)或[智能审计](http://127.0.0.1:8879/agent)。Agent先提供正常对话、文件搜索编辑、PowerShell/Python脚本与多轮执行，再按需调用文字提取、多列清洗、OCR选参和底稿等专业服务。普通任务自然结束；原件、固定成果、故障续作及人工复核机制继续保留。原DATA、11个旧会话与历史下载已核对，冷备和旧版回退副本已实际启动验证。见[实施与验收](docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)、[最终矩阵](docs/platform-automation/Agent通用能力恢复最终验收矩阵-20261019.md)及[调研计划](docs/platform-automation/Agent通用能力恢复与审计增强调研升级计划-20261019.md)。
+当前正式入口为 **Clear v0.16.0 SAFIRE 版**，以 [release/Clear/current.json](release/Clear/current.json) 的实际登记为准。双击 `F:\OCR\release\Clear\启动智能审计.cmd`，打开[门户首页](http://127.0.0.1:8879/)或[智能审计](http://127.0.0.1:8879/agent)。独立的 [0.17.0 文档与 MinerU Pro 候选](http://127.0.0.1:8985/)已完成小范围真实流程检查，说明见 [实用集成交付](docs/platform-automation/Clear-MinerU实用集成交付-20261022.md)。候选、正式 DATA 与开发源分别管理，审阅源码在 `products/Clear`，不把历史记录中的版本号当作当前安装。
+
+Clear 统一承接项目资料、任务、Agent、复核和成果；ClearOCR 提供独立识别队列与五引擎候选，ClearData 负责确定性清洗比对，分类及图像取证等工具按需调用。Agent 基础能力、原件与固定成果、故障续作和人工复核机制继续保留。0.14.0 基础能力的历史证据见[实施与验收](docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)、[最终矩阵](docs/platform-automation/Agent通用能力恢复最终验收矩阵-20261019.md)及[调研计划](docs/platform-automation/Agent通用能力恢复与审计增强调研升级计划-20261019.md)。
+
+2026-10-22 [项目总览与真实 Debug](docs/platform-automation/Clear项目总览与真实Debug-20261022.md)：修复金额格式、取消恢复及文档入口与阅读衔接；独立 0.17.1 调试候选使用 [8986](http://127.0.0.1:8986/) 和隔离 DATA，正式入口仍为 8879。
 
 **完整说明文档（2026-10-14）：**
 
