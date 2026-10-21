@@ -107,7 +107,8 @@ function OcrHandoffWorkflow() {
     {reviewReturn && <Paragraph><Link to={reviewReturn}>返回原待办事项</Link></Paragraph>}
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <>
       <section className="panel"><div className="section-head"><Title level={3}>输入资料</Title>
-        <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></div>
+        <Space wrap><Link to={`/apps/ocr/documents?workspace=${encodeURIComponent(workspaceId)}`}>解析文档</Link>
+        <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></Space></div>
         {assetSet.isError && <Alert type="error" title="资料集无法读取" action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}
         {assetSet.data ? <><Text type="secondary">版本 {assetSet.data.revision} · {assetSet.data.members.length} 份</Text>
           <ul className="ocr-input-list">{assetSet.data.members.map(item => <li key={item.asset_id}>{item.original_name}</li>)}</ul></> :

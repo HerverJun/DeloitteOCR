@@ -331,14 +331,22 @@ class ClassificationHandoff:
                                (handoff_id, model_id, device, request_id, None, None, _utc()))
                     submission = db.execute("SELECT * FROM classification_submission WHERE handoff_id=?",
                                             (handoff_id,)).fetchone()
-            if submission["model_id"] != model_id or submission["device"] != device:
+            if (submission["model_id"] != model_id or submission["device"] != device
+                    or submission["request_id"] != request_id):
                 raise AssetSetConflict("Processing request is already bound to another model")
             native_job = submission["native_job_id"]
             if native_job is None:
-                native_job = adapter.lookup_inference(request_id) if hasattr(adapter, "lookup_inference") else None
+                lookup = getattr(adapter, "lookup_inference", None)
+                native_job = lookup(request_id) if callable(lookup) else None
                 if native_job is None:
                     if not allow_new:
-                        return {"not_submitted": True}
+                        # Only a successful strict native inference-request GET
+                        # can authorize the same original keyed submission.
+                        return {"not_submitted": True, "authoritative_negative": callable(lookup),
+                            "native_request_id": request_id, "native_project_id": context.module_project_id,
+                            "input_fingerprint": hashlib.sha256(_json({"handoff_id": handoff_id,
+                                "manifest_digest": row["manifest_digest"], "model_id": model_id,
+                                "device": device, "asset_ids": asset_ids}).encode()).hexdigest()}
                     native_job = adapter.infer(model_id, asset_ids, key=request_id, device=device)
                 with closing(self._connect()) as db:
                     db.execute("UPDATE classification_submission SET native_job_id=? "

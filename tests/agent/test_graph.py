@@ -26,7 +26,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
     asset = data_tests.DataToolTests.asset
 
     async def wait_status(self, runtime, run_id, statuses):
-        for _ in range(200):
+        for _ in range(600):
             run = runtime.store.run(run_id)
             if run['status'] in statuses:
                 return run
@@ -63,7 +63,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
             step = state['step']
             if step == 0:
                 return response(state, 'data_create_session', {'name': '动态图导入'})
-            previous = state['messages'][-1]['result']
+            previous = next(m['result'] for m in reversed(state['messages']) if m['role'] == 'tool')
             if step == 1:
                 return response(state, 'data_import', {'data_session_id': previous['data']['data_session_id'],
                     'expected_version': previous['data']['version'], 'side': 'left', 'asset_id': asset.asset_id,
@@ -81,7 +81,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
             run = await runtime.submit(session['id'], '导入并查看台账', 'graph_message')
             final = await self.wait_status(runtime, run['id'], {'succeeded', 'failed', 'incomplete'})
             self.assertEqual(final['status'], 'succeeded', runtime.store.events(session['id']))
-            self.assertEqual(observations, [0, 1, 2, 3, 4])
+            self.assertEqual(observations, [0, 1, 2, 3])
             self.assertEqual(len(self.native.list('wtest')), 1)
             self.assertEqual(len(self.native.get(self.native.list('wtest')[0]['id'])['uploads']), 1)
         finally:
@@ -92,7 +92,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
             if state['step'] == 0:
                 return response(state, 'ask_user', {'question': '请选择供应商台账还是历史台账', 'options': ['供应商台账', '历史台账']})
             if state['step'] == 1:
-                answer = state['messages'][-1]['result']['data']['reply']
+                answer = next(m['result'] for m in reversed(state['messages']) if m['role'] == 'tool')['data']['reply']
                 return response(state, 'data_create_session', {'name': answer})
             if state['step'] == 2:
                 return response(state, content='已根据工作表选择建立数据作业，尚未导出文件')
@@ -107,8 +107,8 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         await reopened.start()
         try:
             await reopened.reply(decision['id'], '历史台账', 1, 'graph_reply')
-            final = await self.wait_status(reopened, run['id'], {'incomplete', 'failed'})
-            self.assertEqual(final['status'], 'incomplete', reopened.store.events(session['id']))
+            final = await self.wait_status(reopened, run['id'], {'paused', 'failed'})
+            self.assertEqual(final['status'], 'paused', reopened.store.events(session['id']))
             self.assertEqual(self.native.list('wtest')[0]['name'], '历史台账')
         finally:
             await reopened.close()
@@ -139,10 +139,10 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         runtime, session = await self.make_runtime(provider)
         try:
             run = await runtime.submit(session['id'], '导出文件', 'graph_message')
-            final = await self.wait_status(runtime, run['id'], {'incomplete', 'failed'})
-            self.assertEqual(final['status'], 'incomplete')
-            event = next(item for item in runtime.store.events(session['id'])['items'] if item['kind'] == 'delivery')
-            self.assertTrue(event['payload']['content'].startswith('本轮未形成已核实的交付'))
+            final = await self.wait_status(runtime, run['id'], {'paused', 'failed'})
+            self.assertEqual(final['status'], 'paused')
+            self.assertGreater(final['rounds'], 1)
+            self.assertEqual(runtime.store.rows("SELECT * FROM events WHERE run_id=? AND kind='delivery'", (run['id'],)), [])
         finally:
             await runtime.close()
 

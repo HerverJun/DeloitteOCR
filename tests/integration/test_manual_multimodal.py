@@ -82,6 +82,11 @@ def test_real_face_project_library_review_artifacts_and_replay(tmp_path,monkeypa
             result=json.loads(bundle.read('result.json'))
             assert result['revision']==2 and result['inputs'][0]['blob_hash']==hashlib.sha256(raw).hexdigest()
             assert 'feature' not in result['result']['images'][0]['faces'][0]
+        assert client.post(base+'/jobs/'+identifier+'/collect',headers=LOCAL).status_code==409
+        confirmed=client.post(base+'/jobs/'+identifier+'/review',headers=LOCAL,json={**review,
+            'request_id':'confirmRealFace','expected_revision':2,'assessment':'confirmed',
+            'note':'核准工程结果版本与来源；不把工程样例当作业务身份结论。'})
+        assert confirmed.status_code==200,confirmed.text
         collected=client.post(base+'/jobs/'+identifier+'/collect',headers=LOCAL)
         assert collected.status_code==200,collected.text
         bundle=collected.json();assert bundle['kind']=='manual_analysis' and bundle['files']
@@ -139,6 +144,12 @@ def test_real_seal_correction_to_data_and_original_region(tmp_path,monkeypatch):
             'actor':'工程验证人','note':'按合成原件校正，仅验证流程','assessment':'inconclusive',
             'edits':[{'index':0,'subject':'合成审计有限公司','number':'1234567890123'}]})
         assert review.status_code==200,review.text
+        assert client.post(base+'/jobs/'+identifier+'/to-data',headers=LOCAL).status_code==409
+        confirmed=client.post(base+'/jobs/'+identifier+'/review',headers=LOCAL,json={
+            'request_id':'confirmSealFields','expected_revision':2,'actor':'工程验证人',
+            'note':'按合成原件核准字段与来源，仅验证工程流程。','assessment':'confirmed',
+            'edits':[{'index':0,'subject':'合成审计有限公司','number':'1234567890123'}]})
+        assert confirmed.status_code==200,confirmed.text
         response=client.post(base+'/jobs/'+identifier+'/to-data',headers=LOCAL)
         assert response.status_code==200,response.text
         transferred=response.json();replayed=client.post(base+'/jobs/'+identifier+'/to-data',headers=LOCAL).json()
@@ -187,6 +198,11 @@ def test_real_temporal_or_heatmap_review_reopen_export_and_backup(kind,filename,
             assert job['result']['processing']['jpeg_recompressed'] is False
             review['regions']=[{'box':[.1,.2,.4,.5],'note':'工程区域标注'}]
         saved=client.post(base+'/jobs/'+identifier+'/review',headers=LOCAL,json=review)
+        assert saved.status_code==200,saved.text
+        assert client.post(base+'/jobs/'+identifier+'/collect',headers=LOCAL).status_code==409
+        saved=client.post(base+'/jobs/'+identifier+'/review',headers=LOCAL,json={**review,
+            'request_id':'confirm'+kind,'expected_revision':2,'assessment':'confirmed',
+            'note':'核准工程结果版本与原件定位，不核准自动业务结论。'})
         assert saved.status_code==200,saved.text
         response=client.get(base+'/jobs/'+identifier+'/download')
         assert response.status_code==200,response.text

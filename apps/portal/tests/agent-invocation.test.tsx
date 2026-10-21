@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { EventContent } from '../src/features/agent/AgentWorkbench'
@@ -52,6 +52,46 @@ test('object kind determines artifact asset set and job routes for every applica
   const native = referencePath({ ...ref, coverage: { origin: 'native_binding' } }, 'task')
   expect(native).toContain('native_binding=handoff'); expect(native).not.toContain('handoff=')
 })
+
+test('verified audit draft references open their owning task and exact draft revision while retaining return scope', () => {
+  const path = referencePath({ ...ref, kind: 'result', application: 'platform', object_id: 'draftExisting', parent_id: 'owningTask', revision: 7,
+    sha256: 'a'.repeat(64), coverage: { kind: 'audit_draft' } }, 'returnTask')
+  const url = new URL(path, 'http://platform')
+  expect(url.pathname).toBe('/findings')
+  expect(Object.fromEntries(url.searchParams)).toEqual({ workspace: 'wtest', task_return: 'returnTask', session: 'owningTask', draft: 'draftExisting', revision: '7', sha256: 'a'.repeat(64) })
+})
+
+test('fixed draft deep links fetch the exact hashed historical version read-only and leave the current draft editable', async () => {
+  const urls: string[] = [], writes: string[] = [], hash = 'a'.repeat(64)
+  const current = { draft_id: 'draftExisting', task_id: 'owningTask', revision: 8, title: '当前第八版', facts: '当前事实', interpretation: '', rule: '', missing_information: '', recommendations: '', evidence_ids: [], status: 'draft', author: { kind: 'human' }, outdated: false }
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    urls.push(url); if (init?.method) writes.push(url)
+    return { ok: true, json: async () => url.includes('/revisions/3?') ? { ...current, revision: 3, title: '交付时第三版', facts: '第三版完整事实', content_sha256: hash, source_assets: ['assetOriginal'] }
+      : url.endsWith('/findings') ? { items: [current], total: 1 } : url.endsWith('/task') ? { id: 'owningTask', workspace_id: 'wtest', selected_assets: [], result_refs: [], artifact_refs: [], initial_refs: [] } : { items: [] } }
+  }))
+  const router = mount(<FindingsWorkspace />, `/findings?workspace=wtest&session=owningTask&draft=draftExisting&revision=3&sha256=${hash}`)
+  const reader = await screen.findByLabelText('固定草稿只读内容')
+  expect(reader).toHaveTextContent('交付时第三版'); expect(reader).toHaveTextContent('第三版完整事实')
+  expect(within(reader).queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '保存草稿' })).not.toBeInTheDocument()
+  expect(urls).toContain(`/api/platform/v1/agent/sessions/owningTask/findings/draftExisting/revisions/3?sha256=${hash}`)
+  fireEvent.click(screen.getByRole('button', { name: '返回当前草稿列表' }))
+  await waitFor(() => expect(router.state.location.search).toBe('?workspace=wtest&session=owningTask'))
+  fireEvent.click(await screen.findByRole('button', { name: '当前第八版' }))
+  expect(await screen.findByLabelText('发现标题')).toHaveValue('当前第八版')
+  expect(screen.getByLabelText('观察事实')).toHaveValue('当前事实')
+  expect(writes).toHaveLength(0)
+}, 15000)
+
+test('a draft revision response with a different content hash is rejected without falling back to current content', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, json: async () => url.includes('/revisions/')
+    ? { draft_id: 'draftExisting', task_id: 'owningTask', revision: 3, content_sha256: 'b'.repeat(64), title: '错误版本', source_assets: [], evidence_ids: [] }
+    : url.endsWith('/task') ? { id: 'owningTask', result_refs: [], artifact_refs: [], initial_refs: [] } : { items: [], total: 0 } })))
+  mount(<FindingsWorkspace />, `/findings?workspace=wtest&session=owningTask&draft=draftExisting&revision=3&sha256=${'a'.repeat(64)}`)
+  expect(await screen.findByText('读取的草稿与固定版本链接不一致，请重新核实交付引用。')).toBeInTheDocument()
+  expect(screen.queryByLabelText('固定草稿只读内容')).not.toBeInTheDocument()
+  expect(screen.queryByText('错误版本')).not.toBeInTheDocument()
+}, 15000)
 
 test('manual result selection survives paging, submits explicit scope and restores that scope', async () => {
   const selectedAssets = Array.from({ length: 99 }, (_, i) => `old${i}`)

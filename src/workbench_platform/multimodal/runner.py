@@ -1,7 +1,7 @@
 """One gated, owned process per GPU lease; waiting is handled by the dispatcher."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import hashlib
 import json
 import os
@@ -11,7 +11,7 @@ import time
 import uuid
 
 from workbench_platform.resources.gpu import Owner, ResourceBusy, ResourceEvidence, ReleaseUnconfirmed
-from workbench_platform.resources.recovery import WindowsJob, local_path, persist_owner, process_identity
+from workbench_platform.resources.recovery import WindowsJob, local_path, persist_owner, process_identity, atomic_json
 
 PROTOCOL = 'clear-gpu-worker-v1'
 OOM_MARKERS = ('out of memory', 'cuda_error_out_of_memory', 'resourceexhaustederror', 'cublas_status_alloc_failed')
@@ -103,6 +103,7 @@ class WorkerRunner:
         last_progress, previous_progress, stop_at = started, None, None
         outcome = None
         cleanup_error = None
+        ownership_record = None
         if (output/'worker.log').exists():
             os.replace(output/'worker.log',output/('worker-previous-'+uuid.uuid4().hex+'.log'))
         with (output / 'worker.log').open('wb') as log:
@@ -118,9 +119,14 @@ class WorkerRunner:
                     process.wait(timeout=15)
                     raise
                 process_started(process)
+                owner = Owner('manual', request['runner']['launch_id'], request['runner']['instance_id'],
+                              process.pid, self.identity(process.pid))
+                ownership_record={'format':'clear-gpu-owner-v1','owner':asdict(owner),'job_name':job.name,
+                    'kill_on_close':True,'breakaway':False,'worker_epoch':epoch,
+                    'job_id':request['runner'].get('job_id'),'generation':request['runner'].get('generation'),
+                    'terminal_status':None,'process_tree_exited':False}
+                atomic_json(output/'worker-ownership.json',ownership_record)
                 if gpu:
-                    owner = Owner('manual', request['runner']['launch_id'], request['runner']['instance_id'],
-                                  process.pid, self.identity(process.pid))
                     try:
                         lease = self.coordinator.grant(request_id, owner, owned=lambda actual:
                             actual == owner and job.contains(process) and self.identity(process.pid) == owner.creation_time)
@@ -190,6 +196,19 @@ class WorkerRunner:
                         job.drain()
                     if process is not None:
                         process.wait(timeout=15)
+                    if ownership_record is not None:
+                        ownership_record.update(terminal_status=outcome.status if outcome else 'failed',
+                            process_tree_exited=bool(job.drained and job.active()==0 and process.poll() is not None),
+                            returncode=process.poll(),completed_at=time.time())
+                        result=output/'result.json'
+                        if result.is_file():
+                            with result.open('rb') as stream:ownership_record['result_file_hash']=hashlib.file_digest(stream,'sha256').hexdigest()
+                        ownership_record['output_files']={}
+                        for path in output.iterdir():
+                            if path.is_file() and not path.name.startswith('input-') and (path.suffix in {'.png','.wav','.npy'} or path.name=='asr-original.json'):
+                                with path.open('rb') as stream:sha256=hashlib.file_digest(stream,'sha256').hexdigest()
+                                ownership_record['output_files'][path.name]={'bytes':path.stat().st_size,'sha256':sha256}
+                        atomic_json(output/'worker-ownership.json',ownership_record)
                     if lease is not None:
                         if not job.drained or job.active() or process.poll() is None:
                             raise ReleaseUnconfirmed('GPU worker tree exit was not confirmed')

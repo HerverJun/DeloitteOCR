@@ -12,6 +12,7 @@ from .results import install
 class Read(AgentModel):
     reference: AgentRef
     page_number: int | None = Field(default=None, ge=1)
+    block_id: str | None = Field(default=None, max_length=100)
     table_index: int | None = Field(default=None, ge=0, le=99)
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=12000, ge=1, le=20000)
@@ -31,7 +32,35 @@ class Concat(AgentModel):
 def read(args, ctx):
     value = verify(args.reference.model_dump(), ctx)
     ref = args.reference
-    if ref.kind == 'asset':
+    if ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        document = value['document']
+        if args.page_number is None:
+            raise ValueError('已解析文档须明确页码')
+        page = next((page for page in document['pages'] if page['page_number'] == args.page_number), None)
+        if page is None:
+            raise ValueError('保存结果没有该页码')
+        blocks = page['blocks']
+        if args.block_id:
+            blocks = [block for block in blocks if block['block_id'] == args.block_id]
+            if not blocks:
+                raise ValueError('保存页没有该文档块')
+        if args.table_index is not None:
+            tables = [table for table in document['tables'] if table['page_number'] == args.page_number]
+            if args.table_index >= len(tables):
+                raise ValueError('保存页没有该表')
+            table = tables[args.table_index]
+            cells = table['cells']
+            count = min(args.limit, 50)
+            data = {**{key: table[key] for key in ('table_id', 'rows', 'columns', 'source')},
+                    'cells': cells[args.offset:args.offset + count], 'total_cells': len(cells)}
+            next_offset = args.offset + count if args.offset + count < len(cells) else None
+        else:
+            text = '\n\n'.join(block['text'] for block in blocks)
+            data = {'text': text[args.offset:args.offset + args.limit], 'total_chars': len(text), 'offset': args.offset,
+                    'page_number': args.page_number, 'needs_ocr': page['needs_ocr'], 'engine': page['engine'],
+                    'blocks': [{key: block.get(key) for key in ('block_id', 'type', 'table_id', 'source', 'order')} for block in blocks]}
+            next_offset = args.offset + args.limit if args.offset + args.limit < len(text) else None
+    elif ref.kind == 'asset':
         asset = ctx.services.asset_library[0].get(ctx.workspace_id, ref.object_id)
         if asset.size_bytes > 32*1024*1024:
             return AgentToolResult(status='unsupported', summary='单文件超过原文读取限制，请用结构化导入或按页处理').model_dump()
@@ -126,5 +155,12 @@ def concat(args, ctx):
 
 
 def register(registry):
+    from workbench_platform.application_services.operations import documents as operations
+    registry.register(ToolSpec('documents_parse', '异步解析固定原资料：PDF/DOCX/PPTX/OFD 用固定 CPU 原生解析，扫描页和图片自动复用现有 OCR 队列；保存原始输出、页块和表格来源。',
+        operations.Parse, operations.parse, effect='derive', idempotent=True, availability=operations.availability,
+        lookup_operation=operations.lookup, capability='documents', input_kinds=('asset',), output_kinds=('job', 'result')))
+    registry.register(ToolSpec('documents_status', '读取已保存文档解析状态、实际覆盖、页块索引和固定结果引用。', operations.Saved, operations.read_saved, capability='documents'))
+    registry.register(ToolSpec('documents_search', '在已保存文档结果中按原文检索，返回页号、块和原件引用；不会重新识别。', operations.Search, operations.search, capability='documents'))
+    registry.register(ToolSpec('documents_control', '取消或继续文档解析。已完成的原生输出与人工校对保留；中断任务可明确恢复。', operations.Control, operations.control, effect='control', idempotent=True, capability='documents'))
     registry.register(ToolSpec('documents_read', '分页读取原资料文字/PDF指定页或OCR保存文字/单元格；offset为字符或单元格位置，不截断为一次性摘要。', Read, read))
     registry.register(ToolSpec('results_concat_tables', '按显式顺序拼接多个OCR结构表，表头与列数必须相同；保留逐行/单元格来源和原值，不猜测合并单元格或跨页关系。', Concat, concat, effect='derive', idempotent=True))

@@ -16,7 +16,7 @@ import time
 import uuid
 import zipfile
 
-from packages.contracts.multimodal import Create, Review, Reference
+from packages.contracts.multimodal import Create, Review, Reference, ManualControl, ManualReferenceDelete, ManualDraftTransfer
 from packages.contracts.models import SourceLocator
 from workbench_platform.audit.service import validated
 from workbench_platform.batches.store import encoded, fingerprint, now
@@ -71,13 +71,20 @@ class MultimodalService:
                 body TEXT NOT NULL,PRIMARY KEY(workspace_id,request_id));
                 CREATE TABLE IF NOT EXISTS manual_face_reference(
                 reference_id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,request_id TEXT NOT NULL,
-                payload_hash TEXT NOT NULL,body TEXT NOT NULL,UNIQUE(workspace_id,request_id));''')
+                payload_hash TEXT NOT NULL,body TEXT NOT NULL,UNIQUE(workspace_id,request_id));
+                CREATE TABLE IF NOT EXISTS manual_operation(
+                workspace_id TEXT NOT NULL,operation_type TEXT NOT NULL,request_id TEXT NOT NULL,
+                payload_hash TEXT NOT NULL,resource_id TEXT NOT NULL,body TEXT NOT NULL,
+                PRIMARY KEY(workspace_id,operation_type,request_id));
+                CREATE TABLE IF NOT EXISTS manual_result_snapshot(
+                snapshot_id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,job_id TEXT NOT NULL,
+                body TEXT NOT NULL);''')
             for row in db.execute('SELECT body FROM manual_analysis').fetchall():
                 item=json.loads(row[0])
-                if item['status'] in ACTIVE:
+                if item['status'] in ACTIVE or item['status']=='needs_verification':
                     if item.get('gpu_request_id') in self.coordinator.snapshot().pending:
                         self.coordinator.cancel_pending(item['gpu_request_id'],'manual')
-                    item.update(status='needs_verification',error='上次执行中断；保留原任务，请明确重试',updated_at=now())
+                    self._recover_interrupted(db,item)
                     self.save(db,item)
         self.dispatcher = threading.Thread(target=self._dispatch,name='manual-dispatch',daemon=True)
         self.dispatcher.start()
@@ -98,6 +105,7 @@ class MultimodalService:
                 db.execute('ROLLBACK');raise
 
     def save(self,db,item):
+        if item.get('result') and item.get('status')=='succeeded':self._snapshot(db,item)
         db.execute('UPDATE manual_analysis SET body=? WHERE job_id=?',(encoded(item),item['job_id']))
         self.sync_projection(db,item)
 
@@ -132,7 +140,11 @@ class MultimodalService:
                 item=json.loads(row[0])
                 if item['status'] in ACTIVE:
                     self._cancel_pending(item)
-                    item.update(status='needs_verification',stage='interrupted',updated_at=now());self.save(db,item)
+                    if item['status']=='queued' and not item.get('worker_epoch'):
+                        item.update(stage='queued',gpu_request_id=None,updated_at=now());self.save(db,item)
+                        continue
+                    self._feature()
+                    item.update(recovery_intent=item['status'],status='needs_verification',stage='interrupted',updated_at=now());self.save(db,item)
         self.pool.shutdown(wait=True,cancel_futures=True)
         self.gpu_pool.shutdown(wait=True,cancel_futures=True)
 
@@ -181,6 +193,7 @@ class MultimodalService:
 
     def _dispatch(self):
         last_recovery=0
+        last_job_recovery=time.monotonic()
         while not self.stopping.is_set():
             try:
                 snapshot=self.coordinator.snapshot()
@@ -193,7 +206,12 @@ class MultimodalService:
                         self.gpu_recovery_error=str(error)
                 with self.transaction() as db:
                     rows=[json.loads(row[0]) for row in db.execute('SELECT body FROM manual_analysis ORDER BY rowid').fetchall()]
+                    reconcile=time.monotonic()-last_job_recovery>=5
+                    if reconcile:last_job_recovery=time.monotonic()
                     for item in rows:
+                        if reconcile and item['status']=='needs_verification' and item.get('worker_epoch') and item['job_id'] not in self.inflight:
+                            before=encoded(item);self._recover_interrupted(db,item)
+                            if encoded(item)!=before:self.save(db,item)
                         if item['status']!='queued' or item['job_id'] in self.inflight:continue
                         gpu=item['options']['device']=='cuda'
                         lane='gpu' if gpu else 'cpu'
@@ -223,17 +241,288 @@ class MultimodalService:
     def get(self,workspace,job):
         with closing(self.db()) as db:return self.public(self.row(db,workspace,job))
 
+    def _feature(self):
+        from workbench_platform.resources.reader_features import require_features
+        require_features(self.root.parent,'agent-multimodal-v1')
+
+    def _snapshot(self,db,item):
+        if item['status']!='succeeded' or not item.get('result') or not item.get('result_hash'):
+            raise DataError('结果尚未完成，不能创建固定引用',409)
+        analysis=self.public(item)
+        identity={'workspace_id':item['workspace_id'],'job_id':item['job_id'],'kind':item['kind'],
+            'generation':item['generation'],'revision':item['revision'],
+            'review_revision':item['revision'] if item.get('review') else 0,'result_hash':item['result_hash'],
+            'model_identity':copy.deepcopy(item['result'].get('model_hashes',{})),
+            'sources':copy.deepcopy(item['inputs']),
+            'reference_scope':[{key:copy.deepcopy(value) for key,value in row.items() if key!='feature'}
+                for row in item.get('frozen_references',[])]}
+        identifier='ms'+fingerprint(identity)[:48]
+        previous=db.execute('SELECT body FROM manual_result_snapshot WHERE snapshot_id=?',(identifier,)).fetchone()
+        if previous:return json.loads(previous['body'])
+        value={'schema_version':'1.0','snapshot_id':identifier,**identity,
+            'review_state':'reviewed' if item.get('review') else 'unreviewed','analysis':analysis}
+        value['snapshot_hash']=fingerprint(value)
+        self._feature()
+        db.execute('INSERT INTO manual_result_snapshot VALUES(?,?,?,?)',
+            (identifier,item['workspace_id'],item['job_id'],encoded(value)))
+        return value
+
+    def snapshot(self,workspace,job,snapshot_id=None):
+        with self.transaction() as db:
+            self.row(db,workspace,job)
+            if snapshot_id is None:return self._snapshot(db,self.row(db,workspace,job))
+            row=db.execute('SELECT body FROM manual_result_snapshot WHERE workspace_id=? AND job_id=? AND snapshot_id=?',
+                (workspace,job,snapshot_id)).fetchone()
+            if row is None:raise DataError('固定结果不存在或不属于当前项目任务',404)
+            value=json.loads(row['body']);digest=value.pop('snapshot_hash',None)
+            if fingerprint(value)!=digest:raise DataError('固定结果身份校验失败',409)
+            value['snapshot_hash']=digest
+            return value
+
+    def snapshot_at_revision(self,workspace,job,revision):
+        with self.transaction() as db:
+            current=self.row(db,workspace,job)
+            rows=db.execute('SELECT snapshot_id FROM manual_result_snapshot WHERE workspace_id=? AND job_id=? AND json_extract(body,\'$.revision\')=?',
+                (workspace,job,revision)).fetchall()
+            if not rows:
+                history=db.execute('SELECT body FROM manual_review WHERE workspace_id=? AND json_extract(body,\'$.job_id\')=? AND json_extract(body,\'$.revision\')=?',
+                    (workspace,job,revision)).fetchall()
+                if len(history)!=1:raise DataError('固定复核版本不存在或身份不唯一，必须指定快照',409)
+                receipt=json.loads(history[0]['body'])
+                if (receipt.get('workspace_id')!=workspace or receipt.get('job_id')!=job or receipt.get('revision')!=revision
+                        or receipt.get('status')!='succeeded' or not receipt.get('review')
+                        or receipt.get('inputs')!=current['inputs'] or not receipt.get('result_hash')):
+                    raise DataError('历史复核回执身份无法核实',409)
+                restored=copy.deepcopy(receipt)
+                output=self.root/job/f"attempt-{receipt['generation']}"
+                try:self._accept_result(restored,output)
+                except (OSError,ValueError,KeyError) as error:raise DataError('历史原生结果或输出文件不可核实',409) from error
+                if (restored['result_hash']!=receipt['result_hash']
+                        or self.public(restored)['result']!=self.public(receipt)['result']):
+                    raise DataError('历史原生结果与固定复核回执不一致',409)
+                # Snapshot only the durable old receipt, never the current job;
+                # a retry or later review must not alter its original meaning.
+                value=self._snapshot(db,receipt)
+                return value
+        if len(rows)!=1:raise DataError('固定复核版本不存在或身份不唯一，必须指定快照',409)
+        return self.snapshot(workspace,job,rows[0]['snapshot_id'])
+
+    def snapshot_output(self,workspace,job,snapshot_id,name):
+        value=self.snapshot(workspace,job,snapshot_id);item=value['analysis']
+        if name in item['result'].get('output_files',{}):return self._output_item(item,name)
+        if Path(name).name!=name:raise DataError('结果文件不存在',404)
+        _,files=self.snapshot_export(workspace,job,snapshot_id)
+        if name not in files:raise DataError('结果文件不存在',404)
+        return files[name],mimetypes.guess_type(name)[0] or 'application/octet-stream'
+
+    def snapshot_export(self,workspace,job,snapshot_id):
+        from types import SimpleNamespace
+        from .exports import export_files
+        from workbench_platform.resources.recovery import atomic_json
+        with self.lock:
+            frozen=self.snapshot(workspace,job,snapshot_id);item=frozen['analysis']
+            destination=self.root/job/'snapshot-exports'/snapshot_id
+            identity_path=destination/'export.identity.json'
+            if identity_path.is_file():
+                identity=json.loads(identity_path.read_text('utf-8'))
+                if identity.get('snapshot_hash')!=frozen['snapshot_hash']:raise DataError('导出快照身份校验失败',409)
+                files={}
+                for name,record in identity.get('files',{}).items():
+                    if Path(name).name!=name:raise DataError('导出文件身份无效',409)
+                    path=self._output_item(item,name)[0] if name in item['result'].get('output_files',{}) else destination/name
+                    if not path.is_file() or path.stat().st_size!=record['bytes'] or self.file_hash(path)!=record['sha256']:
+                        raise DataError('固定导出文件校验失败，请保留成果并核实',409)
+                    files[name]=path
+                archive=destination/'results.zip';record=identity.get('archive',{})
+                if not archive.is_file() or archive.stat().st_size!=record.get('bytes') or self.file_hash(archive)!=record.get('sha256'):
+                    raise DataError('固定导出包校验失败，请保留成果并核实',409)
+                return archive,files
+            view=SimpleNamespace(root=self.root,get=lambda *_:copy.deepcopy(item),file_hash=self.file_hash,
+                output=lambda _workspace,_job,name:self._output_item(item,name))
+            archive,files=export_files(view,workspace,job,destination=destination)
+            identity={'snapshot_hash':frozen['snapshot_hash'],'files':{name:{'bytes':path.stat().st_size,'sha256':self.file_hash(path)}
+                for name,path in files.items()},'archive':{'bytes':archive.stat().st_size,'sha256':self.file_hash(archive)}}
+            atomic_json(identity_path,identity)
+            return archive,files
+
+    def _operation(self,db,workspace,operation_type,request_id,digest=None):
+        if not request_id:return None
+        row=db.execute('SELECT * FROM manual_operation WHERE workspace_id=? AND operation_type=? AND request_id=?',
+            (workspace,operation_type,request_id)).fetchone()
+        if row is None:return None
+        if digest is not None and row['payload_hash']!=digest:raise DataError('操作请求身份已经绑定其他参数',409)
+        return json.loads(row['body'])
+
+    def _receipt(self,db,workspace,operation_type,request_id,digest,resource_id,body):
+        if request_id:
+            self._feature()
+            db.execute('INSERT INTO manual_operation VALUES(?,?,?,?,?,?)',
+                (workspace,operation_type,request_id,digest,resource_id,encoded(body)))
+
+    def lookup_operation(self,workspace,operation_type,request_id):
+        allowed={'create','prepare','review','reference_add','reference_delete','draft_to_data','control:cancel','control:retry','control:retry_cpu','recover'}
+        if operation_type not in allowed:raise DataError('未知多模态操作类型')
+        with closing(self.db()) as db:
+            result=self._operation(db,workspace,operation_type,request_id)
+            if result is not None:
+                resource=result.get('job_id') or result.get('reference_id') or result.get('session_id')
+            elif operation_type in {'create','prepare','review','reference_add'}:
+                table={'create':'manual_analysis','prepare':'manual_analysis','review':'manual_review','reference_add':'manual_face_reference'}[operation_type]
+                row=db.execute(f'SELECT body FROM {table} WHERE workspace_id=? AND request_id=?',(workspace,request_id)).fetchone()
+                result=json.loads(row['body']) if row else None
+                if result is not None:
+                    if operation_type in {'create','prepare'}:
+                        expected='preparation' if operation_type=='prepare' else 'analysis'
+                        result=self.public(result) if result.get('purpose','analysis')==expected else None
+                    if result is not None:result.pop('feature',None)
+                resource=(result or {}).get('job_id') or (result or {}).get('reference_id')
+            else:resource=None
+        return {'found':result is not None,'operation_type':operation_type,'request_id':request_id,
+            'resource_id':resource,'receipt':result}
+
+    def _recover_interrupted(self,db,item):
+        # A queued item without an epoch has never opened its worker gate.
+        if not item.get('worker_epoch') and (item['status']=='queued' or item.get('recovery_intent')=='queued'):
+            item.update(status='queued',stage='queued',error=None,updated_at=now());return
+        if item['status']=='needs_verification' and not item.get('worker_epoch'):
+            proof=self._never_started_receipt(db,item) if not item.get('recovery_intent') else None
+            if proof:
+                self._feature()
+                item.update(status='queued',stage='recovered_queue',error=None,recovery_intent='queued',updated_at=now(),
+                    recovery_receipt={'never_started':True,'receipt_source':proof,'verified_at':now(),'from_generation':item['generation']})
+            return
+        previous=item.get('recovery_intent',item['status'])
+        if item['status']!='needs_verification' or 'recovery_intent' not in item:
+            self._feature()
+            item['recovery_intent']=previous
+            item.update(status='needs_verification',stage='interrupted',
+                error='上次执行中断；原执行终止凭证尚未确认',updated_at=now())
+        output=self.root/item['job_id']/f"attempt-{item['generation']}"
+        try:
+            from dataclasses import fields
+            from workbench_platform.resources.gpu import Owner
+            from workbench_platform.resources.recovery import recovery_evidence
+            path=output/'worker-ownership.json'
+            if not path.is_file():return
+            record=json.loads(path.read_text('utf-8'))
+            if (record.get('worker_epoch')!=item.get('worker_epoch') or record.get('job_id')!=item['job_id']
+                    or record.get('generation')!=item['generation']):return
+            owner=Owner(**{field.name:record['owner'][field.name] for field in fields(Owner)})
+            proof=recovery_evidence(record,owner)
+            if not proof.reclaim_confirmed:return
+            if item.get('gpu_request_id')==self.coordinator.snapshot().owner_request_id:
+                recover_owned(self.coordinator,self.ownership_root)
+            if previous=='cancelling':
+                self._feature()
+                item.update(status='cancelled',stage='cancelled',error=None,
+                    termination_receipt={'worker_epoch':record['worker_epoch'],'verified_at':now()});return
+            if record.get('terminal_status')=='succeeded' and (output/'result.json').is_file():
+                if self.file_hash(output/'result.json')!=record.get('result_file_hash'):return
+                identities=record.get('output_files')
+                if not isinstance(identities,dict):return
+                actual={path.name for path in output.iterdir() if path.is_file() and not path.name.startswith('input-')
+                    and (path.suffix in {'.png','.wav','.npy'} or path.name=='asr-original.json')}
+                if actual!=set(identities):return
+                for name,identity in identities.items():
+                    path=output/name
+                    if Path(name).name!=name or not path.is_file() or path.stat().st_size!=identity.get('bytes') or self.file_hash(path)!=identity.get('sha256'):return
+                self._accept_result(item,output)
+                if item.get('purpose')=='preparation':self._record_prepared(item,output)
+                item['recovery_receipt']={'from_generation':item['generation'],'verified_at':now(),'result_recovered':True}
+                return
+            self._feature()
+            item.update(status='queued',stage='recovered',error=None,generation=item['generation']+1,
+                revision=item['revision']+1,worker_epoch=None,gpu_request_id=None,actual_device=None,
+                recovery_receipt={'from_generation':item['generation'],'verified_at':now(),'process_tree_exited':True})
+        except (OSError,ValueError,KeyError,ReleaseUnconfirmed):
+            # Missing or contradictory evidence never authorizes another writer.
+            return
+
+    def _never_started_receipt(self,db,item):
+        directory=self.root/item['job_id']
+        if directory.exists() and any(directory.iterdir()):return None
+        if item.get('gpu_request_id') and self.coordinator.snapshot().owner_request_id==item['gpu_request_id']:return None
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='projection_events'").fetchone():
+            try:
+                started=db.execute("SELECT 1 FROM projection_events WHERE platform_job_id=? AND workspace_id=? AND generation=? "
+                    "AND json_extract(payload,'$.native_status') IN ('running','cancelling','succeeded','completed','failed','cancelled') LIMIT 1",
+                    (item['job_id'],item['workspace_id'],item['generation'])).fetchone()
+                if started:return None
+            except sqlite3.Error:return None
+        rows=db.execute('SELECT body FROM manual_operation WHERE workspace_id=? AND resource_id=?',
+            (item['workspace_id'],item['job_id'])).fetchall()
+        for row in rows:
+            try:receipt=json.loads(row['body'])
+            except (ValueError,TypeError):continue
+            if not isinstance(receipt,dict):continue
+            if (receipt.get('job_id')==item['job_id'] and receipt.get('workspace_id')==item['workspace_id']
+                    and receipt.get('status')=='queued' and receipt.get('generation')==item['generation']
+                    and receipt.get('revision')==item['revision'] and receipt.get('inputs')==item['inputs']):
+                return 'native_operation'
+        ledger=self.root.parent/'agent/operations.sqlite3'
+        if not ledger.is_file():return None
+        try:
+            with closing(sqlite3.connect('file:'+ledger.as_posix()+'?mode=ro',uri=True)) as journal:
+                rows=journal.execute('SELECT o.tool,o.result FROM operations o JOIN runs r ON r.id=o.run_id '
+                    'WHERE o.id=? AND r.workspace_id=?',(item['request_id'],item['workspace_id'])).fetchall()
+            tools={'face_analyze':'face','audio_transcribe':'audio','seal_extract':'seal','catnet_analyze':'catnet','multimodal_prepare':item['kind']}
+            for tool,body in rows:
+                if tools.get(tool)!=item['kind'] or not body:continue
+                receipt=json.loads(body);data=receipt.get('data',{})
+                if (receipt.get('status')!='pending' or data.get('status')!='queued' or data.get('job_id')!=item['job_id']
+                        or data.get('generation')!=item['generation']):continue
+                if any(ref.get('kind')=='job' and ref.get('application')=='multimodal'
+                        and ref.get('workspace_id')==item['workspace_id'] and ref.get('object_id')==item['job_id']
+                        and ref.get('revision')==item['generation'] for ref in receipt.get('job_refs',[])):
+                    return 'agent_submission'
+        except (OSError,ValueError,TypeError,AttributeError,KeyError,sqlite3.Error):return None
+        return None
+
+    def recover(self,workspace,job,payload=None):
+        value=validated(ManualControl,payload or {});digest=fingerprint({'job_id':job,**value})
+        with self.transaction() as db:
+            previous=self._operation(db,workspace,'recover',value['request_id'],digest)
+            if previous is not None:return previous
+            item=self.row(db,workspace,job)
+            for field in ('revision','generation'):
+                if value['expected_'+field] is not None and value['expected_'+field]!=item[field]:
+                    raise DataError('任务版本或执行代次已经变化',409)
+            if item['status']!='needs_verification' or job in self.inflight or job in self.processes:
+                return self.public(item)
+            before=encoded(item);self._recover_interrupted(db,item)
+            if encoded(item)!=before:self.save(db,item)
+            if item['status']!='needs_verification':
+                self._receipt(db,workspace,'recover',value['request_id'],digest,job,self.public(item))
+        self.wake.set()
+        return self.public(item)
+
+    def _termination_verified(self,item):
+        if not item.get('worker_epoch'):return item['status']=='cancelled'
+        try:
+            from workbench_platform.resources.gpu import Owner
+            from workbench_platform.resources.recovery import recovery_evidence
+            path=self.root/item['job_id']/f"attempt-{item['generation']}"/'worker-ownership.json'
+            record=json.loads(path.read_text('utf-8'))
+            if (record.get('worker_epoch')!=item.get('worker_epoch') or record.get('job_id')!=item['job_id']
+                    or record.get('generation')!=item['generation']):return False
+            return recovery_evidence(record,Owner(**record['owner'])).reclaim_confirmed
+        except (OSError,ValueError,KeyError,ReleaseUnconfirmed):return False
+
     @staticmethod
     def public(item):
         public_fields={'schema_version','job_id','workspace_id','request_id','kind','inputs','options','status','stage',
-            'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device'}
+            'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device','purpose'}
         item={key:copy.deepcopy(value) for key,value in item.items() if key in public_fields}
         item.setdefault('progress',{})
         item.setdefault('actual_device',None)
+        item.setdefault('purpose','analysis')
         from .revisions import attach_row_ids
         if item.get('result'):attach_row_ids(item,item['result'])
-        for image in (item.get('result') or {}).get('images',[]):
-            for face in image.get('faces',[]):face.pop('feature',None)
+        def redact(value):
+            if isinstance(value,dict):return {key:redact(record) for key,record in value.items() if key not in {'feature','embedding'}}
+            if isinstance(value,list):return [redact(record) for record in value]
+            return value
+        item=redact(item)
         return item
 
     def list(self,workspace,offset=0,limit=50,kind=None):
@@ -255,15 +544,33 @@ class MultimodalService:
         receipts={}
         record=self.models/'validation.json'
         if record.exists():receipts=json.loads(record.read_text('utf-8'))
+        local_receipts={};local_error=None
+        local_record=self.root.parent/'multimodal-cpu-validation.json'
+        if local_record.is_file():
+            try:
+                local_receipts=json.loads(local_record.read_text('utf-8'))
+                if not isinstance(local_receipts,dict):raise ValueError('本机 CPU 验证回执结构无效')
+            except (OSError,ValueError) as error:local_receipts={};local_error=str(error)
         items=[]
         for kind,(python,files) in definitions.items():
             missing=[file for file in files if not (self.models/file).is_file()]
             if not (self.program/python).is_file():missing.append(python)
-            receipt=receipts.get(kind,{})
+            local=kind in local_receipts
+            receipt=local_receipts[kind] if local else receipts.get(kind,{})
+            if not isinstance(receipt,dict):receipt={}
             identities=receipt.get('resources',{})
+            if not isinstance(identities,dict):identities={}
             source_hashes={path.relative_to(SOURCE).as_posix():self.file_hash(path) for path in sorted((SOURCE/'modules/manual_multimodal').glob('*.py'))}
-            fresh=bool(identities) and receipt.get('source_hashes')==source_hashes and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
-            cpu=not missing and fresh and receipt.get('cpu') is True
+            try:
+                fresh=bool(identities) and receipt.get('source_hashes')==source_hashes and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
+            except (OSError,KeyError,TypeError,ValueError):fresh=False
+            engineering=receipt.get('record',{})
+            if not isinstance(engineering,dict):engineering={}
+            outcome=engineering.get('outcome') or {}
+            if not isinstance(outcome,dict):outcome={}
+            local_success=not local or (engineering.get('actual_device')=='cpu' and engineering.get('cleanup_confirmed') is True
+                and outcome.get('status')=='succeeded')
+            cpu=not missing and fresh and receipt.get('cpu') is True and local_success
             gpu=False;gpu_reason='需完成本机 GPU 工程推理验证'
             if kind not in GPU_KINDS or kind not in self.config.get('gpu',{}).get('enabled_kinds',[]):
                 gpu_reason='本阶段此能力使用 CPU'
@@ -275,8 +582,10 @@ class MultimodalService:
                         gpu=self.qualification.ready(kind,binding,peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
                         if not gpu:gpu_reason='本机程序、模型、运行库或驱动设备变化，请重新验证 GPU'
                 except (OSError,ValueError,KeyError) as error:gpu_reason=str(error)
-            items.append({'kind':kind,'title':LABELS[kind],'state':'resources_missing' if missing else 'gpu_ready' if gpu else 'cpu_ready' if cpu else 'load_failed' if fresh and receipt.get('record',{}).get('exit_code',0) else 'resources_present',
-                          'cpu_ready':cpu,'gpu_ready':gpu,'gpu_reason':None if gpu else gpu_reason,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
+            items.append({'kind':kind,'title':LABELS[kind],'state':'resources_missing' if missing else 'gpu_ready' if gpu else 'cpu_ready' if cpu else 'load_failed' if fresh and engineering.get('exit_code',0) else 'resources_present',
+                          'cpu_ready':cpu,'cpu_reason':None if cpu else local_error or '缺少与当前程序、模型及运行库身份匹配的真实 CPU 推理回执',
+                          'validation_source':'data_local' if local else 'bundled',
+                          'gpu_ready':gpu,'gpu_reason':None if gpu else gpu_reason,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
         return {'items':items}
 
     def gpu_binding(self,kind,runtime,identities):
@@ -297,13 +606,27 @@ class MultimodalService:
         return actual==identity['sha256']
 
     def create(self,workspace,payload):
+        return self._create(workspace,payload,preparation=False)
+
+    def prepare(self,workspace,kind,payload):
+        if kind not in LABELS:raise DataError('未知准备能力')
+        if len(payload.get('inputs',[]))!=1:raise DataError('运行准备需要一份明确选择的输入资料')
+        options={**payload.get('options',{})}
+        if options.get('device','cpu')!='cpu':raise DataError('运行准备只验证 CPU；GPU 资格必须经过独立实测',409)
+        options.update(device='cpu',action='detect' if kind=='face' else 'analyze',reference_ids=[])
+        return self._create(workspace,{**payload,'kind':kind,'options':options},preparation=True)
+
+    def _create(self,workspace,payload,*,preparation=False):
         value=validated(Create,payload)
         kind=value['kind'];count=len(value['inputs'])
         if count != (2 if kind=='face' and value['options']['action']=='compare' else 1):
             raise DataError('当前操作的输入数量无效')
         if kind!='face' and value['options']['action']!='analyze':raise DataError('分析操作无效')
         if any(type(index) is not int or index<0 for index in value['options']['face_indices']):raise DataError('人脸索引无效')
-        digest=fingerprint(value)
+        digest_value=copy.deepcopy(value)
+        if digest_value['options'].get('reference_ids') is None:digest_value['options'].pop('reference_ids',None)
+        if preparation:digest_value['purpose']='preparation'
+        digest=fingerprint(digest_value)
         with self.transaction() as db:
             existing=db.execute('SELECT body,payload_hash FROM manual_analysis WHERE workspace_id=? AND request_id=?',(workspace,value['request_id'])).fetchone()
             if existing:
@@ -311,11 +634,22 @@ class MultimodalService:
                 return self.public(json.loads(existing['body']))
             capability=next(x for x in self.capabilities()['items'] if x['kind']==kind)
             if capability['missing']:raise DataError('模型或运行环境尚未备齐：'+', '.join(capability['missing']),503)
-            if value['options']['device']=='cpu' and not capability['cpu_ready']:
+            if value['options']['device']=='cpu' and not capability['cpu_ready'] and not preparation:
                 raise DataError('此模型尚未完成真实 CPU 推理验证，请先运行交付诊断',409)
             if value['options']['device']=='cuda' and not capability['gpu_ready']:
                 raise DataError('此模型的 GPU 路线尚未通过实测，请使用 CPU',409)
             if kind=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
+            frozen_references=[]
+            if kind=='face' and value['options']['action']=='search':
+                requested=value['options'].get('reference_ids')
+                library={row['reference_id']:row for row in self.references(workspace,private=True)['items']}
+                chosen=list(library) if requested is None else requested
+                if len(chosen)!=len(set(chosen)):raise DataError('参考范围不能包含重复身份')
+                if any(identifier not in library for identifier in chosen):raise DataError('参考身份不存在或不属于当前项目',404)
+                frozen_references=[{**copy.deepcopy(library[identifier]),'revision':library[identifier].get('revision',1)} for identifier in chosen]
+                if not frozen_references:raise DataError('人脸检索需要明确选择至少一个已授权参考',409)
+            elif value['options'].get('reference_ids'):
+                raise DataError('参考范围仅适用于人脸检索')
             inputs=[]
             for source in value['inputs']:
                 asset=self.registry.get(workspace,source['asset_id'])
@@ -328,12 +662,14 @@ class MultimodalService:
             identifier='m'+uuid.uuid4().hex
             from workbench_platform.resources.reader_features import require_features
             require_features(self.root.parent,'manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
+            self._feature()
             item={'schema_version':'1.0','job_id':identifier,'workspace_id':workspace,'request_id':value['request_id'],
                   'kind':kind,'inputs':inputs,'options':value['options'],'status':'queued','stage':'queued','revision':1,
                   'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1,
-                  'progress':{},'actual_device':None}
+                  'progress':{},'actual_device':None,'frozen_references':frozen_references,'purpose':'preparation' if preparation else 'analysis'}
             db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',(identifier,workspace,value['request_id'],digest,encoded(item)))
             self.sync_projection(db,item)
+            self._receipt(db,workspace,'prepare' if preparation else 'create',value['request_id'],digest,identifier,self.public(item))
         self.wake.set()
         return self.public(item)
 
@@ -348,10 +684,12 @@ class MultimodalService:
                 generation=item['generation']
                 item.update(status='running',stage='prepare',worker_epoch=epoch,updated_at=now());self.save(db,item)
             output=f_path(self.root/job/f"attempt-{item['generation']}");output.mkdir(parents=True,exist_ok=True)
+            if item.get('purpose')=='preparation':self._validate_preparation(item)
             checkpoints=local_path(self.root/job/'audio-checkpoints');checkpoints.mkdir(parents=True,exist_ok=True)
             reduced=item.get('oom_retries',0)>0
             value={'kind':item['kind'],'options':item['options'],'models':str(self.models),'program':str(self.program),'inputs':[],
-                   'references':self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else [],
+                   'references':copy.deepcopy(item['frozen_references']) if item['kind']=='face' and item['options']['action']=='search' and 'frozen_references' in item
+                       else self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else [],
                    'runner':{'protocol':PROTOCOL,'worker_epoch':epoch,'launch_id':self.launch_id,'instance_id':self.instance_id,
                        'job_id':job,'generation':generation,'checkpoint_root':str(checkpoints),
                        'audio_batch_size_s':self.config.get('audio',{}).get('reduced_batch_size_s' if reduced else 'batch_size_s',15 if reduced else 30),
@@ -387,6 +725,7 @@ class MultimodalService:
                     progress({**event,'stage':'音频分块检查点已提交','completed_chunks':event['chunk_index']+1})
                 def track(process):
                     with self.lock:self.processes[job]=process
+                self._feature()
                 outcome=self.runner.run([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal/worker.py'),str(output/'request.json')],
                     output,env,value,request_id=item.get('gpu_request_id'),cancelled=cancelled,progress=progress,committed=committed,
                     process_started=track,timeout=self.config['worker_timeouts'][item['kind']])
@@ -396,7 +735,7 @@ class MultimodalService:
                     if current['status']=='needs_verification':return
                     current['active_seconds']=current.get('active_seconds',0)+outcome.elapsed_seconds
                     if outcome.status=='needs_verification':
-                        current.update(status='needs_verification',stage='cleanup_unconfirmed',error=outcome.error)
+                        current.update(recovery_intent=current['status'],status='needs_verification',stage='cleanup_unconfirmed',error=outcome.error)
                     elif current['status']=='cancelling' or outcome.status=='cancelled':
                         current.update(status='cancelled',stage='cancelled',error=None)
                     elif outcome.status in {'yielded','waiting'}:
@@ -407,24 +746,8 @@ class MultimodalService:
                     elif outcome.status!='succeeded':
                         current.update(status='failed',stage='failed',error=outcome.error)
                     else:
-                        result=json.loads((output/'result.json').read_text('utf-8'))
-                        actual=result.get('device')
-                        if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)
-                        for segment in result.get('segments',[]):
-                            source=current['inputs'][0]
-                            segment['source']=SourceLocator.model_validate({'schema_version':'1.0','kind':'media_segment',
-                                'asset_id':source['asset_id'],'asset_revision':source['asset_revision'],'blob_hash':source['blob_hash'],
-                                'precision':'approximate','start_ms':segment['start_ms'],'end_ms':segment['end_ms'],'channel':current['options'].get('channel')}).model_dump(mode='json')
-                        self.attach_regions(current,result)
-                        from .revisions import attach_row_ids
-                        attach_row_ids(current,result)
-                        result['output_files']={path.name:{'bytes':path.stat().st_size,'sha256':self.file_hash(path)}
-                            for path in output.iterdir() if path.is_file() and (path.suffix in {'.png','.wav','.npy'} or path.name=='asr-original.json') and not path.name.startswith('input-')}
-                        current.update(status='succeeded',stage='completed',result=result,result_hash=fingerprint(result),error=None,actual_device=actual)
-                        if current['kind']=='audio' and result.get('audio'):
-                            duration=result['audio']['duration_ms'];chunks=result.get('performance',{}).get('total_chunks',0)
-                            current['progress']={**current.get('progress',{}),'processed_ms':duration,'duration_ms':duration,
-                                'completed_chunks':chunks,'total_chunks':chunks}
+                        self._accept_result(current,output)
+                        if current.get('purpose')=='preparation':self._record_prepared(current,output)
                     if current['status']!='queued':self._cancel_pending(current)
                     current.update(updated_at=now());self.save(db,current)
         except Exception as error:
@@ -440,9 +763,50 @@ class MultimodalService:
                 self.inflight.pop(job,None)
             self.wake.set()
 
-    def control(self,workspace,job,action):
+    def _accept_result(self,current,output):
+        result=json.loads((output/'result.json').read_text('utf-8'))
+        actual=result.get('device')
+        if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)
+        for segment in result.get('segments',[]):
+            source=current['inputs'][0]
+            segment['source']=SourceLocator.model_validate({'schema_version':'1.0','kind':'media_segment',
+                'asset_id':source['asset_id'],'asset_revision':source['asset_revision'],'blob_hash':source['blob_hash'],
+                'precision':'approximate','start_ms':segment['start_ms'],'end_ms':segment['end_ms'],
+                'channel':current['options'].get('channel')}).model_dump(mode='json')
+        self.attach_regions(current,result)
+        from .revisions import attach_row_ids
+        attach_row_ids(current,result)
+        result['output_files']={path.name:{'bytes':path.stat().st_size,'sha256':self.file_hash(path)}
+            for path in output.iterdir() if path.is_file() and (path.suffix in {'.png','.wav','.npy'} or path.name=='asr-original.json') and not path.name.startswith('input-')}
+        current.update(status='succeeded',stage='completed',result=result,result_hash=fingerprint(result),error=None,actual_device=actual)
+        if current['kind']=='audio' and result.get('audio'):
+            duration=result['audio']['duration_ms'];chunks=result.get('performance',{}).get('total_chunks',0)
+            current['progress']={**current.get('progress',{}),'processed_ms':duration,'duration_ms':duration,
+                'completed_chunks':chunks,'total_chunks':chunks}
+
+    def _record_prepared(self,item,output):
+        from .cpu_validation import record_cpu_validation
+        runtime=next(value['runtime'] for value in self.capabilities()['items'] if value['kind']==item['kind'])
+        record_cpu_validation(SOURCE,self.program,self.root.parent,item['kind'],self.program/runtime,output,
+            {'kind':item['kind'],'outcome':{'status':'succeeded'},'actual_device':item['actual_device'],
+             'cleanup_confirmed':True,'output':str(output),'job_id':item['job_id'],'generation':item['generation'],
+             'scope':'Durable selected-input preparation; not business accuracy qualification'})
+
+    def _validate_preparation(self,item):
+        from .cpu_validation import validate_inventory
+        runtime=next(value['runtime'] for value in self.capabilities()['items'] if value['kind']==item['kind'])
+        validate_inventory(self.program,item['kind'],self.program/runtime)
+
+    def control(self,workspace,job,action,payload=None):
+        value=validated(ManualControl,payload or {})
+        operation_type='control:'+action;digest=fingerprint({'job_id':job,'action':action,**value})
         with self.transaction() as db:
+            previous=self._operation(db,workspace,operation_type,value['request_id'],digest)
+            if previous is not None:return previous
             item=self.row(db,workspace,job)
+            for field in ('revision','generation'):
+                if value['expected_'+field] is not None and item[field]!=value['expected_'+field]:
+                    raise DataError('任务版本或执行代次已经变化',409)
             if action=='cancel':
                 if item['status']=='queued':
                     self._cancel_pending(item)
@@ -453,6 +817,10 @@ class MultimodalService:
                 if item['status'] not in {'failed','cancelled','needs_verification'}:raise DataError('当前任务不能重试',409)
                 if item.get('gpu_request_id') and self.coordinator.snapshot().owner_request_id==item['gpu_request_id']:
                     raise DataError('原任务 GPU 进程清理尚未核实，请等待可信恢复；不能并发写入音频检查点',409)
+                if job in self.processes or job in self.inflight:
+                    raise DataError('原执行尚未退出；不能并发重试',409)
+                if item['status']=='needs_verification' and not self._termination_verified(item):
+                    raise DataError('原执行终止凭证尚未核实，不能重试',409)
                 capability=next(value for value in self.capabilities()['items'] if value['kind']==item['kind'])
                 target='cpu' if action=='retry_cpu' else item['options']['device']
                 if not capability['cpu_ready' if target=='cpu' else 'gpu_ready']:
@@ -462,9 +830,12 @@ class MultimodalService:
                 if action=='retry_cpu':
                     item['options']={**item['options'],'device':'cpu'}
                     item['progress']={**item.get('progress',{}),'explicit_cpu_retry':True,'device_change_note':'已确认块可复用；CPU/GPU 浮点结果可能存在差异'}
-                item.update(status='queued',stage='queued',error=None,generation=item['generation']+1,oom_retries=0,active_seconds=0,gpu_request_id=None,actual_device=None)
+                item.update(status='queued',stage='queued',error=None,generation=item['generation']+1,
+                    revision=item['revision']+1,oom_retries=0,active_seconds=0,gpu_request_id=None,actual_device=None,
+                    worker_epoch=None,result=None,result_hash=None,review=None)
             else:raise DataError('任务操作无效')
             item['updated_at']=now();self.save(db,item)
+            self._receipt(db,workspace,operation_type,value['request_id'],digest,job,self.public(item))
         self.wake.set()
         return self.public(item)
 
@@ -520,19 +891,37 @@ class MultimodalService:
             if not face['quality']['usable']:raise DataError('此人脸质量不足，不能加入参考库')
             item={'reference_id':'f'+uuid.uuid4().hex,'label':value['label'],'feature':face['feature'],
                   'source':job['inputs'][value['input_index']],'box':face['box'],'model_hash':job['result']['model_hashes']['sface'],
-                  'created_at':now(),'job_id':job['job_id']}
+                  'created_at':now(),'job_id':job['job_id'],'revision':1}
+            self._feature()
             db.execute('INSERT INTO manual_face_reference VALUES(?,?,?,?,?)',(item['reference_id'],workspace,value['request_id'],digest,encoded(item)))
+            receipt={key:copy.deepcopy(record) for key,record in item.items() if key!='feature'}
+            self._receipt(db,workspace,'reference_add',value['request_id'],digest,item['reference_id'],receipt)
         item.pop('feature',None);return item
 
-    def delete_reference(self,workspace,identifier):
-        with self.transaction() as db:db.execute('DELETE FROM manual_face_reference WHERE workspace_id=? AND reference_id=?',(workspace,identifier))
-        return {'deleted':True}
+    def delete_reference(self,workspace,identifier,payload=None):
+        value=validated(ManualReferenceDelete,payload or {});digest=fingerprint({'reference_id':identifier,**value})
+        with self.transaction() as db:
+            previous=self._operation(db,workspace,'reference_delete',value['request_id'],digest)
+            if previous is not None:return previous
+            row=db.execute('SELECT body FROM manual_face_reference WHERE workspace_id=? AND reference_id=?',(workspace,identifier)).fetchone()
+            if row is None and (value['request_id'] or value['expected_revision'] is not None):
+                raise DataError('参考身份不存在或不属于当前项目',404)
+            item=json.loads(row['body']) if row else {}
+            if value['expected_revision'] is not None and value['expected_revision']!=item.get('revision',1):
+                raise DataError('参考版本已经变化',409)
+            receipt={'deleted':True,'reference_id':identifier,'revision':item.get('revision',1)} if payload else {'deleted':True}
+            self._receipt(db,workspace,'reference_delete',value['request_id'],digest,identifier,receipt)
+            db.execute('DELETE FROM manual_face_reference WHERE workspace_id=? AND reference_id=?',(workspace,identifier))
+        return receipt
 
     def output(self,workspace,job,name):
         item=self.get(workspace,job)
+        return self._output_item(item,name)
+
+    def _output_item(self,item,name):
         identity=(item.get('result') or {}).get('output_files',{}).get(name)
         if item['status']!='succeeded' or not identity or Path(name).name!=name:raise DataError('结果文件不存在',404)
-        path=self.root/job/f"attempt-{item['generation']}"/name
+        path=self.root/item['job_id']/f"attempt-{item['generation']}"/name
         if not path.is_file() or path.stat().st_size!=identity['bytes'] or self.file_hash(path)!=identity['sha256']:
             raise DataError('结果文件校验失败，请保留任务并核查，不能替换固定成果',409)
         return path,mimetypes.guess_type(name)[0] or 'application/octet-stream'
@@ -565,24 +954,51 @@ class MultimodalService:
     def collect(self,workspace,job):
         with self.lock:return self._collect(workspace,job)
 
-    def to_data(self,workspace,job):
+    def _transfer_key(self,workspace,job,snapshot_id,mode,ctx):
+        legacy='d'+fingerprint([workspace,job,snapshot_id,mode])[:40]
+        if ctx is None:
+            return legacy
+        # Data sessions are mutable workspaces. Reading the same immutable
+        # analysis in two Agent tasks must not grant either the other's edits.
+        session_id=getattr(ctx,'session_id','')
+        if not session_id:
+            raise DataError('Agent 字段转换缺少任务归属',409)
+        data=self.app.state.data_workbench
+        original=data.operation(legacy)
+        store=getattr(ctx,'store',None)
+        if original and store is not None:
+            receipts=store.rows('SELECT o.result FROM operations o JOIN runs r ON r.id=o.run_id '
+                'WHERE r.session_id=? AND o.result IS NOT NULL AND o.tool IN '
+                "('multimodal_to_data_draft','multimodal_to_data_reviewed','results_to_input')",(session_id,))
+            for row in receipts:
+                value=json.loads(row['result']);body=value.get('data',{})
+                refs=value.get('result_refs',[])
+                if (value.get('status') in {'success','pending'}
+                        and body.get('data_session_id',body.get('session_id'))==original['session_id']
+                        and any(ref.get('application')=='multimodal' and ref.get('parent_id')==job
+                            and ref.get('object_id')==snapshot_id for ref in refs)):
+                    return legacy
+        return 'd'+fingerprint([workspace,job,snapshot_id,mode,'agent-task',session_id])[:40]
+
+    def to_data(self,workspace,job,*,ctx=None,snapshot_id=None):
         from dataclasses import replace
         from workbench_platform.agent.tools.results import install
         from workbench_platform.application_services.data import stage_asset_upload
         with self.lock:
-            item=self.get(workspace,job)
-            if item['kind']!='seal' or not item['review']:raise DataError('请先保存印章字段校正与人工复核',409)
-            _,files=self.export(workspace,job)
+            frozen=self.snapshot(workspace,job,snapshot_id);item=frozen['analysis']
+            if item['kind']!='seal' or (item['review'] or {}).get('assessment')!='confirmed':
+                raise DataError('请先保存当前固定版本的印章字段校正与人工核准',409)
+            _,files=self.snapshot_export(workspace,job,frozen['snapshot_id'])
             if 'reviewed.csv' not in files:raise DataError('此结果没有可转入核对的印章字段',409)
-            ctx=self.app.state.audit_service._source_context(job,workspace)
-            key='d'+fingerprint([job,item['revision']])[:40]
-            sources=[{'kind':'asset','workspace_id':workspace,'object_id':s['asset_id'],
-                'revision':s['asset_revision'],'sha256':s['blob_hash']} for s in item['inputs']]
+            context=ctx or self.app.state.audit_service._source_context(job,workspace)
+            key=self._transfer_key(workspace,job,frozen['snapshot_id'],'confirmed-to-data',ctx)
+            sources=self._bridge_sources(workspace,frozen)
             provenance={'kind':'manual_seal_fields','analysis_id':job,'review_revision':item['revision'],
-                'result_hash':item['result_hash'],'review':item['review'],
+                'snapshot_id':frozen['snapshot_id'],'snapshot_hash':frozen['snapshot_hash'],
+                'result_hash':item['result_hash'],'review':item['review'],'review_state':'confirmed','draft':False,
                 'rows':[{'csv_row':i+2,'row_id':row['row_id'],'source':row['source']} for i,row in enumerate(item['result']['seals'])]}
             result=install(files['reviewed.csv'].read_bytes(),f'印章核准字段-{job}-v{item["revision"]}.csv','text/csv',sources,
-                [s['asset_id'] for s in item['inputs']],provenance,replace(ctx,operation_id=key))['data']
+                [s['asset_id'] for s in item['inputs']],provenance,replace(context,operation_id=key))['data']
             data=self.app.state.data_workbench
             session=data.create('印章字段核对 · '+item['inputs'][0]['original_name'][:60],request_key=key,workspace_id=workspace)
             upload=stage_asset_upload(data,self.registry,workspace,session['id'],result['asset_id'],result['asset_revision'],result['blob_hash'],key)
@@ -594,28 +1010,92 @@ class MultimodalService:
             return {'session_id':session['id'],'job':action,'asset':result,
                 'location':f'/apps/data?workspace={workspace}&session={session["id"]}'}
 
-    def _collect(self,workspace,job):
-        item=self.get(workspace,job)
-        if not item['review']:raise DataError('请先保存人工复核再归集审计成果',409)
+    def draft_to_data(self,workspace,job,payload=None,*,ctx=None):
+        """Deterministic unreviewed fields; this never creates a human review."""
+        from dataclasses import replace
+        from workbench_platform.agent.tools.results import install
+        from workbench_platform.application_services.data import stage_asset_upload
+        value=validated(ManualDraftTransfer,payload or {})
+        digest=fingerprint({'job_id':job,**value})
+        with self.lock:
+            with closing(self.db()) as db:
+                previous=self._operation(db,workspace,'draft_to_data',value['request_id'],digest)
+                if previous is not None:return previous
+            frozen=self.snapshot(workspace,job,value['snapshot_id'])
+            item=frozen['analysis']
+            if item['kind']!='seal':raise DataError('草稿转换仅支持印章候选字段',409)
+            if value['expected_revision'] is not None and value['expected_revision']!=item['revision']:
+                raise DataError('草稿结果版本已经变化',409)
+            rows=(item['result'] or {}).get('seals',[])
+            if not rows:raise DataError('没有可转换的印章候选字段',409)
+            stream=io.StringIO(newline='');writer=csv.writer(stream)
+            writer.writerow(['结果ID','原始文字','候选主体','候选编号','置信信息','来源定位','复核状态'])
+            for row in rows:
+                writer.writerow([row['row_id'],row.get('text',''),row.get('subject',''),row.get('number',''),
+                    encoded({key:record for key,record in row.items() if 'confidence' in key or 'score' in key}),
+                    encoded(row['source']),'未复核'])
+            key=self._transfer_key(workspace,job,frozen['snapshot_id'],'draft',ctx)
+            context=ctx or self.app.state.audit_service._source_context(job,workspace)
+            sources=self._bridge_sources(workspace,frozen,draft=True)
+            provenance={'kind':'manual_seal_draft','analysis_id':job,'snapshot_id':frozen['snapshot_id'],
+                'generation':frozen['generation'],'result_hash':frozen['result_hash'],'snapshot_hash':frozen['snapshot_hash'],
+                'review_state':'unreviewed','draft':True,'original_values':copy.deepcopy(rows),
+                'rows':[{'csv_row':index+2,'row_id':row['row_id'],'source':row['source'],'review_state':'unreviewed'}
+                    for index,row in enumerate(rows)]}
+            self._feature()
+            result=install(stream.getvalue().encode('utf-8-sig'),f'印章候选草稿-{job}-{frozen["snapshot_id"]}.csv',
+                'text/csv',sources,[source['asset_id'] for source in item['inputs']],provenance,
+                replace(context,operation_id=key))['data']
+            data=self.app.state.data_workbench
+            session=data.create('未复核印章草稿 · '+item['inputs'][0]['original_name'][:60],request_key=key,workspace_id=workspace)
+            upload=stage_asset_upload(data,self.registry,workspace,session['id'],result['asset_id'],result['asset_revision'],result['blob_hash'],key)
+            action=data.operation(key)
+            if action is None:
+                action=data.submit(session['id'],'import',{'side':'left','upload_id':upload['id'],
+                    'options':{'header_row':1,'encoding':'utf-8-sig','delimiter':','}},session['version'],request_key=key)
+            elif action['status'] in {'failed','interrupted'}:action=data.resume_operation(key)
+            receipt={'session_id':session['id'],'job':action,'asset':result,'snapshot_id':frozen['snapshot_id'],
+                'draft':True,'review_state':'unreviewed','location':f'/apps/data?workspace={workspace}&session={session["id"]}'}
+            with self.transaction() as db:self._receipt(db,workspace,'draft_to_data',value['request_id'],digest,job,receipt)
+            return receipt
+
+    @staticmethod
+    def _bridge_sources(workspace,frozen,*,draft=False):
+        assets=[{'kind':'asset','workspace_id':workspace,'object_id':source['asset_id'],
+            'revision':source['asset_revision'],'sha256':source['blob_hash']} for source in frozen['sources']]
+        return [*assets,{'kind':'result','application':'multimodal','workspace_id':workspace,
+            'object_id':frozen['snapshot_id'],'parent_id':frozen['job_id'],'native_id':frozen['job_id'],
+            'revision':frozen['revision'],'sha256':frozen['snapshot_hash'],'sources':assets,
+            'coverage':{'kind':frozen['kind'],'generation':frozen['generation'],
+                'reviewed':bool(frozen['review_revision']) and not draft,'draft':draft}}]
+
+    def collect_snapshot(self,workspace,job,snapshot_id):
+        with self.lock:return self._collect(workspace,job,snapshot_id)
+
+    def _collect(self,workspace,job,snapshot_id=None):
+        frozen=self.snapshot(workspace,job,snapshot_id) if snapshot_id else None
+        item=frozen['analysis'] if frozen else self.get(workspace,job)
+        approved=(item['review'] or {}).get('assessment')=='confirmed'
+        if not frozen and not approved:raise DataError('请先保存当前版本的人工核准再归集正式审计成果',409)
         from .artifacts import get as get_bundle
         from workbench_platform.artifacts.store import ArtifactUnavailable
         center=self.app.state.artifact_center
-        identifier='b'+job[1:]+'v'+str(item['revision'])
+        identifier='b'+fingerprint(snapshot_id)[:40] if snapshot_id else 'b'+job[1:]+'v'+str(item['revision'])
         try:return get_bundle(center,workspace,identifier)
         except ArtifactUnavailable:pass
-        _,files=self.export(workspace,job);center=self.app.state.artifact_center
+        _,files=self.snapshot_export(workspace,job,snapshot_id) if snapshot_id else self.export(workspace,job)
         source_refs=[{'schema_version':'1.0','kind':'file','asset_id':r['asset_id'],'asset_revision':r['asset_revision'],'blob_hash':r['blob_hash'],'precision':'exact'} for r in item['inputs']]
         source_refs += [r['source'] for r in item['result'].get('segments',[])][:9990]
         source_refs += [r['source'] for r in item['result'].get('seals',[])]
         source_refs += [face['source'] for image in item['result'].get('images',[]) for face in image['faces']]
-        source_refs += [r['source'] for r in item['review'].get('regions',[])]
+        source_refs += [r['source'] for r in (item['review'] or {}).get('regions',[])]
         source_refs=source_refs[:10000]
         ref={'schema_version':'1.0','platform_job_id':job,'app_id':item['kind'],'instance_id':'localManual',
              'native_job_id':job,'operation_id':item['request_id'],'input_manifest_hash':fingerprint(item['inputs']),
-             'native_status':'completed','status':'succeeded','stage':'reviewed_result','counts':{'schema_version':'1.0','total':1,'succeeded':1,'failed':0,'cancelled':0,'pending':0},
+             'native_status':'completed','status':'succeeded','stage':'reviewed_result' if item['review'] else 'unreviewed_draft','counts':{'schema_version':'1.0','total':1,'succeeded':1,'failed':0,'cancelled':0,'pending':0},
              'capabilities':[],'last_event_seq':0,'updated_at':item['updated_at']}
         artifacts=[]
-        with center.store.publication_lock(job+'v'+str(item['revision'])):
+        with center.store.publication_lock(identifier):
             try:return get_bundle(center,workspace,identifier)
             except ArtifactUnavailable:pass
             for name,path in files.items():
@@ -624,11 +1104,13 @@ class MultimodalService:
                         job_ref=ref,source_refs=source_refs,media_type=mimetypes.guess_type(name)[0] or 'application/octet-stream',
                         application_version='clear-manual-multimodal-1',rule_or_model_version=fingerprint(item['result'].get('model_hashes',{})))
                 artifacts.append({'name':name,'artifact_id':artifact.artifact_id,'revision':artifact.revision})
-        bundle={'schema_version':'1.0','bundle_id':'b'+job[1:]+'v'+str(item['revision']),'kind':'manual_analysis',
-            'title':LABELS[item['kind']]+' · '+item['inputs'][0]['original_name'],'created_at':item['review']['created_at'],
-            'workspace_id':workspace,'platform_job_id':job,'analysis_kind':item['kind'],'review_revision':item['revision'],
+        bundle={'schema_version':'1.0','bundle_id':identifier,'kind':'manual_analysis',
+            'title':('未核准草稿 · ' if not approved else '')+LABELS[item['kind']]+' · '+item['inputs'][0]['original_name'],
+            'created_at':(item['review'] or {}).get('created_at',item['updated_at']),
+            'workspace_id':workspace,'platform_job_id':job,'analysis_kind':item['kind'],'review_revision':item['revision'] if item['review'] else 0,
             'input_set_id':job,'input_set_revision':1,'inputs':[{'role':'source','name':s['original_name'],'asset_id':s['asset_id'],'revision':s['asset_revision']} for s in item['inputs']],
             'files':[]}
+        if frozen:bundle.update(snapshot_id=snapshot_id,snapshot_hash=frozen['snapshot_hash'],draft=not approved,review_state='confirmed' if approved else 'unreviewed')
         for record in artifacts:
             artifact=center.store.get(workspace,record['artifact_id'])
             bundle['files'].append({**record,'size_bytes':artifact.size_bytes,'blob_hash':artifact.blob_hash,'media_type':artifact.media_type,'availability':artifact.availability})

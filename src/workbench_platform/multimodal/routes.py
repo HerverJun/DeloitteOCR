@@ -49,7 +49,32 @@ async def review(workspace_id:str,job_id:str,request:Request):
     return await run_in_threadpool(value.review,workspace_id,job_id,payload)
 
 @router.post(BASE+'/jobs/{job_id}/control/{action}')
-def control(workspace_id:str,job_id:str,action:str,request:Request):return service(request,workspace_id,True).control(workspace_id,job_id,action)
+async def control(workspace_id:str,job_id:str,action:str,request:Request):
+    value=service(request,workspace_id,True)
+    payload=await json_body(request,8192) if await request.body() else None
+    return await run_in_threadpool(value.control,workspace_id,job_id,action,payload)
+
+@router.get(BASE+'/operations/{operation_type}/{request_id}')
+def operation(workspace_id:str,operation_type:str,request_id:str,request:Request):
+    return service(request,workspace_id).lookup_operation(workspace_id,operation_type,request_id)
+
+@router.get(BASE+'/jobs/{job_id}/snapshot')
+def current_snapshot(workspace_id:str,job_id:str,request:Request):
+    return service(request,workspace_id).snapshot(workspace_id,job_id)
+
+@router.get(BASE+'/jobs/{job_id}/snapshots/{snapshot_id}')
+def frozen_snapshot(workspace_id:str,job_id:str,snapshot_id:str,request:Request):
+    return service(request,workspace_id).snapshot(workspace_id,job_id,snapshot_id)
+
+@router.get(BASE+'/jobs/{job_id}/snapshots/{snapshot_id}/files/{name}')
+def frozen_file(workspace_id:str,job_id:str,snapshot_id:str,name:str,request:Request):
+    path,media=service(request,workspace_id).snapshot_output(workspace_id,job_id,snapshot_id,name)
+    return FileResponse(path,media_type=media,headers={'X-Content-Type-Options':'nosniff','Content-Security-Policy':'sandbox'})
+
+@router.get(BASE+'/jobs/{job_id}/snapshots/{snapshot_id}/download')
+def frozen_download(workspace_id:str,job_id:str,snapshot_id:str,request:Request):
+    path,_=service(request,workspace_id).snapshot_export(workspace_id,job_id,snapshot_id)
+    return FileResponse(path,media_type='application/zip',filename=f'{job_id}-{snapshot_id}.zip',headers={'Cache-Control':'no-store'})
 
 @router.get(BASE+'/jobs/{job_id}/files/{name}')
 def file(workspace_id:str,job_id:str,name:str,request:Request):
@@ -74,10 +99,19 @@ async def to_data(workspace_id:str,job_id:str,request:Request):
     value=service(request,workspace_id,True)
     return await run_in_threadpool(value.to_data,workspace_id,job_id)
 
+@router.post(BASE+'/jobs/{job_id}/draft-to-data')
+async def draft_to_data(workspace_id:str,job_id:str,request:Request):
+    value=service(request,workspace_id,True)
+    payload=await json_body(request,8192) if await request.body() else None
+    return await run_in_threadpool(value.draft_to_data,workspace_id,job_id,payload)
+
 @router.post(BASE+'/face-references',status_code=201)
 async def add_reference(workspace_id:str,request:Request):
     value=service(request,workspace_id,True);payload=await json_body(request,8192)
     return value.add_reference(workspace_id,payload)
 
 @router.delete(BASE+'/face-references/{reference_id}')
-def delete_reference(workspace_id:str,reference_id:str,request:Request):return service(request,workspace_id,True).delete_reference(workspace_id,reference_id)
+async def delete_reference(workspace_id:str,reference_id:str,request:Request):
+    value=service(request,workspace_id,True)
+    payload=await json_body(request,8192) if await request.body() else None
+    return await run_in_threadpool(value.delete_reference,workspace_id,reference_id,payload)

@@ -1,19 +1,19 @@
-/** Static Clear UI contract v1.2.0; adapt through each existing component library. */
-export const CLEAR_UI_VERSION = '1.2.0'
+/** Static Clear UI contract v1.3.0; adapt through each existing component library. */
+export const CLEAR_UI_VERSION = '1.3.0'
 export const clearTheme = {
-  header: '#161c1f', navigation: '#161c1f', workspace: '#f5f7f8',
+  header: '#ffffff', navigation: '#fafbfa', workspace: '#f6f8f7',
   panel: '#ffffff', subtle: '#f0f3f4', selected: '#eff5e7',
   text: '#1d272e', muted: '#596873', border: '#e1e6e9',
   accent: '#86bc25', accentText: '#17200d',
   primary: '#527a17', primaryText: '#ffffff', link: '#527a17', focus: '#527a17',
   success: '#527a17', warning: '#8a641e', error: '#b84646', info: '#56697e',
-  navigationText: '#e7edf0', navigationMuted: '#a4b1b9',
-  controlHeight: 36, primaryHeight: 40, headerHeight: 48,
+  navigationText: '#323b35', navigationMuted: '#6e7971',
+  controlHeight: 36, primaryHeight: 40, headerHeight: 56,
   fontSize: 14, captionSize: 13, titleSize: 28, panelTitleSize: 18,
   panelRadius: 12, controlRadius: 8, pagePadding: 24,
   panelPadding: 20, workbenchPadding: 16, workbenchPanelPadding: 16, toolbarGap: 8,
   motionFast: '0.16s', motionNormal: '0.2s',
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif",
+  fontFamily: "'Clear Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif",
 } as const
 export const brands = {
   platform: 'Clear 智能审计', ocr: 'ClearOCR',

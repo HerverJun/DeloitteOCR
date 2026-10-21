@@ -5,7 +5,7 @@ import hashlib
 from pathlib import Path
 import sqlite3
 from packages.contracts.agent import AgentRef
-from workbench_platform.agent.store import digest
+from workbench_platform.application_services.identity import digest
 from .native import scoped_handoff
 
 
@@ -23,12 +23,22 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
     if ref.kind == 'evidence':
         query.update(evidence=ref.object_id, session=task_id or ref.parent_id)
         path = '/findings'
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'audit_draft':
+        query.update(session=ref.parent_id, draft=ref.object_id, revision=str(ref.revision), sha256=ref.sha256)
+        path = '/findings'
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        query['document'] = ref.object_id
+        path = '/documents'
     elif ref.kind == 'artifact':
         query['bundle'] = ref.object_id; path = '/artifacts'
     elif ref.kind in {'asset', 'asset_set'}:
         query['asset' if ref.kind == 'asset' else 'set'] = ref.object_id; path = '/assets'
     elif ref.kind == 'job':
-        if ref.coverage.get('kind') == 'batch':
+        if ref.application == 'multimodal':
+            query['analysis'] = ref.object_id
+            path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
+                    'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
+        elif ref.coverage.get('kind') == 'batch':
             query['batch'] = ref.object_id; path = '/batches'
         else:
             query['job'] = ref.object_id; path = '/jobs'
@@ -37,6 +47,10 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
         query[ref.kind] = ref.object_id; path = '/apps/data'
     elif ref.application == 'forensics':
         query['inspection'] = ref.object_id; path = '/apps/forensics'
+    elif ref.application == 'multimodal':
+        query.update(analysis=ref.parent_id, snapshot=ref.object_id, revision=str(ref.revision), sha256=ref.sha256)
+        path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
+                'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
     elif ref.application in {'ocr', 'classification'}:
         if ref.coverage.get('origin') == 'native_binding':
             query['native_binding'] = ref.parent_id
@@ -88,6 +102,10 @@ def reference_asset_ids(reference, value):
     ref = AgentRef.model_validate(reference)
     if ref.kind == 'evidence':
         identifiers = [item['asset_id'] for item in value.get('source_assets') or value['sources']]
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'audit_draft':
+        identifiers = value.get('source_assets', [])
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        identifiers = [value['source']['asset_id']]
     elif ref.kind == 'asset':
         identifiers = [ref.object_id]
     elif ref.kind == 'asset_set':
@@ -103,6 +121,8 @@ def reference_asset_ids(reference, value):
         identifiers = [item['asset_id'] for item in value.get('items', []) if item.get('asset_id')]
     elif ref.application == 'forensics':
         identifiers = [value['asset_id']]
+    elif ref.application == 'multimodal':
+        identifiers = [item['asset_id'] for item in value['sources']]
     else:
         identifiers = []
     return sorted(set(identifiers))
@@ -167,6 +187,53 @@ def verify(reference, ctx):
     ref = AgentRef.model_validate(reference)
     if ref.workspace_id != ctx.workspace_id:
         raise ValueError('跨项目引用')
+    if ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        from workbench_platform.application_services.operations.documents import scoped
+        value = scoped(ctx, ref.object_id)
+        if type(ref.revision) is not int or ref.parent_id != ref.object_id:
+            raise ValueError('文档结果版本、来源或哈希变化')
+        value = ctx.services.document_service.result_snapshot(ctx.workspace_id, ref.object_id, ref.revision, ref.sha256)
+        asset = ctx.services.asset_library[0].get(ctx.workspace_id, value['asset_id'])
+        if (asset.revision, asset.blob_hash) != (value['asset_revision'], value['blob_hash']):
+            raise ValueError('文档原件版本变化')
+        return {**value, 'content_sha256': value['result_hash']}
+    if ref.application == 'multimodal' and ref.kind == 'result':
+        from workbench_platform.application_services.operations.multimodal import checked_snapshot, Result
+        if not ref.parent_id:
+            raise ValueError('多模态结果缺少原作业身份')
+        value = checked_snapshot(ctx, Result(job_id=ref.parent_id, snapshot_id=ref.object_id))
+        if (ref.sha256 != value['snapshot_hash'] or ref.revision != value['revision']
+                or ref.coverage.get('kind', value['kind']) != value['kind']
+                or ref.coverage.get('generation', value['generation']) != value['generation']):
+            raise ValueError('不可变结果快照身份不一致')
+        # Bytes and sources are checked on read, not inferred from final prose.
+        for source in value['sources']:
+            asset = ctx.services.asset_library[0].get(ctx.workspace_id, source['asset_id'])
+            if (asset.revision, asset.blob_hash) != (source['asset_revision'], source['blob_hash']):
+                raise ValueError('多模态原件身份变化')
+        return {**value, 'content_sha256': value['snapshot_hash']}
+    if ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'audit_draft':
+        drafts = ctx.services.audit_service.drafts
+        with closing(drafts.store.db()) as db:
+            row = db.execute('SELECT h.body,d.workspace_id,d.task_id FROM audit_draft_history h '
+                'JOIN audit_finding_drafts d ON d.draft_id=h.draft_id WHERE h.draft_id=? AND h.revision=?',
+                (ref.object_id, ref.revision)).fetchone()
+        if row is None or (row['workspace_id'], row['task_id']) != (ctx.workspace_id, ref.parent_id):
+            raise ValueError('草稿引用的项目、所属任务或版本无效')
+        value = json.loads(row['body'])
+        if (type(ref.revision) is not int or value['revision'] != ref.revision
+                or value['draft_id'] != ref.object_id or value['task_id'] != ref.parent_id
+                or value['workspace_id'] != ref.workspace_id or ref.sha256 != digest(value)):
+            raise ValueError('草稿引用的版本或内容哈希变化')
+        sources = set()
+        for identifier in value['evidence_ids']:
+            # Verify source bytes against the reader's actual current scope,
+            # rather than silently assuming the original author's scope.
+            evidence = drafts.evidence(identifier, ctx)
+            if value['evidence_hashes'].get(identifier) != evidence['snapshot_hash']:
+                raise ValueError('草稿固定证据哈希变化')
+            sources.update(item['asset_id'] for item in evidence.get('source_assets', evidence.get('sources', [])))
+        return {**value, 'content_sha256': ref.sha256, 'source_assets': sorted(sources)}
     if ref.kind == 'evidence':
         value = ctx.services.audit_service.drafts.evidence(ref.object_id, ctx)
         if ref.revision != 1 or ref.sha256 != value['snapshot_hash']:
@@ -227,7 +294,7 @@ def verify(reference, ctx):
         return {'snapshot': value, 'table_snapshot': tables, 'locator': result.locator, 'source_asset': member.model_dump(mode='json'),
                 'selected': result.selected, 'current_revision': adapter.result_revision(result)}
     if ref.application == 'classification' and ref.kind == 'result' and ref.parent_id:
-        from workbench_platform.agent.tools.classification import snapshot
+        from workbench_platform.application_services.operations.classification import snapshot
         value = snapshot(ctx, ref.parent_id)
         if ref.object_id != value['native_job_id'] or ref.sha256 != digest(value['items']) or ref.revision != digest(value['items']):
             raise ValueError('分类结果版本变化')

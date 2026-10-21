@@ -10,6 +10,7 @@ import sqlite3
 from contextlib import closing
 
 SOURCES = {
+ 'documents/documents.sqlite3': [('documents.documents','documents','document_id','body')],
  'data-workbench/sessions.sqlite3': [('data.jobs','jobs','id',None)],
  'jobs.sqlite3': [('manual.manual_analysis','manual_analysis','job_id','body')],
  'forensics/forensics.sqlite3': [('forensics.inspections','inspections','inspection_id','body')],

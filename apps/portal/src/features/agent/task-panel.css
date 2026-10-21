@@ -1,0 +1,86 @@
+.audit-task-panel.audit-task-panel-refined { min-width: 0; padding: 24px 20px; color: var(--clear-text); font-size: 13px; line-height: 1.65; scrollbar-gutter: stable; }
+.audit-task-panel-refined .audit-panel-heading { align-items: center; gap: 8px; margin-bottom: 24px; }
+.audit-task-panel-refined .audit-panel-heading > span:first-child { font-size: 15px; font-weight: 600; }
+.audit-task-panel-refined .audit-panel-heading .ant-tag { margin: 0; border: 0; background: var(--clear-subtle); color: var(--clear-muted); font-size: 12px; }
+.audit-task-panel-refined .audit-task-title.ant-typography { margin: 0 0 10px; font-size: 16px; font-weight: 600; line-height: 1.55; letter-spacing: -.015em; }
+.audit-task-panel-refined .audit-task-title .ant-typography-edit { color: var(--clear-muted); font-size: 13px; }
+.audit-task-overview { padding-bottom: 20px; }
+.audit-task-panel-refined .audit-task-goal.ant-typography { max-height: none; margin: 0; color: var(--clear-muted); font-size: 13px; line-height: 1.75; overflow-wrap: anywhere; }
+.audit-task-panel-refined .audit-task-meta { gap: 8px; margin-top: 12px; font-size: 12px; }
+.audit-task-panel-refined .audit-task-meta .ant-btn { height: auto; min-height: 28px; padding: 0; font-size: 12px; }
+.audit-task-scope-notice { margin: 8px 0 0; color: var(--clear-muted); font-size: 12px; }
+.audit-task-panel-refined .audit-task-section { min-width: 0; padding: 20px 0; border-top: 1px solid var(--clear-border); }
+.audit-task-panel-refined .audit-task-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+.audit-task-section-heading > span { color: var(--clear-muted); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.audit-task-panel-refined .audit-task-empty { margin: 0; color: var(--clear-muted); font-size: 13px; line-height: 1.7; }
+.audit-task-plan-notice { margin: 0 0 12px; color: var(--clear-muted); font-size: 13px; line-height: 1.7; }
+.audit-task-plan { list-style: none; padding: 0; margin: 0; }
+.audit-task-plan-item { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; padding: 0 0 18px; }
+.audit-task-plan-item:last-child { padding-bottom: 0; }
+.audit-task-plan-item:not(:last-child)::before { content: ''; position: absolute; top: 24px; bottom: 4px; left: 9px; width: 1px; background: var(--clear-border); }
+.audit-task-plan-mark { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-top: 2px; border: 1px solid var(--clear-border); border-radius: 50%; background: var(--clear-panel); color: var(--clear-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.audit-task-plan-item[data-state='complete'] .audit-task-plan-mark { border-color: transparent; background: var(--clear-subtle); color: var(--clear-primary); }
+.audit-task-plan-item[data-state='current'] .audit-task-plan-mark { border-color: var(--clear-primary); background: var(--clear-primary); color: white; box-shadow: 0 0 0 3px color-mix(in srgb, var(--clear-primary) 10%, transparent); }
+.audit-task-plan-item[data-state='current'] .audit-task-plan-title { color: var(--clear-primary); font-weight: 600; }
+.audit-task-plan-item[data-state='blocked'] .audit-task-plan-mark { border-color: var(--clear-warning, #956c26); color: var(--clear-warning, #956c26); }
+.audit-task-plan-copy { min-width: 0; }
+.audit-task-plan-title { margin: 0; overflow-wrap: anywhere; font-size: 13px; font-weight: 500; line-height: 1.7; }
+.audit-task-plan-status { display: block; margin-top: 2px; color: var(--clear-muted); font-size: 12px; }
+.audit-task-plan-purpose { margin: 6px 0 0; color: var(--clear-muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.audit-task-panel-refined .audit-reference-links { gap: 6px; padding-top: 8px; font-size: 12px; }
+.audit-task-panel-refined .audit-reference-links small { font-size: 12px; }
+.audit-task-panel-refined .audit-reference-links a { display: block; min-width: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.audit-task-panel-refined .audit-reference-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.audit-task-job + .audit-task-job { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--clear-border); }
+.audit-task-job-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; color: var(--clear-muted); font-size: 12px; }
+.audit-task-job-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--clear-primary); }
+.audit-task-job[data-state='finished'] .audit-task-job-dot { background: var(--clear-muted); }
+.audit-task-job-title { margin: 0; font-size: 13px; font-weight: 500; line-height: 1.7; overflow-wrap: anywhere; }
+.audit-task-job-count, .audit-task-job-updated { display: block; margin-top: 4px; color: var(--clear-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.audit-task-job progress { display: block; width: 100%; height: 4px; margin-top: 9px; border: 0; border-radius: 4px; accent-color: var(--clear-primary); }
+.audit-task-job progress::-webkit-progress-bar { border-radius: 4px; background: var(--clear-subtle); }
+.audit-task-job progress::-webkit-progress-value { border-radius: 4px; background: var(--clear-primary); }
+.audit-task-finished-jobs { margin-top: 12px; }
+.audit-task-finished-jobs > summary { min-height: 28px; cursor: pointer; color: var(--clear-muted); font-size: 12px; }
+.audit-task-finished-jobs[open] > summary { margin-bottom: 10px; }
+.audit-task-blocker { padding: 10px 12px; border-left: 2px solid var(--clear-warning, #956c26); border-radius: 0 8px 8px 0; background: color-mix(in srgb, var(--clear-warning, #956c26) 6%, var(--clear-panel)); }
+.audit-task-blocker + .audit-task-blocker { margin-top: 8px; }
+.audit-task-blocker > strong { display: block; font-size: 13px; font-weight: 500; }
+.audit-task-blocker p { margin: 4px 0 0; color: var(--clear-muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.audit-task-check-state { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+.audit-task-check-state[data-state='passed'] { color: var(--clear-primary); }
+.audit-task-check-state[data-state='failed'] { color: var(--clear-warning, #956c26); }
+.audit-task-check-message { margin: 0 0 10px; color: var(--clear-muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.audit-task-checks { list-style: none; padding: 0; margin: 0; }
+.audit-task-checks li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 7px; padding: 6px 0; font-size: 12px; overflow-wrap: anywhere; }
+.audit-task-check-mark { color: var(--clear-muted); }
+.audit-task-check-mark[data-state='passed'] { color: var(--clear-primary); }
+.audit-task-check-mark[data-state='failed'] { color: var(--clear-warning, #956c26); }
+.audit-task-checks small { display: block; margin-top: 2px; color: var(--clear-muted); font-size: 12px; }
+.audit-task-delivery-status { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; color: var(--clear-muted); font-size: 12px; }
+.audit-task-delivery-status[data-state='succeeded'] { color: var(--clear-primary); }
+.audit-task-bundle + .audit-task-bundle { margin-top: 14px; }
+.audit-task-bundle-title { display: block; margin-bottom: 6px; color: var(--clear-muted); font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.audit-task-file { display: grid; grid-template-columns: 16px minmax(0, 1fr) 14px; align-items: start; gap: 8px; padding: 9px 10px; border-radius: 8px; background: var(--clear-subtle); transition: background 120ms ease, color 120ms ease; }
+.audit-task-file + .audit-task-file { margin-top: 6px; }
+.audit-task-file:hover { background: color-mix(in srgb, var(--clear-primary) 9%, var(--clear-panel)); }
+.audit-task-file-name { min-width: 0; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.audit-task-file .anticon { padding-top: 3px; }
+.audit-task-limitations { margin: 10px 0 0; padding-left: 16px; color: var(--clear-muted); font-size: 12px; overflow-wrap: anywhere; }
+.audit-task-limitations li + li { margin-top: 6px; }
+.audit-task-panel-refined .audit-findings-entry { margin: 16px 0 0; font-size: 12px; }
+.audit-task-panel-footer { display: grid; gap: 4px; padding-top: 16px; border-top: 1px solid var(--clear-border); }
+.audit-reference-review-state { color: #805919; font-size: 12px; padding-inline-start: 6px; }
+.audit-task-panel-footer .ant-btn { justify-content: flex-start; height: 34px; padding-inline: 8px; color: var(--clear-muted); font-size: 12px; }
+.audit-task-panel-footer .ant-btn:not(:disabled):hover { color: var(--clear-primary); background: var(--clear-subtle); }
+.audit-task-panel-refined :is(a, summary):focus-visible { outline: 2px solid var(--clear-focus, var(--clear-primary)); outline-offset: 3px; border-radius: 4px; }
+.audit-task-panel-refined .ant-empty { margin: 12px 0 24px; }
+.audit-task-panel-refined .ant-empty-description { color: var(--clear-muted); font-size: 13px; line-height: 1.75; }
+@media (max-width: 680px) {
+  .audit-task-panel.audit-task-panel-refined { padding: 4px 0 20px; }
+  .audit-task-panel-refined :is(.audit-task-meta .ant-btn, .audit-task-panel-footer .ant-btn, .audit-task-file, .audit-reference-links a, .audit-findings-entry, .audit-task-finished-jobs > summary) { min-height: 44px; }
+  .audit-task-panel-refined .audit-reference-links a { display: flex; align-items: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .audit-task-panel-refined * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}

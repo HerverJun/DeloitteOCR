@@ -208,7 +208,7 @@ test('browsing skills without a project makes only a catalog read and keeps the 
   }))
   const router = createMemoryRouter([{ path: '*', element: <AgentWorkbench /> }], { initialEntries: ['/'] })
   mount(<RouterProvider router={router} />)
-  const input = await screen.findByRole('textbox', { name: '审计目标或问题' })
+  const input = await screen.findByRole('textbox', { name: '任务或问题' })
   fireEvent.change(input, { target: { value: '帮我规划付款核对' } })
   fireEvent.click(screen.getByRole('button', { name: '任务详情' }))
   await waitFor(() => expect(screen.getByRole('button', { name: 'Agent 技能' })).toBeEnabled())

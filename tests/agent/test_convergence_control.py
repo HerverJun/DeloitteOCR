@@ -24,6 +24,7 @@ class ControlTests(unittest.TestCase):
         self.services = SimpleNamespace(workspace_store=SimpleNamespace(get_workspace=lambda _:object()))
         self.runtime = object.__new__(AgentRuntime)
         self.runtime.store, self.runtime.services = self.store, self.services
+        self.runtime.graph = None
         self.tasks = AuditTasks(self.runtime)
         self.ctx = ToolContext('wtest',self.session['id'],self.run['id'],1,0,'',(),self.services,self.store)
 
@@ -96,13 +97,13 @@ class ControlTests(unittest.TestCase):
         action=Mock(side_effect=AssertionError('human pause must stay paused'))
         self.services.job_service=SimpleNamespace(action=action)
         ref=self.reference('classification')
-        with patch('workbench_platform.agent.tools.classification.read_job',
+        with patch('workbench_platform.application_services.operations.classification.read_job',
                    return_value={'status':'paused','capabilities':['resume']}):
             self.assertIsNone(lifecycle.adapter(ref).settle(ref,self.ctx))
         action.assert_not_called()
 
     def test_pdf_mixed_pause_intent_does_not_resume_all_owned_stages(self):
-        from workbench_platform.agent.tools import pdf
+        from workbench_platform.application_services.operations import pdf
         ref=self.reference(kind='pdf_pages')
         page_request=Mock()
         for stages in ([{'status':'paused','phase':'已暂停','owned':True}],

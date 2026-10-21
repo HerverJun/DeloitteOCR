@@ -16,13 +16,32 @@ from workbench_platform.supervisor.processes import require_f_path
 class Describe(AgentModel):
     reference: AgentRef
     table_index: int | None = Field(default=None, ge=0, le=99)
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=30, ge=1, le=50)
 
 
 class ToInput(Describe):
     file_name: str | None = Field(default=None, min_length=1, max_length=240)
 
 
+class TextRead(AgentModel):
+    reference: AgentRef
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=8000, ge=1, le=32000)
+    file_name: str | None = Field(default=None, min_length=1, max_length=240)
+
+
+def read_text(args, ctx):
+    from workbench_platform.application_services.result_text import read_text as read_fixed_text
+    return read_fixed_text(args.reference, ctx, offset=args.offset, limit=args.limit, file_name=args.file_name)
+
+
 def describe(args, ctx):
+    if args.reference.application == 'multimodal' and args.reference.kind == 'result':
+        from .multimodal import read, Result
+        verify(args.reference.model_dump(), ctx)
+        return read(Result(job_id=args.reference.parent_id, snapshot_id=args.reference.object_id,
+                           offset=args.offset, limit=args.limit), ctx)
     value = verify(args.reference.model_dump(), ctx)
     if args.reference.kind in {'artifact', 'asset', 'asset_set', 'evidence'}:
         data = value
@@ -100,6 +119,9 @@ def install(payload, name, media_type, sources, leaves, provenance, ctx):
 def to_input(args, ctx):
     value = verify(args.reference.model_dump(), ctx)
     ref = args.reference
+    if ref.application == 'multimodal' and ref.kind == 'result':
+        from .multimodal import to_data, Result
+        return to_data(Result(job_id=ref.parent_id, snapshot_id=ref.object_id), ctx)
     if ref.kind == 'asset':
         return AgentToolResult(status='success', summary='此引用已是可用输入', result_refs=[ref], data=value).model_dump()
     if ref.kind == 'asset_set':
@@ -154,8 +176,10 @@ def to_input(args, ctx):
 
 def register(registry):
     for name, schema, handler, description, effect in [
+        ('results_read_text', TextRead, read_text, '按固定引用有界读取OCR/PDF原文或本项目UTF-8 TXT/CSV/JSON/Markdown/HTML成果文件；HTML只返回源文字，不执行。文件artifact ID可直接读取，bundle引用须用file_name选择文件。offset/limit按字符，limit<=32000；返回总长、下一位置、原文件SHA与固定版本。CSV保留原导出展示字节；业务原值优先data_read_table/data_read_result。', 'read'),
         ('results_describe', Describe, describe, '核实类型化原生结果、表索引与来源；先查询真实表，不能按文字编造表。', 'read'),
         ('results_to_input', ToInput, to_input, 'OCR原生结构表确定性转为受控CSV输入；数据成果用Parquet原值文件；保持长编号、公式字面量、页/表/单元格来源。合并表不猜测展开。', 'derive'),
     ]:
         registry.register(ToolSpec(name, description, schema, handler, effect=effect, idempotent=True,
-            input_kinds=('result', 'artifact', 'asset_set'), output_kinds=('asset', 'asset_set')))
+            input_kinds=('result', 'artifact') if name == 'results_read_text' else ('result', 'artifact', 'asset_set'),
+            output_kinds=('result', 'artifact') if name == 'results_read_text' else ('asset', 'asset_set')))

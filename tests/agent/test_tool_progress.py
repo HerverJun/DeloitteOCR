@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import tempfile
 import threading
+import sys
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -167,7 +168,12 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
 class NativeProgressTests(unittest.IsolatedAsyncioTestCase):
     # Reuse setup helpers, not the full coverage suite or its model doubles.
     setUp = native_tests.CoverageTests.setUp
-    asyncSetUp = native_tests.CoverageTests.asyncSetUp
+    async def asyncSetUp(self):
+        await native_tests.CoverageTests.asyncSetUp(self)
+        release = Path('F:/OCR/release/Clear/versions/0.10.0')
+        self.native_ocr_source = release / 'ocr'
+        sys.path.extend([str(self.native_ocr_source / 'src'),
+            str(release / 'program/bundles/ocr/runtimes/control/Lib/site-packages')])
     tearDown = native_tests.CoverageTests.tearDown
     create = base.DataToolTests.create
     asset = base.DataToolTests.asset
@@ -226,7 +232,7 @@ class NativeProgressTests(unittest.IsolatedAsyncioTestCase):
         from workbench_platform.jobs.native_ocr import Capabilities, OcrAdapter, OcrUnavailable
         with patch.dict('os.environ', {'WORKBENCH_APP_ID': 'ocr',
             'WORKBENCH_INSTANCE_ID': 'instanceprogressocr', 'WORKBENCH_NONCE': 'b'*48}):
-            app = create_app(native_tests.OCR, self.root/'native-progress-ocr',
+            app = create_app(self.native_ocr_source, self.root/'native-progress-ocr',
                 'coverage-token-'+'a'*40, start_queue=False, review_only=True, agent_enabled=False)
         native = app.state.store
         project = native.project('Progress engineering check')
@@ -318,14 +324,17 @@ class GraphProgressTests(unittest.IsolatedAsyncioTestCase):
             observations.append(state['step'])
             if state['step'] == 0:
                 return graph_tests.response(state, 'data_create_session', {'name': 'Observed worker'})
-            previous = state['messages'][-1]['result']
+            previous = next(message['result'] for message in reversed(state['messages']) if message['role'] == 'tool')
             if state['step'] == 1:
                 return graph_tests.response(state, 'data_import', {'data_session_id': previous['data']['data_session_id'],
                     'expected_version': previous['data']['version'], 'side': 'left', 'asset_id': asset.asset_id,
                     'asset_revision': asset.revision, 'blob_hash': asset.blob_hash})
             self.assertEqual(previous['status'], 'success')
-            self.assertEqual(previous['data']['version'], 2)
-            return graph_tests.response(state, 'conversation_answer', {'content': 'Native import completed; its resulting version is 2.'})
+            if state['step'] == 2:
+                self.assertEqual(previous['data']['version'], 2)
+                return graph_tests.response(state, 'data_read_table', {'data_session_id': previous['data']['data_session_id'], 'side': 'left'})
+            return graph_tests.response(state, 'delivery_publish', {'summary': 'Native import completed and its table was verified.',
+                'result_refs': previous['result_refs']})
         runtime, session = await self.make_runtime(provider)
         try:
             run = await runtime.submit(session['id'], 'Observe import', 'observer_progress')
@@ -343,9 +352,9 @@ class GraphProgressTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(first['progress_total'])
             self.assertEqual(first['job_ref']['object_id'], first['job_id'])
             gate.set()
-            final = await self.wait_status(runtime, run['id'], {'answered', 'incomplete', 'failed'})
-            self.assertEqual(final['status'], 'answered', runtime.store.events(session['id']))
-            self.assertEqual(observations, [0, 1, 2])
+            final = await self.wait_status(runtime, run['id'], {'succeeded', 'partial', 'failed', 'paused'})
+            self.assertEqual(final['status'], 'succeeded', runtime.store.events(session['id']))
+            self.assertEqual(observations, [0, 1, 2, 3])
             values = [json.loads(row['payload']) for row in runtime.store.rows(
                 "SELECT payload FROM events WHERE run_id=? AND kind='tool_activity' ORDER BY seq", (run['id'],))]
             native = [item for item in values if item['tool'] == 'data_import']
@@ -355,7 +364,7 @@ class GraphProgressTests(unittest.IsolatedAsyncioTestCase):
             activities = [json.loads(row['payload'])['phase'] for row in runtime.store.rows(
                 "SELECT payload FROM events WHERE run_id=? AND kind='agent_activity' ORDER BY seq", (run['id'],))]
             self.assertIn('waiting_job', activities)
-            self.assertEqual(activities[-2:], ['finalizing', 'completed'])
+            self.assertEqual(activities[-1], 'completed')
             validate_public_events(runtime.store, run['id'])
         finally:
             gate.set()
@@ -371,14 +380,17 @@ class GraphProgressTests(unittest.IsolatedAsyncioTestCase):
             observed.append(state['step'])
             if state['step'] == 0:
                 return graph_tests.response(state, 'data_create_session', {'name': 'Display fault worker'})
-            previous = state['messages'][-1]['result']
+            previous = next(message['result'] for message in reversed(state['messages']) if message['role'] == 'tool')
             if state['step'] == 1:
                 return graph_tests.response(state, 'data_import', {'data_session_id': previous['data']['data_session_id'],
                     'expected_version': previous['data']['version'], 'side': 'left', 'asset_id': asset.asset_id,
                     'asset_revision': asset.revision, 'blob_hash': asset.blob_hash})
             self.assertEqual(previous['status'], 'success')
-            self.assertEqual(previous['data']['version'], 2)
-            return graph_tests.response(state, 'conversation_answer', {'content': 'Real import completed despite display write failure.'})
+            if state['step'] == 2:
+                self.assertEqual(previous['data']['version'], 2)
+                return graph_tests.response(state, 'data_read_table', {'data_session_id': previous['data']['data_session_id'], 'side': 'left'})
+            return graph_tests.response(state, 'delivery_publish', {'summary': 'Real import and table verification completed despite display write failure.',
+                'result_refs': previous['result_refs']})
         runtime, session = await self.make_runtime(provider)
         original = runtime.store.public_event
         def fail_progress(run_id, generation, identity, kind, payload):
@@ -398,9 +410,9 @@ class GraphProgressTests(unittest.IsolatedAsyncioTestCase):
                     self.fail('Progress write fault was not exercised')
                 self.assertEqual(runtime.store.run(run['id'])['status'], 'waiting_job')
                 gate.set()
-                final = await self.wait_status(runtime, run['id'], {'answered', 'failed', 'incomplete', 'needs_verification'})
-                self.assertEqual(final['status'], 'answered', runtime.store.events(session['id']))
-            self.assertEqual(observed, [0, 1, 2])
+                final = await self.wait_status(runtime, run['id'], {'succeeded', 'partial', 'failed', 'paused', 'needs_verification'})
+                self.assertEqual(final['status'], 'succeeded', runtime.store.events(session['id']))
+            self.assertEqual(observed, [0, 1, 2, 3])
             native = self.native.get(self.native.list('wtest')[0]['id'])
             self.assertEqual((native['version'], len(native['uploads'])), (2, 1))
             self.assertEqual(runtime.store.rows("SELECT id FROM operations WHERE tool='data_import'")[0]['id'],
@@ -434,28 +446,30 @@ class ReviewRegressionTests(unittest.IsolatedAsyncioTestCase):
         from unittest.mock import AsyncMock
         runtime = object.__new__(AgentRuntime)
         runtime.store, runtime.services = self.store, self.ctx.services
-        runtime.running, runtime.closing = {}, False
         reference = AgentRef(kind='job', workspace_id='wtest', object_id='jobDisplayFailure',
             revision=1, application='ocr').model_dump()
         state = {'session_id': self.ctx.session_id, 'workspace_id': 'wtest',
             'run_id': self.ctx.run_id, 'generation': 1,
-            'results': [{'status': 'pending', 'job_refs': [reference]}]}
-        runtime.graph = SimpleNamespace(aget_state=AsyncMock(return_value=SimpleNamespace(
-            values=state, next=('await_jobs',))))
-        runtime.settle = AsyncMock(return_value={'status': 'success'})
-        runtime.schedule = lambda run_id, command: setattr(runtime, 'closing', True)
-        self.store.status(self.ctx.run_id, 1, 'waiting_job')
-        try:
-            with patch('workbench_platform.agent.progress.progress_for', return_value={'status': 'queued'}), \
-                 patch.object(self.store, 'public_event', side_effect=OSError('display storage unavailable')):
-                try:
-                    await asyncio.wait_for(runtime.observe(), 5)
-                except TimeoutError:
-                    pass
-            runtime.settle.assert_awaited_once_with(state['results'][-1], state)
-            self.assertEqual(self.store.run(self.ctx.run_id)['status'], 'waiting_job')
-        finally:
-            runtime.closing = True
+            'results': [AgentToolResult(status='pending', summary='Queued', job_refs=[reference]).model_dump()]}
+        runtime.graph = SimpleNamespace(save=lambda _state: None)
+        settled = AgentToolResult(status='success', summary='Same original job finished').model_dump()
+        runtime.settle = AsyncMock(side_effect=[None, settled])
+        operation, _ = self.store.begin_operation(self.ctx.run_id, 1, self.call)
+        self.store.finish_operation(operation['id'], state['results'][-1])
+        original, attempted = self.store.public_event, []
+        def progress_write(run_id, generation, identity, kind, payload):
+            if kind == 'job_progress':
+                attempted.append(payload)
+                raise OSError('display storage unavailable')
+            return original(run_id, generation, identity, kind, payload)
+        with patch('workbench_platform.agent.progress.progress_for', return_value={'status': 'queued'}), \
+             patch.object(self.store, 'public_event', side_effect=progress_write):
+            actual = await asyncio.wait_for(runtime.harness_settle(state, self.call, state['results'][-1], operation['id']), 5)
+        self.assertEqual(actual, {**settled, 'job_refs': [reference]})
+        self.assertEqual(runtime.settle.await_count, 2)
+        self.assertEqual(len(attempted), 2)
+        self.assertEqual(len(self.store.rows('SELECT id FROM operations')), 1)
+        self.assertEqual(self.store.run(self.ctx.run_id)['status'], 'running')
 
 
 class SettleFenceTests(unittest.IsolatedAsyncioTestCase):
@@ -484,7 +498,7 @@ class SettleFenceTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_data_cancel_during_native_read_never_resumes_interrupted_operation(self):
         from unittest.mock import Mock
-        from workbench_platform.agent.tools import data
+        from workbench_platform.application_services.operations import data
         ref = self.reference('data')
         operation, _ = self.store.begin_operation(self.ctx.run_id, 1, self.call)
         self.store.finish_operation(operation['id'], AgentToolResult(status='pending', summary='Queued',
@@ -502,7 +516,7 @@ class SettleFenceTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_classification_cancel_during_native_read_never_sends_resume(self):
         from unittest.mock import Mock
-        from workbench_platform.agent.tools import classification
+        from workbench_platform.application_services.operations import classification
         action = Mock(side_effect=AssertionError('Stopped classification must not resume'))
         self.ctx.services.job_service = SimpleNamespace(action=action)
         def read_job(context, job):
@@ -515,7 +529,7 @@ class SettleFenceTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ocr_cancel_during_native_read_never_posts_queue_resume(self):
         from unittest.mock import Mock
-        from workbench_platform.agent.tools import ocr
+        from workbench_platform.application_services.operations import ocr
         request = Mock(side_effect=AssertionError('Stopped OCR must not resume'))
         adapter = SimpleNamespace(context=SimpleNamespace(module_project_id='nativeProject'),
             batch=lambda _: SimpleNamespace(tasks=[SimpleNamespace(native_task_id='taskFence', native_status='paused')]),

@@ -149,6 +149,79 @@ class ProductGraphTests(unittest.IsolatedAsyncioTestCase):
         finally:
             await runtime.close()
 
+    async def test_composed_workpaper_keeps_saved_findings_and_resumes_interrupted_export(self):
+        from contextlib import closing
+        from workbench_platform.application_services.operations.audit import WorkpaperFromResults, create_workpaper
+        self.audit_service()
+        asset = self.asset('suppliers-left.csv')
+        async def provider(*_):
+            self.fail('The business service test does not call a model')
+        runtime, session = await self.make_runtime(provider)
+        try:
+            run, _ = runtime.store.start_run(session['id'], '根据实际台账形成草稿', 'composed-workpaper', 0)
+            ctx = replace(self.ctx, session_id=session['id'], run_id=run['id'], generation=run['generation'],
+                          store=runtime.store, services=self.services)
+            arguments = {'title': '台账核对底稿', 'evidence': [{'reference': {'kind': 'asset', 'workspace_id': 'wtest',
+                'object_id': asset.asset_id, 'revision': asset.revision, 'sha256': asset.blob_hash}}],
+                'findings': [{'title': '原始编号', 'facts': '台账包含编号000001，前导零按原文保留。',
+                              'missing_information': '支付台账尚待补充。', 'evidence_indices': [0]}]}
+            original, count = self.center.store.publish_managed, 0
+            def interrupted(*args, **kwargs):
+                nonlocal count
+                count += 1
+                if count == 2:
+                    raise OSError('synthetic publication interruption')
+                return original(*args, **kwargs)
+            call = {'call_id': 'composed', 'tool': 'audit_create_workpaper', 'arguments': arguments}
+            with patch.object(self.center.store, 'publish_managed', interrupted):
+                partial = await runtime.registry.dispatch(call, ctx)
+            self.assertEqual(partial['error']['code'], 'workpaper_export_incomplete')
+            self.assertEqual(partial['data']['repair']['tool'], 'audit_generate_workpaper')
+            record = runtime.store.rows('SELECT id FROM operations WHERE run_id=? AND call_id=?', (run['id'], 'composed'))[0]
+            recovered = await asyncio.to_thread(create_workpaper, WorkpaperFromResults.model_validate(arguments),
+                                               replace(ctx, operation_id=record['id']))
+            self.assertEqual(recovered['status'], 'success')
+            self.assertTrue(recovered['data']['readback']['content_verified'])
+            self.assertIn('000001', recovered['data']['readback']['text'])
+            self.assertIn('不包含编制或复核署名', recovered['data']['readback']['text'])
+            self.assertEqual(len(recovered['data']['bundle']['files']), 5)
+            self.assertEqual(recovered['result_refs'], partial['result_refs'])
+            repeated = await asyncio.to_thread(create_workpaper, WorkpaperFromResults.model_validate(arguments),
+                                              replace(ctx, operation_id=record['id']))
+            self.assertEqual(repeated['data']['bundle']['snapshot_hash'], recovered['data']['bundle']['snapshot_hash'])
+            with closing(self.services.audit_service.store.db()) as db:
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM audit_finding_drafts').fetchone()[0], 1)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM audit_draft_history').fetchone()[0], 1)
+        finally:
+            await runtime.close()
+
+    async def test_composed_workpaper_rejects_foreign_source_before_binding_any_evidence(self):
+        from contextlib import closing
+        from workbench_platform.application_services.operations.audit import WorkpaperFromResults
+        self.audit_service()
+        first, foreign = self.asset('suppliers-left.csv'), self.asset('suppliers-right.csv', workspace='wother')
+        async def provider(*_):
+            self.fail('The scope test does not call a model')
+        runtime, session = await self.make_runtime(provider)
+        try:
+            run, _ = runtime.store.start_run(session['id'], '范围反例', 'composed-denied', 0)
+            ctx = replace(self.ctx, session_id=session['id'], run_id=run['id'], generation=run['generation'],
+                          store=runtime.store, services=self.services)
+            arguments = {'evidence': [{'reference': {'kind': 'asset', 'workspace_id': workspace,
+                'object_id': asset.asset_id, 'revision': asset.revision, 'sha256': asset.blob_hash}}
+                for asset, workspace in [(first, 'wtest'), (foreign, 'wother')]],
+                'findings': [{'title': '范围反例', 'facts': '此发现不得写入。', 'evidence_indices': [0, 1]}]}
+            result = await runtime.registry.dispatch({'call_id': 'denied', 'tool': 'audit_create_workpaper', 'arguments': arguments}, ctx)
+            self.assertEqual(result['status'], 'error')
+            with closing(self.services.audit_service.store.db()) as db:
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM direct_audit_evidence').fetchone()[0], 0)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM audit_finding_drafts').fetchone()[0], 0)
+            arguments['findings'][0]['evidence_indices'] = [2]
+            with self.assertRaises(ValueError):
+                WorkpaperFromResults.model_validate(arguments)
+        finally:
+            await runtime.close()
+
     async def test_interrupted_workpaper_reuses_reserved_snapshot_after_finding_edit(self):
         self.audit_service()
         async def provider(state, schemas): return graph_tests.response(state, 'conversation_answer', {'content': '等待补充资料。'})
@@ -187,7 +260,7 @@ class ProductGraphTests(unittest.IsolatedAsyncioTestCase):
             step = state['step']
             if step == 0:
                 return graph_tests.response(state, 'audit_update_plan', {'items': [{'key': 'observe', 'title': '固定台账证据', 'status': 'running'}, {'key': 'draft', 'title': '形成发现及底稿', 'depends_on': ['observe']}]})
-            previous = state['messages'][-1]['result']
+            previous = next(message['result'] for message in reversed(state['messages']) if message['role'] == 'tool')
             self.assertEqual(previous['status'], 'success', previous)
             if step == 1: return graph_tests.response(state, 'audit_bind_evidence', {'reference': reference})
             if step == 2: return graph_tests.response(state, 'audit_write_finding', {'expected_revision': 0, 'title': '台账初步核对', 'facts': '台账中的原始供应商编号得到保留。', 'missing_information': '待取得支付台账继续核对。', 'evidence_ids': [previous['data']['evidence_id']]})
@@ -276,11 +349,11 @@ class NativeCandidateTests(unittest.TestCase):
             return {'result_refs': [pdf_ref]}
         with patch('workbench_platform.application_services.manual.verify', lambda *args: {}), \
              patch('workbench_platform.application_services.manual.reference_assets', return_value=[]), \
-             patch('workbench_platform.agent.tools.ocr.read', side_effect=ValueError('PDF handoff')), \
-             patch('workbench_platform.agent.tools.pdf.bound', return_value=(None, None, adapter, {'document': {}})), \
-             patch('workbench_platform.agent.tools.pdf.read', side_effect=page), \
-             patch('workbench_platform.agent.tools.classification.snapshot', return_value={}), \
-             patch('workbench_platform.agent.tools.classification.reference', return_value=class_ref):
+             patch('workbench_platform.application_services.operations.ocr.read', side_effect=ValueError('PDF handoff')), \
+             patch('workbench_platform.application_services.operations.pdf.bound', return_value=(None, None, adapter, {'document': {}})), \
+             patch('workbench_platform.application_services.operations.pdf.read', side_effect=page), \
+             patch('workbench_platform.application_services.operations.classification.snapshot', return_value={}), \
+             patch('workbench_platform.application_services.operations.classification.reference', return_value=class_ref):
             value = candidates(ctx)
         self.assertEqual({item['reference']['object_id'] for item in value['items']}, {'pdfresult', 'classresult'})
         self.assertEqual(value['unavailable'], [])

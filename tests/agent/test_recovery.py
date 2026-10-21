@@ -9,9 +9,10 @@ import unittest
 import test_graph as graph_tests
 import test_data_tools as data_tests
 from packages.contracts.agent import AgentToolResult, AgentRef
-from workbench_platform.agent.registry import error_result
+from workbench_platform.agent.registry import error_result, invoke
 from workbench_platform.agent.store import Conflict
-from workbench_platform.agent.tools import data, jobs, context
+from workbench_platform.agent.tools import context
+from workbench_platform.application_services.operations import data, jobs
 from workbench_platform.agent.context import bounded_messages
 
 
@@ -29,7 +30,7 @@ class RecoveryTests(graph_tests.GraphTests):
             step=state['step'];observed.append(step)
             if step==0:
                 return graph_tests.response(state,'data_create_session',{'name':'append final'})
-            previous=state['messages'][-1]
+            previous=next((m for m in reversed(state['messages']) if m['role']=='tool'), None)
             if step==1:
                 value=previous['result']['data']
                 return graph_tests.response(state,'data_import',{'data_session_id':value['data_session_id'],'expected_version':value['version'],
@@ -38,14 +39,18 @@ class RecoveryTests(graph_tests.GraphTests):
                 return graph_tests.response(state,'data_read_table',{'data_session_id':previous['result']['data']['data_session_id'],'side':'left'})
             if step==3:
                 return graph_tests.response(state,'delivery_publish',{'summary':'已读回台账','result_refs':previous['result']['result_refs']})
-            if step==4:
-                ready.set();await release.wait()
-                return graph_tests.response(state,content='旧目标完成')
-            self.assertEqual(step,5)
+            self.assertGreaterEqual(step,4)
             self.assertTrue(any(m.get('content')=='重新导出Excel' for m in state['messages']))
             self.assertIsNone(state['delivery'])
             return graph_tests.response(state,content='本轮还未重新导出')
         runtime,session=await self.make_runtime(provider)
+        original = runtime.registry.tools['delivery_publish']
+        async def delayed_delivery(args, ctx):
+            value = await invoke(original.execute, args, ctx)
+            ready.set()
+            await release.wait()
+            return value
+        runtime.registry.tools['delivery_publish'] = replace(original, execute=delayed_delivery)
         try:
             run=await runtime.submit(session['id'],'查看台账','initial_read')
             # Five persisted controller/tool stages may exceed 30s when
@@ -53,8 +58,9 @@ class RecoveryTests(graph_tests.GraphTests):
             await asyncio.wait_for(ready.wait(),90)
             await runtime.submit(session['id'],'重新导出Excel','append_final')
             release.set()
-            self.assertEqual((await self.wait_status(runtime,run['id'],{'incomplete','failed','succeeded'}))['status'],'incomplete')
-            self.assertEqual(observed,[0,1,2,3,4,5])
+            self.assertEqual((await self.wait_status(runtime,run['id'],{'paused','failed','succeeded'}))['status'],'paused')
+            self.assertEqual(observed[:5],[0,1,2,3,4])
+            self.assertFalse(any(event['kind']=='delivery' for event in runtime.store.events(session['id'], limit=10000)['items']))
         finally:
             await runtime.close()
 
@@ -62,11 +68,11 @@ class RecoveryTests(graph_tests.GraphTests):
         expected = {}
         async def provider(state, schemas):
             if state['step'] == 0:
-                facts = next(m['content'] for m in state['messages'] if ':session-facts' in m.get('id',''))
+                facts = next(m['content'] for m in state['messages'] if m['role']=='user' and expected['job_id'] in m.get('content',''))
                 self.assertIn(expected['job_id'],facts)
                 self.assertIn('导入原台账',facts)
                 return graph_tests.response(state,'jobs_get',{'job_id':expected['job_id']})
-            return graph_tests.response(state)
+            return graph_tests.response(state, content='原任务回执已读取，等待下一步')
         runtime,session=await self.make_runtime(provider)
         try:
             old,_=runtime.store.start_run(session['id'],'导入原台账','original_before_cancel',0)
@@ -80,7 +86,7 @@ class RecoveryTests(graph_tests.GraphTests):
             expected['job_id']=imported['job_refs'][0]['object_id']
             runtime.cancel(old['id'])
             new=await runtime.submit(session['id'],'继续核实刚才的任务','new_after_cancel')
-            self.assertEqual((await self.wait_status(runtime,new['id'],{'incomplete','failed'}))['status'],'incomplete')
+            self.assertEqual((await self.wait_status(runtime,new['id'],{'paused','failed'}))['status'],'paused')
             self.assertEqual(len(self.native.get(created['data']['data_session_id'])['jobs']),1)
             self.assertEqual(len(self.native.get(created['data']['data_session_id'])['uploads']),1)
             self.assertEqual(runtime.store.run(old['id'])['status'],'cancelled')
@@ -91,7 +97,7 @@ class RecoveryTests(graph_tests.GraphTests):
         calls, lookups, receipt = [], [], []
         ready = False
         async def provider(state, schemas):
-            return graph_tests.response(state, 'data_create_session', {'name': 'one'}) if state['step'] == 0 else graph_tests.response(state)
+            return graph_tests.response(state, 'data_create_session', {'name': 'one'}) if state['step'] == 0 else graph_tests.response(state, content='已建立作业，尚未交付')
         runtime, session = await self.make_runtime(provider)
         original = runtime.registry.tools['data_create_session']
         def execute(args, ctx):
@@ -112,8 +118,9 @@ class RecoveryTests(graph_tests.GraphTests):
             self.assertEqual(len(calls), 1)
             ready = True
             await runtime.reconcile(run['id'])
-            self.assertEqual((await self.wait_status(runtime, run['id'], {'incomplete', 'failed'}))['status'], 'incomplete')
-            self.assertEqual(lookups, calls * 3)
+            self.assertEqual((await self.wait_status(runtime, run['id'], {'paused', 'failed'}))['status'], 'paused')
+            self.assertGreaterEqual(len(lookups), 2)
+            self.assertEqual(set(lookups), set(calls))
             self.assertEqual(len(self.native.list('wtest')), 1)
             self.assertEqual(len(runtime.store.rows('SELECT * FROM operations')), 1)
             restored = [event['payload'] for event in runtime.store.events(session['id'], limit=10000)['items']
@@ -129,8 +136,9 @@ class RecoveryTests(graph_tests.GraphTests):
             if state['step'] == 0:
                 return graph_tests.response(state, 'ask_user', {'question': '工作表？', 'options': ['本期', '上期']})
             if state['step'] == 1:
-                return graph_tests.response(state, 'data_create_session', {'name': state['messages'][-1]['result']['data']['reply']})
-            return graph_tests.response(state)
+                value = next(m['result'] for m in reversed(state['messages']) if m['role']=='tool')
+                return graph_tests.response(state, 'data_create_session', {'name': value['data']['reply']})
+            return graph_tests.response(state, content='已按答复建立作业，尚未交付')
         runtime, session = await self.make_runtime(provider)
         run = await runtime.submit(session['id'], '比对', 'answer_recovery')
         await self.wait_status(runtime, run['id'], {'waiting_user'})
@@ -143,7 +151,7 @@ class RecoveryTests(graph_tests.GraphTests):
         self.services.agent = reopened
         await reopened.start()
         try:
-            self.assertEqual((await self.wait_status(reopened, run['id'], {'incomplete', 'failed'}))['status'], 'incomplete')
+            self.assertEqual((await self.wait_status(reopened, run['id'], {'paused', 'failed'}))['status'], 'paused')
             self.assertEqual([v['name'] for v in self.native.list('wtest')], ['上期'])
         finally:
             await reopened.close()

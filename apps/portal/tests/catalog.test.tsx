@@ -56,6 +56,17 @@ function mount() {
   return { router, client }
 }
 
+async function applicationCard(brand = 'ClearOCR') {
+  // The directory includes six tools and shared navigation. Resolve its visible identity
+  // first so role queries inspect this tool's controls instead of every directory entry.
+  const identity = await screen.findByText(brand, { selector: '.application-identity > span' })
+  expect(identity).toBeVisible()
+  const card = identity.closest<HTMLElement>('.application-card')
+  expect(card).not.toBeNull()
+  expect(within(card!).getByRole('link', { name: brand })).toBeVisible()
+  return card!
+}
+
 function baseFetch(input: string) {
   if (input.endsWith('/navigation')) return { ok: true, json: async () => ({ url: authenticatedAddress }) }
   if (input.startsWith('/api/platform/v1/workspaces')) return { ok: true, json: async () => page([]) }
@@ -120,9 +131,7 @@ test.each([
   })
   vi.stubGlobal('fetch', fetcher)
   mount()
-  const card = (await screen.findByRole('link', { name: brand })).closest('.application-card')
-  expect(card).not.toBeNull()
-  const tool = within(card as HTMLElement)
+  const card = await applicationCard(brand), tool = within(card)
   expect(await tool.findByText('待启动')).toBeInTheDocument()
   expect(tool.getByText('按需启动，打开时检查运行状态')).toBeInTheDocument()
   expect(tool.getByRole('button', { name: '启动并打开' })).toBeEnabled()
@@ -156,9 +165,7 @@ test.each([
   })
   vi.stubGlobal('fetch', fetcher)
   mount()
-  const card = (await screen.findByRole('link', { name: brand })).closest('.application-card')
-  expect(card).not.toBeNull()
-  const tool = within(card as HTMLElement)
+  const card = await applicationCard(brand), tool = within(card)
   expect(await tool.findByText('暂不可用')).toBeInTheDocument()
   const state = within(card!.querySelector('.application-state') as HTMLElement)
   expect(state.getByText(failureReason)).toBeInTheDocument()
@@ -264,19 +271,20 @@ test('lost launch response is verified and retried with exactly the same ID', as
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }, { timeout: 5000 }))
+  const tool = within(await applicationCard())
+  fireEvent.click(await tool.findByRole('button', { name: '启动并打开' }))
   expect(await screen.findByText('network response lost')).toBeInTheDocument()
   const pending = sessionStorage.getItem('workbench:pending-launch:ocr')
   expect(pending).toMatch(/^l[A-Za-z0-9_-]+$/)
   expect(popup.close).toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('button', { name: '核实原请求' }))
+  fireEvent.click(tool.getByRole('button', { name: '核实原请求' }))
   await waitFor(() => expect(posts).toBe(2))
   const postPaths = fetcher.mock.calls.filter(([input, options]) => options?.method === 'POST' && !input.endsWith('/navigation')).map(([input]) => input)
   expect(postPaths).toEqual([postPaths[0], postPaths[0]])
   expect(postPaths[0]).toContain(pending)
   await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(platformAddress))
   expect(sessionStorage.getItem('workbench:pending-launch:ocr')).toBeNull()
-  expect(screen.queryByRole('link', { name: /已核实的本机实例/ })).not.toBeInTheDocument()
+  expect(tool.queryByRole('link', { name: /已核实的本机实例/ })).not.toBeInTheDocument()
 })
 
 test('missing window handle offers retry; continuing a recent record requires a live check', async () => {
@@ -314,7 +322,8 @@ test('opening a running OCR service establishes a session before navigating and 
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
+  const tool = within(await applicationCard())
+  fireEvent.click(await tool.findByRole('button', { name: '打开工具' }))
   await waitFor(() => expect(popup.location.replace).toHaveBeenCalledWith(platformAddress))
   const posts = fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')
   expect(posts.map(([path]) => path)).toEqual(['/api/platform/v1/apps/ocr/launches/launchA/navigation'])
@@ -330,7 +339,8 @@ test('failed OCR session handoff closes the reserved window instead of opening a
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  fireEvent.click(await screen.findByRole('button', { name: '打开工具' }))
+  const tool = within(await applicationCard())
+  fireEvent.click(await tool.findByRole('button', { name: '打开工具' }))
   expect(await screen.findByText('ClearOCR 工作台连接暂不可用，请重新核实并打开。')).toBeInTheDocument()
   expect(popup.location.replace).not.toHaveBeenCalled()
   expect(popup.close).toHaveBeenCalled()
@@ -345,12 +355,12 @@ test('an exited cached instance is not silently replaced when the user clicks op
   vi.stubGlobal('fetch',fetcher)
   vi.spyOn(window,'open').mockReturnValue({ opener:null, close:vi.fn(), location:{ replace:vi.fn() } } as unknown as Window)
   mount()
-  const button = await screen.findByRole('button',{name:'打开工具'})
+  const tool = within(await applicationCard()), button = await tool.findByRole('button',{name:'打开工具'})
   alive = false
   fireEvent.click(button)
   expect(await screen.findByText('原实例已退出；请明确发起新启动。')).toBeInTheDocument()
   expect(fetcher.mock.calls.some(([,options]) => options?.method === 'POST')).toBe(false)
-  expect(await screen.findByRole('button',{name:'启动并打开'})).toBeEnabled()
+  expect(await tool.findByRole('button',{name:'启动并打开'})).toBeEnabled()
 })
 
 test('configured bundle without durable storage cannot launch', async () => {
@@ -382,7 +392,8 @@ test('leaving a page closes its blank window and never navigates it after a late
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   const { router } = mount()
-  fireEvent.click(await screen.findByRole('button', { name: '启动并打开' }, { timeout: 5000 }))
+  const tool = within(await applicationCard())
+  fireEvent.click(await tool.findByRole('button', { name: '启动并打开' }))
   await waitFor(() => expect(resolveCurrent).toBeDefined())
   await router.navigate('/')
   await waitFor(() => expect(popup.close).toHaveBeenCalledOnce())
@@ -405,7 +416,7 @@ test('rapid repeat click reserves only one blank window and one verification', a
   const popup = { opener: {} as unknown, location: { replace: vi.fn() }, close: vi.fn() }
   const opened = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
   mount()
-  const button = await screen.findByRole('button', { name: '打开工具' }, { timeout: 5000 })
+  const tool = within(await applicationCard()), button = await tool.findByRole('button', { name: '打开工具' })
   fireEvent.click(button)
   fireEvent.click(button)
   await waitFor(() => expect(finish).toBeDefined())

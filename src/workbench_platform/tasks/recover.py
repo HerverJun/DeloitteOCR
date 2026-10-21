@@ -37,7 +37,10 @@ async def binding(host,dispatch):
         workspace=db.execute(select(s.tasks.c.workspace_id).where(s.tasks.c.id==dispatch['task_id'])).scalar_one()
         previous=db.execute(select(s.task_dispatches.c.receipt).where(s.task_dispatches.c.run_id==command.get('retry_of'),s.task_dispatches.c.kind=='execute')).scalar_one_or_none() if command.get('retry_of') else None
     path=command['path'];tool=command['tool_id'];prefix='/api/platform/v1';request_id=payload.get('request_id')
-    if tool=='data':
+    if tool=='documents':
+        row=one(host.root,'documents/documents.sqlite3','SELECT document_id FROM documents WHERE workspace_id=? AND request_id=?',(workspace,request_id))
+        if row:return ('documents.documents',row['document_id'],f'{prefix}/workspaces/{workspace}/documents/{row["document_id"]}')
+    elif tool=='data':
         session=re.search(r'/data/sessions/([A-Za-z0-9_-]+)/',path)
         row=one(host.root,'data-workbench/sessions.sqlite3','SELECT r.job_id,r.session_id FROM operation_requests r JOIN sessions s ON s.id=r.session_id WHERE r.request_key=? AND s.workspace_id=?',(dispatch['run_id'],workspace))
         if row and session and row['session_id']==session[1]:return ('data.jobs',row['job_id'],f'{prefix}/data/sessions/{row["session_id"]}/jobs/{row["job_id"]}')

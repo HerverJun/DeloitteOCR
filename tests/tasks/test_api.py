@@ -88,3 +88,70 @@ def test_native_project_directory_does_not_reveal_other_projects(api):
     client.app.state.worker=httpx.AsyncClient(transport=httpx.MockTransport(transport),base_url='http://127.0.0.1:8890')
     response=client.get(f'/api/platform/v1/workspaces/{workspace}/ocr/projects')
     assert response.status_code==200 and response.json()['items']==[{'project_id':'allowed-native','name':'可见项目'}]
+
+
+@pytest.mark.parametrize('native_status',['running','waiting_job','waiting_user','paused'])
+def test_existing_agent_run_keeps_task_identity_and_owner_control(api,native_status):
+    from sqlalchemy import insert,func
+    client,case=api;ledger,admin,owner,viewer,other,workspace=case
+    task=ledger.submit(owner,{**submission(workspace,'owned-agent'),'tool_id':'agent','action':'message'}, {})
+    native_id='agent'+workspace
+    with ledger.engine.begin() as db:
+        db.execute(insert(s.task_source_links).values(id='link'+workspace,task_id=task['id'],
+            run_id=task['current_run_id'],namespace='agent.runs',source_id=native_id,source_generation=6 if native_status=='paused' else 7))
+    def transport(request):
+        if request.url.path=='/internal/scope':return httpx.Response(200,json={'workspace_id':workspace})
+        if request.url.path=='/internal/inputs':return httpx.Response(200,json={'items':[]})
+        if request.url.path.endswith('/agent/sessions/sessionOwned'):
+            return httpx.Response(200,json={'runs':[{'id':native_id,'generation':7,'status':native_status}]})
+        return httpx.Response(404)
+    client.app.state.worker=httpx.AsyncClient(transport=httpx.MockTransport(transport),base_url='http://127.0.0.1:8890')
+    another=ledger.create_user('another-'+task['id'],'其他编制人','correct horse battery staple')
+    ledger.set_member(admin,workspace,another['id'],'editor')
+    value={**submission(workspace,'steer-owned'),'tool_id':'agent','action':'message',
+           'options':{'session_id':'sessionOwned','payload':{'content':'继续原目标'}}}
+    denied=client.post('/api/platform/v2/tasks',json=value,headers=login(client,another))
+    assert denied.status_code==403
+    accepted=client.post('/api/platform/v2/tasks',json=value,headers=login(client,owner))
+    assert accepted.status_code==202 and accepted.json()['id']==task['id']
+    with ledger.engine.connect() as db:
+        assert db.execute(select(func.count()).select_from(s.tasks).where(s.tasks.c.workspace_id==workspace)).scalar_one()==1
+        assert db.execute(select(func.count()).select_from(s.control_requests).where(s.control_requests.c.task_id==task['id'])).scalar_one()==1
+
+
+@pytest.mark.parametrize('operation',['pause','compact'])
+def test_harness_history_and_pause_controls_require_original_task_owner(api,operation):
+    from sqlalchemy import insert,update,func
+    client,case=api;ledger,admin,owner,viewer,other,workspace=case
+    task=ledger.submit(owner,{**submission(workspace,'harness-control'),'tool_id':'agent','action':'message'}, {})
+    native_id='run'+workspace
+    session_id='session'+workspace
+    with ledger.engine.begin() as db:
+        db.execute(insert(s.task_source_links).values(id='control-link'+workspace,task_id=task['id'],
+            run_id=task['current_run_id'],namespace='agent.runs',source_id=native_id,source_generation=6))
+        db.execute(update(s.tasks).where(s.tasks.c.id==task['id']).values(status='running',summary={'native_capabilities':['cancel','pause']}))
+        db.execute(update(s.task_runs).where(s.task_runs.c.id==task['current_run_id']).values(status='running'))
+        ledger.audit(db,owner,'agent.session.create',workspace,session_id)
+    forwarded=[]
+    def transport(request):
+        if request.url.path=='/internal/scope':return httpx.Response(200,json={'workspace_id':workspace})
+        if request.method=='POST':forwarded.append(request.url.path)
+        if request.url.path.endswith('/compact'):return httpx.Response(202,json={'queued':True})
+        if request.url.path.endswith('/agent/sessions/'+session_id):
+            return httpx.Response(200,json={'runs':[{'id':native_id,'generation':7,'status':'running'}]})
+        return httpx.Response(200,json={'id':native_id,'generation':7,'status':'running'})
+    client.app.state.worker=httpx.AsyncClient(transport=httpx.MockTransport(transport),base_url='http://127.0.0.1:8890')
+    another=ledger.create_user('controller-'+task['id'],'其他编制人','correct horse battery staple')
+    ledger.set_member(admin,workspace,another['id'],'editor')
+    path=('/api/platform/v1/agent/runs/'+native_id+'/pause' if operation=='pause'
+          else '/api/platform/v1/agent/sessions/'+session_id+'/compact')
+    for denied_user in (another,viewer):
+        response=client.post(path,json={},headers=login(client,denied_user))
+        assert response.status_code==403
+    assert not forwarded
+    accepted=client.post(path,json={},headers=login(client,owner))
+    assert accepted.status_code==(200 if operation=='pause' else 202),accepted.json()
+    with ledger.engine.connect() as db:
+        count=db.execute(select(func.count()).select_from(s.task_dispatches).where(s.task_dispatches.c.task_id==task['id'],s.task_dispatches.c.kind=='control')).scalar_one()
+        assert count==(1 if operation=='pause' else 0)
+    assert forwarded==([] if operation=='pause' else [path])

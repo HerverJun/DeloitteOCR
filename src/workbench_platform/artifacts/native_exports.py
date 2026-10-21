@@ -3,7 +3,7 @@ from contextlib import closing
 import hashlib
 import io
 import json
-from workbench_platform.agent.store import canonical, digest
+from workbench_platform.application_services.identity import canonical, digest
 from workbench_platform.artifacts.store import ArtifactUnavailable
 from packages.contracts.models import JobRef, Counts
 

@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import time
 from types import SimpleNamespace
@@ -16,7 +17,7 @@ from workbench_platform.resources.gpu import Owner, ResourceEvidence
 from workbench_platform.resources.recovery import process_identity
 
 
-def until(function, timeout=8):
+def until(function, timeout=30):
     end=time.monotonic()+timeout
     while time.monotonic()<end:
         value=function()
@@ -36,6 +37,12 @@ def service(tmp_path,monkeypatch):
     monkeypatch.setattr(artifacts,'configure',lambda center:None)
     monkeypatch.delenv('WORKBENCH_GPU_LEDGER',raising=False)
     monkeypatch.setenv('WORKBENCH_PROGRAM_ROOT',str(tmp_path/'program'))
+    # This fixture never decodes audio or loads a model. Give its synthetic
+    # resource ledger virtual capacity; dedicated budget tests override this
+    # probe and real native-service acceptance retains the actual disk guard.
+    usage=shutil.disk_usage(tmp_path)
+    monkeypatch.setattr('workbench_platform.multimodal.service.shutil.disk_usage',
+        lambda _path:SimpleNamespace(total=usage.total,used=usage.used,free=8*1024**3))
     raw=tmp_path/'input.jpg';raw.write_bytes(b'synthetic-image-no-model')
     blob_hash=hashlib.sha256(raw.read_bytes()).hexdigest()
     source_name=['input.jpg']

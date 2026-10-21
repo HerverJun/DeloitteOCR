@@ -33,12 +33,14 @@ mode = (root / 'mode.txt').read_text().strip()
 if mode == 'capture_env':
     (root / 'environment.json').write_text(json.dumps({key: os.environ.get(key) for key in
         ('WORKBENCH_APP_ID', 'WORKBENCH_INSTANCE_ID', 'WORKBENCH_LAUNCH_ID',
-         'WORKBENCH_GPU_LEDGER', 'ProgramData', 'TEMP', 'TMP', 'CLEAR_PADDLE_TEMP',
+         'WORKBENCH_GPU_LEDGER', 'WORKBENCH_NATIVE_LAUNCH_RECORD', 'WORKBENCH_NATIVE_LAUNCH_SHA256',
+         'ProgramData', 'TEMP', 'TMP', 'CLEAR_PADDLE_TEMP',
          'APPDATA', 'LOCALAPPDATA', 'PIP_CACHE_DIR', 'npm_config_cache',
          'npm_config_store_dir', 'PNPM_HOME', 'HF_HOME', 'TORCH_HOME',
          'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'PADDLE_PDX_CACHE_HOME',
          'PADDLEOCR_HOME', 'MPLCONFIGDIR', 'HYPOTHESIS_STORAGE_DIRECTORY',
          'JUPYTER_CONFIG_DIR', 'JUPYTER_DATA_DIR', 'PLAYWRIGHT_BROWSERS_PATH',
+         'CUDA_CACHE_PATH', 'TORCHINDUCTOR_CACHE_DIR', 'TRITON_CACHE_DIR', 'NUMBA_CACHE_DIR', 'MODELSCOPE_CACHE',
          'PYTHONDONTWRITEBYTECODE', 'PYTHONUTF8', 'PIP_DISABLE_PIP_VERSION_CHECK',
          'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH',
          'HOME', 'CODEX_HOME', 'UNRELATED_PARENT_MARKER')}))
@@ -254,6 +256,10 @@ def test_dynamic_bound_port_identity_concurrent_idempotency_and_tree_cleanup(tru
             supervisor.start("classification", "launchA")
         supervisor.stop("launchA")
         assert eventually(lambda: not alive(receipt.pid) and not alive(child_pid))
+        native_record = supervisor.data_root / 'native-launches/launchA.json'
+        cleanup = json.loads(native_record.with_suffix('.cleanup.json').read_text('utf-8'))
+        assert cleanup['drained'] is True and cleanup['active_processes'] == 0
+        assert cleanup['launch_record_sha256'] == digest(native_record)
         assert registry.health("ocr").service.state == "unavailable"
 
 
@@ -277,7 +283,13 @@ def test_managed_launch_passes_shared_gpu_ledger_and_local_lock_directory(truste
             "WORKBENCH_LAUNCH_ID": receipt.launch_id,
             "WORKBENCH_GPU_LEDGER": str(data_root / "gpu.sqlite3"),
             "LOCALAPPDATA": str(data_root / "native-local"),
+            "WORKBENCH_NATIVE_LAUNCH_RECORD": str(data_root / 'native-launches/gpuContextA.json'),
+            "WORKBENCH_NATIVE_LAUNCH_SHA256": digest(data_root / 'native-launches/gpuContextA.json'),
         }
+        job_record = json.loads((data_root / 'native-launches/gpuContextA.json').read_text('utf-8'))
+        assert job_record['job_name'] == supervisor._entries['gpuContextA'].job.name
+        assert job_record['kill_on_close'] is True and job_record['breakaway'] is False
+        assert supervisor._entries['gpuContextA'].job.contains(receipt.pid)
         expected["ProgramData"] = os.environ.get("ProgramData")
         expected.update({key: os.environ.get(key) for key in ("USERPROFILE", "HOMEDRIVE", "HOMEPATH")})
         expected.update({"HOME": None, "CODEX_HOME": None, "UNRELATED_PARENT_MARKER": None})
@@ -300,7 +312,9 @@ def test_failed_handshakes_are_cached_and_only_own_child_is_cleaned(trusted, mod
     (root / "bundle.manifest.json").write_text(json.dumps(declaration), encoding="utf-8")
     register(config, root)
     registry.reload()
-    with make_supervisor(registry, handshake_timeout=0.7) as supervisor:
+    # Exercise the declared failure mode after the isolated interpreter starts;
+    # allow headroom for concurrent native/ML loading on Windows.
+    with make_supervisor(registry, handshake_timeout=3) as supervisor:
         def attempt(_):
             with pytest.raises(LaunchFailure):
                 supervisor.start("ocr", "failedA")
@@ -458,8 +472,8 @@ def test_main_exit_with_stdout_held_by_descendant_still_reaps_owned_tree(trusted
         receipt = supervisor.start("ocr", "exitsWithChild")
         child_pid = int((root / "child-pid.txt").read_text())
         assert alive(child_pid)
-        assert eventually(lambda: not alive(receipt.pid) and not alive(child_pid), 4)
-        assert registry.health("ocr").service.state == "unavailable"
+        assert eventually(lambda: not alive(receipt.pid) and not alive(child_pid)
+                          and registry.health("ocr").service.state == "unavailable", 4)
 
 
 def test_same_launch_id_retry_survives_catalog_reload(trusted):

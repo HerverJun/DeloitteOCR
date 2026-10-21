@@ -10,3 +10,6 @@ apps/portal/*.tsbuildinfo
 .env
 .env.*
 !.env.example
+agent_harness/node_modules/
+agent_harness/node/
+agent_harness/runtime-local.json
