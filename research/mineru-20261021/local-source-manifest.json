@@ -1,0 +1,86 @@
+{
+  "captured_on": "2026-10-21",
+  "scope": "Selected local sources only; not a complete upstream or release snapshot",
+  "files": [
+    {
+      "path": "release/Clear/current.json",
+      "bytes": 4970,
+      "sha256": "66f7e2e4caba1dcad3449dfa8de5bfd426f17d47dd56d76d5080a6c5dffa2ae6"
+    },
+    {
+      "path": "products/Clear/platform/pyproject.toml",
+      "bytes": 674,
+      "sha256": "3e781019c265fb78b255ab07d650c3f838165b581196c3d4a01ba1dbec988b52"
+    },
+    {
+      "path": "products/Clear/platform/packages/contracts/models.py",
+      "bytes": 19377,
+      "sha256": "0a8dbcd204bbe827c491c3ec2fd7433f146bad8e245db4590da794108491e0ce"
+    },
+    {
+      "path": "products/Clear/platform/packages/contracts/direct.py",
+      "bytes": 1149,
+      "sha256": "ad92fa31247b15b9356bf648da73d3c25dc801df5a4a24109cbb475f9e550cf9"
+    },
+    {
+      "path": "products/Clear/platform/src/workbench_platform/agent/tools/documents.py",
+      "bytes": 7825,
+      "sha256": "1cab8e66197d0f1fc49e52f46ebaf185ac1e66520982d386b7ed0e15047796bf"
+    },
+    {
+      "path": "products/Clear/platform/src/workbench_platform/application_services/pdf_text.py",
+      "bytes": 11654,
+      "sha256": "9953317472b27184f24bad0d1872ccb46242c8288ec5d818de5fa2fe29bdf145"
+    },
+    {
+      "path": "products/Clear/platform/src/workbench_platform/application_services/operations/pdf.py",
+      "bytes": 12714,
+      "sha256": "3d077be7f1a1a268d3a97e384cf840c6df6c29fb142c6ca7a2664fffb5aa274a"
+    },
+    {
+      "path": "products/Clear/platform/src/workbench_platform/resources/gpu.py",
+      "bytes": 12910,
+      "sha256": "97dc9a007be8b59fc0ca511ef7574ea97f86149c34ba6231cdd7215551c14cb5"
+    },
+    {
+      "path": "products/Clear/ocr/config/engines.json",
+      "bytes": 1158,
+      "sha256": "9902ec0818517f19f457c8f97dc67ac78830d64e56c0b4d1150962bcebcf7038"
+    },
+    {
+      "path": "products/Clear/ocr/config/glm-requirements.txt",
+      "bytes": 185,
+      "sha256": "a7a9e846958cc0720388581408309405149f3a1b8db3d4b142a29675f22629be"
+    },
+    {
+      "path": "products/Clear/ocr/src/ocr_workbench/engine_host.py",
+      "bytes": 8366,
+      "sha256": "785b66f19a6e6b72a438f0b5522a1db5d54f84c70d4174e41089f84eb3799a5e"
+    },
+    {
+      "path": "products/Clear/ocr/src/ocr_workbench/worker.py",
+      "bytes": 10876,
+      "sha256": "2878936bcc00a686936d9856b26776a7032b9728b1fae4188516447fa7229c34"
+    },
+    {
+      "path": "products/Clear/ocr/src/ocr_workbench/tables.py",
+      "bytes": 12102,
+      "sha256": "ac2881242e2185ec8eef9697b4c04dc82100951893e03627c08b6b6eca475e3e"
+    },
+    {
+      "path": "products/Clear/ocr/src/ocr_workbench/complex_table_contract.py",
+      "bytes": 4154,
+      "sha256": "3148838e9a0863390219fa7e6ac72896363a100716a19d11a384f424f77caa10"
+    },
+    {
+      "path": "output/frontend-workbench-20261015/worktrees/platform/src/workbench_platform/application_services/pdf_text.py",
+      "bytes": 11654,
+      "sha256": "9953317472b27184f24bad0d1872ccb46242c8288ec5d818de5fa2fe29bdf145"
+    },
+    {
+      "path": "output/clear-automation-dev-20261002/worktrees/ocr/src/ocr_workbench/engine_host.py",
+      "bytes": 8366,
+      "sha256": "785b66f19a6e6b72a438f0b5522a1db5d54f84c70d4174e41089f84eb3799a5e"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-21",
+  "upstream_release": "4.0.12",
+  "upstream_tag": "mineru-4.0.12-released",
+  "upstream_commit_short": "b7f3dd0",
+  "upstream_complete_snapshot_saved": false,
+  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+  "gpu_total_memory_mib": 16376,
+  "driver": "595.97",
+  "free_f_bytes_at_inspection": 10681024512,
+  "system_memory": "unavailable: read query denied",
+  "mineru_installed": false,
+  "model_downloaded": false,
+  "real_inference_executed": false,
+  "business_document_uploaded": false,
+  "formal_release_changed": false,
+  "synthetic_checks_passed": 9,
+  "synthetic_checks_total": 9,
+  "direct_https_limitations": [
+    "PowerShell and curl TLS credential errors",
+    "Python public GitHub API returned 403 rate limit"
+  ],
+  "storage_root": "F:\\OCR\\research\\mineru-20261021"
+}

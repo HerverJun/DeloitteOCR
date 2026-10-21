@@ -1,0 +1,46 @@
+{
+  "kind": "synthetic_clear_contract_probe",
+  "mineru_installed_or_executed": false,
+  "accuracy_or_throughput_measured": false,
+  "checks": [
+    {
+      "name": "zero_based_source_pages_remain_noncontiguous",
+      "passed": true
+    },
+    {
+      "name": "page_only_locator_supported",
+      "passed": true
+    },
+    {
+      "name": "page_zero_rejected",
+      "passed": true
+    },
+    {
+      "name": "normalized_region_with_transform_supported",
+      "passed": true
+    },
+    {
+      "name": "region_without_transform_rejected",
+      "passed": true
+    },
+    {
+      "name": "legacy_thousand_scale_box_rejected",
+      "passed": true
+    },
+    {
+      "name": "html_spans_supported",
+      "passed": true
+    },
+    {
+      "name": "account_and_formula_like_text_remain_literal",
+      "passed": true
+    },
+    {
+      "name": "html_does_not_invent_cell_geometry_or_confidence",
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "limitations": "Synthetic HTML and locator payloads only; not a MinerU output fixture or production adapter."
+}
