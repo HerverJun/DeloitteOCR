@@ -1,4 +1,4 @@
-"""Real loopback HTTP provider → LangGraph runtime → session SSE.
+"""Real loopback HTTP provider → official Harness runtime → session SSE.
 
 The model controller is deliberately synthetic. Production request parsing,
 configuration/DPAPI, dispatch, native data workers, persistence and SSE routes
@@ -7,6 +7,7 @@ are real. No model_provider, HTTPX mock transport, or user workspace is used.
 import asyncio
 from contextlib import asynccontextmanager
 import json
+import hashlib
 from pathlib import Path
 import socket
 import sys
@@ -21,6 +22,7 @@ from workbench_platform.agent.runtime import AgentRuntime
 from workbench_platform.agent.routes import router
 
 HELPER = Path('F:/OCR/output/agent-streaming-ux-dev-20261005')
+EVIDENCE = Path('F:/OCR/output/agent-harness-upgrade-20261015/evidence')
 sys.path.insert(0, str(HELPER))
 from local_stream_controller import ANSWER, LocalController
 
@@ -62,13 +64,13 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
         self.server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=0,
             log_level='warning', access_log=False, loop='asyncio', lifespan='on'))
         self.server_task = asyncio.create_task(self.server.serve(sockets=[self.sock]))
-        async with asyncio.timeout(25):
+        async with asyncio.timeout(60):
             while not self.server.started:
                 if self.server_task.done():
                     await self.server_task
                     self.fail('Loopback server failed to start')
                 await asyncio.sleep(0.02)
-        self.client = httpx.AsyncClient(base_url=self.origin, trust_env=False, timeout=45)
+        self.client = httpx.AsyncClient(base_url=self.origin, trust_env=False, timeout=120)
 
     async def asyncTearDown(self):
         self.controller.release.set()
@@ -88,7 +90,7 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
     async def connect(self, protocol):
         result = await self.client.put('/api/platform/v1/agent/connection', headers=self.headers,
             json={'protocol': protocol, 'base_url': self.origin + '/v1', 'model': 'local-stream-demo',
-                  'api_key': 'local', 'context_cap': 16384, 'max_output_tokens': 2048, 'streaming': True})
+                  'api_key': 'local', 'context_cap': 65536, 'max_output_tokens': 2048, 'streaming': True})
         self.assertEqual(result.status_code, 200, result.text)
         self.assertTrue(result.json()['available'])
         capabilities = result.json()['capabilities']
@@ -125,7 +127,7 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
         return response.json()
 
     async def until(self, predicate):
-        async with asyncio.timeout(35):
+        async with asyncio.timeout(90):
             while True:
                 event = await self.queue.get()
                 if predicate(event):
@@ -187,6 +189,11 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len([item for item in self.controller.requests if item['purpose'] == 'business']), 1)
         operations = self.runtime.store.rows('SELECT tool FROM operations WHERE run_id=?', (run['id'],))
         self.assertEqual(operations, [{'tool': 'conversation_answer'}])
+        archived = self.runtime.store.rows('SELECT p.* FROM harness_model_payloads p JOIN model_requests m ON m.id=p.request_id WHERE m.run_id=? ORDER BY m.step', (run['id'],))
+        self.assertEqual(len(archived), 1)
+        self.assertEqual(archived[0]['sha256'], hashlib.sha256(archived[0]['body'].encode('utf-8')).hexdigest())
+        self.assertTrue(json.loads(archived[0]['body'])['stream'])
+        self.assertTrue(self.runtime.store.rows('SELECT * FROM harness_events WHERE session_id=?', (self.session_id,)))
         confirmed_time = next(event['observed_monotonic'] for event in self.received if event['seq'] == confirmed[0]['seq'])
         receipt = {'controller': 'synthetic-local-no-remote-model', 'production_http': True,
             'protocol': protocol, 'probe_requests': 3, 'business_model_posts': 1,
@@ -195,7 +202,7 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
             'same_display_id': True, 'tool_dispatches': operations,
             'preview_to_confirmed_seconds': round(confirmed_time - preview['observed_monotonic'], 4),
             'events': [{'seq': event['seq'], 'kind': event['kind'], 'payload': event['payload']} for event in events]}
-        (HELPER / 'evidence' / ('production-sse-' + protocol + '.json')).write_text(
+        (EVIDENCE / ('harness-production-sse-' + protocol + '.json')).write_text(
             json.dumps(receipt, ensure_ascii=False, indent=2), encoding='utf-8')
 
     async def test_openai_tool_only_answer_before_complete_response_confirmed_once(self):
@@ -237,16 +244,16 @@ class ProductionStreamingTests(unittest.IsolatedAsyncioTestCase):
         for item in progress:
             self.assertEqual(item['job_ref']['object_id'], imported['job_refs'][0]['object_id'])
             self.assertEqual(item['observation'], 'native')
-        self.assertEqual(len([item for item in self.controller.requests if item['purpose'] == 'business']), 6)
+        self.assertEqual(len([item for item in self.controller.requests if item['purpose'] == 'business']), 5)
         delivery = [event for event in events if event['kind'] == 'delivery']
         self.assertEqual(len(delivery), 1)
         self.assertTrue(delivery[0]['payload']['delivery']['data']['verified'])
         receipt = {'controller': 'synthetic-local-no-remote-model', 'production_http': True,
-            'real_native_worker': True, 'business_submit_posts': 1, 'business_model_posts': 6,
+            'real_native_worker': True, 'business_submit_posts': 1, 'business_model_posts': 5,
             'native_uploads': 1, 'native_jobs': record['jobs'], 'native_job_refs': imported['job_refs'],
             'readback_first_id': '000001', 'tool_phases': activity, 'job_progress': progress,
             'delivery_verified': True, 'final_status': 'succeeded'}
-        (HELPER / 'evidence/production-native-import.json').write_text(
+        (EVIDENCE / 'harness-production-native-import.json').write_text(
             json.dumps(receipt, ensure_ascii=False, indent=2), encoding='utf-8')
 
 

@@ -20,12 +20,27 @@ def search(args, ctx):
     next_asset_offset, next_asset_match_offset = -1, 0
     for asset_index, asset in enumerate(assets):
         suffix = Path(asset.original_name).suffix.lower()
-        if suffix not in {'.txt', '.md', '.csv', '.json', '.pdf'}:
+        document_service = getattr(ctx.services, 'document_service', None)
+        saved = None
+        if document_service:
+            from contextlib import closing
+            import json
+            with closing(document_service.db()) as db:
+                rows = db.execute('SELECT body FROM documents WHERE workspace_id=? ORDER BY rowid DESC', (ctx.workspace_id,)).fetchall()
+            saved = next((value for row in rows if (value := json.loads(row[0]))['asset_id'] == asset.asset_id
+                and value['asset_revision'] == asset.revision and value['blob_hash'] == asset.blob_hash
+                and value['status'] in {'succeeded', 'partial'}), None)
+        if not saved and suffix not in {'.txt', '.md', '.csv', '.json', '.pdf'}:
             skipped.append({'asset_id': asset.asset_id, 'name': asset.original_name, 'reason': '需要OCR或结构化导入'}); continue
-        if asset.size_bytes > 8 * 1024 * 1024:
+        if not saved and asset.size_bytes > 8 * 1024 * 1024:
             skipped.append({'asset_id': asset.asset_id, 'name': asset.original_name, 'reason': '超过当前原文读取范围'}); continue
         with registry.stage_verified(ctx.workspace_id, asset.asset_id, revision=asset.revision, blob_hash=asset.blob_hash) as path:
-            if suffix == '.pdf':
+            if saved:
+                document = document_service.parsed(ctx.workspace_id, saved['document_id'])
+                chunks = [(page['page_number'], '\n'.join(block['text'] for block in page['blocks'])) for page in document['pages']]
+                if any(page['needs_ocr'] for page in document['pages']):
+                    skipped.append({'asset_id': asset.asset_id, 'name': asset.original_name, 'reason': '已解析文档部分页仍需OCR，已保留可读页检索'})
+            elif suffix == '.pdf':
                 try:
                     from pypdf import PdfReader
                 except ImportError:

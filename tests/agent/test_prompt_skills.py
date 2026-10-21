@@ -16,7 +16,7 @@ class PromptSkillTests(unittest.IsolatedAsyncioTestCase):
         def choose(step, wire):
             system = wire['messages'][0]['content']
             names = [item['function']['name'] for item in wire['tools']]
-            result = json.loads(wire['messages'][-1]['content']) if step else {}
+            result = json.loads(next(message['content'] for message in reversed(wire['messages']) if message['role'] == 'tool')) if step else {}
             if step == 0:
                 self.assertIn('没有适用技能', SYSTEM)
                 self.assertNotIn('OCR可显式使用已有预处理参数', SYSTEM)
@@ -40,12 +40,12 @@ class PromptSkillTests(unittest.IsolatedAsyncioTestCase):
             return 'conversation_answer', {'content': '已按需读取识别流程和结构桥资源，并加载已有处理与融合工具。'}
         wires, requests = await self.execute(choose, '使用票据识别核对技能，先了解流程和现有工具')
         self.assertEqual(len(wires), 5)
-        self.assertEqual(requests[-1]['request_snapshot']['system_version'], 'clear-agent-system-v2')
+        self.assertEqual(requests[-1]['request_snapshot']['system_version'], 'clear-agent-system-v3')
 
     async def test_classification_guidance_keeps_training_and_model_switch_goal_bound(self):
         def choose(step, wire):
             system = wire['messages'][0]['content']
-            result = json.loads(wire['messages'][-1]['content']) if step else {}
+            result = json.loads(next(message['content'] for message in reversed(wire['messages']) if message['role'] == 'tool')) if step else {}
             if step == 0:
                 self.assertNotIn('分类无模型时可导入', SYSTEM)
                 self.assertIn('训练或切换专业模型须对应用户明确目标', SYSTEM)
@@ -62,7 +62,7 @@ class PromptSkillTests(unittest.IsolatedAsyncioTestCase):
     async def test_no_matching_skill_can_continue_with_real_registered_data_tools(self):
         asset = self.asset('suppliers-left.csv')
         def choose(step, wire):
-            result = json.loads(wire['messages'][-1]['content']) if step else {}
+            result = json.loads(next(message['content'] for message in reversed(wire['messages']) if message['role'] == 'tool')) if step else {}
             if step == 0:
                 return 'skills_list', {'keyword': '无适用技能的基础读取', 'limit': 1}
             if step == 1:
@@ -82,7 +82,7 @@ class PromptSkillTests(unittest.IsolatedAsyncioTestCase):
                 return 'delivery_publish', {'summary': '已调用注册工具导入并读取真实台账', 'result_refs': result['result_refs']}
             return None, {}
         wires, _ = await self.execute(choose, '不使用专用技能，调用已有工具导入台账并读取实际内容')
-        self.assertEqual(len(wires), 7)
+        self.assertEqual(len(wires), 6)
         self.assertNotIn('<registered_skill', '\n'.join(wire['messages'][0]['content'] for wire in wires))
         self.assertEqual(len(self.native.list('wtest')), 1)
 

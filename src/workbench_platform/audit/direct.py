@@ -5,7 +5,7 @@ from packages.contracts.agent import AgentRef
 from packages.contracts.audit import DirectEvidenceSnapshot
 from packages.contracts.models import SourceLocator
 from workbench_platform.application_services.references import verify, reference_location, reference_asset_ids
-from workbench_platform.agent.store import canonical, digest, now
+from workbench_platform.application_services.identity import canonical, digest, now
 
 
 def source_locator(asset, *, row=None, sheet=None, page=None):
@@ -81,6 +81,23 @@ def snapshot(args, ctx, *, legacy=False):
                 add(source_locator(registry.get(ctx.workspace_id, item['asset_id'])))
         observation = {'items': items, 'total': len(value['items']), 'model_id': value['model_id'], 'window': {'offset': args.offset, 'limit': args.limit}}
         summary = '固定分类结果版本，模型预测与人工类别分开保存。'
+    elif ref.kind == 'result' and ref.application == 'multimodal':
+        from workbench_platform.application_services.operations.multimodal import read, Result
+        result = read(Result(job_id=ref.parent_id, snapshot_id=ref.object_id,
+            offset=args.offset, limit=args.limit), ctx)
+        if result['status'] != 'success':
+            raise ValueError('多模态固定结果不可读取')
+        observation = result['data']
+        observation['window'] = {'offset': args.offset, 'limit': args.limit}
+        observation['review_state'] = 'confirmed' if (value['analysis'].get('review') or {}).get('assessment') == 'confirmed' else 'unreviewed'
+        observation['draft'] = observation['review_state'] != 'confirmed'
+        for item in observation.get('items', []):
+            if item.get('source'):
+                add(SourceLocator.model_validate(item['source']).model_dump(mode='json'))
+        if not sources:
+            for item in value['sources']:
+                add(source_locator(registry.get(ctx.workspace_id, item['asset_id'])))
+        summary = '固定多模态结果、模型身份与原件定位；' + ('已保存用户核准。' if not observation['draft'] else '未人工核准，仅供草稿分析。')
     elif ref.kind == 'result' and ref.application == 'forensics':
         import json
         content, _ = ctx.services.forensic_service.file(ctx.workspace_id, ref.object_id, 'report.json')

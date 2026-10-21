@@ -1,0 +1,29 @@
+/* Loaded after the Agent's own styles, including on a lazy route. */
+.agent-workbench { gap: 16px; }
+.agent-workbench .agent-heading { gap: 16px; }
+.agent-workbench .audit-eyebrow, .agent-workbench .agent-current-task { display: none; }
+.agent-workbench .agent-heading h2.ant-typography { font-size: 21px; }
+.agent-workbench .audit-context-bar { flex-wrap: wrap; justify-content: flex-end; }
+.agent-workbench .agent-layout.has-task-panel { grid-template-columns: minmax(0, 1fr) 320px; }
+.agent-workbench .agent-history { padding: 16px 24px 24px; }
+.agent-workbench .agent-timeline { max-width: 880px; gap: 24px; }
+.agent-workbench .audit-welcome { max-width: 640px; padding: 12px 0; }
+.agent-workbench .audit-welcome h2.ant-typography { font-size: 30px; }
+.agent-workbench .audit-welcome-kicker { margin-bottom: 12px; }
+.agent-workbench .audit-examples { margin-top: 24px; gap: 4px 24px; }
+.agent-workbench .agent-composer { padding: 10px 24px 0; }
+.agent-workbench .agent-composer-footnote { font-size: 12px; }
+.agent-conversation.is-empty .agent-stage-bar { display: none; }
+.agent-workbench .agent-message-delivery { box-shadow: none; }
+.agent-workbench .agent-message-body { font-size: 15px; }
+.agent-workbench .agent-input-surface { box-shadow: 0 2px 10px #253b2710; }
+.agent-workbench .agent-input-surface:focus-within { border-color: var(--clear-focus); }
+@media(max-width: 680px) {
+  .agent-workbench .agent-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .agent-workbench .audit-context-bar { gap: 2px; justify-content: flex-start; }
+  .agent-workbench .agent-history { padding: 12px 2px 16px; }
+  .agent-workbench .agent-composer { padding: 8px 0 0; }
+  .agent-workbench .audit-welcome { padding: 8px; }
+  .agent-workbench .audit-welcome h2.ant-typography { font-size: 24px; }
+  .agent-workbench .audit-examples { margin-top: 16px; gap: 4px 12px; }
+}

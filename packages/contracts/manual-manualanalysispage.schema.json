@@ -54,10 +54,24 @@
             "face",
             "audio",
             "seal",
-            "catnet"
+            "catnet",
+            "document_forensics"
           ],
           "title": "Kind",
           "type": "string"
+        },
+        "model_binding": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Binding"
         },
         "options": {
           "$ref": "#/$defs/ManualOptions"
@@ -66,6 +80,15 @@
           "additionalProperties": true,
           "title": "Progress",
           "type": "object"
+        },
+        "purpose": {
+          "default": "analysis",
+          "enum": [
+            "analysis",
+            "preparation"
+          ],
+          "title": "Purpose",
+          "type": "string"
         },
         "request_id": {
           "maxLength": 64,
@@ -219,6 +242,24 @@
           "maxItems": 2,
           "title": "Face Indices",
           "type": "array"
+        },
+        "reference_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 64,
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              "maxItems": 1000,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Ids"
         },
         "threshold": {
           "default": 0.363,

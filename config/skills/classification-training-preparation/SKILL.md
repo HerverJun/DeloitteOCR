@@ -2,7 +2,6 @@
 name: classification-training-preparation
 description: 准备图片分类项目、固定资料、条件标注和不可变数据版本，并按用户目标调用已有训练器及读取真实模型产出。
 compatibility: Clear Workbench；需要已安装分类原生服务及可用训练器，已有模型推理和新模型训练要区分。
-allowed-tools: assets_search assets_describe assets_create_set classification_prepare classification_import_assets classification_read_annotations classification_annotate classification_publish_dataset classification_train classification_read_training classification_activate_model classification_export_model classification_infer classification_read_results classification_dispose_results classification_export assets_select_from_results native_list_projects native_create_project native_list_results native_attach_result native_read_result native_export_result audit_update_plan artifacts_list artifacts_get delivery_publish
 metadata:
   host: clear-workbench
   requires-tools: classification_prepare classification_import_assets classification_read_annotations classification_annotate classification_publish_dataset classification_train
@@ -20,4 +19,4 @@ metadata:
 6. 若目标包括采用模型，先读取实际 active_model_id，再 `classification_activate_model` 做条件切换。需要交付时 `classification_export_model` 下载真实通过包校验的模型，保留训练版本。
 7. 推理使用已查询模型和固定资料集，分页 `classification_read_results`；按预测生成子集时保留模型/阈值/来源。`classification_dispose_results` 明确 AI 作者和操作状态。最后交付真实数据版本、训练状态或可下载模型，说明未训练/失败/低指标等限制。
 
-不要调用 shell 或自行实现训练脚本。训练器、依赖和模型执行来自既有专业服务；技能不能改变模型权限或资料范围。
+训练器和正式模型执行使用已有专业服务。通用文件工具、终端与 Python 可用于授权输入整理、统计和输出；不能借辅助脚本绕过模型采用、正式版本或资料授权。普通推理无需审计计划，完成后直接说明真实结果与下载。

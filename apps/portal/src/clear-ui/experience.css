@@ -1,0 +1,68 @@
+/* Clear 1.3 — portal shell and shared working surfaces. */
+.sidebar-first-label { margin-top: 24px; }
+.sidebar-utilities, .sidebar-recent { margin-top: 28px; }
+.sidebar-utilities > a, .sidebar-recent > a { display: block; min-height: 36px; padding: 8px 16px; margin: 2px 12px; border-radius: 6px; color: var(--clear-muted); font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sidebar-utilities > a:hover, .sidebar-recent > a:hover { background: var(--clear-selected); color: var(--clear-primary); }
+.topbar { height: var(--clear-header-height); line-height: normal; }
+.topbar-left { gap: 16px; }
+.topbar-controls { gap: 8px; }
+.tool-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: min(560px, calc(100vw - 48px)); }
+.tool-picker > a { display: flex; align-items: center; gap: 12px; color: var(--clear-text); padding: 12px; min-width: 0; border-radius: 8px; }
+.tool-picker > a:hover { background: var(--clear-selected); }
+.tool-picker > a > .anticon { font-size: 21px; color: var(--clear-primary); }
+.tool-picker > a > span:last-child { display: grid; gap: 4px; min-width: 0; }
+.tool-picker strong { font-size: 14px; font-weight: 500; }
+.tool-picker small { color: var(--clear-muted); font-size: 12px; line-height: 1.6; }
+.page-heading { margin-bottom: 20px; }
+.page-heading h1.ant-typography { font-size: 26px; }
+.panel, .ant-card { box-shadow: none; }
+.project-navigation { margin-bottom: 20px; }
+.audit-reference-links .reference-version { display: none; }
+.audit-reference-links a { min-height: 28px; }
+.audit-reference-links a:hover .reference-version, .audit-reference-links a:focus .reference-version { display: inline; }
+.data-stage-tabs { display: flex; gap: 8px; margin: 0 0 16px; padding: 4px; border: 1px solid var(--clear-border); border-radius: 8px; background: var(--clear-panel); }
+.data-stage-tabs .ant-btn { flex: 1; height: 40px; }
+.data-stage-tabs .ant-btn[aria-pressed="true"] { color: var(--clear-primary); background: var(--clear-selected); font-weight: 600; }
+.data-advanced { margin: 12px 0; }
+.data-advanced summary { cursor: pointer; color: var(--clear-muted); min-height: 32px; }
+.data-advanced[open] { padding-bottom: 8px; }
+.artifact-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.artifact-toolbar .ant-input-affix-wrapper { max-width: 420px; }
+.artifact-toolbar .ant-select { min-width: 160px; }
+.artifact-list > article { padding: 18px 0; }
+.artifact-list h3.ant-typography { font-size: 16px; }
+.asset-heading, .artifact-heading { margin-bottom: 20px; }
+.asset-heading h1.ant-typography, .artifact-heading h1.ant-typography { font-size: 26px; margin: 4px 0 8px; }
+@media(max-width: 991px) { .breadcrumb { display: none; } .topbar .brand { font-size: 14px; } }
+@media(max-width: 680px) {
+  .topbar { height: auto; min-height: var(--clear-header-height); padding: 8px 14px; }
+  .topbar-left { gap: 8px; } .topbar-controls { flex-wrap: wrap; } .tool-picker-trigger.ant-btn { padding-inline: 8px; }
+  .tool-picker { grid-template-columns: 1fr; }
+  .sidebar-utilities > a, .sidebar-recent > a { min-height: 44px; }
+  .data-stage-tabs { gap: 2px; } .data-stage-tabs .ant-btn { padding-inline: 8px; font-size: 13px; }
+}
+
+.artifact-native-outputs { margin: 8px 0 20px; color: var(--clear-muted); }
+.artifact-native-outputs > summary { cursor: pointer; min-height: 36px; }
+.artifact-native-outputs[open] > summary { margin-bottom: 12px; }
+.audit-project-background { margin-bottom: 20px; color: var(--clear-muted); }
+.audit-project-background > summary { cursor: pointer; min-height: 36px; }
+.audit-project-background .audit-project-context { margin-top: 12px; }
+.mm-input-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; font-size: 16px; min-height: 36px; }
+.mm-input-heading::after { content: '展开设置'; color: var(--clear-muted); font-size: 12px; font-weight: 400; }
+.mm-input[open] > summary { margin-bottom: 16px; }
+.mm-input[open] > summary::after { content: '收起设置'; }
+.mm-input-heading .ant-tag { margin-left: auto; font-weight: 400; }
+.multimodal-workbench .mm-result, .forensic-workbench .forensic-report { border-top: 2px solid var(--clear-primary); }
+.multimodal-workbench .ant-empty, .forensic-workbench .ant-empty { margin-block: 20px; }
+.directory-hero { margin-bottom: 20px; }
+
+.audit-reference-item { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.reference-identity { color: var(--clear-muted); font-size: 12px; min-width: 0; }
+.reference-identity summary { cursor: pointer; }
+.reference-identity > div { display: grid; gap: 4px; padding: 8px 0; }
+.reference-identity code { overflow-wrap: anywhere; font-size: 12px; }
+
+.project-search { max-width: 460px; margin-bottom: 20px; }
+.job-registration > summary, .job-source-details > summary { cursor: pointer; min-height: 36px; color: var(--clear-muted); }
+.job-registration[open] > summary { margin-bottom: 12px; }

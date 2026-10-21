@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "McpServer": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Args",
+          "type": "array"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Command"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 100,
+          "title": "Env",
+          "type": "object"
+        },
+        "headers": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 50,
+          "title": "Headers",
+          "type": "object"
+        },
+        "name": {
+          "pattern": "^[A-Za-z0-9_-]{1,32}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "transport": {
+          "enum": [
+            "stdio",
+            "streamable-http"
+          ],
+          "title": "Transport",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        }
+      },
+      "required": [
+        "name",
+        "transport"
+      ],
+      "title": "McpServer",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mcp_servers": {
+      "items": {
+        "$ref": "#/$defs/McpServer"
+      },
+      "maxItems": 20,
+      "title": "Mcp Servers",
+      "type": "array"
+    },
+    "revision": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "subagents": {
+      "default": true,
+      "title": "Subagents",
+      "type": "boolean"
+    }
+  },
+  "title": "Integrations",
+  "type": "object"
+}

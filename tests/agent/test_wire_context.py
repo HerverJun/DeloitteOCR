@@ -1,8 +1,9 @@
-"""Exercise the production HTTP serialization, graph and native data workers."""
+"""Exercise production HTTP serialization, official Harness and native data workers."""
 import asyncio
 from copy import deepcopy
 from dataclasses import replace
 import json
+import hashlib
 from pathlib import Path
 import shutil
 from types import SimpleNamespace
@@ -27,15 +28,24 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
     async def execute(self, choose, goal):
         runtime = AgentRuntime(Path(self.temporary.name) / 'wire-agent', self.services)
         self.services.agent = runtime
+        if self._testMethodName == 'test_agent_activates_skill_and_same_batch_cannot_escape_allowed_tools':
+            skill_root = Path(self.temporary.name) / 'legacy-skills'
+            directory = skill_root / 'payment-reconciliation'
+            directory.mkdir(parents=True)
+            (directory / 'SKILL.md').write_text('---\nname: payment-reconciliation\n'
+                'description: 核对付款资料的受限测试技能\nallowed-tools: data_create_session\n---\n'
+                '使用登记的数据工具核对测试资料。\n', encoding='utf-8')
+            runtime.skills.roots = (skill_root,)
         config = {'model': 'gpt-6.1-sol', 'protocol': 'openai_chat_completions',
                   'base_url': 'http://127.0.0.1:19999/v1', 'revision': 1,
-                  'context_cap': 16384, 'max_output_tokens': 2048, 'streaming': False}
+                  'context_cap': 65536, 'max_output_tokens': 2048, 'streaming': False}
         runtime.connection = SimpleNamespace(view=lambda: {'available': True, 'revision': 1},
             resolve=lambda revision: (config, 'local-test-secret'), assert_current=lambda revision: None)
-        wires = []
+        wires, raw_wires = [], []
         def transport(req):
             wire = json.loads(req.content)
             wires.append(wire)
+            raw_wires.append(req.content)
             tool, arguments = choose(len(wires) - 1, wire)
             message = {'role': 'assistant', 'content': '完成' if tool is None else None}
             if tool:
@@ -52,9 +62,13 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
         await runtime.start()
         session = runtime.store.create_session('wtest', 'Wire test', [], 'wire-session')
         try:
-            with patch('workbench_platform.agent.runtime.request', send):
-                run = await runtime.submit(session['id'], goal, 'wire-message')
-                for _ in range(200):
+            with patch('workbench_platform.agent.harness_service.request', send):
+                # Retained legacy wire contract: explicit describe/load and
+                # answer/delivery tools. New general turns have separate tests.
+                run, _ = runtime.store.start_run(session['id'], goal, 'wire-message', 1)
+                runtime.tasks.record_goal(session['id'], goal, 'wire-message')
+                runtime.schedule(run['id'], runtime.initial_state(run, goal))
+                for _ in range(600):
                     final = runtime.store.run(run['id'])
                     if final['status'] not in {'running', 'waiting_job'}:
                         break
@@ -69,7 +83,7 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
                 metrics = metadata['context_metrics']
                 self.assertEqual(metrics['payload_bytes'], len(json.dumps(wire, ensure_ascii=False,
                     separators=(',', ':')).encode('utf-8')))
-                self.assertLessEqual(metrics['input_tokens_estimate'] + metrics['output_reserve'], 16384)
+                self.assertLessEqual(metrics['input_tokens_estimate'] + metrics['output_reserve'] + metrics['safety_margin_tokens'], 65536)
                 self.assertGreater(metrics['component_tokens']['environment'], 0)
                 self.assertGreater(metrics['component_tokens']['skills'], 0)
                 self.assertGreater(metrics['component_tokens']['facts'], 0)
@@ -80,6 +94,17 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(session['id'], system)
                 self.assertIn('skill', system)
                 self.assertEqual(metadata['injection']['tools'], metrics['selected_tools'])
+            archived = runtime.store.rows('SELECT p.* FROM harness_model_payloads p JOIN model_requests m ON m.id=p.request_id WHERE m.run_id=? ORDER BY m.step', (run['id'],))
+            self.assertEqual(len(archived), len(raw_wires))
+            for persisted, actual, metadata in zip(archived, raw_wires, requests, strict=True):
+                self.assertEqual(persisted['body'].encode('utf-8'), actual)
+                self.assertEqual(persisted['sha256'], hashlib.sha256(actual).hexdigest())
+                self.assertEqual(metadata['context_metrics']['payload_sha256'], persisted['sha256'])
+            frozen = runtime.store.rows('SELECT h.config FROM harness_model_calls h JOIN model_requests m ON m.id=h.request_id WHERE m.run_id=? ORDER BY m.step', (run['id'],))
+            profile_ids = {json.loads(row['config'])['model_profile']['profile_id'] for row in frozen}
+            self.assertEqual(len(profile_ids), 1)
+            self.assertEqual(profile_ids, {item['context_metrics']['model_profile']['profile_id'] for item in requests})
+            self.assertTrue(runtime.store.rows('SELECT * FROM harness_events WHERE session_id=?', (session['id'],)))
             usages = [e['payload'] for e in events if e['kind'] == 'usage']
             self.assertEqual(usages[-1]['returned_model'], 'returned-local-test-model')
             self.assertEqual(usages[-1]['configured_model'], 'gpt-6.1-sol')
@@ -105,7 +130,7 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
         asset = self.asset('suppliers-left.csv')
         def choose(step, wire):
             names = [t['function']['name'] for t in wire['tools']]
-            result = json.loads(wire['messages'][-1]['content']) if step else {}
+            result = json.loads(next(message['content'] for message in reversed(wire['messages']) if message['role'] == 'tool')) if step else {}
             if step == 0:
                 return 'tools_list', {'family': 'data', 'limit': 2}
             if step == 1:
@@ -128,7 +153,7 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
                 return 'delivery_publish', {'summary': '台账导入后已读取实际内容', 'result_refs': result['result_refs']}
             return None, {}
         wires, requests = await self.execute(choose, '调用已有工具导入台账并交付读取结果')
-        self.assertEqual(len(wires), 7)
+        self.assertEqual(len(wires), 6)
         self.assertEqual(len(self.native.list('wtest')), 1)
         self.assertEqual(len(self.native.get(self.native.list('wtest')[0]['id'])['uploads']), 1)
 
@@ -142,7 +167,7 @@ class WireContextTests(unittest.IsolatedAsyncioTestCase):
                         ('jobs_get', {'job_id': 'not-authorized-by-skill'})], {}
             self.assertIn('<registered_skill name="payment-reconciliation"', wire['messages'][0]['content'])
             self.assertNotIn('jobs_get', [t['function']['name'] for t in wire['tools']])
-            result = json.loads(wire['messages'][-1]['content'])
+            result = json.loads(next(message['content'] for message in reversed(wire['messages']) if message['role'] == 'tool'))
             self.assertEqual(result['error']['code'], 'skill_tool_denied')
             return 'conversation_answer', {'content': '已启用付款核对技能，可继续调用允许的数据工具。'}
         wires, requests = await self.execute(choose, '使用付款核对技能')

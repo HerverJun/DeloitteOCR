@@ -129,6 +129,7 @@
 .audit-findings > .ant-space { margin-bottom: 24px; }
 .audit-evidence-sources { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
 .audit-evidence-json { max-height: 45vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--clear-caption-size); }
+.audit-fixed-draft-section { margin-top: 20px; overflow-wrap: anywhere; }
 .audit-project-home { margin-bottom: 48px; }
 .audit-project-context { border-left: 3px solid var(--clear-primary); padding: 12px 20px; margin-bottom: 24px; }
 .audit-project-context > span { margin-left: 20px; color: var(--clear-muted); }
@@ -147,6 +148,20 @@
 .agent-context-components dd { margin: 0; }
 .agent-context-tools { display: flex; flex-wrap: wrap; gap: 4px; overflow-wrap: anywhere; }
 .agent-context-budget > .ant-alert { margin-top: 10px; }
+.agent-context-pressure { max-width: 420px; margin-top: 4px; }
+.agent-current-context { font-size: var(--clear-caption-size); color: var(--clear-muted); }
+.agent-current-context > summary { cursor: pointer; padding-block: 4px; }
+.agent-current-context[open] { padding-bottom: 10px; }
+.agent-current-context[open] > summary { margin-bottom: 10px; }
+.agent-model-capacity { display: flex; flex-direction: column; gap: 6px; padding: 16px; margin-bottom: 20px; background: var(--clear-subtle); border-radius: var(--clear-control-radius); }
+.agent-model-capacity .ant-typography { margin: 0; }
+.agent-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; margin-top: 12px; }
+.agent-settings-grid .ant-input-number { width: 100%; }
+.agent-compaction-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: var(--clear-caption-size); padding-block: 8px; }
+.agent-delivery-check { border-left: 2px solid var(--clear-border); padding: 8px 16px; font-size: var(--clear-caption-size); }
+.agent-delivery-check .ant-typography { margin-bottom: 8px; }
+.agent-delivery-check ul { padding: 0; margin: 8px 0 0; list-style: none; }
+.agent-delivery-check li { padding-block: 4px; }
 .agent-skill-item { padding: 16px 0; border-bottom: 1px solid var(--clear-border); }
 .agent-skill-item .ant-typography { margin-bottom: 8px; }
 .agent-skill-item .ant-alert { margin-bottom: 12px; }
@@ -180,6 +195,7 @@
   .agent-control-actions .ant-btn { white-space: normal; height: auto; min-height: var(--clear-control-height); padding-block: 7px; }
 }
 @media (max-width: 480px) {
+  .agent-settings-grid { grid-template-columns: 1fr; gap: 0; }
   .agent-workbench { gap: 12px; }
   .agent-heading { gap: 8px; }
   .agent-heading-title { flex-basis: 100%; }

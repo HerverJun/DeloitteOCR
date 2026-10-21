@@ -7,13 +7,14 @@ P='/api/platform/v1'
 _ID=r'[A-Za-z0-9][A-Za-z0-9_-]{0,99}'
 
 def task_label(tool,action):
-    tools={'ocr':'OCR','visual_review':'视觉审校','classification':'分类','data':'数据处理','forensics':'图像取证','face':'人脸比对','audio':'音频分析','seal':'印章分析','catnet':'深度取证','agent':'智能审计','batch':'批次','assets':'资料','artifact':'成果'}
+    tools={'documents':'文档解析','ocr':'OCR','visual_review':'视觉审校','classification':'分类','data':'数据处理','forensics':'图像取证','face':'人脸比对','audio':'音频分析','seal':'印章分析','catnet':'深度取证','document_forensics':'文档篡改排查','agent':'智能审计','batch':'批次','assets':'资料','artifact':'成果'}
     actions={'import':'导入','export':'导出','recognize':'识别','analyze':'分析','train':'训练','predict':'预测','evaluate':'评估','message':'执行','execute':'执行'}
     return tools.get(tool,tool)+' · '+actions.get(action,action)
 
 def match(method,path,payload):
     if method not in {'POST','GET'}: return None
     patterns=[
+        ('POST',rf'{P}/workspaces/({_ID})/documents/parse','documents','analyze'),
         ('POST',rf'{P}/data/sessions/({_ID})/actions','data','action'),
         ('POST',rf'{P}/data/sessions/({_ID})/asset-uploads','assets','import'),
         ('POST',rf'{P}/workspaces/({_ID})/assets/audio-uploads/({_ID})/complete','assets','import'),
@@ -41,9 +42,12 @@ def command_for(value):
     tool=value['tool_id']; action=value['action']; options=value.get('options',{})
     workspace=quote(value['workspace_id'],safe='')
     payload=dict(options.get('payload',options))
-    if tool in {'face','audio','seal','catnet'}:
+    if tool in {'face','audio','seal','catnet','document_forensics'}:
         path=f'{P}/workspaces/{workspace}/multimodal/jobs'
         payload={'schema_version':'1.0','kind':tool,'request_id':value['idempotency_key'],'inputs':value['inputs'],'options':options}
+    elif tool=='documents':
+        path=f'{P}/workspaces/{workspace}/documents/parse'; payload.setdefault('request_id',value['idempotency_key']); payload.setdefault('schema_version','1.0')
+        if value['inputs']: payload.update({name:value['inputs'][0][name] for name in ('asset_id','asset_revision','blob_hash')})
     elif tool=='forensics':
         path=f'{P}/workspaces/{workspace}/forensics'; payload.setdefault('request_id',value['idempotency_key']); payload.setdefault('schema_version','1.0')
         if value['inputs']: payload.update({name:value['inputs'][0][name] for name in ('asset_id','asset_revision','blob_hash')})
@@ -73,10 +77,13 @@ def command_for(value):
 def binding(command,body):
     """Return source identity and polling path from the actual durable receipt."""
     tool=command['tool_id']; groups=command.get('groups',[])
+    if tool=='documents':
+        identifier=body.get('document_id')
+        return ('documents.documents',identifier,f'{P}/workspaces/{groups[0]}/documents/{identifier}') if identifier else None
     if tool=='data':
         identifier=body.get('id') or body.get('job_id')
         return ('data.jobs',identifier,f'{P}/data/sessions/{groups[0]}/jobs/{identifier}') if identifier else None
-    if tool in {'face','audio','seal','catnet'}:
+    if tool in {'face','audio','seal','catnet','document_forensics'}:
         identifier=body.get('job_id')
         return ('manual.manual_analysis',identifier,f'{P}/workspaces/{groups[0]}/multimodal/jobs/{identifier}') if identifier else None
     if tool=='forensics' and command['action']!='export':

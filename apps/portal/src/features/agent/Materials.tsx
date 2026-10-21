@@ -13,9 +13,9 @@ export function Materials({ open, workspace, selected, close, save }: { open: bo
       return all
     } })
   useEffect(() => { if (open) { setIds(selected); setError('') } }, [open])
-  return <Modal title="添加审计资料" open={open} onCancel={close} width={760} okText="加入任务" cancelText="返回对话" okButtonProps={{ disabled: !workspace || busy, loading: busy }}
+  return <Modal title="添加文件与资料" open={open} onCancel={close} width={760} okText="加入任务" cancelText="返回对话" okButtonProps={{ disabled: !workspace || busy, loading: busy }}
     onOk={() => { setBusy(true); void save(ids).then(close).catch(e => setError(e.message)).finally(() => setBusy(false)) }}>
-    <Typography.Paragraph type="secondary">选择本次目标使用的资料。后续可以继续补充，已有结果保留原始来源。</Typography.Paragraph>
+    <Typography.Paragraph type="secondary">选择当前任务使用的文件与资料。后续可以继续补充，已有结果保留原始来源。</Typography.Paragraph>
     {(error || assets.error) && <Alert type="error" title={error || assets.error?.message} />}
     {!workspace ? <Typography.Paragraph>正在准备项目…</Typography.Paragraph> : <Tabs items={[
       { key: 'existing', label: `项目资料 · 已选 ${ids.length}`, children: assets.data?.length ? <div className="audit-asset-picker">{assets.data.map(asset => <Checkbox key={asset.asset_id} checked={ids.includes(asset.asset_id)} onChange={e => setIds(old => e.target.checked ? [...old, asset.asset_id] : old.filter(id => id !== asset.asset_id))}>

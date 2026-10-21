@@ -57,7 +57,7 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
     void client.invalidateQueries({ queryKey: ['audit-manual-results', id] })
   }
   if (!id || !workspace) return null
-  const href = `/?workspace=${workspace}&session=${id}`
+  const href = `/agent?workspace=${workspace}&session=${id}`
   const takeOver = async () => {
     if (!task.data) return
     try { await agentWrite(`/agent/sessions/${id}/task/control`, { request_id: requestId(), expected_revision: task.data.revision, action: 'take_over' }); void task.refetch() }

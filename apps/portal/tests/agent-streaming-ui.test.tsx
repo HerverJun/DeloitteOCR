@@ -27,6 +27,27 @@ const preview = (seq: number, revision: number, content: string, extra: Record<s
 const state = (seq: number, status: string, extra: Record<string, unknown> = {}) => ev(seq, 'response_state', { version: 1, generation: 1, request_id: 'request', display_id: 'answer', revision: 3, status, ...extra })
 const messages = (events: AgentEvent[]) => projectConversation(events).items.filter((item): item is MessageSegment => item.type === 'message')
 
+test('same goal resumes activity after failure while earlier unfinished prose stays interrupted', () => {
+  const result = projectConversation([preview(1, 1, '尚未核实的比较'),
+    ev(2, 'agent_activity', { version: 1, generation: 1, phase: 'failed' }),
+    ev(3, 'run_resumed', { version: 1, generation: 1 }),
+    ev(4, 'agent_activity', { version: 1, generation: 1, phase: 'model_wait' })])
+  expect(result.activities.run.phase).toBe('model_wait')
+  expect(result.items.find(item => item.type === 'message')).toMatchObject({ status: 'interrupted' })
+})
+
+test('original text is usable without a final model summary and does not claim goal completion', () => {
+  const available = messages([ev(1, 'result_available', { version: 1, generation: 1, goal_complete: false,
+    result: { result_refs: [], artifact_refs: [], data: { finalized: false,
+      readable_text: [{ text: '编号 00001 金额 10.00', text_truncated: false }],
+      delivery: [{ bundle_id: 'original', title: 'OCR 原文', files: [{ name: 'ocr-text.txt', download_url: '/download/original' }] }] } } })])[0]
+  render(<MemoryRouter><AgentMessage item={available} /></MemoryRouter>)
+  expect(screen.getByRole('heading', { name: '原文已完成' })).toBeVisible()
+  expect(screen.getByText('编号 00001 金额 10.00')).toBeVisible()
+  expect(screen.getByRole('link', { name: 'ocr-text.txt' })).toHaveAttribute('href', '/download/original')
+  expect(screen.getByText(/后续分析待继续/)).toBeVisible()
+})
+
 test('a streamed answer is one stable segment through generated, confirmation and official references', () => {
   const initial = applyConversationEvents(createProjection(), [preview(1, 1, '开头'), preview(2, 2, '开头与结论', { references: [ref] }), state(3, 'generated')])
   const draft = initial.items[0] as MessageSegment
@@ -85,6 +106,7 @@ test('one tool activity aggregates operation phases and real progress does not i
   expect(item.type).toBe('activity'); if (item.type !== 'activity') throw new Error('activity missing')
   expect(item.tools).toHaveLength(1); expect(item.tools[0]).toMatchObject({ phase: 'finished', status: 'success', operationId: 'op' })
   render(<MemoryRouter><ToolActivity item={item} /></MemoryRouter>)
+  fireEvent.click(screen.getByRole('button', { name: /已完成 1 项/ }))
   expect(screen.getByText('核对完成')).toBeVisible(); expect(screen.getByText(/已处理 12/)).toBeInTheDocument(); expect(screen.queryByText(/%/)).not.toBeInTheDocument()
 })
 
@@ -94,7 +116,7 @@ test('unavailable native progress keeps its observation and does not show previo
   const item = projected.items[0]; if (item.type !== 'activity') throw new Error('activity missing')
   expect(item.jobs[0]).toMatchObject({ observation: 'unavailable', availability: 'unreachable', hasError: false })
   render(<MemoryRouter><ToolActivity item={item} /></MemoryRouter>)
-  expect(screen.getByText('进度暂不可读取')).toBeInTheDocument(); expect(screen.getByText(/尝试读取于/)).toBeInTheDocument()
+  expect(screen.getByText('状态暂不可核实')).toBeInTheDocument(); expect(screen.getByText(/尝试读取于/)).toBeInTheDocument()
   expect(screen.queryByText('完成')).not.toBeInTheDocument(); expect(screen.queryByText(/已处理 99|pages 99/)).not.toBeInTheDocument()
 })
 
@@ -124,6 +146,7 @@ test('explicit receipt reconciliation restores the same unknown tool step as com
   const item = projected.items[0]; if (item.type !== 'activity') throw new Error('activity missing')
   expect(item.tools).toHaveLength(1); expect(item.tools[0]).toMatchObject({ operationId: 'original', phase: 'restored', status: 'success' })
   render(<MemoryRouter><ToolActivity item={item} /></MemoryRouter>)
+  fireEvent.click(screen.getByRole('button', { name: /已完成 1 项/ }))
   expect(screen.getByText('已恢复 · 已完成')).toBeVisible(); expect(screen.getByText('工具过程 · 1 项，1 项完成')).toBeInTheDocument()
   expect(screen.queryByText(/项执行或等待/)).not.toBeInTheDocument()
 })
@@ -225,7 +248,8 @@ test('manual takeover unknown replies remain recoverable with the original ident
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   render(<QueryClientProvider client={client}><RouterProvider router={router} /></QueryClientProvider>)
   const composer = document.querySelector('.agent-composer') as HTMLElement
-  fireEvent.click(await within(composer).findByRole('button', { name: '手动接管' }))
+  fireEvent.click(within(composer).getByText('更多'))
+  fireEvent.click(await screen.findByRole('button', { name: '手动接管' }))
   expect(await screen.findByText('控制回包未知')).toBeInTheDocument()
   const retry = await within(composer).findByRole('button', { name: '核实原接管操作' })
   await waitFor(() => expect(retry).toBeEnabled()); fireEvent.click(retry)
@@ -243,6 +267,7 @@ test('tool elapsed time uses recorded start and completion, leaving pending and 
   const view = render(<MemoryRouter><ToolActivity item={pending} /></MemoryRouter>)
   expect(screen.getByText('正在执行')).toBeVisible(); expect(screen.queryByText(/用时/)).not.toBeInTheDocument()
   view.rerender(<MemoryRouter><ToolActivity item={completed} /></MemoryRouter>)
+  fireEvent.click(screen.getByRole('button', { name: /已完成 1 项/ }))
   expect(screen.getByText('用时 4 秒')).toBeVisible(); expect(screen.getByText('核对完成')).toBeVisible()
   view.rerender(<MemoryRouter><ToolActivity item={unobserved} /></MemoryRouter>)
   expect(screen.getByText('核对完成')).toBeVisible(); expect(screen.queryByText(/用时/)).not.toBeInTheDocument()

@@ -1,11 +1,13 @@
 """Prepare managed native instances and scoped projects without browser visits."""
 from dataclasses import asdict
 from pathlib import Path
+import uuid
 
 from workbench_platform.catalog.launch import LaunchStatus
 from workbench_platform.jobs.ocr_projects import OcrProjects
 from workbench_platform.jobs.classification_projects import ClassificationProjects
-from workbench_platform.agent.store import digest
+from workbench_platform.application_services.identity import digest
+from workbench_platform.application_services.context import require_write
 
 
 def availability(services, app_id):
@@ -24,6 +26,7 @@ def availability(services, app_id):
 
 
 def prepare(context, app_id, link_id=None, categories=None):
+    require_write(context)
     context.current()
     services = context.services
     if availability(services, app_id)['state'] == 'unavailable':
@@ -33,7 +36,17 @@ def prepare(context, app_id, link_id=None, categories=None):
     except LaunchStatus as error:
         if error.status != 404:
             raise
-        receipt, _ = services.launch_service.start(app_id, 'l' + digest([context.operation_id, app_id])[:40])
+        try:
+            receipt, _ = services.launch_service.start(app_id, 'l' + digest([context.operation_id, app_id])[:40])
+        except LaunchStatus as raced:
+            if raced.status != 409 or raced.code != 'RESOURCE_BUSY':
+                raise
+            # Another restored task may have completed the same service launch
+            # after our read. Reuse its verified receipt, never launch again or
+            # equate an unverified process with a ready native service.
+            context.current()
+            receipt = services.launch_service.current(app_id)
+    context.current()
     projects = OcrProjects(services.job_service) if app_id == 'ocr' else ClassificationProjects(services.job_service)
     links = [link for link in services.workspace_store.list_links(context.workspace_id) if link.app_id == app_id]
     if link_id:
@@ -74,6 +87,60 @@ def prepare(context, app_id, link_id=None, categories=None):
             'requires_project_selection': False, 'instance_id': receipt.instance_id}
 
 
+def ensure_read_service(context, app_id, link_id):
+    """Reopen only the installed service for an already scoped OCR read.
+
+    The caller first verifies the original handoff/binding and input scope.
+    This restores a process, never a project, import, page request or OCR job.
+    An uncertain current process is not permission to launch a replacement.
+    """
+    from .errors import NativeReaderUnavailable
+    if app_id != 'ocr':
+        return
+    services = context.services
+    launches = getattr(services, 'launch_service', None)
+    # Service-only embeddings can supply their own native reader without the
+    # desktop Supervisor. They retain their existing read implementation.
+    if launches is None:
+        return
+    context.current()
+    links = [link for link in services.workspace_store.list_links(context.workspace_id)
+             if link.app_id == app_id and link.link_id == link_id]
+    if len(links) != 1 or not links[0].module_project_id:
+        raise ValueError('固定读取的原生项目关联不属于当前项目')
+    try:
+        launches.current(app_id)
+    except LaunchStatus as error:
+        if error.status != 404:
+            raise NativeReaderUnavailable(app_id, cause_code=error.code) from error
+        if links[0].role == 'viewer':
+            raise NativeReaderUnavailable(app_id, cause_code='READ_ONLY_LINK') from error
+        installation = getattr(getattr(getattr(services, 'supervisor', None), 'registry', None), 'installations', {}).get(app_id)
+        if installation is None or not installation.installed:
+            raise NativeReaderUnavailable(app_id, cause_code='NOT_INSTALLED') from error
+        if not getattr(context, 'grants', frozenset({'read', 'derive'})).intersection({'derive', 'versioned', 'control'}):
+            raise NativeReaderUnavailable(app_id, cause_code='READ_ONLY_SNAPSHOT') from error
+        require_write(context)
+        context.current()
+        try:
+            # A new service launch identity is intentionally separate from all
+            # immutable native business IDs and durable old launch reservations.
+            launches.start(app_id, 'l' + uuid.uuid4().hex)
+        except LaunchStatus as raced:
+            if raced.status != 409 or raced.code != 'RESOURCE_BUSY':
+                raise NativeReaderUnavailable(app_id, cause_code=raced.code) from raced
+            # The other cold reader may have won the same launch slot. It is
+            # useful only if the authoritative current receipt now verifies.
+        except (OSError, TimeoutError) as unavailable:
+            raise NativeReaderUnavailable(app_id) from unavailable
+        context.current()
+        try:
+            launches.current(app_id)
+        except LaunchStatus as unavailable:
+            raise NativeReaderUnavailable(app_id, cause_code=unavailable.code) from unavailable
+    context.current()
+
+
 def scoped_set(context, set_id, revision):
     registry, sets, _ = context.services.asset_library
     asset_set = sets.get(context.workspace_id, set_id, revision)
@@ -88,6 +155,8 @@ def scoped_set(context, set_id, revision):
 
 
 def attempt_set(context, asset_set):
+    require_write(context)
+    context.current()
     # Handoff submission parameters are immutable. A different engine/model
     # gets a new attempt set and native request, preserving its parent lineage.
     parents = {item.item_id: (asset_set.asset_set_id, asset_set.revision, item.item_id) for item in asset_set.items}
@@ -103,6 +172,8 @@ def read_job(context, job_id):
 def scoped_handoff(context, service, handoff_id):
     row = service._row(context.workspace_id, handoff_id)
     scoped_set(context, row['asset_set_id'], row['asset_set_revision'])
+    if service is getattr(context.services, 'ocr_handoff', None):
+        ensure_read_service(context, 'ocr', row['link_id'])
     return row
 
 

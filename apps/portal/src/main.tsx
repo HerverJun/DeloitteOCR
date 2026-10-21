@@ -7,9 +7,13 @@ import zhCN from 'antd/locale/zh_CN'
 import { router, queryClient, theme } from './router'
 import './clear-ui/tokens.css'
 import './style.css'
+import './clear-ui/workspace.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode><ConfigProvider theme={theme} locale={zhCN}><QueryClientProvider client={queryClient}>
     <RouterProvider router={router} />
   </QueryClientProvider></ConfigProvider></StrictMode>,
 )
+
+import './clear-ui/common.css'
+import './clear-ui/experience.css'

@@ -279,7 +279,8 @@ class OcrHandoff:
                                 _json(version_ids), None, None, _utc(), processing))
                     submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
                                             (handoff_id,)).fetchone()
-            if (submission["engines_json"] != _json(normalized)
+            if (submission["request_id"] != request_id
+                    or submission["engines_json"] != _json(normalized)
                     or submission['processing_json'] != processing
                     or submission["version_ids_json"] != _json(version_ids)):
                 raise AssetSetConflict("OCR processing request is already bound to other inputs")
@@ -289,7 +290,10 @@ class OcrHandoff:
                 task_ids = list(adapter.lookup_submission(request_id) or ()) if hasattr(adapter, "lookup_submission") else []
                 if not task_ids:
                     if not allow_new:
-                        return {"not_submitted": True}
+                        return {"not_submitted": True,
+                            "authoritative_negative": hasattr(adapter, "lookup_submission"),
+                            "native_request_id": request_id, "native_project_id": context.module_project_id,
+                            "input_fingerprint": hashlib.sha256(_json([handoff_id, version_ids, normalized, processing]).encode()).hexdigest()}
                     if not adapter.capabilities().recognition:
                         raise OcrUnavailable()
                     task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id,

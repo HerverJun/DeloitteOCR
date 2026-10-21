@@ -29,9 +29,10 @@ def display(center, value):
                 current = db.execute('SELECT revision FROM audit_finding_drafts WHERE draft_id=?', (draft['draft_id'],)).fetchone()
                 outdated |= current is None or current['revision'] != draft['revision']
         if runtime:
-            from workbench_platform.agent.registry import ToolContext
+            from workbench_platform.application_services.context import SessionContext
             task = runtime.tasks.get(snapshot['task_id'])
-            ctx = ToolContext(value['workspace_id'], task['id'], '', 0, 0, '', tuple(task['selected_assets']), runtime.services, runtime.store)
+            ctx = SessionContext(value['workspace_id'], task['id'], '', 0, 0, '', tuple(task['selected_assets']), runtime.services, runtime.store,
+                grants=frozenset({'read'}))
             outdated |= snapshot['profile']['revision'] != runtime.tasks.profile(value['workspace_id'])['revision']
             outdated |= snapshot.get('scope_revision', task['scope_revision']) != task['scope_revision'] or bool(task['pending_scope'])
             for draft in snapshot['drafts']:

@@ -1,0 +1,27 @@
+.agent-platform-tools { display: grid; gap: 16px; font-size: 14px; }
+.agent-platform-tools .ant-typography { margin-bottom: 0; }
+.agent-platform-tools-toolbar { display: flex; gap: 8px; }
+.agent-platform-tools-toolbar .ant-input-search { min-width: 0; }
+.agent-platform-capability { padding: 16px 0; border-bottom: 1px solid #e8ede6; min-width: 0; }
+.agent-platform-capability-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+.agent-platform-secondary { color: #687468; margin: 8px 0; line-height: 1.6; overflow-wrap: anywhere; }
+.agent-platform-blockers { color: #805919; margin: 8px 0; line-height: 1.6; overflow-wrap: anywhere; }
+.agent-platform-capability summary { cursor: pointer; color: #527a17; padding: 8px 0; }
+.agent-platform-operation-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.agent-platform-operation-list li { padding: 12px; border-radius: 8px; background: #f6f8f7; min-width: 0; }
+.agent-platform-operation-list li > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.agent-platform-operation-list code { overflow-wrap: anywhere; font-size: 12px; }
+.agent-platform-operation-list p { margin: 6px 0 0; overflow-wrap: anywhere; }
+.agent-platform-operation-list small { color: #687468; }
+.agent-platform-reference-scope { background: #f6f8f7; border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+.agent-platform-reference-list { display: grid; gap: 12px; max-height: 320px; overflow-y: auto; }
+.agent-platform-reference-list .ant-checkbox-wrapper { align-items: flex-start; margin-inline-start: 0; }
+.agent-platform-reference-list .ant-checkbox-label { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.agent-platform-reference-list small { color: #687468; }
+.agent-platform-reference-scope .ant-radio-wrapper { min-height: 32px; align-items: center; }
+.agent-platform-reference-scope .ant-typography small { display: block; color: #687468; overflow-wrap: anywhere; }
+@media (max-width: 680px) {
+  .agent-platform-tools button, .agent-platform-reference-list .ant-checkbox-wrapper, .agent-platform-reference-scope .ant-radio-wrapper { min-height: 44px; }
+  .agent-platform-tools button { min-width: 44px; }
+  .agent-platform-tools .ant-input-affix-wrapper { height: 44px; padding-block: 0; }
+}

@@ -1,11 +1,12 @@
 """Audit product projections over the existing Agent execution ledger.
 
-One task belongs to one conversation. Native jobs and LangGraph retain execution
+One task belongs to one conversation. Native jobs and Harness retain execution
 authority; these objects record business context, plans and human collaboration.
 """
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import datetime
 import json
 
 from .store import Conflict, canonical, digest, now
@@ -23,6 +24,8 @@ class AuditTasks:
                     revision INTEGER NOT NULL,body TEXT NOT NULL,updated TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS audit_product_requests(request_id TEXT PRIMARY KEY,
                     fingerprint TEXT NOT NULL,response TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS audit_policy_user_inputs(session_id TEXT NOT NULL,
+                    request_id TEXT NOT NULL,content_hash TEXT NOT NULL,PRIMARY KEY(session_id,request_id));
             ''')
 
     def _body(self, db, session_id):
@@ -32,12 +35,19 @@ class AuditTasks:
         row = db.execute('SELECT * FROM audit_tasks WHERE session_id=?', (session_id,)).fetchone()
         if not row:
             body = {'title': session['name'], 'goal': '', 'scope_revision': 1,
-                    'plan': [], 'plan_revision': 0, 'manual': False, 'pending_scope': None}
+                    'plan': [], 'plan_revision': 0, 'manual': False, 'pending_scope': None, 'authorized_reference_ids': [], 'delivery_policy': 'auto'}
             db.execute('INSERT INTO audit_tasks VALUES(?,1,?,?)', (session_id, canonical(body), now()))
             return body, 1
-        return json.loads(row['body']), row['revision']
+        body = json.loads(row['body'])
+        body.setdefault('authorized_reference_ids', [])
+        body.setdefault('delivery_policy', 'auto')
+        return body, row['revision']
 
     def _save(self, db, session_id, body, revision):
+        from .delivery_policy import effective_policy
+        if body.get('delivery_policy', 'auto') != 'auto' or body.get('delivery_policy_inference') or effective_policy(body)['require_review']:
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.store.root.parent, 'agent-multimodal-v1')
         db.execute('UPDATE audit_tasks SET body=?,revision=?,updated=? WHERE session_id=?',
                    (canonical(body), revision + 1, now(), session_id))
 
@@ -68,7 +78,8 @@ class AuditTasks:
                 for ref in result.get(field, []):
                     target[canonical(ref)] = ref
         status = 'manual' if body['manual'] else runs[0]['status'] if runs else 'draft'
-        return {**body, 'id': session_id, 'session_id': session_id, 'workspace_id': session['workspace_id'],
+        from .delivery_policy import effective_policy
+        return {**body, 'delivery_policy_resolution': effective_policy(body), 'id': session_id, 'session_id': session_id, 'workspace_id': session['workspace_id'],
                 'revision': revision, 'status': status, 'created': session['created'],
                 'selected_assets': session['selected_assets'], 'initial_refs': session['initial_refs'],
                 'runs': runs, 'result_refs': list(references.values()), 'artifact_refs': list(artifacts.values()),
@@ -79,14 +90,56 @@ class AuditTasks:
                                'ORDER BY created DESC LIMIT ?', (workspace_id, '%' + keyword + '%', limit))
         return {'items': [self.get(row['id']) for row in rows]}
 
-    def record_goal(self, session_id, content):
+    def record_goal(self, session_id, content, request_id=None):
+        """Persist only trusted user goals/messages, never tool-generated summaries."""
+        from .delivery_policy import infer_user_delivery_policy
         with self.store.transaction() as db:
+            content_hash = digest(content)
+            if request_id:
+                old = db.execute('SELECT content_hash FROM audit_policy_user_inputs WHERE session_id=? AND request_id=?',
+                                 (session_id, request_id)).fetchone()
+                if old:
+                    if old['content_hash'] != content_hash:
+                        raise Conflict('用户消息身份不能替换原交付要求')
+                    return
             body, revision = self._body(db, session_id)
+            event = db.execute("SELECT created FROM events WHERE session_id=? AND identity=? AND kind='message'",
+                               (session_id, request_id)).fetchone() if request_id else None
+            received_at = event['created'] if event else now()
+            previous_at = body.get('delivery_policy_user_input_at')
+            if request_id:
+                from workbench_platform.resources.reader_features import require_features
+                require_features(self.store.root.parent, 'agent-multimodal-v1')
+                db.execute('INSERT INTO audit_policy_user_inputs VALUES(?,?,?)', (session_id, request_id, content_hash))
+            if previous_at and datetime.fromisoformat(received_at.replace('Z', '+00:00')) < datetime.fromisoformat(previous_at.replace('Z', '+00:00')):
+                return
+            changed = False
+            inference = infer_user_delivery_policy(content, source='user_goal' if not body['goal'] or body['goal'] == content else 'user_message', request_id=request_id)
+            if inference and inference != body.get('delivery_policy_inference'):
+                from workbench_platform.resources.reader_features import require_features
+                require_features(self.store.root.parent, 'agent-multimodal-v1')
+                body['delivery_policy_inference'] = inference
+                changed = True
             if not body['goal']:
                 body['goal'] = content
+                changed = True
+            if request_id and received_at != previous_at:
+                body['delivery_policy_user_input_at'] = received_at
+                changed = True
+            if changed:
                 self._save(db, session_id, body, revision)
 
     def update(self, session_id, payload):
+        from .delivery_policy import POLICIES, infer_user_delivery_policy
+        if payload.get('delivery_policy') is not None and payload['delivery_policy'] not in POLICIES:
+            raise ValueError('交付策略无效')
+        inference = infer_user_delivery_policy(payload['goal'], request_id=payload['request_id']) if payload.get('goal') is not None else None
+        if payload.get('delivery_policy', 'auto') != 'auto' or inference:
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.store.root.parent, 'agent-multimodal-v1')
+        if 'authorized_reference_ids' in payload:
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.store.root.parent, 'agent-multimodal-v1')
         command = {'session_id': session_id, **payload}
         with self.store.transaction() as db:
             old = self._replay(db, payload['request_id'], command)
@@ -100,10 +153,22 @@ class AuditTasks:
                 db.execute('UPDATE sessions SET name=? WHERE id=?', (payload['name'], session_id))
             if payload.get('goal') is not None:
                 body['goal'] = payload['goal']
+                if inference:
+                    body['delivery_policy_inference'] = inference
+            if payload.get('delivery_policy') is not None:
+                body['delivery_policy'] = payload['delivery_policy']
+            if payload.get('goal') is not None or payload.get('delivery_policy') is not None:
+                body['delivery_policy_user_input_at'] = now()
             session = db.execute('SELECT * FROM sessions WHERE id=?', (session_id,)).fetchone()
-            if payload.get('selected_assets') is not None or payload.get('initial_refs') is not None:
-                scope = {'selected_assets': payload.get('selected_assets') if payload.get('selected_assets') is not None else json.loads(session['selected_assets']),
-                         'initial_refs': payload.get('initial_refs') if payload.get('initial_refs') is not None else json.loads(session['initial_refs'])}
+            if any(payload.get(key) is not None for key in ('selected_assets', 'initial_refs', 'authorized_reference_ids')):
+                base = {'selected_assets': json.loads(session['selected_assets']), 'initial_refs': json.loads(session['initial_refs']),
+                        'authorized_reference_ids': body.get('authorized_reference_ids', []), **(body.get('pending_scope') or {})}
+                scope = {key: payload[key] if payload.get(key) is not None else base[key] for key in base}
+                accepted = db.execute("SELECT driver FROM runs WHERE session_id=? AND status IN "
+                    "('running','waiting_job','waiting_user','paused','needs_verification')", (session_id,)).fetchone()
+                if accepted and accepted['driver'] != 'harness' and scope != base:
+                    raise Conflict('当前操作已固定原件与范围。继续原任务可保留当前处理；如需增加或缩小资料范围，'
+                                   '请先“停止后续步骤”，再在本任务保存新范围并发送修订要求；原回执和旧成果保留。')
                 run = db.execute("SELECT id FROM runs WHERE session_id=? AND status IN ('running','waiting_job','waiting_user')", (session_id,)).fetchone()
                 if run:
                     body['pending_scope'] = scope
@@ -112,6 +177,7 @@ class AuditTasks:
                 else:
                     body['scope_revision'] += 1
                     body['pending_scope'] = None
+                    body['authorized_reference_ids'] = scope['authorized_reference_ids']
                     db.execute('UPDATE sessions SET selected_assets=?,initial_refs=? WHERE id=?',
                                (canonical(scope['selected_assets']), canonical(scope['initial_refs']), session_id))
             self._save(db, session_id, body, revision)
@@ -127,6 +193,7 @@ class AuditTasks:
             db.execute('UPDATE sessions SET selected_assets=?,initial_refs=? WHERE id=?',
                        (canonical(scope['selected_assets']), canonical(scope['initial_refs']), session_id))
             body['scope_revision'] += 1
+            body['authorized_reference_ids'] = scope.get('authorized_reference_ids', body.get('authorized_reference_ids', []))
             body['pending_scope'] = None
             self._save(db, session_id, body, revision)
             return {**scope, 'scope_revision': body['scope_revision']}
@@ -150,6 +217,7 @@ class AuditTasks:
                     db.execute('UPDATE sessions SET selected_assets=?,initial_refs=? WHERE id=?',
                                (canonical(scope['selected_assets']), canonical(scope['initial_refs']), session_id))
                     body['scope_revision'] += 1
+                    body['authorized_reference_ids'] = scope.get('authorized_reference_ids', body.get('authorized_reference_ids', []))
                     body['pending_scope'] = None
                 cancelled = self.store.cancel_in_transaction(db, session_id=session_id)
             self._save(db, session_id, body, revision)
@@ -204,6 +272,11 @@ class AuditTasks:
             db.execute('UPDATE sessions SET initial_refs=?,selected_assets=? WHERE id=?',
                        (canonical(list(refs.values())), canonical(selected), session_id))
             body['manual'] = False
+            from .delivery_policy import infer_user_delivery_policy
+            inference = infer_user_delivery_policy(payload['summary'], source='user_manual_return', request_id=payload['request_id'])
+            if inference:
+                body['delivery_policy_inference'] = inference
+            body['delivery_policy_user_input_at'] = now()
             body['scope_revision'] += 1
             body['last_manual_change'] = {'summary': payload['summary'], 'references': payload['references'],
                                           'included_asset_ids': included, 'created_at': now()}

@@ -1,6 +1,7 @@
 """Assemble complete native SSE responses before validating any tool call."""
 import time
 from functools import lru_cache
+import httpx
 
 
 PREVIEW_FIELDS = {'conversation_answer': ('content', 'answer', 12000),
@@ -186,12 +187,20 @@ class ArgumentPreview:
 
 
 async def collect(response, protocol, on_delta, secret, *, on_preview=None):
-    from .providers import ProviderFault, strict_json, redact, MAX_RESPONSE_BYTES
+    from .providers import ProviderFault, strict_json, redact, MAX_RESPONSE_BYTES, MAX_ERROR_BYTES, provider_error_fault, truncated_response_fault
     total, terminated, data_lines = 0, False, []
     text, last_text, last_emit = '', '', time.monotonic()
     raw = {'choices': [{'message': {'role': 'assistant', 'content': '', 'tool_calls': []}, 'finish_reason': None}], 'usage': {}} if protocol == 'openai_chat_completions' else None
     calls, blocks, argument_text, closed_blocks = {}, {}, {}, set()
+    terminal_reason = None
     previews, published = {}, {}
+    def truncation(reason):
+        if protocol == 'openai_chat_completions':
+            arguments = [call['function']['arguments'] for _, call in sorted(calls.items())]
+        else:
+            arguments = [argument_text.get(index, block.get('input', {}))
+                         for index, block in sorted(blocks.items()) if block.get('type') == 'tool_use']
+        return truncated_response_fault(protocol, reason, arguments)
     async def emit(frame, final=False):
         if on_preview is None:
             return
@@ -235,11 +244,18 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
                 'content': parser.values.get(field, ''), 'call_id': call.get('id'), 'tool': name,
                 'truncated': parser.lengths.get(field, 0) > limit}, final)
     async def consume(data):
-        nonlocal raw, text, terminated
+        nonlocal raw, text, terminated, terminal_reason
         if data == '[DONE]':
             terminated = True; return
         value = strict_json(data)
-        if not isinstance(value, dict) or value.get('error'):
+        if isinstance(value, dict) and (value.get('error') or value.get('type') == 'error'):
+            # An explicit rejection permits context recovery; incomplete
+            # streams and arbitrary malformed events still cannot authorize
+            # replay. Do not expose echoed prompt or credential text.
+            if len(data.encode('utf-8')) <= MAX_ERROR_BYTES:
+                raise provider_error_fault(redact(value, secret))
+            raise ProviderFault('provider_unavailable', '主控流错误超过诊断大小上限；未自动重试')
+        if not isinstance(value, dict):
             raise ValueError('Invalid SSE event')
         if protocol == 'openai_chat_completions':
             if isinstance(value.get('model'), str):
@@ -254,6 +270,10 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
             item = choices[0]
             if item.get('index', 0) != 0:
                 raise ValueError('Unknown choice index')
+            if item.get('finish_reason') == 'length':
+                terminal_reason = 'length'
+            if item.get('finish_reason'):
+                raw['choices'][0]['finish_reason'] = item['finish_reason']
             delta = item.get('delta') or {}
             if delta.get('content'):
                 text += delta['content']
@@ -276,8 +296,6 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
                     raw['choices'][0]['message'][field] = raw['choices'][0]['message'].get(field, '') + delta[field]
             if delta.get('refusal'):
                 raw['choices'][0]['message']['refusal'] = delta['refusal']
-            if item.get('finish_reason'):
-                raw['choices'][0]['finish_reason'] = item['finish_reason']
         else:
             kind = value.get('type')
             if kind == 'message_start':
@@ -315,6 +333,8 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
                 else:
                     raise ValueError('Invalid block delta')
             elif kind == 'message_delta':
+                if (value.get('delta') or {}).get('stop_reason') == 'max_tokens':
+                    terminal_reason = 'max_tokens'
                 if raw is None or set(blocks) != closed_blocks:
                     raise ValueError('Missing message start')
                 raw.update(value['delta']); raw['usage'].update(value.get('usage') or {})
@@ -329,6 +349,8 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
                 terminated = True
             elif kind != 'ping':
                 raise ValueError('Unknown SSE event')
+        if terminal_reason is not None:
+            raise truncation(terminal_reason)
         await publish()
     try:
         async for line in response.aiter_lines():
@@ -344,8 +366,10 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
                 data_lines.append(line[5:].lstrip(' '))
         if data_lines:
             await consume('\n'.join(data_lines))
+        if terminal_reason is not None:
+            raise truncation(terminal_reason)
         if not terminated or raw is None:
-            raise ProviderFault('truncated_response', '模型流未完整结束，工具未执行')
+            raise truncation('eof')
         if protocol == 'openai_chat_completions':
             if sorted(calls) != list(range(len(calls))):
                 raise ValueError('Noncontiguous tool indexes')
@@ -361,4 +385,10 @@ async def collect(response, protocol, on_delta, secret, *, on_preview=None):
     except ProviderFault:
         raise
     except (ValueError, TypeError, KeyError, AttributeError):
+        if terminal_reason is not None:
+            raise truncation(terminal_reason) from None
         raise ProviderFault('invalid_response', '模型流协议或工具参数不完整，未执行工具') from None
+    except httpx.HTTPError:
+        if terminal_reason is not None:
+            raise truncation(terminal_reason) from None
+        raise

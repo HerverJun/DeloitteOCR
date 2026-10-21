@@ -26,6 +26,10 @@ PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbe
 REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
             "ocr": ("workbench.sqlite3",)}
 OCR_TRANSIENT_DIRS = frozenset({".image-staging", "pdf-ipc"})
+# These drivers persist recovery state and receipts in operations.sqlite3;
+# they never create a legacy graph checkpoint database.
+DIRECT_BACKUP_DRIVERS = frozenset({"image-text-v1", "pdf-text-v1", "data-action-v1",
+                                  "classification-predict-v1"})
 FORMAT = 1
 CHUNK = 1024 * 1024
 
@@ -62,8 +66,20 @@ def _hash(path: Path) -> tuple[str, int]:
     return digest.hexdigest(), size
 
 
+def _read_database(path: Path):
+    """Observe committed WAL without acquiring source checkpoint authority."""
+    wal = path.with_name(path.name + '-wal')
+    _safe(wal)
+    # Immutable reads are safe only without pending WAL. Using them for an
+    # orphan WAL would silently omit its last committed business rows.
+    options = '?mode=ro' if wal.is_file() and wal.stat().st_size else '?mode=ro&immutable=1'
+    db = sqlite3.connect(path.as_uri() + options, uri=True)
+    db.execute('PRAGMA temp_store=MEMORY')
+    return db
+
+
 def _check_db(path: Path) -> None:
-    with closing(sqlite3.connect(path)) as db:
+    with closing(_read_database(path)) as db:
         if db.execute("PRAGMA quick_check").fetchone()[0] != "ok":
             raise ValueError(f"SQLite integrity check failed: {path}")
 
@@ -126,21 +142,49 @@ def _check_agent_pair(root: Path) -> None:
     checkpoints = root / 'agent/checkpoints.sqlite3'
     if checkpoints.exists() and not operations.is_file():
         raise ValueError('Agent backup requires operations for its checkpoints')
-    if operations.is_file() and not checkpoints.is_file():
-        # Settings-only initialization can precede async saver creation. Once
-        # any run exists both stores are mandatory, including completed runs.
-        with closing(sqlite3.connect(operations.as_uri() + '?mode=ro', uri=True)) as db:
-            runs = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='runs'").fetchone()
-            if runs and db.execute('SELECT 1 FROM runs LIMIT 1').fetchone():
-                raise ValueError('Agent backup requires both operations and checkpoint databases')
+    if operations.is_file():
+        with closing(_read_database(operations)) as db:
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if 'runs' not in tables:
+                return
+            columns = {row[1] for row in db.execute('PRAGMA table_info(runs)')}
+            driver_column = 'driver' if 'driver' in columns else "'harness'"
+            for run_id, session_id, driver in db.execute('SELECT id,session_id,' + driver_column + ' FROM runs'):
+                owned = ('harness_runs' in tables and db.execute('SELECT 1 FROM harness_runs WHERE run_id=?', (run_id,)).fetchone())
+                migrated = ('harness_materialized' in tables and db.execute('SELECT 1 FROM harness_materialized WHERE session_id=?', (session_id,)).fetchone())
+                started = any(name in tables and db.execute('SELECT 1 FROM ' + name + ' WHERE run_id=? LIMIT 1', (run_id,)).fetchone()
+                              for name in ('operations', 'model_requests'))
+                if (started and driver not in DIRECT_BACKUP_DRIVERS
+                        and not checkpoints.is_file() and not (owned or migrated)):
+                    raise ValueError('Legacy Agent backup requires its checkpoint database')
+                projected = ('harness_events' in tables and db.execute('SELECT 1 FROM harness_events WHERE session_id=? LIMIT 1', (session_id,)).fetchone())
+                if projected or migrated:
+                    logs = [path for path in (root / 'agent/harness/sessions').rglob('session.v4.jsonl')
+                            if path.parent.name == session_id]
+                    if len(logs) != 1:
+                        raise ValueError('Harness backup requires one durable session log: ' + session_id)
 
 
-def _copy_member(source: Path, target: Path) -> dict:
+def _copy_member(source: Path, target: Path, *, immutable_archive: bool = False) -> dict:
     target.parent.mkdir(parents=True, exist_ok=True)
     before = source.stat()
     is_db = source.name.endswith(".sqlite3")
-    if is_db:
-        with closing(sqlite3.connect(source)) as input_db, closing(sqlite3.connect(target)) as output_db:
+    if is_db and immutable_archive:
+        # Migration archives are byte evidence pinned by their own manifest.
+        # SQLite backup preserves rows but may change these sealed bytes.
+        if any(source.with_name(source.name + suffix).exists() for suffix in ('-wal', '-shm', '-journal')):
+            raise ValueError(f'Immutable migration database has journal files: {source}')
+        with source.open('rb') as stream:
+            header = stream.read(20)
+        if header[:16] != b'SQLite format 3\x00' or header[18:20] != b'\x01\x01':
+            raise ValueError(f'Immutable migration database has a WAL or unsupported header: {source}')
+        with closing(sqlite3.connect(source.as_uri() + '?mode=ro&immutable=1', uri=True)) as input_db:
+            if (input_db.execute('PRAGMA journal_mode').fetchone()[0] != 'delete'
+                    or input_db.execute('PRAGMA quick_check').fetchone()[0] != 'ok'):
+                raise ValueError(f'Immutable migration database is not a sealed DELETE snapshot: {source}')
+        shutil.copy2(source, target)
+    elif is_db:
+        with closing(_read_database(source)) as input_db, closing(sqlite3.connect(target)) as output_db:
             input_db.backup(output_db)
         _check_db(target)
     else:
@@ -149,7 +193,7 @@ def _copy_member(source: Path, target: Path) -> dict:
     if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
         raise ValueError(f"Source changed during backup: {source}")
     digest, size = _hash(target)
-    if not is_db and (digest, size) != _hash(source):
+    if (not is_db or immutable_archive) and (digest, size) != _hash(source):
         raise ValueError(f"Source changed during backup: {source}")
     return {"sha256": digest, "bytes": size, "sqlite": is_db}
 
@@ -174,7 +218,8 @@ def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
         records = {}
         for item in members:
             relative = item.relative_to(source).as_posix()
-            records[relative] = _copy_member(item, stage / relative)
+            records[relative] = _copy_member(item, stage / relative,
+                immutable_archive=kind == 'platform' and relative.startswith('agent/harness/legacy/'))
         if _members(source, kind) != members:
             raise ValueError("Source file set changed during backup")
         manifest = {"format": FORMAT, "kind": kind,

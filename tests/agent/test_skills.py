@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
+import sys
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -237,6 +238,11 @@ class SkillBusinessTests(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         asyncio.get_running_loop().slow_callback_duration = 60
+        release = Path('F:/OCR/release/Clear/versions/0.10.0')
+        self.native_ocr_source = release / 'ocr'
+        sys.path.extend([str(self.native_ocr_source / 'src'), str(release / 'classification/src'),
+            str(release / 'program/bundles/ocr/runtimes/control/Lib/site-packages'),
+            str(release / 'program/bundles/classification/runtimes/control/Lib/site-packages')])
 
     def serve(self, app):
         import test_coverage_completion as coverage
@@ -322,7 +328,7 @@ class SkillBusinessTests(unittest.IsolatedAsyncioTestCase):
         from ocr_workbench.imaging import add_image
         await self.use_skill('invoice-ocr-reconciliation')
         with patch.dict('os.environ', {'WORKBENCH_APP_ID': 'ocr', 'WORKBENCH_INSTANCE_ID': 'instanceskillocr', 'WORKBENCH_NONCE': 'b' * 48}):
-            app = create_app(coverage.OCR, self.root / 'skill-native-ocr', 'coverage-token-' + 'a' * 40,
+            app = create_app(self.native_ocr_source, self.root / 'skill-native-ocr', 'coverage-token-' + 'a' * 40,
                              start_queue=False, review_only=True, agent_enabled=False)
         native = app.state.store
         project = native.project('Skill OCR')

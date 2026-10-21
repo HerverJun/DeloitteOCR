@@ -1,0 +1,74 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "engine": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "ppocr",
+        "paddlevl",
+        "glm",
+        "hunyuan",
+        "mineru_pro"
+      ],
+      "title": "Engine",
+      "type": "string"
+    },
+    "expected_scope_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Scope Revision"
+    },
+    "link_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Link Id"
+    },
+    "mode": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "native",
+        "ocr"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "page_numbers": {
+      "items": {
+        "type": "integer"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Page Numbers",
+      "type": "array"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "page_numbers"
+  ],
+  "title": "PdfTextRequest",
+  "type": "object"
+}

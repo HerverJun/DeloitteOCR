@@ -10,7 +10,8 @@
             "data",
             "ocr",
             "classification",
-            "forensics"
+            "forensics",
+            "multimodal"
           ],
           "title": "Application",
           "type": "string"
@@ -175,7 +176,9 @@
         "finalizing",
         "completed",
         "stopped",
-        "failed"
+        "failed",
+        "compacting",
+        "paused"
       ],
       "title": "Phase",
       "type": "string"

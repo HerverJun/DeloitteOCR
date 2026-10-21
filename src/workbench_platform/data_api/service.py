@@ -214,6 +214,7 @@ class DataWorkbenchService:
                        {'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATH', 'SYSTEMDRIVE'}}
         environment.update({name: str(folder) for name in ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'XDG_CACHE_HOME')})
         environment.update(PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1')
+        environment.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1')
         bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('modules.data_workbench.inspect_input',run_name='__main__')"
         try:
             with (folder / 'process.log').open('wb') as log:
@@ -277,6 +278,26 @@ class DataWorkbenchService:
             row = db.execute('SELECT session_id,job_id FROM operation_requests WHERE request_key=?',
                              (request_key,)).fetchone()
         return self.job(row['session_id'], row['job_id']) if row else None
+
+    def operation_not_submitted(self, request_key, session_id, version, workspace_id):
+        """Prove absence in the same authority/transaction used by submit.
+
+        BEGIN IMMEDIATE waits behind an in-flight submit. The unique original
+        request key still deduplicates a writer that arrives after this read.
+        A changed input version or any surviving request row is not a proof.
+        """
+        identity(request_key)
+        identity(session_id)
+        if not self.ready():
+            return False
+        with closing(self.db()) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            if db.execute('SELECT 1 FROM operation_requests WHERE request_key=?',
+                          (request_key,)).fetchone():
+                return False
+            row = db.execute('SELECT version,workspace_id FROM sessions WHERE id=?',
+                             (session_id,)).fetchone()
+            return bool(row and row['version'] == version and row['workspace_id'] == workspace_id)
 
     def _recover_replies(self):
         with closing(self.db()) as db:
@@ -362,6 +383,7 @@ class DataWorkbenchService:
             environment['PYTHONUTF8'] = '1'
             environment['PYTHONNOUSERSITE'] = '1'
             environment['PYTHONPATH'] = str(self.project_root)
+            environment.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1')
             temporary = self.root / 'runtime-temp'
             temporary.mkdir(exist_ok=True)
             for variable in ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'XDG_CACHE_HOME'):
@@ -430,6 +452,8 @@ class DataWorkbenchService:
                 records = db.execute('SELECT ordinal,payload FROM table_rows WHERE revision=? '
                                      'ORDER BY ordinal LIMIT ? OFFSET ?', (revision, limit, offset)).fetchall()
                 count = json.loads(raw[0])['rows'] if raw else 0
+                has_source_rows = db.execute("SELECT 1 FROM table_rows WHERE revision=? "
+                    "AND json_type(payload,'$.source_rows') IS NOT NULL LIMIT 1", (revision,)).fetchone() is not None
             else:
                 raw = db.execute('SELECT metadata FROM result_views WHERE id=?', (revision,)).fetchone()
                 where, args = ('id=? AND category=?', (revision, category)) if category else ('id=?', (revision,))
@@ -438,8 +462,15 @@ class DataWorkbenchService:
                                      ' ORDER BY ordinal LIMIT ? OFFSET ?', (*args, limit, offset)).fetchall()
         if raw is None:
             raise DataError('预览不可用', 404)
-        return {'metadata': json.loads(raw[0]), 'total': count, 'offset': offset,
-                'rows': [{'ordinal': row[0], **json.loads(row[1])} for row in records]}
+        metadata = json.loads(raw[0])
+        result = {'metadata': metadata, 'total': count, 'offset': offset,
+                  'rows': [{'ordinal': row[0], **json.loads(row[1])} for row in records]}
+        if kind == 'table':
+            from .table_schema import cleaned_table_schema
+            # Keep persisted metadata and its historical reference hash intact.
+            result['table_schema'] = cleaned_table_schema(metadata['columns'], metadata['rows'],
+                revision=revision, has_source_rows=has_source_rows)
+        return result
 
     def result_page_after(self, session_id, result_id, next_ordinal, limit=1000):
         """Bounded keyset read from the immutable comparison's cached row view."""

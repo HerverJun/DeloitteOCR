@@ -82,11 +82,11 @@ def result_references(ctx, task, unavailable, *, only_ocr=False):
             continue
         try:
             if app == 'ocr':
-                from workbench_platform.agent.tools.ocr import read, OcrRead
+                from workbench_platform.application_services.operations.ocr import read, OcrRead
                 try:
                     first = read(OcrRead(handoff_id=parent), ctx)
                 except ValueError:
-                    from workbench_platform.agent.tools.pdf import bound, read as read_page, ReadPage
+                    from workbench_platform.application_services.operations.pdf import bound, read as read_page, ReadPage
                     _, _, adapter, documents = bound(ctx, parent)
                     for document in documents:
                         pages = paged(lambda offset, limit: adapter.document_pages(document, offset=offset, limit=limit), 'pages')
@@ -106,7 +106,7 @@ def result_references(ctx, task, unavailable, *, only_ocr=False):
                             break
                         value = read(OcrRead(handoff_id=parent, offset=value['next_offset']), ctx)
             else:
-                from workbench_platform.agent.tools.classification import snapshot, reference
+                from workbench_platform.application_services.operations.classification import snapshot, reference
                 yield reference(snapshot(ctx, parent), ctx), '分类 · 当前预测/人工标注版本'
         except ValueError:
             unavailable.append({'application': app, 'id': parent, 'reason': '原生结果未完成或服务未启动，可从工具页面继续'})

@@ -1,0 +1,5 @@
+.document-workbench { display: grid; gap: 18px; }
+.document-controls .ant-select { min-width: min(440px, 80vw); }
+.document-result { display: grid; gap: 16px; border-top: 1px solid var(--clear-border, #d9ddd8); padding-top: 20px; }
+.document-block-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 440px; overflow: auto; line-height: 1.7; }
+.document-workbench pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }

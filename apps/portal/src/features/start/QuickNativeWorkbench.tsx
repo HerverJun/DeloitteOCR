@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Input, Select, Space, Typography } from 'antd'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceId, useWorkspaces, Workspaces } from '../../App'
 import { applicationDescriptions, brandName } from '../../clear-ui/theme'
 import { useNativeWindow } from '../catalog/nativeWindow'
+import { Materials } from '../agent/Materials'
+import { DirectImageTextButton } from '../agent/DirectImageTextButton'
+import { DirectPdfTextButton } from '../agent/DirectPdfTextButton'
+import { DocumentPanel } from '../documents/DocumentWorkbench'
 
 const { Title, Text, Paragraph } = Typography
 type NativeProject = { project_id: string; name: string; link_id: string | null }
@@ -20,11 +24,13 @@ export function QuickNativeWorkbench({ appId }: { appId: 'ocr' | 'classification
   return <><div className="page-heading"><Text className="eyebrow">CLEAR / PROCESS</Text><Title level={1}>{brandName(appId)}</Title>
     <Paragraph>{applicationDescriptions[appId].purpose} · 在工具内导入资料、处理并下载输出。</Paragraph></div>
     {appId === 'ocr' && <Paragraph><Link to={`/apps/ocr/seals${workspaceId ? `?workspace=${encodeURIComponent(workspaceId)}` : ''}`}>印章识别与主体核对 →</Link></Paragraph>}
-    {workspaceId ? <NativeProject key={`${workspaceId}:${appId}`} workspaceId={workspaceId} appId={appId} /> : <Workspaces continueTo={`/apps/${appId}/start`} />}</>
+    {workspaceId ? <><NativeProject key={`${workspaceId}:${appId}`} workspaceId={workspaceId} appId={appId} />
+      {appId === 'ocr' && <DocumentPanel key={`documents:${workspaceId}`} workspace={workspaceId} />}</> : <Workspaces continueTo={`/apps/${appId}/start`} />}</>
 }
 
 function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'ocr' | 'classification' }) {
-  const workspaces = useWorkspaces(), client = useQueryClient()
+  const workspaces = useWorkspaces(), client = useQueryClient(), navigate = useNavigate()
+  const [materials, setMaterials] = useState(false), [selectedAssets, setSelectedAssets] = useState<string[]>([])
   const base = `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId)}/${appId}`
   const queryKey = [`${appId}-projects`, workspaceId]
   const projects = useQuery({ queryKey, queryFn: ({ signal }) => api<{ items: NativeProject[] }>(`${base}/projects`, { signal }) })
@@ -93,7 +99,14 @@ function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'oc
       disabled={projects.isPending || projects.isError || !projectName || !!legacyName || (!pending && !chosen && appId === 'classification' && !categoriesValid)}
       onClick={open}>{pending ? '继续确认并打开' : chosen ? '打开并开始处理' : '开始处理'}</Button>
       <Button disabled={native.opening} onClick={() => void projects.refetch()}>刷新状态</Button>
-      <Link to={`/?workspace=${encodeURIComponent(workspaceId)}&tool=${appId}`}>返回工具选择</Link></Space>
+      <Link to={`/apps?workspace=${encodeURIComponent(workspaceId)}&tool=${appId}`}>返回工具选择</Link></Space>
     {native.error && <Alert className="application-message" type="error" title={native.error} />}
+    {appId === 'ocr' && <div className="application-message"><Paragraph>选择项目图片或一份 PDF，直接提取文字并下载 TXT；PDF 需填写页码。</Paragraph><Space wrap>
+      <Button onClick={() => setMaterials(true)}>选择资料{selectedAssets.length ? ` · ${selectedAssets.length} 份` : ''}</Button>
+      <DirectImageTextButton workspace={workspaceId} selectedAssets={selectedAssets} linkId={chosen?.link_id || undefined}
+        onAccepted={id => navigate(`/agent?workspace=${encodeURIComponent(workspaceId)}&session=${encodeURIComponent(id)}`)} />
+      <DirectPdfTextButton workspace={workspaceId} selectedAssets={selectedAssets} linkId={chosen?.link_id || undefined}
+        onAccepted={id => navigate(`/agent?workspace=${encodeURIComponent(workspaceId)}&session=${encodeURIComponent(id)}`)} />
+    </Space><Materials open={materials} workspace={workspaceId} selected={selectedAssets} close={() => setMaterials(false)} save={async ids => setSelectedAssets(ids)} /></div>}
   </section>
 }

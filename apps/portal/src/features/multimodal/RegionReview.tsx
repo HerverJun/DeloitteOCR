@@ -8,7 +8,7 @@ type Bounds = { box: number[]; label: string }
 
 export function RegionReview({ image, width, height, marks, onChange, boxes = [], forensic }: {
   image: string; width: number; height: number; marks: Mark[]; onChange?: (marks: Mark[]) => void; boxes?: Bounds[];
-  forensic?: { heatmap: string; geometry: ForensicGeometry | null; registered: boolean; warning?: string };
+  forensic?: { heatmap?: string; geometry: ForensicGeometry | null; registered: boolean; warning?: string; heatmapLabel?: string; suggestions?: Mark[] };
 }) {
   const geometry = forensic?.geometry
   const displayMarks = geometry ? marks.map(mark => ({ ...mark, box: storedBoxToDisplay(mark.box, geometry) })) : marks
@@ -26,7 +26,8 @@ export function RegionReview({ image, width, height, marks, onChange, boxes = []
   return <div className="mm-region-review" style={forensic ? undefined : { maxWidth: `min(100%, calc(65vh * ${width / height}))` }}>
     {forensic ? <ForensicImageViewer image={image} heatmap={forensic.heatmap}
       width={geometry?.display_size[0] || width} height={geometry?.display_size[1] || height}
-      registered={forensic.registered} warning={forensic.warning} marks={displayMarks} onChange={changeDisplay} heatmapLabel="CAT-Net 可疑区域热图" /> : <svg ref={svg} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={onChange ? '在原图上拖动标注可疑区域' : '原件与定位区域'}
+      registered={forensic.registered} warning={forensic.warning} marks={displayMarks} onChange={changeDisplay} heatmapLabel={forensic.heatmapLabel || '深度定位热图'}
+      suggestions={forensic.suggestions?.map(mark => ({ ...mark, box: geometry ? storedBoxToDisplay(mark.box, geometry) : mark.box }))} /> : <svg ref={svg} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={onChange ? '在原图上拖动标注可疑区域' : '原件与定位区域'}
       style={{ touchAction: onChange ? 'none' : 'auto', cursor: onChange ? 'crosshair' : 'default' }}
       onPointerDown={event => { if (!onChange || marks.length >= 200) return; event.currentTarget.setPointerCapture(event.pointerId); setOrigin(position(event)); setDraft(null) }}
       onPointerMove={event => { if (origin) setDraft(coordinates(position(event))) }}

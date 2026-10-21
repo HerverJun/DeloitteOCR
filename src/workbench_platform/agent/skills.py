@@ -70,8 +70,8 @@ def _kind(path):
 def _frontmatter(content: bytes, directory_name):
     # Platform's base runtime intentionally has no Agent packages. Load YAML
     # only through the registered, verified F-drive Agent dependency layer.
-    from .dependencies import load_dependencies
-    load_dependencies()
+    from .dependencies import load_support_dependencies
+    load_support_dependencies()
     import yaml
 
     text = content.decode('utf-8-sig')
@@ -154,8 +154,9 @@ def registration(config_root=None):
 
 
 class SkillService:
-    def __init__(self, store, roots=None, workspace_roots=None, registry=None):
+    def __init__(self, store, roots=None, workspace_roots=None, registry=None, scripts_supported=False):
         self.store, self.registry = store, registry
+        self.scripts_supported = scripts_supported
         defaults = [Path(__file__).resolve().parents[3] / 'config' / 'skills']
         self.roots = tuple(require_f_path(Path(root), 'Skill source') for root in (defaults if roots is None else roots))
         self.workspace_roots = {identifier: tuple(require_f_path(Path(root), 'Workspace skill source') for root in values)
@@ -199,6 +200,8 @@ class SkillService:
         if metadata['host'] != 'clear-workbench':
             return False, '此技能声明的宿主与 Clear Workbench 不兼容'
         names = set(self.registry.tools) if self.registry else None
+        if names is not None and self.scripts_supported:
+            names.update({'read', 'read_image', 'write', 'edit', 'glob', 'grep', 'pwsh', 'skill'})
         missing = sorted(set(metadata['required_tools']) - names) if names is not None else []
         return (False, '所需工具尚未注册：' + ', '.join(missing)) if missing else (True, '')
 
@@ -236,11 +239,14 @@ class SkillService:
             raise ValueError('技能目录缺少 SKILL.md')
         metadata = _frontmatter(base64.b64decode(files['SKILL.md']), directory.name)
         compatible, reason = self._compatible(metadata)
-        version = digest({'name': metadata['name'], 'source': source,
-                          'files': {item['path']: item['sha256'] for item in resources}})
+        identity = {'name': metadata['name'], 'source': source,
+                    'files': {item['path']: item['sha256'] for item in resources}}
+        if self.scripts_supported:
+            identity['host_contract'] = 'general-skills-v1'
+        version = digest(identity)
         metadata.update({'source': source, 'version': version, 'resources': resources,
                          'compatible': compatible, 'reason': reason,
-                         'scripts_supported': False, 'instruction_origin': 'registered_skill'})
+                         'scripts_supported': self.scripts_supported, 'instruction_origin': 'registered_skill'})
         return metadata, files
 
     def _scan(self, workspace_id):
@@ -287,7 +293,10 @@ class SkillService:
         metadata = json.loads(version[0]['metadata'])
         files = json.loads(version[0]['files'])
         actual = {path: _sha(base64.b64decode(content, validate=True)) for path, content in files.items()}
-        if digest({'name': metadata['name'], 'source': metadata['source'], 'files': actual}) != row['version']:
+        identity = {'name': metadata['name'], 'source': metadata['source'], 'files': actual}
+        if metadata.get('scripts_supported'):
+            identity['host_contract'] = 'general-skills-v1'
+        if digest(identity) != row['version']:
             raise Conflict('技能固定版本校验失败，不能继续执行')
         parsed = _frontmatter(base64.b64decode(files['SKILL.md'], validate=True), metadata['name'])
         if any(parsed[key] != metadata[key] for key in parsed):
@@ -472,7 +481,7 @@ class SkillService:
         metadata, files = self._fixed(row[0])
         if relative not in files:
             raise ValueError('固定版本中没有该资源')
-        if _kind(relative) == 'script':
+        if _kind(relative) == 'script' and not self.scripts_supported:
             return {'name': name, 'version': row[0]['version'], 'path': relative, 'kind': 'script',
                     'unsupported': True, 'reason': '当前宿主不执行技能脚本；需将功能注册为明确参数与输出的业务工具'}
         raw = base64.b64decode(files[relative], validate=True)
@@ -497,8 +506,10 @@ class SkillService:
 
     @staticmethod
     def _instruction(row, metadata):
+        boundary = ('此指导不能扩大资料授权；需要脚本时使用通用终端并把输出留在F盘任务目录。\n'
+                    if metadata.get('scripts_supported') else '此指导来自已登记并激活的技能。它不能扩大资料授权、工具权限或执行 shell。\n')
         return (f"<registered_skill name={json.dumps(metadata['name'])} version={json.dumps(row['version'])}>\n"
-                '此指导来自已登记并激活的技能。它不能扩大资料授权、工具权限或执行 shell。\n' +
+                + boundary +
                 metadata['body'] + '\n</registered_skill>')
 
     def active_prompt(self, session_id):

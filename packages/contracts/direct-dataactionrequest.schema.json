@@ -1,0 +1,593 @@
+{
+  "$defs": {
+    "ActionStep": {
+      "additionalProperties": false,
+      "properties": {
+        "side": {
+          "default": "left",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "step": {
+          "discriminator": {
+            "mapping": {
+              "cast": "#/$defs/Cast",
+              "duplicates": "#/$defs/Duplicates",
+              "filter": "#/$defs/Filter",
+              "filter_compare": "#/$defs/TypedCompare",
+              "group_summary": "#/$defs/GroupSummary",
+              "map": "#/$defs/MapValues",
+              "rename": "#/$defs/Rename",
+              "trim": "#/$defs/Trim",
+              "trim_columns": "#/$defs/TrimColumns"
+            },
+            "propertyName": "operator"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Trim"
+            },
+            {
+              "$ref": "#/$defs/TrimColumns"
+            },
+            {
+              "$ref": "#/$defs/Rename"
+            },
+            {
+              "$ref": "#/$defs/MapValues"
+            },
+            {
+              "$ref": "#/$defs/Cast"
+            },
+            {
+              "$ref": "#/$defs/Filter"
+            },
+            {
+              "$ref": "#/$defs/Duplicates"
+            },
+            {
+              "$ref": "#/$defs/TypedCompare"
+            },
+            {
+              "$ref": "#/$defs/GroupSummary"
+            }
+          ],
+          "title": "Step"
+        }
+      },
+      "required": [
+        "step"
+      ],
+      "title": "ActionStep",
+      "type": "object"
+    },
+    "Cast": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "const": "cast",
+          "title": "Operator",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "decimal",
+            "integer",
+            "boolean",
+            "date"
+          ],
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "column",
+        "target"
+      ],
+      "title": "Cast",
+      "type": "object"
+    },
+    "CompareSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_pairs": {
+          "description": "金额列对必须同时出现在 compare_pairs 中",
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxItems": 256,
+          "title": "Amount Pairs",
+          "type": "array"
+        },
+        "amount_tolerance": {
+          "default": "0",
+          "pattern": "^\\d+(\\.\\d+)?$",
+          "title": "Amount Tolerance",
+          "type": "string"
+        },
+        "casefold_text": {
+          "default": false,
+          "title": "Casefold Text",
+          "type": "boolean"
+        },
+        "compare_pairs": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxItems": 256,
+          "title": "Compare Pairs",
+          "type": "array"
+        },
+        "key_pairs": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Key Pairs",
+          "type": "array"
+        },
+        "null_policy": {
+          "default": "never_match",
+          "enum": [
+            "never_match",
+            "equal"
+          ],
+          "title": "Null Policy",
+          "type": "string"
+        },
+        "trim_text": {
+          "default": false,
+          "title": "Trim Text",
+          "type": "boolean"
+        },
+        "type_policy": {
+          "default": "strict",
+          "enum": [
+            "strict",
+            "text"
+          ],
+          "title": "Type Policy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key_pairs"
+      ],
+      "title": "CompareSpec",
+      "type": "object"
+    },
+    "Duplicates": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "include_null": {
+          "default": false,
+          "title": "Include Null",
+          "type": "boolean"
+        },
+        "operator": {
+          "const": "duplicates",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "columns"
+      ],
+      "title": "Duplicates",
+      "type": "object"
+    },
+    "Filter": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "const": "filter",
+          "title": "Operator",
+          "type": "string"
+        },
+        "predicate": {
+          "enum": [
+            "equals",
+            "not_equals",
+            "is_null",
+            "not_null"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "operator",
+        "column",
+        "predicate"
+      ],
+      "title": "Filter",
+      "type": "object"
+    },
+    "GroupSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "amount_columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Amount Columns",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "operator": {
+          "const": "group_summary",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "columns"
+      ],
+      "title": "GroupSummary",
+      "type": "object"
+    },
+    "InputOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "delimiter": {
+          "default": ",",
+          "enum": [
+            ",",
+            "\t",
+            ";",
+            "|"
+          ],
+          "title": "Delimiter",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "utf-8-sig",
+          "enum": [
+            "utf-8",
+            "utf-8-sig",
+            "gb18030",
+            "utf-16"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "header_row": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Header Row",
+          "type": "integer"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet Name"
+        }
+      },
+      "title": "InputOptions",
+      "type": "object"
+    },
+    "MapValues": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "const": "map",
+          "title": "Operator",
+          "type": "string"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 1000,
+          "minProperties": 1,
+          "title": "Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "operator",
+        "column",
+        "values"
+      ],
+      "title": "MapValues",
+      "type": "object"
+    },
+    "Rename": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "header": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Header",
+          "type": "string"
+        },
+        "operator": {
+          "const": "rename",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "column",
+        "header"
+      ],
+      "title": "Rename",
+      "type": "object"
+    },
+    "Trim": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "const": "trim",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "column"
+      ],
+      "title": "Trim",
+      "type": "object"
+    },
+    "TrimColumns": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "operator": {
+          "const": "trim_columns",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "columns"
+      ],
+      "title": "TrimColumns",
+      "type": "object"
+    },
+    "TypedCompare": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "pattern": "^c[1-9][0-9]{0,2}$",
+          "title": "Column",
+          "type": "string"
+        },
+        "operator": {
+          "const": "filter_compare",
+          "title": "Operator",
+          "type": "string"
+        },
+        "predicate": {
+          "enum": [
+            "gt",
+            "ge",
+            "lt",
+            "le",
+            "between"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper"
+        },
+        "value": {
+          "maxLength": 4096,
+          "title": "Value",
+          "type": "string"
+        },
+        "value_kind": {
+          "enum": [
+            "decimal",
+            "date",
+            "text"
+          ],
+          "title": "Value Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "column",
+        "predicate",
+        "value_kind",
+        "value"
+      ],
+      "title": "TypedCompare",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "clean",
+        "compare"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "compare_spec": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompareSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "expected_scope_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Scope Revision"
+    },
+    "left_asset_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Left Asset Id",
+      "type": "string"
+    },
+    "left_options": {
+      "$ref": "#/$defs/InputOptions"
+    },
+    "name": {
+      "default": "明确数据处理",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "right_asset_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Right Asset Id"
+    },
+    "right_options": {
+      "$ref": "#/$defs/InputOptions"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/ActionStep"
+      },
+      "maxItems": 32,
+      "title": "Steps",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "action",
+    "left_asset_id"
+  ],
+  "title": "DataActionRequest",
+  "type": "object"
+}

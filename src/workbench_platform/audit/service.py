@@ -30,7 +30,7 @@ class AuditService:
     def __init__(self, app, root: Path):
         self.app = app
         self.store = AuditStore(root)
-        self.batches = app.state.batch_service
+        self.batches = getattr(app.state, 'batch_service', None)
         self.center = app.state.artifact_center
         self.center.audit_service = self
         from .drafts import AuditDrafts
@@ -39,7 +39,8 @@ class AuditService:
         self.todos = WorkspaceTodoService(self)
 
     def workspace(self, workspace_id):
-        self.batches.workspace(workspace_id)
+        if self.app.state.workspace_store.get_workspace(workspace_id) is None:
+            raise DataError('工作空间不存在', 404)
 
     def _forensic_lock(self):
         service = getattr(self.app.state, 'forensic_service', None)
@@ -210,8 +211,9 @@ class AuditService:
         session = runtime.store.session(task_id)
         if session['workspace_id'] != workspace_id:
             raise DataError('源任务不属于目标项目', 404)
-        return ToolContext(workspace_id, task_id, '', 0, 0, '', tuple(session['selected_assets']),
-                           runtime.services, runtime.store)
+        from workbench_platform.application_services.context import SessionContext
+        return SessionContext(workspace_id, task_id, '', 0, 0, '', tuple(session['selected_assets']),
+                              runtime.services, runtime.store)
 
     def _manual_snapshot(self,choice,workspace_id,context=None):
         from .direct import snapshot
@@ -219,6 +221,14 @@ class AuditService:
         try:bundle=self.center.get(workspace_id,choice['manual_bundle_id'])
         except ArtifactUnavailable as error:raise DataError('成果不属于当前项目或尚不可用',404) from error
         if bundle.get('kind')!='manual_analysis':raise DataError('请选择已人工复核的多模态成果')
+        if bundle.get('snapshot_id'):
+            manual = self.app.state.multimodal_service
+            frozen = manual.snapshot(workspace_id, bundle['platform_job_id'], bundle['snapshot_id'])
+            if ((frozen['analysis'].get('review') or {}).get('assessment') != 'confirmed'
+                    or bundle.get('draft') or bundle.get('snapshot_hash') != frozen['snapshot_hash']):
+                raise DataError('未核准或身份不一致的多模态草稿不能转为正式审计证据',409)
+        elif bundle.get('draft') or bundle.get('review_state') == 'unreviewed':
+            raise DataError('未复核多模态草稿不能转为正式审计证据',409)
         source_context=self._source_context(bundle['platform_job_id'],workspace_id)
         value=snapshot(contract.DirectEvidenceRequest(reference={'kind':'artifact','workspace_id':workspace_id,
             'object_id':bundle['bundle_id'],'revision':1}),source_context)
@@ -240,6 +250,10 @@ class AuditService:
             if context is not None and any(not asset_allowed(context, source['asset_id'])
                     for source in value.get('source_assets') or value['sources']):
                 raise ValueError('证据超出调用任务范围')
+            from workbench_platform.application_services.review_provenance import inspect_review_provenance
+            review = inspect_review_provenance(value['reference'], source_context, require_review=True)
+            if any(check['status'] == 'failed' for check in review['checks']):
+                raise ValueError('证据包含未核准的多模态结果或草稿派生字段，请先核准原版本并重新生成正式证据')
             return contract.DirectEvidenceSnapshot.model_validate({key: item for key, item in value.items()
                 if key not in {'stale', 'outdated_reasons'}}).model_dump(mode='json')
         except ValueError as error:

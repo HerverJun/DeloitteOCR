@@ -177,7 +177,7 @@ export function ForensicWorkbench() {
   const workspaceId = useWorkspaceId()
   const [params] = useSearchParams()
   return <div className="forensic-workbench"><div className="page-heading"><div className="eyebrow">APPLICATION / IMAGE FORENSICS</div><Title level={1}>{brands.forensics}</Title><Paragraph>选择或上传图片，开始检查，直接查看和下载报告。</Paragraph></div>
-    <Paragraph><Link to={`/apps/forensics/deep${params.size ? `?${params}` : ''}`}>打开 CAT-Net 深度区域分析 →</Link></Paragraph>
+    <Paragraph><Link to={`/apps/forensics/deep${params.size ? `?${params}` : ''}`}>打开 SAFIRE 深度定位 →</Link> · <Link to={`/apps/forensics/document${params.size ? `?${params}` : ''}`}>文档篡改排查 →</Link></Paragraph>
     {workspaceId ? <Workspace key={workspaceId} workspaceId={workspaceId} /> : <Workspaces continueTo="/apps/forensics" />}
     <div className="back-link"><Link to={`/apps${params.size ? `?${params}` : ''}`}>← 返回应用目录</Link></div></div>
 }

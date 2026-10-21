@@ -3,12 +3,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Select, Space, Spin, Tag, Typography } from 'antd'
 import { useSearchParams } from 'react-router-dom'
 
+import { statusLabels } from '../agent/statusLabels'
 import { brandName } from '../../clear-ui/theme'
 import { InspectionTasks } from '../forensics/ForensicWorkbench'
 import { useSession } from '../tasks/session'
 import { TaskHistory } from '../tasks/TaskHistory'
 
 const { Title, Text, Paragraph } = Typography
+const availabilityLabels: Record<string, string> = { ready: '状态已核实', unavailable: '暂不可用', unknown: '待核实' }
+const jobLabels: Record<string, string> = { ...statusLabels, queued: '排队中', cancelling: '正在取消' }
 
 type NativeError = { native_item_id: string; message: string }
 type Counts = { total: number | null; succeeded: number; failed: number; cancelled: number; pending: number }
@@ -49,11 +52,11 @@ function JobRow({ job, workspaceId, onRefresh }: { job: Job; workspaceId: string
       window.setTimeout(onRefresh, 1200)
     }, onError: () => setNotice('请求未确认；请刷新核实后再操作。') })
   return <article className="panel" aria-label={`${job.app_id} 任务 ${job.platform_job_id}`}>
-    <div className="section-head"><Title level={3}>{brandName(job.app_id)} · {job.module_project_id}</Title>
-      <Space><Tag>{job.status}</Tag><Tag color={job.availability === 'ready' ? 'success' : 'warning'}>{job.availability}</Tag></Space></div>
-    <Paragraph><Text strong>阶段：</Text>{job.stage || '原生服务未提供'} <Text type="secondary">· 原生状态 {job.native_status || '未取得'}</Text></Paragraph>
+    <div className="section-head"><Title level={3}>{brandName(job.app_id)} 任务</Title>
+      <Space><Tag>{jobLabels[job.status] || job.status}</Tag><Tag color={job.availability === 'ready' ? 'success' : 'warning'}>{availabilityLabels[job.availability] || job.availability}</Tag></Space></div>
+    <Paragraph><Text strong>阶段：</Text>{job.stage || '原生服务未提供'}</Paragraph>
     <Paragraph>{jobProgress(job)}</Paragraph>
-    <Paragraph type="secondary">原生任务：{job.native_job_ids.join('、')}</Paragraph>
+    <details className="job-source-details"><summary>查看原生任务与版本</summary><Paragraph type="secondary">项目标识：{job.module_project_id}<br />原生状态：{job.native_status || '未取得'}<br />原生任务：{job.native_job_ids.join('、')}</Paragraph></details>
     {job.stage.toLowerCase().includes('gpu') && <Paragraph>GPU 等待信息：{job.stage}</Paragraph>}
     {job.native_errors?.length > 0 && <div aria-label="原生错误"><Text strong>原生错误</Text><ul>
       {job.native_errors.map((error, index) => <li key={`${error.native_item_id}-${index}`}>{error.native_item_id}：{error.message}</li>)}
@@ -95,7 +98,7 @@ function LegacyTaskCenter() {
   return <><div className="page-heading"><Text className="eyebrow">TASKS / NATIVE</Text>
     <Title level={1}>任务中心</Title><Paragraph>核实原生工具的任务状态、错误和可用操作。控制请求送达后仍需再次刷新确认。</Paragraph></div>
     {!workspaceId ? <Empty description="先在顶部选择工作空间" /> : <><InspectionTasks key={workspaceId} workspaceId={workspaceId} />
-      <section className="panel"><div className="section-head"><Title level={3}>跟踪原生任务</Title><Text type="secondary">仅已关联的项目</Text></div>
+      <details className="panel job-registration"><summary>高级：关联原生运行记录</summary><div className="section-head"><Title level={3}>跟踪原生任务</Title><Text type="secondary">仅已关联的项目</Text></div>
         <Space wrap><Select aria-label="关联项目" placeholder="选择关联项目" style={{ minWidth: 260 }} value={linkId}
           onChange={setLinkId} loading={links.isPending} options={links.data?.items.map(link => ({
             value: link.link_id, label: `${link.app_id} / ${link.module_project_id}`,
@@ -107,7 +110,7 @@ function LegacyTaskCenter() {
             disabled={!chosen || !nativeIds.trim()}>加入任务中心</Button></Space>
         {links.isError && <Alert className="application-message" type="error" title="关联项目读取失败" action={<Button onClick={() => void links.refetch()}>重试</Button>} />}
         {register.isError && <Alert className="application-message" type="error" title="任务登记失败，请核实原生任务 ID 与当前实例。" />}
-      </section>
+      </details>
       <section><div className="section-head"><Title level={3}>已跟踪任务</Title><Button onClick={refresh}>刷新全部</Button></div>
         {list.isPending ? <Spin aria-label="正在加载任务" /> : list.isError ?
           <Alert type="error" title="任务读取失败" action={<Button onClick={() => void list.refetch()}>重试</Button>} /> :

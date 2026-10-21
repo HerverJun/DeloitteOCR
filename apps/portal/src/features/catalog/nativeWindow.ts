@@ -29,6 +29,17 @@ export function nativeAddress(target: NativeTarget): string {
   return url.href
 }
 
+/** Add navigation hints only after nativeAddress has validated the launch target. */
+export function nativeTaskReturnAddress(address: string, search: string): string {
+  const params = new URLSearchParams(search), task = params.get('task_return'), workspace = params.get('workspace')
+  const id = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/
+  if (!task || !workspace || !id.test(task) || !id.test(workspace)) return address
+  const url = new URL(address), hash = new URLSearchParams(url.hash.slice(1))
+  hash.set('platform_task_return', task); hash.set('platform_task_workspace', workspace)
+  url.hash = hash.toString()
+  return url.href
+}
+
 export function useNativeWindow(scope: string) {
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
@@ -45,6 +56,7 @@ export function useNativeWindow(scope: string) {
   }, [scope])
   const open = (resolve: (signal: AbortSignal) => Promise<NativeTarget>) => {
     if (pending.current) return
+    const launchSearch = window.location.search
     let popup: Window | null = null
     try { popup = window.open('', '_blank'); if (popup) popup.opener = null } catch { /* Show a recoverable error. */ }
     if (!popup) { setError('未能打开新窗口；请允许弹出窗口后重试。'); return }
@@ -59,7 +71,7 @@ export function useNativeWindow(scope: string) {
     setOpening(true); setError('')
     void Promise.resolve().then(() => resolve(operation.controller.signal)).then(target => {
       if (!active() || operation.controller.signal.aborted) return
-      popup!.location.replace(nativeAddress(target))
+      popup!.location.replace(nativeTaskReturnAddress(nativeAddress(target), launchSearch))
       pending.current = null
     }).catch(failure => {
       popup!.close()

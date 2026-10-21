@@ -5,6 +5,8 @@ from dataclasses import asdict
 import hashlib
 import json
 import os
+import shutil
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -18,10 +20,13 @@ from workbench_platform.resources.gpu import GpuCoordinator
 from workbench_platform.resources.recovery import local_path, atomic_json
 from workbench_platform.multimodal.runner import WorkerRunner, worker_environment, PROTOCOL
 from workbench_platform.multimodal.qualification import Qualification
-from workbench_platform.multimodal.service import MultimodalService
+from workbench_platform.multimodal.service import MultimodalService, AUDIO_DISK_BUDGET, DISK_MARGIN, ACTIVE
+from workbench_platform.multimodal.cpu_validation import record_cpu_validation, validate_inventory
+from workbench_platform.multimodal import deep_backend
 
 RUNTIMES = {'face': 'runtimes/forensics/python.exe', 'audio': 'runtimes/audio/python.exe',
-            'seal': 'bundles/ocr/runtimes/ppocr/python.exe', 'catnet': 'runtimes/catnet/python.exe'}
+            'seal': 'bundles/ocr/runtimes/ppocr/python.exe', 'catnet': 'runtimes/catnet/python.exe',
+            'document_forensics':'runtimes/catnet/python.exe'}
 
 
 def digest(path):
@@ -36,19 +41,47 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--kind', choices=RUNTIMES, required=True)
     parser.add_argument('--device', choices=['cpu', 'cuda'], default='cpu')
+    parser.add_argument('--backend', choices=['catnet','safire'],help='Explicit detector for deep routes; default follows current configuration')
     parser.add_argument('--checkpoint-root', type=Path)
     parser.add_argument('--channel', type=int)
     parser.add_argument('--stop-after-chunks', type=int)
     parser.add_argument('--qualify', action='store_true')
-    parser.add_argument('--refresh-cpu', action='store_true', help='Refresh bundled CPU engineering receipt after successful CPU inference')
+    parser.add_argument('--refresh-cpu', action='store_true', help='Deprecated: sealed program receipts cannot be changed; use --cpu-receipt inside DATA')
+    parser.add_argument('--cpu-receipt',type=Path,help='Write a successful CPU engineering receipt inside the selected F DATA directory')
+    parser.add_argument('--trace-python-stalls',action='store_true',help='Retain a Python stack every 60 seconds in the assigned evidence output')
+    parser.add_argument('--cancel-file',type=Path,help='An explicitly assigned F control file can cancel this owned diagnostic')
     args = parser.parse_args()
     config = json.loads((SOURCE/'config/multimodal.json').read_text('utf-8'))
     program, data, output, source = map(local_path, (args.program, args.data, args.output, args.input))
+    if args.refresh_cpu:raise ValueError('不能修改封存程序的 CPU 回执；请使用 --cpu-receipt 指定 DATA 内的独立回执')
+    cpu_receipt=local_path(args.cpu_receipt) if args.cpu_receipt else None
+    cancel_file=local_path(args.cancel_file or output/'cancel.request')
+    if cpu_receipt and (args.device!='cpu' or not cpu_receipt.is_relative_to(data)):
+        raise ValueError('--cpu-receipt requires CPU inference and a path inside the selected F DATA')
+    if args.kind=='audio':
+        reserved=AUDIO_DISK_BUDGET+DISK_MARGIN
+        database=data/'jobs.sqlite3'
+        if database.is_file():
+            with sqlite3.connect('file:'+database.as_posix()+'?mode=ro',uri=True) as db:
+                if db.execute("SELECT 1 FROM sqlite_master WHERE name='manual_analysis'").fetchone():
+                    reserved+=sum(AUDIO_DISK_BUDGET for row in db.execute('SELECT body FROM manual_analysis')
+                        if (item:=json.loads(row[0]))['kind']=='audio' and item['status'] in ACTIVE)
+        if shutil.disk_usage(data if data.is_dir() else data.parent).free<reserved:
+            raise ValueError(f'F 盘不足以保留音频保护预留；需至少 {reserved/1024**3:.2f} GiB，不能绕过原生服务保护')
     if output.exists() and any(output.iterdir()): raise ValueError('Use a new evidence output directory')
     output.mkdir(parents=True, exist_ok=True); data.mkdir(parents=True, exist_ok=True)
     checkpoint = local_path(args.checkpoint_root or output / 'audio-checkpoints')
     checkpoint.mkdir(parents=True, exist_ok=True)
-    runtime = local_path(program / RUNTIMES[args.kind])
+    safire=args.kind in deep_backend.DEEP_KINDS and (args.backend or deep_backend.backend(config))=='safire'
+    bridge=MultimodalService.__new__(MultimodalService)
+    bridge.models,bridge.program,bridge.config=program/'models/multimodal',program,config
+    bridge.qualification=Qualification(data/'gpu-qualification.json')
+    bridge.safire_qualification=Qualification(data/'safire-gpu-qualification.json')
+    bridge.resource_hash_cache={}
+    pinned=deep_backend.bind(bridge,'safire' if safire else 'catnet') if args.kind in deep_backend.DEEP_KINDS else None
+    runtime=local_path(pinned['runtime']) if pinned else local_path(program/RUNTIMES[args.kind])
+    if safire and args.device!='cuda':raise ValueError('SAFIRE diagnostic requires CUDA; explicit CPU is not replaced')
+    if not safire:validate_inventory(program,'catnet' if args.kind=='document_forensics' else args.kind,runtime)
     coordinator = GpuCoordinator(data / 'gpu.sqlite3')
     request_id = 'qualify' + uuid.uuid4().hex
     if args.device == 'cuda':
@@ -65,6 +98,19 @@ def main():
             'catnet_tile_size': config.get('catnet',{}).get('tile_size',1024),
             'catnet_halo': config.get('catnet',{}).get('halo',0)}}
     atomic_json(output / 'request.json', request)
+    if pinned:
+        request['model_binding']=pinned
+        request['runner']['safire_points_per_batch']=64
+        atomic_json(output/'request.json',request)
+    worker=SOURCE/'modules/manual_multimodal'/('safire_worker.py' if pinned else 'worker.py')
+    if args.trace_python_stalls:
+        bootstrap=output/'diagnostic-bootstrap.py'
+        bootstrap.write_text('import faulthandler,runpy,sys\n'
+            f'trace=open({str(output/"python-traceback.log")!r},"a",encoding="utf-8")\n'
+            'faulthandler.enable(file=trace)\nfaulthandler.dump_traceback_later(60,repeat=True,file=trace)\n'
+            f'sys.argv=[{str(worker)!r},{str(output/"request.json")!r}]\n'
+            f'runpy.run_path({str(worker)!r},run_name="__main__")\n',encoding='utf-8')
+        worker=bootstrap
     env = worker_environment(output, runtime, gpu=args.device == 'cuda')
     if args.kind == 'seal': env.update(OMP_NUM_THREADS='1', MKL_NUM_THREADS='8', OPENBLAS_NUM_THREADS='1')
     started = time.monotonic()
@@ -94,9 +140,9 @@ def main():
     if monitor: monitor.start()
     try:
         outcome = WorkerRunner(coordinator, data / 'gpu-owners').run(
-            [str(runtime), str(SOURCE / 'modules/manual_multimodal/worker.py'), str(output / 'request.json')],
+            [str(runtime), str(worker), str(output / 'request.json')],
             output, env, request, request_id=request_id if args.device == 'cuda' else None,
-            cancelled=cancel.is_set, progress=progress, committed=on_commit, timeout=7200)
+            cancelled=lambda:cancel.is_set() or cancel_file.is_file(), progress=progress, committed=on_commit, timeout=7200)
     finally:
         stopped.set()
         if monitor: monitor.join(timeout=15)
@@ -116,31 +162,18 @@ def main():
             receipt['rtf_including_load_decode_export'] = receipt['seconds'] / duration
             receipt['segments'] = len(result['segments'])
         atomic_json(output / 'receipt.json', receipt)
-        if args.refresh_cpu:
-            if args.device != 'cpu': raise ValueError('--refresh-cpu requires CPU inference')
-            receipt_path=program/'models/multimodal/validation.json'
-            records=json.loads(receipt_path.read_text('utf-8'))
-            resources=records[args.kind]['resources']
-            for name,identity in resources.items():
-                path=program/'models/multimodal'/name
-                if path.stat().st_size!=identity['bytes'] or digest(path)!=identity['sha256']:
-                    raise ValueError('Model resource changed since bundled inventory: '+name)
-            records[args.kind]={'cpu':True,'gpu':False,'resources':resources,
-                'adapter_sha256':digest(SOURCE/'modules/manual_multimodal/worker.py'),
-                'source_hashes':{path.relative_to(SOURCE).as_posix():digest(path) for path in sorted((SOURCE/'modules/manual_multimodal').glob('*.py'))},
-                'runtime_sha256':digest(runtime),'record':{**receipt,'exit_code':0},
-                'scope':'Cold-cache CPU engineering inference; business and independent-site qualification remain pending'}
-            atomic_json(receipt_path,records)
-            receipt['cpu_receipt_refreshed']=True
+        if cpu_receipt:
+            record_cpu_validation(SOURCE,program,data,args.kind,runtime,output,receipt,path=cpu_receipt)
+            receipt['local_cpu_receipt']=str(cpu_receipt)
         if args.qualify:
             if args.device != 'cuda' or not committed and args.kind == 'audio':
                 raise ValueError('Qualification requires fresh CUDA inference, not only checkpoint reuse')
-            qualification = Qualification(data / 'gpu-qualification.json')
-            bridge = MultimodalService.__new__(MultimodalService)
-            bridge.models, bridge.program, bridge.qualification = program / 'models/multimodal', program, qualification
-            bridge.config=json.loads((SOURCE/'config/multimodal.json').read_text('utf-8'))
-            resources = json.loads((bridge.models / 'validation.json').read_text('utf-8'))[args.kind]['resources']
-            binding = bridge.gpu_binding(args.kind, RUNTIMES[args.kind], resources)
+            qualification=bridge.safire_qualification if safire else bridge.qualification
+            if safire:
+                binding=bridge.safire_gpu_binding(args.kind,pinned)
+            else:
+                resources=json.loads((bridge.models/'validation.json').read_text('utf-8'))['catnet' if args.kind=='document_forensics' else args.kind]['resources']
+                binding=bridge.gpu_binding(args.kind,RUNTIMES[args.kind],resources)
             evidence = {'succeeded': True, 'actual_device': result['device'], 'cold_cache': True,
                 'network_blocked': result.get('network_policy') == 'all_outbound_connections_denied',
                 'cleanup_confirmed': receipt['cleanup_confirmed'], 'memory_method': 'device_total',
