@@ -145,6 +145,36 @@ def duplicate_table_block(block, duplicates, image):
     return any(signature == expected and same_table_region(box, region) for expected, region in duplicates)
 
 
+def without_structured_html(text, tables):
+    """Remove only HTML spans already represented by saved structural cells."""
+    signatures = {table_signature(table) for table in tables}
+    try:
+        parsed = parse_tables(text)
+    except ValueError:
+        return text
+    spans = [table['source'] for table in parsed if table['source']['format'] == 'html'
+             and table_signature(table) in signatures]
+    for span in reversed(spans):
+        text = text[:span['start']] + text[span['end']:]
+    return text.strip()
+
+
+def readable_table_text(table):
+    """Plain text preserves every literal cell, including later rows."""
+    lines = [table['caption']] if table.get('caption') else []
+    lines.append(f'{table["rows"]} 行 × {table["columns"]} 列')
+    current, values = None, []
+    for cell in sorted(table['cells'], key=lambda item: (item['row'], item['column'])):
+        if current is not None and current != cell['row']:
+            lines.append('\t'.join(values))
+            values = []
+        current = cell['row']
+        values.append(cell['text'])
+    if values:
+        lines.append('\t'.join(values))
+    return '\n'.join(lines)
+
+
 class DocumentService:
     def __init__(self, app, root):
         self.app, self.root = app, fpath(root)
@@ -406,6 +436,7 @@ class DocumentService:
         from workbench_platform.application_services.native import prepare
         ctx = self.context(value)
         selected = prepare(ctx, 'ocr', value['ocr_link_id'])
+        self.current(ctx.workspace_id, value['document_id'])
         if selected['requires_project_selection']:
             raise DataError('存在多个 OCR 项目，请选择关联项目后解析')
         sets = self.app.state.asset_library[1]
@@ -418,6 +449,7 @@ class DocumentService:
         imported = handoff.begin(ctx.workspace_id, selected['link_id'], asset_set.asset_set_id, asset_set.revision)
         adapter = handoff._adapter(handoff._context(ctx.workspace_id, selected['link_id']))
         native = adapter.import_status(handoff._row(ctx.workspace_id, imported['handoff_id'])['request_id'])
+        self.current(ctx.workspace_id, value['document_id'])
         engine = 'auto'
         pdf = Path(value['source']['original_name']).suffix.lower() == '.pdf'
         if pdf:
@@ -445,9 +477,12 @@ class DocumentService:
             options = {'fallback_engine': value['fallback_engine']} if value.get('fallback_engine') is not None else {}
             submission = handoff.submit(ctx.workspace_id, imported['handoff_id'], [engine], **options)
             identity = {'handoff_id': imported['handoff_id'], 'platform_job_id': submission['job']['platform_job_id'], 'engine': engine}
-        self.update(ctx.workspace_id, value['document_id'], ocr=identity)
         deadline = time.monotonic() + 900
         try:
+            # Cancellation can be followed immediately by a new generation
+            # while this accepted native submission is returning. Its stale
+            # metadata write must still cancel the old attempt's owned child.
+            self.update(ctx.workspace_id, value['document_id'], ocr=identity)
             while True:
                 self.current(ctx.workspace_id, value['document_id'])
                 if pdf:
@@ -515,13 +550,17 @@ class DocumentService:
             has_native = any(block['text'].strip() for block in page['blocks'] if block['type'] not in {'image', 'chart'})
             ocr_blocks = [block for block in original.get('blocks', []) if block.get('source_kind') == 'ocr']
             if not pdf or not has_native:
-                ocr_blocks = [{'text': text}] if text.strip() else []
+                readable = without_structured_html(text, candidates)
+                ocr_blocks = [{'text': readable}] if readable.strip() else []
             elif not composition.get('ocr_sources'):
                 ocr_blocks = []
             for index, block in enumerate(ocr_blocks):
                 if duplicate_table_block(block, duplicates, original.get('image') or {}):
                     continue
-                page['blocks'].append({'block_id': prefix + f'ocrb{index + 1}', 'type': 'text', 'text': block.get('text', ''),
+                readable = without_structured_html(block.get('text', ''), candidates)
+                if not readable.strip():
+                    continue
+                page['blocks'].append({'block_id': prefix + f'ocrb{index + 1}', 'type': 'text', 'text': readable,
                     'bbox': None, 'order': len(page['blocks']), 'source': source,
                     'engine_identity': identity, 'ocr_result_id': result.native_result_id, 'ocr_revision': revision})
             if composition.get('conflicts'):
@@ -535,7 +574,7 @@ class DocumentService:
                 document['tables'].append({**table, 'table_id': identifier, 'revision': 1, 'page_number': number,
                     'cells': cells, 'source': source, 'reviewed': False, 'ocr_result_id': result.native_result_id,
                     'ocr_revision': revision, 'engine_identity': identity, 'model_revisions': identity['model_revisions']})
-                page['blocks'].append({'block_id': identifier, 'type': 'table', 'table_id': identifier, 'text': '',
+                page['blocks'].append({'block_id': identifier, 'type': 'table', 'table_id': identifier, 'text': readable_table_text(table),
                     'bbox': None, 'order': len(page['blocks']), 'source': source})
 
     def parsed(self, workspace_id, document_id, revision=None):

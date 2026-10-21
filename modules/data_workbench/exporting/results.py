@@ -107,7 +107,8 @@ def _validated_result(result: ComparisonResult, left: dict, right: dict) -> None
             amount_pairs=tuple(tuple(pair) for pair in policy["amount_pairs"]),
             type_policy=policy["type_policy"], null_policy=policy["null_policy"],
             amount_tolerance=policy["amount_tolerance"],
-            trim_text=policy["trim_text"], casefold_text=policy["casefold_text"])
+            trim_text=policy["trim_text"], casefold_text=policy["casefold_text"],
+            amount_format=policy.get("amount_format", "plain-decimal-v1"))
         actual = compare_exact(left, right, left_revision=result.left_revision,
                                right_revision=result.right_revision, spec=spec)
     except (KeyError, TypeError, ValueError):

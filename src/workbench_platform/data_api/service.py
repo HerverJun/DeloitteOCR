@@ -299,6 +299,19 @@ class DataWorkbenchService:
                              (session_id,)).fetchone()
             return bool(row and row['version'] == version and row['workspace_id'] == workspace_id)
 
+    def _require_compare_reader(self, action, reply):
+        policy = reply.get('state', {}).get('comparison', {}).get('spec', {})
+        if action == 'compare' and policy.get('amount_format') == 'financial-v1':
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'data-financial-amount-v1')
+
+    def _require_compare_request_reader(self, request):
+        spec = request.get('payload', {}).get('spec', {})
+        if (request.get('action') == 'compare' and spec.get('amount_pairs')
+                and spec.get('amount_format', 'financial-v1') == 'financial-v1'):
+            from workbench_platform.resources.reader_features import require_features
+            require_features(self.root.parent, 'data-financial-amount-v1')
+
     def _recover_replies(self):
         with closing(self.db()) as db:
             pending = db.execute("SELECT r.* FROM operation_requests r JOIN jobs j ON j.id=r.job_id "
@@ -313,6 +326,7 @@ class DataWorkbenchService:
                     continue
                 with closing(self.db()) as db, db:
                     db.execute('BEGIN IMMEDIATE')
+                    self._require_compare_reader(json.loads(row['request'])['action'], value)
                     changed = db.execute('UPDATE sessions SET state=?,version=version+1,updated=? '
                                          'WHERE id=? AND version=?',
                                          (encode(value['state']), now(), row['session_id'], row['version'])).rowcount
@@ -374,6 +388,10 @@ class DataWorkbenchService:
                                      (now(), job_id)).rowcount
             if not changed:
                 return
+            # The child persists result_views and its durable response before
+            # the parent publishes a pointer. Claim the reader before opening
+            # that child gate, so a parent crash cannot leave unmarked results.
+            self._require_compare_request_reader(request)
             folder = self.session_dir(session_id) / 'jobs' / job_id
             folder.mkdir(exist_ok=True)
             request_path, response_path = folder / 'request.json', folder / 'response.json'
@@ -417,6 +435,9 @@ class DataWorkbenchService:
                 if status == 'cancelling' or self.closing.is_set():
                     db.execute("UPDATE jobs SET status='cancelled',updated=? WHERE id=?", (now(), job_id))
                     return
+                # The marker must be durable before the new result pointer is
+                # published, including a later recovery of a completed reply.
+                self._require_compare_reader(request['action'], result)
                 changed = db.execute('UPDATE sessions SET state=?,version=version+1,updated=? WHERE id=? AND version=?',
                                      (encode(result['state']), now(), session_id, version)).rowcount
                 if changed != 1:

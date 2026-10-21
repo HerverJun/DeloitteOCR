@@ -55,6 +55,19 @@ class PlatformReaderGateTests(unittest.TestCase):
         self.assertEqual((self.root / 'product-reader-requirements.json').read_bytes(), before)
         self.assertFalse(list(self.root.glob('*.new')))
 
+    def test_financial_amount_marker_rejects_previous_reader_without_data_changes(self):
+        feature = 'data-financial-amount-v1'
+        previous_reader = deepcopy(DATA_COMPATIBILITY)
+        previous_reader['reader_features'].remove(feature)
+        self.assertTrue(check(self.root, previous_reader)['compatible'])
+        require_features(self.root, feature)
+        marker = self.root / 'product-reader-requirements.json'
+        before = marker.read_bytes()
+        with self.assertRaisesRegex(ValueError, '不能直接降级'):
+            check(self.root, previous_reader)
+        self.assertTrue(check(self.root, DATA_COMPATIBILITY)['compatible'])
+        self.assertEqual(marker.read_bytes(), before)
+
     def test_nonempty_new_ledger_rejects_missing_feature_without_marker(self):
         old_reader = deepcopy(DATA_COMPATIBILITY)
         old_reader['reader_features'].remove(FEATURE)

@@ -53,10 +53,10 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
   const pending = useRef<{ request_id: string; asset_id: string; asset_revision: number; blob_hash: string } | null>(null)
   useEffect(() => { try { pending.current = JSON.parse(localStorage.getItem(pendingKey) || 'null') } catch { pending.current = null } }, [pendingKey])
   useEffect(() => { if (params.get('asset')) setAssetId(params.get('asset')!) }, [params.get('asset')])
+  const selectedAsset = media.data?.find(value => value.asset_id === assetId && parseableDocument(value.original_name))
   const parse = useMutation({ mutationFn: async () => {
-    const asset = media.data?.find(value => value.asset_id === assetId)
-    if (!pending.current && !asset) throw new Error('请先选择需要解析的资料。')
-    pending.current ||= { request_id: newRequestId(), asset_id: asset!.asset_id, asset_revision: asset!.revision, blob_hash: asset!.blob_hash }
+    if (!pending.current && !selectedAsset) throw new Error(media.isPending ? '正在读取资料，请稍候。' : '请先选择需要解析的资料。')
+    pending.current ||= { request_id: newRequestId(), asset_id: selectedAsset!.asset_id, asset_revision: selectedAsset!.revision, blob_hash: selectedAsset!.blob_hash }
     localStorage.setItem(pendingKey, JSON.stringify(pending.current))
     return documentsApi.parse(workspace, { asset_id: pending.current.asset_id, revision: pending.current.asset_revision, blob_hash: pending.current.blob_hash, original_name: '', media_type: '' }, pending.current.request_id)
   }, onSuccess: value => { pending.current = null; localStorage.removeItem(pendingKey); choose(value); void listing.refetch() } })
@@ -68,7 +68,7 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
     <UploadQueue workspaceId={workspace} compact onUploaded={id => { setAssetId(id); void media.refetch() }} />
     <Space wrap className="document-controls"><Select aria-label="待解析文档" showSearch optionFilterProp="label" placeholder="选择已导入的文档" value={assetId || undefined} onChange={setAssetId} loading={media.isPending}
       options={media.data?.filter(asset => parseableDocument(asset.original_name)).map(asset => ({ value: asset.asset_id, label: `${asset.original_name} · v${asset.revision}` }))} />
-      <Button type="primary" loading={parse.isPending} disabled={!pending.current && !assetId} onClick={() => parse.mutate()}>{pending.current ? '核实上次解析请求' : '解析文档'}</Button>
+      <Button type="primary" loading={parse.isPending || (!pending.current && media.isPending)} disabled={!pending.current && !selectedAsset} onClick={() => parse.mutate()}>{pending.current ? '核实上次解析请求' : '解析文档'}</Button>
       <Button onClick={() => { void media.refetch(); void listing.refetch(); if (selected) void detail.refetch() }}>刷新</Button>
     </Space>
     {(media.error || listing.error || detail.error || parse.error || control.error) && <Alert type="error" title={(media.error || listing.error || detail.error || parse.error || control.error)?.message} />}
@@ -88,7 +88,8 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
         <Space wrap><Select aria-label="解析结果页码" value={page} onChange={value => { setPage(value); setBlockPage(1) }} options={pages.map(value => ({ value: value.page_number, label: `${pageName(value.page_number)}${value.needs_ocr ? ' · 扫描内容待识别' : ''}` }))} />
           <Button onClick={() => void navigator.clipboard.writeText((blocks.data?.blocks || pageData?.blocks || []).map(block => block.text).join('\n\n')).then(() => setCopyMessage('当前显示文字已复制')).catch(() => setCopyMessage('无法写入剪贴板，请选中下方文字复制。'))}>复制当前文字</Button>
           <a href={`${downloadBase}/files/document.md`} download>导出 Markdown</a><a href={`${downloadBase}/files/document.json`} download>导出结构 JSON</a><a href={`${downloadBase}/files/raw-bundle.zip`} download>下载原始输出包</a>
-          <Link to={`/agent?workspace=${encodeURIComponent(workspace)}&document=${encodeURIComponent(selected)}&assets=${encodeURIComponent(detail.data.source?.asset_id || detail.data.asset_id || assetId)}`}>交给 Agent 读取</Link>
+          <Link to={`/agent?workspace=${encodeURIComponent(workspace)}&document=${encodeURIComponent(selected)}&assets=${encodeURIComponent(detail.data.source?.asset_id || detail.data.asset_id || assetId)}`}>交给 Agent 读取原始解析</Link>
+          <Text type="secondary">表格人工修订请在校对中查看或导出。</Text>
         </Space>{copyMessage && <Text role="status">{copyMessage}</Text>}
         {pageData?.needs_ocr && <Alert type="warning" title="此页仍有扫描内容待识别" description="请查看任务状态或在文档识别中完成增强识别；当前显示已保存内容。" />}
         {blocks.error && <Alert type="error" title={blocks.error.message} />}

@@ -65,6 +65,49 @@ def test_match_differences_unmatched_ambiguity_and_coverage(tmp_path: Path):
                                                   right_revision=right_id, spec=_spec()).comparison_id
 
 
+@pytest.mark.parametrize(('left_amount', 'right_amount', 'tolerance', 'equal'), [
+    ('1,234.50', '1234.51', '0.01', True),
+    ('1,234.50', '1,234.50', '0', True),
+    ('(20.00)', '-20.00', '0', True),
+    ('(1,234.50)', '-1234.50', '0', True),
+    ('(123456789012345678901234567890.12)', '-123456789012345678901234567890.12', '0', True),
+    ('1,234.50', '1234.52', '0.01', False),
+    ('12,34.50', '1234.50', '0', False),
+    ('1234,50', '1234.50', '0', False),
+    ('(+20.00)', '-20.00', '0', False),
+    ('(-20.00)', '20.00', '0', False),
+])
+def test_formatted_amount_comparison_keeps_original_cells(tmp_path, left_amount, right_amount, tolerance, equal):
+    left_id, left = _table(tmp_path, 'left', f'id,amount\n001234567890,"{left_amount}"\n')[1:]
+    right_id, right = _table(tmp_path, 'right', f'id,amount\n001234567890,"{right_amount}"\n')[1:]
+    original = json.dumps([left, right], ensure_ascii=False, sort_keys=True)
+    spec = ComparisonSpec((('c1', 'c1'),), (('c2', 'c2'),),
+                          amount_pairs=(('c2', 'c2'),), amount_tolerance=tolerance)
+    result = compare_exact(left, right, left_revision=left_id, right_revision=right_id, spec=spec)
+    assert len(result.same) == int(equal)
+    assert len(result.different) == int(not equal)
+    assert result.policy['amount_format'] == 'financial-v1'
+    assert json.dumps([left, right], ensure_ascii=False, sort_keys=True) == original
+    if left_amount != right_amount:
+        text_result = compare_exact(left, right, left_revision=left_id, right_revision=right_id,
+                                   spec=ComparisonSpec((('c1', 'c1'),), (('c2', 'c2'),)))
+        assert len(text_result.different) == 1
+
+
+def test_new_amount_rules_have_a_distinct_identity_and_preserve_legacy_policy(tmp_path):
+    left_id, left = _table(tmp_path, 'left', 'id,amount\nA,"1,234.50"\n')[1:]
+    right_id, right = _table(tmp_path, 'right', 'id,amount\nA,1234.51\n')[1:]
+    args = dict(key_pairs=(('c1', 'c1'),), compare_pairs=(('c2', 'c2'),),
+                amount_pairs=(('c2', 'c2'),), amount_tolerance='0.01')
+    current = compare_exact(left, right, left_revision=left_id, right_revision=right_id,
+                            spec=ComparisonSpec(**args))
+    legacy = compare_exact(left, right, left_revision=left_id, right_revision=right_id,
+                           spec=ComparisonSpec(**args, amount_format='plain-decimal-v1'))
+    assert len(current.same) == len(legacy.different) == 1
+    assert current.comparison_id != legacy.comparison_id
+    assert 'amount_format' not in legacy.policy
+
+
 def test_null_and_amount_policies_change_results_explicitly(tmp_path: Path):
     left_id, left, right_id, right = _fixture(tmp_path)
     exact = compare_exact(left, right, left_revision=left_id, right_revision=right_id,
