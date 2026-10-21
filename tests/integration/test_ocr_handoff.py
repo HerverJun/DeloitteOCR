@@ -15,7 +15,8 @@ from workbench_platform.jobs.native_ocr import OcrUnavailable, ResultArtifact
 LOCAL = {"host": "127.0.0.1:8766", "origin": "http://127.0.0.1:8766"}
 
 
-def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
+@pytest.mark.parametrize('fallback_engine', [None, 'glm'])
+def test_lost_response_does_not_import_twice(tmp_path, monkeypatch, fallback_engine):
     monkeypatch.setenv("WORKBENCH_DATA_DIR", str(tmp_path))
     native = {"status": None, "items_sent": 0, "submissions": 0,
               "result_image": "imageA"}
@@ -51,8 +52,9 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
             assert (method, path) == ("GET", "/api/state")
             return {"engines": {"ppocr": {"name": "PaddleOCR"}}}
 
-        def submit(self, version_ids, engines, *, request_id):
-            assert version_ids == ["versionA"] and engines == ["ppocr"]
+        def submit(self, version_ids, engines, *, request_id, **options):
+            assert version_ids == ["versionA"] and engines == (["auto"] if fallback_engine else ["ppocr"])
+            assert options == ({'fallback_engine': fallback_engine} if fallback_engine else {})
             native["submissions"] += 1
             return ("taskA",)
 
@@ -74,7 +76,7 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
             return b'{"id":"resultA","revision":0}', "application/json"
 
         def snapshot(self):
-            return {"project": {"name": "OCR project"}}
+            return {"project": {"name": "OCR project"}, "tasks": [{"id": "taskA", "input_version_id": "versionA"}]}
 
     with TestClient(app, base_url="http://127.0.0.1:8766") as client:
         workspace = client.post("/api/platform/v1/workspaces", headers=LOCAL,
@@ -105,9 +107,16 @@ def test_lost_response_does_not_import_twice(tmp_path, monkeypatch):
         capability = client.get(route + "/" + first.json()["handoff_id"] + "/capabilities")
         assert capability.json()["recognition"] is True
         task_path = route + "/" + first.json()["handoff_id"] + "/tasks"
-        submitted = client.post(task_path, headers=LOCAL, json={"engines": ["ppocr"]})
+        selection = {"engines": ["auto"] if fallback_engine else ["ppocr"]}
+        if fallback_engine:
+            selection['fallback_engine'] = fallback_engine
+        submitted = client.post(task_path, headers=LOCAL, json=selection)
         assert submitted.status_code == 201 and submitted.json()["job"]["platform_job_id"] == "jobA"
-        assert client.post(task_path, headers=LOCAL, json={"engines": ["ppocr"]}).status_code == 201
+        assert client.post(task_path, headers=LOCAL, json=selection).status_code == 201
+        if fallback_engine:
+            assert client.get(route + "/" + first.json()["handoff_id"]).json()['processing']['fallback_engine'] == fallback_engine
+            changed = client.post(task_path, headers=LOCAL, json={**selection, 'fallback_engine': 'ppocr'})
+            assert changed.status_code == 409
         assert native["submissions"] == 1
         assert status.json()["processing"] is None
         assert client.get(route + "/" + first.json()["handoff_id"]).json()["processing"]["platform_job_id"] == "jobA"

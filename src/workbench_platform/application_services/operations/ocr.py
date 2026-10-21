@@ -29,6 +29,7 @@ class OcrRun(AgentModel):
     asset_set_revision: int = Field(ge=1)
     engines: list[Identity] = Field(min_length=1, max_length=16)
     preprocess: list[Rotate | Contrast] = Field(default_factory=list, max_length=2)
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
     parent_operation_id: Identity | None = None
 
 
@@ -67,6 +68,7 @@ def run(args, context):
         raise ValueError('所选引擎不可用，或输入需要 PDF 页处理')
     context.current()
     return pending(handoff.submit(context.workspace_id, imported['handoff_id'], args.engines,
+        **({'fallback_engine': args.fallback_engine} if args.fallback_engine is not None else {}),
         **({'preprocess': [item.model_dump() for item in args.preprocess]} if args.preprocess else {})), context)
 
 
@@ -84,6 +86,7 @@ def lookup(args, context, *, include_not_submitted=False):
     imported = handoff.begin(context.workspace_id, args.link_id, attempt.asset_set_id, attempt.revision)
     context.current()
     value = handoff.submit(context.workspace_id, imported['handoff_id'], args.engines, allow_new=False,
+        **({'fallback_engine': args.fallback_engine} if args.fallback_engine is not None else {}),
         **({'preprocess': [item.model_dump() for item in args.preprocess]} if args.preprocess else {}))
     if value.get('not_submitted'):
         if include_not_submitted and value.get('authoritative_negative') is True:

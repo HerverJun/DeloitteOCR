@@ -4,9 +4,11 @@ from contextlib import closing, contextmanager
 import hashlib
 import io
 import json
+import math
 import mimetypes
 import os
 from pathlib import Path
+import re
 import sqlite3
 import subprocess
 import threading
@@ -19,7 +21,7 @@ from workbench_platform.audit.service import validated
 from workbench_platform.batches.store import encoded, fingerprint, now
 from workbench_platform.data_api.service import DataError
 from .normalize import normalize
-from .tables import export_xlsx
+from .tables import export_xlsx, parse_tables
 
 SOURCE_ROOT = Path(__file__).resolve().parents[3]
 SUPPORTED = {'.pdf', '.docx', '.pptx', '.ofd', '.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp', '.webp'}
@@ -35,6 +37,112 @@ def fpath(path):
 
 class Cancelled(Exception):
     pass
+
+
+def stop_process(process):
+    """Reap the owned CPU worker before releasing an attempt or shutdown."""
+    if process is None:
+        return
+    if process.poll() is None:
+        try:
+            process.terminate()
+        except OSError:
+            if process.poll() is None:
+                raise
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=5)
+
+
+def engine_identity(original):
+    composition = original.get('document') or {}
+    engines = list(dict.fromkeys(composition.get('ocr_sources') or [original.get('engine', 'unknown')]))
+    return {'id': engines[0] if len(engines) == 1 else original.get('engine', 'document'),
+            'composition_engine': original.get('engine', 'unknown'), 'engines': engines,
+            'engine_info': original.get('engine_info') or {},
+            'model_revisions': original.get('model_revisions') or {},
+            'routes': composition.get('engine_routes') or ([original['engine_route']] if original.get('engine_route') else [])}
+
+
+def public_stage_text(value):
+    """Retain native public failure detail without credentials or local paths."""
+    if isinstance(value, dict):
+        value = value.get('message')
+    if not isinstance(value, str):
+        return ''
+    text = ' '.join(value.split())[:1000]
+    text = re.sub(r'(?i)\b(?:api[_-]?key|access[_-]?token|authorization|password|secret|token)\b\s*[:=]\s*'
+                  r'(?:"[^"]*"|\'[^\']*\'|[^\s;,，；]+)', '[凭据已隐藏]', text)
+    text = re.sub(r'(?i)\b(?:Bearer\s+\S+|sk-[A-Za-z0-9_-]{8,})', '[凭据已隐藏]', text)
+    text = re.sub(r'(?i)https?://\S+', '[链接已隐藏]', text)
+    text = re.sub(r'(?:[A-Za-z]:[\\/]|\\\\)[^\r\n<>"\']+', '[路径已隐藏]', text)
+    return text[:500]
+
+
+def table_signature(table):
+    return (table['rows'], table['columns'], ' '.join(table.get('caption', '').split()),
+            tuple(sorted((cell['row'], cell['column'], cell['row_span'], cell['column_span'],
+                          ' '.join(cell['text'].split())) for cell in table['cells'])))
+
+
+def normalized_polygon_box(polygon, image):
+    width, height = image.get('width'), image.get('height')
+    if (type(width) not in (int, float) or type(height) not in (int, float)
+            or not math.isfinite(width) or not math.isfinite(height) or min(width, height) <= 0
+            or not isinstance(polygon, list) or len(polygon) < 3
+            or any(not isinstance(point, (list, tuple)) or len(point) != 2
+                   or any(type(value) not in (int, float) or not math.isfinite(value) for value in point)
+                   or not (0 <= point[0] <= width and 0 <= point[1] <= height) for point in polygon)):
+        return None
+    xs, ys = [point[0] / width for point in polygon], [point[1] / height for point in polygon]
+    return [min(xs), min(ys), max(xs), max(ys)]
+
+
+def same_table_region(first, second):
+    if any(not isinstance(box, (list, tuple)) or len(box) != 4
+           or any(type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1 for value in box)
+           or box[0] >= box[2] or box[1] >= box[3] for box in (first, second)):
+        return False
+    overlap = max(0, min(first[2], second[2]) - max(first[0], second[0])) * max(0, min(first[3], second[3]) - max(first[1], second[1]))
+    area = lambda box: (box[2] - box[0]) * (box[3] - box[1])
+    return overlap / (area(first) + area(second) - overlap) >= .90
+
+
+def reconcile_native_tables(document, number, candidates, image, source, identity):
+    """Only merge equal native/OCR tables with strong same-page geometry."""
+    native = [table for table in document['tables'] if table['page_number'] == number
+              and (table.get('engine_identity') or {}).get('id') == 'docvortex'
+              and table['source'].get('coordinate_space') == 'normalized'
+              and all(table['source'].get(key) == source.get(key) for key in ('asset_id', 'asset_revision', 'blob_hash'))]
+    kept, duplicates = [], []
+    for index, table in enumerate(candidates):
+        box = normalized_polygon_box(table.get('polygon'), image)
+        signature = table_signature(table)
+        match = next((item for item in native if table_signature(item) == signature
+                      and same_table_region(item['source'].get('box'), box)), None)
+        if match is None:
+            kept.append((index, table))
+            continue
+        match.setdefault('ocr_confirmations', []).append({'source': source, 'engine_identity': identity,
+            'native_table_index': index, 'normalized_box': box, 'rule': 'same-page-equal-cells-overlap-v1'})
+        duplicates.append((signature, box))
+    return kept, duplicates
+
+
+def duplicate_table_block(block, duplicates, image):
+    if block.get('kind') != 'table' or not duplicates:
+        return False
+    text = block.get('text', '').strip()
+    try:
+        tables = parse_tables(text)
+    except ValueError:
+        return False
+    if len(tables) != 1 or tables[0]['source']['start'] != 0 or tables[0]['source']['end'] != len(text):
+        return False
+    box, signature = normalized_polygon_box(block.get('polygon'), image), table_signature(tables[0])
+    return any(signature == expected and same_table_region(box, region) for expected, region in duplicates)
 
 
 class DocumentService:
@@ -115,6 +223,8 @@ class DocumentService:
 
     def create(self, workspace_id, payload):
         command = validated(DocumentParse, payload)
+        if command.get('fallback_engine') is None:
+            command.pop('fallback_engine', None)
         from workbench_platform.resources.reader_features import require_features
         require_features(self.root.parent, 'structured-documents-v1')
         if self.app.state.workspace_store.get_workspace(workspace_id) is None:
@@ -179,8 +289,8 @@ class DocumentService:
                 raise DataError('未知文档控制操作')
             self.save(db, value)
         process = self.processes.get(document_id)
-        if action == 'cancel' and process and process.poll() is None:
-            process.terminate()
+        if action == 'cancel':
+            stop_process(process)
         if action == 'resume':
             self.executor.submit(self.execute, workspace_id, document_id, value['generation'])
         return value
@@ -212,7 +322,7 @@ class DocumentService:
                         while process.poll() is None:
                             self.current(workspace_id, document_id)
                             if time.monotonic() > deadline:
-                                process.terminate()
+                                stop_process(process)
                                 raise DataError('文档解析超过 10 分钟，已停止；日志保留')
                             self.stop.wait(.2)
                         self.current(workspace_id, document_id)
@@ -224,8 +334,14 @@ class DocumentService:
             else:
                 document = normalize({'pages': [{'page_idx': 0, 'blocks': []}]}, value['source'], document_id, generation=generation)
             self.current(workspace_id, document_id)
-            if value['ocr_policy'] == 'auto' and any(page['needs_ocr'] for page in document['pages']):
+            # Native text alone does not prove that a PDF page has no scanned
+            # regions. The existing OCR page pipeline owns bitmap coverage and
+            # its native/region merge, including pages containing both kinds.
+            if value['ocr_policy'] == 'auto' and (suffix == '.pdf' or any(page['needs_ocr'] for page in document['pages'])):
                 self.update(workspace_id, document_id, stage='ocr')
+                if suffix == '.pdf':
+                    for page in document['pages']:
+                        page.update(needs_ocr=True, coverage_check='pending')
                 try:
                     self.ocr_pages(value, document)
                 except Cancelled:
@@ -274,13 +390,17 @@ class DocumentService:
                 pass
         finally:
             process = self.processes.pop(document_id, None)
-            if process and process.poll() is None:
-                process.terminate()
+            stop_process(process)
             self.execution.generation = None
 
     def context(self, value):
         from workbench_platform.application_services.context import SessionContext
-        return SessionContext(value['workspace_id'], '', '', 0, 0, value['document_id'], (value['asset_id'],), self.app.state, None)
+        # A completed launch receipt belongs to its original service lifetime.
+        # Explicit document resume starts a new generation, so cold preparation
+        # needs a new idempotency key while repeated work in that attempt dedupes.
+        operation = f'{value["document_id"]}g{value["generation"]}'
+        return SessionContext(value['workspace_id'], '', '', value['generation'], 0, operation,
+                              (value['asset_id'],), self.app.state, None)
 
     def ocr_pages(self, value, document):
         from workbench_platform.application_services.native import prepare
@@ -301,17 +421,29 @@ class DocumentService:
         engine = 'auto'
         pdf = Path(value['source']['original_name']).suffix.lower() == '.pdf'
         if pdf:
-            native_document = next(item['target_document_id'] for item in native['items'] if item.get('target_document_id'))
+            imported_document = next(item for item in native['items'] if item.get('target_document_id'))
+            native_document = imported_document['target_document_id']
+            count = imported_document['page_count']
+            by_number = {page['page_number']: page for page in document['pages']}
+            if set(by_number) != set(range(1, count + 1)):
+                document['warnings'].append('原生解析页数与原件不一致，缺少页面由原件页队列补读')
+                document['pages'] = [by_number.get(number) or {'page_number': number, 'width': None, 'height': None,
+                    'blocks': [], 'source': {**value['source'], 'page_number': number}, 'needs_ocr': True,
+                    'coverage_check': 'pending', 'engine': 'unknown'} for number in range(1, count + 1)]
             request = 'r' + attempt
-            pages = [page['page_number'] for page in document['pages'] if page['needs_ocr']]
+            pages = [page['page_number'] for page in document['pages']]
             receipt = adapter.page_request(native_document, request)
             if not receipt['submitted']:
-                receipt = adapter.page_request(native_document, request, body={'page_numbers': pages, 'mode': 'auto', 'engine': engine, 'force': False})
+                parameters = {'page_numbers': pages, 'mode': 'auto', 'engine': engine, 'force': False}
+                if value.get('fallback_engine') is not None:
+                    parameters['fallback_engine'] = value['fallback_engine']
+                receipt = adapter.page_request(native_document, request, body=parameters)
             elif any(stage['status'] in {'paused', 'interrupted', 'cancelled', 'failed'} for stage in receipt['stages']):
                 receipt = adapter.page_request(native_document, request, action='resume')
             identity = {'handoff_id': imported['handoff_id'], 'document_id': native_document, 'request_id': request, 'engine': engine}
         else:
-            submission = handoff.submit(ctx.workspace_id, imported['handoff_id'], [engine])
+            options = {'fallback_engine': value['fallback_engine']} if value.get('fallback_engine') is not None else {}
+            submission = handoff.submit(ctx.workspace_id, imported['handoff_id'], [engine], **options)
             identity = {'handoff_id': imported['handoff_id'], 'platform_job_id': submission['job']['platform_job_id'], 'engine': engine}
         self.update(ctx.workspace_id, value['document_id'], ocr=identity)
         deadline = time.monotonic() + 900
@@ -322,6 +454,15 @@ class DocumentService:
                     receipt = adapter.page_request(native_document, request)
                     pending = [stage for stage in receipt['stages'] if stage['status'] in {'queued', 'running', 'waiting_gpu'}]
                     if not pending:
+                        for stage in receipt['stages']:
+                            if stage['status'] == 'succeeded':
+                                continue
+                            page = next(page for page in document['pages'] if page['page_number'] == stage['page_number'])
+                            phase = public_stage_text(stage.get('phase')) or '页面处理未完成'
+                            message = public_stage_text(stage.get('error')) or '该阶段未完成，请查看文档识别中的原任务后重新启动解析'
+                            page.update(needs_ocr=True, coverage_check=stage['status'],
+                                        ocr_error={'status': stage['status'], 'phase': phase, 'message': message})
+                            document['warnings'].append(f'第 {stage["page_number"]} 页覆盖检查未完成（{phase}）：{message}')
                         snapshot = adapter.snapshot()
                         result_ids = {(stage.get('output') or {}).get('result_id'): stage['page_number'] for stage in receipt['stages'] if stage['status'] == 'succeeded'}
                         task_ids = [task['id'] for task in snapshot['tasks'] if task.get('result_id') in result_ids and task['status'] == 'succeeded']
@@ -349,18 +490,51 @@ class DocumentService:
             number = result_ids[result.native_result_id] if pdf else 1
             page = next(page for page in document['pages'] if page['page_number'] == number)
             source = {**source, 'page_number': number, 'parse_run_id': value['document_id'], 'generation': value['generation'],
-                      'precision': 'page_only', 'box': None, 'coordinate_space': None}
+                      'precision': 'page_only', 'box': None, 'coordinate_space': None,
+                      'native_result_id': result.native_result_id, 'native_result_revision': revision,
+                      'native_image_id': result.image_id, 'native_version_id': result.version_id,
+                      'native_result_sha256': tables['content_sha256']}
             text = str((snapshot.get('edited') or {}).get('text', ''))
-            actual = snapshot.get('original', {}).get('engine', engine)
-            page.update(needs_ocr=not bool(text.strip() or tables['tables']), engine=actual)
+            original = snapshot.get('original') or {}
+            composition = original.get('document') or {}
+            identity = engine_identity(original)
+            unresolved = composition.get('native_only_incomplete') or any(
+                conflict.get('reason') == 'region_no_text' for conflict in composition.get('conflicts', []))
+            unresolved = unresolved or (not text.strip() and not tables['tables'] and composition.get('page_class') != 'blank')
+            page.update(needs_ocr=bool(unresolved), coverage_check='complete',
+                        engine=identity['id'], engine_identity=identity,
+                        model_revisions=identity['model_revisions'], ocr_source=source)
             prefix = f'{value["document_id"]}g{value["generation"]}p{number}'
-            page['blocks'].append({'block_id': prefix + 'ocr', 'type': 'text', 'text': text, 'bbox': None,
-                'order': len(page['blocks']), 'source': source, 'ocr_result_id': result.native_result_id, 'ocr_revision': revision})
             page['ocr_snapshot'] = snapshot
-            for index, table in enumerate(tables['tables']):
+            # Preserve the authoritative raw snapshot. Only the Clear reading
+            # projection coalesces an equal table at the same proven location.
+            existing = any(table['page_number'] == number for table in document['tables'])
+            candidates = tables['tables'] if composition.get('ocr_sources') or not pdf or not existing else []
+            saved_tables, duplicates = reconcile_native_tables(document, number, candidates,
+                original.get('image') or {}, source, identity)
+            has_native = any(block['text'].strip() for block in page['blocks'] if block['type'] not in {'image', 'chart'})
+            ocr_blocks = [block for block in original.get('blocks', []) if block.get('source_kind') == 'ocr']
+            if not pdf or not has_native:
+                ocr_blocks = [{'text': text}] if text.strip() else []
+            elif not composition.get('ocr_sources'):
+                ocr_blocks = []
+            for index, block in enumerate(ocr_blocks):
+                if duplicate_table_block(block, duplicates, original.get('image') or {}):
+                    continue
+                page['blocks'].append({'block_id': prefix + f'ocrb{index + 1}', 'type': 'text', 'text': block.get('text', ''),
+                    'bbox': None, 'order': len(page['blocks']), 'source': source,
+                    'engine_identity': identity, 'ocr_result_id': result.native_result_id, 'ocr_revision': revision})
+            if composition.get('conflicts'):
+                document['warnings'].append(f'第 {number} 页存在原生文字与识别区域的待核查项，原始合并记录已保存')
+            # Keep DocVortex native tables; a second native extractor is not a
+            # second table. Region OCR tables retain their actual model source.
+            for index, table in saved_tables:
                 identifier = prefix + f'ocr{index + 1}'
+                cells = [{**cell, 'source': {**source, 'precision': 'approximate' if cell.get('polygon') else 'page_only',
+                         'coordinate_space': 'native_image_pixels' if cell.get('polygon') else None}} for cell in table['cells']]
                 document['tables'].append({**table, 'table_id': identifier, 'revision': 1, 'page_number': number,
-                    'source': source, 'reviewed': False, 'ocr_result_id': result.native_result_id, 'ocr_revision': revision})
+                    'cells': cells, 'source': source, 'reviewed': False, 'ocr_result_id': result.native_result_id,
+                    'ocr_revision': revision, 'engine_identity': identity, 'model_revisions': identity['model_revisions']})
                 page['blocks'].append({'block_id': identifier, 'type': 'table', 'table_id': identifier, 'text': '',
                     'bbox': None, 'order': len(page['blocks']), 'source': source})
 
@@ -448,15 +622,18 @@ class DocumentService:
     def xlsx(self, workspace_id, document_id, table_id, revision=None):
         value = self.get(workspace_id, document_id, revision)
         table = self.table(workspace_id, document_id, table_id, revision)
+        identity = table.get('engine_identity') or {'id': 'docvortex', 'version': '0.5.16'}
         stream = io.BytesIO()
         export_xlsx([table], stream, source_rows=[{'image_name': value['source']['original_name'], 'input_sha256': value['blob_hash'],
-            'document_id': document_id, 'page_number': table['page_number'], 'revision': table['revision'], 'engine': 'docvortex/clear-ocr',
+            'document_id': document_id, 'page_number': table['page_number'], 'revision': table['revision'], 'engine': identity['id'],
+            'engine_name': (identity.get('engine_info') or {}).get('name', identity['id']),
+            'model_revisions': encoded(table.get('model_revisions') or {}), 'result_id': table.get('ocr_result_id', document_id),
+            'origin': 'ocr' if table.get('ocr_result_id') else 'native',
             'table_index': table_id, 'structure_review': '人工文字校对' if table['reviewed'] else '原始结构'}])
         return stream.getvalue()
 
     def close(self):
         self.stop.set()
         for process in list(self.processes.values()):
-            if process.poll() is None:
-                process.terminate()
+            stop_process(process)
         self.executor.shutdown(wait=True, cancel_futures=True)

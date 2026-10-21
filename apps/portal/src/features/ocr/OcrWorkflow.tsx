@@ -13,7 +13,7 @@ type Project = { project_id: string; name: string; link_id: string | null; role:
 type AssetSet = { asset_set_id: string; revision: number; members: { asset_id: string; original_name: string }[] }
 type Handoff = { handoff_id: string; link_id: string; state: string; availability: string;
   items: { item_id: string; name: string; status: string; page_count: number | null }[];
-  processing: { engines: string[]; platform_job_id: string | null; request_state: string } | null }
+  processing: { engines: string[]; fallback_engine?: string | null; platform_job_id: string | null; request_state: string } | null }
 type OcrCapabilities = { recognition: boolean; reason: string | null; engines: { id: string; name: string }[] }
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
@@ -39,9 +39,10 @@ function OcrHandoffWorkflow() {
   const client = useQueryClient()
   const projectId = params.get('project') || undefined
   const [newName, setNewName] = useState('')
-  const [engines, setEngines] = useState<string[]>([])
+  const [engines, setEngines] = useState<string[]>(['auto'])
+  const [fallbackEngine, setFallbackEngine] = useState('ppocr')
   const native = useNativeWindow(`${workspaceId}:${projectId}`)
-  useEffect(() => { setEngines([]) }, [workspaceId, projectId])
+  useEffect(() => { setEngines(['auto']); setFallbackEngine('ppocr') }, [workspaceId, projectId])
   const chooseProject = (id: string) => {
     const next = new URLSearchParams(params)
     next.set('project', id)
@@ -86,10 +87,16 @@ function OcrHandoffWorkflow() {
   } })
   const resume = useMutation({ mutationFn: () => json<Handoff>(`${handoffBase}/${encodeURIComponent(handoffId || '')}/resume`, { method: 'POST' }),
     onSuccess: result => client.setQueryData(['ocr-handoff', workspaceId, result.handoff_id], result) })
-  const submit = useMutation({ mutationFn: () => json<{ handoff: Handoff }>(`${handoffBase}/${encodeURIComponent(handoffId || '')}/tasks`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ engines: handoff.data?.processing?.engines || engines }),
-  }), onSuccess: result => client.setQueryData(['ocr-handoff', workspaceId, result.handoff.handoff_id], result.handoff) })
+  const submit = useMutation({ mutationFn: () => {
+    const saved = handoff.data?.processing
+    const selectedEngines = saved?.engines || engines
+    const fallback = saved ? saved.fallback_engine : fallbackEngine
+    return json<{ handoff: Handoff }>(`${handoffBase}/${encodeURIComponent(handoffId || '')}/tasks`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engines: selectedEngines,
+        ...(selectedEngines.includes('auto') && fallback ? { fallback_engine: fallback } : {}) }),
+    })
+  }, onSuccess: result => client.setQueryData(['ocr-handoff', workspaceId, result.handoff.handoff_id], result.handoff) })
   const publish = useMutation({ mutationFn: () => json<{ bundle_id: string }>(
     `/api/platform/v1/workspaces/${encodeURIComponent(workspaceId || '')}/artifacts/ocr-exports`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -156,9 +163,13 @@ function OcrHandoffWorkflow() {
               {publish.data && <Link to={`/artifacts?workspace=${encodeURIComponent(workspaceId)}&bundle=${encodeURIComponent(publish.data.bundle_id)}`}>查看成果</Link>}
             </div>}
             {capabilities.data?.recognition && <Space wrap><Select mode="multiple" aria-label="识别引擎" placeholder="选择识别引擎"
-              value={handoff.data.processing?.engines || engines} onChange={setEngines}
+              value={handoff.data.processing?.engines || engines} onChange={values => setEngines(values.at(-1) === 'auto' ? ['auto'] : values.filter(id => id !== 'auto'))}
               disabled={!!handoff.data.processing} style={{ minWidth: 220 }}
               options={capabilities.data.engines.map(item => ({ value: item.id, label: item.name }))} />
+              {(handoff.data.processing?.engines || engines).includes('auto') && <label>Pro 不可用时 <Select aria-label="自动识别后备引擎"
+                value={handoff.data.processing ? handoff.data.processing.fallback_engine || 'ppocr' : fallbackEngine}
+                onChange={setFallbackEngine} disabled={!!handoff.data.processing} style={{ minWidth: 160 }}
+                options={capabilities.data.engines.filter(item => ['ppocr', 'paddlevl', 'glm', 'hunyuan'].includes(item.id)).map(item => ({ value: item.id, label: item.name }))} /></label>}
               <Button type="primary" disabled={!(handoff.data.processing?.engines.length || engines.length) || !!handoff.data.processing?.platform_job_id}
                 loading={submit.isPending} onClick={() => submit.mutate()}>
                 {handoff.data.processing ? '核实原处理请求' : '提交识别'}</Button></Space>}

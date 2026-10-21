@@ -4,7 +4,7 @@ from contextlib import closing
 import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
-                   'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','document-forensics-v1','safire-forensics-v1')
+                   'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -24,7 +24,12 @@ DATA_COMPATIBILITY = {
         'forensics/forensics.sqlite3': {'user_versions':[0,1], 'reject_nonempty_unversioned':True, 'tables':{
             'inspections':['inspection_id','workspace_id','request_id','payload_hash','body'],
             'review_requests':['workspace_id','request_id','inspection_id','payload_hash','receipt']}},
-        'native/ocr/workbench.sqlite3': {'user_versions':list(range(18)), 'tables':{}},
+        'documents/documents.sqlite3': {'user_versions':[0,1], 'reject_nonempty_unversioned':True,
+            'require_versioned_tables':True, 'tables':{
+                'documents':['document_id','workspace_id','request_id','payload_hash','body'],
+                'document_reviews':['document_id','table_id','revision','body','created_at'],
+                'document_results':['document_id','revision','result_hash','body']}},
+        'native/ocr/workbench.sqlite3': {'user_versions':list(range(19)), 'tables':{}},
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},
     },
     'records': {'audit_evidence_versions':['1.0'], 'direct_evidence_snapshot_versions':[1,2],
@@ -114,6 +119,13 @@ def check(data, descriptor):
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='asset_audio_upload'").fetchone():
                 if db.execute('SELECT 1 FROM asset_audio_upload LIMIT 1').fetchone() and 'manual-long-audio-v1' not in descriptor['reader_features']:
                     raise ValueError('该候选缺少大音频上传记录读取能力，不能直接降级')
+    documents=data/'documents/documents.sqlite3'
+    if documents.is_file() and 'structured-documents-v1' not in descriptor['reader_features']:
+        with closing(read_database(documents)) as db:
+            for table in ('documents','document_results','document_reviews'):
+                if (db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",(table,)).fetchone()
+                        and db.execute('SELECT 1 FROM "'+table+'" LIMIT 1').fetchone()):
+                    raise ValueError('该候选缺少结构文档及固定结果版本读取能力，不能直接降级')
     checked=[]
     for relative,requirements in descriptor['sqlite'].items():
         path=f_path(data/relative)
@@ -219,6 +231,7 @@ def active_work(data):
              ('native/classification/platform.sqlite3','jobs',"SELECT id,state FROM jobs WHERE state IN ('queued','running','pausing','cancelling')"),
              ('batches/batches.sqlite3','batches',"SELECT batch_id,json_extract(body,'$.status') FROM batches WHERE json_extract(body,'$.status') IN ('queued','running','waiting_resource','cancelling')"),
              ('forensics/forensics.sqlite3','inspections',"SELECT inspection_id,json_extract(body,'$.status') FROM inspections WHERE json_extract(body,'$.status') IN ('queued','running')"),
+             ('documents/documents.sqlite3','documents',"SELECT document_id,json_extract(body,'$.status') FROM documents WHERE json_extract(body,'$.status') IN ('queued','running','cancelling')"),
              ('jobs.sqlite3','manual_analysis',"SELECT job_id,json_extract(body,'$.status') FROM manual_analysis WHERE json_extract(body,'$.status') IN ('queued','running','cancelling')"),
              ('data-workbench/sessions.sqlite3','jobs',"SELECT id,status FROM jobs WHERE status IN ('queued','running','cancelling')"))
     for relative,table,sql in queries:

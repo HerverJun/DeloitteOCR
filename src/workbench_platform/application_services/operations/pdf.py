@@ -24,6 +24,7 @@ class ProcessPages(AgentModel):
     page_numbers: list[int] = Field(min_length=1, max_length=1000)
     mode: Literal['native', 'ocr', 'auto'] = 'auto'
     engine: Literal['auto', 'ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro'] = 'auto'
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
     force: bool = False
     parent_operation_id: Identity | None = None
 
@@ -77,6 +78,10 @@ def submission(args, ctx, allow_new, *, include_not_submitted=False):
     if any(number > documents[args.document_id]['page_count'] for number in args.page_numbers):
         raise ValueError('所选页超出真实文档页数')
     parameters = args.model_dump(include={'page_numbers', 'mode', 'engine', 'force'})
+    if args.fallback_engine is not None:
+        if args.engine != 'auto':
+            raise ValueError('后备引擎仅适用于自动识别')
+        parameters['fallback_engine'] = args.fallback_engine
     key = 'r' + digest([args.handoff_id, args.document_id, parameters])[:40]
     with closing(service._connect()) as db:
         old = db.execute('SELECT * FROM ocr_page_submission WHERE handoff_id=?', (args.handoff_id,)).fetchone()

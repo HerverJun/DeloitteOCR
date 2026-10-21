@@ -11,6 +11,7 @@ class Parse(AgentModel):
     reference: AgentRef
     ocr_policy: Literal['auto', 'never'] = 'auto'
     ocr_link_id: Identity | None = None
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
 
 
 class Saved(AgentModel):
@@ -61,7 +62,8 @@ def parse(args, ctx):
     ctx.current()
     value = ctx.services.document_service.create(ctx.workspace_id, {'schema_version': '1.0',
         'request_id': ctx.operation_id, 'asset_id': args.reference.object_id, 'asset_revision': args.reference.revision,
-        'blob_hash': args.reference.sha256, 'ocr_policy': args.ocr_policy, 'ocr_link_id': args.ocr_link_id})
+        'blob_hash': args.reference.sha256, 'ocr_policy': args.ocr_policy, 'ocr_link_id': args.ocr_link_id,
+        **({'fallback_engine': args.fallback_engine} if args.fallback_engine is not None else {})})
     return pending(ctx, value)
 
 

@@ -28,7 +28,7 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
         path = '/findings'
     elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
         query['document'] = ref.object_id
-        path = '/documents'
+        path = '/apps/ocr/documents'
     elif ref.kind == 'artifact':
         query['bundle'] = ref.object_id; path = '/artifacts'
     elif ref.kind in {'asset', 'asset_set'}:

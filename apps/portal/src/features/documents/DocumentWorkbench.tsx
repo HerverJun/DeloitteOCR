@@ -5,13 +5,14 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useWorkspaceId, Workspaces } from '../../App'
 import { assets, newRequestId, stateNames } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
-import { documentsApi, documentsBase, documentsUrl, parseableDocument, type DocumentCell, type DocumentRun } from './api'
+import { documentsApi, documentsBase, documentsUrl, parseableDocument, type DocumentCell, type DocumentPage, type DocumentRun } from './api'
 import { request } from '../batches/api'
 import './documents.css'
 
 const { Title, Text, Paragraph } = Typography
 const activeStates = ['queued', 'running', 'cancelling', 'waiting_resource']
 const blockNames: Record<string, string> = { title: '标题', doc_title: '文档标题', paragraph_title: '段落标题', heading: '标题', text: '正文', paragraph: '正文', table: '表格', image: '图片', formula: '公式', header: '页眉', footer: '页脚', footnote: '脚注' }
+type IdentifiedPage = DocumentPage & { engine?: string; engine_identity?: unknown; model_revisions?: unknown }
 
 function TableReview({ workspace, documentId, tableId, close }: { workspace: string; documentId: string; tableId: string; close: () => void }) {
   const [cells, setCells] = useState<DocumentCell[]>([]), [changed, setChanged] = useState(false)
@@ -41,7 +42,7 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
   const media = useQuery({ queryKey: ['document-assets', workspace], queryFn: ({ signal }) => assets(workspace, signal) })
   const listing = useQuery({ queryKey: ['documents', workspace, runPage], queryFn: () => documentsApi.list(workspace, (runPage - 1) * 5), refetchInterval: value => value.state.data?.items.some(item => activeStates.includes(item.status)) ? 1500 : false })
   const detail = useQuery({ queryKey: ['document-detail', workspace, selected], enabled: !!selected, queryFn: () => documentsApi.get(workspace, selected), refetchInterval: value => value.state.data && activeStates.includes(value.state.data.status) ? 1200 : false })
-  const pages = detail.data?.document?.pages || [], pageData = pages.find(value => value.page_number === page)
+  const pages: IdentifiedPage[] = detail.data?.document?.pages || [], pageData = pages.find(value => value.page_number === page)
   const pageName = (number: number) => detail.data?.document?.pagination_kind === 'logical' ? `第 ${number} 逻辑页` : detail.data?.document?.pagination_kind === 'slide' ? `第 ${number} 张幻灯片` : `第 ${number} 页`
   const blocks = useQuery({ queryKey: ['document-blocks', workspace, selected, detail.data?.result_hash, page, blockPage], enabled: !!selected && !!pageData,
     queryFn: () => documentsApi.page(workspace, selected, page, (blockPage - 1) * 30) })
@@ -99,7 +100,8 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
         <Input.Search aria-label="搜索已解析文档" placeholder="搜索已保存的文字" value={query} onChange={event => setQuery(event.target.value)} onSearch={value => setSearch(value.trim())} enterButton="搜索" />
         {matches.error && <Alert type="error" title={matches.error.message} />}
         {search && matches.data && <div><Paragraph>找到 {matches.data.total} 处</Paragraph>{(matches.data.items || matches.data.matches || []).map((match, i) => <Button key={`${match.block_id}:${i}`} type="link" onClick={() => { setPage(match.page_number); setBlockPage(1) }}>{pageName(match.page_number)} · {match.snippet || match.text}</Button>)}</div>}
-        <details><summary>运行、模型与原件身份</summary><pre>{JSON.stringify({ document_id: selected, source: detail.data.document.source, engine: detail.data.document.engine }, null, 2)}</pre><a href={`${downloadBase}/files/raw-middle.json`} download>下载原始解析结果</a></details>
+        <details><summary>运行、模型与原件身份</summary><pre>{JSON.stringify({ document_id: selected, source: detail.data.document.source, parser: detail.data.document.engine,
+          current_page: pageData && { page_number: pageData.page_number, engine: pageData.engine, engine_identity: pageData.engine_identity, model_revisions: pageData.model_revisions } }, null, 2)}</pre><a href={`${downloadBase}/files/raw-middle.json`} download>下载原始解析结果</a></details>
       </>}
       {!detail.data.document && !detail.data.error && <Empty description={activeStates.includes(detail.data.status) ? '正在处理，结果保存后会自动显示' : '尚无可读取的结果'} />}
     </div>}

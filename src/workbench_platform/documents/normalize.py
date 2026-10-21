@@ -24,6 +24,7 @@ def children(value):
 
 def normalize(middle, source, run_id, diagnostics=(), generation=1):
     pages, warnings, tables = [], [str(item.get('message', item)) for item in diagnostics], []
+    parser = {'id': 'docvortex', 'version': '0.5.16', 'device': 'cpu', 'pdf_parse_mode': 'txt'}
     for page in middle.get('pages', []):
         number = page['page_idx'] + 1
         blocks = []
@@ -46,7 +47,8 @@ def normalize(middle, source, run_id, diagnostics=(), generation=1):
                 if len(parsed) == 1:
                     identifier = f'{run_id}g{generation}p{number}t{len(tables) + 1}'
                     table = {**parsed[0], 'table_id': identifier, 'revision': 1, 'page_number': number,
-                             'block_id': block['block_id'], 'source': locator, 'reviewed': False}
+                             'block_id': block['block_id'], 'source': locator, 'reviewed': False,
+                             'engine_identity': parser, 'model_revisions': {}}
                     # Block extent never implies a cell extent.
                     for cell in table['cells']:
                         cell['polygon'] = None
@@ -60,11 +62,11 @@ def normalize(middle, source, run_id, diagnostics=(), generation=1):
             blocks.append(block)
         pages.append({'page_number': number, 'width': None, 'height': None, 'blocks': blocks,
                       'needs_ocr': not any(block['text'].strip() for block in blocks if block['type'] not in {'image', 'chart'}),
-                      'source': {**source, 'page_number': number}, 'engine': 'docvortex'})
+                      'source': {**source, 'page_number': number}, 'engine': 'docvortex', 'engine_identity': parser})
     suffix = source.get('original_name', '').rsplit('.', 1)[-1].lower()
     return {'schema_version': '1.0', 'kind': 'clear.document', 'revision': generation, 'document_id': run_id,
             'parse_run_id': run_id, 'generation': generation,
             'pagination_kind': 'logical' if suffix in {'docx'} else 'slide' if suffix == 'pptx' else 'physical',
-            'source': source, 'engine': {'id': 'docvortex', 'version': '0.5.16', 'device': 'cpu', 'pdf_parse_mode': 'txt'},
+            'source': source, 'engine': parser,
             'pages': pages, 'tables': tables, 'metadata': middle.get('metadata'), 'warnings': warnings,
             'cross_page_table_merge': False}

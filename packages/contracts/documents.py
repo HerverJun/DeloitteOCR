@@ -12,6 +12,7 @@ class DocumentParse(AgentModel):
     blob_hash: Hash
     ocr_policy: Literal['auto', 'never'] = 'auto'
     ocr_link_id: Identity | None = None
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
 
 
 class TableCell(AgentModel):
