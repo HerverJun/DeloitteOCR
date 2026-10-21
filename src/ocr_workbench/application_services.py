@@ -54,7 +54,7 @@ class ApplicationServices:
         with self.maintenance.guard:
             ids = self.store.enqueue(project_id, body.get("version_ids", []), body.get("engines", ['auto']),
                                      body.get("preprocess", []), {name: spec["package_id"] for name, spec in self.registry.engines().items()},
-                                     fusion_policy=policy, request_id=body.get("request_id"))
+                                     fusion_policy=policy, request_id=body.get("request_id"), fallback_engine=body.get('fallback_engine'))
         self.queue.wake.set()
         self.fusion_queue.wake.set()
         return {"task_ids": ids}
@@ -70,7 +70,7 @@ class ApplicationServices:
                 raise ValueError("页面范围无效；每批可显式选择最多 1000 页")
             pages = self.store.rows("SELECT id,page_number FROM pages WHERE document_id=? ORDER BY page_number", (document_id,))
             page_ids = [p["id"] for p in pages if numbers is None or p["page_number"] in numbers]
-            return {"stage_ids": self.documents.process_pages(page_ids, body.get("mode", "auto"), force=body.get("force", False), engine=body.get("engine", "auto"))}
+            return {"stage_ids": self.documents.process_pages(page_ids, body.get("mode", "auto"), force=body.get("force", False), engine=body.get("engine", "auto"), fallback_engine=body.get('fallback_engine'))}
 
     def export(self, body):
         with self.maintenance.guard:

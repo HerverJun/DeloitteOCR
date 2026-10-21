@@ -7,6 +7,13 @@ from ocr_workbench.store import encoded, now
 ENGINES = ('ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro')
 
 
+def validate_fallback(engine=None):
+    engine = 'ppocr' if engine is None else engine
+    if engine not in ENGINES or engine == 'mineru_pro':
+        raise ValueError('后备引擎必须是已有 OCR 引擎')
+    return engine
+
+
 def mark_reader(store):
     ledger = os.environ.get('WORKBENCH_GPU_LEDGER')
     if os.environ.get('WORKBENCH_APP_ID') == 'ocr' and ledger:
@@ -16,8 +23,7 @@ def mark_reader(store):
 
 def ensure_route(db, task_id, *, fallback_engine='ppocr', baseline_result_id=None,
                  baseline_revision=None, crop_box=None):
-    if fallback_engine not in ENGINES or fallback_engine == 'mineru_pro':
-        raise ValueError('后备引擎必须是已有 OCR 引擎')
+    fallback_engine = validate_fallback(fallback_engine)
     task = db.execute('SELECT engine FROM tasks WHERE id=?', (task_id,)).fetchone()
     if task is None:
         raise KeyError('识别任务不存在')

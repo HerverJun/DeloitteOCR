@@ -59,6 +59,8 @@ export function RecognitionBar({
   setMode,
   engine,
   setEngine,
+  fallbackEngine,
+  setFallbackEngine,
   preprocess,
   setPreprocess,
   chooseTab,
@@ -74,6 +76,8 @@ export function RecognitionBar({
   setMode: (v: string) => void;
   engine: string;
   setEngine: (v: string) => void;
+  fallbackEngine: string;
+  setFallbackEngine: (v: string) => void;
   preprocess: string;
   setPreprocess: (v: string) => void;
   chooseTab: (v: string) => void;
@@ -90,7 +94,7 @@ export function RecognitionBar({
     "保留当前图像";
   const recommendedEngine = modes.find((item) => item.id === mode)?.engine;
   const engineLabel = engine === "all"
-    ? `${Object.keys(engines).length} 引擎顺序对比`
+    ? `${Object.keys(engines).filter(key => key !== "auto").length} 引擎顺序对比`
     : engine === "auto" ? "自动：结构解析 / MinerU Pro"
     : engines[engine]?.name || engine;
   const settingsSummary = [
@@ -163,12 +167,18 @@ export function RecognitionBar({
                 onChange={(e) => setEngine(e.target.value)}
               >
                 <option value="auto">自动：结构解析 / MinerU Pro</option>
-                {Object.keys(engines).map((key) => (
+                {Object.keys(engines).filter(key => key !== "auto").map((key) => (
                   <option key={key} value={key}>{engines[key].name}</option>
                 ))}
-                <option value="all">{Object.keys(engines).length} 引擎顺序对比</option>
+                <option value="all">{Object.keys(engines).filter(key => key !== "auto").length} 引擎顺序对比</option>
               </select>
             </label>
+            {engine === "auto" && <label className="ocr-recognition-popover__field">
+              <span>Pro 不可用时使用</span>
+              <select aria-label="自动识别后备引擎" value={fallbackEngine} onChange={event => setFallbackEngine(event.target.value)}>
+                {["ppocr", "paddlevl", "glm", "hunyuan"].filter(key => !!engines[key]).map(key => <option key={key} value={key}>{engines[key].name}</option>)}
+              </select>
+            </label>}
             <label className="ocr-recognition-popover__field">
               <span>批次预处理</span>
               <select

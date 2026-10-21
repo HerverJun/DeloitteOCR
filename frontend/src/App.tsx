@@ -49,6 +49,7 @@ import {
   readPreference,
   validMode,
   validEngine,
+  validFallbackEngine,
 } from "./workspacePreferences";
 import { api, request, download } from "./api";
 import { navigationFromLaunch, safeReturnUrl, type PlatformNavigation } from "./platformNavigation";
@@ -100,6 +101,8 @@ export function App() {
     validEngine,
   );
   const [preprocess, setPreprocess] = useState("none");
+  const [fallbackEngine, setFallbackEngine] = usePreference("ocr-ui-fallback-engine", "ppocr", validFallbackEngine);
+  const actualEngines = Object.keys(engines).filter(key => key !== "auto");
   const [tab, setTab] = useState("table");
   const [paneRequest, setPaneRequest] = useState<{ pane: "image" | "result" } | null>(null);
   const resultTabs = useRef(new Map<string, string>());
@@ -510,11 +513,12 @@ export function App() {
                   { kind: "contrast", factor: 1.3 },
                 ]
               : [],
-      engines: engine === "all" ? Object.keys(engines) : [engine],
+      engines: engine === "all" ? actualEngines : [engine],
+      ...(engine === "auto" ? { fallback_engine: fallbackEngine } : {}),
     });
     setShowQueue(true);
     await refresh(projectId);
-    notify(`已加入 ${photos.length * (engine === "all" ? Object.keys(engines).length : 1)} 项任务`);
+    notify(`已加入 ${photos.length * (engine === "all" ? actualEngines.length : 1)} 项任务`);
   };
   const transform = async (op: unknown) => {
     if (!version) return;
@@ -549,7 +553,8 @@ export function App() {
       });
       await api("/projects/" + projectId + "/tasks", "POST", {
         version_ids: [v.id],
-        engines: engine === "all" ? Object.keys(engines) : [engine],
+        engines: engine === "all" ? actualEngines : [engine],
+        ...(engine === "auto" ? { fallback_engine: fallbackEngine } : {}),
       });
       await refresh(projectId);
       setShowQueue(true);
@@ -1016,6 +1021,8 @@ export function App() {
               setMode={setMode}
               engine={engine}
               setEngine={setEngine}
+              fallbackEngine={fallbackEngine}
+              setFallbackEngine={setFallbackEngine}
               preprocess={preprocess}
               setPreprocess={setPreprocess}
               chooseTab={chooseTab}
@@ -1027,7 +1034,7 @@ export function App() {
               hasActive={!!active}
               onRun={() => void action(() => run())}
             />
-            <FusionLauncher engines={engines} tasks={recognitionTasks} versionId={version?.id}
+            <FusionLauncher engines={Object.fromEntries(actualEngines.map(key => [key, engines[key]]))} tasks={recognitionTasks} versionId={version?.id}
               selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
               onStart={runFusion} />
             <button
@@ -1688,7 +1695,7 @@ export function App() {
       </WorkspaceLayout>
       <AgentPanel projectId={projectId} selectedImageIds={selected.length ? selected : active ? [active] : []}
         documents={project?.documents || []}
-        engines={engine === "all" ? Object.keys(engines) : [engine]} onNavigate={async (reference, destination) => {
+        engines={engine === "all" ? actualEngines : [engine]} fallbackEngine={engine === "auto" ? fallbackEngine : undefined} onNavigate={async (reference, destination) => {
         const target = await resolveAgentEvidence(reference, projectId);
         await previewResult(target.reference.result_id, target.image_id);
         const cell = target.reference.target_id?.match(/^table:(\d+):(\d+):(\d+)$/);

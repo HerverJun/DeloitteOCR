@@ -227,6 +227,9 @@ def process_stage(manager, stage, cancelled):
                 VALUES(?,?,?,?,?,?,'queued','等待区域识别',?,'region_ocr',?)""",
                 (task_id, doc['project_id'], image['id'], version['id'], engine, 'page-'+stage['id'], now(), package))
             db.execute('INSERT INTO page_ocr_inputs VALUES(?,?,?,?,NULL)', (task_id, stage['id'], region['id'], encoded(box)))
+            if engine == 'auto':
+                from ocr_workbench.ocr_routing import ensure_route
+                ensure_route(db, task_id, fallback_engine=parameters.get('fallback_engine', 'ppocr'))
         db.execute("UPDATE document_stages SET version_id=?,status='waiting_gpu',phase='等待区域识别',output=? WHERE id=?",
                    (version['id'], encoded({'mode': mode, 'regions': len(needed),
                     **auxiliary}), stage['id']))

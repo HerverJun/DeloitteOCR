@@ -197,24 +197,29 @@ class Documents:
                                   page_id=page_id, pdf_to_pixel=result['metadata'].get('pdf_to_pixel'), page_payload=result)
                 return image
 
-    def process(self, page_id, mode='auto', *, force=False, engine='auto'):
-        return self.process_pages([page_id], mode, force=force, engine=engine)[0]
+    def process(self, page_id, mode='auto', *, force=False, engine='auto', fallback_engine=None):
+        return self.process_pages([page_id], mode, force=force, engine=engine, fallback_engine=fallback_engine)[0]
 
-    def process_pages(self, page_ids, mode='auto', *, force=False, engine='auto'):
-        parameters = self.processing_parameters(mode, engine)
+    def process_pages(self, page_ids, mode='auto', *, force=False, engine='auto', fallback_engine=None):
+        parameters = self.processing_parameters(mode, engine, fallback_engine=fallback_engine)
         keys = self.store.enqueue_document_stages(page_ids, 'process', parameters, force=force)
         self.wake.set()
         return keys
 
-    def processing_parameters(self, mode='auto', engine='auto'):
+    def processing_parameters(self, mode='auto', engine='auto', *, fallback_engine=None):
         if mode not in ('auto', 'native', 'ocr'):
             raise ValueError('处理模式必须为 auto、native 或 ocr')
         if engine not in ('auto', 'ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro'):
             raise ValueError('请选择自动模式或已安装的识别引擎')
         if self.review_only and mode != 'native':
             raise ValueError('仅校对模式支持原生 PDF 提取；OCR 请使用完整模式')
+        from ocr_workbench.ocr_routing import validate_fallback
+        fallback = validate_fallback(fallback_engine)
+        if fallback_engine is not None and (engine != 'auto' or mode == 'native'):
+            raise ValueError('后备引擎仅用于自动识别；手动引擎不会自动切换')
         from ocr_workbench.table_tool import tool_identity
-        return {'mode': mode, 'engine': engine, 'pipeline_version': 4, 'pdf_table_tool': tool_identity()['key']}
+        route = {'fallback_engine': fallback} if engine == 'auto' and mode != 'native' else {}
+        return {'mode': mode, 'engine': engine, 'pipeline_version': 4, 'pdf_table_tool': tool_identity()['key'], **route}
 
     def start(self):
         if any(t.is_alive() for t in self.threads):

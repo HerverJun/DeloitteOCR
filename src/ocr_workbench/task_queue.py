@@ -422,6 +422,7 @@ class TaskQueue:
         except Exception as error:
             from ocr_workbench.errors import engine_error_details
             from ocr_workbench.atomic_files import write_json
+            import traceback
 
             details = engine_error_details(error, stage=failure_stage, attempt_id=task['id'])
             details['engine_request_accepted'] = details['accepted_write']
@@ -430,6 +431,12 @@ class TaskQueue:
             try:
                 folder.mkdir(exist_ok=True)
                 write_json(folder / (task['id'] + '.json'), details, durable=True)
+                write_json(folder / (task['id'] + '.diagnostic.json'), {
+                    'version': 1, 'private_diagnostics': True, 'attempt_id': task['id'],
+                    'stage': failure_stage, 'engine': task['engine'],
+                    'exception_type': type(error).__name__, 'message': str(error),
+                    'traceback': traceback.format_exc(), 'at': now(),
+                }, durable=True)
             except OSError:
                 logging.getLogger(__name__).exception('Could not persist OCR attempt error details for %s', task['id'])
             logging.getLogger(__name__).exception('OCR attempt %s failed at %s', task['id'], details['stage'])

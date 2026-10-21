@@ -17,6 +17,17 @@ FIXTURES = ROOT / 'build/document-workflow/fixtures'
 
 
 class PageMergeTests(unittest.TestCase):
+    def test_document_routing_freezes_default_or_explicit_fallback(self):
+        manager = object.__new__(Documents)
+        manager.review_only = False
+        self.assertEqual(manager.processing_parameters()['fallback_engine'], 'ppocr')
+        self.assertEqual(manager.processing_parameters(fallback_engine='glm')['fallback_engine'], 'glm')
+        self.assertNotIn('fallback_engine', manager.processing_parameters(engine='glm'))
+        with self.assertRaises(ValueError):
+            manager.processing_parameters(engine='glm', fallback_engine='ppocr')
+        with self.assertRaises(ValueError):
+            manager.processing_parameters(mode='native', fallback_engine='ppocr')
+
     def test_duplicate_agreement_and_ambiguous_overlap_are_distinguished(self):
         native = {'units': [{'text': '001234', 'polygon': box_polygon([10, 10, 50, 30]), 'native_index': 0}], 'flagged': []}
         context = ({'id': 'v', 'sha256': 'hash', 'width': 100, 'height': 100},

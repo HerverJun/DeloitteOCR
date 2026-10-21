@@ -1,5 +1,7 @@
 """Pinned MinerU Pro, in its own offline Python 3.12 CUDA/BF16 process."""
 from importlib.metadata import version
+from copy import deepcopy
+import json
 import math
 import os
 from pathlib import Path
@@ -8,6 +10,25 @@ import time
 
 MODEL = 'MinerU2.5-Pro-2605-1.2B'
 UTILS_VERSION = '2.0.5'
+ENGINE_SPEC = {
+    'name': 'MinerU 2.5 Pro · 2605',
+    'route': 'Isolated Python 3.12 / mineru-vl-utils 2.0.5 / Transformers CUDA BF16',
+    'models': [MODEL],
+    'capabilities': {'text': True, 'text_coordinates': False, 'region_coordinates': True,
+                     'confidence': False, 'tables': True, 'formula': True},
+}
+
+
+def engine_catalog(bundle):
+    """Keep sealed asset engines; extend only an explicitly registered Pro runtime.
+
+    Thin candidates reuse the old asset bundle read-only. The same declaration
+    must reach registry, adapter and worker, whose bundle can predate Pro.
+    """
+    values = json.loads((Path(bundle) / 'config/engines.json').read_text('utf-8'))
+    if os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
+        values.setdefault('mineru_pro', deepcopy(ENGINE_SPEC))
+    return values
 
 
 def model_directory(models):

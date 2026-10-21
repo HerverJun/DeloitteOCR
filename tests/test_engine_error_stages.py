@@ -20,6 +20,50 @@ def test_loading_budget_is_independent_bounded_and_default_compatible():
             loading_timeout({'CLEAR_OCR_LOAD_TIMEOUT_SECONDS': value})
 
 
+def test_private_pro_registration_extends_read_only_asset_catalog_for_all_consumers(tmp_path):
+    """Exercise the old-asset/new-source boundary without launching a worker."""
+    import time
+    from PIL import Image
+    from ocr_workbench.engine_packages import EnginePackages
+    from ocr_workbench.mineru_pro import engine_catalog, ENGINE_SPEC, MODEL
+    from ocr_workbench.worker import process_image
+    asset = tmp_path / 'old-read-only-assets'
+    (asset / 'config').mkdir(parents=True)
+    original = {'ppocr': {'name': 'sealed PP-OCR', 'models': ['sealed-model'],
+                          'capabilities': {'text': True, 'tables': False}}}
+    config = asset / 'config/engines.json'
+    config.write_text(json.dumps(original), encoding='utf-8')
+    before = config.read_bytes()
+    runtime = tmp_path / 'private-runtime/python.exe'
+    runtime.parent.mkdir()
+    runtime.write_bytes(b'never-executed')
+    model = tmp_path / 'model'
+    model.mkdir()
+    (model / 'config.json').write_text('{}', encoding='utf-8')
+    (model / 'source-manifest.json').write_text('{"revision":"fixed-pro-revision"}', encoding='utf-8')
+    with patch.dict('os.environ', {'CLEAR_MINERU_PRO_PYTHON': str(runtime), 'CLEAR_MINERU_PRO_MODEL': str(model)}):
+        catalog = engine_catalog(asset)
+        assert catalog['ppocr'] == original['ppocr']
+        assert catalog['mineru_pro'] == ENGINE_SPEC and 'auto' not in catalog
+        registry = EnginePackages(asset, tmp_path / 'data')
+        assert registry.resolve('mineru_pro') == asset
+        assert registry.engines()['mineru_pro']['ready'] is True
+        adapter = EngineAdapter(asset, 'mineru_pro', tmp_path / 'sessions', worker_source=tmp_path / 'fixed-source')
+        assert adapter.capabilities == ENGINE_SPEC['capabilities'] and adapter.process is None
+        image, output = tmp_path / 'input.png', tmp_path / 'output'
+        Image.new('RGB', (20, 20), 'white').save(image)
+        output.mkdir()
+        fake = SimpleNamespace(recognize=lambda *_: ({'content_list': []},
+            [{'text': '123.45', 'kind': 'text', 'polygon': None, 'confidence': None}], 0))
+        with patch('ocr_workbench.runtime_audit.inspect_runtime', return_value={'unit_test': True}):
+            process_image(SimpleNamespace(bundle=asset, engine='mineru_pro', image=image, output=output), fake, time.perf_counter())
+        result = json.loads((output / 'result.json').read_text('utf-8'))
+        assert result['engine_info'] == ENGINE_SPEC
+        assert result['model_revisions'][MODEL] == 'fixed-pro-revision'
+        assert result['text'] == '123.45'
+    assert config.read_bytes() == before
+
+
 def test_private_worker_pin_rejects_changed_missing_and_undeclared_code(tmp_path):
     source = tmp_path / 'worker-source'
     package = source / 'ocr_workbench'
@@ -138,3 +182,7 @@ def test_queue_persists_failure_stage_and_snapshot_can_read_it(tmp_path):
     assert details['attempt_id'] == task_id and details['code'] == 'engine_load_timeout'
     assert details['accepted_write'] is True and details['engine_request_accepted'] is False
     assert store.rows('SELECT * FROM results') == []
+    diagnostic = json.loads((store.root / 'task-errors' / (task_id + '.diagnostic.json')).read_text('utf-8'))
+    assert diagnostic['private_diagnostics'] is True and diagnostic['exception_type'] == 'EngineTimeout'
+    assert 'FailedLoader' in diagnostic['traceback'] or 'raise EngineTimeout' in diagnostic['traceback']
+    assert 'traceback' not in details and 'exception_type' not in details

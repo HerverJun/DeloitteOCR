@@ -60,9 +60,8 @@ class EnginePackages:
         self.staging.mkdir(exist_ok=True)
         self.guard = threading.RLock()
         self.state_guard = threading.RLock()
-        self.builtin = json.loads(
-            (self.bundle / "config/engines.json").read_text("utf-8")
-        )
+        from ocr_workbench.mineru_pro import engine_catalog
+        self.builtin = engine_catalog(self.bundle)
         self.active_file = self.root / "active.json"
 
     def active(self):

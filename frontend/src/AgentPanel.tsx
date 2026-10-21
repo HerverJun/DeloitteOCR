@@ -15,7 +15,7 @@ const states: Record<string, string> = { queued: "排队中", running: "正在�
 const inboxStates: Record<string, string> = { pending: "排队等待安全边界", applied: "已在安全边界处理", discarded: "运行已停止 · 未执行" };
 const tools: Record<string, string> = { get_workspace_context: "查看项目", search_document: "查找文档内容", read_page_result: "读取页面", navigate_to_evidence: "定位证据", ask_user: "等待说明", process_pages: "处理页面", run_ocr: "文字识别", get_job_status: "核对后台进度", export_results: "创建导出", inspect_table: "检查表格", request_visual_review: "视觉审校", retry_failed_jobs: "重试未完成任务" };
 
-export function AgentPanel({ projectId, selectedImageIds, documents, engines, onNavigate }: { projectId: string; selectedImageIds: string[]; documents: DocumentRecord[]; engines: string[]; onNavigate: (ref: AgentEvidence, destination?: AgentDestination) => Promise<void> }) {
+export function AgentPanel({ projectId, selectedImageIds, documents, engines, fallbackEngine, onNavigate }: { projectId: string; selectedImageIds: string[]; documents: DocumentRecord[]; engines: string[]; fallbackEngine?: string; onNavigate: (ref: AgentEvidence, destination?: AgentDestination) => Promise<void> }) {
   const [enabled, setEnabled] = useState(false);
   const [available, setAvailable] = useState(false);
   const [open, setOpen] = useState(false);
@@ -150,9 +150,10 @@ export function AgentPanel({ projectId, selectedImageIds, documents, engines, on
       if (!match) throw new Error("页码请填写 1-3,8 这样的范围");
       return { document_id: documentId, first_page: Number(match[1]), last_page: Number(match[2] ?? match[1]) };
     }) : [];
-    const scope = JSON.stringify({ session: current, selectedImageIds, ranges, engines, allowProcessing, allowReprocess, allowPartial, allowStructure, allowRetry, visualModel, allowVisualImages });
+    const scope = JSON.stringify({ session: current, selectedImageIds, ranges, engines, fallbackEngine, allowProcessing, allowReprocess, allowPartial, allowStructure, allowRetry, visualModel, allowVisualImages });
     if (!pendingSend.current || pendingSend.current.content !== content || pendingSend.current.scope !== scope) {
       const selection = await api<{ selection_token: string }>(`/projects/${projectId}/agent/selection`, "POST", { image_ids: selectedImageIds, engines,
+        ...(fallbackEngine ? { fallback_engine: fallbackEngine } : {}),
         document_ranges: ranges, allow_processing: allowProcessing, allow_reprocess: allowReprocess, allow_export: true, allow_partial: allowPartial,
         allow_structure_checks: allowStructure, allow_retry_failed: allowRetry, visual_model_id: visualModel || null, allow_visual_images: allowVisualImages });
       pendingSend.current = { key: agentRequestId(), content, scope, selectionToken: selection.selection_token };

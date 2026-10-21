@@ -121,12 +121,11 @@ class EngineAdapter:
         self.worker_source = Path(worker_source).resolve() if worker_source else configured_worker_source()
         if engine == 'mineru_pro' and self.worker_source is None and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
             self.worker_source = Path(__file__).resolve().parents[1]
+        from ocr_workbench.mineru_pro import engine_catalog
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
-            else json.loads(
-                (self.bundle / "config/engines.json").read_text(encoding="utf-8")
-            )[engine]["capabilities"]
+            else engine_catalog(self.bundle)[engine]["capabilities"]
         )
         self.ipc = Path(session_root) / uuid.uuid4().hex
         self.ipc.mkdir(parents=True)

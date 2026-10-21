@@ -436,14 +436,14 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             )
 
     def enqueue(
-        self, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None
+        self, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None, fallback_engine=None
     ):
         with self.transaction() as db:
             db.execute("BEGIN IMMEDIATE")
-            return self._enqueue(db, project_id, versions, engines, preprocess, engine_packages, fusion_policy, request_id)
+            return self._enqueue(db, project_id, versions, engines, preprocess, engine_packages, fusion_policy, request_id, fallback_engine)
 
     def _enqueue(
-        self, db, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None
+        self, db, project_id, versions, engines, preprocess=None, engine_packages=None, fusion_policy=None, request_id=None, fallback_engine=None
     ):
         from ocr_workbench.imaging import validate_preset
 
@@ -457,13 +457,18 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             raise ValueError("请选择图片与引擎；单次最多 1000 张")
         if 'auto' in engines and (len(engines) != 1 or fusion_policy is not None):
             raise ValueError('自动模式单独运行；多引擎对照请手动选择实际引擎')
+        from ocr_workbench.ocr_routing import validate_fallback, ensure_route
+        fallback = validate_fallback(fallback_engine)
+        if fallback_engine is not None and engines != ['auto']:
+            raise ValueError('后备引擎仅用于自动模式；手动引擎不会自动切换')
+        route_signature = {'fallback_engine': fallback} if 'auto' in engines and fallback != 'ppocr' else {}
         batch = now() + "-" + uid()
         tasks = []
         if request_id is not None and fusion_policy is None:
             if not isinstance(request_id, str) or not 8 <= len(request_id) <= 120:
                 raise ValueError("识别批次缺少有效请求标识")
             from ocr_workbench.fusion_alignment import fingerprint
-            signature = fingerprint({"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages})
+            signature = fingerprint({"versions": versions, "engines": engines, "preprocess": preprocess, "packages": packages, **route_signature})
             previous = db.execute("SELECT input_hash,task_ids FROM ocr_submissions WHERE project_id=? AND request_id=?", (project_id, request_id)).fetchone()
             if previous:
                 if previous["input_hash"] != signature:
@@ -507,6 +512,8 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
                     ),
                 )
                 tasks.append(key)
+                if engine == 'auto':
+                    ensure_route(db, key, fallback_engine=fallback)
         if fusion_policy is not None:
             tasks.extend(self.attach_batch_fusion(db, project_id, tasks, fusion_policy))
             db.execute("INSERT INTO fusion_submissions VALUES(?,?,?,?,?)", (project_id, request_id, signature, encoded(tasks), now()))

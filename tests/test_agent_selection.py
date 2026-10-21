@@ -12,6 +12,21 @@ from ocr_workbench.store import Conflict
 class SelectionTests(unittest.TestCase):
     setUp = test_agent_policy.PolicyTests.setUp
 
+    def test_auto_selection_binds_fallback_in_processing_grant(self):
+        created = create_selection(self.agent, self.project, {'image_ids': [self.photo['id']],
+            'engines': ['auto'], 'fallback_engine': 'glm', 'allow_processing': True},
+            available_engines=['auto', 'glm', 'ppocr'])
+        grant_selection(self.policy, self.run, created['selection'])
+        arguments = {'version_ids': [self.photo['active_version']], 'engines': ['auto'], 'fallback_engine': 'glm'}
+        self.policy.authorize(self.run, 1, 'run_ocr', arguments)
+        from ocr_workbench.agent.policy import PolicyDenied
+        for fallback in ('ppocr', None):
+            with self.assertRaises(PolicyDenied):
+                self.policy.authorize(self.run, 1, 'run_ocr', {**arguments, 'fallback_engine': fallback})
+        with self.assertRaises(ValueError):
+            create_selection(self.agent, self.project, {'engines': ['glm'], 'fallback_engine': 'ppocr'},
+                             available_engines=['glm', 'ppocr'])
+
     def lazy_document(self, count=3):
         key = 'synthetic-pdf'
         with self.store.transaction() as db:

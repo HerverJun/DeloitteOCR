@@ -178,9 +178,8 @@ def process_image(args, session, started):
         img.save(prepared)
         width, height = img.size
     models = args.bundle / "models"
-    engine_info = json.loads(
-        (args.bundle / "config/engines.json").read_text(encoding="utf-8")
-    )[args.engine]
+    from ocr_workbench.mineru_pro import engine_catalog
+    engine_info = engine_catalog(args.bundle)[args.engine]
     revisions = {}
     for name in engine_info["models"]:
         manifest = models / name / "source-manifest.json"
