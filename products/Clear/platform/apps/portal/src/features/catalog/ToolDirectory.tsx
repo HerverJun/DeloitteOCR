@@ -115,7 +115,9 @@ export function ToolDirectory() {
       <Link to={`/apps/ocr/seals${scope}`}><span className="extension-icon"><SafetyCertificateOutlined /></span>
         <span><strong>印章识别</strong><small>定位印章、核对文字与主体</small></span><ArrowRightOutlined /></Link>
       <Link to={`/apps/forensics/deep${scope}`}><span className="extension-icon"><SearchOutlined /></span>
-        <span><strong>深度图像取证</strong><small>CAT-Net 可疑区域辅助排查</small></span><ArrowRightOutlined /></Link>
+        <span><strong>SAFIRE 深度定位</strong><small>JPEG、PNG 可疑区域辅助排查</small></span><ArrowRightOutlined /></Link>
+      <Link to={`/apps/forensics/document${scope}`}><span className="extension-icon"><FileSearchOutlined /></span>
+        <span><strong>文档篡改排查</strong><small>改字定位、原件对照与复核</small></span><ArrowRightOutlined /></Link>
     </section>
     <RecentWorks workspaceId={workspaceId} />
     <footer className="directory-footnote"><span>Clear 审计工作台</span><span>分析结果经人工复核后形成审计成果</span></footer>

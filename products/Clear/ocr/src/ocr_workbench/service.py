@@ -484,6 +484,17 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     def result(key: str):
         return present_result(store.result(key))
 
+    @app.post('/api/results/{key}/enhance')
+    def enhance_result(key: str, body: dict):
+        require_recognition()
+        from ocr_workbench.ocr_routing import enqueue_enhancement
+        return enqueue_enhancement(services, key, body)
+
+    @app.get('/api/results/{key}/comparison')
+    def enhanced_comparison(key: str):
+        from ocr_workbench.ocr_routing import comparison
+        return comparison(store, key)
+
     @app.get("/api/results/{key}/snapshot")
     def result_snapshot(key: str):
         return store.result_snapshot(key)

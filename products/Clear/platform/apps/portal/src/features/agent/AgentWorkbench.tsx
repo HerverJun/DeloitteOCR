@@ -19,6 +19,7 @@ import { RecentTasks, TaskPanel, ReferenceLinks, statusLabels } from './TaskPane
 import { createWorkbenchView } from './workbenchView'
 import { DirectImageTextButton } from './DirectImageTextButton'
 import { DirectPdfTextButton } from './DirectPdfTextButton'
+import { documentsApi } from '../documents/api'
 import './agent.css'
 import './workbench-visual.css'
 import './experience.css'
@@ -91,7 +92,7 @@ export function AgentWorkbench() {
   const [draftAssets, setDraftAssets] = useState<string[]>((params.get('assets') || '').split(',').filter(Boolean))
   const [draftReferenceIds, setDraftReferenceIds] = useState<string[]>([]), [platformTools, setPlatformTools] = useState(false)
   const [draftPolicy, setDraftPolicy] = useState<DeliveryPolicy>('auto')
-  const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session')
+  const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session'), sourceDocument = params.get('document')
   const [settings, setSettings] = useState(false), [skills, setSkills] = useState(false), [goal, setGoal] = useState('')
   const [materials, setMaterials] = useState(false), [background, setBackground] = useState(false), [recent, setRecent] = useState(false), [keyword, setKeyword] = useState('')
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [controlling, setControlling] = useState(false), [taskDrawer, setTaskDrawer] = useState(false)
@@ -110,10 +111,17 @@ export function AgentWorkbench() {
   const { projection, events, subscription, reconnect } = useAgentEvents(workspace, sessionId, neutralAvailable)
   const connection = useQuery({ queryKey: ['agent-connection'], enabled: !!health.data?.enabled,
     queryFn: () => agentRequest<Controller>('/agent/connection') })
-  const source = useQuery({ queryKey: ['agent-source', workspace, bundle, sourceResult, sourceSession],
-    enabled: !!workspace && !!(bundle || sourceResult && sourceSession) && !sessionId && !!health.data?.enabled,
-    queryFn: () => agentWrite<{ reference: AgentRef }>(`/workspaces/${workspace}/agent/references`,
-      bundle ? { kind: 'artifact', object_id: bundle } : { kind: 'result', object_id: sourceResult, parent_id: sourceSession }) })
+  const source = useQuery({ queryKey: ['agent-source', workspace, bundle, sourceResult, sourceSession, sourceDocument],
+    enabled: !!workspace && !!(bundle || sourceResult && sourceSession || sourceDocument) && !sessionId && !!health.data?.enabled,
+    queryFn: async (): Promise<{ reference: AgentRef }> => {
+      if (sourceDocument) {
+        const run = await documentsApi.get(workspace!, sourceDocument)
+        if (!run.document || !run.result_hash || !run.source?.blob_hash || !['succeeded', 'partial'].includes(run.status)) throw new Error('解析文档尚无可读取的保存结果。')
+        return { reference: { kind: 'result', workspace_id: workspace!, object_id: run.document_id, revision: run.document.revision, sha256: run.result_hash, application: 'platform', parent_id: run.document_id, coverage: { kind: 'documents' },
+          sources: [{ kind: 'asset', workspace_id: workspace!, object_id: run.source.asset_id, revision: run.source.asset_revision, sha256: run.source.blob_hash }] } }
+      }
+      return agentWrite<{ reference: AgentRef }>(`/workspaces/${workspace}/agent/references`, bundle ? { kind: 'artifact', object_id: bundle } : { kind: 'result', object_id: sourceResult, parent_id: sourceSession })
+    } })
   const listing = useQuery({ queryKey: ['audit-tasks', workspace, keyword], enabled: !!workspace && neutralAvailable,
     queryFn: () => agentRequest<{ items: AuditTask[] }>(`/workspaces/${workspace}/audit-tasks?keyword=${encodeURIComponent(keyword)}`), refetchInterval: 4000 })
   const task = useQuery({ queryKey: ['audit-task', sessionId], enabled: !!sessionId && neutralAvailable,
@@ -135,7 +143,7 @@ export function AgentWorkbench() {
   const timelineIds = useMemo(() => projection.items.map(item => item.id), [projection.items])
   const scroll = useConversationScroll(`${workspace}:${sessionId}`, timelineIds, events.at(-1)?.seq || 0, subscription.status === 'connected')
   const activity = active ? projection.activities[active.id] : Object.values(projection.activities).sort((a, b) => b.seq - a.seq)[0]
-  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session'].forEach(key => next.delete(key)) }
+  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session', 'document'].forEach(key => next.delete(key)) }
   const choose = (id: string) => { const next = new URLSearchParams(params); next.set('session', id); clearSource(next); setGoal(''); setParams(next); setRecent(false) }
   const draftKey = `clear-audit-draft:${workspace || 'new'}:${sessionId || 'new'}`
   useEffect(() => {
@@ -221,7 +229,7 @@ export function AgentWorkbench() {
   }, [workspace, sessionId])
   const send = useMutation({ mutationFn: async ({ content, execute }: { content: string; execute: boolean }) => {
     if (mismatch) throw new Error('会话属于其他项目，请重新选择会话')
-    if ((bundle || sourceResult) && !sessionId && !source.data) throw new Error('先核实带入成果的来源和版本')
+    if ((bundle || sourceResult || sourceDocument) && !sessionId && !source.data) throw new Error('先核实带入成果的来源和版本')
     const references = source.data ? [source.data.reference] : []
     const stamp = JSON.stringify([workspace, sessionId, selectedAssets, content, references, authorizedReferenceIds, deliveryPolicy])
     const stored = sessionStorage.getItem('clear-agent-pending-send')
@@ -317,7 +325,7 @@ export function AgentWorkbench() {
   useEffect(() => {
     if (workspace && sessionId && task.data?.title) rememberVisit(user?.id || 'single', { href: '/agent?workspace=' + encodeURIComponent(workspace) + '&session=' + encodeURIComponent(sessionId), title: task.data.title, workspace })
   }, [workspace, sessionId, task.data?.title, user?.id])
-  const sendDisabled = !goal.trim() || controlling || !neutralAvailable || task.data?.manual || mismatch || !!((bundle || sourceResult) && !sessionId && !source.data)
+  const sendDisabled = !goal.trim() || controlling || !neutralAvailable || task.data?.manual || mismatch || !!((bundle || sourceResult || sourceDocument) && !sessionId && !source.data)
   const submitGoal = () => { if (!sendDisabled && !send.isPending) { setError(''); send.mutate({ content: goal.trim(), execute: true }) } }
   const manualParams = new URLSearchParams(params)
   manualParams.delete('session')

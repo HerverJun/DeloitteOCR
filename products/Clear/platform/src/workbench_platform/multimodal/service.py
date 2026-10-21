@@ -26,10 +26,11 @@ from workbench_platform.resources.gpu import GpuCoordinator, ResourceBusy, Relea
 from workbench_platform.resources.recovery import local_path, recover_owned
 from .runner import WorkerRunner, worker_environment, PROTOCOL
 from .qualification import Qualification, GPU_KINDS
+from . import deep_backend
 
 SOURCE = Path(__file__).resolve().parents[3]
 ACTIVE = {'queued','running','cancelling'}
-LABELS = {'face':'人脸比对','audio':'音频分析','seal':'印章识别','catnet':'深度图像取证'}
+LABELS = {'face':'人脸比对','audio':'音频分析','seal':'印章识别','catnet':'深度图像取证','document_forensics':'文档篡改排查'}
 AUDIO_DISK_BUDGET = 4*3600*16000*2*3 + 256*1024*1024
 DISK_MARGIN = 64*1024*1024
 
@@ -58,6 +59,7 @@ class MultimodalService:
         self.ownership_root = local_path(self.root.parent/'gpu-owners')
         self.runner = WorkerRunner(self.coordinator,self.ownership_root)
         self.qualification = Qualification(self.root.parent/self.config.get('gpu',{}).get('qualification_file','gpu-qualification.json'))
+        self.safire_qualification = Qualification(self.root.parent/'safire-gpu-qualification.json')
         self.launch_id, self.instance_id = 'manual'+uuid.uuid4().hex, 'manual'+uuid.uuid4().hex
         self.gpu_recovery_error = None
         from .artifacts import configure
@@ -465,7 +467,7 @@ class MultimodalService:
             with closing(sqlite3.connect('file:'+ledger.as_posix()+'?mode=ro',uri=True)) as journal:
                 rows=journal.execute('SELECT o.tool,o.result FROM operations o JOIN runs r ON r.id=o.run_id '
                     'WHERE o.id=? AND r.workspace_id=?',(item['request_id'],item['workspace_id'])).fetchall()
-            tools={'face_analyze':'face','audio_transcribe':'audio','seal_extract':'seal','catnet_analyze':'catnet','multimodal_prepare':item['kind']}
+            tools={'face_analyze':'face','audio_transcribe':'audio','seal_extract':'seal','catnet_analyze':'catnet','document_forensics_analyze':'document_forensics','multimodal_prepare':item['kind']}
             for tool,body in rows:
                 if tools.get(tool)!=item['kind'] or not body:continue
                 receipt=json.loads(body);data=receipt.get('data',{})
@@ -511,7 +513,7 @@ class MultimodalService:
     @staticmethod
     def public(item):
         public_fields={'schema_version','job_id','workspace_id','request_id','kind','inputs','options','status','stage',
-            'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device','purpose'}
+            'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device','purpose','model_binding'}
         item={key:copy.deepcopy(value) for key,value in item.items() if key in public_fields}
         item.setdefault('progress',{})
         item.setdefault('actual_device',None)
@@ -535,12 +537,13 @@ class MultimodalService:
             total=db.execute(f'SELECT COUNT(*) FROM manual_analysis WHERE {condition}',parameters).fetchone()[0]
         return {'items':[self.public(json.loads(row[0])) for row in rows],'total':total}
 
-    def capabilities(self):
+    def capabilities(self, *, deep_engine=None):
         definitions={
           'face':('runtimes/forensics/python.exe',['face/yunet.onnx','face/sface.onnx']),
           'audio':('runtimes/audio/python.exe',['audio/paraformer-zh/model.pt','audio/fsmn-vad/model.pt','audio/ct-punc/model.pt','audio/campplus/campplus_cn_common.bin']),
           'seal':('bundles/ocr/runtimes/ppocr/python.exe',['seal/PP-OCRv4_server_seal_det/inference.json','seal/PP-OCRv4_server_rec/inference.json','seal/PP-DocLayout-L/inference.json']),
-          'catnet':('runtimes/catnet/python.exe',['catnet/CAT_full_v2.pth.tar','catnet/source/lib/models/network_CAT.py'])}
+          'catnet':('runtimes/catnet/python.exe',['catnet/CAT_full_v2.pth.tar','catnet/source/lib/models/network_CAT.py']),
+          'document_forensics':('runtimes/catnet/python.exe',['catnet/CAT_full_v2.pth.tar','catnet/source/lib/models/network_CAT.py'])}
         receipts={}
         record=self.models/'validation.json'
         if record.exists():receipts=json.loads(record.read_text('utf-8'))
@@ -553,6 +556,8 @@ class MultimodalService:
             except (OSError,ValueError) as error:local_receipts={};local_error=str(error)
         items=[]
         for kind,(python,files) in definitions.items():
+            if kind in deep_backend.DEEP_KINDS and (deep_engine or deep_backend.backend(self.config))=='safire':
+                items.append(self.safire_capability(kind));continue
             missing=[file for file in files if not (self.models/file).is_file()]
             if not (self.program/python).is_file():missing.append(python)
             local=kind in local_receipts
@@ -560,9 +565,12 @@ class MultimodalService:
             if not isinstance(receipt,dict):receipt={}
             identities=receipt.get('resources',{})
             if not isinstance(identities,dict):identities={}
-            source_hashes={path.relative_to(SOURCE).as_posix():self.file_hash(path) for path in sorted((SOURCE/'modules/manual_multimodal').glob('*.py'))}
+            # New independent adapters do not invalidate an unchanged legacy
+            # worker. Every source actually named by its receipt is still hashed.
+            source_hashes={name:self.file_hash(SOURCE/name) for name in receipt.get('source_hashes',{})
+                           if (SOURCE/name).is_file()}
             try:
-                fresh=bool(identities) and receipt.get('source_hashes')==source_hashes and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
+                fresh=bool(identities) and bool(source_hashes) and receipt.get('source_hashes')==source_hashes and receipt.get('adapter_sha256')==self.file_hash(SOURCE/'modules/manual_multimodal/worker.py') and (self.program/python).is_file() and receipt.get('runtime_sha256')==self.file_hash(self.program/python) and all(self.resource_matches(self.models/name,identity) for name,identity in identities.items())
             except (OSError,KeyError,TypeError,ValueError):fresh=False
             engineering=receipt.get('record',{})
             if not isinstance(engineering,dict):engineering={}
@@ -588,6 +596,46 @@ class MultimodalService:
                           'gpu_ready':gpu,'gpu_reason':None if gpu else gpu_reason,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
         return {'items':items}
 
+    def safire_gpu_binding(self,kind,model_binding=None):
+        model_binding=model_binding or deep_backend.bind(self,'safire')
+        sources=[SOURCE/'modules/manual_multimodal/safire_worker.py',SOURCE/'modules/manual_multimodal/safire_processing.py',
+            SOURCE/'modules/manual_multimodal/worker.py',SOURCE/'modules/manual_multimodal/worker_protocol.py',
+            SOURCE/'modules/manual_multimodal/image_geometry.py',Path(__file__),
+            SOURCE/'src/workbench_platform/multimodal/deep_backend.py',SOURCE/'src/workbench_platform/multimodal/runner.py',
+            SOURCE/'src/workbench_platform/multimodal/qualification.py',SOURCE/'src/workbench_platform/resources/recovery.py',
+            SOURCE/'config/multimodal.json']
+        if kind=='document_forensics':
+            sources += sorted((SOURCE/'modules/image_forensics/forensic_toolbox').glob('*.py'))
+        return self.safire_qualification.binding(kind,Path(model_binding['runtime']),sources,
+            model_binding['resources'],device_index=self.config.get('gpu',{}).get('device_index',0))
+
+    def safire_capability(self,kind,model_binding=None):
+        missing=[];gpu=False;binding=None;reason='SAFIRE 需完成本机真实 CUDA 工程验证'
+        try:
+            binding=model_binding or deep_backend.bind(self,'safire')
+            if not Path(binding['runtime']).is_file():missing.append(binding['runtime'])
+            if not missing:
+                identity=self.safire_gpu_binding(kind,binding)
+                gpu=self.safire_qualification.ready(kind,identity,
+                    peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
+        except (OSError,ValueError,KeyError) as error:
+            missing.append(str(error));reason=str(error)
+        return {'kind':kind,'title':LABELS[kind],'engine':'SAFIRE',
+            'state':'resources_missing' if missing else 'gpu_ready' if gpu else 'resources_present',
+            'gpu_ready':gpu,'gpu_reason':None if gpu else reason,'cpu_ready':False,
+            'cpu_reason':'SAFIRE 本轮只开放真实验证的 CUDA 路线；不自动替代显式 CPU 请求',
+            'missing':missing,'validation_source':'data_local','validation':{},
+            'runtime':str(deep_backend.runtime(self.config)),'calibration':False,
+            'business_accuracy_qualified':False,'operational_trigger':'any_candidate_region'}
+
+    def capability_for_item(self,item):
+        if item['kind'] in deep_backend.DEEP_KINDS:
+            pinned=deep_backend.item_binding(self,item)
+            deep_backend.verify(self,pinned)
+            if pinned['engine']=='safire':return self.safire_capability(item['kind'],pinned)
+            return next(row for row in self.capabilities(deep_engine='catnet')['items'] if row['kind']==item['kind'])
+        return next(row for row in self.capabilities()['items'] if row['kind']==item['kind'])
+
     def gpu_binding(self,kind,runtime,identities):
         resources={name:{'bytes':(self.models/name).stat().st_size,'sha256':self.qualification.file_hash(self.models/name)} for name in identities}
         return self.qualification.binding(kind,self.program/runtime,
@@ -610,6 +658,8 @@ class MultimodalService:
 
     def prepare(self,workspace,kind,payload):
         if kind not in LABELS:raise DataError('未知准备能力')
+        if kind in deep_backend.DEEP_KINDS and deep_backend.backend(self.config)=='safire':
+            raise DataError('SAFIRE 只开放 CUDA；请运行本机 GPU 工程诊断，不以 CPU 诊断替代',409)
         if len(payload.get('inputs',[]))!=1:raise DataError('运行准备需要一份明确选择的输入资料')
         options={**payload.get('options',{})}
         if options.get('device','cpu')!='cpu':raise DataError('运行准备只验证 CPU；GPU 资格必须经过独立实测',409)
@@ -617,6 +667,16 @@ class MultimodalService:
         return self._create(workspace,{**payload,'kind':kind,'options':options},preparation=True)
 
     def _create(self,workspace,payload,*,preparation=False):
+        payload=copy.deepcopy(payload)
+        if payload.get('kind') in deep_backend.DEEP_KINDS and not preparation:
+            options=payload.setdefault('options',{})
+            if 'device' not in options:
+                # Idempotent resubmission retains the original resolved default,
+                # including across an operational backend rollback.
+                with closing(self.db()) as db:
+                    previous=db.execute('SELECT body FROM manual_analysis WHERE workspace_id=? AND request_id=?',
+                        (workspace,payload.get('request_id'))).fetchone()
+                options['device']=json.loads(previous['body'])['options']['device'] if previous else ('cuda' if deep_backend.backend(self.config)=='safire' else 'cpu')
         value=validated(Create,payload)
         kind=value['kind'];count=len(value['inputs'])
         if count != (2 if kind=='face' and value['options']['action']=='compare' else 1):
@@ -655,7 +715,8 @@ class MultimodalService:
                 asset=self.registry.get(workspace,source['asset_id'])
                 if (asset.revision,asset.blob_hash)!=(source['asset_revision'],source['blob_hash']):raise DataError('资料版本已经变化',409)
                 suffix=Path(asset.original_name).suffix.lower()
-                allowed={ 'face':{'.jpg','.jpeg','.png','.webp','.bmp'},'catnet':{'.jpg','.jpeg'},
+                allowed={ 'face':{'.jpg','.jpeg','.png','.webp','.bmp'},'catnet':deep_backend.INPUT_SUFFIXES if deep_backend.backend(self.config)=='safire' else {'.jpg','.jpeg'},
+                          'document_forensics':deep_backend.INPUT_SUFFIXES,
                           'audio':{'.wav','.mp3','.m4a','.flac','.ogg','.aac','.wma'},'seal':{'.jpg','.jpeg','.png','.webp','.bmp','.pdf'}}[kind]
                 if suffix not in allowed:raise DataError('当前模型不支持此格式；请保留原件并选择适用工具')
                 inputs.append({**source,'original_name':asset.original_name,'suffix':suffix})
@@ -663,10 +724,14 @@ class MultimodalService:
             from workbench_platform.resources.reader_features import require_features
             require_features(self.root.parent,'manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
             self._feature()
+            if kind=='document_forensics':require_features(self.root.parent,'document-forensics-v1')
             item={'schema_version':'1.0','job_id':identifier,'workspace_id':workspace,'request_id':value['request_id'],
                   'kind':kind,'inputs':inputs,'options':value['options'],'status':'queued','stage':'queued','revision':1,
                   'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1,
                   'progress':{},'actual_device':None,'frozen_references':frozen_references,'purpose':'preparation' if preparation else 'analysis'}
+            if kind in deep_backend.DEEP_KINDS:
+                item['model_binding']=deep_backend.bind(self)
+                if item['model_binding']['engine']=='safire':require_features(self.root.parent,'safire-forensics-v1')
             db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',(identifier,workspace,value['request_id'],digest,encoded(item)))
             self.sync_projection(db,item)
             self._receipt(db,workspace,'prepare' if preparation else 'create',value['request_id'],digest,identifier,self.public(item))
@@ -687,6 +752,8 @@ class MultimodalService:
             if item.get('purpose')=='preparation':self._validate_preparation(item)
             checkpoints=local_path(self.root/job/'audio-checkpoints');checkpoints.mkdir(parents=True,exist_ok=True)
             reduced=item.get('oom_retries',0)>0
+            pinned=deep_backend.item_binding(self,item) if item['kind'] in deep_backend.DEEP_KINDS else None
+            if pinned:deep_backend.verify(self,pinned)
             value={'kind':item['kind'],'options':item['options'],'models':str(self.models),'program':str(self.program),'inputs':[],
                    'references':copy.deepcopy(item['frozen_references']) if item['kind']=='face' and item['options']['action']=='search' and 'frozen_references' in item
                        else self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else [],
@@ -695,6 +762,9 @@ class MultimodalService:
                        'audio_batch_size_s':self.config.get('audio',{}).get('reduced_batch_size_s' if reduced else 'batch_size_s',15 if reduced else 30),
                        'catnet_tile_size':self.config.get('catnet',{}).get('reduced_tile_size' if reduced else 'tile_size',512 if reduced else 1024),
                        'catnet_halo':self.config.get('catnet',{}).get('halo',0)}}
+            if pinned:
+                value['model_binding']=pinned
+                value['runner']['safire_points_per_batch']=32 if reduced else 64
             with ExitStack() as stack:
                 for index,source in enumerate(item['inputs']):
                     staged=stack.enter_context(self.registry.stage_verified(workspace,source['asset_id'],revision=source['asset_revision'],blob_hash=source['blob_hash']))
@@ -702,7 +772,7 @@ class MultimodalService:
                     with self.transaction() as db:self._stage_input(db,staged,destination,source['blob_hash'])
                     value['inputs'].append({**source,'path':str(destination)})
                 (output/'request.json').write_text(encoded(value),encoding='utf-8')
-                runtime=next(x['runtime'] for x in self.capabilities()['items'] if x['kind']==item['kind'])
+                runtime=pinned['runtime'] if pinned else next(x['runtime'] for x in self.capabilities()['items'] if x['kind']==item['kind'])
                 env=worker_environment(output,self.program/runtime,gpu=item['options']['device']=='cuda',device_index=self.config.get('gpu',{}).get('device_index',0))
                 if item['kind']=='seal':env.update(OMP_NUM_THREADS='1',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='1')
                 def cancelled():
@@ -726,7 +796,8 @@ class MultimodalService:
                 def track(process):
                     with self.lock:self.processes[job]=process
                 self._feature()
-                outcome=self.runner.run([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal/worker.py'),str(output/'request.json')],
+                entry='safire_worker.py' if pinned else 'worker.py'
+                outcome=self.runner.run([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal'/entry),str(output/'request.json')],
                     output,env,value,request_id=item.get('gpu_request_id'),cancelled=cancelled,progress=progress,committed=committed,
                     process_started=track,timeout=self.config['worker_timeouts'][item['kind']])
                 with self.transaction() as db:
@@ -765,6 +836,8 @@ class MultimodalService:
 
     def _accept_result(self,current,output):
         result=json.loads((output/'result.json').read_text('utf-8'))
+        if current.get('model_binding') and result.get('model_binding')!=current['model_binding']:
+            raise DataError('实际检测器与任务冻结的模型身份不一致',409)
         actual=result.get('device')
         if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)
         for segment in result.get('segments',[]):
@@ -821,7 +894,7 @@ class MultimodalService:
                     raise DataError('原执行尚未退出；不能并发重试',409)
                 if item['status']=='needs_verification' and not self._termination_verified(item):
                     raise DataError('原执行终止凭证尚未核实，不能重试',409)
-                capability=next(value for value in self.capabilities()['items'] if value['kind']==item['kind'])
+                capability=self.capability_for_item(item)
                 target='cpu' if action=='retry_cpu' else item['options']['device']
                 if not capability['cpu_ready' if target=='cpu' else 'gpu_ready']:
                     raise DataError('模型或运行环境已变化，请完成推理验证后重试',409)
@@ -850,7 +923,7 @@ class MultimodalService:
             item=self.row(db,workspace,job)
             if item['status']!='succeeded' or item['revision']!=value['expected_revision']:raise DataError('结果未就绪或审阅版本已变化',409)
             edits=value['edits']
-            if value['regions'] and item['kind']!='catnet':raise DataError('当前工具不支持手工区域标注')
+            if value['regions'] and item['kind'] not in deep_backend.DEEP_KINDS:raise DataError('当前工具不支持手工区域标注')
             for region in value['regions']:
                 x1,y1,x2,y2=region['box']
                 if not 0<=x1<x2<=1 or not 0<=y1<y2<=1:raise DataError('标注区域必须位于原图范围内')

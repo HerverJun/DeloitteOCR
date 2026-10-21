@@ -203,6 +203,8 @@ class AgentPolicy:
                 scope.update(format=args["format"], partial_policy=args["partial_policy"])
             if tool == "run_ocr":
                 scope["engines"] = args["engines"]
+                if 'auto' in args['engines']:
+                    scope['fallback_engine'] = args.get('fallback_engine') or 'ppocr'
             if tool == "request_visual_review":
                 scope.update(target_ids=args["target_ids"], visual_model_id=args["visual_model_id"], revision=args["revision"])
             if tool == "inspect_table":
@@ -213,6 +215,8 @@ class AgentPolicy:
                 scope.update(mode=args["mode"], force=args["force"])
                 if args.get("engine"):
                     scope["engine"] = args["engine"]
+                    if args['engine'] == 'auto':
+                        scope['fallback_engine'] = args.get('fallback_engine') or 'ppocr'
             self.check_grant(project_id, run["id"], permission, scope)
         return parsed
 

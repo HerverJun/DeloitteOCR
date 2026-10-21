@@ -373,7 +373,8 @@ def create_app(engine,worker_client=None):
         if 'actor' in payload:
             payload['actor']={'id':user['id'],'display_name':user['display_name'],'source':'local'} if isinstance(payload['actor'],dict) else user['display_name']
             raw=json.dumps(payload,ensure_ascii=False).encode()
-        controls=[(r'/multimodal/jobs/([A-Za-z0-9_-]+)/control/(cancel|retry|retry_cpu)','manual.manual_analysis'),
+        controls=[(r'/documents/([A-Za-z0-9_-]+)/control/(cancel|resume)','documents.documents'),
+                  (r'/multimodal/jobs/([A-Za-z0-9_-]+)/control/(cancel|retry|retry_cpu)','manual.manual_analysis'),
                   (r'/forensics/([A-Za-z0-9_-]+)/(resume)','forensics.inspections'),
                   (r'/jobs/([A-Za-z0-9_-]+)/actions/(cancel|pause|resume|retry_failed)','projection'),
                   (r'/agent/runs/([A-Za-z0-9_-]+)/(cancel|pause|resume)','agent.runs'),

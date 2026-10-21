@@ -22,9 +22,11 @@ from workbench_platform.multimodal.runner import WorkerRunner, worker_environmen
 from workbench_platform.multimodal.qualification import Qualification
 from workbench_platform.multimodal.service import MultimodalService, AUDIO_DISK_BUDGET, DISK_MARGIN, ACTIVE
 from workbench_platform.multimodal.cpu_validation import record_cpu_validation, validate_inventory
+from workbench_platform.multimodal import deep_backend
 
 RUNTIMES = {'face': 'runtimes/forensics/python.exe', 'audio': 'runtimes/audio/python.exe',
-            'seal': 'bundles/ocr/runtimes/ppocr/python.exe', 'catnet': 'runtimes/catnet/python.exe'}
+            'seal': 'bundles/ocr/runtimes/ppocr/python.exe', 'catnet': 'runtimes/catnet/python.exe',
+            'document_forensics':'runtimes/catnet/python.exe'}
 
 
 def digest(path):
@@ -39,6 +41,7 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--kind', choices=RUNTIMES, required=True)
     parser.add_argument('--device', choices=['cpu', 'cuda'], default='cpu')
+    parser.add_argument('--backend', choices=['catnet','safire'],help='Explicit detector for deep routes; default follows current configuration')
     parser.add_argument('--checkpoint-root', type=Path)
     parser.add_argument('--channel', type=int)
     parser.add_argument('--stop-after-chunks', type=int)
@@ -69,8 +72,16 @@ def main():
     output.mkdir(parents=True, exist_ok=True); data.mkdir(parents=True, exist_ok=True)
     checkpoint = local_path(args.checkpoint_root or output / 'audio-checkpoints')
     checkpoint.mkdir(parents=True, exist_ok=True)
-    runtime = local_path(program / RUNTIMES[args.kind])
-    validate_inventory(program,args.kind,runtime)
+    safire=args.kind in deep_backend.DEEP_KINDS and (args.backend or deep_backend.backend(config))=='safire'
+    bridge=MultimodalService.__new__(MultimodalService)
+    bridge.models,bridge.program,bridge.config=program/'models/multimodal',program,config
+    bridge.qualification=Qualification(data/'gpu-qualification.json')
+    bridge.safire_qualification=Qualification(data/'safire-gpu-qualification.json')
+    bridge.resource_hash_cache={}
+    pinned=deep_backend.bind(bridge,'safire' if safire else 'catnet') if args.kind in deep_backend.DEEP_KINDS else None
+    runtime=local_path(pinned['runtime']) if pinned else local_path(program/RUNTIMES[args.kind])
+    if safire and args.device!='cuda':raise ValueError('SAFIRE diagnostic requires CUDA; explicit CPU is not replaced')
+    if not safire:validate_inventory(program,'catnet' if args.kind=='document_forensics' else args.kind,runtime)
     coordinator = GpuCoordinator(data / 'gpu.sqlite3')
     request_id = 'qualify' + uuid.uuid4().hex
     if args.device == 'cuda':
@@ -87,7 +98,11 @@ def main():
             'catnet_tile_size': config.get('catnet',{}).get('tile_size',1024),
             'catnet_halo': config.get('catnet',{}).get('halo',0)}}
     atomic_json(output / 'request.json', request)
-    worker=SOURCE/'modules/manual_multimodal/worker.py'
+    if pinned:
+        request['model_binding']=pinned
+        request['runner']['safire_points_per_batch']=64
+        atomic_json(output/'request.json',request)
+    worker=SOURCE/'modules/manual_multimodal'/('safire_worker.py' if pinned else 'worker.py')
     if args.trace_python_stalls:
         bootstrap=output/'diagnostic-bootstrap.py'
         bootstrap.write_text('import faulthandler,runpy,sys\n'
@@ -153,12 +168,12 @@ def main():
         if args.qualify:
             if args.device != 'cuda' or not committed and args.kind == 'audio':
                 raise ValueError('Qualification requires fresh CUDA inference, not only checkpoint reuse')
-            qualification = Qualification(data / 'gpu-qualification.json')
-            bridge = MultimodalService.__new__(MultimodalService)
-            bridge.models, bridge.program, bridge.qualification = program / 'models/multimodal', program, qualification
-            bridge.config=json.loads((SOURCE/'config/multimodal.json').read_text('utf-8'))
-            resources = json.loads((bridge.models / 'validation.json').read_text('utf-8'))[args.kind]['resources']
-            binding = bridge.gpu_binding(args.kind, RUNTIMES[args.kind], resources)
+            qualification=bridge.safire_qualification if safire else bridge.qualification
+            if safire:
+                binding=bridge.safire_gpu_binding(args.kind,pinned)
+            else:
+                resources=json.loads((bridge.models/'validation.json').read_text('utf-8'))['catnet' if args.kind=='document_forensics' else args.kind]['resources']
+                binding=bridge.gpu_binding(args.kind,RUNTIMES[args.kind],resources)
             evidence = {'succeeded': True, 'actual_device': result['device'], 'cold_cache': True,
                 'network_blocked': result.get('network_policy') == 'all_outbound_connections_denied',
                 'cleanup_confirmed': receipt['cleanup_confirmed'], 'memory_method': 'device_total',

@@ -26,6 +26,9 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
     elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'audit_draft':
         query.update(session=ref.parent_id, draft=ref.object_id, revision=str(ref.revision), sha256=ref.sha256)
         path = '/findings'
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        query['document'] = ref.object_id
+        path = '/apps/ocr/documents'
     elif ref.kind == 'artifact':
         query['bundle'] = ref.object_id; path = '/artifacts'
     elif ref.kind in {'asset', 'asset_set'}:
@@ -34,7 +37,7 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
         if ref.application == 'multimodal':
             query['analysis'] = ref.object_id
             path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
-                    'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
+                    'catnet': '/apps/forensics/deep', 'document_forensics':'/apps/forensics/document'}[ref.coverage['kind']]
         elif ref.coverage.get('kind') == 'batch':
             query['batch'] = ref.object_id; path = '/batches'
         else:
@@ -47,7 +50,7 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
     elif ref.application == 'multimodal':
         query.update(analysis=ref.parent_id, snapshot=ref.object_id, revision=str(ref.revision), sha256=ref.sha256)
         path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
-                'catnet': '/apps/forensics/deep'}[ref.coverage['kind']]
+                'catnet': '/apps/forensics/deep', 'document_forensics':'/apps/forensics/document'}[ref.coverage['kind']]
     elif ref.application in {'ocr', 'classification'}:
         if ref.coverage.get('origin') == 'native_binding':
             query['native_binding'] = ref.parent_id
@@ -101,6 +104,8 @@ def reference_asset_ids(reference, value):
         identifiers = [item['asset_id'] for item in value.get('source_assets') or value['sources']]
     elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'audit_draft':
         identifiers = value.get('source_assets', [])
+    elif ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        identifiers = [value['source']['asset_id']]
     elif ref.kind == 'asset':
         identifiers = [ref.object_id]
     elif ref.kind == 'asset_set':
@@ -182,6 +187,16 @@ def verify(reference, ctx):
     ref = AgentRef.model_validate(reference)
     if ref.workspace_id != ctx.workspace_id:
         raise ValueError('跨项目引用')
+    if ref.kind == 'result' and ref.application == 'platform' and ref.coverage.get('kind') == 'documents':
+        from workbench_platform.application_services.operations.documents import scoped
+        value = scoped(ctx, ref.object_id)
+        if type(ref.revision) is not int or ref.parent_id != ref.object_id:
+            raise ValueError('文档结果版本、来源或哈希变化')
+        value = ctx.services.document_service.result_snapshot(ctx.workspace_id, ref.object_id, ref.revision, ref.sha256)
+        asset = ctx.services.asset_library[0].get(ctx.workspace_id, value['asset_id'])
+        if (asset.revision, asset.blob_hash) != (value['asset_revision'], value['blob_hash']):
+            raise ValueError('文档原件版本变化')
+        return {**value, 'content_sha256': value['result_hash']}
     if ref.application == 'multimodal' and ref.kind == 'result':
         from workbench_platform.application_services.operations.multimodal import checked_snapshot, Result
         if not ref.parent_id:

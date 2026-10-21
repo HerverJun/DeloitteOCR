@@ -152,7 +152,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--bundle", type=Path, required=True)
     p.add_argument(
-        "--engine", choices=["ppocr", "paddlevl", "glm", "hunyuan"], required=True
+        "--engine", choices=["ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro"], required=True
     )
     p.add_argument("--image", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
@@ -178,12 +178,14 @@ def process_image(args, session, started):
         img.save(prepared)
         width, height = img.size
     models = args.bundle / "models"
-    engine_info = json.loads(
-        (args.bundle / "config/engines.json").read_text(encoding="utf-8")
-    )[args.engine]
+    from ocr_workbench.mineru_pro import engine_catalog
+    engine_info = engine_catalog(args.bundle)[args.engine]
     revisions = {}
     for name in engine_info["models"]:
         manifest = models / name / "source-manifest.json"
+        if args.engine == 'mineru_pro':
+            from ocr_workbench.mineru_pro import model_directory
+            manifest = model_directory(models) / 'source-manifest.json'
         if not manifest.is_file():
             raise FileNotFoundError(f"Missing model provenance manifest: {manifest}")
         revisions[name] = json.loads(manifest.read_text(encoding="utf-8"))["revision"]
@@ -201,6 +203,9 @@ def process_image(args, session, started):
         from ocr_workbench.glm import recognize
 
         raw, blocks, loaded = recognize(models, prepared)
+    elif args.engine == 'mineru_pro':
+        from ocr_workbench.mineru_pro import recognize
+        raw, blocks, loaded = recognize(models, prepared, args.output)
     else:
         from ocr_workbench.hunyuan import recognize
 
@@ -229,6 +234,23 @@ def process_image(args, session, started):
                 "detail": str(error), "source": table.get("source"),
             })
     tables = usable_tables
+    if args.engine == 'mineru_pro':
+        # HTML cell positions are unknown. Only the upstream table region is
+        # available, so retain its region without propagating it to cells.
+        ranges, offset = [], 0
+        for block in blocks:
+            ranges.append((offset, offset + len(block['text']), block))
+            offset += len(block['text']) + 1
+        for table in tables:
+            source = table.get('source') or {}
+            owner = next((block for start, end, block in ranges
+                          if start <= source.get('start', -1) < source.get('end', -1) <= end
+                          and block.get('kind') == 'table'), None)
+            if owner is not None:
+                table['polygon'] = owner.get('polygon')
+                table['source_level'] = 'region' if table['polygon'] else 'page'
+            for cell in table.get('cells', []):
+                cell['polygon'] = None
     postprocessed_at = time.perf_counter()
     result = {
         "schema_version": 1,

@@ -17,6 +17,12 @@
     "models": ["GLM-OCR", "PP-DocLayoutV3_safetensors"],
     "capabilities": {"text": true, "text_coordinates": false, "region_coordinates": true, "confidence": false, "tables": true}
   },
+  "mineru_pro": {
+    "name": "MinerU 2.5 Pro · 2605",
+    "route": "Isolated Python 3.12 / mineru-vl-utils 2.0.5 / Transformers CUDA BF16",
+    "models": ["MinerU2.5-Pro-2605-1.2B"],
+    "capabilities": {"text": true, "text_coordinates": false, "region_coordinates": true, "confidence": false, "tables": true, "formula": true}
+  },
   "hunyuan": {
     "name": "HunyuanOCR-1.5",
     "route": "llama.cpp b10894 Windows CUDA 12.4, F16 GGUF and visual projector",

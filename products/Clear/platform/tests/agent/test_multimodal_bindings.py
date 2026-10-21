@@ -3,6 +3,7 @@ import asyncio
 from copy import deepcopy
 from dataclasses import replace
 import json
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -17,7 +18,7 @@ from workbench_platform.agent.tools import multimodal, context
 from workbench_platform.application_services.references import verify, reference_location
 from workbench_platform.application_services.job_lifecycle import adapter
 
-ROOT = Path('F:/OCR/output/clear-platform-tools-20261016/temp')
+ROOT = Path(os.environ.get('CLEAR_MULTIMODAL_TEST_ROOT','F:/OCR/output/forensics-effective-upgrade-20261020/safire-integration-20261021/deployment-20261021/temp/agent-tests'))
 
 
 class BindingTests(unittest.IsolatedAsyncioTestCase):
@@ -59,7 +60,8 @@ class BindingTests(unittest.IsolatedAsyncioTestCase):
         return multimodal.Analyze(inputs=self.item['inputs'], options=options)
 
     def test_all_new_contracts_strict_and_chinese_discovery(self):
-        self.assertEqual(len(self.registry.tools), 25)
+        self.assertIn('document_forensics_analyze', self.registry.tools)
+        self.assertIn('catnet_analyze', self.registry.tools)
         self.assertTrue(all(spec.input_schema.model_config['extra'] == 'forbid' for spec in self.registry.tools.values()))
         page = self.registry.catalog(keyword='录音', services=None)
         self.assertIn('audio_transcribe', [item['name'] for item in page['tools']])

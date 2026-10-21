@@ -465,6 +465,16 @@ class Supervisor:
             if str(timeout) != raw_timeout or not 1 <= timeout <= 1800:
                 raise LaunchFailure('OCR loading timeout must be an integer from 1 to 1800 seconds')
             environment['CLEAR_OCR_LOAD_TIMEOUT_SECONDS'] = raw_timeout
+        if app_id == 'ocr':
+            for key in ('CLEAR_MINERU_PRO_PYTHON', 'CLEAR_MINERU_PRO_MODEL', 'CLEAR_MINERU_PRO_RUNTIME_MANIFEST'):
+                if os.environ.get(key):
+                    environment[key] = str(require_f_path(Path(os.environ[key]), key))
+            if os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST'):
+                expected = os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST_SHA256', '')
+                if not re.fullmatch('[0-9a-f]{64}', expected):
+                    raise LaunchFailure('MinerU runtime manifest requires a pinned SHA256 identity')
+                environment['CLEAR_MINERU_PRO_RUNTIME_MANIFEST_SHA256'] = expected
+            environment.update(HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', HF_HUB_DISABLE_TELEMETRY='1')
         job = _OwnedJob()
         with self._lock:
             entry.job = job  # close() waits for the future before cleanup.

@@ -16,7 +16,7 @@ from .store import canonical, digest, Conflict
 class Interpretation(AgentModel):
     action: Literal['image_text', 'pdf_text', 'unsupported']
     page_numbers: list[int] = Field(default_factory=list, max_length=100)
-    engines: list[Literal['ppocr', 'paddlevl', 'glm', 'hunyuan']] = Field(default_factory=list, max_length=4)
+    engines: list[Literal['ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro']] = Field(default_factory=list, max_length=5)
     mode: Literal['auto', 'native', 'ocr'] = 'auto'
     analysis_after_extraction: bool
     reason: str = Field(max_length=500)
@@ -140,7 +140,9 @@ async def maybe_route(runtime, run_id):
     if value is None or value.action == 'unsupported':
         return fallback()
     media = [item['media_type'] for item in inputs]
-    requested_engines = {name for name in ('ppocr', 'paddlevl', 'glm', 'hunyuan') if name in goal.lower()}
+    requested_engines = {name for name in ('ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro') if name in goal.lower()}
+    if re.search(r'mineru|增强识别', goal, re.I):
+        requested_engines.add('mineru_pro')
     if set(value.engines) != requested_engines:
         return fallback()
     if len(value.engines) != len(set(value.engines)):
@@ -169,7 +171,7 @@ async def maybe_route(runtime, run_id):
             return fallback()
         try:
             typed = PdfTextRequest(request_id=run['request_id'], page_numbers=value.page_numbers, mode=value.mode,
-                                   engine=value.engines[0] if value.engines else 'ppocr')
+                                   engine=value.engines[0] if value.engines else 'auto')
         except ValueError:
             return fallback()
     else:

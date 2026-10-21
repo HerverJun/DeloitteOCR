@@ -90,6 +90,41 @@ class QueueTests(unittest.TestCase):
         self.wait(lambda: self.store.one("tasks", key)["status"] == "succeeded")
         self.assertEqual(len(self.store.rows("SELECT * FROM results")), 1)
 
+    def test_auto_fallback_preserves_selected_engine_and_actual_result_identity(self):
+        self.failure = 'Pro is unavailable'
+        self.release.set()
+        key = self.store.enqueue(self.project, [self.version], ['auto'], fallback_engine='glm')[0]
+        self.queue.wake.set()
+        self.wait(lambda: self.store.one('tasks', key)['status'] == 'succeeded')
+        task = self.store.one('tasks', key)
+        result = self.store.result(task['result_id'])['original']
+        self.assertEqual(self.factories, ['mineru_pro', 'glm'])
+        self.assertEqual(task['engine'], 'auto')
+        self.assertEqual(result['engine'], 'glm')
+        self.assertEqual(result['engine_route']['fallback_engine'], 'glm')
+        self.assertTrue(result['engine_route']['fallback_used'])
+        self.assertIn('Pro is unavailable', result['engine_route']['fallback_reason'])
+
+    def test_auto_inference_failure_does_not_fallback_after_acceptance(self):
+        with patch.object(self.queue.factory, 'recognize', side_effect=RuntimeError('accepted inference failed')):
+            key = self.store.enqueue(self.project, [self.version], ['auto'], fallback_engine='glm')[0]
+            self.release.set()
+            self.queue.wake.set()
+            self.wait(lambda: self.store.one('tasks', key)['status'] == 'failed')
+        self.assertEqual(self.factories, ['mineru_pro'])
+        self.assertEqual(self.store.rows('SELECT * FROM results'), [])
+
+    def test_auto_route_is_frozen_in_idempotent_submission(self):
+        from ocr_workbench.store import Conflict
+        key = self.store.enqueue(self.project, [self.version], ['auto'], request_id='frozen-route', fallback_engine='glm')[0]
+        self.assertEqual(self.store.enqueue(self.project, [self.version], ['auto'], request_id='frozen-route', fallback_engine='glm'), [key])
+        with self.assertRaises(Conflict):
+            self.store.enqueue(self.project, [self.version], ['auto'], request_id='frozen-route', fallback_engine='ppocr')
+        with self.assertRaises(ValueError):
+            self.store.enqueue(self.project, [self.version], ['glm'], fallback_engine='ppocr')
+        with self.assertRaises(ValueError):
+            self.store.enqueue(self.project, [self.version], ['auto'], fallback_engine='mineru_pro')
+
     def test_stop_interrupts_loading_and_recovery_pauses_queued(self):
         ids = self.enqueue(["glm", "ppocr"])
         self.assertTrue(self.loaded.wait(3))

@@ -118,7 +118,7 @@ def register_document_routes(app, documents, maintenance, services=None):
     def process(key: str, body: dict):
         if type(body.get('force', False)) is not bool:
             raise ValueError('重新处理选项必须为布尔值')
-        return {'stage_id': documents.process(key, body.get('mode', 'auto'), force=body.get('force', False), engine=body.get('engine', 'ppocr'))}
+        return {'stage_id': documents.process(key, body.get('mode', 'auto'), force=body.get('force', False), engine=body.get('engine', 'auto'), fallback_engine=body.get('fallback_engine'))}
 
     @app.get('/api/pages/{key}/regions')
     def regions(key: str, version_id: str | None = None):

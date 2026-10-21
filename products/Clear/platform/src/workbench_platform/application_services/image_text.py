@@ -191,8 +191,9 @@ def _engines(catalog, requested):
         if len(set(requested)) != len(requested) or not set(requested) <= available.keys():
             raise DirectActionFault('指定引擎不在当前项目可用目录中')
         return requested
-    # Prefer the installed general text engine; no model/device substitution
-    # is performed after submission. Availability remains native authority.
+    if 'auto' in available:
+        return ['auto']
+    # Older native installations retain their available general text engine.
     preferred = [name for name in available if 'ppocr' in name.lower() or 'paddleocr' in name.lower()]
     if not preferred:
         preferred = [name for name in available if available[name].get('available', True) is not False]

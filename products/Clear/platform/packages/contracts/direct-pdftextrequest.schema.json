@@ -2,12 +2,14 @@
   "additionalProperties": false,
   "properties": {
     "engine": {
-      "default": "ppocr",
+      "default": "auto",
       "enum": [
+        "auto",
         "ppocr",
         "paddlevl",
         "glm",
-        "hunyuan"
+        "hunyuan",
+        "mineru_pro"
       ],
       "title": "Engine",
       "type": "string"

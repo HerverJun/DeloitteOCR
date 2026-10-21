@@ -340,9 +340,11 @@ class OcrAdapter:
             raise OcrUnavailable()
         return value
 
-    def submit(self, version_ids: list[str], engines: list[str], *, request_id: str, preprocess=None) -> tuple[str, ...]:
+    def submit(self, version_ids: list[str], engines: list[str], *, request_id: str, preprocess=None, fallback_engine=None) -> tuple[str, ...]:
         preprocess = preprocess or []
         validate_preprocess(preprocess)
+        if fallback_engine is not None and (not isinstance(fallback_engine, str) or fallback_engine not in {'ppocr', 'paddlevl', 'glm', 'hunyuan'} or not isinstance(engines, list) or 'auto' not in engines):
+            raise OcrUnavailable()
         if self.context.role == "viewer" or not self.capabilities().recognition:
             raise OcrUnavailable()
         if (not isinstance(version_ids, list) or not 1 <= len(version_ids) <= 1000
@@ -359,7 +361,8 @@ class OcrAdapter:
             raise OcrUnavailable()
         result = self._request("POST", f"/api/projects/{self.context.module_project_id}/tasks",
                                {"version_ids": version_ids, "engines": engines,
-                                "preprocess": preprocess, "request_id": request_id}, max_body=65536)
+                                "preprocess": preprocess, "request_id": request_id,
+                                **({'fallback_engine': fallback_engine} if fallback_engine is not None else {})}, max_body=65536)
         ids = result.get("task_ids")
         if (not isinstance(ids, list) or not ids or len(set(ids)) != len(ids)
                 or any(not _is_native_id(value) for value in ids)):

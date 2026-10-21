@@ -155,7 +155,7 @@ def verify_integrity(root, progress=lambda done, total: None, *, core_only=False
                 len(parts) > 1
                 and parts[0].casefold() == "runtimes"
                 and parts[1].casefold()
-                in {"ppocr", "paddlevl", "glm", "hunyuan", "llama", "dewarp"}
+                in {"ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro", "llama", "dewarp"}
             )
         )
 
@@ -300,10 +300,19 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
             }
             if review_only:
                 imports = {"service": imports["service"]}
+            elif 'mineru_pro' in json.loads((bundle / 'config/engines.json').read_text('utf-8')):
+                from ocr_workbench.mineru_pro import model_directory
+                runtime = Path(os.environ.get('CLEAR_MINERU_PRO_PYTHON') or bundle / 'runtimes/mineru_pro/python.exe')
+                if runtime.is_file() and (model_directory(bundle / 'models') / 'source-manifest.json').is_file():
+                    imports['mineru_pro'] = ['torch', 'transformers', 'mineru_vl_utils', 'torchvision']
+                else:
+                    report['warnings'].append('MinerU Pro 本地依赖未就绪；自动模式将回退既有 OCR')
             dependency = []
             for engine, modules in imports.items():
                 publish("检查运行时依赖：" + engine + "…")
                 runtime = bundle / "runtimes" / engine / "python.exe"
+                if engine == 'mineru_pro' and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
+                    runtime = Path(os.environ['CLEAR_MINERU_PRO_PYTHON'])
                 output = session / "dependency-probes" / engine
                 output.mkdir(parents=True, exist_ok=True)
                 env = os.environ.copy()
@@ -323,10 +332,15 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                 ]:
                     env.pop(key, None)
                 code = "import importlib,json,sys;from pathlib import Path;from ocr_workbench.offline import configure,install_guard;configure(Path(sys.argv[1]));install_guard(Path(sys.argv[1])/'blocked.log');[importlib.import_module(name) for name in json.loads(sys.argv[2])];print('imports-ok')"
+                if engine == 'mineru_pro':
+                    code = "import sys;sys.path.insert(0," + repr(str(Path(__file__).resolve().parents[1])) + ");" + code
+                    env.update(HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
                 if engine in {"ppocr", "paddlevl"}:
                     code += ";import paddle;assert paddle.is_compiled_with_cuda() and paddle.device.cuda.device_count()>0"
-                if engine == "glm":
+                if engine in {"glm", 'mineru_pro'}:
                     code += ";import torch;assert torch.cuda.is_available()"
+                if engine == 'mineru_pro':
+                    code += ";import importlib.metadata as m;assert m.version('mineru-vl-utils')=='2.0.5';assert sys.version_info[:2]==(3,12);assert torch.cuda.is_bf16_supported()"
                 from ocr_workbench.platform_resources import run_startup_probe
                 probe = run_startup_probe(
                     [
@@ -340,7 +354,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                         str(output),
                         json.dumps(modules),
                     ],
-                    gpu_required=engine in {"ppocr", "paddlevl", "glm"},
+                    gpu_required=engine in {"ppocr", "paddlevl", "glm", 'mineru_pro'},
                     env=env,
                     capture_output=True,
                     text=True,
@@ -358,7 +372,7 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                     }
                 )
                 if probe.returncode:
-                    report["errors"].append(
+                    report['warnings' if engine == 'mineru_pro' else 'errors'].append(
                         engine
                         + " 依赖或 CUDA 加载失败，请重新解压完整包并检查驱动；详情已保存于启动检查记录"
                     )

@@ -178,6 +178,25 @@ class TaskQueue:
         self.wake.set()
         return self.status()
 
+    def _ensure_adapter(self, task, resolved, loading_progress, geometry_provider='paddle'):
+        if self.adapter and (
+            self.adapter.engine != task['engine']
+            or getattr(self.adapter, 'bundle', self.bundle) != resolved
+            or task.get('kind') == 'geometry' and getattr(self.adapter, 'geometry_provider', 'paddle') != geometry_provider
+        ):
+            self.unload()
+        if self.adapter is None:
+            with self.guard:
+                self.adapter = self.factory(resolved, task['engine'], self.store.root / 'sessions')
+                self.adapter.cancelled = self.cancel_event
+                self.adapter.progress_callback = loading_progress
+                if task.get('kind') == 'geometry' and hasattr(self.adapter, 'configure_geometry'):
+                    self.adapter.configure_geometry(geometry_provider)
+            self.adapter.load()
+        else:
+            self.adapter.cancelled = self.cancel_event
+            self.adapter.progress_callback = loading_progress
+
     def step(self):
         task = self.store.claim(external=True) if self.external_only else self.store.claim()
         if task is None:
@@ -198,7 +217,7 @@ class TaskQueue:
             stages = progress.get('stages') or []
             phase = stages[-1].get('phase') if stages else None
             label = {'import_paddle': '导入 Paddle', 'cuda_check': '核实 CUDA',
-                     'import_paddleocr': '导入识别依赖', 'initialize_pipeline': '初始化模型权重',
+                     'import_paddleocr': '导入识别依赖', 'import_transformers': '导入 Transformers', 'initialize_pipeline': '初始化模型权重',
                      'ready': '模型已就绪'}.get(phase)
             if label:
                 try:
@@ -219,6 +238,10 @@ class TaskQueue:
             if prepared is None:
                 raise Cancelled()
             task = prepared
+            from ocr_workbench.ocr_routing import route_task, load_event, fallback_task, result_route
+            task, engine_route = route_task(self.store, task)
+            if engine_route and engine_route['requested_engine'] == 'auto' and self.registry:
+                task['engine_package'] = self.registry.engines().get(task['engine'], {}).get('package_id', 'builtin')
             if task.get('kind') == 'geometry':
                 import json
                 import hashlib
@@ -260,27 +283,32 @@ class TaskQueue:
                         {**geometry_snapshot, 'regions': regions})
                     self.unload()
                     failure_stage = 'load'
-            if self.adapter and (
-                self.adapter.engine != task["engine"]
-                or getattr(self.adapter, "bundle", self.bundle) != resolved
-                or task.get('kind') == 'geometry' and getattr(self.adapter, 'geometry_provider', 'paddle') != geometry_provider
-            ):
+            if engine_route:
+                load_event(self.store, task['id'], task['engine'], 'started')
+            try:
+                self._ensure_adapter(task, resolved, loading_progress, geometry_provider)
+            except Cancelled:
+                raise
+            except Exception as error:
+                if not engine_route or engine_route['requested_engine'] != 'auto' or task['engine'] != 'mineru_pro':
+                    raise
+                if self.cancel_event.is_set() or self.stopping.is_set():
+                    raise Cancelled()
+                # A failed load has accepted no image. Drain its Job and release
+                # the GPU lease before the sole permitted fallback is loaded.
                 self.unload()
-            if self.adapter is None:
-                with self.guard:
-                    self.adapter = self.factory(
-                        resolved,
-                        task["engine"],
-                        self.store.root / "sessions",
-                    )
-                    self.adapter.cancelled = self.cancel_event
-                    self.adapter.progress_callback = loading_progress
-                    if task.get('kind') == 'geometry' and hasattr(self.adapter, 'configure_geometry'):
-                        self.adapter.configure_geometry(geometry_provider)
-                self.adapter.load()
-            else:
-                self.adapter.cancelled = self.cancel_event
-                self.adapter.progress_callback = loading_progress
+                task = fallback_task(self.store, task, engine_route, error)
+                if self.registry:
+                    task['engine_package'] = self.registry.engines()[task['engine']]['package_id']
+                    resolved = self.registry.resolve(task['engine'], task['engine_package'])
+                else:
+                    resolved = self.bundle
+                with self.store.transaction() as db:
+                    db.execute("UPDATE tasks SET phase=? WHERE id=? AND status='running'",
+                               ('Pro 不可用，改用 ' + task['engine'], task['id']))
+                self._ensure_adapter(task, resolved, loading_progress)
+            if engine_route:
+                load_event(self.store, task['id'], task['engine'], 'ready')
             if self.cancel_event.is_set() or self.stopping.is_set():
                 raise Cancelled()
             failure_stage = 'inference'
@@ -308,6 +336,13 @@ class TaskQueue:
                     cropped = source.crop(json.loads(crop['crop_box']))
                     input_image = output / 'region-input.png'
                     cropped.save(input_image)
+            elif engine_route and engine_route.get('crop_box'):
+                import json
+                from PIL import Image
+                with Image.open(input_image) as source:
+                    cropped = source.crop(json.loads(engine_route['crop_box']))
+                    input_image = output / 'enhance-input.png'
+                    cropped.save(input_image)
             if task.get('kind') == 'geometry':
                 import json
                 geometry_request = self.store.rows('SELECT snapshot,regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]
@@ -324,6 +359,23 @@ class TaskQueue:
                 data = self.adapter.recognize(input_image, output, allow_empty=True)
             else:
                 data = self.adapter.recognize(input_image, output)
+            if engine_route:
+                if engine_route.get('crop_box') and task.get('kind') != 'region_ocr':
+                    import json
+                    from ocr_workbench.page_processing import map_region_result
+                    data = map_region_result(data, json.loads(engine_route['crop_box']), task['version_id'])
+                    data['region_image'] = data.get('image')
+                    data['image'] = {'source': str(self.store.file(version['path'])),
+                        'sha256': version['sha256'], 'version': version['sha256'],
+                        'width': version['width'], 'height': version['height'],
+                        'coordinates': 'prepared_image_pixels'}
+                data['engine_route'] = result_route(self.store, task['id'])
+                data['engine'] = task['engine']
+                if data['engine_route']['fallback_used']:
+                    data.setdefault('warnings', []).append({'code': 'mineru_pro_unavailable', 'stage': 'load',
+                        'message': 'MinerU Pro 不可用；本次已使用 ' + task['engine'] + '，可在引擎信息中查看加载原因。'})
+                from ocr_workbench.atomic_files import write_json
+                write_json(output / 'result.json', data, durable=True)
             failure_stage = 'result_commit'
             if task.get("kind") == "dewarp":
                 from ocr_workbench.imaging import save_version
@@ -370,6 +422,7 @@ class TaskQueue:
         except Exception as error:
             from ocr_workbench.errors import engine_error_details
             from ocr_workbench.atomic_files import write_json
+            import traceback
 
             details = engine_error_details(error, stage=failure_stage, attempt_id=task['id'])
             details['engine_request_accepted'] = details['accepted_write']
@@ -378,6 +431,12 @@ class TaskQueue:
             try:
                 folder.mkdir(exist_ok=True)
                 write_json(folder / (task['id'] + '.json'), details, durable=True)
+                write_json(folder / (task['id'] + '.diagnostic.json'), {
+                    'version': 1, 'private_diagnostics': True, 'attempt_id': task['id'],
+                    'stage': failure_stage, 'engine': task['engine'],
+                    'exception_type': type(error).__name__, 'message': str(error),
+                    'traceback': traceback.format_exc(), 'at': now(),
+                }, durable=True)
             except OSError:
                 logging.getLogger(__name__).exception('Could not persist OCR attempt error details for %s', task['id'])
             logging.getLogger(__name__).exception('OCR attempt %s failed at %s', task['id'], details['stage'])

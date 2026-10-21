@@ -36,11 +36,43 @@ def _read_json(path, limit):
     return json.loads(data, object_pairs_hook=_unique), data
 
 
+def _mineru_sources(bundle):
+    configured = os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST')
+    if not configured:
+        return []
+    requested = Path(configured).absolute()
+    path = requested.resolve(strict=True)
+    if requested.drive.upper() != 'F:' or path.drive.upper() != 'F:':
+        raise RuntimeError('MinerU runtime source manifest escaped local F drive')
+    record, payload = _read_json(path, 16_777_216)
+    if (hashlib.sha256(payload).hexdigest() != os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST_SHA256')
+            or record.get('schema_version') != 1):
+        raise RuntimeError('MinerU runtime source declaration differs from the pinned launcher identity')
+    sources, seen = [], set()
+    for source in record['sources']:
+        requested = Path(source['root']).absolute()
+        root = requested.resolve(strict=True)
+        if requested.drive.upper() != 'F:' or root.drive.upper() != 'F:' or str(root).casefold() in seen:
+            raise RuntimeError('MinerU runtime source escaped local F drive or is duplicated')
+        seen.add(str(root).casefold())
+        files = source['files']
+        if not isinstance(files, dict):
+            raise RuntimeError('MinerU runtime module inventory is invalid')
+        for name, item in files.items():
+            relative = _relative(name)
+            if (relative.suffix.lower() not in {'.dll', '.pyd', '.exe'}
+                    or not re.fullmatch('[0-9a-f]{64}', item['sha256'])
+                    or type(item['bytes']) is not int or item['bytes'] < 0):
+                raise RuntimeError('MinerU runtime module identity is invalid')
+        sources.append((root, files))
+    return sources
+
+
 def _registered_sources(bundle):
     """Accept only exact module hashes in the startup-verified private bundle."""
     record_path = bundle / 'runtime-sources.json'
     if not record_path.exists():
-        return []
+        return _mineru_sources(bundle)
     try:
         declaration, _ = _read_json(bundle / 'bundle.manifest.json', 1_048_576)
         declared = {}
@@ -92,7 +124,7 @@ def _registered_sources(bundle):
                         or type(item['bytes']) is not int or item['bytes'] < 0):
                     raise ValueError('Invalid runtime module identity')
             sources.append((target, files))
-        return sources
+        return sources + _mineru_sources(bundle)
     except (OSError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError(f'Registered runtime sources are invalid: {error}') from error
 

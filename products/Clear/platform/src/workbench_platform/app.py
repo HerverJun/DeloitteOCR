@@ -30,6 +30,7 @@ from .forensics.routes import configure_forensics, router as forensics_router
 from .multimodal.routes import configure_multimodal, router as multimodal_router
 from .agent.routes import configure_agent, router as agent_router
 from .agent.skills_routes import router as agent_skills_router
+from .documents.routes import configure_documents, router as documents_router
 
 
 @asynccontextmanager
@@ -57,9 +58,14 @@ async def lifespan(app: FastAPI):
         configure_audit(app)
         configure_forensics(app)
         configure_multimodal(app)
+        configure_documents(app)
         await configure_agent(app)
         yield
     finally:
+        document_service = getattr(app.state, 'document_service', None)
+        if document_service is not None:
+            document_service.close()
+        app.state.document_service = None
         manual_service = getattr(app.state, 'multimodal_service', None)
         if manual_service is not None:
             manual_service.close()
@@ -115,6 +121,7 @@ app.include_router(forensics_router)
 app.include_router(multimodal_router)
 app.include_router(agent_router)
 app.include_router(agent_skills_router)
+app.include_router(documents_router)
 
 
 @app.exception_handler(DataError)

@@ -60,9 +60,8 @@ class EnginePackages:
         self.staging.mkdir(exist_ok=True)
         self.guard = threading.RLock()
         self.state_guard = threading.RLock()
-        self.builtin = json.loads(
-            (self.bundle / "config/engines.json").read_text("utf-8")
-        )
+        from ocr_workbench.mineru_pro import engine_catalog
+        self.builtin = engine_catalog(self.bundle)
         self.active_file = self.root / "active.json"
 
     def active(self):
@@ -94,6 +93,20 @@ class EnginePackages:
             root = self.resolve(engine, package_id)
             spec = json.loads((root / "config/engines.json").read_text("utf-8"))[engine]
             values[engine] = {**spec, "package_id": package_id}
+        if 'mineru_pro' in values:
+            root = self.resolve('mineru_pro', values['mineru_pro']['package_id'])
+            runtime = Path(os.environ.get('CLEAR_MINERU_PRO_PYTHON') or root / 'runtimes/mineru_pro/python.exe')
+            from ocr_workbench.mineru_pro import model_directory
+            model = model_directory(root / 'models')
+            ready = runtime.is_file() and (model / 'source-manifest.json').is_file() and (model / 'config.json').is_file()
+            values['mineru_pro'].update(available=ready, ready=ready,
+                reason=None if ready else '本地 MinerU Pro 运行时或模型尚未就绪；自动模式可回退既有 OCR')
+        if 'ppocr' in values:
+            values['auto'] = {'name': '自动 · 原生优先 / MinerU Pro',
+                'route': 'MinerU Pro; one existing OCR fallback if loading is unavailable',
+                'models': [], 'package_id': 'builtin',
+                'capabilities': {'text': True, 'tables': True, 'region_coordinates': True},
+                'automatic': True, 'fallback_engine': 'ppocr'}
         return values
 
     def inventory(self):

@@ -49,6 +49,7 @@ import {
   readPreference,
   validMode,
   validEngine,
+  validFallbackEngine,
 } from "./workspacePreferences";
 import { api, request, download } from "./api";
 import { navigationFromLaunch, safeReturnUrl, type PlatformNavigation } from "./platformNavigation";
@@ -56,6 +57,7 @@ import { brands } from "./clear-ui/theme";
 import { ImageCanvas } from "./ImageCanvas";
 import { TableEditor } from "./TableEditor";
 import { ResultComparison } from "./ResultComparison";
+import { EnhancedRecognition, EnhancedResultComparison } from "./EnhancedRecognition";
 import { ResultViewNavigation } from "./ResultViewNavigation";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import type { DiagnosticsResponse } from "./diagnostics";
@@ -99,6 +101,8 @@ export function App() {
     validEngine,
   );
   const [preprocess, setPreprocess] = useState("none");
+  const [fallbackEngine, setFallbackEngine] = usePreference("ocr-ui-fallback-engine", "ppocr", validFallbackEngine);
+  const actualEngines = Object.keys(engines).filter(key => key !== "auto");
   const [tab, setTab] = useState("table");
   const [paneRequest, setPaneRequest] = useState<{ pane: "image" | "result" } | null>(null);
   const resultTabs = useRef(new Map<string, string>());
@@ -509,11 +513,12 @@ export function App() {
                   { kind: "contrast", factor: 1.3 },
                 ]
               : [],
-      engines: engine === "all" ? Object.keys(engines) : [engine],
+      engines: engine === "all" ? actualEngines : [engine],
+      ...(engine === "auto" ? { fallback_engine: fallbackEngine } : {}),
     });
     setShowQueue(true);
     await refresh(projectId);
-    notify(`已加入 ${photos.length * (engine === "all" ? 4 : 1)} 项任务`);
+    notify(`已加入 ${photos.length * (engine === "all" ? actualEngines.length : 1)} 项任务`);
   };
   const transform = async (op: unknown) => {
     if (!version) return;
@@ -548,7 +553,8 @@ export function App() {
       });
       await api("/projects/" + projectId + "/tasks", "POST", {
         version_ids: [v.id],
-        engines: engine === "all" ? Object.keys(engines) : [engine],
+        engines: engine === "all" ? actualEngines : [engine],
+        ...(engine === "auto" ? { fallback_engine: fallbackEngine } : {}),
       });
       await refresh(projectId);
       setShowQueue(true);
@@ -1015,6 +1021,8 @@ export function App() {
               setMode={setMode}
               engine={engine}
               setEngine={setEngine}
+              fallbackEngine={fallbackEngine}
+              setFallbackEngine={setFallbackEngine}
               preprocess={preprocess}
               setPreprocess={setPreprocess}
               chooseTab={chooseTab}
@@ -1026,7 +1034,7 @@ export function App() {
               hasActive={!!active}
               onRun={() => void action(() => run())}
             />
-            <FusionLauncher engines={engines} tasks={recognitionTasks} versionId={version?.id}
+            <FusionLauncher engines={Object.fromEntries(actualEngines.map(key => [key, engines[key]]))} tasks={recognitionTasks} versionId={version?.id}
               selectedCount={selected.length} disabled={busy || !photo} recognitionDisabled={reviewOnly || !queueHealthy}
               onStart={runFusion} />
             <button
@@ -1169,6 +1177,8 @@ export function App() {
                 )}
                 {editor.result && (
                   <span>
+                    实际引擎：{engineNames[editor.result.original.engine] || editor.result.original.engine} · {" "}
+                    {!!editor.result.original.document?.ocr_sources?.length && <>扫描区域：{[...new Set(editor.result.original.document.ocr_sources)].map(id => engineNames[id] || id).join(" / ")} · {" "}</>}
                     {typeof editor.result.original.elapsed_seconds === "number" ? `${editor.result.original.elapsed_seconds.toFixed(2)} 秒` : "耗时未记录"}
                   </span>
                 )}
@@ -1332,6 +1342,10 @@ export function App() {
               </div>
             ) : (
               <>
+                <EnhancedRecognition key={`${editor.result.id}:${editor.result.revision}`} result={editor.result} disabled={busy || reviewOnly || !queueHealthy}
+                  beforeRun={editor.flush} currentResult={editor.getCurrent} onError={onError} onAccepted={async () => { setShowQueue(true); await refresh(projectId); }} />
+                <EnhancedResultComparison result={editor.result} />
+                {editor.result.original.engine_route?.fallback_reason && <p className="inline-warning" role="status">自动识别已回退：{editor.result.original.engine_route.fallback_reason}。实际使用 {engineNames[editor.result.original.engine] || editor.result.original.engine}。</p>}
                 {editor.saveState === "保存失败" && (
                   <div className="inline-warning" role="alert">
                     校对尚未保存，草稿仍保留。请重试保存或下载副本。
@@ -1681,7 +1695,7 @@ export function App() {
       </WorkspaceLayout>
       <AgentPanel projectId={projectId} selectedImageIds={selected.length ? selected : active ? [active] : []}
         documents={project?.documents || []}
-        engines={engine === "all" ? Object.keys(engines) : [engine]} onNavigate={async (reference, destination) => {
+        engines={engine === "all" ? actualEngines : [engine]} fallbackEngine={engine === "auto" ? fallbackEngine : undefined} onNavigate={async (reference, destination) => {
         const target = await resolveAgentEvidence(reference, projectId);
         await previewResult(target.reference.result_id, target.image_id);
         const cell = target.reference.target_id?.match(/^table:(\d+):(\d+):(\d+)$/);

@@ -16,7 +16,7 @@ function OperationSummary({ value }: { value: string | undefined }) {
     <details className="comparison-operation-detail"><summary>处理记录</summary><pre>{value}</pre></details>}</>;
 }
 
-function ResultDifference({
+export function ResultDifference({
   baseline,
   candidate,
   original,
@@ -183,9 +183,10 @@ export function ResultComparison({
   const [groupKey, setGroupKey] = useState("");
   const [baselineId, setBaselineId] = useState("");
   const [original, setOriginal] = useState(true);
+  const [scope, setScope] = useState("version");
   const groups = useMemo(() => groupResults(results, tasks), [results, tasks]);
   const group = groups.find((value) => value.key === groupKey) ?? groups[0];
-  const candidates = group?.results ?? [];
+  const candidates = scope === "image" ? results : scope === "version" && group ? groups.filter(value => value.versionId === group.versionId).flatMap(value => value.results) : group?.results ?? [];
   const baseline =
     candidates.find((value) => value.id === baselineId) ?? candidates[0];
   const versionLabel = (id: string) => {
@@ -201,9 +202,12 @@ export function ResultComparison({
   return (
     <div className="comparison-panel">
       <p>
-        按相同图像版本和识别批次比较。选择基准后查看模型原文或保存的校对内容，再明确采用结果。
+        选择基准后对照增强识别前后的模型原文或保存的校对内容，再明确采用结果。每个结果保留图像版本与模型来源。
       </p>
       <div className="comparison-controls">
+        <label>对照范围 <select aria-label="结果对照范围" value={scope} onChange={event => { setScope(event.target.value); setBaselineId(""); }}>
+          <option value="version">相同图像版本的历史结果</option><option value="batch">相同识别批次</option><option value="image">当前页面全部结果（含区域）</option>
+        </select></label>
         <label>
           比较批次{" "}
           <select
@@ -253,9 +257,10 @@ export function ResultComparison({
           </select>
         </label>
       </div>
+      {scope === "image" && <p className="inline-warning">当前包含不同图像版本或区域结果。请根据下方输入处理记录回查范围，局部增强结果只覆盖所选区域。</p>}
       {candidates.length < 2 && (
         <p className="inline-warning">
-          这一图像版本和批次只有一个结果。可切换批次，或用「四引擎顺序对比」创建同条件结果。
+          此范围只有一个结果。可切换对照范围，或完成增强识别后查看历史与新结果。
         </p>
       )}
       {candidates.map((result) => {

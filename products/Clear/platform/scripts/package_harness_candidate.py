@@ -201,7 +201,8 @@ def package(source, sealed_release, work, output=None, *, check_inputs=False, pr
     sealed = json.loads((sealed_release / 'candidate.json').read_text('utf-8'))
     node, node_receipt = node_input(work)
     npm_packages = javascript_input(source / 'agent_harness')
-    required = ['apps/portal/dist/index.html', 'agent_harness/host.mjs', 'src/workbench_platform/agent/harness.py',
+    local_f(portal_dist / 'index.html', exists=True)
+    required = ['agent_harness/host.mjs', 'src/workbench_platform/agent/harness.py',
                 'scripts/classification_worker_compat.py',
                 'scripts/harness_candidate_launch.py', 'scripts/harness_candidate_smoke.mjs', 'scripts/harness_offline_guard.mjs']
     for name in required:

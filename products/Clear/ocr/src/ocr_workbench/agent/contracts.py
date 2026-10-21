@@ -89,6 +89,7 @@ class ProcessPages(StrictModel):
     page_numbers: Annotated[list[PageNumber], Field(min_length=1, max_length=100)]
     mode: Literal["auto", "native", "ocr"] = "auto"
     engine: Id | None = None
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
     force: bool = False
 
     @model_validator(mode="after")
@@ -99,16 +100,21 @@ class ProcessPages(StrictModel):
             raise ValueError("OCR requires an engine from the workspace capabilities")
         if self.mode == "native" and self.engine is not None:
             raise ValueError("Native extraction does not select an OCR engine")
+        if self.fallback_engine is not None and (self.engine != 'auto' or self.mode == 'native'):
+            raise ValueError('Fallback engine requires automatic OCR selection')
         return self
 
 
 class RunOCR(StrictModel):
     version_ids: Ids
-    engines: Annotated[list[Id], Field(min_length=1, max_length=4)]
+    engines: Annotated[list[Id], Field(min_length=1, max_length=5)]
     fusion_config_id: Id | None = None
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
 
     @model_validator(mode="after")
     def unique_inputs(self):
+        if self.fallback_engine is not None and self.engines != ['auto']:
+            raise ValueError('Fallback engine requires automatic OCR selection')
         if len(set(self.version_ids)) != len(self.version_ids) or len(set(self.engines)) != len(self.engines):
             raise ValueError("Duplicate OCR inputs")
         return self

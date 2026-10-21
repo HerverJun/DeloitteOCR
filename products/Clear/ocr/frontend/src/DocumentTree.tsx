@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { api, downloadPdf } from "./api";
-import type { DocumentRecord, DocumentPage } from "./types";
+import { engineNames, type DocumentRecord, type DocumentPage } from "./types";
 import "./documents.css";
 import { Thumbnail } from "./PhotoList";
 import { DocumentReviewQueue, type DocumentReviewTask } from "./DocumentReviewQueue";
@@ -19,6 +19,8 @@ export function DocumentTree({ documents, activeImage, activePage, reviewOnly, b
   const [jump, setJump] = useState("1");
   const [selection, setSelection] = useState<PageSelection | null>(null);
   const [mode, setMode] = useState(reviewOnly ? "native" : "auto");
+  const [engine, setEngine] = useState("auto");
+  const [fallbackEngine, setFallbackEngine] = useState("ppocr");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -162,14 +164,21 @@ export function DocumentTree({ documents, activeImage, activePage, reviewOnly, b
         })}>调整 DPI 并重试</Button></>}
       </div>}
       <div className="document-process"><select aria-label="页面处理方式" value={mode} onChange={e => setMode(e.target.value)}><option value="auto" disabled={reviewOnly}>自动：原生优先，区域补识别</option><option value="native">仅原生提取</option><option value="ocr" disabled={reviewOnly}>整页重新 OCR</option></select>
+        {!reviewOnly && <select aria-label="文档扫描识别引擎" value={engine} onChange={e => setEngine(e.target.value)}>{["auto", "mineru_pro", "ppocr", "paddlevl", "glm", "hunyuan"].map(id => <option key={id} value={id}>{engineNames[id]}</option>)}</select>}
+        {!reviewOnly && mode !== "native" && engine === "auto" && <label>Pro 不可用时 <select aria-label="文档识别后备引擎" value={fallbackEngine} onChange={event => setFallbackEngine(event.target.value)}>{["ppocr", "paddlevl", "glm", "hunyuan"].map(id => <option key={id} value={id}>{engineNames[id]}</option>)}</select></label>}
         <Button size="small" disabled={busy || !current} onClick={() => void act(async () => {
           const intent = { sequence: navigation.current, fromImage: activeImage };
           await beforeOpen(); if (!isCurrent(intent)) return;
-          await api(`/pages/${current!.id}/process`, "POST", { mode, force: mode === "ocr" }); setNotice("已加入页面处理队列");
+          await api(`/pages/${current!.id}/process`, "POST", { mode, engine, force: mode === "ocr", ...(engine === "auto" && mode !== "native" ? { fallback_engine: fallbackEngine } : {}) }); setNotice("已加入页面处理队列");
         })}>处理当前页</Button>
         <Button size="small" disabled={busy} onClick={() => void act(async () => {
-          await beforeOpen(); await api(`/documents/${documentId}/process`, "POST", { mode }); setNotice("文档已加入处理队列");
+          await beforeOpen(); await api(`/documents/${documentId}/process`, "POST", { mode, engine, ...(engine === "auto" && mode !== "native" ? { fallback_engine: fallbackEngine } : {}) }); setNotice("文档已加入处理队列");
         })}>处理全文</Button>
+        {!reviewOnly && <Button size="small" disabled={busy || !current} onClick={() => void act(async () => {
+          const intent = { sequence: navigation.current, fromImage: activeImage };
+          await beforeOpen(); if (!isCurrent(intent)) return;
+          await api(`/pages/${current!.id}/process`, "POST", { mode: "ocr", engine: "mineru_pro", force: true }); setNotice("当前页已加入 MinerU Pro 增强识别，历史结果保留");
+        })}>增强识别当前页</Button>}
       </div>
       <div className="document-actions">{[["pause", "暂停"], ["resume", "继续"], ["retry", "重试"], ["cancel", "取消"]].map(([key, label]) => <Button size="small" key={key} disabled={busy} onClick={() => void act(() => api(`/documents/${documentId}/queue/${key}`, "POST", {}))}>{label}</Button>)}</div>
       <DocumentReviewQueue key={documentId} documentId={documentId} busy={busy} onCheck={beforeOpen} onError={onError} onOpen={async task => {

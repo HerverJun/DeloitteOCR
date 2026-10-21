@@ -272,10 +272,15 @@ def _pdf_progress(value):
 
 
 ADAPTERS = {
+    ('platform','documents'): Lifecycle(
+        lambda ref, ctx: ctx.services.document_service.get(ctx.workspace_id, ref['object_id']),
+        partial(_observe, 'documents'),
+        lambda ref, ctx: ctx.services.document_service.control(ctx.workspace_id, ref['object_id'], 'cancel'),
+        lambda value: {'stage': value['stage'], 'hard_cancel': True, 'has_error': bool(value['error'])}),
     ('data','multimodal_transfer'): Lifecycle(_data_read, partial(_observe,'multimodal_transfer'), _data_cancel, _data_progress),
     **{('multimodal', kind): Lifecycle(_multimodal_read, partial(_observe, 'multimodal'),
                                     _multimodal_cancel, _multimodal_progress)
-       for kind in ('face', 'audio', 'seal', 'catnet')},
+       for kind in ('face', 'audio', 'seal', 'catnet', 'document_forensics')},
     ('data','data'): Lifecycle(_data_read, partial(_observe,'data'), _data_cancel, _data_progress),
     ('forensics','forensics'): Lifecycle(_forensic_read, partial(_observe,'forensics'), _forensic_cancel, _forensic_progress),
     ('platform','batch'): Lifecycle(_batch_read, partial(_observe,'platform_management'), _batch_cancel, _batch_progress),

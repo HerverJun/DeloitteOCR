@@ -94,7 +94,9 @@ def merge_page(native, ocr_results, version, doc, page, mode):
                          'table_tool': native.get('table_tool'),
                          'merge_provenance': provenance,
                          'sources': ['pdf-native'] if native_units else [],
-                         'ocr_sources': [r.get('engine') for r in ocr_results]},
+                         'ocr_sources': [r.get('engine') for r in ocr_results],
+                         'engine_routes': [r['engine_route'] for r in ocr_results if r.get('engine_route')]},
+            'warnings': [warning for result in ocr_results for warning in result.get('warnings', [])],
             'model_revisions': {k: v for result in ocr_results for k, v in result.get('model_revisions', {}).items()}}
 
 
@@ -225,6 +227,9 @@ def process_stage(manager, stage, cancelled):
                 VALUES(?,?,?,?,?,?,'queued','等待区域识别',?,'region_ocr',?)""",
                 (task_id, doc['project_id'], image['id'], version['id'], engine, 'page-'+stage['id'], now(), package))
             db.execute('INSERT INTO page_ocr_inputs VALUES(?,?,?,?,NULL)', (task_id, stage['id'], region['id'], encoded(box)))
+            if engine == 'auto':
+                from ocr_workbench.ocr_routing import ensure_route
+                ensure_route(db, task_id, fallback_engine=parameters.get('fallback_engine', 'ppocr'))
         db.execute("UPDATE document_stages SET version_id=?,status='waiting_gpu',phase='等待区域识别',output=? WHERE id=?",
                    (version['id'], encoded({'mode': mode, 'regions': len(needed),
                     **auxiliary}), stage['id']))

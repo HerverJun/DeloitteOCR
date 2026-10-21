@@ -42,10 +42,12 @@ def observation(body):
 
 def scoped_observation(body,namespace):
     value=observation(body);state=normalized(body)
-    if namespace in {'data.jobs','manual.manual_analysis','agent.runs','batches.batches'} and state not in TERMINAL|{'needs_verification'}:
+    if namespace in {'documents.documents','data.jobs','manual.manual_analysis','agent.runs','batches.batches'} and state not in TERMINAL|{'needs_verification'}:
         value['summary']['native_capabilities']=['cancel']+(['resume'] if namespace=='batches.batches' and state=='waiting_user' else [])
         if namespace=='agent.runs':
             value['summary']['native_capabilities']=['cancel','resume'] if state=='paused' else ['cancel','pause']
+    if namespace=='documents.documents' and state in {'needs_verification','cancelled','failed','partial'}:
+        value['summary']['native_capabilities']=['resume']
     return value
 
 def as_date(value):
@@ -423,6 +425,8 @@ class ExecutionHost:
         if namespace=='ocr.document_stages':return 'INTERNAL_DOCUMENT_RETRY','',{'stage_ids':path}
         if namespace=='manual.manual_analysis':
             return 'POST',path+'/control/retry',{}
+        if namespace=='documents.documents':
+            return 'POST',path+'/control/resume',{}
         if namespace=='forensics.inspections':
             payload=dict(command.get('payload',{}));payload['request_id']=dispatch['run_id']
             return 'POST',command['path'],payload
@@ -540,7 +544,7 @@ class ExecutionHost:
             await self.verify_execution(dispatch,dict(original));return
         if not binding:raise LedgerError('原生任务尚未返回可控制的身份',409)
         namespace,identifier,path=binding
-        if namespace=='manual.manual_analysis':target=path+'/control/'+action;payload={}
+        if namespace in {'documents.documents','manual.manual_analysis'}:target=path+'/control/'+action;payload={}
         elif namespace=='projection':target=path+'/actions/'+action;payload={}
         elif namespace=='data.jobs':target=path+'/'+action;payload={}
         elif namespace=='batches.batches':target=path+'/control';payload={'operation':'retry' if action=='resume' else action}

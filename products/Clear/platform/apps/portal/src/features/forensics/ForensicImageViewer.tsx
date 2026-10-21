@@ -8,14 +8,15 @@ type Mode = 'original' | 'heatmap' | 'overlay'
 type LoadedImage = { source: string; size: ImageSize | null; error: boolean }
 type Props = {
   image: string; heatmap?: string; width: number; height: number; registered?: boolean; warning?: string
-  marks?: ViewerMark[]; onChange?: (marks: ViewerMark[]) => void; heatmapLabel?: string
+  marks?: ViewerMark[]; onChange?: (marks: ViewerMark[]) => void; heatmapLabel?: string; suggestions?: ViewerMark[]
 }
 
 export function ForensicImageViewer({ image, heatmap, width, height, registered = false, warning,
-  marks = [], onChange, heatmapLabel = '取证热图' }: Props) {
+  marks = [], onChange, heatmapLabel = '取证热图', suggestions = [] }: Props) {
   const viewport = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null)
   const [mode, setMode] = useState<Mode>('original'), [opacity, setOpacity] = useState(.5)
   const [zoom, setZoom] = useState<number | 'fit'>('fit'), [available, setAvailable] = useState<ImageSize>([800, 480])
+  const [showSuggestions, setShowSuggestions] = useState(true)
   const [originalLoad, setOriginalLoad] = useState<LoadedImage>({ source: '', size: null, error: false })
   const [mapLoad, setMapLoad] = useState<LoadedImage>({ source: '', size: null, error: false })
   const originalSize = originalLoad.source === image ? originalLoad.size : null
@@ -79,6 +80,7 @@ export function ForensicImageViewer({ image, heatmap, width, height, registered 
         <Button aria-label="缩小图像" onClick={() => setZoom(Math.max(.01, scale / 1.25))}>−</Button>
         <Button aria-label="放大图像" onClick={() => setZoom(Math.min(8, scale * 1.25))}>＋</Button>
       </Space.Compact><Typography.Text type="secondary">{Math.round(scale * 100)}%</Typography.Text>
+      {!!suggestions.length && <Button aria-pressed={showSuggestions} onClick={() => setShowSuggestions(value => !value)}>{showSuggestions ? '隐藏建议框' : '显示建议框'}</Button>}
     </Space>
     {warning && <Alert type="warning" title={warning} />}
     {mismatch && <Alert type="warning" title="预览与热图的实际尺寸或坐标信息不一致，已停用叠加；热图仅独立查看。" />}
@@ -101,6 +103,9 @@ export function ForensicImageViewer({ image, heatmap, width, height, registered 
           {effectiveMode !== 'heatmap' && <image data-layer="original" href={image} width={width} height={height} preserveAspectRatio="none" />}
           {effectiveMode !== 'original' && heatmap && <image data-layer="heatmap" href={heatmap} width={width} height={height}
             preserveAspectRatio="none" opacity={effectiveMode === 'overlay' ? opacity : 1} />}
+          {showSuggestions && suggestions.map((mark, index) => <rect key={`suggestion-${index}`} data-suggestion={index} aria-label={mark.note}
+            x={mark.box[0] * width} y={mark.box[1] * height} width={(mark.box[2] - mark.box[0]) * width}
+            height={(mark.box[3] - mark.box[1]) * height} fill="none" stroke="#137448" strokeDasharray="6 4" strokeWidth={2} vectorEffect="non-scaling-stroke" />)}
           {[...marks, ...(draft ? [{ box: draft, note: '' }] : [])].map((mark, index) => <rect key={index} data-region={index}
             x={mark.box[0] * width} y={mark.box[1] * height} width={(mark.box[2] - mark.box[0]) * width}
             height={(mark.box[3] - mark.box[1]) * height} fill="#dc861d22" stroke="#c46613" strokeWidth={2} vectorEffect="non-scaling-stroke" />)}

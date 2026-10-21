@@ -3,7 +3,7 @@ export type Matrix = [[number, number, number], [number, number, number], [numbe
 export type NormalizedBox = [number, number, number, number]
 export type ForensicGeometry = {
   schema_version: '1.0'; coordinate_version: 'exif-pixel-edges-v1'
-  source_coordinate_system: 'stored_pixels'; display_coordinate_system: 'exif_transposed_pixels'
+  source_coordinate_system: 'stored_pixels' | 'exif_transposed_pixels'; display_coordinate_system: 'exif_transposed_pixels'
   stored_size: ImageSize; display_size: ImageSize; exif_orientation: number
   orientation_status: 'valid' | 'absent'; coordinate_convention: 'pixel_edges'
   stored_to_display: Matrix; display_to_stored: Matrix
@@ -45,10 +45,13 @@ export function readGeometry(value: unknown): ForensicGeometry | null {
   const geometry = value as ForensicGeometry
   const stored = imageSize(geometry.stored_size), display = imageSize(geometry.display_size)
   if (!stored || !display || geometry.schema_version !== '1.0' || geometry.coordinate_version !== 'exif-pixel-edges-v1'
-    || geometry.source_coordinate_system !== 'stored_pixels' || geometry.display_coordinate_system !== 'exif_transposed_pixels'
+    || !['stored_pixels', 'exif_transposed_pixels'].includes(geometry.source_coordinate_system) || geometry.display_coordinate_system !== 'exif_transposed_pixels'
     || geometry.coordinate_convention !== 'pixel_edges' || !['valid', 'absent'].includes(geometry.orientation_status)
     || !Number.isInteger(geometry.exif_orientation) || geometry.exif_orientation < 1 || geometry.exif_orientation > 8) return null
   if (geometry.orientation_status === 'absent' && geometry.exif_orientation !== 1) return null
+  // SAFIRE persists already oriented pixels; applying EXIF a second time would move its boxes.
+  if (geometry.source_coordinate_system === 'exif_transposed_pixels'
+    && (geometry.exif_orientation !== 1 || geometry.persisted_region_coordinate_system !== 'exif_transposed_pixels')) return null
   const expectedSize = geometry.exif_orientation >= 5 ? [stored[1], stored[0]] : stored
   if (!display.every((number, index) => number === expectedSize[index])) return null
   const forward = orientationMatrix(geometry.exif_orientation, stored)

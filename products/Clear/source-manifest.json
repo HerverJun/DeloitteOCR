@@ -1,6 +1,6 @@
 {
   "format": "clear-authored-source-snapshot-v1",
-  "captured_on": "2026-10-19",
+  "captured_on": "2026-10-22",
   "release_pointer": "release/Clear/current.json",
   "purpose": "Reviewable authored working-tree sources; not an offline installation package.",
   "exclusions": {
@@ -68,338 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
-      "head": "4fcb0e870e2d8451e740496398077db788e2811c",
+      "head": "2024dd6868e89f3647e29d22011429cb13db08d1",
       "branch": "codex/frontend-workbench-20261015",
-      "working_tree_status": [
-        " M .gitignore",
-        " M apps/portal/index.html",
-        " M apps/portal/package.json",
-        " M apps/portal/pnpm-lock.yaml",
-        " M apps/portal/src/App.tsx",
-        " M apps/portal/src/clear-ui/theme.ts",
-        " M apps/portal/src/clear-ui/tokens.css",
-        " M apps/portal/src/features/agent/AgentMessage.tsx",
-        " M apps/portal/src/features/agent/AgentWorkbench.tsx",
-        " M apps/portal/src/features/agent/AuditHelp.tsx",
-        " M apps/portal/src/features/agent/ContextBudget.tsx",
-        " M apps/portal/src/features/agent/ControllerSettings.tsx",
-        " M apps/portal/src/features/agent/FindingsWorkspace.tsx",
-        " M apps/portal/src/features/agent/ManualReturn.tsx",
-        " M apps/portal/src/features/agent/Materials.tsx",
-        " M apps/portal/src/features/agent/PlatformSettings.tsx",
-        " M apps/portal/src/features/agent/ProjectHome.tsx",
-        " M apps/portal/src/features/agent/RunStatus.tsx",
-        " M apps/portal/src/features/agent/TaskPanel.tsx",
-        " M apps/portal/src/features/agent/ToolActivity.tsx",
-        " M apps/portal/src/features/agent/agent.css",
-        " M apps/portal/src/features/agent/api.ts",
-        " M apps/portal/src/features/agent/conversationProjection.ts",
-        " M apps/portal/src/features/agent/referencePath.ts",
-        " M apps/portal/src/features/agent/useAgentEvents.ts",
-        " M apps/portal/src/features/agent/useConversationScroll.ts",
-        " M apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-        " M apps/portal/src/features/catalog/ToolIdentity.tsx",
-        " M apps/portal/src/features/catalog/nativeWindow.ts",
-        " M apps/portal/src/features/data/DataWorkbench.tsx",
-        " M apps/portal/src/features/jobs/TaskCenter.tsx",
-        " M apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-        " M apps/portal/src/features/start/QuickNativeWorkbench.tsx",
-        " M apps/portal/src/features/tasks/session.tsx",
-        " M apps/portal/src/main.tsx",
-        " M apps/portal/src/router.tsx",
-        " M apps/portal/src/style.css",
-        " M apps/portal/tests/agent-context-skills.test.tsx",
-        " M apps/portal/tests/agent-invocation.test.tsx",
-        " M apps/portal/tests/agent-streaming-ui.test.tsx",
-        " M apps/portal/tests/catalog.test.tsx",
-        " M apps/portal/tests/native-window.test.tsx",
-        " M apps/portal/tests/navigation.test.tsx",
-        " M apps/portal/tests/quick-start.test.tsx",
-        " M apps/portal/vite.config.ts",
-        " M config/skills/classification-training-preparation/SKILL.md",
-        " M config/skills/evidence-workpaper/SKILL.md",
-        " M config/skills/invoice-ocr-reconciliation/SKILL.md",
-        " M config/skills/payment-reconciliation/SKILL.md",
-        " M docs/agent/README.md",
-        " M modules/data_workbench/recipes/engine.py",
-        " M packages/contracts/adapter.openapi.json",
-        " M packages/contracts/agent-agentcall.schema.json",
-        " M packages/contracts/agent-agentjobprogress.schema.json",
-        " M packages/contracts/agent-agentmanualreturn.schema.json",
-        " M packages/contracts/agent-agentpublicactivity.schema.json",
-        " M packages/contracts/agent-agentref.schema.json",
-        " M packages/contracts/agent-agentresponsestate.schema.json",
-        " M packages/contracts/agent-agentsessioncreate.schema.json",
-        " M packages/contracts/agent-agenttaskwrite.schema.json",
-        " M packages/contracts/agent-agenttoolactivity.schema.json",
-        " M packages/contracts/agent-agenttoolresult.schema.json",
-        " M packages/contracts/agent-controllerdraft.schema.json",
-        " M packages/contracts/agent-controllermodelsdraft.schema.json",
-        " M packages/contracts/agent.py",
-        " M packages/contracts/agent_openapi.py",
-        " M packages/contracts/audit-auditevidencesnapshot.schema.json",
-        " M packages/contracts/audit-directevidencerequest.schema.json",
-        " M packages/contracts/audit-directevidencesnapshot.schema.json",
-        " M packages/contracts/generate.py",
-        " M packages/contracts/manual-manualanalysis.schema.json",
-        " M packages/contracts/manual-manualanalysiscreate.schema.json",
-        " M packages/contracts/manual-manualanalysispage.schema.json",
-        " M packages/contracts/multimodal.py",
-        " M packages/contracts/types.generated.ts",
-        " M scripts/agent_native_preview.py",
-        " M scripts/backup_workspace.py",
-        " M scripts/product_compatibility.py",
-        " M scripts/qualify_multimodal.py",
-        " M src/workbench_platform/agent/connection.py",
-        " M src/workbench_platform/agent/context.py",
-        " M src/workbench_platform/agent/dependencies.py",
-        " M src/workbench_platform/agent/environment.py",
-        " M src/workbench_platform/agent/progress.py",
-        " M src/workbench_platform/agent/providers.py",
-        " M src/workbench_platform/agent/registry.py",
-        " M src/workbench_platform/agent/routes.py",
-        " M src/workbench_platform/agent/runtime.py",
-        " M src/workbench_platform/agent/skills.py",
-        " M src/workbench_platform/agent/store.py",
-        " M src/workbench_platform/agent/streaming.py",
-        " M src/workbench_platform/agent/tasks.py",
-        " M src/workbench_platform/agent/tools/audit.py",
-        " M src/workbench_platform/agent/tools/classification.py",
-        " M src/workbench_platform/agent/tools/classification_management.py",
-        " M src/workbench_platform/agent/tools/context.py",
-        " M src/workbench_platform/agent/tools/data.py",
-        " M src/workbench_platform/agent/tools/forensics.py",
-        " M src/workbench_platform/agent/tools/history.py",
-        " M src/workbench_platform/agent/tools/jobs.py",
-        " M src/workbench_platform/agent/tools/ocr.py",
-        " M src/workbench_platform/agent/tools/ocr_management.py",
-        " M src/workbench_platform/agent/tools/ocr_processing.py",
-        " M src/workbench_platform/agent/tools/pdf.py",
-        " M src/workbench_platform/agent/tools/platform_management.py",
-        " M src/workbench_platform/agent/tools/results.py",
-        " M src/workbench_platform/app.py",
-        " M src/workbench_platform/application_services/job_lifecycle.py",
-        " M src/workbench_platform/application_services/manual.py",
-        " M src/workbench_platform/application_services/native.py",
-        " M src/workbench_platform/application_services/native_mapping.py",
-        " M src/workbench_platform/application_services/references.py",
-        " M src/workbench_platform/artifacts/center.py",
-        " M src/workbench_platform/artifacts/native_exports.py",
-        " M src/workbench_platform/artifacts/ocr_results.py",
-        " M src/workbench_platform/audit/direct.py",
-        " M src/workbench_platform/audit/draft_artifacts.py",
-        " M src/workbench_platform/audit/service.py",
-        " M src/workbench_platform/data_api/service.py",
-        " M src/workbench_platform/jobs/classification_handoff.py",
-        " M src/workbench_platform/jobs/native_ocr.py",
-        " M src/workbench_platform/jobs/ocr_handoff.py",
-        " M src/workbench_platform/jobs/projection.py",
-        " M src/workbench_platform/jobs/routes.py",
-        " M src/workbench_platform/multimodal/exports.py",
-        " M src/workbench_platform/multimodal/routes.py",
-        " M src/workbench_platform/multimodal/runner.py",
-        " M src/workbench_platform/multimodal/service.py",
-        " M src/workbench_platform/resources/gpu.py",
-        " M src/workbench_platform/resources/reader_features.py",
-        " M src/workbench_platform/supervisor/processes.py",
-        " M src/workbench_platform/tasks/server.py",
-        " M src/workbench_platform/tasks/store.py",
-        " M src/workbench_platform/tasks/worker.py",
-        " M tests/agent/test_audit_product.py",
-        " M tests/agent/test_backup.py",
-        " M tests/agent/test_convergence_control.py",
-        " M tests/agent/test_coverage_completion.py",
-        " M tests/agent/test_graph.py",
-        " M tests/agent/test_hardening.py",
-        " M tests/agent/test_invocation_fixes.py",
-        " M tests/agent/test_native_tools.py",
-        " M tests/agent/test_prompt_skills.py",
-        " M tests/agent/test_recovery.py",
-        " M tests/agent/test_skills.py",
-        " M tests/agent/test_streaming_production.py",
-        " M tests/agent/test_tool_progress.py",
-        " M tests/agent/test_wire_context.py",
-        " M tests/integration/test_job_projection.py",
-        " M tests/integration/test_manual_multimodal.py",
-        " M tests/integration/test_multimodal_dispatch.py",
-        " M tests/integration/test_ocr_artifacts.py",
-        " M tests/integration/test_supervisor.py",
-        " M tests/tasks/test_api.py",
-        " M tests/unit/test_multimodal_gpu.py",
-        "?? agent_harness/",
-        "?? apps/portal/public/brand/fonts/",
-        "?? apps/portal/src/clear-ui/common.css",
-        "?? apps/portal/src/clear-ui/experience.css",
-        "?? apps/portal/src/clear-ui/navigation.ts",
-        "?? apps/portal/src/clear-ui/recentVisits.ts",
-        "?? apps/portal/src/clear-ui/workspace.css",
-        "?? apps/portal/src/features/agent/DirectImageTextButton.tsx",
-        "?? apps/portal/src/features/agent/DirectPdfTextButton.tsx",
-        "?? apps/portal/src/features/agent/IntegrationSettings.tsx",
-        "?? apps/portal/src/features/agent/PlatformTools.tsx",
-        "?? apps/portal/src/features/agent/ReadableText.tsx",
-        "?? apps/portal/src/features/agent/conversationMotion.tsx",
-        "?? apps/portal/src/features/agent/experience.css",
-        "?? apps/portal/src/features/agent/platform-tools.css",
-        "?? apps/portal/src/features/agent/statusLabels.ts",
-        "?? apps/portal/src/features/agent/task-panel.css",
-        "?? apps/portal/src/features/agent/tool-activity.css",
-        "?? apps/portal/src/features/agent/workbench-visual.css",
-        "?? apps/portal/src/features/agent/workbenchView.ts",
-        "?? apps/portal/src/features/catalog/ToolDirectory.tsx",
-        "?? apps/portal/src/features/catalog/directory.css",
-        "?? apps/portal/src/features/catalog/toolCatalog.ts",
-        "?? apps/portal/src/features/home/",
-        "?? apps/portal/src/queryClient.ts",
-        "?? apps/portal/tests/agent-harness-ui.test.tsx",
-        "?? apps/portal/tests/agent-motion.test.tsx",
-        "?? apps/portal/tests/agent-platform-tools.test.tsx",
-        "?? apps/portal/tests/agent-task-panel.test.tsx",
-        "?? apps/portal/tests/agent-workbench-visual.test.tsx",
-        "?? apps/portal/tests/architecture-revision.test.tsx",
-        "?? apps/portal/tests/gui-experience.test.tsx",
-        "?? apps/portal/tests/home-routing.test.tsx",
-        "?? apps/portal/tests/multimodal-agent-results.test.tsx",
-        "?? docs/agent/architecture-revision-20261017.md",
-        "?? docs/agent/general-foundation-20261019.md",
-        "?? docs/agent/platform-tools-013.md",
-        "?? packages/contracts/agent_integrations.py",
-        "?? packages/contracts/data_operations.py",
-        "?? packages/contracts/direct-dataactionrequest.schema.json",
-        "?? packages/contracts/direct-imagetextrequest.schema.json",
-        "?? packages/contracts/direct-integrations.schema.json",
-        "?? packages/contracts/direct-pdftextrequest.schema.json",
-        "?? packages/contracts/direct-predictrequest.schema.json",
-        "?? packages/contracts/direct.py",
-        "?? packages/contracts/direct_classification.py",
-        "?? packages/contracts/direct_data.py",
-        "?? packages/contracts/manual-manualcontrol.schema.json",
-        "?? packages/contracts/manual-manualdrafttransfer.schema.json",
-        "?? packages/contracts/manual-manualdrafttransferreceipt.schema.json",
-        "?? packages/contracts/manual-manualoperationreceipt.schema.json",
-        "?? packages/contracts/manual-manualreferencedelete.schema.json",
-        "?? packages/contracts/manual-manualresultsnapshot.schema.json",
-        "?? scripts/build_clear_ui_font.py",
-        "?? scripts/classification_worker_compat.py",
-        "?? scripts/harness_candidate_launch.py",
-        "?? scripts/harness_candidate_smoke.mjs",
-        "?? scripts/harness_io_guard.py",
-        "?? scripts/harness_offline_guard.mjs",
-        "?? scripts/harness_tool_smoke.py",
-        "?? scripts/measure_ocr_performance.py",
-        "?? scripts/package_harness_candidate.py",
-        "?? scripts/platform_business_oracle.py",
-        "?? scripts/platform_review_oracle.py",
-        "?? scripts/platform_tool_acceptance.py",
-        "?? scripts/serve_harness_candidate.py",
-        "?? src/workbench_platform/agent/auxiliary.py",
-        "?? src/workbench_platform/agent/available_results.py",
-        "?? src/workbench_platform/agent/capabilities.py",
-        "?? src/workbench_platform/agent/delivery_jobs.py",
-        "?? src/workbench_platform/agent/delivery_policy.py",
-        "?? src/workbench_platform/agent/delivery_staging.py",
-        "?? src/workbench_platform/agent/general.py",
-        "?? src/workbench_platform/agent/general_outputs.py",
-        "?? src/workbench_platform/agent/general_python.py",
-        "?? src/workbench_platform/agent/goal_interpreter.py",
-        "?? src/workbench_platform/agent/goal_progress.py",
-        "?? src/workbench_platform/agent/harness.py",
-        "?? src/workbench_platform/agent/harness_materialize.py",
-        "?? src/workbench_platform/agent/harness_migration.py",
-        "?? src/workbench_platform/agent/harness_service.py",
-        "?? src/workbench_platform/agent/images.py",
-        "?? src/workbench_platform/agent/integrations.py",
-        "?? src/workbench_platform/agent/model_profiles.py",
-        "?? src/workbench_platform/agent/native_tools.py",
-        "?? src/workbench_platform/agent/requirement_coverage.py",
-        "?? src/workbench_platform/agent/task_recovery.py",
-        "?? src/workbench_platform/agent/tools/multimodal.py",
-        "?? src/workbench_platform/agent/windows_workspace.py",
-        "?? src/workbench_platform/agent/workspace_outputs.py",
-        "?? src/workbench_platform/application_services/action_admission.py",
-        "?? src/workbench_platform/application_services/classification_action.py",
-        "?? src/workbench_platform/application_services/cleaned_downloads.py",
-        "?? src/workbench_platform/application_services/composed.py",
-        "?? src/workbench_platform/application_services/context.py",
-        "?? src/workbench_platform/application_services/data_action.py",
-        "?? src/workbench_platform/application_services/decisions.py",
-        "?? src/workbench_platform/application_services/direct_actions.py",
-        "?? src/workbench_platform/application_services/direct_scope.py",
-        "?? src/workbench_platform/application_services/errors.py",
-        "?? src/workbench_platform/application_services/execution.py",
-        "?? src/workbench_platform/application_services/goal_fixed_actions.py",
-        "?? src/workbench_platform/application_services/goal_routing.py",
-        "?? src/workbench_platform/application_services/identity.py",
-        "?? src/workbench_platform/application_services/image_text.py",
-        "?? src/workbench_platform/application_services/job_observations.py",
-        "?? src/workbench_platform/application_services/ocr_tuning.py",
-        "?? src/workbench_platform/application_services/operations/",
-        "?? src/workbench_platform/application_services/pdf_text.py",
-        "?? src/workbench_platform/application_services/requirement_coverage.py",
-        "?? src/workbench_platform/application_services/result_text.py",
-        "?? src/workbench_platform/application_services/review_provenance.py",
-        "?? src/workbench_platform/artifacts/text_outputs.py",
-        "?? src/workbench_platform/data_api/table_schema.py",
-        "?? src/workbench_platform/multimodal/cpu_validation.py",
-        "?? src/workbench_platform/resources/native.py",
-        "?? tests/agent/test_architecture_services.py",
-        "?? tests/agent/test_backup_read_only.py",
-        "?? tests/agent/test_cancel_route_loop.py",
-        "?? tests/agent/test_classification_worker_compat.py",
-        "?? tests/agent/test_data_export_schema.py",
-        "?? tests/agent/test_delivery_native_status.py",
-        "?? tests/agent/test_delivery_policy.py",
-        "?? tests/agent/test_delivery_staging.py",
-        "?? tests/agent/test_delivery_text_artifacts.py",
-        "?? tests/agent/test_direct_admission.py",
-        "?? tests/agent/test_direct_backup.py",
-        "?? tests/agent/test_direct_business_actions.py",
-        "?? tests/agent/test_direct_fallback.py",
-        "?? tests/agent/test_direct_followups.py",
-        "?? tests/agent/test_direct_image_text.py",
-        "?? tests/agent/test_direct_not_submitted.py",
-        "?? tests/agent/test_direct_not_submitted_families.py",
-        "?? tests/agent/test_direct_pdf_text.py",
-        "?? tests/agent/test_direct_recovery_windows.py",
-        "?? tests/agent/test_formal_delivery_policy.py",
-        "?? tests/agent/test_general_agent.py",
-        "?? tests/agent/test_general_integrations.py",
-        "?? tests/agent/test_goal_interpreter.py",
-        "?? tests/agent/test_harness_backup_archive.py",
-        "?? tests/agent/test_harness_delivery_checks.py",
-        "?? tests/agent/test_harness_draft_delivery.py",
-        "?? tests/agent/test_harness_materialize.py",
-        "?? tests/agent/test_harness_migration.py",
-        "?? tests/agent/test_harness_model_profiles.py",
-        "?? tests/agent/test_harness_packaging.py",
-        "?? tests/agent/test_harness_provider_limits.py",
-        "?? tests/agent/test_harness_recovery.py",
-        "?? tests/agent/test_harness_task_connection.py",
-        "?? tests/agent/test_harness_tool_retention.py",
-        "?? tests/agent/test_legacy_failed_resume_entry.py",
-        "?? tests/agent/test_local_catalog_goals.py",
-        "?? tests/agent/test_multimodal_bindings.py",
-        "?? tests/agent/test_multimodal_security.py",
-        "?? tests/agent/test_native_binding_delivery.py",
-        "?? tests/agent/test_native_prepare_race.py",
-        "?? tests/agent/test_native_reader_service.py",
-        "?? tests/agent/test_ocr_worker_source_binding.py",
-        "?? tests/agent/test_partial_goal_continuation.py",
-        "?? tests/agent/test_platform_business_acceptance.py",
-        "?? tests/agent/test_platform_business_relations.py",
-        "?? tests/agent/test_platform_reader_gate.py",
-        "?? tests/agent/test_readable_text.py",
-        "?? tests/agent/test_registry_stage_errors.py",
-        "?? tests/agent/test_requirement_coverage.py",
-        "?? tests/agent/test_results_artifact_text.py",
-        "?? tests/agent/test_user_flow_progress_scope.py",
-        "?? tests/agent/test_user_flow_recovery_results.py",
-        "?? tests/agent/test_user_goal_routing.py",
-        "?? tests/integration/test_multimodal_agent_native.py",
-        "?? tests/unit/test_native_gpu_recovery.py"
-      ],
+      "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 887,
+      "file_count": 903,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -512,8 +185,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 21872,
-          "sha256": "ed618d6b33bb5bc8c44c38c20e287bbabfd2b6a946318fe3ad0b7442266e6c75"
+          "bytes": 21925,
+          "sha256": "14cf259f6d508edb06b3ce9b532f3d3cbba83ce5c82cb11042dd1b8896aab9e7"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/common.css",
@@ -566,8 +239,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
           "source_path": "apps/portal/src/features/agent/AgentWorkbench.tsx",
-          "bytes": 44259,
-          "sha256": "5c4a4a375cb17132b175fda1211332d0d9b3a72e41c26e8273d0269fa2605a5d"
+          "bytes": 45192,
+          "sha256": "a354c5ec5ff79da0ffda95dc716898563cac0ab7c2bcc1c441abb063ceaee5f6"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AuditHelp.tsx",
@@ -740,8 +413,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/referencePath.ts",
           "source_path": "apps/portal/src/features/agent/referencePath.ts",
-          "bytes": 2668,
-          "sha256": "3430264d9a30c0e41014fefc30358b1b76e950b42a24c3de4e42fb293a4db3eb"
+          "bytes": 2887,
+          "sha256": "f91648cece44a8df3812f4a45daf6f0cba8143ce4a5824452cb7c08d35f7e14e"
         },
         {
           "path": "platform/apps/portal/src/features/agent/statusLabels.ts",
@@ -788,8 +461,8 @@
         {
           "path": "platform/apps/portal/src/features/artifacts/ArtifactCenter.tsx",
           "source_path": "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-          "bytes": 23918,
-          "sha256": "bd4a2a67444e3b68dc37af184892bf9079848581ff4c3a83fbb862ef1df4e3e2"
+          "bytes": 23966,
+          "sha256": "f917922c8bfba74ce7ecce112bc17afe2105bd2084c24d048cba5b8e60ef1057"
         },
         {
           "path": "platform/apps/portal/src/features/artifacts/artifacts.css",
@@ -800,8 +473,8 @@
         {
           "path": "platform/apps/portal/src/features/assets/AssetLibrary.tsx",
           "source_path": "apps/portal/src/features/assets/AssetLibrary.tsx",
-          "bytes": 11815,
-          "sha256": "f98e1542147ec6e8d3f3c5b3d3162e6a5b64c597cb5ff4405fa6eff884232276"
+          "bytes": 12071,
+          "sha256": "c23292d570c35ed3280035fe171c7a83f88904503c061a530e107198b7c7f52c"
         },
         {
           "path": "platform/apps/portal/src/features/assets/assets.css",
@@ -914,8 +587,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
-          "bytes": 9754,
-          "sha256": "cf3c53ea22ca27a2d6e6da72a2c00e25ef6ef92ecb38c8e5df2754364266a6b5"
+          "bytes": 10010,
+          "sha256": "6b0a3eb7fc3f9464ce6f7b714114358e6609d6e76545ab67207b4fe098bf20ac"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
@@ -926,8 +599,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/directory.css",
           "source_path": "apps/portal/src/features/catalog/directory.css",
-          "bytes": 11125,
-          "sha256": "56c8fbf82ae50054f9760bf737b8aa0a277c14015e5e74d85a770509b2a3a005"
+          "bytes": 11130,
+          "sha256": "c3845c2e1f1947a3a3f836d86dfd7d0b6e9297747ca261fb19a03dea495c8875"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/nativeReviewReturn.ts",
@@ -972,6 +645,24 @@
           "sha256": "4403829cc13b65bec1b537f2f5571e5974c49da5cb815a9bceedb480a263b43f"
         },
         {
+          "path": "platform/apps/portal/src/features/documents/DocumentWorkbench.tsx",
+          "source_path": "apps/portal/src/features/documents/DocumentWorkbench.tsx",
+          "bytes": 15020,
+          "sha256": "cdcd88558ab79a5b77aeca7216565558f7733e34dab54f7c60d4690b28fa24ae"
+        },
+        {
+          "path": "platform/apps/portal/src/features/documents/api.ts",
+          "source_path": "apps/portal/src/features/documents/api.ts",
+          "bytes": 3215,
+          "sha256": "91ba34a8e7b1e394ec2690da11a3ade17b25e32f7273847028e9559e80898db0"
+        },
+        {
+          "path": "platform/apps/portal/src/features/documents/documents.css",
+          "source_path": "apps/portal/src/features/documents/documents.css",
+          "bytes": 469,
+          "sha256": "edcdb91ae97b9d3bf2f09671736bbb9b723ca9a5219dc54760d9f8e1ec392b9b"
+        },
+        {
           "path": "platform/apps/portal/src/features/forensics/ForensicImageViewer.css",
           "source_path": "apps/portal/src/features/forensics/ForensicImageViewer.css",
           "bytes": 1178,
@@ -980,14 +671,14 @@
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicImageViewer.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicImageViewer.tsx",
-          "bytes": 9051,
-          "sha256": "a93a52bf595ff3f323d3d310aed50f66e267d9f29c891362d01e5b8c983a2b07"
+          "bytes": 9768,
+          "sha256": "530ac537b609b9d703801bdb2d2b8210009969ad31040c73bf8f4aadc307a79a"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicWorkbench.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicWorkbench.tsx",
-          "bytes": 21049,
-          "sha256": "6ccab4e0e3794679ff37144926f339ec054bf9d923f96d62fe1fbe2e5cca2473"
+          "bytes": 21147,
+          "sha256": "72707be81152d9c7da4ee97edb8415f93d8c77553fc1fe1a90bc0a21ad3e91ef"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/forensics.css",
@@ -998,8 +689,8 @@
         {
           "path": "platform/apps/portal/src/features/forensics/geometry.ts",
           "source_path": "apps/portal/src/features/forensics/geometry.ts",
-          "bytes": 4779,
-          "sha256": "358bc9ccd1dc17083ccb87ab942da9e735722013f06febdee15dc6697e516ab1"
+          "bytes": 5139,
+          "sha256": "20a380ea11d0964ee3e7d61497b03ab3967f8b4491d9842378693586db68f9d5"
         },
         {
           "path": "platform/apps/portal/src/features/home/PortalHome.tsx",
@@ -1028,14 +719,14 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 38186,
-          "sha256": "7855e32cc1f0e0c3858c75209bb52de8e1b1a4f5e9e5b9d1610f73265b4dce15"
+          "bytes": 42549,
+          "sha256": "af45a6baa869fb55a0f5f45a6315d989513da90974232b10d933d97e3c477a1d"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
           "source_path": "apps/portal/src/features/multimodal/RegionReview.tsx",
-          "bytes": 5509,
-          "sha256": "951cc4a64f5ab031d22a755519e0c53069aba5824cfcfc594e66f2ed75f60742"
+          "bytes": 5711,
+          "sha256": "5916f3bde73eec1446ed88b6e0bc7cd0031e709786b70e77cde9d5eb723965e0"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/multimodal.css",
@@ -1046,8 +737,8 @@
         {
           "path": "platform/apps/portal/src/features/ocr/OcrWorkflow.tsx",
           "source_path": "apps/portal/src/features/ocr/OcrWorkflow.tsx",
-          "bytes": 14256,
-          "sha256": "b307afaa51cbb982321a7d75c7d72968857db79528bc0c576d88d3ecd65e9f9f"
+          "bytes": 15437,
+          "sha256": "1da9de5daeb91dedef022e1b5db377aa93757a5caf134682dacd558269039b8e"
         },
         {
           "path": "platform/apps/portal/src/features/ocr/ocr.css",
@@ -1070,8 +761,8 @@
         {
           "path": "platform/apps/portal/src/features/start/QuickNativeWorkbench.tsx",
           "source_path": "apps/portal/src/features/start/QuickNativeWorkbench.tsx",
-          "bytes": 9622,
-          "sha256": "6a7308413bab826aa297b1177a17eca401fdad5d8266ba1c8ce870a655f7f026"
+          "bytes": 9794,
+          "sha256": "77c127a66ea2f34e1c58d951f6fefcc1dc163373ccee9641d79fbd7be25a0873"
         },
         {
           "path": "platform/apps/portal/src/features/start/QuickStart.tsx",
@@ -1088,8 +779,8 @@
         {
           "path": "platform/apps/portal/src/features/tasks/TaskHistory.tsx",
           "source_path": "apps/portal/src/features/tasks/TaskHistory.tsx",
-          "bytes": 23195,
-          "sha256": "6b3de84468e38cd310424226417ef5d2309833d87ed74d6733a5dd6e8f77250a"
+          "bytes": 23259,
+          "sha256": "3d7baae65361733c63302879d3fea1a18272228cd46baf59e2f7298ea485f65e"
         },
         {
           "path": "platform/apps/portal/src/features/tasks/session.tsx",
@@ -1136,8 +827,8 @@
         {
           "path": "platform/apps/portal/src/router.tsx",
           "source_path": "apps/portal/src/router.tsx",
-          "bytes": 7529,
-          "sha256": "4521994ce1680a7d87d242c4f7db0f6afd0212da53ba819bddc3d31ec3d93a8c"
+          "bytes": 7840,
+          "sha256": "7fa96b0787271950ce21c272435fd581d4d4a2d37b6a60ab122a5bad32802dd5"
         },
         {
           "path": "platform/apps/portal/src/style.css",
@@ -1238,8 +929,8 @@
         {
           "path": "platform/apps/portal/tests/forensic-viewer.test.tsx",
           "source_path": "apps/portal/tests/forensic-viewer.test.tsx",
-          "bytes": 15524,
-          "sha256": "4d250eeaa7aea907169720614bb3495ac890b419036b6ab87b9f7ee40bc809cd"
+          "bytes": 22842,
+          "sha256": "9f2316ab6dda4dc48cd3359183ffbca2259f4fa9e889583dfa080555ab2ad8bc"
         },
         {
           "path": "platform/apps/portal/tests/forensics-workflow.test.tsx",
@@ -1352,8 +1043,8 @@
         {
           "path": "platform/apps/portal/vitest.forensics.config.ts",
           "source_path": "apps/portal/vitest.forensics.config.ts",
-          "bytes": 275,
-          "sha256": "6c49752f905d2dab9b68987716b4361b3a5204d3aede5bb427a290f10f47f06d"
+          "bytes": 305,
+          "sha256": "e2df641a99d4fed546bd598457f2fb93061a8daa5e7c1229e39dd64fe386c8f3"
         },
         {
           "path": "platform/config/apps/classification.install.json",
@@ -1388,8 +1079,8 @@
         {
           "path": "platform/config/multimodal.json",
           "source_path": "config/multimodal.json",
-          "bytes": 510,
-          "sha256": "af87a70a270f7f30b519fc70aa48ff0effe9f62ed4964982fec9e7d4ba426ce2"
+          "bytes": 1179,
+          "sha256": "8a8eceeec695e59578b807d2d2dc2195b54a648ea491ad13e555920f8eac4321"
         },
         {
           "path": "platform/config/runtime-locks/agent.json",
@@ -1836,6 +1527,18 @@
           "sha256": "eafb8950bfa9263f76b588fdf5390e275392cbbe5bfeec4fb2b54ab3072f4b2c"
         },
         {
+          "path": "platform/modules/manual_multimodal/safire_processing.py",
+          "source_path": "modules/manual_multimodal/safire_processing.py",
+          "bytes": 9254,
+          "sha256": "09f7625f610a89334277b594e1a6d207bfb254b79a459e6aac8bccb10f88de19"
+        },
+        {
+          "path": "platform/modules/manual_multimodal/safire_worker.py",
+          "source_path": "modules/manual_multimodal/safire_worker.py",
+          "bytes": 2220,
+          "sha256": "085d7126885549fd56e3b1a4bc090c0ea90554ae5d7f8b349c4da98d9f080ac7"
+        },
+        {
           "path": "platform/modules/manual_multimodal/worker.py",
           "source_path": "modules/manual_multimodal/worker.py",
           "bytes": 16677,
@@ -1874,8 +1577,8 @@
         {
           "path": "platform/packages/contracts/adapter.openapi.json",
           "source_path": "packages/contracts/adapter.openapi.json",
-          "bytes": 564767,
-          "sha256": "2636425cfa8604afd630b4646d5281ed55d71502f6ca002702bdf55d2712991f"
+          "bytes": 565300,
+          "sha256": "5d6c096655aa4892554b390f4a9909c02b46d130fe4450b9c6064d551fe11911"
         },
         {
           "path": "platform/packages/contracts/agent-agentcall.schema.json",
@@ -2414,8 +2117,8 @@
         {
           "path": "platform/packages/contracts/direct-pdftextrequest.schema.json",
           "source_path": "packages/contracts/direct-pdftextrequest.schema.json",
-          "bytes": 1400,
-          "sha256": "7765704ce4d56f44405b556210580d20cda03ea4282a9cb794e2b1da697d6c5e"
+          "bytes": 1439,
+          "sha256": "8fa8fc44e8cec3c5784cb9e7171faf2b2477033d796396464a2974ca88fac3b8"
         },
         {
           "path": "platform/packages/contracts/direct-predictrequest.schema.json",
@@ -2426,8 +2129,8 @@
         {
           "path": "platform/packages/contracts/direct.py",
           "source_path": "packages/contracts/direct.py",
-          "bytes": 1149,
-          "sha256": "ad92fa31247b15b9356bf648da73d3c25dc801df5a4a24109cbb475f9e550cf9"
+          "bytes": 1170,
+          "sha256": "5a38bca60418d4690aff07b9208c9dc31b5374f7d83eb628810e8f252088e028"
         },
         {
           "path": "platform/packages/contracts/direct_classification.py",
@@ -2440,6 +2143,12 @@
           "source_path": "packages/contracts/direct_data.py",
           "bytes": 1850,
           "sha256": "4a4dd768b38678cf61f7094ff033100e205bd8b6190d2ab08357646d157dd734"
+        },
+        {
+          "path": "platform/packages/contracts/documents.py",
+          "source_path": "packages/contracts/documents.py",
+          "bytes": 1034,
+          "sha256": "12b3c1382cbb89e085c831f945b536ad07c5ba240162c5459977de936d33cf81"
         },
         {
           "path": "platform/packages/contracts/error.schema.json",
@@ -2552,20 +2261,20 @@
         {
           "path": "platform/packages/contracts/manual-manualanalysis.schema.json",
           "source_path": "packages/contracts/manual-manualanalysis.schema.json",
-          "bytes": 5570,
-          "sha256": "734fffe0255aa6dcd932a8d7c26b971890393a422766d5263509a186a853e544"
+          "bytes": 5857,
+          "sha256": "3f9fa6c6dd42203b708998fcf01f6c042c8b5307e6150957524bd987c43146fb"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysiscreate.schema.json",
           "source_path": "packages/contracts/manual-manualanalysiscreate.schema.json",
-          "bytes": 3576,
-          "sha256": "d6ad41c73e0c8b86baa9b59a6b5a156d882bd6a139cddf53d6a7764bec89234f"
+          "bytes": 3607,
+          "sha256": "e08efdf65defd6b7c1d1f9d5e55a3f261f8c4ea4926ad3746d21f86de692cc73"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysispage.schema.json",
           "source_path": "packages/contracts/manual-manualanalysispage.schema.json",
-          "bytes": 6706,
-          "sha256": "73430baebd75e2836cb211c5679c92f61493242ff3e6800d564e577c95a3732d"
+          "bytes": 7049,
+          "sha256": "8fa644a2cf804302705f7b390a5ade7fd8dc216a24e2ee417808c0bbf727a62e"
         },
         {
           "path": "platform/packages/contracts/manual-manualcontrol.schema.json",
@@ -2606,8 +2315,8 @@
         {
           "path": "platform/packages/contracts/manual-manualresultsnapshot.schema.json",
           "source_path": "packages/contracts/manual-manualresultsnapshot.schema.json",
-          "bytes": 8765,
-          "sha256": "fce1ca9d67fc5c90c0c9572b3295a88f15d84d5a3b8b8ed801840a44935fc8bc"
+          "bytes": 9139,
+          "sha256": "af6ffa6be3d197542f554c1e14421cb86cee3cd18859ecfaefe8fbbd957357c3"
         },
         {
           "path": "platform/packages/contracts/manual-manualreview.schema.json",
@@ -2630,8 +2339,8 @@
         {
           "path": "platform/packages/contracts/multimodal.py",
           "source_path": "packages/contracts/multimodal.py",
-          "bytes": 7515,
-          "sha256": "55b418eb5f5ef117942fc0f718a8089230637f71be4d23ac163a0dbb32d08d27"
+          "bytes": 7618,
+          "sha256": "3bc5e3dadbdf3a469f6794bc100b356d955c61000a8763cf783b1a369447a9c3"
         },
         {
           "path": "platform/packages/contracts/pyproject.toml",
@@ -2678,8 +2387,8 @@
         {
           "path": "platform/packages/contracts/task-taskcreate.schema.json",
           "source_path": "packages/contracts/task-taskcreate.schema.json",
-          "bytes": 1893,
-          "sha256": "bf7a61a2f72e5b5e1c5b3989db574839dec407e2bf167c019d4e17ae449db780"
+          "bytes": 1924,
+          "sha256": "a2c5f21105e5276db0dfc40192758aafd265175d5cd0ff82bf648c1a0e4ed781"
         },
         {
           "path": "platform/packages/contracts/task-taskdetail.schema.json",
@@ -2726,14 +2435,14 @@
         {
           "path": "platform/packages/contracts/tasks.py",
           "source_path": "packages/contracts/tasks.py",
-          "bytes": 6616,
-          "sha256": "d152f10518c0d933df8c82cbd8a70822424b3d639f4fe12329ab253235da1a5c"
+          "bytes": 6809,
+          "sha256": "e5b34af43841155918753b3478b5f755cd42201de648add044ccb52d4bd0b67e"
         },
         {
           "path": "platform/packages/contracts/types.generated.ts",
           "source_path": "packages/contracts/types.generated.ts",
-          "bytes": 47538,
-          "sha256": "90e3499b0ddd94558cb8276ea8bd508facac84014faf0a4ab1d6cd4520e64fed"
+          "bytes": 47704,
+          "sha256": "2c6d06d3cb3e6c6d43b5d4715e654badaab05f2fecaf482eea23950f9e9491f3"
         },
         {
           "path": "platform/packages/contracts/upload-audiouploadbinding.schema.json",
@@ -3038,8 +2747,8 @@
         {
           "path": "platform/scripts/harness_candidate_launch.py",
           "source_path": "scripts/harness_candidate_launch.py",
-          "bytes": 7544,
-          "sha256": "93d933f43183ed4a3d13fa9b1771403c4fad0bc415dba833a41461b18f5796f9"
+          "bytes": 18742,
+          "sha256": "771c3003b64f26255fb03475f237d58d7706727d8b11131e431997cfd453cebe"
         },
         {
           "path": "platform/scripts/harness_candidate_smoke.mjs",
@@ -3098,8 +2807,8 @@
         {
           "path": "platform/scripts/package_harness_candidate.py",
           "source_path": "scripts/package_harness_candidate.py",
-          "bytes": 21098,
-          "sha256": "a7b8024a8fcb897d7f20cd70e70affd6866cad5ef5521f76992e0f083877e82b"
+          "bytes": 21120,
+          "sha256": "f3130507a16bab38b41e40e0e9b53c6d10caedd3d8f2820f3bdc6d683c9b5e11"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -3146,8 +2855,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 19620,
-          "sha256": "84588f799cb5c6c2f035603c5f25e7c700b2620cdefa871340fc7114d154a394"
+          "bytes": 20951,
+          "sha256": "891dba30e5af9691f220f61ebbc14bc1f3219b2813150c451f52143d70ea48d2"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -3158,8 +2867,8 @@
         {
           "path": "platform/scripts/qualify_multimodal.py",
           "source_path": "scripts/qualify_multimodal.py",
-          "bytes": 11356,
-          "sha256": "9da3e50b1424a0097e3da98d36c555bc864515c58876def79bbfd3da97c02551"
+          "bytes": 12518,
+          "sha256": "765c9a7592d02e66092fb6c184fc5260ab32b12337887cab0686bbccbbce35f3"
         },
         {
           "path": "platform/scripts/real_cli_smoke.py",
@@ -3320,8 +3029,8 @@
         {
           "path": "platform/src/workbench_platform/agent/capabilities.py",
           "source_path": "src/workbench_platform/agent/capabilities.py",
-          "bytes": 3432,
-          "sha256": "12c4f01efe54ca4302ae7a105e2d71cd0927d7addcd60a72195c5514771fb752"
+          "bytes": 3855,
+          "sha256": "3277406b8002c4958306da6fda3af0b12fc6e9b196f926cdc780c00d5651019e"
         },
         {
           "path": "platform/src/workbench_platform/agent/connection.py",
@@ -3344,8 +3053,8 @@
         {
           "path": "platform/src/workbench_platform/agent/delivery_jobs.py",
           "source_path": "src/workbench_platform/agent/delivery_jobs.py",
-          "bytes": 6197,
-          "sha256": "9328889b754d772b7cc6ba75c913d53782991048d04f9abf5b8146b297273cc8"
+          "bytes": 6322,
+          "sha256": "eeabf8b497e1fa5ddd35ca8820a8288f61e24bda138d0d51e92b84bc38a8ffd4"
         },
         {
           "path": "platform/src/workbench_platform/agent/delivery_policy.py",
@@ -3392,8 +3101,8 @@
         {
           "path": "platform/src/workbench_platform/agent/goal_interpreter.py",
           "source_path": "src/workbench_platform/agent/goal_interpreter.py",
-          "bytes": 11139,
-          "sha256": "4383654650882d2ec1519ef44b3ca69cff88230be3bfaba3344a6c5a2f565999"
+          "bytes": 11264,
+          "sha256": "0aefb2dcf62c7ca70bf792aaa3590b90628974aa7dc9330dacfc44d7cf6abb9b"
         },
         {
           "path": "platform/src/workbench_platform/agent/goal_progress.py",
@@ -3572,8 +3281,8 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/documents.py",
           "source_path": "src/workbench_platform/agent/tools/documents.py",
-          "bytes": 7825,
-          "sha256": "1cab8e66197d0f1fc49e52f46ebaf185ac1e66520982d386b7ed0e15047796bf"
+          "bytes": 11053,
+          "sha256": "76c8b1eee6db282364138b89aa1497c0866a7c8fc3bf4fbc2f41dfce29e99201"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/forensics.py",
@@ -3596,8 +3305,8 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/multimodal.py",
           "source_path": "src/workbench_platform/agent/tools/multimodal.py",
-          "bytes": 3777,
-          "sha256": "994dc9068db9998666722006fd17ab2c859a4802ac17045464ec787ab0c1f7be"
+          "bytes": 4024,
+          "sha256": "518d7fb7e11e8e0200ebdc2d8516566be5f104f8e74f54a03f3119bf2d824dcb"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/native_catalog.py",
@@ -3662,8 +3371,8 @@
         {
           "path": "platform/src/workbench_platform/app.py",
           "source_path": "src/workbench_platform/app.py",
-          "bytes": 6857,
-          "sha256": "bbe0e4dd257fff8f6991cb39fbca2809e1ec5368abcf3e438e65b1c3a59b2f07"
+          "bytes": 7204,
+          "sha256": "6d2d19b62dd1edda4f96e17ffae9279f63ef047518d47302a6fe6de40d52bb09"
         },
         {
           "path": "platform/src/workbench_platform/application_services/__init__.py",
@@ -3692,8 +3401,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/composed.py",
           "source_path": "src/workbench_platform/application_services/composed.py",
-          "bytes": 17401,
-          "sha256": "5169e8b6ff1be394360514068803e0590b15ab39cc4204b277a2c7384c261f05"
+          "bytes": 17400,
+          "sha256": "f2cbc383649cef0f328ba56dc5bb0912257aaf8fa58214be18860a3d12a132ab"
         },
         {
           "path": "platform/src/workbench_platform/application_services/context.py",
@@ -3764,14 +3473,14 @@
         {
           "path": "platform/src/workbench_platform/application_services/image_text.py",
           "source_path": "src/workbench_platform/application_services/image_text.py",
-          "bytes": 25554,
-          "sha256": "d6015f8635c368cd6ace34afe3f23396db9331e67ddfe75aa8c95a801bcc3402"
+          "bytes": 25531,
+          "sha256": "c0361838f0ea7ce3ea12d146207c59950b04aa5c552d561a1152bc9330fae2a6"
         },
         {
           "path": "platform/src/workbench_platform/application_services/job_lifecycle.py",
           "source_path": "src/workbench_platform/application_services/job_lifecycle.py",
-          "bytes": 12481,
-          "sha256": "f83e7c01dd62c1f57999931ce2885a69a694d6077760fd9ca0fe2665ae67a085"
+          "bytes": 12901,
+          "sha256": "42b007b1fface664f6ab21dcedd24ea3830bd4009e82b5e92e2c644169be7455"
         },
         {
           "path": "platform/src/workbench_platform/application_services/job_observations.py",
@@ -3840,6 +3549,12 @@
           "sha256": "119e1ea7a9d89936ce34ec24742af082d033795270f2ca6301f6e0c469dba835"
         },
         {
+          "path": "platform/src/workbench_platform/application_services/operations/documents.py",
+          "source_path": "src/workbench_platform/application_services/operations/documents.py",
+          "bytes": 5477,
+          "sha256": "02c69bcab69823d4c3b87ceba6db1bebb27933a2f45d80c1b79c42ca08e5e4cc"
+        },
+        {
           "path": "platform/src/workbench_platform/application_services/operations/forensics.py",
           "source_path": "src/workbench_platform/application_services/operations/forensics.py",
           "bytes": 4954,
@@ -3848,20 +3563,20 @@
         {
           "path": "platform/src/workbench_platform/application_services/operations/jobs.py",
           "source_path": "src/workbench_platform/application_services/operations/jobs.py",
-          "bytes": 9446,
-          "sha256": "62e8b074783a8f6f95422883663da17449646be442b8f66c03f5d7cf3eaec0ce"
+          "bytes": 9476,
+          "sha256": "ceef114779ae8a9322c73a8fa18bb818977c6d6e2e14db21ea860c2232ce7dfc"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/multimodal.py",
           "source_path": "src/workbench_platform/application_services/operations/multimodal.py",
-          "bytes": 30626,
-          "sha256": "4491d6a7e47cf37f404dac4b3984b613e822fb74089c2341bac59950b67d49f0"
+          "bytes": 30712,
+          "sha256": "0029f29745783704792d78b22953bd153cf1ee78b58d210ebd02edc053a222db"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/ocr.py",
           "source_path": "src/workbench_platform/application_services/operations/ocr.py",
-          "bytes": 8094,
-          "sha256": "511a84865f39f20c4c1fbbe7095d8d131974c04f99c77fea04b54f8e40a890b7"
+          "bytes": 8377,
+          "sha256": "ddc931774ca447d6274c1580d3cfb3b82f715ce396b53c561879ef5034dd6c80"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/ocr_management.py",
@@ -3878,8 +3593,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/operations/pdf.py",
           "source_path": "src/workbench_platform/application_services/operations/pdf.py",
-          "bytes": 12714,
-          "sha256": "3d077be7f1a1a268d3a97e384cf840c6df6c29fb142c6ca7a2664fffb5aa274a"
+          "bytes": 13027,
+          "sha256": "1df3f297ea983140e2cbbbfabc4da6885cc66e2df28b446c51e30ab1cce3d2fe"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/platform_management.py",
@@ -3896,8 +3611,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/references.py",
           "source_path": "src/workbench_platform/application_services/references.py",
-          "bytes": 19609,
-          "sha256": "23a1f8ac65179a0a1f29326a44d58ee40bbc699318f97bebc9d98da994f908f0"
+          "bytes": 20885,
+          "sha256": "552adf40a24b8ab6de4227cd9964aa484d0b6cd03a207c3049e5c11c0b818c49"
         },
         {
           "path": "platform/src/workbench_platform/application_services/requirement_coverage.py",
@@ -3920,8 +3635,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/search.py",
           "source_path": "src/workbench_platform/application_services/search.py",
-          "bytes": 7682,
-          "sha256": "98ddc2eaa52c22bcc31f616dcd4c13972372f8878219767f9373c94a2da41568"
+          "bytes": 8885,
+          "sha256": "8aa5df483015862994b3f5d9ed3e5076834cfeb8ae57f4389c502ea76bd8aaf1"
         },
         {
           "path": "platform/src/workbench_platform/artifacts/__init__.py",
@@ -4176,6 +3891,42 @@
           "sha256": "d2aa1d5bcdffe897e76d170377b35b2baa8954f30319cd382cf987ee3ff94ec3"
         },
         {
+          "path": "platform/src/workbench_platform/documents/__init__.py",
+          "source_path": "src/workbench_platform/documents/__init__.py",
+          "bytes": 80,
+          "sha256": "b444c054d5632994f1f362647ba4ad4337aeb5dd830197ffb4de82f0a6f0f37e"
+        },
+        {
+          "path": "platform/src/workbench_platform/documents/normalize.py",
+          "source_path": "src/workbench_platform/documents/normalize.py",
+          "bytes": 4153,
+          "sha256": "7821729fdaf0df80d0ba40914e3a6ef84f65ea70ab4f44f625a087a7d46e8e4a"
+        },
+        {
+          "path": "platform/src/workbench_platform/documents/routes.py",
+          "source_path": "src/workbench_platform/documents/routes.py",
+          "bytes": 4844,
+          "sha256": "316e91b27499a4d745ff76d70221c7b1478d8bb3bc92a36ef0c679810837c8bc"
+        },
+        {
+          "path": "platform/src/workbench_platform/documents/service.py",
+          "source_path": "src/workbench_platform/documents/service.py",
+          "bytes": 40497,
+          "sha256": "2fd52808b5094a483971d7ea60b052e3255e1a0ba902d74a000b1beea0dde12c"
+        },
+        {
+          "path": "platform/src/workbench_platform/documents/tables.py",
+          "source_path": "src/workbench_platform/documents/tables.py",
+          "bytes": 12102,
+          "sha256": "ac2881242e2185ec8eef9697b4c04dc82100951893e03627c08b6b6eca475e3e"
+        },
+        {
+          "path": "platform/src/workbench_platform/documents/worker.py",
+          "source_path": "src/workbench_platform/documents/worker.py",
+          "bytes": 2456,
+          "sha256": "a4b1871bee41dc45764fe8905a5048afea89e5d7621c25c18c96821b5d2fa488"
+        },
+        {
           "path": "platform/src/workbench_platform/forensics/__init__.py",
           "source_path": "src/workbench_platform/forensics/__init__.py",
           "bytes": 73,
@@ -4232,14 +3983,14 @@
         {
           "path": "platform/src/workbench_platform/jobs/native_ocr.py",
           "source_path": "src/workbench_platform/jobs/native_ocr.py",
-          "bytes": 38704,
-          "sha256": "1ea80aad035dc1953f16192c696daa4b18ac1e118b568697c3a996406ae8f5a1"
+          "bytes": 39084,
+          "sha256": "f8a6c4345037ae6ba1c37c3f671d945f36be0f924d266460dbd4bb38ca4438dc"
         },
         {
           "path": "platform/src/workbench_platform/jobs/ocr_handoff.py",
           "source_path": "src/workbench_platform/jobs/ocr_handoff.py",
-          "bytes": 38316,
-          "sha256": "5c9d4ef9dc330276f351b396f6cff3fc3bbead4ff3f375883c0d94c38a0ff4e7"
+          "bytes": 39053,
+          "sha256": "09e69fa21088789e1f3d8881c14d4c6f831302015a959382486d61ab1d15e491"
         },
         {
           "path": "platform/src/workbench_platform/jobs/ocr_navigation.py",
@@ -4262,8 +4013,8 @@
         {
           "path": "platform/src/workbench_platform/jobs/routes.py",
           "source_path": "src/workbench_platform/jobs/routes.py",
-          "bytes": 18157,
-          "sha256": "71fb100bf3056f7308c4740c069121e3f4acaaa92b85e6c2ee372df41b74d131"
+          "bytes": 18199,
+          "sha256": "fcfa1d66544e7727fc6664d6ecb3a71a0949079ba4034726b64326c7b5cea8c6"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/__init__.py",
@@ -4284,6 +4035,12 @@
           "sha256": "454d6414b69bf38b9660858eafdaf1bf2142bb03fab4d2305f3f1db63d162081"
         },
         {
+          "path": "platform/src/workbench_platform/multimodal/deep_backend.py",
+          "source_path": "src/workbench_platform/multimodal/deep_backend.py",
+          "bytes": 5224,
+          "sha256": "3bea2ac353c16fe6d126f9cff87df08cece6ef9aa18a099f7616f6a26c5e5906"
+        },
+        {
           "path": "platform/src/workbench_platform/multimodal/exports.py",
           "source_path": "src/workbench_platform/multimodal/exports.py",
           "bytes": 3764,
@@ -4292,8 +4049,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/qualification.py",
           "source_path": "src/workbench_platform/multimodal/qualification.py",
-          "bytes": 6559,
-          "sha256": "31efd09eabc9b8684024acdccbd7a857b0e5340410b61be5216241358e5fa781"
+          "bytes": 6569,
+          "sha256": "da2841563d9c78d8ffe1bd49236b736885312f60b2fd60229779668e00546fcf"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/revisions.py",
@@ -4304,8 +4061,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/routes.py",
           "source_path": "src/workbench_platform/multimodal/routes.py",
-          "bytes": 6518,
-          "sha256": "9a4d6e50777b6af10b7247a88f0e7de7801d471318f072493666c293493d153c"
+          "bytes": 6537,
+          "sha256": "52a0d3bc95bcc3194e622e716e550ff77892757846036f3c2a159d7ddef9b5d5"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/runner.py",
@@ -4316,8 +4073,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 81121,
-          "sha256": "aeece8d2695ffafec3e91adeb257e4b24e1fdffea0f2c4786d855edfaa6b0d68"
+          "bytes": 86867,
+          "sha256": "f047dd27f2cb63360b50d7d4a31189aa4025ea62023129cfe3f3f797672adce8"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
@@ -4370,8 +4127,8 @@
         {
           "path": "platform/src/workbench_platform/supervisor/processes.py",
           "source_path": "src/workbench_platform/supervisor/processes.py",
-          "bytes": 36397,
-          "sha256": "5cdf8991291c47c38888906670abe9b75a36d61bb5f132c7643355d02847588c"
+          "bytes": 37189,
+          "sha256": "bacf95151a8431f9d4485b9f552594a6ce8583629730802f3d0b1b9e7ecc623f"
         },
         {
           "path": "platform/src/workbench_platform/tasks/__init__.py",
@@ -4418,14 +4175,14 @@
         {
           "path": "platform/src/workbench_platform/tasks/journal.py",
           "source_path": "src/workbench_platform/tasks/journal.py",
-          "bytes": 4836,
-          "sha256": "5b85f2765916268f95b0aac6156184a0414fbc285af9709834d5754f1c576933"
+          "bytes": 4928,
+          "sha256": "414434e36460b58d20e5ffee242d007eea520ddf3b3d74a66e34ae9d88caf476"
         },
         {
           "path": "platform/src/workbench_platform/tasks/legacy.py",
           "source_path": "src/workbench_platform/tasks/legacy.py",
-          "bytes": 9531,
-          "sha256": "3341d6709a076eb3af78ccc5e33a1b69da289c93201e270008f45e6fb2fd546b"
+          "bytes": 9679,
+          "sha256": "c178d4ce38b81d81d7c8a6369732c902a41973eefbc51e0c9e00f0fc374c3d5a"
         },
         {
           "path": "platform/src/workbench_platform/tasks/legacy_evidence.py",
@@ -4508,14 +4265,14 @@
         {
           "path": "platform/src/workbench_platform/tasks/recover.py",
           "source_path": "src/workbench_platform/tasks/recover.py",
-          "bytes": 9528,
-          "sha256": "20455df9392d60e49260de852b691cdb86644a75c7b58db84f40cff50a3f7690"
+          "bytes": 9991,
+          "sha256": "510d0f2942343d7673d0b614d525cde176a335ad33b22602b2b50436b0bde14b"
         },
         {
           "path": "platform/src/workbench_platform/tasks/registry.py",
           "source_path": "src/workbench_platform/tasks/registry.py",
-          "bytes": 6180,
-          "sha256": "d9f33c1f02de30eb07a169624264816eced0102d2d5bb15931ec2aa60a2051c0"
+          "bytes": 6992,
+          "sha256": "e64c9b81771cfa67a581c730f86a30c400f2c0809134c20fc9dd9a08aba37210"
         },
         {
           "path": "platform/src/workbench_platform/tasks/scheduler.py",
@@ -4544,8 +4301,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/server.py",
           "source_path": "src/workbench_platform/tasks/server.py",
-          "bytes": 44663,
-          "sha256": "1dddc6cb1abb7eed1667d849ad2fd53ff64c0cde91aac5f4906b7cf187d24bd1"
+          "bytes": 44761,
+          "sha256": "980b3bde0ae08840064c4af717f7a5444af528cdccf70cee7e653b2bee70dcff"
         },
         {
           "path": "platform/src/workbench_platform/tasks/source_identity.py",
@@ -4562,8 +4319,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/worker.py",
           "source_path": "src/workbench_platform/tasks/worker.py",
-          "bytes": 82777,
-          "sha256": "6bf1dcbbde3fd7de05343a05f5a8d08fef6682edc182fd1d325b32a6027b76f2"
+          "bytes": 83089,
+          "sha256": "e49e5b6b3b5488beed33f7e2cebe9fd69be931c4913e0309f48e0ec7d5fca0bb"
         },
         {
           "path": "platform/src/workbench_platform/tasks/workspaces.py",
@@ -4922,8 +4679,8 @@
         {
           "path": "platform/tests/agent/test_multimodal_bindings.py",
           "source_path": "tests/agent/test_multimodal_bindings.py",
-          "bytes": 10095,
-          "sha256": "0485898c3b7e836ab2c25fc87a49313935590f57946b11848edb124217145182"
+          "bytes": 10472,
+          "sha256": "2a78691c2ca5e6781659858e65a84ed786513a87e46bd56ada0dfda7c304f2bd"
         },
         {
           "path": "platform/tests/agent/test_multimodal_security.py",
@@ -5438,8 +5195,8 @@
         {
           "path": "platform/tests/integration/test_multimodal_dispatch.py",
           "source_path": "tests/integration/test_multimodal_dispatch.py",
-          "bytes": 11309,
-          "sha256": "b66e3cdf84342350e05f8c2c6b4b029f6a3ba5c98bc1cc2bad873a0e54a6a2f0"
+          "bytes": 14180,
+          "sha256": "55759f7301ef5c6bc2b2521b44518a3162443880285cac129641e12f91b6ed41"
         },
         {
           "path": "platform/tests/integration/test_multimodal_revisions.py",
@@ -5474,8 +5231,8 @@
         {
           "path": "platform/tests/integration/test_ocr_handoff.py",
           "source_path": "tests/integration/test_ocr_handoff.py",
-          "bytes": 6825,
-          "sha256": "e882067f84c468161539c5f4648081787c99c516683d80309de6a1a11514b512"
+          "bytes": 7562,
+          "sha256": "e3a97f825c9604aa348b328e47762814fed9f5bcb773701a0780bfd0793985dc"
         },
         {
           "path": "platform/tests/integration/test_ocr_navigation.py",
@@ -5664,6 +5421,12 @@
           "sha256": "45d61aedb4199dbc75669099f2ca78377c5a474c5ca90c8ccbc0e850f9f63a07"
         },
         {
+          "path": "platform/tests/unit/test_documents_regressions.py",
+          "source_path": "tests/unit/test_documents_regressions.py",
+          "bytes": 11416,
+          "sha256": "88b21a8dccc003e612e7972cd7cfbf3e4977717abe6ef5c23eabf11ce86e3102"
+        },
+        {
           "path": "platform/tests/unit/test_forensic_geometry.py",
           "source_path": "tests/unit/test_forensic_geometry.py",
           "bytes": 13340,
@@ -5710,6 +5473,12 @@
           "source_path": "tests/unit/test_paddle_cache.py",
           "bytes": 3519,
           "sha256": "4eedb127223c357b2f39ee658e9d7fd892969bd6e7bcc64d9237a76d1ead5489"
+        },
+        {
+          "path": "platform/tests/unit/test_safire_binding.py",
+          "source_path": "tests/unit/test_safire_binding.py",
+          "bytes": 2658,
+          "sha256": "b9fec15e740db3480d176ee333e6418f82d781135eac3da222da14f0b58d7855"
         },
         {
           "path": "platform/tests/unit/test_workspaces.py",
@@ -6923,30 +6692,11 @@
       "name": "ocr",
       "source_path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr/.git",
-      "head": "b85129bf87eacd5ba2b6deb7f24ae1acfbb47871",
+      "head": "adab40a77ad294a5011f1212491dd4277ed8d772",
       "branch": "codex/clear-automation-ocr-20261002",
-      "working_tree_status": [
-        " M frontend/src/App.tsx",
-        " M frontend/src/WorkspaceLayout.tsx",
-        " M frontend/src/clear-ui/theme.ts",
-        " M frontend/src/clear-ui/tokens.css",
-        " M frontend/src/editor.css",
-        " M frontend/src/main.tsx",
-        " M src/ocr_workbench/adapter.py",
-        " M src/ocr_workbench/engine_host.py",
-        " M src/ocr_workbench/errors.py",
-        " M src/ocr_workbench/store.py",
-        " M src/ocr_workbench/task_queue.py",
-        " M src/ocr_workbench/worker.py",
-        "?? frontend/public/brand/fonts/clear-sans-sc.woff2",
-        "?? frontend/src/clear-ui/common.css",
-        "?? frontend/src/clear-ui/experience.css",
-        "?? frontend/src/platformTaskReturn.test.ts",
-        "?? frontend/src/platformTaskReturn.ts",
-        "?? tests/test_engine_error_stages.py"
-      ],
+      "working_tree_status": [],
       "excluded_count": 1135,
-      "file_count": 932,
+      "file_count": 935,
       "files": [
         {
           "path": "ocr/.gitattributes.source",
@@ -6993,8 +6743,8 @@
         {
           "path": "ocr/config/engines.json",
           "source_path": "config/engines.json",
-          "bytes": 1158,
-          "sha256": "9902ec0818517f19f457c8f97dc67ac78830d64e56c0b4d1150962bcebcf7038"
+          "bytes": 1492,
+          "sha256": "abbd22c94590f45f500eaa22e310899eacafad5a5dd6e8251985617263303260"
         },
         {
           "path": "ocr/config/fusion-policy.json",
@@ -7917,8 +7667,8 @@
         {
           "path": "ocr/frontend/src/AgentPanel.tsx",
           "source_path": "frontend/src/AgentPanel.tsx",
-          "bytes": 23546,
-          "sha256": "cdbfc26a27a291eeeaf03501c45323ac84636102302e55cb2f88c702a74e274a"
+          "bytes": 23675,
+          "sha256": "2403285928ae00e5100516ed40389c27c6c0a8adb190e8ada8dddd930d854f02"
         },
         {
           "path": "ocr/frontend/src/AgentToolResult.tsx",
@@ -7929,8 +7679,8 @@
         {
           "path": "ocr/frontend/src/App.tsx",
           "source_path": "frontend/src/App.tsx",
-          "bytes": 85653,
-          "sha256": "ce88ff9661f427dc74371b749d2c7e5149a73bb5fb642d02fabb989222eb269d"
+          "bytes": 87356,
+          "sha256": "71afad7da22c44107dd902ea3c5c49bf5c4494410614ac937ae361e090c74dc6"
         },
         {
           "path": "ocr/frontend/src/BrandHeader.tsx",
@@ -7965,14 +7715,20 @@
         {
           "path": "ocr/frontend/src/DocumentTree.tsx",
           "source_path": "frontend/src/DocumentTree.tsx",
-          "bytes": 15221,
-          "sha256": "27c5676455d4ea342fd7acdd7b7ce2012259f010712397108fc68038d18c01bc"
+          "bytes": 16646,
+          "sha256": "e6cf47614d77897ecae5b793137d782ec29d909809a0c4eaba4dba960eb43205"
         },
         {
           "path": "ocr/frontend/src/EnginePackages.tsx",
           "source_path": "frontend/src/EnginePackages.tsx",
-          "bytes": 8736,
-          "sha256": "52f6c9a3d17b357fff80b7ed382b3338cc7723212348753d12538036778ef32b"
+          "bytes": 8750,
+          "sha256": "4c95490eac431dcd5d3d3be3b30cd71022d856d96557a100bf177947681f6f49"
+        },
+        {
+          "path": "ocr/frontend/src/EnhancedRecognition.tsx",
+          "source_path": "frontend/src/EnhancedRecognition.tsx",
+          "bytes": 5662,
+          "sha256": "a1d271e3b3fb8cd63c36e5c14e01e77f9a411b0a8772cffbb61ebfe86a53eb0f"
         },
         {
           "path": "ocr/frontend/src/ExternalReviewConnection.tsx",
@@ -8025,8 +7781,8 @@
         {
           "path": "ocr/frontend/src/RecognitionBar.tsx",
           "source_path": "frontend/src/RecognitionBar.tsx",
-          "bytes": 6595,
-          "sha256": "8d149eb4f4389a20bfa4ca1802feecc287685b1f422bec69b9caddb958984d03"
+          "bytes": 7519,
+          "sha256": "bed308b8a47524fc9f73e3c58a4038105ed78946c468c0caa73a6bb0ef86f47c"
         },
         {
           "path": "ocr/frontend/src/RegionPreview.tsx",
@@ -8037,8 +7793,8 @@
         {
           "path": "ocr/frontend/src/ResultComparison.tsx",
           "source_path": "frontend/src/ResultComparison.tsx",
-          "bytes": 12841,
-          "sha256": "61ab15badff68a20527169f42ee27521d5c0e2c8f488fc353dbb40307ac5d000"
+          "bytes": 13638,
+          "sha256": "6cfca4400a1e164366e0e4b4f37949f51ce72e85b27f0b6332ce0fceee266dfb"
         },
         {
           "path": "ocr/frontend/src/ResultViewNavigation.tsx",
@@ -8379,8 +8135,8 @@
         {
           "path": "ocr/frontend/src/types.ts",
           "source_path": "frontend/src/types.ts",
-          "bytes": 6178,
-          "sha256": "9c782f735e91a2dbc4a65d2b31e524cf8a0abba53090be84976711bf2ceb1f5c"
+          "bytes": 6658,
+          "sha256": "d06b46b344f39a25b30622f5bf10c44f6076438f87492b5bf5c7af3bd87ac686"
         },
         {
           "path": "ocr/frontend/src/useEditor.ts",
@@ -8397,8 +8153,8 @@
         {
           "path": "ocr/frontend/src/workspacePreferences.ts",
           "source_path": "frontend/src/workspacePreferences.ts",
-          "bytes": 2065,
-          "sha256": "943b8cdccdf315d1f44e1c9f1cf76571c8ffedfa368978ddcc5a6e5694afaab8"
+          "bytes": 2231,
+          "sha256": "d361ddb6bba5d31cadce91006b19244429dc395c4dd09abf914bab6c96d2da36"
         },
         {
           "path": "ocr/frontend/tests/agent-artifact-download-browser.mjs",
@@ -11331,8 +11087,8 @@
         {
           "path": "ocr/src/ocr_workbench/adapter.py",
           "source_path": "src/ocr_workbench/adapter.py",
-          "bytes": 16334,
-          "sha256": "babaf716c9baeb6911801e2c83903d9ee8ee67b9e003ffe2cf22b884dd2e56d0"
+          "bytes": 16994,
+          "sha256": "ae2aeef6295631dd553bdadafcab4baccf89bfb7a3652f2e3b80bb7f8f8b833a"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/__init__.py",
@@ -11373,8 +11129,8 @@
         {
           "path": "ocr/src/ocr_workbench/agent/contracts.py",
           "source_path": "src/ocr_workbench/agent/contracts.py",
-          "bytes": 13273,
-          "sha256": "b48e369d9e4a765ca3b5e8857801e32ed8c46adfa84ef8753812e9b04dd451ff"
+          "bytes": 13771,
+          "sha256": "abf5ab81f0411612f4002a122ac2a17e67189ddbefc0376bcae86b7fbe162de7"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/downloads.py",
@@ -11427,8 +11183,8 @@
         {
           "path": "ocr/src/ocr_workbench/agent/policy.py",
           "source_path": "src/ocr_workbench/agent/policy.py",
-          "bytes": 15099,
-          "sha256": "7ab8cbfea67dbb5f71f0395be4053505641997e5580c665a15bf9925f138be5b"
+          "bytes": 15370,
+          "sha256": "2502e645a3163ac52601c19226ee5fc18bfb942dd212bdfa7d12867d494f282f"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/providers.py",
@@ -11469,8 +11225,8 @@
         {
           "path": "ocr/src/ocr_workbench/agent/selection.py",
           "source_path": "src/ocr_workbench/agent/selection.py",
-          "bytes": 10576,
-          "sha256": "03992c77fdb679a2c71a9ddd1352eb41af92b7f368c5776a1cd4afb14cefba32"
+          "bytes": 11166,
+          "sha256": "cd27e63702cfedae6d8025175be34688604057b2fb63b0f477f51f68fb3e8bb1"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/state.py",
@@ -11487,8 +11243,8 @@
         {
           "path": "ocr/src/ocr_workbench/agent/tools.py",
           "source_path": "src/ocr_workbench/agent/tools.py",
-          "bytes": 6791,
-          "sha256": "9c7ae285b21caf35d338db89895b5085ab220b27b9237557936c4c35148ad01d"
+          "bytes": 6867,
+          "sha256": "1629686114874bc38a47e55c7a88e1eac526d7a5c2582516088312a48fa7fbab"
         },
         {
           "path": "ocr/src/ocr_workbench/agent/visual.py",
@@ -11505,8 +11261,8 @@
         {
           "path": "ocr/src/ocr_workbench/application_services.py",
           "source_path": "src/ocr_workbench/application_services.py",
-          "bytes": 8119,
-          "sha256": "6b3a5dc8c0425f9820e8866cef8ab0c433550a1c1722fd1c12997a574b444616"
+          "bytes": 8214,
+          "sha256": "4d9da5654845a586b0d7c445af5051b0a364c18f8ab62a1f36caa0fe9d8916b6"
         },
         {
           "path": "ocr/src/ocr_workbench/atomic_files.py",
@@ -11517,8 +11273,8 @@
         {
           "path": "ocr/src/ocr_workbench/cli.py",
           "source_path": "src/ocr_workbench/cli.py",
-          "bytes": 7078,
-          "sha256": "c216e487cd6ab5d46dc002e0f99888d6ada7d26e1d71eac64f613522d381a170"
+          "bytes": 7106,
+          "sha256": "1c4ecee307cb01f41b7df5b2aaa5168c9b17fd7f09704550adb452d384c31b60"
         },
         {
           "path": "ocr/src/ocr_workbench/complex_table_contract.py",
@@ -11547,8 +11303,8 @@
         {
           "path": "ocr/src/ocr_workbench/document_routes.py",
           "source_path": "src/ocr_workbench/document_routes.py",
-          "bytes": 6654,
-          "sha256": "9d5c12622447d44b5f9d2ba0f841b0bfbc26cec87b47b37fdd7ebe82a8d15847"
+          "bytes": 6698,
+          "sha256": "645b30088e2f79990b1a1bdbec789539d868b0128bb92aa4e20d72c22b6af743"
         },
         {
           "path": "ocr/src/ocr_workbench/document_store.py",
@@ -11559,8 +11315,8 @@
         {
           "path": "ocr/src/ocr_workbench/documents.py",
           "source_path": "src/ocr_workbench/documents.py",
-          "bytes": 15795,
-          "sha256": "64b832d222a3f295571af682700d494b8a8b6005884b2053d34cf311a6e10ed1"
+          "bytes": 16368,
+          "sha256": "da9b48702b294a795937c633dbcca2aea016555e814a48c0476928fb20b677dd"
         },
         {
           "path": "ocr/src/ocr_workbench/editing.py",
@@ -11571,14 +11327,14 @@
         {
           "path": "ocr/src/ocr_workbench/engine_host.py",
           "source_path": "src/ocr_workbench/engine_host.py",
-          "bytes": 8366,
-          "sha256": "785b66f19a6e6b72a438f0b5522a1db5d54f84c70d4174e41089f84eb3799a5e"
+          "bytes": 8665,
+          "sha256": "0c11b211e97ec6f110e4743e29416039a0ca17d226941a23037d53fdd3806718"
         },
         {
           "path": "ocr/src/ocr_workbench/engine_packages.py",
           "source_path": "src/ocr_workbench/engine_packages.py",
-          "bytes": 22755,
-          "sha256": "adfe2a30f9151121fec94c026b788275110c3107daabaa7c8b232686c4dd0510"
+          "bytes": 23830,
+          "sha256": "4003e9369151c69b437aa7c43b65c93ae2dd1a0014e0735bf2ca63b68c65fee2"
         },
         {
           "path": "ocr/src/ocr_workbench/errors.py",
@@ -11607,8 +11363,8 @@
         {
           "path": "ocr/src/ocr_workbench/fusion.py",
           "source_path": "src/ocr_workbench/fusion.py",
-          "bytes": 21218,
-          "sha256": "a1d1e6cfec53ad432d593e40498e481b265d860a572d92931bb974756487215c"
+          "bytes": 21246,
+          "sha256": "bc8903ec3dc6cf4dd30cfac46cd5aecfbb3e708e9a6ebd033fc5874d99c88787"
         },
         {
           "path": "ocr/src/ocr_workbench/fusion_alignment.py",
@@ -11707,6 +11463,12 @@
           "sha256": "3ed786fe792233667e73bfec4c86618607dcbeb2aada13d16e559c6167bd9c4f"
         },
         {
+          "path": "ocr/src/ocr_workbench/mineru_pro.py",
+          "source_path": "src/ocr_workbench/mineru_pro.py",
+          "bytes": 6305,
+          "sha256": "2866be0b4a22476d9c1f80f2502b03458ecaa937304fe783fd90391b132c5efe"
+        },
+        {
           "path": "ocr/src/ocr_workbench/multimodal_contract.py",
           "source_path": "src/ocr_workbench/multimodal_contract.py",
           "bytes": 12406,
@@ -11743,6 +11505,12 @@
           "sha256": "f79fa1baaebcc4647733df88ecce9fdeb0893f60a0d1a4b5b0a1a11f075e3c7b"
         },
         {
+          "path": "ocr/src/ocr_workbench/ocr_routing.py",
+          "source_path": "src/ocr_workbench/ocr_routing.py",
+          "bytes": 7357,
+          "sha256": "21433b51387408a38bed13c09495e655382c0d482ef586bd44e8747f763fbb26"
+        },
+        {
           "path": "ocr/src/ocr_workbench/offline.py",
           "source_path": "src/ocr_workbench/offline.py",
           "bytes": 2850,
@@ -11751,8 +11519,8 @@
         {
           "path": "ocr/src/ocr_workbench/page_processing.py",
           "source_path": "src/ocr_workbench/page_processing.py",
-          "bytes": 17723,
-          "sha256": "c54944a9bd250ed665aa2c26e9d6c793612ec17f6868924f6f2aaaa43bebe83e"
+          "bytes": 18137,
+          "sha256": "631ca311027b260c2f9b922c9f7be9cf0c44f9130b65f0759e2ce623d3594980"
         },
         {
           "path": "ocr/src/ocr_workbench/page_requests.py",
@@ -11823,14 +11591,14 @@
         {
           "path": "ocr/src/ocr_workbench/runtime_audit.py",
           "source_path": "src/ocr_workbench/runtime_audit.py",
-          "bytes": 7890,
-          "sha256": "5968d69cf0049337a5378357bf5386847637a7a1b0e512a82592ba83c737c4d6"
+          "bytes": 9623,
+          "sha256": "392fc3dbb23729f82445d7f6e991c88d4650238bd69e87cb34841fe99f242b59"
         },
         {
           "path": "ocr/src/ocr_workbench/service.py",
           "source_path": "src/ocr_workbench/service.py",
-          "bytes": 40020,
-          "sha256": "49b234aa7b57e7e2fd6b87fb5500aef98d555b88919f5bc3d5a6ca953ef07e20"
+          "bytes": 40455,
+          "sha256": "a1c98c06b86c86b55878e4154db77483c04c2dbb69b0b3844b8fce57741ea804"
         },
         {
           "path": "ocr/src/ocr_workbench/spatial_candidates.py",
@@ -11841,14 +11609,14 @@
         {
           "path": "ocr/src/ocr_workbench/startup.py",
           "source_path": "src/ocr_workbench/startup.py",
-          "bytes": 19489,
-          "sha256": "f82efa0cfe59da2dcd96744448a4e1d7d7b746cdf28e1c268ab5f9e7c8bb1fcf"
+          "bytes": 20846,
+          "sha256": "79b145498ebc86272491ba12e78e31228e13d38ed4f750d77fa9f79dd0325c56"
         },
         {
           "path": "ocr/src/ocr_workbench/store.py",
           "source_path": "src/ocr_workbench/store.py",
-          "bytes": 50664,
-          "sha256": "2ac3779979cb8519d20080d18e419c3573c2ff6c1216198993352c629b615fcf"
+          "bytes": 52064,
+          "sha256": "dfd35c1c80bd077cbbe07b40e908b93b0bb4f90bf5e9706776d46501f24198e8"
         },
         {
           "path": "ocr/src/ocr_workbench/structure_arbitration.py",
@@ -11931,8 +11699,8 @@
         {
           "path": "ocr/src/ocr_workbench/task_queue.py",
           "source_path": "src/ocr_workbench/task_queue.py",
-          "bytes": 27156,
-          "sha256": "fde4e91cfa33e852b1559e06cd3bdbc9ce9bedcd5edcb0974dd195edaf959177"
+          "bytes": 31141,
+          "sha256": "78bdfa1278014c51363c270aaa794935933592a56acf37adb4518b63e72dd914"
         },
         {
           "path": "ocr/src/ocr_workbench/verification_cache.py",
@@ -11949,8 +11717,8 @@
         {
           "path": "ocr/src/ocr_workbench/worker.py",
           "source_path": "src/ocr_workbench/worker.py",
-          "bytes": 10876,
-          "sha256": "2878936bcc00a686936d9856b26776a7032b9728b1fae4188516447fa7229c34"
+          "bytes": 12146,
+          "sha256": "96d17f7a789c5f693e5901cfea58d9dba10fcb1e4ac60187252f9091f7647c4c"
         },
         {
           "path": "ocr/tests/agent_fixtures/README.md",
@@ -12189,8 +11957,8 @@
         {
           "path": "ocr/tests/test_agent_selection.py",
           "source_path": "tests/test_agent_selection.py",
-          "bytes": 3849,
-          "sha256": "771429efcc69e09943f73763f79aeaacc7f1b091e01bbcc51584604533e3d60f"
+          "bytes": 4877,
+          "sha256": "070c9fb4709c4d92bd0c16cd0837ba57c50b9909f559fc39b5f44d992134b6e3"
         },
         {
           "path": "ocr/tests/test_agent_store.py",
@@ -12255,8 +12023,8 @@
         {
           "path": "ocr/tests/test_document_processing.py",
           "source_path": "tests/test_document_processing.py",
-          "bytes": 12238,
-          "sha256": "1559b577521bafad903872248380730764c03f051add07dc9feadac2b2a55395"
+          "bytes": 12924,
+          "sha256": "fb85865a3b5c2147837858b47d932ac73c7880283476ed42902b08e345dfc590"
         },
         {
           "path": "ocr/tests/test_editing.py",
@@ -12267,8 +12035,8 @@
         {
           "path": "ocr/tests/test_engine_error_stages.py",
           "source_path": "tests/test_engine_error_stages.py",
-          "bytes": 7203,
-          "sha256": "808c4a8abcc86ed3e8142c92d1d0fd614ad587d4236f5e7d4246f5958cb876f4"
+          "bytes": 10232,
+          "sha256": "cd906a73c11fa1291156b651e581bb2515487cf2138fc90987f08c134b761145"
         },
         {
           "path": "ocr/tests/test_engine_packages.py",
@@ -12411,8 +12179,8 @@
         {
           "path": "ocr/tests/test_queue.py",
           "source_path": "tests/test_queue.py",
-          "bytes": 11468,
-          "sha256": "9ae03adc9ee2272fabf07bc2f3af2c211d42d0fc440ab4209506c91cadadc4a7"
+          "bytes": 13742,
+          "sha256": "fb6f27203510a8f56595e8018e85d2cf465ca2f0048368bc9645509dd8b085c2"
         },
         {
           "path": "ocr/tests/test_result_text.py",

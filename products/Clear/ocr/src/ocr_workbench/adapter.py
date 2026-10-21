@@ -119,12 +119,13 @@ class EngineAdapter:
         self.bundle = Path(bundle).resolve()
         self.engine = engine
         self.worker_source = Path(worker_source).resolve() if worker_source else configured_worker_source()
+        if engine == 'mineru_pro' and self.worker_source is None and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
+            self.worker_source = Path(__file__).resolve().parents[1]
+        from ocr_workbench.mineru_pro import engine_catalog
         self.capabilities = (
             {engine: True}
             if engine in {"dewarp", "geometry"}
-            else json.loads(
-                (self.bundle / "config/engines.json").read_text(encoding="utf-8")
-            )[engine]["capabilities"]
+            else engine_catalog(self.bundle)[engine]["capabilities"]
         )
         self.ipc = Path(session_root) / uuid.uuid4().hex
         self.ipc.mkdir(parents=True)
@@ -180,7 +181,13 @@ class EngineAdapter:
             from ocr_workbench.geometry_provider_config import provider_config
             runtime_name = provider_config(self.geometry_provider)['runtime']
         runtime = self.bundle / 'runtimes' / runtime_name / 'python.exe'
+        if self.engine == 'mineru_pro' and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
+            requested_runtime = Path(os.environ['CLEAR_MINERU_PRO_PYTHON']).absolute()
+            runtime = requested_runtime.resolve()
+            if requested_runtime.drive.upper() != 'F:' or runtime.drive.upper() != 'F:':
+                raise ValueError('MinerU Pro runtime must remain on local F drive')
         environment = os.environ.copy()
+        environment.update(HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', HF_HUB_DISABLE_TELEMETRY='1')
         environment["PATH"] = runtime_path(runtime, os.environ["SystemRoot"])
         for name in list(environment):
             if name.upper() in {"PYTHONPATH", "PYTHONHOME", "CUDA_HOME", "CUDA_PATH"} or name.startswith("CUDA_PATH_V"):

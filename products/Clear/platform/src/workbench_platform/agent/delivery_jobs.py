@@ -57,7 +57,7 @@ def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_cove
                 'kind': 'job', 'workspace_id': ctx.workspace_id, 'application': application,
                 'object_id': identifier, 'parent_id': parent, 'revision': 1}
             if application == 'multimodal' and not ref.get('coverage', {}).get('kind'):
-                ref = {**ref, 'coverage': {'kind': value.get('kind') if value.get('kind') in {'face', 'audio', 'seal', 'catnet'} else value.get('analysis_kind')}}
+                ref = {**ref, 'coverage': {'kind': value.get('kind') if value.get('kind') in {'face', 'audio', 'seal', 'catnet', 'document_forensics'} else value.get('analysis_kind')}}
             if application == 'multimodal' and value.get('snapshot_id'):
                 ref = {**ref, 'coverage': {**ref.get('coverage', {}), 'snapshot_id': value['snapshot_id']}}
                 # This citation names a completed immutable attempt. A newer

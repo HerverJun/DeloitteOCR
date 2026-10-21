@@ -245,16 +245,19 @@ class OcrHandoff:
         return {"recognition": available.recognition, "reason": available.reason,
                 "engines": engines if available.recognition else []}
 
-    def submit(self, workspace_id: str, handoff_id: str, engines: list[str], *, allow_new=True, preprocess=None):
+    def submit(self, workspace_id: str, handoff_id: str, engines: list[str], *, allow_new=True, preprocess=None, fallback_engine=None):
         if (not isinstance(engines, list) or not 1 <= len(engines) <= 16
                 or any(not isinstance(item, str) or not ID.fullmatch(item) for item in engines)
                 or len(set(engines)) != len(engines)):
             raise ValueError("Invalid OCR engine selection")
         normalized = sorted(engines)
+        if fallback_engine is not None and (not isinstance(fallback_engine, str) or fallback_engine not in {'ppocr', 'paddlevl', 'glm', 'hunyuan'} or 'auto' not in normalized):
+            raise ValueError('后备引擎仅适用于自动识别，请选择既有OCR引擎')
         preprocess = preprocess or []
         from workbench_platform.jobs.native_ocr import validate_preprocess
         validate_preprocess(preprocess)
-        processing = _json({'preprocess': preprocess})
+        processing = _json({'preprocess': preprocess,
+                            **({'fallback_engine': fallback_engine} if fallback_engine is not None else {})})
         with self.lock:
             row = self._row(workspace_id, handoff_id)
             if any(Path(item["name"]).suffix.lower() == ".pdf"
@@ -268,7 +271,7 @@ class OcrHandoff:
             version_ids = [item["target_version_id"] for item in native["items"]]
             if any(not isinstance(item, str) for item in version_ids):
                 raise AssetSetConflict("Imported version is missing")
-            digest = hashlib.sha256(_json([handoff_id, normalized, processing] if preprocess else [handoff_id, normalized]).encode()).hexdigest()
+            digest = hashlib.sha256(_json([handoff_id, normalized, processing] if preprocess or fallback_engine is not None else [handoff_id, normalized]).encode()).hexdigest()
             request_id = "r" + digest[:32]
             with closing(self._connect()) as db:
                 submission = db.execute("SELECT * FROM ocr_submission WHERE handoff_id=?",
@@ -297,6 +300,7 @@ class OcrHandoff:
                     if not adapter.capabilities().recognition:
                         raise OcrUnavailable()
                     task_ids = list(adapter.submit(version_ids, normalized, request_id=request_id,
+                        **({'fallback_engine': fallback_engine} if fallback_engine is not None else {}),
                         **({'preprocess': preprocess} if preprocess else {})))
                 with closing(self._connect()) as db:
                     db.execute("UPDATE ocr_submission SET native_task_ids_json=? WHERE handoff_id=?",
@@ -622,10 +626,11 @@ async def handoff_capabilities(workspace_id: str, handoff_id: str, request: Requ
 async def submit_handoff_tasks(workspace_id: str, handoff_id: str, request: Request):
     service = _service(request, workspace_id, write=True)
     payload = await _body(request)
-    if set(payload) != {"engines"}:
+    if 'engines' not in payload or set(payload) - {'engines', 'fallback_engine'}:
         raise HTTPException(400, "请选择识别引擎")
     try:
-        return await run_in_threadpool(service.submit, workspace_id, handoff_id, payload["engines"])
+        return await run_in_threadpool(service.submit, workspace_id, handoff_id, payload["engines"],
+                                       **({'fallback_engine': payload['fallback_engine']} if payload.get('fallback_engine') is not None else {}))
     except (KeyError, AssetSetMissing, AssetUnavailable, AssetSetConflict, ProjectionConflict,
             ProjectionUnavailable, PermissionError, LaunchStatus, OcrUnavailable, ValueError) as error:
         _failed(error)

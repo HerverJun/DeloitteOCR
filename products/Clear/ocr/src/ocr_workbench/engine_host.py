@@ -67,6 +67,11 @@ class Resident:
 
                 self.session = load_session(bundle / "models")
                 self.loaded = self.session[5]
+            elif engine == 'mineru_pro':
+                from ocr_workbench.mineru_pro import Session
+                self.session = Session(bundle / 'models', progress=progress)
+                self.stack.callback(self.session.close)
+                self.loaded = self.session.loaded
             else:
                 from ocr_workbench.hunyuan import Session
 
@@ -141,7 +146,7 @@ def main():
     p.add_argument(
         "--engine",
         required=True,
-        choices=["ppocr", "paddlevl", "glm", "hunyuan", "dewarp", "geometry"],
+        choices=["ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro", "dewarp", "geometry"],
     )
     p.add_argument("--ipc", type=Path, required=True)
     p.add_argument('--geometry-provider', choices=['paddle', 'tableformer-raw', 'rapidtable', 'context'], default='paddle')

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Modal, Select, Space, Table, Tag, Typography } from 'antd'
 import { Link, useSearchParams } from 'react-router-dom'
 import './assets.css'
+import { parseableDocument } from '../documents/api'
 
 const { Title, Text } = Typography
 type Asset = {
@@ -108,8 +109,9 @@ export function AssetLibrary() {
           { title: '大小', dataIndex: 'size_bytes', width: 100, render: value => bytes(value) },
           { title: '标签', dataIndex: 'tags', width: 200, render: (_value, item) => <Space size={4} wrap>{item.tags.map(label => <Tag key={label}>{label}</Tag>)}</Space> },
           { title: '登记时间', dataIndex: 'created_at', width: 175, render: value => new Date(value).toLocaleString('zh-CN') },
-          { title: '操作', key: 'actions', width: 215, render: (_value, item) => <Space size="small">
+          { title: '操作', key: 'actions', width: 300, render: (_value, item) => <Space size="small" wrap>
             <a href={openUrl(item)} target="_blank" rel="noreferrer">打开原件</a>
+            {parseableDocument(item.original_name) && <Link to={`/apps/ocr/documents?workspace=${encodeURIComponent(workspaceId)}&asset=${encodeURIComponent(item.asset_id)}`}>解析文档</Link>}
             <Button type="link" size="small" onClick={() => setSource(item)}>来源</Button>
             <Button type="link" size="small" onClick={() => { setEditing(item); setEditTags(item.tags) }}>标签</Button>
           </Space> }]}

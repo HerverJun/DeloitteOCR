@@ -224,7 +224,7 @@ export function EnginePackages({
                           })
                         }
                       >
-                        {["ppocr", "paddlevl", "glm", "hunyuan"].includes(
+                        {["ppocr", "paddlevl", "glm", "hunyuan", "mineru_pro"].includes(
                           engine,
                         ) && <option value="builtin">随应用内置版本</option>}
                         {inventory.installed

@@ -9,7 +9,7 @@ import { ConfigProvider } from 'antd'
 import { ForensicImageViewer } from '../src/features/forensics/ForensicImageViewer'
 import { ForensicEvidenceView } from '../src/features/forensics/ForensicWorkbench'
 import { RegionReview, type Mark } from '../src/features/multimodal/RegionReview'
-import { ResultView } from '../src/features/multimodal/MultimodalWorkbench'
+import { MultimodalWorkbench, ResultView } from '../src/features/multimodal/MultimodalWorkbench'
 import { displayBoxToStored, inverseMatrix, orientationMatrix, readGeometry, storedBoxToDisplay,
   type ForensicGeometry, type NormalizedBox } from '../src/features/forensics/geometry'
 import type { Inspection } from '../../../packages/contracts/types.generated'
@@ -190,6 +190,8 @@ test('CAT transformed marks save through the existing review payload and legacy 
     <MemoryRouter><ResultView item={value} workspaceId="wForensic" refresh={() => {}} referenceName="" setReferenceName={() => {}} onReference={() => {}} referenceBusy={false} /></MemoryRouter>
   </QueryClientProvider></ConfigProvider>)
   const view = mount(item)
+  expect(screen.getByText('CAT-Net v2')).toBeVisible()
+  expect(screen.queryByText('未校准定位线索')).toBeNull()
   expect(view.container.querySelector('image[data-layer="original"]')).toHaveAttribute('href', '/api/platform/v1/workspaces/wForensic/multimodal/jobs/mCat/files/preview-display.png')
   fireEvent.click(screen.getByRole('button', { name: '添加可疑区域' }))
   fireEvent.change(screen.getByLabelText('区域1说明'), { target: { value: '已对照原件核查' } })
@@ -207,4 +209,91 @@ test('CAT transformed marks save through the existing review payload and legacy 
   expect(screen.getByRole('button', { name: '叠加' })).toBeDisabled()
   fireEvent.click(screen.getByRole('button', { name: '添加可疑区域' }))
   expect(screen.getByRole('spinbutton', { name: '区域1左边界百分比' })).toHaveValue('10.00')
+}, 30000)
+
+test('already oriented SAFIRE geometry is accepted only as an identity transform', () => {
+  const oriented = { ...geometry(), source_coordinate_system: 'exif_transposed_pixels', persisted_region_coordinate_system: 'exif_transposed_pixels' }
+  expect(readGeometry(oriented)).not.toBeNull()
+  expect(readGeometry({ ...oriented, exif_orientation: 6 })).toBeNull()
+  expect(readGeometry({ ...oriented, persisted_region_coordinate_system: 'stored_pixels' })).toBeNull()
+})
+
+test.each(['catnet', 'document_forensics'] as const)('SAFIRE %s suggestions share oriented pixels and are explicitly adopted into saved review', async kind => {
+  vi.stubGlobal('crypto', { randomUUID })
+  const info = { ...geometry(), source_coordinate_system: 'exif_transposed_pixels' as const, persisted_region_coordinate_system: 'exif_transposed_pixels' }
+  const item = { job_id: 'mSafire', kind, status: 'succeeded', stage: 'completed', revision: 1, error: null,
+    result_hash: 'a'.repeat(64), inputs: [{ original_name: '金额.png', asset_id: 'aSafire', asset_revision: 1 }], created_at: '', review: null,
+    result: { outcome: 'analyzed', algorithm: 'SAFIRE (official)', engine: 'SAFIRE', detector: { version: 'clear-safire-product-v1' },
+      device: 'cuda', elapsed_seconds: 2, limitations: ['定位尚未独立校准'], width: 400, height: 200,
+      assessment: { state: 'review_recommended', label: '建议复核', reason: '存在建议区域', calibration: false }, deep_analysis: { status: 'completed' },
+      candidate_regions: [{ box: [.1, .2, .4, .7] as Mark['box'], pixel_box: [40, 40, 160, 140], score: .3 }],
+      processing: { geometry: info, display_preview: 'preview-display.png', display_heatmap: 'heatmap-display.png' },
+      output_files: { 'preview-display.png': { bytes: 1, sha256: 'a'.repeat(64) }, 'heatmap-display.png': { bytes: 1, sha256: 'b'.repeat(64) } } } }
+  let payload: { regions: Mark[] } | undefined
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+    payload = JSON.parse(String(init?.body)); return { ok: true, json: async () => ({ ...item, review: payload }) }
+  }))
+  const view = render(<ConfigProvider><QueryClientProvider client={new QueryClient()}><MemoryRouter>
+    <ResultView item={item} workspaceId="wForensic" refresh={() => {}} referenceName="" setReferenceName={() => {}} onReference={() => {}} referenceBusy={false} />
+  </MemoryRouter></QueryClientProvider></ConfigProvider>)
+  expect(screen.getByText('建议复核')).toBeVisible()
+  expect(screen.getByText('未校准定位线索')).toBeVisible()
+  expect(screen.getByText('clear-safire-product-v1')).toBeVisible()
+  expect(view.container.querySelector('[data-suggestion="0"]')).toHaveAttribute('x', '40')
+  expect(view.container.querySelector('[data-region="0"]')).toBeNull()
+  loadProbe(view.container, '/api/platform/v1/workspaces/wForensic/multimodal/jobs/mSafire/files/preview-display.png', 400, 200)
+  loadProbe(view.container, '/api/platform/v1/workspaces/wForensic/multimodal/jobs/mSafire/files/heatmap-display.png', 400, 200)
+  expect(screen.getByRole('button', { name: '叠加' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '隐藏建议框' }))
+  expect(view.container.querySelector('[data-suggestion="0"]')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '采纳建议区域 1' }))
+  expect(screen.getByRole('button', { name: '采纳建议区域 1' })).toBeDisabled()
+  fireEvent.change(screen.getByLabelText('区域1说明'), { target: { value: '金额改字，需核原件' } })
+  fireEvent.change(screen.getByText('复核人').closest('label')!.querySelector('input')!, { target: { value: '复核员' } })
+  fireEvent.change(screen.getByPlaceholderText('填写复核依据、修改说明或待查事项'), { target: { value: '已对照原图' } })
+  fireEvent.click(screen.getByRole('button', { name: '保存复核与校正' }))
+  await waitFor(() => expect(payload?.regions).toHaveLength(1))
+  expect(payload!.regions[0]).toEqual({ box: [.1, .2, .4, .7], note: '金额改字，需核原件' })
+  expect(screen.queryByText(/真实性.*%/)).toBeNull()
+  cleanup()
+  const reopened = render(<ConfigProvider><QueryClientProvider client={new QueryClient()}><MemoryRouter>
+    <ResultView item={{ ...item, review: { actor: '复核员', note: '已对照原图', assessment: 'inconclusive', edits: [], regions: payload!.regions } }}
+      workspaceId="wForensic" refresh={() => {}} referenceName="" setReferenceName={() => {}} onReference={() => {}} referenceBusy={false} readOnly snapshotId="saved" />
+  </MemoryRouter></QueryClientProvider></ConfigProvider>)
+  expect(reopened.container.querySelector('[data-region="0"]')).toHaveAttribute('x', '40')
+  expect(screen.getByLabelText('区域1说明')).toHaveValue('金额改字，需核原件')
+  expect(screen.getByLabelText('区域1说明')).toBeDisabled()
+  expect(screen.getByRole('button', { name: '采纳建议区域 1' })).toBeDisabled()
+  expect(screen.getByRole('link', { name: '下载此固定版本' })).toHaveAttribute('href', '/api/platform/v1/workspaces/wForensic/multimodal/jobs/mSafire/snapshots/saved/download')
+}, 30000)
+
+test.each([true, false])('deep PNG creation uses GPU qualification rather than CPU readiness (GPU ready=%s)', async gpuReady => {
+  vi.stubGlobal('crypto', { randomUUID })
+  let submitted: { kind: string; options: { device: string }; inputs: { asset_id: string }[] } | undefined
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    let result: unknown = { items: [], total: 0, next_offset: null }
+    if (url.includes('/multimodal/capabilities')) result = { items: [{ kind: 'catnet', cpu_ready: false, gpu_ready: gpuReady, missing: [] }] }
+    else if (url.includes('/assets?')) result = { items: [{ asset_id: 'aPng', revision: 1, original_name: '正常.png', media_type: 'image/png', blob_hash: 'a'.repeat(64) }], next_offset: null }
+    else if (init?.method === 'POST') {
+      submitted = JSON.parse(String(init.body))
+      result = { job_id: 'newPng', kind: 'catnet', status: 'queued', stage: 'queued', inputs: [], revision: 1, result: null }
+    }
+    return { ok: true, json: async () => result }
+  }))
+  render(<ConfigProvider><QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <MemoryRouter initialEntries={['/apps/forensics/deep?workspace=wForensic&asset=aPng']}><MultimodalWorkbench kind="catnet" /></MemoryRouter>
+  </QueryClientProvider></ConfigProvider>)
+  await screen.findByText('正常.png')
+  const start = screen.getByRole('button', { name: '开始SAFIRE 深度定位' })
+  if (gpuReady) {
+    await waitFor(() => expect(start).toBeEnabled())
+    fireEvent.click(start)
+    await waitFor(() => expect(submitted?.options.device).toBe('cuda'))
+    expect(submitted?.kind).toBe('catnet')
+    expect(submitted?.inputs[0].asset_id).toBe('aPng')
+  } else {
+    expect(start).toBeDisabled()
+    expect(await screen.findByText('当前设备尚未通过 SAFIRE 推理验证')).toBeVisible()
+    expect(submitted).toBeUndefined()
+  }
 }, 30000)

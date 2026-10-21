@@ -149,7 +149,7 @@ async def extract_text(args, context, *, publish=True):
             pages = args.page_numbers or list(range(1, document['page_count'] + 1))
             result = await op.typed('ocr_process_pages', pdf.ProcessPages, pdf.process,
                 {'handoff_id': inspected['handoff_id'], 'document_id': document['document_id'],
-                 'page_numbers': pages, 'mode': args.mode, 'engine': args.engines[0] if args.engines else 'ppocr'}, lookup=pdf.lookup)
+                 'page_numbers': pages, 'mode': args.mode, 'engine': args.engines[0] if args.engines else 'auto'}, lookup=pdf.lookup)
         else:
             result = await op.typed('ocr_run', ocr.OcrRun, ocr.run,
                 {**base, 'engines': _engines(prepared, args.engines),

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field
 from .contracts import StrictModel, Id, PageNumber
@@ -20,7 +20,8 @@ class DocumentRange(StrictModel):
 class SelectionRequest(StrictModel):
     image_ids: Annotated[list[Id], Field(max_length=1000)] = Field(default_factory=list)
     document_ranges: Annotated[list[DocumentRange], Field(max_length=100)] = Field(default_factory=list)
-    engines: Annotated[list[Id], Field(max_length=4)] = Field(default_factory=list)
+    engines: Annotated[list[Id], Field(max_length=5)] = Field(default_factory=list)
+    fallback_engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] | None = None
     allow_processing: bool = False
     allow_export: bool = True
     allow_reprocess: bool = False
@@ -35,6 +36,8 @@ def create_selection(agent, project_id, request, *, available_engines):
     request = SelectionRequest.model_validate(request)
     if not set(request.engines) <= set(available_engines):
         raise ValueError("所选引擎不在工作台能力清单")
+    if request.fallback_engine is not None and (request.engines != ['auto'] or request.fallback_engine not in available_engines):
+        raise ValueError('自动模式的后备引擎需要来自工作台能力清单')
     if request.visual_model_id and request.visual_model_id.startswith('external:') and not request.allow_visual_images:
         raise ValueError('外部审校需要明确允许向所选视觉连接发送原图、文字和元数据')
     images = list(dict.fromkeys(request.image_ids))
@@ -125,11 +128,13 @@ def grant_selection(policy, run, selection, *, services=None):
                         grant("scoped_processing", {**base, "mode": mode, "force": force})
                     if mode != "native":
                         for engine in permissions["engines"]:
-                            grant("scoped_processing", {**base, "mode": mode, "force": force, "engine": engine})
+                            route = {'fallback_engine': permissions.get('fallback_engine') or 'ppocr'} if engine == 'auto' else {}
+                            grant("scoped_processing", {**base, "mode": mode, "force": force, "engine": engine, **route})
         if not policy.review_only:
             materialized = [p for p in pages if p["version_id"]]
+            route = {'fallback_engine': permissions.get('fallback_engine') or 'ppocr'} if 'auto' in permissions['engines'] else {}
             grant("scoped_processing", {"document_ids": sorted(by_document), "page_ids": sorted(p["page_id"] for p in pages),
-                  "version_ids": sorted(p["version_id"] for p in materialized), "engines": permissions["engines"]})
+                  "version_ids": sorted(p["version_id"] for p in materialized), "engines": permissions["engines"], **route})
     if permissions["allow_export"]:
         references = [p for p in pages if p["result_id"] is not None]
         for format in ("txt", "md", "json", "xlsx", "pdf"):

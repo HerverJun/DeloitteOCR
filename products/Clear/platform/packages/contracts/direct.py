@@ -15,7 +15,7 @@ class PdfTextRequest(AgentModel):
     request_id: Identity
     page_numbers: list[int] = Field(min_length=1, max_length=100)
     mode: Literal['auto', 'native', 'ocr'] = 'auto'
-    engine: Literal['ppocr', 'paddlevl', 'glm', 'hunyuan'] = 'ppocr'
+    engine: Literal['auto', 'ppocr', 'paddlevl', 'glm', 'hunyuan', 'mineru_pro'] = 'auto'
     link_id: Identity | None = None
     expected_scope_revision: int | None = Field(default=None, ge=1)
 

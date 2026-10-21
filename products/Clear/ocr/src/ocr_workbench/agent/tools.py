@@ -38,7 +38,7 @@ def register_processing_tools(registry, services, jobs):
     store = services.store
 
     def process(args, context):
-        parameters = services.documents.processing_parameters(args.mode, args.engine or "ppocr")
+        parameters = services.documents.processing_parameters(args.mode, args.engine or "ppocr", fallback_engine=args.fallback_engine)
         def effect(db, operation_id):
             rows = db.execute("SELECT id,page_number FROM pages WHERE document_id=? ORDER BY page_number", (args.document_id,)).fetchall()
             selected = [r["id"] for r in rows if r["page_number"] in args.page_numbers]
@@ -66,7 +66,7 @@ def register_processing_tools(registry, services, jobs):
             fusion = load_policy(services.bundle, kind, mode)
         def effect(db, operation_id):
             ids = store._enqueue(db, context["run"]["project_id"], args.version_ids, args.engines,
-                                 engine_packages=packages, fusion_policy=fusion, request_id=operation_id)
+                                 engine_packages=packages, fusion_policy=fusion, request_id=operation_id, fallback_engine=args.fallback_engine)
             links = [{"kind": "fusion" if db.execute("SELECT kind FROM tasks WHERE id=?", (key,)).fetchone()[0] == "fusion" else "ocr",
                       "job_id": key, "ownership": "created", "state": "queued"} for key in ids]
             return {"task_ids": ids}, links
