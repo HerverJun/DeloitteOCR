@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Checkbox, Empty, Form, Input, Modal, Pagination, Select, Space, Spin, Tag, Typography } from 'antd';
+import { App, Alert, Button, Checkbox, Empty, Form, Input, Modal, Pagination, Select, Space, Spin, Tag, Typography } from 'antd';
 import { FolderOpenOutlined, PlusOutlined, UploadOutlined, ExperimentOutlined, CheckOutlined, PictureOutlined } from '@ant-design/icons';
 import { api, post, base, type Asset } from '../api';
 import { useCommand, QueryError, type PanelProps } from '../workbench';
@@ -8,6 +8,7 @@ import { useCommand, QueryError, type PanelProps } from '../workbench';
 const { Title, Text, Paragraph } = Typography;
 
 export function AssetsPanel({ project, navigate, focusAssetId }: PanelProps & { focusAssetId?: string | null }) {
+  const { modal } = App.useApp();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -34,7 +35,7 @@ export function AssetsPanel({ project, navigate, focusAssetId }: PanelProps & { 
     [...files].forEach(file => data.append('files', file));
     if (!['all', 'unlabeled'].includes(filter)) data.append('label_id', filter);
     const result = await command.run(() => api<{ asset_ids: string[]; errors: { name: string; error: string }[] }>(`/projects/${project.id}/uploads`, { method: 'POST', body: data }));
-    if (result?.errors.length) Modal.warning({ title: `已导入 ${result.asset_ids.length} 张，${result.errors.length} 张失败`, content: result.errors.slice(0, 5).map(error => <p key={error.name}>{error.name}: {error.error}</p>) });
+    if (result?.errors.length) modal.warning({ title: `已导入 ${result.asset_ids.length} 张，${result.errors.length} 张失败`, content: result.errors.slice(0, 5).map(error => <p key={error.name}>{error.name}: {error.error}</p>) });
     if (uploadRef.current) uploadRef.current.value = '';
   }
 

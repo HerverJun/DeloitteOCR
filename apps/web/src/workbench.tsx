@@ -1,3 +1,4 @@
+import { resolveTaskReturn } from './platformTaskReturn';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -53,10 +54,11 @@ const menu = [
 ];
 
 export function Workbench() {
-  const [page, setPage] = useState<Page>('overview');
+  const [page, setPage] = useState<Page>('jobs');
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem('prism-project') || '');
   const [navigation, setNavigation] = useState<PlatformNavigation | null>(null);
   const [platformHome, setPlatformHome] = useState<string | null>(null);
+  const [taskReturn, setTaskReturn] = useState<string | null>(null);
   const [navigationApplied, setNavigationApplied] = useState(false);
   const [navigationError, setNavigationError] = useState('');
   const [launchReady, setLaunchReady] = useState(false);
@@ -79,9 +81,10 @@ export function Workbench() {
       if (!active) return;
       if (value) savePlatformNavigation(value);
       setNavigation(value);
-      setPage(value && (value.asset_id || sessionStorage.getItem('prism-platform-page') === 'assets') ? 'assets' : 'overview');
+      setPage(value && (value.asset_id || sessionStorage.getItem('prism-platform-page') === 'assets') ? 'assets' : 'jobs');
       setLaunchReady(true);
       const returnUrl = value && safeReturnUrl(value);
+      if (active && value) setTaskReturn(resolveTaskReturn(returnUrl, value));
       const home = returnUrl ? platformHomeUrl(returnUrl) : await platformHomeFromLaunch('classification', async () => {
         const response = await fetch('/api/platform/v1/identity', { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error('Identity unavailable');
@@ -118,29 +121,30 @@ export function Workbench() {
   const title = page === 'runtime' ? '运行环境' : menu.find(item => item.key === page)?.label;
   return <Layout className="workbench">
     <a href="#classification-content" className="skip-link">跳到主要内容</a>
-    <Layout.Sider width={224} className="sidebar" theme="dark" breakpoint="lg" collapsedWidth={72}>
+    <Layout.Sider width={224} className="sidebar" theme="light" breakpoint="lg" collapsedWidth={72}>
       <a className="brand" href={platformHome || undefined} title={platformHome ? '返回审计平台首页' : `${brands.classification} · 图像分类与复核`}
         aria-label={platformHome ? `${brands.classification} · 返回审计平台首页` : undefined}><img className="brand-mark" src="/brand/clear-mark.svg" alt="" /><div className="brand-text"><strong>{brands.classification}</strong><span>图像分类与复核</span></div></a>
       <div className="project-switch">
         <Text className="sidebar-label">当前项目</Text>
-        <Select aria-label="切换项目" value={projectId} placeholder="选择项目" options={projects.data?.map(p => ({ label: p.name, value: p.id }))} onChange={id => { setSelectedId(id); setPage('overview'); }} popupMatchSelectWidth={260} />
+        <Select aria-label="切换项目" value={projectId} placeholder="选择项目" options={projects.data?.map(p => ({ label: p.name, value: p.id }))} onChange={id => { setSelectedId(id); setPage('jobs'); }} popupMatchSelectWidth={260} />
         <Button icon={<PlusOutlined />} block onClick={() => setCreateOpen(true)}>新建项目</Button>
       </div>
       <div className="sidebar-label nav-label">工作空间</div>
-      <Menu theme="dark" selectedKeys={[page]} items={menu} onClick={({ key }) => setPage(key as Page)} />
+      <Menu theme="light" selectedKeys={[page]} items={menu.filter(item => !['train', 'models'].includes(item.key)).sort((a, b) => ['jobs', 'assets', 'overview'].indexOf(a.key) - ['jobs', 'assets', 'overview'].indexOf(b.key))} onClick={({ key }) => setPage(key as Page)} />
+      <details className="professional-navigation" open={page === 'train' || page === 'models'}><summary>模型与专业管理</summary>{menu.filter(item => ['train', 'models'].includes(item.key)).map(item => <button key={item.key} type="button" aria-current={page === item.key ? 'page' : undefined} onClick={() => setPage(item.key as Page)}>{item.icon}{item.label}</button>)}</details>
       <div className="sidebar-bottom">
-        <Menu theme="dark" selectedKeys={[page]} items={[{ key: 'runtime', icon: <SettingOutlined />, label: '运行环境' }]} onClick={() => setPage('runtime')} />
+        <Menu theme="light" selectedKeys={[page]} items={[{ key: 'runtime', icon: <SettingOutlined />, label: '运行环境' }]} onClick={() => setPage('runtime')} />
         <div className="local-status"><span className="status-dot" /><span>本地工作空间</span><Tag bordered={false}>0.2</Tag></div>
       </div>
     </Layout.Sider>
     <Layout>
-      <header className="topbar"><div className="topbar-context"><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text>{project && <Text className="topbar-project" ellipsis title={project.name}>{project.name}</Text>}</div><Space size={12} className="topbar-actions"><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top" role="status" title="检测到硬件不代表本次模型使用 GPU，实际执行后端以任务或模型记录为准。"><span aria-hidden="true" className={`status-dot ${runtimeTone}`} />{runtimeLabel}</span>{navigation && safeReturnUrl(navigation) && <a href={safeReturnUrl(navigation)!} target="_blank" rel="noopener noreferrer" className="api-link platform-return"><ExportOutlined /> 返回平台</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link api-docs"><ApiOutlined /> API 文档</a><span className="local-indicator">本地</span></Space></header>
-      <main className="main-content" id="classification-content" tabIndex={-1}>
+      <header className="topbar"><div className="topbar-context"><Text type="secondary">工作空间</Text><span className="breadcrumb-slash">/</span><Text>{title}</Text>{project && <Text className="topbar-project" ellipsis title={project.name}>{project.name}</Text>}</div><Space size={12} className="topbar-actions"><Dropdown menu={{ items: [...(projects.data?.map(p => ({ key: p.id, label: p.name })) ?? []), { key: 'new-project', label: '新建项目', icon: <PlusOutlined /> }], onClick: ({ key }) => { if (key === 'new-project') setCreateOpen(true); else { setSelectedId(key); setPage('overview'); } } }} trigger={['click']}><Button size="small" className="mobile-project-control" icon={<FolderOpenOutlined />}>项目</Button></Dropdown><span className="gpu-top" role="status" title="检测到硬件不代表本次模型使用 GPU，实际执行后端以任务或模型记录为准。"><span aria-hidden="true" className={`status-dot ${runtimeTone}`} />{runtimeLabel}</span>{navigation && safeReturnUrl(navigation) && <a href={taskReturn || safeReturnUrl(navigation)!} className="api-link platform-return"><ExportOutlined /> {taskReturn ? '返回原任务' : '返回平台'}</a>}<a href="/docs" target="_blank" rel="noreferrer" className="api-link api-docs"><ApiOutlined /> API 文档</a><span className="local-indicator">本地</span></Space></header>
+      <main className="main-content" data-density={page === 'overview' ? 'comfortable' : 'workbench'} id="classification-content" tabIndex={-1}>
         {navigationError && <Alert type="warning" showIcon message={navigationError}
           action={<Button onClick={() => { setNavigation(null); setNavigationApplied(false); setNavigationError(''); }}>独立使用工作台</Button>} />}
         <QueryError error={projects.error || detail.error} />
         {navigationError ? <Empty description="请从平台重新打开所选项目" /> : !launchReady || projects.isPending || (projectId && detail.isPending) ? <div className="center-loading" role="status" aria-live="polite"><Spin /><Text type="secondary">正在读取项目…</Text></div> : page === 'runtime' ? <RuntimePanel /> : !project ?
-          <section className="welcome"><span className="welcome-icon"><PictureOutlined /></span><Text type="secondary">从你的第一组图片开始</Text><Title level={1}>让图像各归其类</Title><Paragraph>创建一个分类项目，导入少量样本，训练属于你业务的模型。<br />图片、模型和结果均保留在本机。</Paragraph><Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建第一个项目</Button><div className="welcome-steps"><span>01 定义类别</span><span>02 导入样本</span><span>03 训练与分类</span></div></section> :
+          <section className="welcome"><span className="welcome-icon"><PictureOutlined /></span><Text type="secondary">从你的第一组图片开始</Text><Title level={1}>让图像各归其类</Title><Paragraph>创建分类项目，导入图像，使用可用模型分类并人工复核。<br />图片、模型和结果均保留在本机。</Paragraph><Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建第一个项目</Button><div className="welcome-steps"><span>01 定义类别</span><span>02 导入样本</span><span>03 分类与复核</span></div></section> :
           <>
             {page === 'overview' && <Overview project={project} navigate={setPage} />}
             {page === 'assets' && <AssetsPanel key={`assets-${project.id}`} project={project} navigate={setPage} focusAssetId={navigation?.module_project_id === project.id ? navigation.asset_id : null} />}
@@ -171,8 +175,9 @@ function Overview({ project, navigate }: PanelProps) {
   const running = project.job_counts?.filter(item => ['running', 'queued'].includes(item.state)).reduce((sum, item) => sum + item.count, 0) ?? 0;
   return <>
     <div className="page-heading"><div><div className="eyebrow">PROJECT OVERVIEW</div><Title level={2}>{project.name}</Title><Paragraph type="secondary">{project.description || '从数据准备到批量分类，在一个工作空间内完成。'}</Paragraph></div><Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('assets')}>导入图片</Button></div>
+    <section className="classification-start"><div><strong>分类与人工复核</strong><p>{project.active_model_id ? '使用当前发布模型处理新资料，再核对分类结果。' : '可在模型库检查可用模型，准备完成后进行分类。'}</p></div><Button type="primary" onClick={() => navigate('jobs')}>开始分类与复核</Button><Button onClick={() => navigate('models')}>查看模型</Button></section>
     <section className="summary-grid">
-      {[['图像总数', total.toLocaleString(), <PictureOutlined />, `${labeled.toLocaleString()} 张已标注`], ['分类类别', project.labels.length, <AppstoreOutlined />, '独立定义的互斥类别'], ['可用模型', project.model_count ?? 0, <DeploymentUnitOutlined />, project.active_model_id ? '已设置默认模型' : '等待第一次训练'], ['活动任务', running, <ThunderboltOutlined />, running ? '任务正在后台处理' : '当前没有排队任务']].map(([name, value, icon, note]) => <div className="summary-stat" key={String(name)}><div className="stat-top"><Text type="secondary">{name}</Text>{icon}</div><strong>{value}</strong><Text type="secondary">{note}</Text></div>)}
+      {[['图像总数', total.toLocaleString(), <PictureOutlined />, `${labeled.toLocaleString()} 张已标注`], ['分类类别', project.labels.length, <AppstoreOutlined />, '独立定义的互斥类别'], ['可用模型', project.model_count ?? 0, <DeploymentUnitOutlined />, project.active_model_id ? '已设置默认模型' : '尚未设置可用模型'], ['活动任务', running, <ThunderboltOutlined />, running ? '任务正在后台处理' : '当前没有排队任务']].map(([name, value, icon, note]) => <div className="summary-stat" key={String(name)}><div className="stat-top"><Text type="secondary">{name}</Text>{icon}</div><strong>{value}</strong><Text type="secondary">{note}</Text></div>)}
     </section>
     <div className="overview-columns">
       <Card title="分类工作入口" className="workflow-card"><Paragraph type="secondary">进入对应操作。已有样本与模型表示准备可用，本次执行、复核与导出状态在任务详情核对。</Paragraph>

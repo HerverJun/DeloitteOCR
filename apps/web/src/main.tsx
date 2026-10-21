@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         colorLink: clearTheme.link, colorLinkHover: clearTheme.primaryHover, colorLinkActive: clearTheme.primaryActive,
         colorPrimaryBg: clearTheme.selected, colorFillAlter: clearTheme.subtle,
         colorBgLayout: clearTheme.workspace, colorBgContainer: clearTheme.panel,
-        colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorBorder: clearTheme.border,
+        colorText: clearTheme.text, colorTextSecondary: clearTheme.muted, colorTextDescription: clearTheme.muted, colorBorder: clearTheme.border,
         colorBorderSecondary: clearTheme.border, fontFamily: clearTheme.fontFamily,
         fontSize: clearTheme.fontSize, fontSizeSM: clearTheme.captionSize, lineHeight: clearTheme.lineHeight,
         motionDurationFast: `${clearTheme.motionFast}s`, motionDurationMid: `${clearTheme.motionNormal}s`,
@@ -33,11 +33,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         Button: { primaryColor: clearTheme.primaryText, defaultShadow: 'none', primaryShadow: 'none',
           defaultHoverColor: clearTheme.link, defaultHoverBorderColor: clearTheme.link,
           defaultActiveColor: clearTheme.link, defaultActiveBorderColor: clearTheme.link },
-        Card: { headerHeight: 44, headerFontSize: clearTheme.panelTitleSize, headerPadding: 16, bodyPadding: 16 },
-        Form: { itemMarginBottom: 12, verticalLabelPadding: '0 0 4px' },
+        Card: { headerHeight: 52, headerFontSize: clearTheme.panelTitleSize, headerPadding: 20, bodyPadding: clearTheme.panelPadding },
+        Form: { itemMarginBottom: 16, verticalLabelPadding: '0 0 6px' },
         Layout: { bodyBg: clearTheme.workspace, siderBg: clearTheme.navigation },
         Menu: { darkItemBg: clearTheme.navigation, darkSubMenuItemBg: clearTheme.navigation,
-          darkItemColor: clearTheme.navigationText, darkItemSelectedBg: '#283429', darkItemSelectedColor: clearTheme.accent,
+          darkItemColor: clearTheme.navigationText, darkItemSelectedBg: clearTheme.selected, darkItemSelectedColor: clearTheme.primary,
+          itemBg: clearTheme.navigation, itemSelectedBg: clearTheme.selected, itemSelectedColor: clearTheme.primary,
           itemHeight: 40, itemBorderRadius: clearTheme.controlRadius },
         Tabs: { itemColor: clearTheme.muted, itemSelectedColor: clearTheme.link, inkBarColor: clearTheme.link },
         Spin: { colorPrimary: clearTheme.link },
@@ -49,3 +50,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+import './clear-ui/common.css'
+import './clear-ui/experience.css'
