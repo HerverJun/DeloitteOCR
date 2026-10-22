@@ -68,11 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
-      "head": "e5ca875ed822643219b22c688d23be72c87b06e7",
-      "branch": "codex/frontend-workbench-20261015",
+      "head": "be637428d867fac9357b33ad26d62fe67b54efdf",
+      "branch": "codex/document-topic-comparison-20261022",
       "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 906,
+      "file_count": 934,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -185,8 +185,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 21925,
-          "sha256": "14cf259f6d508edb06b3ce9b532f3d3cbba83ce5c82cb11042dd1b8896aab9e7"
+          "bytes": 21947,
+          "sha256": "a8015156bb364f39c9a5bf3138c0b89c883d4126e007935e19198ebc2e81128f"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/common.css",
@@ -461,8 +461,8 @@
         {
           "path": "platform/apps/portal/src/features/artifacts/ArtifactCenter.tsx",
           "source_path": "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-          "bytes": 23966,
-          "sha256": "f917922c8bfba74ce7ecce112bc17afe2105bd2084c24d048cba5b8e60ef1057"
+          "bytes": 25795,
+          "sha256": "72d90f81bc1bccdd71adc036eeab1d4acec272fa84675e8071410b8cff88024d"
         },
         {
           "path": "platform/apps/portal/src/features/artifacts/artifacts.css",
@@ -587,8 +587,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
-          "bytes": 10010,
-          "sha256": "6b0a3eb7fc3f9464ce6f7b714114358e6609d6e76545ab67207b4fe098bf20ac"
+          "bytes": 10394,
+          "sha256": "b0f2cb7a97761fb66e9807279b49a80952d9918400ce90190f31f76536010eaa"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
@@ -617,8 +617,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/toolCatalog.ts",
           "source_path": "apps/portal/src/features/catalog/toolCatalog.ts",
-          "bytes": 1159,
-          "sha256": "d04d2b640196b611c5230313fb9d5fd351f94f6482c121ed0702960029a441db"
+          "bytes": 1350,
+          "sha256": "9221416fc229007bc7ce1f0f022db605d7f3c6c24036856ce9974d59136dd25c"
         },
         {
           "path": "platform/apps/portal/src/features/classification/ClassificationWorkflow.tsx",
@@ -631,6 +631,42 @@
           "source_path": "apps/portal/src/features/classification/classification.css",
           "bytes": 2256,
           "sha256": "02b3af1a40a9fb579cc958b46d628fe75e8cecd566dcc923456ef938f1db0ebb"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/ComparisonApplicationCard.tsx",
+          "source_path": "apps/portal/src/features/comparisons/ComparisonApplicationCard.tsx",
+          "bytes": 788,
+          "sha256": "fd36868497df94abf7c7b512ef9b945a75c8f6a2cd33150fea686ecf91f6add1"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/ComparisonResults.tsx",
+          "source_path": "apps/portal/src/features/comparisons/ComparisonResults.tsx",
+          "bytes": 15873,
+          "sha256": "c69d99be73cdce9b131c81cb2abd2892316a6b5e21f54a1a13ddda5c41f156e7"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
+          "source_path": "apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
+          "bytes": 16501,
+          "sha256": "3bc2524859bf045a1fcb7425cd0354870eed0bd370a5e0eb88491d30a3e69b28"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/Configuration.tsx",
+          "source_path": "apps/portal/src/features/comparisons/Configuration.tsx",
+          "bytes": 14952,
+          "sha256": "29280254e163b17823a1dd39479272724e56fc2d92fceb73eb5b7d864086efab"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/api.ts",
+          "source_path": "apps/portal/src/features/comparisons/api.ts",
+          "bytes": 10224,
+          "sha256": "98049e2fb68f401b5cd432ef2be505db9b5e2193896c84941288dfc1ad02bf1c"
+        },
+        {
+          "path": "platform/apps/portal/src/features/comparisons/comparisons.css",
+          "source_path": "apps/portal/src/features/comparisons/comparisons.css",
+          "bytes": 2776,
+          "sha256": "343a6668ffe2fd11db62a7ecb53b0e61356b52cefabddc8cc751a17fe9a76c93"
         },
         {
           "path": "platform/apps/portal/src/features/data/DataWorkbench.tsx",
@@ -833,8 +869,8 @@
         {
           "path": "platform/apps/portal/src/router.tsx",
           "source_path": "apps/portal/src/router.tsx",
-          "bytes": 7840,
-          "sha256": "7fa96b0787271950ce21c272435fd581d4d4a2d37b6a60ab122a5bad32802dd5"
+          "bytes": 8059,
+          "sha256": "c40a627f805574b6967736acce9422e37f6d06c8ecafe4af3c72b0dbd506b3b0"
         },
         {
           "path": "platform/apps/portal/src/style.css",
@@ -919,6 +955,12 @@
           "source_path": "apps/portal/tests/catalog.test.tsx",
           "bytes": 25667,
           "sha256": "146ac6ee87723d4134bc21b57b9a8d1b83a5403b0fa394ad7cc64b49894709f3"
+        },
+        {
+          "path": "platform/apps/portal/tests/comparisons.test.tsx",
+          "source_path": "apps/portal/tests/comparisons.test.tsx",
+          "bytes": 15025,
+          "sha256": "7dca2de10c0f7ddba05797f9831aa26f70315f4507fd608417a99929e4229152"
         },
         {
           "path": "platform/apps/portal/tests/documents-loading.test.tsx",
@@ -1303,6 +1345,12 @@
           "source_path": "docs/data-workbench-quickstart.md",
           "bytes": 2400,
           "sha256": "ebd8922661b97bd27639ef59d09bbf7fe3062201e97dee9b4581587f4246c4bf"
+        },
+        {
+          "path": "platform/docs/document-comparison.md",
+          "source_path": "docs/document-comparison.md",
+          "bytes": 5139,
+          "sha256": "d7190452c618a71abc80beaea027ebfa44c0554b670c499ff9535f7de820c696"
         },
         {
           "path": "platform/docs/environment.md",
@@ -2667,6 +2715,12 @@
           "sha256": "46760ba126b9013de5efb40e51b8ef27e84c95d0d68033f9702b4f3248719485"
         },
         {
+          "path": "platform/scripts/evaluate_document_comparison.py",
+          "source_path": "scripts/evaluate_document_comparison.py",
+          "bytes": 5959,
+          "sha256": "f975ecc42394c13d65f1418126f02ede171fa516f8ce990db7b2b54dfc2326ed"
+        },
+        {
           "path": "platform/scripts/fixtures/README.md",
           "source_path": "scripts/fixtures/README.md",
           "bytes": 2444,
@@ -2765,8 +2819,8 @@
         {
           "path": "platform/scripts/harness_candidate_launch.py",
           "source_path": "scripts/harness_candidate_launch.py",
-          "bytes": 18742,
-          "sha256": "771c3003b64f26255fb03475f237d58d7706727d8b11131e431997cfd453cebe"
+          "bytes": 20519,
+          "sha256": "6650c8773f0178dc982976d704811b21c97d971ee8778af5359336936322b956"
         },
         {
           "path": "platform/scripts/harness_candidate_smoke.mjs",
@@ -2873,8 +2927,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 20978,
-          "sha256": "695f581c5529aceb66c8e90ddfdf0e05c1e7eb0f0799611fde6dafd62a902826"
+          "bytes": 21539,
+          "sha256": "25de1a3bab03c4efb996f8945043e9735b46af9a810caad528defaea29d2eec8"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -3389,8 +3443,8 @@
         {
           "path": "platform/src/workbench_platform/app.py",
           "source_path": "src/workbench_platform/app.py",
-          "bytes": 7204,
-          "sha256": "6d2d19b62dd1edda4f96e17ffae9279f63ef047518d47302a6fe6de40d52bb09"
+          "bytes": 7571,
+          "sha256": "fa3c0d4bb77007541737aa132747f750b7dc0c6efc25ce4d1d45d144f18cf93d"
         },
         {
           "path": "platform/src/workbench_platform/application_services/__init__.py",
@@ -3665,8 +3719,8 @@
         {
           "path": "platform/src/workbench_platform/artifacts/center.py",
           "source_path": "src/workbench_platform/artifacts/center.py",
-          "bytes": 47999,
-          "sha256": "03c6df9f180adf97d1f5f1743e43015eab89e0ac98d66c25290d802d437f2911"
+          "bytes": 49316,
+          "sha256": "5530b8caa704a9b3fc6f00f4643405dc6c7e375a50eaf6c0ea664f398aa392b7"
         },
         {
           "path": "platform/src/workbench_platform/artifacts/classification_results.py",
@@ -3883,6 +3937,78 @@
           "source_path": "src/workbench_platform/catalog/routes.py",
           "bytes": 2709,
           "sha256": "a0e27d9fcfdc957ccc638aee63c37afdd526c962342a589577b7c55aa7cd0047"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/__init__.py",
+          "source_path": "src/workbench_platform/comparisons/__init__.py",
+          "bytes": 77,
+          "sha256": "f80844df1fe89ad1659e789710ed4ba602e6c12d387a2797f830325847cb9234"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/artifacts.py",
+          "source_path": "src/workbench_platform/comparisons/artifacts.py",
+          "bytes": 5240,
+          "sha256": "14a8729bf42055db3bea8003137f2dd80fa5b51aa0e7cdf59b649063db0fa2d4"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/compare.py",
+          "source_path": "src/workbench_platform/comparisons/compare.py",
+          "bytes": 26994,
+          "sha256": "979e6ed8c0373cd80084fb22de65a6e03697d4fc8d5661a17ed47d48e545bfcd"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/layout.py",
+          "source_path": "src/workbench_platform/comparisons/layout.py",
+          "bytes": 27494,
+          "sha256": "ebada5d414a2d9b4c4069ea22225fba04816ab225f347e60f0472c1edf851c49"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/llm.py",
+          "source_path": "src/workbench_platform/comparisons/llm.py",
+          "bytes": 16767,
+          "sha256": "0838a5e4fc1aea6efa3e325a4ca759a6a1698936a08c108838a80f51703e287f"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/local_ocr.py",
+          "source_path": "src/workbench_platform/comparisons/local_ocr.py",
+          "bytes": 15862,
+          "sha256": "6e019b87e6d30f40c320d01eab7432438969a8b6b09e2b20b0d54bff57b8d5f7"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/models.py",
+          "source_path": "src/workbench_platform/comparisons/models.py",
+          "bytes": 7351,
+          "sha256": "b3335a87d636a86f651cce711f82d3e469e37f5f5d1c885bed609b7e2fa86ee0"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/render_worker.py",
+          "source_path": "src/workbench_platform/comparisons/render_worker.py",
+          "bytes": 14563,
+          "sha256": "5fdcd27d3efd95faf8e35e3fa8dfefe822e7d05bc90ace0691a2460f06e4c42c"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/report.py",
+          "source_path": "src/workbench_platform/comparisons/report.py",
+          "bytes": 15418,
+          "sha256": "e5435d45e5014ecf9feba6ce524de6faccba8096e4a9ce3fc65f0b8cde780100"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/routes.py",
+          "source_path": "src/workbench_platform/comparisons/routes.py",
+          "bytes": 6383,
+          "sha256": "667480a0edd53e74fb09d06925515f31c75e8a9f2e705ebf544ac62eaa01eca3"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/service.py",
+          "source_path": "src/workbench_platform/comparisons/service.py",
+          "bytes": 42742,
+          "sha256": "65d1da4f5f2d3c9ad1d2eb420ca850cd346f853ca7480afd89316774b3dd16b6"
+        },
+        {
+          "path": "platform/src/workbench_platform/comparisons/store.py",
+          "source_path": "src/workbench_platform/comparisons/store.py",
+          "bytes": 9251,
+          "sha256": "81fa36cbfe00684861fca87636b6c3d4388886f755cc89d91e7de4f2ada5a59f"
         },
         {
           "path": "platform/src/workbench_platform/data_api/__init__.py",
@@ -4989,6 +5115,18 @@
           "sha256": "21a0cf49f46044c09543d4c34b1e8b34980bbe15791b1a7addeeef0e81e9f7c1"
         },
         {
+          "path": "platform/tests/fixtures/build_comparison_regression.py",
+          "source_path": "tests/fixtures/build_comparison_regression.py",
+          "bytes": 11715,
+          "sha256": "66eb723912d5c02bd08e0a9498c8d49e702d2ad6fa5878310490e3802b80e6fb"
+        },
+        {
+          "path": "platform/tests/fixtures/comparison_regression_v1.json",
+          "source_path": "tests/fixtures/comparison_regression_v1.json",
+          "bytes": 274243,
+          "sha256": "7da746f2f5814b47b95aaf1271710aee5930ebd9ada0adee749eaac3cc841a29"
+        },
+        {
           "path": "platform/tests/fixtures/data/docs/invoice.pdf",
           "source_path": "tests/fixtures/data/docs/invoice.pdf",
           "bytes": 1856,
@@ -5167,6 +5305,12 @@
           "source_path": "tests/integration/test_classification_resource_hooks.py",
           "bytes": 7413,
           "sha256": "6076a5a06094543ba0da5164f363f8a88b3d575859d348b0365eae40d55603f8"
+        },
+        {
+          "path": "platform/tests/integration/test_comparisons_api.py",
+          "source_path": "tests/integration/test_comparisons_api.py",
+          "bytes": 17320,
+          "sha256": "379faaf33e2a96d273785dca433369f35e2ad892c5b00be1c2bafbc0d363eb75"
         },
         {
           "path": "platform/tests/integration/test_development_runtime_sources.py",
@@ -5437,6 +5581,30 @@
           "source_path": "tests/unit/test_catnet_tiling.py",
           "bytes": 3769,
           "sha256": "45d61aedb4199dbc75669099f2ca78377c5a474c5ca90c8ccbc0e850f9f63a07"
+        },
+        {
+          "path": "platform/tests/unit/test_comparison_layout.py",
+          "source_path": "tests/unit/test_comparison_layout.py",
+          "bytes": 19659,
+          "sha256": "395e9fb65e444f10c004af61c62c8825d42ea80a93f0be81248d0689c63d80dd"
+        },
+        {
+          "path": "platform/tests/unit/test_document_comparison_core.py",
+          "source_path": "tests/unit/test_document_comparison_core.py",
+          "bytes": 15480,
+          "sha256": "6354e3637920d7ec231c8244a53bed1190ebf94dd581e0bcd8244aa0b350736a"
+        },
+        {
+          "path": "platform/tests/unit/test_document_comparison_corpus.py",
+          "source_path": "tests/unit/test_document_comparison_corpus.py",
+          "bytes": 1346,
+          "sha256": "bf91c3e46ffc25b57f8f08e1aa57fa85c0a71b83195090997a51ddba4559cf75"
+        },
+        {
+          "path": "platform/tests/unit/test_document_comparison_service.py",
+          "source_path": "tests/unit/test_document_comparison_service.py",
+          "bytes": 15478,
+          "sha256": "81eacebf07b87a03211fdd82bb23f2d21a6f691acc93f5e67603d96ed9033f2b"
         },
         {
           "path": "platform/tests/unit/test_documents_regressions.py",

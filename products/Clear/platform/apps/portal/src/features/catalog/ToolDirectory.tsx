@@ -13,6 +13,7 @@ import { ApplicationCard, RecentWorks } from './ApplicationCards'
 import { DataApplicationCard } from '../data/DataWorkbench'
 import { ForensicApplicationCard } from '../forensics/ForensicWorkbench'
 import { MultimodalApplicationCard } from '../multimodal/MultimodalWorkbench'
+import { ComparisonApplicationCard } from '../comparisons/ComparisonApplicationCard'
 import { ReferenceLinks } from '../agent/TaskPanel'
 import { agentRequest, type AuditTask } from '../agent/api'
 import './directory.css'
@@ -24,6 +25,7 @@ const filters: { id: Category; label: string }[] = [
 ]
 const metadata: Record<string, { category: Category; label: string; keywords: string; formats: string }> = {
   ocr: { category: 'document', label: '文档识别', keywords: 'ClearOCR OCR 文字 文档 识别 表格 校对 PDF 扫描 提取 发票', formats: 'PDF · 图片 → 文字 / 表格' },
+  comparisons: { category: 'document', label: '文档对比', keywords: 'PDF PPTX 图片 幻灯片 文档 主题 对比 比较 进度 多模态 HTML 报告', formats: 'PDF · PPTX · 图片 → 主题对照 / 报告' },
   data: { category: 'data', label: '数据处理', keywords: 'ClearData 数据 清洗 比对 核对 Excel CSV 差异 表格', formats: 'Excel · CSV → 差异 / 清洗结果' },
   classification: { category: 'image', label: '图像分析', keywords: 'ClearClassify 分类 图像 归类 训练 标注 复核', formats: '图片 → 分类 / 复核结果' },
   forensics: { category: 'image', label: '图像分析', keywords: 'ClearForensics 取证 图片 图像 篡改 EXIF 热图 报告', formats: '图片 → 热图 / 取证报告' },
@@ -53,11 +55,12 @@ export function ToolDirectory() {
   const entries = [
     ...(native('ocr') ? [{ id: 'ocr', card: <ApplicationCard app={native('ocr')!} workspaceId={workspaceId} projectMode={!!workspaceId} /> }] : []),
     { id: 'data', card: <DataApplicationCard /> },
+    { id: 'comparisons', card: <ComparisonApplicationCard /> },
     ...(native('classification') ? [{ id: 'classification', card: <ApplicationCard app={native('classification')!} workspaceId={workspaceId} projectMode={!!workspaceId} /> }] : []),
     { id: 'forensics', card: <ForensicApplicationCard /> },
     { id: 'face', card: <MultimodalApplicationCard kind="face" /> },
     { id: 'audio', card: <MultimodalApplicationCard kind="audio" /> },
-    ...(apps.data?.filter(app => !['ocr', 'classification', 'data', 'forensics', 'face', 'audio'].includes(app.app_id)).map(app => ({
+    ...(apps.data?.filter(app => !['ocr', 'classification', 'data', 'forensics', 'face', 'audio', 'comparisons'].includes(app.app_id)).map(app => ({
       id: app.app_id, card: <ApplicationCard app={app} workspaceId={workspaceId} projectMode={!!workspaceId} />,
     })) || []),
   ]

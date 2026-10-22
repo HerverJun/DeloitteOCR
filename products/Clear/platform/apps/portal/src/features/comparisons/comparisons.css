@@ -1,0 +1,33 @@
+.comparison-workbench { display: grid; gap: 20px; min-width: 0; }
+.comparison-workbench .panel { margin-bottom: 0; }
+.comparison-workbench .ant-alert { margin: 12px 0; }
+.comparison-workbench .section-head { gap: 16px; flex-wrap: wrap; }
+.comparison-workbench details, .comparison-rerun details { margin: 12px 0; }
+.comparison-workbench summary, .comparison-rerun summary { cursor: pointer; color: #596873; padding: 8px 0; }
+.comparison-material-columns, .comparison-page-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 20px 0; }
+.comparison-material-columns > section + section { border-left: 1px solid #e1e6e9; padding-left: 24px; }
+.comparison-budget-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.comparison-budget-grid .ant-input-number { width: 100%; }
+.comparison-layout-options .ant-select { width: 100%; }
+.comparison-image-order { padding-left: 24px; margin-bottom: 20px; max-height: 240px; overflow: auto; }
+.comparison-image-order li { padding: 5px 0; }
+.comparison-image-order li > span { display: inline-block; max-width: 55%; overflow-wrap: anywhere; vertical-align: middle; margin-right: 12px; }
+.comparison-add-field, .comparison-profile-actions { margin: 14px 0; }
+.comparison-connection-form { margin-top: 20px; }
+.comparison-submit .ant-form { max-width: 540px; }
+.comparison-submit > .ant-typography:last-child { margin: 12px 0 0; }
+.comparison-page-buttons { display: flex; flex-wrap: wrap; gap: 8px; max-height: 240px; overflow: auto; }
+.comparison-downloads { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 16px 0; border-bottom: 1px solid #e1e6e9; }
+.comparison-value { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }
+.comparison-evidence { border-left: 2px solid #e1e6e9; padding-left: 8px; margin-top: 8px; }
+.comparison-evidence .ant-btn { padding-left: 0; }
+.comparison-evidence q { display: block; color: #596873; overflow-wrap: anywhere; }
+.comparison-progress { margin: 16px 0; }
+.comparison-page-image { display: block; width: auto; max-width: 100%; max-height: 640px; object-fit: contain; margin: 16px auto; border: 1px solid #e1e6e9; }
+.comparison-raw { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; padding: 16px; background: #f0f3f4; }
+.comparison-rerun { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e1e6e9; }
+@media (max-width: 860px) {
+  .comparison-material-columns, .comparison-page-lists, .comparison-budget-grid { grid-template-columns: minmax(0, 1fr); }
+  .comparison-material-columns > section + section { border-left: 0; border-top: 1px solid #e1e6e9; padding-left: 0; padding-top: 20px; }
+  .comparison-image-order li > span { display: block; max-width: 100%; }
+}

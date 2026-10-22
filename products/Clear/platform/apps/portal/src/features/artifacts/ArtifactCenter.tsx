@@ -12,9 +12,9 @@ const { Title, Text, Paragraph } = Typography
 type Input = { role: string; name: string; asset_id: string; revision: number }
 type File = { name: string; artifact_id: string; revision: number; size_bytes: number; availability: string }
 type OcrItem = { asset_id: string; page_number?: number; revision: number }
-type OriginalBundle = { bundle_id: string; kind: string; title: string;
+type OriginalBundle = { bundle_id: string; kind: string; title: string; status?: string;
   session_id?: string; session_name?: string; export_id?: string;
-  project_id?: string; handoff_id?: string; platform_job_id?: string;
+  project_id?: string; handoff_id?: string; platform_job_id?: string; comparison_id?: string; comparison_revision?: number;
   result_id?: string | null; analysis_kind?: string; review_revision?: number; created_at: string; input_set_id: string; input_set_revision: number;
   inputs: Input[]; items?: OcrItem[]; files: File[] }
 type Bundle = OriginalBundle | ReviewBundle | WorkpaperBundle | ForensicBundle
@@ -35,6 +35,7 @@ function size(value: number) {
 }
 
 function kindName(bundle: Bundle) {
+  if (bundle.kind === 'document_comparison') return '文档主题对比'
   if (bundle.kind === 'manual_analysis') return '多模态人工复核成果'
   if (isWorkpaper(bundle)) return bundle.delivery_kind === 'final' ? '正式复核底稿' : '中间审计底稿'
   if (isReview(bundle)) return bundle.delivery_kind === 'final' ? '正式复核成果' : '中间复核材料'
@@ -127,6 +128,15 @@ function BundleDetails({ bundle, workspaceId, base }: { bundle: Bundle; workspac
   const scope = encodeURIComponent(workspaceId)
   const classification = bundle.kind === 'classification_result'
   const ocr = bundle.kind === 'ocr_result'
+  if (bundle.kind === 'document_comparison') {
+    return <section className="artifact-detail"><div className="artifact-detail-head"><div><Tag>文档主题对比</Tag><Title level={2}>{bundle.title}</Title></div>
+      <Link to={`/apps/comparisons?workspace=${scope}&comparison=${encodeURIComponent(bundle.comparison_id || '')}&comparison_revision=${bundle.comparison_revision || 1}`}>返回文档主题对比</Link></div>
+      <Paragraph>固定修订 v{bundle.comparison_revision} · {new Date(bundle.created_at).toLocaleString('zh-CN')}</Paragraph>
+      {bundle.status === 'outdated' && <Alert type="warning" title="此报告已有后续修订" description="当前下载保留此修订的材料、证据和报告。" />}
+      <Title level={3}>输入原件</Title><ul>{bundle.inputs.map((input, index) => <li key={`${input.asset_id}-${index}`}><Link to={`/assets?workspace=${scope}&asset=${encodeURIComponent(input.asset_id)}`}>{input.name}</Link> · 来源版本 {input.revision}</li>)}</ul>
+      <Title level={3}>固定成果文件</Title><ul>{bundle.files.map(file => <li key={file.artifact_id}><span>{file.name} · {size(file.size_bytes)} </span>
+        <a href={`${base}/${bundle.bundle_id}/files/${encodeURIComponent(file.name)}`}>下载固定成果</a></li>)}</ul></section>
+  }
   if (bundle.kind === 'manual_analysis') {
     const paths: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document' }
     const route = paths[bundle.analysis_kind || ''] || '/apps'
@@ -145,10 +155,11 @@ function BundleDetails({ bundle, workspaceId, base }: { bundle: Bundle; workspac
             <Link to={`/jobs?workspace=${scope}`}>查看任务</Link></Space>
         : ocr ? <Space><Link to={`/apps/ocr/workflow?workspace=${scope}&set=${encodeURIComponent(bundle.input_set_id)}&project=${encodeURIComponent(bundle.project_id || '')}&handoff=${encodeURIComponent(bundle.handoff_id || '')}`}>返回 OCR 项目</Link>
             <Link to={`/jobs?workspace=${scope}`}>查看任务</Link></Space>
-        : <Link to={`/apps/data?workspace=${scope}&session=${encodeURIComponent(bundle.session_id || '')}`}>返回数据作业</Link>}</div>
+        : bundle.kind === 'document_comparison' ? <Link to={`/apps/comparisons?workspace=${scope}&comparison=${encodeURIComponent(bundle.comparison_id || bundle.platform_job_id || bundle.result_id || '')}${bundle.comparison_revision ? `&comparison_revision=${bundle.comparison_revision}` : ''}`}>返回文档主题对比</Link>
+          : <Link to={`/apps/data?workspace=${scope}&session=${encodeURIComponent(bundle.session_id || '')}`}>返回数据作业</Link>}</div>
     <div className="artifact-meta"><div><Text type="secondary">输入集合</Text><strong>版本 {bundle.input_set_revision}</strong></div>
       <div><Text type="secondary">成果文件</Text><strong>{bundle.files.length} 件</strong></div>
-      <div><Text type="secondary">作业类型</Text><strong>{bundle.kind === 'image_forensics' ? '图像取证' : classification ? '图像分类' : ocr ? kindName(bundle) : bundle.result_id ? '表格比对' : '表格清洗'}</strong></div></div>
+      <div><Text type="secondary">作业类型</Text><strong>{bundle.kind === 'document_comparison' ? '文档主题对比' : bundle.kind === 'image_forensics' ? '图像取证' : classification ? '图像分类' : ocr ? kindName(bundle) : bundle.result_id ? '表格比对' : '表格清洗'}</strong></div></div>
     <div className="artifact-section"><Title level={3}>输入资料</Title>
       <ul>{bundle.inputs.map((input, index) => <li key={`${input.role}-${input.asset_id}-${index}`}><span>{input.name}</span>
         <Text type="secondary">版本 {input.revision}</Text>
