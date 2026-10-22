@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from functools import wraps
 import hashlib
@@ -213,6 +214,101 @@ def safire_runtime(manifest):
 
 
 @verification
+def aigc_runtime(manifest):
+    """Admit the independent AIGC inference inventory without enabling accuracy claims."""
+    integration = manifest.get('aigc_integration')
+    if integration is None:
+        return {}, ()
+    if integration.get('format') != 'clear-aigc-integration-v1':
+        raise ValueError('Unknown AIGC integration declaration')
+    root = checked(integration['root'], exists=True)
+    inventory_path = checked(root / 'aigc-inventory.json', exists=True)
+    if sha(inventory_path) != integration['inventory_sha256']:
+        raise ValueError('Pinned AIGC inventory changed')
+    inventory = json.loads(inventory_path.read_text('utf-8-sig'))
+    if inventory.get('format') != 'clear-aigc-assets-v1':
+        raise ValueError('Unknown AIGC asset inventory')
+    engine = integration.get('engine', inventory.get('primary'))
+    if engine not in {'community_forensics384', 'spai', 'univfd'}:
+        raise ValueError('Unknown AIGC engine')
+    selected = inventory['engines'][engine]
+    resources = selected['resources']
+    if not isinstance(resources, dict) or not resources:
+        raise ValueError('AIGC resources must be hash-pinned')
+    for name, expected in resources.items():
+        relative = PurePosixPath(name)
+        if relative.is_absolute() or ':' in name or '\\' in name or any(part in {'', '.', '..'} for part in name.split('/')):
+            raise ValueError('Invalid AIGC resource member')
+        path = checked(root / relative, exists=True)
+        if not path.is_file() or not path.is_relative_to(root) or path.stat().st_size != expected['bytes'] or sha(path) != expected['sha256']:
+            raise ValueError('Pinned AIGC resource changed: ' + name)
+    def source_members(directory):
+        actual=set()
+        for current,dirs,files in os.walk(directory,followlinks=False):
+            parent=checked(current,exists=True)
+            for name in dirs:checked(parent/name,exists=True)
+            dirs[:]=[name for name in dirs if name!='__pycache__']
+            for name in files:
+                path=checked(parent/name,exists=True)
+                if path.suffix.lower() in {'.pyc','.pyo'}:
+                    raise ValueError('Unpinned sourceless bytecode in AIGC import root: '+str(path))
+                if path.is_file():actual.add(path)
+        return actual
+    for key in ('source_root','clip_source_root','dependencies'):
+        name=selected.get('settings',{}).get(key)
+        if not name:continue
+        directory=checked(root/name,exists=True)
+        if not directory.is_relative_to(root):raise ValueError('AIGC import directory escapes its root')
+        actual={path.relative_to(root).as_posix() for path in source_members(directory)}
+        expected={path for path in resources if path.startswith(name.rstrip('/')+'/')}
+        if actual!=expected:raise ValueError('AIGC source closure has missing or undeclared files: '+name)
+    runtime = checked(selected.get('runtime', inventory.get('runtime')), exists=True)
+    if sha(runtime) != integration['runtime_sha256']:
+        raise ValueError('Pinned AIGC runtime changed')
+    runtime_resources=inventory.get('runtime_resources')
+    closed=inventory.get('runtime_closed_directories')
+    if not isinstance(runtime_resources,dict) or not runtime_resources or not isinstance(closed,list) or not closed:
+        raise ValueError('AIGC transitive runtime closure has not been pinned')
+    directories=[checked(name,exists=True) for name in closed]
+    if len(set(directories))!=len(directories):
+        raise ValueError('Duplicate AIGC runtime closure root')
+    lines=[line.strip() for line in checked(runtime.parent/'python312._pth',exists=True).read_text('utf-8-sig').splitlines()
+        if line.strip() and not line.lstrip().startswith('#')]
+    if lines[:2]!=['python312.zip','.'] or lines[-1:]!=['import site'] or any(line.startswith('import ') for line in lines[:-1]):
+        raise ValueError('AIGC embedded runtime import configuration is not explicit')
+    imports={runtime.parent,*[checked(Path(line) if Path(line).is_absolute() else runtime.parent/line,exists=True) for line in lines[2:-1]]}
+    if set(directories)!=imports:
+        raise ValueError('AIGC runtime closure differs from embedded Python import roots')
+    declared=set();declared_identity={}
+    for name,expected in runtime_resources.items():
+        path=checked(name,exists=True)
+        if (not path.is_file() or not any(path.is_relative_to(directory) for directory in directories)
+                or path.stat().st_size!=expected['bytes']):
+            raise ValueError('Pinned AIGC runtime dependency changed: '+name)
+        declared.add(path)
+        declared_identity[path]=expected
+    actual=set()
+    for directory in directories:actual.update(source_members(directory))
+    if actual!=declared:
+        raise ValueError('AIGC runtime closure has missing or undeclared files')
+    def hash_runtime(path):
+        before=path.stat()
+        with path.open('rb') as stream:actual_hash=hashlib.file_digest(stream,'sha256').hexdigest()
+        after=path.stat()
+        if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns) or actual_hash!=declared_identity[path]['sha256']:
+            raise ValueError('Pinned AIGC runtime dependency changed during verification: '+str(path))
+    # All paths were admitted above on the main thread; this only streams
+    # immutable F files and does not share the ancestry verification cache.
+    with ThreadPoolExecutor(max_workers=8,thread_name_prefix='aigc-launch-integrity') as pool:
+        for _ in pool.map(hash_runtime,sorted(declared)):pass
+    environment = {'WORKBENCH_AIGC_ROOT': str(root), 'WORKBENCH_AIGC_ENGINE': engine}
+    # Every declared executable/import closure can be read by the F-only guard;
+    # writable runtime state is supplied separately under the selected DATA root.
+    read_roots = [root, *directories]
+    return environment, tuple(read_roots)
+
+
+@verification
 def comparison_runtime(manifest):
     integration = manifest.get('comparison_integration')
     if integration is None:
@@ -270,6 +366,7 @@ def main():
                 raise ValueError('Pinned shared program identity changed: ' + name)
         document_environment, integration_roots = integration_runtime(manifest)
         safire_environment, safire_roots = safire_runtime(manifest)
+        aigc_environment, aigc_roots = aigc_runtime(manifest)
         comparison_environment, comparison_roots = comparison_runtime(manifest)
     if checked(sys.executable) != program / 'runtimes/platform/python.exe':
         raise ValueError('Use the candidate declared shared platform Python with -I -B')
@@ -344,10 +441,11 @@ def main():
         LANGCHAIN_TRACING_V2='false', LANGSMITH_TRACING='false')
     os.environ.update(document_environment)
     os.environ.update(safire_environment)
+    os.environ.update(aigc_environment)
     os.environ.update(comparison_environment)
     os.environ['WORKBENCH_OCR_SOURCE'] = str(root / 'ocr')
     from scripts.harness_io_guard import install_guard
-    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots, *safire_roots, *comparison_roots))
+    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots, *safire_roots, *aigc_roots, *comparison_roots))
     from scripts.agent_native_preview import main as serve
     sys.argv = ['clear-harness', '--source', str(root / 'platform'), '--program', str(program),
                 '--data', str(data), '--port', str(args.port)]

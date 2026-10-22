@@ -29,6 +29,7 @@ const metadata: Record<string, { category: Category; label: string; keywords: st
   data: { category: 'data', label: '数据处理', keywords: 'ClearData 数据 清洗 比对 核对 Excel CSV 差异 表格', formats: 'Excel · CSV → 差异 / 清洗结果' },
   classification: { category: 'image', label: '图像分析', keywords: 'ClearClassify 分类 图像 归类 训练 标注 复核', formats: '图片 → 分类 / 复核结果' },
   forensics: { category: 'image', label: '图像分析', keywords: 'ClearForensics 取证 图片 图像 篡改 EXIF 热图 报告', formats: '图片 → 热图 / 取证报告' },
+  aigc_image: { category: 'image', label: '图像分析', keywords: 'AIGC AI 整图 生成 检测 鉴别 图片 文档 信号 来源', formats: '图片 → 生成信号 / 复核报告' },
   face: { category: 'image', label: '图像分析', keywords: '人脸 比对 图片 照片 参考库 相似度 检索', formats: '照片 → 人脸 / 比对结果' },
   audio: { category: 'audio', label: '音频处理', keywords: '音频 分析 录音 中文 转写 语音 说话人 波形', formats: '录音 → 转写 / 定位片段' },
 }
@@ -58,9 +59,10 @@ export function ToolDirectory() {
     { id: 'comparisons', card: <ComparisonApplicationCard /> },
     ...(native('classification') ? [{ id: 'classification', card: <ApplicationCard app={native('classification')!} workspaceId={workspaceId} projectMode={!!workspaceId} /> }] : []),
     { id: 'forensics', card: <ForensicApplicationCard /> },
+    { id: 'aigc_image', card: <MultimodalApplicationCard kind="aigc_image" /> },
     { id: 'face', card: <MultimodalApplicationCard kind="face" /> },
     { id: 'audio', card: <MultimodalApplicationCard kind="audio" /> },
-    ...(apps.data?.filter(app => !['ocr', 'classification', 'data', 'forensics', 'face', 'audio', 'comparisons'].includes(app.app_id)).map(app => ({
+    ...(apps.data?.filter(app => !['ocr', 'classification', 'data', 'forensics', 'face', 'audio', 'comparisons', 'aigc_image'].includes(app.app_id)).map(app => ({
       id: app.app_id, card: <ApplicationCard app={app} workspaceId={workspaceId} projectMode={!!workspaceId} />,
     })) || []),
   ]

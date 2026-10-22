@@ -26,11 +26,11 @@ from workbench_platform.resources.gpu import GpuCoordinator, ResourceBusy, Relea
 from workbench_platform.resources.recovery import local_path, recover_owned
 from .runner import WorkerRunner, worker_environment, PROTOCOL
 from .qualification import Qualification, GPU_KINDS
-from . import deep_backend
+from . import deep_backend, aigc_backend
 
 SOURCE = Path(__file__).resolve().parents[3]
 ACTIVE = {'queued','running','cancelling'}
-LABELS = {'face':'人脸比对','audio':'音频分析','seal':'印章识别','catnet':'深度图像取证','document_forensics':'文档篡改排查'}
+LABELS = {'face':'人脸比对','audio':'音频分析','seal':'印章识别','catnet':'深度图像取证','document_forensics':'文档篡改排查','aigc_image':'整图 AI 生成检测'}
 AUDIO_DISK_BUDGET = 4*3600*16000*2*3 + 256*1024*1024
 DISK_MARGIN = 64*1024*1024
 
@@ -60,6 +60,7 @@ class MultimodalService:
         self.runner = WorkerRunner(self.coordinator,self.ownership_root)
         self.qualification = Qualification(self.root.parent/self.config.get('gpu',{}).get('qualification_file','gpu-qualification.json'))
         self.safire_qualification = Qualification(self.root.parent/'safire-gpu-qualification.json')
+        self.aigc_qualification = Qualification(self.root.parent/'aigc-gpu-qualification.json')
         self.launch_id, self.instance_id = 'manual'+uuid.uuid4().hex, 'manual'+uuid.uuid4().hex
         self.gpu_recovery_error = None
         from .artifacts import configure
@@ -254,7 +255,7 @@ class MultimodalService:
         identity={'workspace_id':item['workspace_id'],'job_id':item['job_id'],'kind':item['kind'],
             'generation':item['generation'],'revision':item['revision'],
             'review_revision':item['revision'] if item.get('review') else 0,'result_hash':item['result_hash'],
-            'model_identity':copy.deepcopy(item['result'].get('model_hashes',{})),
+            'model_identity':aigc_backend.public_identity(item.get('model_binding')) if item['kind']=='aigc_image' else copy.deepcopy(item['result'].get('model_hashes',{})),
             'sources':copy.deepcopy(item['inputs']),
             'reference_scope':[{key:copy.deepcopy(value) for key,value in row.items() if key!='feature'}
                 for row in item.get('frozen_references',[])]}
@@ -296,6 +297,10 @@ class MultimodalService:
                         or receipt.get('inputs')!=current['inputs'] or not receipt.get('result_hash')):
                     raise DataError('历史复核回执身份无法核实',409)
                 restored=copy.deepcopy(receipt)
+                if current['kind']=='aigc_image':
+                    if aigc_backend.public_identity(current.get('model_binding'))!=receipt.get('model_binding'):
+                        raise DataError('历史 AIGC 复核回执与冻结模型身份不一致',409)
+                    restored['model_binding']=copy.deepcopy(current['model_binding'])
                 output=self.root/job/f"attempt-{receipt['generation']}"
                 try:self._accept_result(restored,output)
                 except (OSError,ValueError,KeyError) as error:raise DataError('历史原生结果或输出文件不可核实',409) from error
@@ -467,7 +472,7 @@ class MultimodalService:
             with closing(sqlite3.connect('file:'+ledger.as_posix()+'?mode=ro',uri=True)) as journal:
                 rows=journal.execute('SELECT o.tool,o.result FROM operations o JOIN runs r ON r.id=o.run_id '
                     'WHERE o.id=? AND r.workspace_id=?',(item['request_id'],item['workspace_id'])).fetchall()
-            tools={'face_analyze':'face','audio_transcribe':'audio','seal_extract':'seal','catnet_analyze':'catnet','document_forensics_analyze':'document_forensics','multimodal_prepare':item['kind']}
+            tools={'face_analyze':'face','audio_transcribe':'audio','seal_extract':'seal','catnet_analyze':'catnet','document_forensics_analyze':'document_forensics','aigc_image_analyze':'aigc_image','multimodal_prepare':item['kind']}
             for tool,body in rows:
                 if tools.get(tool)!=item['kind'] or not body:continue
                 receipt=json.loads(body);data=receipt.get('data',{})
@@ -514,6 +519,10 @@ class MultimodalService:
     def public(item):
         public_fields={'schema_version','job_id','workspace_id','request_id','kind','inputs','options','status','stage',
             'revision','generation','created_at','updated_at','result','result_hash','review','error','progress','actual_device','purpose','model_binding'}
+        if item.get('kind')=='aigc_image':
+            item={**item,'model_binding':aigc_backend.public_identity(item.get('model_binding'))}
+            if item.get('result') and item['result'].get('model_binding'):
+                item['result']={**item['result'],'model_binding':aigc_backend.public_identity(item['result']['model_binding'])}
         item={key:copy.deepcopy(value) for key,value in item.items() if key in public_fields}
         item.setdefault('progress',{})
         item.setdefault('actual_device',None)
@@ -594,7 +603,35 @@ class MultimodalService:
                           'cpu_ready':cpu,'cpu_reason':None if cpu else local_error or '缺少与当前程序、模型及运行库身份匹配的真实 CPU 推理回执',
                           'validation_source':'data_local' if local else 'bundled',
                           'gpu_ready':gpu,'gpu_reason':None if gpu else gpu_reason,'missing':missing,'validation':receipt if fresh else {},'runtime':python})
+        items.append(self.aigc_capability())
         return {'items':items}
+
+    def aigc_gpu_binding(self, model_binding=None):
+        model_binding = model_binding or aigc_backend.bind(self)
+        return self.aigc_qualification.binding('aigc_image', Path(model_binding['runtime']),
+            [SOURCE/name for name in aigc_backend.PRODUCT_SOURCES] + [SOURCE/'config/multimodal.json'],
+            {**model_binding['resources'],**{'runtime:'+name:identity for name,identity in model_binding['runtime_resources'].items()}},
+            device_index=self.config.get('gpu', {}).get('device_index', 0))
+
+    def aigc_capability(self, model_binding=None):
+        missing=[];gpu=False;binding=None;reason='整图 AIGC 检测需完成本机真实 CUDA 工程验证'
+        try:
+            binding=model_binding or aigc_backend.bind(self)
+            if model_binding:aigc_backend.verify(self,binding)
+            identity=self.aigc_gpu_binding(binding)
+            gpu=self.aigc_qualification.ready('aigc_image',identity,
+                peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
+            if not gpu:reason='本机模型、适配器、运行库或 GPU 身份尚无匹配的工程验证回执'
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            missing.append(str(error));reason=str(error)
+        return {'kind':'aigc_image','title':LABELS['aigc_image'],
+            'engine':binding['engine'] if binding else self.config.get('aigc_image',{}).get('default_engine','community_forensics384'),
+            'state':'resources_missing' if missing else 'gpu_ready' if gpu else 'resources_present',
+            'gpu_ready':gpu,'gpu_reason':None if gpu else reason,'cpu_ready':False,
+            'cpu_reason':'产品入口只开放经过工程验证的 CUDA 路线；CLI CPU 研究不启用产品资格',
+            'missing':missing,'runtime':binding['runtime'] if binding else '',
+            'validation_source':'data_local','validation':{},'calibration':bool(binding and binding.get('calibration')),
+            'business_accuracy_qualified':False,'qualification':'experimental'}
 
     def safire_gpu_binding(self,kind,model_binding=None):
         model_binding=model_binding or deep_backend.bind(self,'safire')
@@ -629,6 +666,10 @@ class MultimodalService:
             'business_accuracy_qualified':False,'operational_trigger':'any_candidate_region'}
 
     def capability_for_item(self,item):
+        if item['kind']=='aigc_image':
+            pinned=aigc_backend.item_binding(item)
+            aigc_backend.verify(self,pinned)
+            return self.aigc_capability(pinned)
         if item['kind'] in deep_backend.DEEP_KINDS:
             pinned=deep_backend.item_binding(self,item)
             deep_backend.verify(self,pinned)
@@ -658,6 +699,8 @@ class MultimodalService:
 
     def prepare(self,workspace,kind,payload):
         if kind not in LABELS:raise DataError('未知准备能力')
+        if kind=='aigc_image':
+            raise DataError('整图 AIGC 产品入口只开放 CUDA；请运行独立本机 GPU 工程诊断',409)
         if kind in deep_backend.DEEP_KINDS and deep_backend.backend(self.config)=='safire':
             raise DataError('SAFIRE 只开放 CUDA；请运行本机 GPU 工程诊断，不以 CPU 诊断替代',409)
         if len(payload.get('inputs',[]))!=1:raise DataError('运行准备需要一份明确选择的输入资料')
@@ -668,7 +711,7 @@ class MultimodalService:
 
     def _create(self,workspace,payload,*,preparation=False):
         payload=copy.deepcopy(payload)
-        if payload.get('kind') in deep_backend.DEEP_KINDS and not preparation:
+        if payload.get('kind') in deep_backend.DEEP_KINDS | {'aigc_image'} and not preparation:
             options=payload.setdefault('options',{})
             if 'device' not in options:
                 # Idempotent resubmission retains the original resolved default,
@@ -676,7 +719,7 @@ class MultimodalService:
                 with closing(self.db()) as db:
                     previous=db.execute('SELECT body FROM manual_analysis WHERE workspace_id=? AND request_id=?',
                         (workspace,payload.get('request_id'))).fetchone()
-                options['device']=json.loads(previous['body'])['options']['device'] if previous else ('cuda' if deep_backend.backend(self.config)=='safire' else 'cpu')
+                options['device']=json.loads(previous['body'])['options']['device'] if previous else ('cuda' if payload.get('kind')=='aigc_image' or deep_backend.backend(self.config)=='safire' else 'cpu')
         value=validated(Create,payload)
         kind=value['kind'];count=len(value['inputs'])
         if count != (2 if kind=='face' and value['options']['action']=='compare' else 1):
@@ -697,7 +740,7 @@ class MultimodalService:
             if value['options']['device']=='cpu' and not capability['cpu_ready'] and not preparation:
                 raise DataError('此模型尚未完成真实 CPU 推理验证，请先运行交付诊断',409)
             if value['options']['device']=='cuda' and not capability['gpu_ready']:
-                raise DataError('此模型的 GPU 路线尚未通过实测，请使用 CPU',409)
+                raise DataError('此模型的 GPU 路线尚未通过本机工程实测，请先运行交付诊断',409)
             if kind=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
             frozen_references=[]
             if kind=='face' and value['options']['action']=='search':
@@ -717,6 +760,7 @@ class MultimodalService:
                 suffix=Path(asset.original_name).suffix.lower()
                 allowed={ 'face':{'.jpg','.jpeg','.png','.webp','.bmp'},'catnet':deep_backend.INPUT_SUFFIXES if deep_backend.backend(self.config)=='safire' else {'.jpg','.jpeg'},
                           'document_forensics':deep_backend.INPUT_SUFFIXES,
+                          'aigc_image':aigc_backend.INPUT_SUFFIXES,
                           'audio':{'.wav','.mp3','.m4a','.flac','.ogg','.aac','.wma'},'seal':{'.jpg','.jpeg','.png','.webp','.bmp','.pdf'}}[kind]
                 if suffix not in allowed:raise DataError('当前模型不支持此格式；请保留原件并选择适用工具')
                 inputs.append({**source,'original_name':asset.original_name,'suffix':suffix})
@@ -725,6 +769,7 @@ class MultimodalService:
             require_features(self.root.parent,'manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1')
             self._feature()
             if kind=='document_forensics':require_features(self.root.parent,'document-forensics-v1')
+            if kind=='aigc_image':require_features(self.root.parent,'aigc-image-v1')
             item={'schema_version':'1.0','job_id':identifier,'workspace_id':workspace,'request_id':value['request_id'],
                   'kind':kind,'inputs':inputs,'options':value['options'],'status':'queued','stage':'queued','revision':1,
                   'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1,
@@ -732,6 +777,8 @@ class MultimodalService:
             if kind in deep_backend.DEEP_KINDS:
                 item['model_binding']=deep_backend.bind(self)
                 if item['model_binding']['engine']=='safire':require_features(self.root.parent,'safire-forensics-v1')
+            elif kind=='aigc_image':
+                item['model_binding']=aigc_backend.bind(self)
             db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',(identifier,workspace,value['request_id'],digest,encoded(item)))
             self.sync_projection(db,item)
             self._receipt(db,workspace,'prepare' if preparation else 'create',value['request_id'],digest,identifier,self.public(item))
@@ -752,8 +799,9 @@ class MultimodalService:
             if item.get('purpose')=='preparation':self._validate_preparation(item)
             checkpoints=local_path(self.root/job/'audio-checkpoints');checkpoints.mkdir(parents=True,exist_ok=True)
             reduced=item.get('oom_retries',0)>0
-            pinned=deep_backend.item_binding(self,item) if item['kind'] in deep_backend.DEEP_KINDS else None
-            if pinned:deep_backend.verify(self,pinned)
+            pinned=aigc_backend.item_binding(item) if item['kind']=='aigc_image' else deep_backend.item_binding(self,item) if item['kind'] in deep_backend.DEEP_KINDS else None
+            if pinned:
+                (aigc_backend.verify if item['kind']=='aigc_image' else deep_backend.verify)(self,pinned)
             value={'kind':item['kind'],'options':item['options'],'models':str(self.models),'program':str(self.program),'inputs':[],
                    'references':copy.deepcopy(item['frozen_references']) if item['kind']=='face' and item['options']['action']=='search' and 'frozen_references' in item
                        else self.references(workspace,private=True)['items'] if item['kind']=='face' and item['options']['action']=='search' else [],
@@ -764,7 +812,12 @@ class MultimodalService:
                        'catnet_halo':self.config.get('catnet',{}).get('halo',0)}}
             if pinned:
                 value['model_binding']=pinned
-                value['runner']['safire_points_per_batch']=32 if reduced else 64
+                if item['kind']=='aigc_image':
+                    for unused in ('audio_batch_size_s','catnet_tile_size','catnet_halo'):
+                        value['runner'].pop(unused,None)
+                    value['runner']['aigc_feature_batch_size']=self.config.get('aigc_image',{}).get('reduced_feature_batch_size' if reduced else 'feature_batch_size',16 if reduced else 32)
+                elif pinned['engine']=='safire':
+                    value['runner']['safire_points_per_batch']=32 if reduced else 64
             with ExitStack() as stack:
                 for index,source in enumerate(item['inputs']):
                     staged=stack.enter_context(self.registry.stage_verified(workspace,source['asset_id'],revision=source['asset_revision'],blob_hash=source['blob_hash']))
@@ -796,8 +849,9 @@ class MultimodalService:
                 def track(process):
                     with self.lock:self.processes[job]=process
                 self._feature()
-                entry='safire_worker.py' if pinned else 'worker.py'
-                outcome=self.runner.run([str(self.program/runtime),str(SOURCE/'modules/manual_multimodal'/entry),str(output/'request.json')],
+                entry=aigc_backend.worker_entry(item['kind'],pinned)
+                command=aigc_backend.worker_command(self.program/runtime,SOURCE/'modules/manual_multimodal'/entry,output/'request.json') if item['kind']=='aigc_image' else [str(self.program/runtime),str(SOURCE/'modules/manual_multimodal'/entry),str(output/'request.json')]
+                outcome=self.runner.run(command,
                     output,env,value,request_id=item.get('gpu_request_id'),cancelled=cancelled,progress=progress,committed=committed,
                     process_started=track,timeout=self.config['worker_timeouts'][item['kind']])
                 with self.transaction() as db:
@@ -840,6 +894,23 @@ class MultimodalService:
             raise DataError('实际检测器与任务冻结的模型身份不一致',409)
         actual=result.get('device')
         if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)
+        if current['kind']=='aigc_image':
+            from packages.contracts.multimodal import AigcImageResult
+            signal=AigcImageResult.model_validate(result.get('aigc_image')).model_dump(mode='json')
+            pinned=current['model_binding']
+            if result.get('source_sha256')!=current['inputs'][0]['blob_hash']:
+                raise DataError('AIGC 实际读取的原件哈希与固定输入不一致',409)
+            if signal['preprocessing_version']!=pinned['preprocessing_version'] or signal['calibration']!=pinned.get('calibration'):
+                raise DataError('AIGC 预处理或校准记录与固定模型身份不一致',409)
+            calibration=pinned.get('calibration')
+            if signal['threshold']!=(calibration.get('threshold') if calibration else None):
+                raise DataError('AIGC 阈值与冻结校准记录不一致',409)
+            if any(result.get(name) for name in ('regions','heatmap','mask','pixel_probability','pixel_probability_artifact')):
+                raise DataError('整图 AIGC 分类不能输出篡改定位或概率热图',409)
+            result['aigc_image']=signal
+            # Check the full worker binding above, then keep one compact model
+            # identity in the canonical result and its public immutable snapshots.
+            result['model_binding']=aigc_backend.public_identity(pinned)
         for segment in result.get('segments',[]):
             source=current['inputs'][0]
             segment['source']=SourceLocator.model_validate({'schema_version':'1.0','kind':'media_segment',

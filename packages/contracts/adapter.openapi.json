@@ -1411,6 +1411,105 @@
         "title": "AgentToolResult",
         "type": "object"
       },
+      "AigcImageResult": {
+        "additionalProperties": false,
+        "description": "Whole-image signal; a score is not a calibrated generation probability.",
+        "properties": {
+          "calibration": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibration"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "preprocessing_version": {
+            "minLength": 1,
+            "title": "Preprocessing Version",
+            "type": "string"
+          },
+          "qualification": {
+            "const": "experimental",
+            "title": "Qualification",
+            "type": "string"
+          },
+          "raw_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Score"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Scope",
+            "type": "array"
+          },
+          "score_direction": {
+            "const": "higher_is_generated",
+            "title": "Score Direction",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "signal_detected",
+              "no_significant_signal",
+              "unable_to_assess"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          }
+        },
+        "required": [
+          "schema_version",
+          "state",
+          "raw_score",
+          "score_direction",
+          "threshold",
+          "calibration",
+          "qualification",
+          "scope",
+          "limitations",
+          "preprocessing_version"
+        ],
+        "title": "AigcImageResult",
+        "type": "object"
+      },
       "AppHealth": {
         "additionalProperties": false,
         "properties": {
@@ -8029,7 +8128,8 @@
               "audio",
               "seal",
               "catnet",
-              "document_forensics"
+              "document_forensics",
+              "aigc_image"
             ],
             "title": "Kind",
             "type": "string"
@@ -8184,7 +8284,8 @@
               "audio",
               "seal",
               "catnet",
-              "document_forensics"
+              "document_forensics",
+              "aigc_image"
             ],
             "title": "Kind",
             "type": "string"
@@ -8704,7 +8805,8 @@
               "audio",
               "seal",
               "catnet",
-              "document_forensics"
+              "document_forensics",
+              "aigc_image"
             ],
             "title": "Kind",
             "type": "string"
@@ -10521,6 +10623,7 @@
               "seal",
               "catnet",
               "document_forensics",
+              "aigc_image",
               "batch",
               "agent",
               "assets",

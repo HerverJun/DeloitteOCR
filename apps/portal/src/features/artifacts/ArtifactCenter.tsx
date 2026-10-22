@@ -138,7 +138,7 @@ function BundleDetails({ bundle, workspaceId, base }: { bundle: Bundle; workspac
         <a href={`${base}/${bundle.bundle_id}/files/${encodeURIComponent(file.name)}`}>下载固定成果</a></li>)}</ul></section>
   }
   if (bundle.kind === 'manual_analysis') {
-    const paths: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document' }
+    const paths: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document', aigc_image: '/apps/forensics/aigc' }
     const route = paths[bundle.analysis_kind || ''] || '/apps'
     return <section className="artifact-detail"><div className="artifact-detail-head"><Title level={2}>{bundle.title}</Title>
       <Link to={`${route}?workspace=${scope}&analysis=${encodeURIComponent(bundle.platform_job_id || '')}`}>返回分析与复核</Link></div>

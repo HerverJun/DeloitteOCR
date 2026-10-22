@@ -9,7 +9,7 @@ import './tasks.css'
 
 const { Title, Text, Paragraph } = Typography
 const labels: Record<string, string> = { queued: '排队中', waiting_resource: '等待资源', running: '运行中', waiting_user: '等待用户', pausing: '暂停中', paused: '已暂停', cancelling: '取消中', cancelled: '已取消', succeeded: '成功', partial: '部分成功', failed: '失败', needs_verification: '待核实' }
-const tools: Record<string, string> = { ocr: 'ClearOCR', visual_review: '视觉审校', classification: 'ClearClassify', data: 'ClearData', forensics: 'ClearForensics', face: '人脸比对', audio: '音频分析', seal: '印章分析', catnet: '深度取证', document_forensics: '文档篡改排查', batch: '批次', agent: '智能审计', assets: '资料导入', artifact: '成果导出' }
+const tools: Record<string, string> = { ocr: 'ClearOCR', visual_review: '视觉审校', classification: 'ClearClassify', data: 'ClearData', forensics: 'ClearForensics', face: '人脸比对', audio: '音频分析', seal: '印章分析', catnet: '深度取证', document_forensics: '文档篡改排查', aigc_image: '整图 AI 生成检测', batch: '批次', agent: '智能审计', assets: '资料导入', artifact: '成果导出' }
 const actions: Record<string, string> = { cancel: '取消', pause: '暂停', resume: '继续', retry: '重试', verify: '核实原执行', archive: '归档', unarchive: '取消归档' }
 const eventLabels: Record<string, string> = { submitted: '任务已登记', native_snapshot: '执行端状态更新', control_requested: '控制操作已登记', control_delivered: '控制操作已发送', control_failed: '控制操作待核实', metadata_changed: '名称或说明已修改', verification_completed: '原执行核实完成', legacy_imported: '历史记录已迁入', child_bound: '子任务已关联', steering_requested: '追加消息已登记', steering_delivered: '追加消息已发送', observed: '执行状态已核实', lease_expired: '执行租约已过期' }
 export const formatTaskSize = (bytes: number | null) => bytes === null ? '未记录' : bytes < 1024 ? `${bytes} B` : bytes < 1024 ** 2 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`
@@ -134,7 +134,7 @@ export function TaskHistory() {
     { title: '任务编码', dataIndex: 'task_code', width: 225, render: value => <Text className="task-number">{value}</Text> },
     { title: '任务名称', dataIndex: 'name', width: 220, ellipsis: true, render: (value, row) => <Button type="link" className="task-name-link" onClick={() => setSelected(row.id)}>{value}</Button> },
     { title: '工具名称', dataIndex: 'tool_id', width: 125, render: value => tools[value] || value },
-    { title: 'AI 服务', width: 170, render: (_, row) => Array.isArray(row.summary.ai_services) && row.summary.ai_services.length ? row.summary.ai_services.join('、') : ['import','export'].includes(row.action) ? '不适用' : ['agent', 'visual_review', 'ocr', 'classification', 'face', 'audio', 'seal', 'catnet', 'document_forensics'].includes(row.tool_id) ? '未记录' : '不适用' },
+    { title: 'AI 服务', width: 170, render: (_, row) => Array.isArray(row.summary.ai_services) && row.summary.ai_services.length ? row.summary.ai_services.join('、') : ['import','export'].includes(row.action) ? '不适用' : ['agent', 'visual_review', 'ocr', 'classification', 'face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image'].includes(row.tool_id) ? '未记录' : '不适用' },
     { title: '任务状态', dataIndex: 'status', width: 120, render: state },
     { title: '项目名称', dataIndex: 'project_name_snapshot', width: 180, ellipsis: true, render: value => value || '未归属项目' },
     { title: '提交人', dataIndex: 'creator_name_snapshot', width: 125, render: value => value || '未记录' },

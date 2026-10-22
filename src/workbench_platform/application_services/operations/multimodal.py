@@ -10,7 +10,7 @@ from packages.contracts.multimodal import ManualInput, ManualOptions
 from workbench_platform.application_services.identity import canonical, digest, Conflict
 from workbench_platform.application_services.references import asset_allowed
 
-KINDS = ('face', 'audio', 'seal', 'catnet', 'document_forensics')
+KINDS = ('face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image')
 
 
 class Analyze(AgentModel):
@@ -88,6 +88,9 @@ def availability(services, kind):
         return {'state': 'unavailable', 'reason': '多模态业务服务未配置'}
     item = next((item for item in native.capabilities()['items'] if item['kind'] == kind), {})
     ready = item.get('cpu_ready') or item.get('gpu_ready')
+    if kind=='aigc_image' and not ready:
+        return {'state':'unavailable','reason':item.get('gpu_reason') or '整图 AIGC 需要独立本机 CUDA 工程验证；普通 CPU 准备不适用',
+            'dependencies':item.get('missing',[]),'cpu_ready':False,'gpu_ready':False,'hard_cancel':True}
     return {'state': 'ready' if ready else 'unavailable' if item.get('missing') else 'preparable',
         'reason': '' if ready else '缺少资源：' + '、'.join(item['missing']) if item.get('missing') else '已有资源，尚缺有效的本机推理验证回执',
         'dependencies': item.get('missing', []), 'cpu_ready': bool(item.get('cpu_ready')),
@@ -215,7 +218,8 @@ def result_ref(ctx, snapshot):
         object_id=snapshot['snapshot_id'], parent_id=snapshot['job_id'], native_id=snapshot['job_id'],
         revision=snapshot['revision'], sha256=snapshot['snapshot_hash'],
         coverage={'kind': snapshot['kind'], 'generation': snapshot['generation'],
-                  'reviewed': bool(snapshot['review_revision']), 'draft': not bool(snapshot['review_revision'])},
+                  'reviewed': bool(snapshot['review_revision']), 'draft': not bool(snapshot['review_revision']),
+                  **({'experimental':True,'business_accuracy_qualified':False} if snapshot['kind']=='aigc_image' else {})},
         sources=[AgentRef(kind='asset', workspace_id=ctx.workspace_id, object_id=item['asset_id'],
             revision=item['asset_revision'], sha256=item['blob_hash']) for item in snapshot['sources']])
 
@@ -248,7 +252,8 @@ def read(args, ctx):
     return AgentToolResult(status='success', summary='已读取不可变分析结果及来源；' + ('有用户复核回执' if snapshot['review_revision'] else '未人工复核，可用于草稿分析'),
         data=data, result_refs=[result_ref(ctx, snapshot)], job_refs=[job_ref(ctx, snapshot['analysis'])],
         next_offset=args.offset + args.limit if args.offset + args.limit < len(values) else None,
-        warnings=[] if snapshot['review_revision'] else ['未人工复核；算法执行成功不代表业务结论已成立'],
+        warnings=([] if snapshot['review_revision'] else ['未人工复核；算法执行成功不代表业务结论已成立']) +
+            (['整图 AIGC 为实验信号；分数不是生成概率，不用于默认审计真实性判断；局部编辑请单独查看 SAFIRE。'] if snapshot['kind']=='aigc_image' else []),
         coverage={'kind': snapshot['kind'], 'reviewed': bool(snapshot['review_revision']), 'items': len(values)}).model_dump()
 
 
@@ -471,6 +476,13 @@ def delivery_checks(snapshot, *, require_review=False):
     if analysis.get('purpose') == 'preparation':
         checks.append({'name': 'business_analysis_required', 'status': 'failed',
             'message': '工程准备诊断不能充当业务交付，请继续实际业务分析', 'evidence': evidence})
+    if snapshot['kind']=='aigc_image':
+        from packages.contracts.multimodal import AigcImageResult
+        signal=AigcImageResult.model_validate(result.get('aigc_image'))
+        checks.append({'name':'aigc_experimental_scope','status':'measured',
+            'message':'整图生成相关信号仅用于实验复核；不构成图片真实性或默认审计结论',
+            'evidence':{**evidence,'qualification':signal.qualification,'state':signal.state,
+                'calibrated':bool(signal.calibration),'business_accuracy_qualified':False}})
     if require_review:
         review = analysis.get('review') or {}
         confirmed = snapshot['review_revision'] > 0 and review.get('assessment') == 'confirmed'

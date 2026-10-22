@@ -12,7 +12,7 @@ import time
 
 from workbench_platform.resources.recovery import atomic_json, local_path
 
-GPU_KINDS = frozenset({'audio', 'catnet', 'document_forensics'})
+GPU_KINDS = frozenset({'audio', 'catnet', 'document_forensics', 'aigc_image'})
 FORMAT = 'clear-local-gpu-qualification-v1'
 
 

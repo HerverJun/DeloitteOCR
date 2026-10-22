@@ -1,10 +1,35 @@
 """Additive contracts for manual multimodal workers; source assets remain authoritative."""
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .models import Id, Hash, Revision, SourceLocator
 
 class Payload(BaseModel):
     model_config = ConfigDict(extra='forbid')
+
+class AigcImageResult(Payload):
+    """Whole-image signal; a score is not a calibrated generation probability."""
+    schema_version: Literal['1.0']
+    state: Literal['signal_detected', 'no_significant_signal', 'unable_to_assess']
+    raw_score: float | None = Field(allow_inf_nan=False)
+    score_direction: Literal['higher_is_generated']
+    threshold: float | None = Field(allow_inf_nan=False)
+    calibration: dict | None
+    qualification: Literal['experimental']
+    scope: list[str] = Field(min_length=1)
+    limitations: list[str] = Field(min_length=1)
+    preprocessing_version: str = Field(min_length=1)
+
+    @model_validator(mode='after')
+    def coherent_signal(self):
+        if self.state != 'unable_to_assess':
+            if self.raw_score is None or self.threshold is None or not self.calibration:
+                raise ValueError('A verdict requires a frozen calibration and finite score/threshold')
+            expected = 'signal_detected' if self.raw_score > self.threshold else 'no_significant_signal'
+            if self.state != expected:
+                raise ValueError('AIGC signal disagrees with the frozen threshold')
+        if self.threshold is not None and not self.calibration:
+            raise ValueError('An uncalibrated score cannot have a decision threshold')
+        return self
 
 class ManualInput(Payload):
     asset_id: Id
@@ -39,7 +64,7 @@ class ManualDraftTransfer(Payload):
 
 class ManualAnalysisCreate(Payload):
     request_id: Id
-    kind: Literal['face', 'audio', 'seal', 'catnet', 'document_forensics']
+    kind: Literal['face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image']
     inputs: list[ManualInput] = Field(min_length=1, max_length=2)
     options: ManualOptions = Field(default_factory=ManualOptions)
 
@@ -76,7 +101,7 @@ class ManualAnalysis(Payload):
     job_id: Id
     workspace_id: Id
     request_id: Id
-    kind: Literal['face','audio','seal','catnet','document_forensics']
+    kind: Literal['face','audio','seal','catnet','document_forensics','aigc_image']
     inputs: list[dict]
     options: ManualOptions
     status: Literal['queued','running','cancelling','cancelled','failed','succeeded','needs_verification']
@@ -103,7 +128,7 @@ class ManualResultSnapshot(Payload):
     snapshot_id: Id
     workspace_id: Id
     job_id: Id
-    kind: Literal['face','audio','seal','catnet','document_forensics']
+    kind: Literal['face','audio','seal','catnet','document_forensics','aigc_image']
     generation: Revision
     revision: Revision
     review_revision: int = Field(ge=0)
@@ -132,7 +157,7 @@ class ManualDraftTransferReceipt(Payload):
     location: str
 
 Create,Review,Reference=ManualAnalysisCreate,ManualReview,ManualFaceReferenceCreate
-MULTIMODAL_MODELS=[ManualAnalysisCreate,ManualReview,ManualFaceReferenceCreate,ManualControl,ManualReferenceDelete,
+MULTIMODAL_MODELS=[AigcImageResult,ManualAnalysisCreate,ManualReview,ManualFaceReferenceCreate,ManualControl,ManualReferenceDelete,
                   ManualDraftTransfer,ManualSegment,ManualAnalysis,ManualAnalysisPage,ManualResultSnapshot,
                   ManualOperationReceipt,ManualDraftTransferReceipt]
 

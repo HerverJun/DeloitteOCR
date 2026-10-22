@@ -32,7 +32,7 @@ def capabilities(request:Request):return service(request).capabilities()
 BASE='/workspaces/{workspace_id}/multimodal'
 
 @router.get(BASE+'/jobs')
-def listing(workspace_id:str,request:Request,offset:int=Query(0,ge=0),limit:int=Query(50,ge=1,le=100),kind:str|None=Query(None,pattern='^(face|audio|seal|catnet|document_forensics)$')):
+def listing(workspace_id:str,request:Request,offset:int=Query(0,ge=0),limit:int=Query(50,ge=1,le=100),kind:str|None=Query(None,pattern='^(face|audio|seal|catnet|document_forensics|aigc_image)$')):
     return service(request,workspace_id).list(workspace_id,offset,limit,kind)
 
 @router.post(BASE+'/jobs',status_code=202)

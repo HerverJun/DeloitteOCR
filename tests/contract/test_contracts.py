@@ -94,8 +94,9 @@ def test_generated_artifacts_are_exact_and_all_refs_resolve():
 
 
 def test_typescript_generator_rejects_unrepresented_constructs():
+    assert ts_type({"oneOf": [{"type": "string"}, {"type":"number"}]}) == 'string | number'
     with pytest.raises(ValueError, match="unsupported"):
-        ts_type({"oneOf": [{"type": "string"}]})
+        ts_type({"allOf": [{"type": "string"}]})
     with pytest.raises(ValueError, match="unsupported"):
         ts_type({"type": "array"})
 
