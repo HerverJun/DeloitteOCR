@@ -87,6 +87,8 @@ class ArtifactCenter:
             """)
 
         self.configure_native_exports()
+        from workbench_platform.comparisons.artifacts import configure as configure_comparisons
+        configure_comparisons(self)
 
     def _connect(self):
         db = sqlite3.connect(self.store.db_path, timeout=15, isolation_level=None)
@@ -184,6 +186,7 @@ class ArtifactCenter:
         parts.append("SELECT 'review' kind,bundle_id,created_at FROM batch_review_bundle WHERE workspace_id=? AND status='ready'")
         parts.append("SELECT 'audit' kind,bundle_id,created_at FROM audit_workpaper_bundle WHERE workspace_id=? AND status='ready'")
         parts.append("SELECT 'draft' kind,bundle_id,json_extract(snapshot,'$.created_at') created_at FROM audit_draft_bundle WHERE workspace_id=? AND status='ready'")
+        parts.append("SELECT 'comparison' kind,bundle_id,created_at FROM comparison_artifact_bundle WHERE workspace_id=? AND status='ready'")
         if self.classification is not None:
             parts.append("SELECT 'classification' kind,bundle_id,created_at "
                          "FROM classification_artifact_bundle WHERE workspace_id=? AND status='ready'")
@@ -201,7 +204,10 @@ class ArtifactCenter:
         items = []
         for row in keys:
             bundle_id = row["bundle_id"]
-            if row['kind'] == 'manual':
+            if row['kind'] == 'comparison':
+                from workbench_platform.comparisons.artifacts import get as get_comparison
+                items.append(get_comparison(self, workspace_id, bundle_id))
+            elif row['kind'] == 'manual':
                 from workbench_platform.multimodal.artifacts import get as get_manual
                 items.append(get_manual(self, workspace_id, bundle_id))
             elif row["kind"] == "forensics":
@@ -227,6 +233,12 @@ class ArtifactCenter:
                 "next_offset": offset + limit if offset + limit < total else None}
 
     def get(self, workspace_id: str, bundle_id: str):
+        from workbench_platform.comparisons.artifacts import get as get_comparison
+        try:
+            return get_comparison(self, workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
         from workbench_platform.multimodal.artifacts import configure as configure_manual, get as get_manual
         configure_manual(self)
         try:
@@ -276,6 +288,17 @@ class ArtifactCenter:
         raise ArtifactUnavailable("NOT_FOUND")
 
     def file(self, workspace_id: str, bundle_id: str, name: str):
+        from workbench_platform.comparisons.artifacts import get as get_comparison
+        try:
+            comparison = get_comparison(self, workspace_id, bundle_id)
+        except ArtifactUnavailable as error:
+            if error.code != 'NOT_FOUND':
+                raise
+        else:
+            item = next((item for item in comparison['files'] if item['name'] == name), None)
+            if item is None:
+                raise ArtifactUnavailable('NOT_FOUND')
+            return self.store.get(workspace_id, item['artifact_id'])
         from workbench_platform.multimodal.artifacts import configure as configure_manual, get as get_manual
         configure_manual(self)
         try:

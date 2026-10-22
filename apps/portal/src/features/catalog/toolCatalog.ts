@@ -1,6 +1,7 @@
 /** Navigation descriptions are capabilities, not live service-readiness claims. */
 export const toolCatalog = [
   { id: 'ocr', title: '文档识别', brand: 'ClearOCR', path: '/apps/ocr/start', summary: '识别文字与表格，对照原件校对', formats: 'PDF / 图片' },
+  { id: 'comparisons', title: '文档主题对比', brand: 'Clear Compare', path: '/apps/comparisons', summary: '比较 PDF 与幻灯片中的指定信息', formats: 'PDF / PPTX / 图片' },
   { id: 'data', title: '数据清洗与比对', brand: 'ClearData', path: '/apps/data', summary: '清洗表格数据，核对差异与来源', formats: 'Excel / CSV' },
   { id: 'classification', title: '图像分类', brand: 'ClearClassify', path: '/apps/classification/start', summary: '整理图像资料，分类与人工复核', formats: '图片资料' },
   { id: 'forensics', title: '图像取证', brand: 'ClearForensics', path: '/apps/forensics', summary: '检查可疑线索，查看热图与报告', formats: '图片资料' },

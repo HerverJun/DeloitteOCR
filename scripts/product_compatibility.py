@@ -5,6 +5,7 @@ import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
                    'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1','data-financial-amount-v1')
+READER_FEATURES = (*READER_FEATURES, 'document-comparisons-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -29,6 +30,12 @@ DATA_COMPATIBILITY = {
                 'documents':['document_id','workspace_id','request_id','payload_hash','body'],
                 'document_reviews':['document_id','table_id','revision','body','created_at'],
                 'document_results':['document_id','revision','result_hash','body']}},
+        'comparisons/comparisons.sqlite3': {'user_versions':[0,1], 'reject_nonempty_unversioned':True,
+            'require_versioned_tables':True, 'tables':{
+                'comparison_jobs':['id','workspace_id','request_id','payload_hash','body'],
+                'comparison_versions':['job_id','revision','body'],
+                'comparison_configs':['workspace_id','kind','id','version','body','key_ref'],
+                'comparison_calls':['job_id','cache_key','status','body']}},
         'native/ocr/workbench.sqlite3': {'user_versions':list(range(19)), 'tables':{}},
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},
     },

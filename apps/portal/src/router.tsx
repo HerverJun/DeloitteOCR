@@ -9,6 +9,7 @@ const AssetLibrary = lazy(() => import('./features/assets/AssetLibrary').then(mo
 const ArtifactCenter = lazy(() => import('./features/artifacts/ArtifactCenter').then(module => ({ default: module.ArtifactCenter })))
 const OcrWorkflow = lazy(() => import('./features/ocr/OcrWorkflow').then(module => ({ default: module.OcrWorkflow })))
 const DocumentWorkbench = lazy(() => import('./features/documents/DocumentWorkbench').then(module => ({ default: module.DocumentWorkbench })))
+const ComparisonWorkbench = lazy(() => import('./features/comparisons/ComparisonWorkbench').then(module => ({ default: module.ComparisonWorkbench })))
 const ClassificationWorkflow = lazy(() => import('./features/classification/ClassificationWorkflow').then(module => ({ default: module.ClassificationWorkflow })))
 const BatchCenter = lazy(() => import('./features/batches/BatchCenter').then(module => ({ default: module.BatchCenter })))
 const AuditWorkbench = lazy(() => import('./features/audit/AuditWorkbench').then(module => ({ default: module.AuditWorkbench })))
@@ -91,6 +92,7 @@ export const routes: RouteObject[] = [{
     { path: 'apps/classification/start', element: <QuickNativeWorkbench appId="classification" /> },
     { path: 'apps/ocr/workflow', element: <OcrWorkflow /> },
     { path: 'apps/ocr/documents', element: <DocumentWorkbench /> },
+    { path: 'apps/comparisons', element: <ComparisonWorkbench /> },
     { path: 'apps/classification/workflow', element: <ClassificationWorkflow /> },
     { path: 'apps/:appId', element: <Application /> },
     { path: 'assets', element: <AssetLibrary /> },

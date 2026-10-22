@@ -212,6 +212,34 @@ def safire_runtime(manifest):
     return environment, read_roots
 
 
+@verification
+def comparison_runtime(manifest):
+    integration = manifest.get('comparison_integration')
+    if integration is None:
+        return {}, ()
+    if integration.get('format') != 'clear-comparison-runtime-v1':
+        raise ValueError('Unknown comparison runtime declaration')
+    office = checked(integration['libreoffice_root'], exists=True)
+    inventory_path = checked(integration['inventory_path'], exists=True)
+    if sha(inventory_path) != integration['inventory_sha256']:
+        raise ValueError('Comparison renderer inventory changed')
+    inventory = json.loads(inventory_path.read_text('utf-8'))
+    declared = inventory['files']
+    if not declared or checked(inventory['root'], exists=True) != office:
+        raise ValueError('Comparison renderer root differs from its inventory')
+    actual = {path.relative_to(office).as_posix() for path in office.rglob('*') if checked(path, exists=True).is_file()}
+    if actual != set(declared):
+        raise ValueError('Comparison renderer closure changed')
+    for name, expected in declared.items():
+        relative = PurePosixPath(name)
+        if relative.is_absolute() or ':' in name or '\\' in name or any(part in {'', '.', '..'} for part in name.split('/')):
+            raise ValueError('Invalid comparison renderer member')
+        if sha(office / relative) != expected:
+            raise ValueError('Comparison renderer member changed: ' + name)
+    entry = checked(office / 'program/soffice.com', exists=True)
+    return {'WORKBENCH_LIBREOFFICE': str(entry)}, (office, inventory_path.parent)
+
+
 def main():
     root = checked(Path(__file__).resolve().parent, exists=True)
     parser = argparse.ArgumentParser(description=__doc__)
@@ -242,6 +270,7 @@ def main():
                 raise ValueError('Pinned shared program identity changed: ' + name)
         document_environment, integration_roots = integration_runtime(manifest)
         safire_environment, safire_roots = safire_runtime(manifest)
+        comparison_environment, comparison_roots = comparison_runtime(manifest)
     if checked(sys.executable) != program / 'runtimes/platform/python.exe':
         raise ValueError('Use the candidate declared shared platform Python with -I -B')
     for key in list(os.environ):
@@ -315,8 +344,10 @@ def main():
         LANGCHAIN_TRACING_V2='false', LANGSMITH_TRACING='false')
     os.environ.update(document_environment)
     os.environ.update(safire_environment)
+    os.environ.update(comparison_environment)
+    os.environ['WORKBENCH_OCR_SOURCE'] = str(root / 'ocr')
     from scripts.harness_io_guard import install_guard
-    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots, *safire_roots))
+    install_guard(write_roots=(data, Path(os.environ['TEMP'])), read_roots=(root, program, *integration_roots, *safire_roots, *comparison_roots))
     from scripts.agent_native_preview import main as serve
     sys.argv = ['clear-harness', '--source', str(root / 'platform'), '--program', str(program),
                 '--data', str(data), '--port', str(args.port)]
