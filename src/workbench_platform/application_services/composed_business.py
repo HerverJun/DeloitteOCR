@@ -131,12 +131,12 @@ async def fixed_inputs(op, identifiers, *, images=False):
     return inputs
 
 
-def result_with_downloads(value, ctx, inputs):
+def result_with_downloads(value, ctx, inputs, *, failure_key):
     bundle = value['data'].get('bundle') or {}
     base = f'/api/platform/v1/workspaces/{ctx.workspace_id}/artifacts/{bundle.get("bundle_id", "")}/files/'
     files = [{**file, 'download_url': base + quote(file['name'])} for file in bundle.get('files', [])]
     return AgentToolResult(status='success', **{**value, 'data': {**value['data'], 'downloads': files,
-        'bundle': {**bundle, 'files': files},
+        'bundle': {**bundle, 'files': files}, 'completed_failure_keys': [failure_key],
         'files': [{'asset_id': item['asset_id'], 'name': item['name'], 'downloads': files} for item in inputs]}}).model_dump(mode='json')
 
 
@@ -145,6 +145,7 @@ async def run_sequence(args, ctx, tool, request, *, images=False):
     require_write(ctx)
     current_call = ctx.operation_id
     ctx = original_context(args, ctx, tool)
+    failure_key = f'{tool}:{ctx.operation_id}'
     op = Operations(ctx)
     identifiers = (args.asset_ids or list(ctx.selected_assets)) if images else [args.left_asset_id, args.right_asset_id]
     previous_inputs = ctx.store.rows('SELECT arguments FROM operations WHERE run_id=? AND parent_id=? AND tool=?',
@@ -192,7 +193,7 @@ async def run_sequence(args, ctx, tool, request, *, images=False):
                         '、'.join(str(sheet.get('name') or sheet.get('sheet_name')) for sheet in inspected['data']['sheets']), code='ambiguous_sheet')
             value = await data_action.execute(op.runtime, ctx, saved, request, call=call, save=remember,
                                               resolve_compare=resolve_columns)
-        return result_with_downloads(value, ctx, inputs)
+        return result_with_downloads(value, ctx, inputs, failure_key=failure_key)
     except (RunSuperseded, Conflict):
         raise
     except (OSError, ValueError) as error:
@@ -203,7 +204,7 @@ async def run_sequence(args, ctx, tool, request, *, images=False):
             return AgentToolResult(status='error', summary='分析结果已保存，输出尚未完成；可只续原操作的缺失步骤',
                 result_refs=fixed.get('result_refs', []), coverage=fixed.get('coverage', {}),
                 data={'preview': fixed.get('data', {}), 'repair': {'tool': tool, 'arguments': repair},
-                      'failures': [{'asset_ids': [item['asset_id'] for item in inputs], 'stage': 'export',
+                      'failures': [{'failure_key': failure_key, 'asset_ids': [item['asset_id'] for item in inputs], 'stage': 'export',
                                     'reason': '分析结果已保存，输出尚未完成'}]},
                 error={'code': 'export_incomplete', 'message': '原计算结果保留，继续时不会重新导入或推理', 'retryable': True}).model_dump()
         if isinstance(error, DirectActionFault) and error.code in {'ambiguous_column', 'ambiguous_sheet', 'model_selection_required', 'project_selection_required'}:
