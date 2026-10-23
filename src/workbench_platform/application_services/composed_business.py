@@ -75,6 +75,7 @@ class CompareFiles(AgentModel):
 
 def resolve_columns(spec, tables):
     """Resolve unique real headers; IDs always retain their explicit meaning."""
+    issues = {}
     def resolve(value, side):
         columns = tables[side]['columns']
         if re.fullmatch(r'c[1-9][0-9]{0,2}', value):
@@ -83,11 +84,14 @@ def resolve_columns(spec, tables):
             matches = [column for column in columns if column['header'] == value]
         if len(matches) != 1:
             available = '、'.join(column['column_id'] + '=' + str(column['header']) for column in columns)
-            raise DirectActionFault(f'{side} 表列“{value}”不能唯一确定，请选择实际列：{available}', code='ambiguous_column')
+            issues[(side, value)] = f'{side} 表列“{value}”不能唯一确定，可选实际列：{available}'
+            return value
         return matches[0]['column_id']
     value = spec.model_dump()
     for field in ('key_pairs', 'compare_pairs', 'amount_pairs'):
         value[field] = [[resolve(pair[0], 'left'), resolve(pair[1], 'right')] for pair in value[field]]
+    if issues:
+        raise DirectActionFault('请一次确认以下列映射：' + '；'.join(issues.values()), code='ambiguous_column')
     return CompareSpec(**value)
 
 
@@ -182,6 +186,7 @@ async def run_sequence(args, ctx, tool, request, *, images=False):
         else:
             # Discover sheet ambiguity before creating any native data session.
             by_id = {item['asset_id']: item for item in inputs}
+            sheet_questions = []
             for side in ('left', 'right'):
                 asset = by_id[getattr(args, side + '_asset_id')]
                 inspect_args = {'asset_id': asset['asset_id'], 'asset_revision': asset['revision'],
@@ -189,8 +194,10 @@ async def run_sequence(args, ctx, tool, request, *, images=False):
                 inspected = op.require_success(await call('data_inspect_input', inspect_args,
                     lambda value, current: data.inspect(data.DataInspect(**value), current), safe_replay=True))
                 if inspected['data'].get('requires_sheet_selection'):
-                    raise DirectActionFault(f'{side} 表含多个工作表，请明确工作表：' +
-                        '、'.join(str(sheet.get('name') or sheet.get('sheet_name')) for sheet in inspected['data']['sheets']), code='ambiguous_sheet')
+                    sheet_questions.append(f'{side} 表可选：' +
+                        '、'.join(str(sheet.get('name') or sheet.get('sheet_name')) for sheet in inspected['data']['sheets']))
+            if sheet_questions:
+                raise DirectActionFault('请一次明确以下文件使用的工作表：' + '；'.join(sheet_questions), code='ambiguous_sheet')
             value = await data_action.execute(op.runtime, ctx, saved, request, call=call, save=remember,
                                               resolve_compare=resolve_columns)
         return result_with_downloads(value, ctx, inputs, failure_key=failure_key)

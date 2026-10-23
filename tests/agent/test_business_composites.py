@@ -215,3 +215,37 @@ class BusinessFailureIdentityTests(fixtures.unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(restored['data']['completed_failure_keys'], [tool + ':original'])
                     self.assertEqual(restored['data']['files'][0]['asset_id'], 'same_asset')
                     self.assertEqual(remaining_items([failed, unrelated, other, restored]), [])
+
+    async def test_all_column_and_sheet_ambiguities_are_asked_together(self):
+        from workbench_platform.application_services import composed_business as business
+        columns = [{'column_id': 'c1', 'header': '编号'}, {'column_id': 'c2', 'header': '编号'},
+                   {'column_id': 'c3', 'header': '金额'}, {'column_id': 'c4', 'header': '金额'}]
+        spec = business.NamedCompareSpec(key_pairs=[['编号', '编号']], compare_pairs=[['金额', '金额']])
+        with self.assertRaises(ValueError) as caught:
+            resolve_columns(spec, {'left': {'columns': columns}, 'right': {'columns': columns}})
+        for side in ('left', 'right'):
+            for header in ('编号', '金额'):
+                self.assertIn(side + ' 表列“' + header + '”', str(caught.exception))
+        args = CompareFiles(left_asset_id='left_asset', right_asset_id='right_asset',
+            compare_spec={'key_pairs': [['c1', 'c1']]})
+        ctx = SimpleNamespace(operation_id='original', workspace_id='workspace', run_id='run',
+            store=SimpleNamespace(rows=Mock(return_value=[])))
+        inputs = [{'asset_id': name, 'name': name, 'revision': 1, 'blob_hash': 'a' * 64}
+                  for name in ('left_asset', 'right_asset')]
+        async def inspect(name, arguments, handler, **kwargs):
+            source = arguments['asset_id']
+            return {'status': 'success', 'data': {'requires_sheet_selection': True,
+                'sheets': [{'name': source + '_本期'}, {'name': source + '_上期'}]}}
+        op = SimpleNamespace(runtime=None, call=AsyncMock(side_effect=inspect), require_success=lambda value: value)
+        with patch.object(composed, 'Operations', return_value=op), \
+             patch.object(business, 'fixed_inputs', new=AsyncMock(return_value=inputs)), \
+             patch.object(business.data_action, 'execute', new=AsyncMock()) as execute, \
+             patch('workbench_platform.application_services.decisions.ask_user',
+                   side_effect=lambda args, ctx: {'status': 'needs_user', 'summary': args.question}) as question:
+            result = await business.run_sequence(args, ctx, 'data_compare_files', None)
+        self.assertEqual(result['status'], 'needs_user')
+        self.assertEqual(question.call_count, 1)
+        self.assertEqual(op.call.await_count, 2)
+        for sheet in ('left_asset_本期', 'left_asset_上期', 'right_asset_本期', 'right_asset_上期'):
+            self.assertIn(sheet, result['summary'])
+        execute.assert_not_awaited()
