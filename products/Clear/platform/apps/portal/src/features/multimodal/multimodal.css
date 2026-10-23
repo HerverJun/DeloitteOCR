@@ -26,6 +26,15 @@
 .mm-mark { display: grid; gap: .6rem; margin-block: .75rem; }
 .mm-mark .ant-input-number { width: 6rem; }
 .mm-forensics-images figure { margin: 0; }
+.mm-aigc, .mm-aigc-summary { display: grid; gap: 1rem; }
+.mm-aigc-result { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.mm-aigc-preview { margin: 0; display: grid; gap: .75rem; }
+.mm-aigc-preview .ant-image { display: flex; justify-content: center; background: var(--clear-surface-secondary, #f7f9f8); border: 1px solid var(--clear-border, #dfe5e2); }
+.mm-aigc-preview .mm-aigc-image { width: 100%; max-height: 32rem; object-fit: contain; }
+.mm-aigc-metadata { margin: 0; display: grid; gap: .75rem; }
+.mm-aigc-metadata > div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 1rem; }
+.mm-aigc-metadata dt { color: var(--clear-text-secondary, #606c65); }
+.mm-aigc-metadata dd { margin: 0; overflow-wrap: anywhere; }
 .multimodal-workbench .ant-table-wrapper { overflow-x: auto; }
 .multimodal-workbench :focus-visible { outline: 2px solid #387749; outline-offset: 3px; }
-@media (max-width: 760px) { .mm-controls label { min-width: 100%; } .mm-forensics-images { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .mm-controls label { min-width: 100%; } .mm-forensics-images, .mm-aigc-result { grid-template-columns: 1fr; } }

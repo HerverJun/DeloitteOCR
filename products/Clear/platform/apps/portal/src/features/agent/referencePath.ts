@@ -9,7 +9,7 @@ export function referencePath(ref: AgentRef, taskId?: string) {
   }
   if (ref.application === 'multimodal' && (ref.kind === 'result' || ref.kind === 'job')) {
     const kind = String(ref.coverage?.kind || '')
-    const routes: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document' }
+    const routes: Record<string, string> = { face: '/apps/face', audio: '/apps/audio', seal: '/apps/ocr/seals', catnet: '/apps/forensics/deep', document_forensics: '/apps/forensics/document', aigc_image: '/apps/forensics/aigc' }
     params.set('analysis', ref.kind === 'job' ? ref.object_id : ref.native_id || ref.parent_id || ref.object_id)
     if (ref.kind === 'result') { params.set('snapshot', ref.object_id); params.set('revision', String(ref.revision)); if (ref.sha256) params.set('sha256', ref.sha256) }
     return `${routes[kind] || '/apps'}?${params}`
