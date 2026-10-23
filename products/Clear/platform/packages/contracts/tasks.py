@@ -5,7 +5,7 @@ import re
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 TaskState = Literal['queued','waiting_resource','running','waiting_user','pausing','paused','cancelling','cancelled','succeeded','partial','failed','needs_verification']
-TaskTool = Literal['ocr','visual_review','classification','data','forensics','face','audio','seal','catnet','document_forensics','batch','agent','assets','artifact']
+TaskTool = Literal['ocr','visual_review','classification','data','forensics','face','audio','seal','catnet','document_forensics','aigc_image','batch','agent','assets','artifact']
 
 class TaskWire(BaseModel):
     model_config = ConfigDict(extra='forbid')

@@ -91,7 +91,7 @@ def import_legacy(engine,root):
                 db.execute(insert(s.task_source_links).values(id=key('src'),task_id=task_id,run_id=run_id,namespace=namespace,source_id=identifier,source_generation=generation,metadata={'source_file':relative}))
                 enrich(db,root,task_id,run_id,namespace,body,source)
                 if namespace=='projection':
-                    app=source['app_id'];native_namespace={'ocr':'ocr.tasks','classification':'classification.jobs','face':'manual.manual_analysis','audio':'manual.manual_analysis','seal':'manual.manual_analysis','catnet':'manual.manual_analysis','document_forensics':'manual.manual_analysis'}.get(app)
+                    app=source['app_id'];native_namespace={'ocr':'ocr.tasks','classification':'classification.jobs','face':'manual.manual_analysis','audio':'manual.manual_analysis','seal':'manual.manual_analysis','catnet':'manual.manual_analysis','document_forensics':'manual.manual_analysis','aigc_image':'manual.manual_analysis'}.get(app)
                     if native_namespace:
                         for native_id in json.loads(source.get('native_ids') or '[]'):
                             result=db.execute(pg_insert(s.task_source_links).values(id=key('src'),task_id=task_id,run_id=run_id,namespace=native_namespace,source_id=native_id,source_generation=generation,metadata={}).on_conflict_do_nothing(index_elements=['namespace','source_id','source_generation']).returning(s.task_source_links.c.id)).first()

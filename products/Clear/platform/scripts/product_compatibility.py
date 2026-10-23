@@ -5,7 +5,7 @@ import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
                    'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1','data-financial-amount-v1')
-READER_FEATURES = (*READER_FEATURES, 'document-comparisons-v1')
+READER_FEATURES = (*READER_FEATURES, 'document-comparisons-v1', 'aigc-image-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -114,6 +114,8 @@ def check(data, descriptor):
                     business_internal={'frozen_references','recovery_receipt','termination_receipt','recovery_intent'}
                     for row in rows:
                         item=json.loads(row[0])
+                        if item.get('kind')=='aigc_image' and 'aigc-image-v1' not in descriptor['reader_features']:
+                            raise ValueError('该候选缺少整图 AIGC 结果读取能力，不能直接降级')
                         if (any(item.get(name) for name in business_internal) or 'purpose' in item
                                 or 'reference_ids' in item.get('options',{})) and 'agent-multimodal-v1' not in descriptor['reader_features']:
                             raise ValueError('该候选缺少 Agent 多模态授权参考与恢复读取能力，不能直接降级')

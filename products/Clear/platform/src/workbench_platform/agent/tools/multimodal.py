@@ -12,12 +12,13 @@ def register(registry):
         ('audio', 'audio_transcribe', '原生音频转写、说话人和毫秒时间来源；保留不确定内容和未复核状态。'),
         ('seal', 'seal_extract', '原生印章区域与候选主体编号提取；未人工复核字段可进入草稿比对。'),
         ('catnet', 'catnet_analyze', '深度图像定位报告及热图，实际模型以结果登记为准；未校准响应只建议复核，不裁定真伪。'),
-        ('document_forensics', 'document_forensics_analyze', '票据合同改字定位，JPEG及PNG真实深度分析，经典线索单列；未校准，不裁定真伪，可人工框选复核及固定导出。')):
+        ('document_forensics', 'document_forensics_analyze', '票据合同改字定位，JPEG及PNG真实深度分析，经典线索单列；未校准，不裁定真伪，可人工框选复核及固定导出。'),
+        ('aigc_image', 'aigc_image_analyze', '整图 AI 生成相关信号的独立实验分析；与 SAFIRE 局部定位并列。未经校准只返回原始分数和无法判断，不输出生成概率、真实性结论或定位热图，不进入默认审计结论。')):
         registry.register(ToolSpec(name, description, Analyze, partial(analyze, kind), capability=kind,
             effect='derive', availability=partial(availability, kind=kind), lookup_operation=partial(lookup_analysis, kind),
             idempotent=True, input_kinds=('asset',), output_kinds=('job',)))
     for name, schema, handler, description, effect in (
-        ('multimodal_read_result', Result, read, '分页读取人脸/音频/印章/CAT-Net不可变结果快照、来源及复核状态。', 'read'),
+        ('multimodal_read_result', Result, read, '分页读取人脸/音频/印章/深度取证/整图 AIGC 不可变结果快照、来源及复核状态。', 'read'),
         ('multimodal_export', Result, export, '导出固定快照的结果、时间字幕及热图，保留未复核标识。', 'derive'),
         ('multimodal_collect', Collect, collect, '归集可下载固定版本成果；require_review=true等待真实用户核准，未复核成果标为草稿。', 'derive'),
         ('multimodal_to_data_draft', Result, to_data, '印章候选确定性转Data草稿输入，保留原值/置信/区域来源和未复核状态，不能冒充核准。', 'derive'),

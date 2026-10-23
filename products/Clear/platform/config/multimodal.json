@@ -6,7 +6,8 @@
     "audio": 1800,
     "seal": 3600,
     "catnet": 1800,
-    "document_forensics": 1800
+    "document_forensics": 1800,
+    "aigc_image": 1800
   },
   "gpu": {
     "device_index": 0,
@@ -14,7 +15,8 @@
     "enabled_kinds": [
       "audio",
       "catnet",
-      "document_forensics"
+      "document_forensics",
+      "aigc_image"
     ],
     "qualification_file": "gpu-qualification.json"
   },
@@ -30,6 +32,14 @@
     "halo": 64
   },
   "dispatch_poll_seconds": 0.25,
+  "aigc_image": {
+    "default_engine": "community_forensics384",
+    "asset_root": "F:/OCR/output/aigc-image-detection-20261022",
+    "feature_batch_size": 32,
+    "reduced_feature_batch_size": 16,
+    "qualification": "experimental",
+    "business_accuracy_qualified": false
+  },
   "deep_forensics": {
     "default_backend": "safire",
     "asset_root": "F:/OCR/output/forensics-effective-upgrade-20261020/safire-integration-20261021",
