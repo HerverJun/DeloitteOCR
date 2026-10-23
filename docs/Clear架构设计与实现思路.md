@@ -1,6 +1,6 @@
 # Clear 架构设计与实现思路
 
-更新日期：2026-10-19。当前正式入口登记 **Clear 0.14.0 agent-foundation candidate-006**；共享 Python/专业模型仍来自 0.10.0 封存程序，两者不是同一版本对象。本文面向维护者、交接人员和需要理解系统边界的使用者；逐项操作见[Clear 审计平台使用说明书](Clear审计平台使用说明书.md)。
+更新日期：2026-10-23。当前正式入口登记 **Clear 0.16.0 SAFIRE candidate-003**，以 `release/Clear/current.json` 为准；共享 Python/专业模型仍来自 0.10.0 封存程序，两者不是同一版本对象。本文面向维护者、交接人员和需要理解系统边界的使用者；逐项操作见[Clear 审计平台使用说明书](Clear审计平台使用说明书.md)。
 
 当前主循环使用固定DSH alpha.4，恢复官方文件、搜索、PowerShell、后台作业、Skills、Web、MCP和按需子助手。新普通任务自然收尾；专业业务在现有应用服务内组合准备、等待、读取及导出，模型负责目标、真实来源和分析。仅最新运行快照进入模型请求，原始事件、回执、固定证据和下载核验继续保留。工具一次搜索加载，普通工作不要求审计建档或统一显式发布。rc.2仅在独立分支验证。设计取舍、110次同模型对照、兼容与发布证据见[通用能力实施记录](platform-automation/Agent通用能力恢复实施与验收-20261019.md)。
 
@@ -10,14 +10,23 @@
 
 2026-10-15 本机补充：固定启动器现读取可选布尔值 `agent_enabled`，本机已设置 true 并验证模型连接及真实 LangGraph 任务；历史“默认关闭”描述指未配置该字段的原发行策略。见[Agent 启用与实测](platform-automation/Agent启用与实测-20261015.md)。
 
+## 当前开发取舍与范围
+
+本轮基于已验收 0.17.1（e5ca875）准备独立 0.20.0 易用性候选；正式 0.16.0、0.18.0 文档主题对比和 0.19.0 AIGC 各自保持身份，本轮不合入后两者功能。唯一计划与实际完成记录见[易用性优先实施](platform-automation/Clear易用性优先与Agent简化实施-20261023.md)。下面的取舍是本轮实现标准，不表示候选已完成或正式发布。
+
+- DSH 负责理解目标与需要判断的下一步；固定的准备、等待、读取、保存由已有业务服务完成。保留一个模型决策循环，减少只为传递 ID 或重复状态而发生的模型请求。
+- 普通工作直接提供结果、来源和下载；正式审计建档、人工复核与署名按用户实际目标进入。技术失败说明已完成什么及可采取的动作，内部诊断按需查看。
+- 保留来源版本、回执、权限、幂等和恢复；简化默认呈现，不合并独立状态权威，也不把模型自然结束误作业务成功。
+- 开发只验证受影响行为与风险，复用已有证据；不新建通用工作流、计划器、发布审批层或第二套业务执行链。
+
 ## 1. 先分清产品、开发源码和业务数据
 
 ### 1.1 三种版本视角
 
 | 对象 | 位置 | 用途与边界 |
 |---|---|---|
-| 当前正式登记 | 本机 `F:\OCR\release\Clear\current.json` | 指定候选版本、候选清单哈希、共享程序根、工作区、端口和读取兼容声明；当前指向0.14.0 agent-foundation candidate-006 |
-| 当前运行源码/门户 | 本机 `F:\OCR\output\agent-foundation-upgrade-20261019\delivery\Clear-0.14.0-agent-foundation-candidate-006` | 当前登记的platform、ocr、classification及前端；逐文件身份由candidate.json核对 |
+| 当前正式登记 | 本机 `F:\OCR\release\Clear\current.json` | 指定候选版本、候选清单哈希、共享程序根、工作区、端口和读取兼容声明；当前登记为0.16.0 SAFIRE candidate-003 |
+| 当前运行源码/门户 | 上述 current.json 的 `candidate` 所指目录 | 当前登记的platform、ocr、classification及前端；逐文件身份由candidate.json核对 |
 | 共享离线依赖 | 本机 `F:\OCR\release\Clear\versions\0.10.0\program` | 当前候选只读复用的Python、专业运行环境、模型、DLL及底层资产；不能据此把实际运行源码称为0.10.0 |
 | GitHub 审阅源码快照 | [`products/Clear`](../products/Clear) 中的 `platform`、`ocr`、`classification` | 本轮整理的关联开发仓库自有源码，便于共同审阅、修改和追溯；不包含完整离线运行依赖，也不自动等于发行包的全部字节 |
 | 独立 OCR 主仓 | 根目录 [`src/ocr_workbench`](../src/ocr_workbench) 和 [`frontend`](../frontend) | 独立 OCR 研发主线；不能与 Clear 内置 OCR 交叉替换数据库或前端 |
@@ -25,13 +34,13 @@
 
 当前平台开发来源为 `F:\OCR\output\frontend-workbench-20261015\worktrees\platform`；OCR/分类分别为 `F:\OCR\output\clear-automation-dev-20261002\worktrees\ocr` 与 `worktrees\classification`。本轮 `products/Clear` 是可审阅的源码归档，原开发仓库及正式入口保留。来源 HEAD、工作区状态和文件哈希应与该快照的来源清单一起使用；已有测试记录只能证明当时实际受测的候选。
 
-截至编写时，独立 OCR 主仓的 `SCHEMA_VERSION` 为 **18**，Clear 0.10.0 原生 OCR 发行源码及其关联开发源码为 **17**。`current.json` 对原生 OCR 的读取许可范围为 0–17。历史文档中的 schema 15 或更早版本属于对应阶段记录，不代表现在正式入口所用的源码。数据库迁移版本、产品版本、UI 契约版本和原生应用版本是不同编号，不能互相推导。
+独立 OCR 主仓、本次候选及已登记 OCR 开发源码的 `SCHEMA_VERSION` 为 **18**；旧 Clear 0.10.0 原生 OCR 发行源码为 **17**。正式入口使用的程序版本与允许读取的数据范围应以当时的 `current.json` 登记和实际启动绑定为准。历史文档中的 schema 15 或更早版本属于对应阶段记录，不代表本次候选所用的源码。数据库迁移版本、产品版本、UI 契约版本和原生应用版本是不同编号，不能互相推导。
 
 依据：原生 OCR [`store.py`](../products/Clear/ocr/src/ocr_workbench/store.py)、独立 OCR [`store.py`](../src/ocr_workbench/store.py)、[平台开发索引](platform-automation/README.md)、[0.10.0 交付记录](platform-automation/多模态手动工具升级交付记录-20261013.md)。
 
-### 1.2 当前验收口径
+### 1.2 验收范围与历史证据
 
-0.10.0 正式登记中的 `acceptance` 为：`engineering_cpu=true`，`business_accuracy=false`，`a4000_a6000=false`，`new_gpu_routes=false`。其含义是多模态 CPU 工程流程已发布；独立业务样本精度、A4000/A6000 现场资格和新增多模态 GPU 调度尚未完成。
+0.10.0 历史正式登记中的 `acceptance` 为：`engineering_cpu=true`，`business_accuracy=false`，`a4000_a6000=false`，`new_gpu_routes=false`。其含义是多模态 CPU 工程流程已发布；独立业务样本精度、A4000/A6000 现场资格和新增多模态 GPU 调度尚未完成。
 
 原有 OCR 四引擎和分类四编码器已有开发机真实推理记录，但不能把 4070 Ti SUPER 16GB 上的结果自动推广到所有显卡、业务分类模型或长录音。包可离线运行与完成物理断网现场认证也分别登记。详细边界见[多模态手动审计验收与内网部署说明](platform-automation/多模态手动审计验收与内网部署说明.md)。
 
@@ -139,7 +148,7 @@ flowchart TB
 
 发行源码里的 `platform/config/apps/*.install.json` 可以是未注册模板。正式启动脚本 [`agent_native_preview.py`](../products/Clear/platform/scripts/agent_native_preview.py) 根据发行内 OCR/分类前端、运行时及共享资源，在用户工作区 `agent-native/config` 和 `agent-native/bundles` 生成私有登记。模板中的 `installed:false` 不代表正式启动后的工具一定未安装。
 
-这层装配还决定真正使用哪份原生源码。对 OCR，`native_source=platform.parent/ocr`，启动器把这份 `ocr/src` 放入 `sys.path`，并显式传 `--web-root ocr/frontend/dist`；`--bundle program/bundles/ocr` 提供模型和运行时等资产。因而正式入口使用候选根 `ocr` 中的 schema 17 后端和前端，底层共享 bundle 保留的 schema 15 `src/web` 不能被误认成当前页面或后端。分类同样从候选根 `classification` 装载源码与 `apps/web/dist`。离线包复验应沿实际启动绑定核对，而非只打开共享资产目录中的一份 HTML。
+这层装配还决定真正使用哪份原生源码。对 OCR，`native_source=platform.parent/ocr`，启动器把这份 `ocr/src` 放入 `sys.path`，并显式传 `--web-root ocr/frontend/dist`；`--bundle program/bundles/ocr` 提供模型和运行时等资产。本次候选及已登记开发源 `ocr/src/ocr_workbench/store.py` 的 `SCHEMA_VERSION` 为 18；候选使用候选根 `ocr` 中对应的后端和前端。底层共享 bundle 保留的 schema 15 `src/web` 不能被误认成当前候选页面或后端。正式运行版本仍以固定入口实际登记为准。分类同样从候选根 `classification` 装载源码与 `apps/web/dist`。离线包复验应沿实际启动绑定核对，而非只打开共享资产目录中的一份 HTML。
 
 ### 4.3 不只核对端口
 
@@ -276,7 +285,7 @@ OCR 原生服务处理导入、图像/PDF 页面、预处理、识别、文字�
 
 模型执行通过 [`engine_host.py`](../products/Clear/ocr/src/ocr_workbench/engine_host.py) 等进程边界装载各自环境，避免将多个大模型及不兼容依赖塞入平台 API。文件 IPC 使用固定请求/回复及原子发布；实际加载设备、模型和任务身份需要由执行结果确认。
 
-当前发行保留 PP-OCRv6、PaddleOCR-VL-1.6、GLM-OCR、HunyuanOCR 四类 OCR 引擎。其输出是识别候选；表格结构、编号、金额、日期和低清屏拍仍需按实际来源复核。融合或兜底应保留每个来源和采用版本，不能因多模型投票就直接标成无须校对。
+原有 OCR 路线保留 PP-OCRv6、PaddleOCR-VL-1.6、GLM-OCR、HunyuanOCR 四类引擎；本次候选同时承接既有 MinerU Pro 文档路线，包括独立 worker、第五引擎、自动路由和可选后备，以及文档版面解析中的 MinerU Pro 选择。本轮 Agent 可用性升级复用这些已接入的本地模型与文档能力，不新增模型种类或扩大其既有适用范围。各引擎输出都是识别候选；表格结构、编号、金额、日期和低清屏拍仍需按实际来源复核。融合或兜底应保留每个来源、实际引擎和采用版本，不能因多模型投票就直接标成无须校对。
 
 0.10.0 印章入口是平台共用多模态工作流，复用 OCR 运行时中的 Paddle 能力。其分析记录归属于平台 `manual-analysis`，不是直接改造每个原生 OCR 识别结果成为印章任务。
 
@@ -357,27 +366,29 @@ CAT-Net 使用原始 JPEG 的量化 DCT，不把随意转存 PNG/JPEG 后的内�
 
 ### 11.1 当前启用状态与本地动作
 
-当前0.14.0本机固定入口已启用Agent。明确本地操作入口按实际能力可不依赖模型连接；开放聊天与通用执行使用DSH；OCR、分类、Data、经典取证和多模态手动工具也可按各自服务使用。
+当前0.16.0本机固定入口已启用Agent。明确本地操作入口按实际能力可不依赖模型连接；开放聊天与通用执行使用DSH；OCR、分类、Data、经典取证和多模态手动工具也可按各自服务使用。
 
 开放分析需要已安装的固定Harness依赖层、可用主控连接及明确模型配置。主控可以是本地服务或用户配置的模型服务；手动工具离线推理成功不表示远程主控连接也能离线使用。模型连接的实际数据流取决于用户保存的 endpoint，不能把所有 Agent 调用概括为绝不出本机。
 
 ### 11.2 编排仍使用真实工具回执
 
-开放分析使用固定DeepSeek Harness 0.2.1-alpha.4及Node 24.22.0，通过Python业务工具桥执行。工具按需加载，注册表和Skills限定能力与schema；模型不能选择任意本机服务地址或提交浏览器伪造的结果。明确动作由中立业务服务直接驱动，确需理解的提取表达可受限解析一次后转固定动作。旧LangGraph checkpoint作为历史保留，不再作为当前开放任务的执行内核。
+开放分析使用固定 DeepSeek Harness 0.2.1-alpha.4 及 Node 24.22.0。新自由文本进入同一个 general 决策循环，常用工具直接可用，其余专业工具一次搜索加载；Skills 提供按需指引，不作为新 general 会话的额外工具权限门槛。工具注册表、资料范围与执行权限仍由服务器校验，浏览器不能伪造业务回执。明确按钮及控制器不可用时支持的本地操作继续走已有直接服务，已接受的旧直接驱动与旧 LangGraph 检查点保留原契约；旧一次目标解析不再是新自由表达的普遍前置。
 
-后台作业提交后进入 waiting_job，观察器读取权威任务状态，等待期间不靠反复模型调用“猜进度”。需要确认、预算扩展或状态核实时进入 waiting_user/needs_verification。工具或模型重复错误有界停止，已保存成果保留。
+后台作业提交后由已有观察器读取权威状态，等待期间不靠反复模型调用猜进度。0.20.0 易用性实现复用该观察器等待实际资源释放；模型暂时故障在核实业务回执后按 Retry-After 或 1/4 秒退避，同类故障最多自动重试两次。未知业务写入未核实前不重发；暂停、取消和 generation 变化阻止自动唤醒，自动恢复保留用户时长预算。确需用户信息、明确核准、预算扩展或无法自动核实的状态才进入相应等待。正式登记切换前，新增自动恢复行为仅适用于对应候选。
 
 操作账本记录会话、运行、模型请求、工具调用、回执、人工决定与事件；Harness原JSONL和持久事件保留历史锚点、整理检查点及固定成果引用。generation阻止已取消或旧运行迟到的写入。实际请求快照和系统/工具/Skills身份用于追溯；旧checkpoint继续保留供历史读取。
 
-当前默认模型轮数、工具次数与总时长均不设固定上限，用户可显式设置预算。跨工具无进展由持久进展判定执行有界修复后暂停；持续新增结果和健康原生等待不会因超过20步停止。流式文字是接收中的展示状态，最终业务交付仍必须对应已经核实的成果回执；没有核实交付不能仅凭主控一段总结写成 succeeded。
+默认模型轮数、工具次数与总时长不设固定上限，用户可显式设置预算。0.20.0 不再因累计八次缺少业务字段而暂停正常探索；同参数同结果第三次重复时反馈修正要求，第四次仍重复才暂停。新 general 收尾可在同一 run 内有限补齐缺项，已成功文件按内容指纹复用，实际修改后产生新成果。自然回复可结束普通对话；业务成功仍依据真实结果与必要核验，不凭一句总结制造 succeeded。正式报告的形式不自动推导人工核准，明确人审要求与历史保存策略继续有效。
+
+分类 `classification_predict` 与双表 `data_compare_files` 组合已有直接服务，减少模型对准备、等待、读取和导出的逐步调度；不新建第二套决策或业务账本。多模态工具请求 `output=files` 时，在真实分析终态后读取固定快照并生成文件；仅导出失败时保留分析结果，续作补导出而不重跑模型。手动页不带快照的正式归集仍要求当前人工核准，Agent 固定快照的技术导出可保留未复核状态，两者不混同。
 
 ### 11.3 已有能力与后续方向
 
 现有工具族包括项目/资料管理、搜索与来源读取、OCR、分类、Data、经典取证、任务/历史、文档/PDF、发现草稿和成果交付。可用性取决于本机已配置服务与具体工具声明。
 
-新多模态首版以手动工作流交付，不能把页面已经加入门户描述成 Agent 已自动覆盖所有新增模型。业务精准路由、免校对识别、跨资料自主审计、专项反伪和多人协作均需各自实现及验收。
+0.10.0 多模态首版以手动工作流交付；后续 Agent 接入和真实任务证据见0.14.0通用能力实施记录，不能把首版缺口直接沿用为当前缺陷。页面、工具注册、真实单次任务和业务精度是不同范围，免校对识别、跨资料自主审计、专项反伪及目标部署仍按各自已有证据说明。
 
-依据：[`agent/runtime.py`](../products/Clear/platform/src/workbench_platform/agent/runtime.py)、[`agent/graph.py`](../products/Clear/platform/src/workbench_platform/agent/graph.py)、[`agent/registry.py`](../products/Clear/platform/src/workbench_platform/agent/registry.py)、[`agent/skills.py`](../products/Clear/platform/src/workbench_platform/agent/skills.py)、[`agent/context.py`](../products/Clear/platform/src/workbench_platform/agent/context.py)、[`agent/store.py`](../products/Clear/platform/src/workbench_platform/agent/store.py)。
+依据：[`agent/runtime.py`](../products/Clear/platform/src/workbench_platform/agent/runtime.py)、[`agent/harness.py`](../products/Clear/platform/src/workbench_platform/agent/harness.py)、[`agent/harness_service.py`](../products/Clear/platform/src/workbench_platform/agent/harness_service.py)、[`agent/general.py`](../products/Clear/platform/src/workbench_platform/agent/general.py)、[`agent/registry.py`](../products/Clear/platform/src/workbench_platform/agent/registry.py)、[`agent/skills.py`](../products/Clear/platform/src/workbench_platform/agent/skills.py)、[`agent/context.py`](../products/Clear/platform/src/workbench_platform/agent/context.py)、[`agent/store.py`](../products/Clear/platform/src/workbench_platform/agent/store.py)。
 
 ## 12. 持久化与恢复边界
 
