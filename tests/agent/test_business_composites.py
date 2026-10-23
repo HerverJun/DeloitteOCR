@@ -6,7 +6,7 @@ from dataclasses import replace
 import json
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import test_data_tools as fixtures
 from packages.contracts.agent import AgentRef, AgentToolResult
@@ -170,3 +170,48 @@ class BusinessCompositeTests(fixtures.unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(RunSuperseded):
                 await self.call('classification_predict', {'asset_ids': [asset.asset_id]})
         self.center.classification.publish.assert_not_called()
+
+
+class BusinessFailureIdentityTests(fixtures.unittest.IsolatedAsyncioTestCase):
+    async def test_same_asset_only_original_composite_export_clears_failure(self):
+        from workbench_platform.application_services import composed_business as business
+        from workbench_platform.agent.general_outputs import remaining_items
+        for tool, images in (('classification_predict', True), ('data_compare_files', False)):
+            with self.subTest(tool=tool):
+                args = (ClassificationPredict(asset_ids=['same_asset'], resume_operation_id='original') if images else
+                    CompareFiles(left_asset_id='same_asset', right_asset_id='right_asset',
+                        compare_spec={'key_pairs': [['c1', 'c1']]}, resume_operation_id='original'))
+                inputs = [{'asset_id': name, 'name': name, 'revision': 1, 'blob_hash': 'a' * 64}
+                          for name in (('same_asset',) if images else ('same_asset', 'right_asset'))]
+                caller = SimpleNamespace(operation_id='retry_call')
+                original = SimpleNamespace(operation_id='original', workspace_id='workspace', run_id='run',
+                    store=SimpleNamespace(rows=Mock(return_value=[])), selected_assets=('same_asset',))
+                op = SimpleNamespace(runtime=None, call=AsyncMock(return_value={'status': 'success',
+                    'data': {'requires_sheet_selection': False}}), require_success=lambda result: result)
+                async def interrupted(runtime, ctx, saved, request, *, call, save, **kwargs):
+                    save('export', 'prediction' if images else 'preview', {'data': {}, 'result_refs': []})
+                    raise OSError('Export interrupted after fixed computation')
+                async def completed(*args, **kwargs):
+                    return {'summary': 'done', 'data': {'bundle': {'bundle_id': 'bundle', 'files': []}},
+                            'result_refs': [], 'artifact_refs': []}
+                module = classification_action if images else business.data_action
+                with patch.object(business, 'original_context', return_value=original) as origin, \
+                     patch.object(composed, 'Operations', return_value=op), \
+                     patch.object(business, 'fixed_inputs', new=AsyncMock(return_value=inputs)), \
+                     patch.object(module, 'execute', side_effect=interrupted) as execute:
+                    failed = await business.run_sequence(args, caller, tool, None, images=images)
+                    failure = failed['data']['failures'][0]
+                    self.assertEqual(failure['failure_key'], tool + ':original')
+                    self.assertIn('same_asset', failure['asset_ids'])
+                    unrelated = {'status': 'success', 'data': {'files': [{'asset_id': 'same_asset'}],
+                        'readable_text': [{'source_locator': {'asset_id': 'same_asset'}}]}}
+                    self.assertEqual(remaining_items([failed, unrelated]), [failure])
+                    execute.side_effect = completed
+                    origin.return_value = SimpleNamespace(**(vars(original) | {'operation_id': 'different_original'}))
+                    other = await business.run_sequence(args, caller, tool, None, images=images)
+                    self.assertEqual(remaining_items([failed, unrelated, other]), [failure])
+                    origin.return_value = original
+                    restored = await business.run_sequence(args, caller, tool, None, images=images)
+                    self.assertEqual(restored['data']['completed_failure_keys'], [tool + ':original'])
+                    self.assertEqual(restored['data']['files'][0]['asset_id'], 'same_asset')
+                    self.assertEqual(remaining_items([failed, unrelated, other, restored]), [])
