@@ -51,6 +51,10 @@ def _locked(path):
             else:fcntl.flock(stream.fileno(),fcntl.LOCK_UN)
 
 
+class ReadinessRecordError(ValueError):
+    """Inference was verified, but the optional readiness registry was not saved."""
+
+
 def record_cpu_validation(source,program,data,kind,runtime,output,receipt,*,path=None):
     source,program,data,runtime,output=map(local_path,(source,program,data,runtime,output))
     path=local_path(path or data/'multimodal-cpu-validation.json')
@@ -67,10 +71,13 @@ def record_cpu_validation(source,program,data,kind,runtime,output,receipt,*,path
         'source_hashes':{item.relative_to(source).as_posix():digest(item) for item in sorted((source/'modules/manual_multimodal').glob('*.py'))},
         'runtime_sha256':digest(runtime),'record':{**receipt,'exit_code':0,'result_sha256':digest(result_path)},
         'scope':'Owned offline CPU engineering inference; business accuracy and independent-site qualification remain pending'}
-    require_features(data,'agent-multimodal-v1')
-    path.parent.mkdir(parents=True,exist_ok=True)
-    with _locked(local_path(path.with_suffix(path.suffix+'.lock'))):
-        records=json.loads(path.read_text('utf-8')) if path.is_file() else {}
-        if not isinstance(records,dict):raise ValueError('Existing CPU validation registry is malformed; preserve and verify it')
-        records[kind]=record;atomic_json(path,records)
+    try:
+        require_features(data,'agent-multimodal-v1')
+        path.parent.mkdir(parents=True,exist_ok=True)
+        with _locked(local_path(path.with_suffix(path.suffix+'.lock'))):
+            records=json.loads(path.read_text('utf-8')) if path.is_file() else {}
+            if not isinstance(records,dict):raise ValueError('Existing CPU validation registry is malformed; preserve and verify it')
+            records[kind]=record;atomic_json(path,records)
+    except (OSError,ValueError) as error:
+        raise ReadinessRecordError('Verified CPU result retained; readiness registry was not updated') from error
     return record

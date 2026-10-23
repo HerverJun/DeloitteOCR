@@ -2,8 +2,8 @@
 from .store import digest
 
 
-STALL_LIMIT = 8
-REPAIR_AT = 4
+REPEAT_WARNING_AT = 3
+REPEAT_STOP_AT = 4
 CONTENT_KEYS = {'text', 'full_text', 'content', 'rows', 'tables', 'predictions', 'result_id',
                 'result_hash', 'sha256', 'model_id', 'value', 'values', 'amount', 'label', 'labels'}
 DEPENDENCY_KEYS = {'handoff_id', 'binding_id', 'asset_set_id', 'data_session_id', 'dataset_id',
@@ -55,30 +55,30 @@ def observe(state, call, result):
         if action in failed:
             evidence.append(digest(['resolved', action, failed.pop(action)]))
     new = [item for item in evidence if item not in seen]
-    if new:
-        state['progress_evidence'] = list(dict.fromkeys([*state.get('progress_evidence', []), *new]))[-512:]
-        state['no_progress'] = 0
-        state['repeated_action'] = 0
-        state.pop('progress_repair', None)
-    elif result['status'] not in {'pending', 'needs_user', 'needs_verification'}:
-        state['no_progress'] = state.get('no_progress', 0) + 1
+    if result['status'] not in {'pending', 'needs_user', 'needs_verification'}:
         signature = digest([action, stable(result)])
         state['repeated_action'] = state.get('repeated_action', 0) + 1 if signature == state.get('last_action') else 1
         state['last_action'] = signature
+    if new:
+        state['progress_evidence'] = list(dict.fromkeys([*state.get('progress_evidence', []), *new]))[-512:]
+        state['no_progress'] = 0
+        state.pop('progress_repair', None)
+    elif result['status'] not in {'pending', 'needs_user', 'needs_verification'}:
+        state['no_progress'] = state.get('no_progress', 0) + 1
     if result.get('error'):
         error = result['error']
         state['progress_blocker'] = {'code': error.get('code', 'tool_error'),
                                      'message': error.get('message') or result['summary']}
         failed[action] = error.get('code', 'tool_error')
     state['progress_failed_actions'] = dict(list(failed.items())[-128:])
-    if state.get('no_progress', 0) >= REPAIR_AT:
+    if state.get('repeated_action', 0) >= REPEAT_WARNING_AT:
         # A bounded repair opportunity is delivered to the controller in the
         # normal receipt; accepted writes are never automatically resubmitted.
         state['progress_repair'] = True
         result = {**result, 'data': {**(result.get('data') or {}), 'continuation_guard': {
-            'remaining_without_progress': max(0, STALL_LIMIT - state['no_progress']),
+            'remaining_repeated_attempts': max(0, REPEAT_STOP_AT - state['repeated_action']),
             'blocker': state.get('progress_blocker'),
-            'instruction': '复用已有回执和成果，只修复明确缺失条件；重复读取或换工具不算进展，无法修复时说明具体阻碍。'}}}
+            'instruction': '相同参数已连续得到相同结果三次。请改变处理方式或说明无法继续的原因；再次重复此调用将暂停。已有回执和成果可直接复用。'}}}
     return result
 
 

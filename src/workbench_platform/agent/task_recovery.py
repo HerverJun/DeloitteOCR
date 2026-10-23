@@ -9,7 +9,7 @@ from .store import Conflict, canonical, now
 RECOVERABLE = frozenset({'provider_unavailable', 'rate_limited', 'authentication', 'config_changed',
     'harness_exited', 'harness_protocol', 'truncated_response', 'response_unknown',
     'context_limit', 'CONTEXT_WINDOW_EXCEEDED', 'context_compaction_failed', 'stalled', 'resource_busy'})
-AUTO_RETRY = frozenset({'provider_unavailable', 'rate_limited', 'harness_exited', 'truncated_response'})
+AUTO_RETRY = frozenset({'provider_unavailable', 'rate_limited', 'harness_exited', 'truncated_response', 'response_unknown'})
 
 
 def last_fault(runtime, run_id):
@@ -52,7 +52,7 @@ async def check_business_receipts(runtime, run, state):
         tool_activity(context, call, 'restored', recovered)
 
 
-async def prepare_resume(runtime, run):
+async def prepare_resume(runtime, run, *, automatic=False):
     from workbench_platform.resources.reader_features import require_features
     require_features(runtime.store.root.parent, 'same-goal-continuation-v1')
     state = runtime.graph.load(run['id'])
@@ -62,6 +62,11 @@ async def prepare_resume(runtime, run):
             raise Conflict('原用户目标记录不可读取，未建立新的目标')
         state = runtime.initial_state(run, json.loads(rows[0]['payload'])['content'])
     await check_business_receipts(runtime, run, state)
+    if automatic:
+        current = runtime.store.run(run['id'])
+        if current['generation'] != run['generation'] or current['status'] in {'paused', 'cancelled'}:
+            from .store import RunSuperseded
+            raise RunSuperseded('用户已停止自动恢复')
     from .harness_service import incomplete_delivery, remaining_delivery_work
     partial = state.get('delivery') if incomplete_delivery(state.get('delivery')) else None
     if run['status'] == 'partial' and partial is None:
@@ -83,15 +88,15 @@ async def prepare_resume(runtime, run):
     state.pop('wait', None)
     unknown = runtime.store.rows("SELECT id FROM model_requests WHERE run_id=? AND state='sent'", (run['id'],))
     # Unknown model generations have no business authority: tool dispatch is
-    # journaled separately. Abandon only on an explicit Continue, preserve the
-    # old request, and let Harness rebuild committed history before a new try.
+    # journaled separately. After checking receipts, preserve the old request
+    # and let Harness rebuild committed history before a bounded retry.
     for record in unknown:
         with runtime.store.transaction() as db:
             db.execute("UPDATE model_requests SET state='abandoned',response=? WHERE id=? AND state='sent'",
-                (canonical({'error': 'response_unknown', 'resolution': 'explicit_continue',
+                (canonical({'error': 'response_unknown', 'resolution': 'automatic_retry' if automatic else 'explicit_continue',
                             'business_receipts_checked': True}), record['id']))
         runtime.store.event(run['session_id'], run['id'], record['id'] + ':abandoned', 'model_attempt_abandoned',
-            {'request_id': record['id'], 'reason': '用户继续原目标；旧响应不执行，已核对原操作回执', 'generation': run['generation']})
+            {'request_id': record['id'], 'reason': '自动恢复原目标；旧响应不执行，已核对原操作回执' if automatic else '用户继续原目标；旧响应不执行，已核对原操作回执', 'generation': run['generation']})
         if state.get('pending_model_request') == record['id']:
             state.pop('pending_model_request', None)
     code = last_fault(runtime, run['id'])
@@ -109,7 +114,9 @@ async def prepare_resume(runtime, run):
                 run['id'] + ':connection-repaired:' + str(current['revision']), 'connection_repaired',
                 {'previous_revision': run['connection_revision'], 'revision': current['revision'],
                  'generation': run['generation']})
-    state.update(repeated_action=0, no_progress=0, idle_without_progress=0, started_active_seconds=0)
+    state.update(repeated_action=0, no_progress=0, idle_without_progress=0)
+    if not automatic:
+        state['started_active_seconds'] = 0
     state.pop('last_bridge_error', None)
     state.pop('progress_guard', None)
     state.pop('progress_repair', None)
@@ -123,3 +130,21 @@ def recovery_message(runtime, run_id, code, message):
     completed = f'已保存 {count} 项完成步骤及原资料；' if count else '原目标、资料和操作回执已保存；'
     action = '修复并测试模型连接后点“继续”' if code in {'authentication', 'config_changed'} else '点“继续”接着完成剩余步骤'
     return completed + '后续步骤待继续。' + action + '。' + message
+
+
+def retry_delay(error, attempt):
+    """Honor a provider retry time; otherwise use the two short backoffs."""
+    from datetime import datetime, timezone
+    from email.utils import parsedate_to_datetime
+    import math
+    value = getattr(error, 'retry_after', None)
+    if value is None:
+        value = (getattr(error, 'response_diagnostics', None) or {}).get('retry_after')
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        try:
+            seconds = (parsedate_to_datetime(str(value)) - datetime.now(timezone.utc)).total_seconds()
+        except (TypeError, ValueError, OverflowError):
+            seconds = None
+    return max(0, seconds) if seconds is not None and math.isfinite(seconds) else (1 if attempt == 0 else 4)

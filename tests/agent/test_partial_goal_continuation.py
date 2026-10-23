@@ -153,6 +153,8 @@ def test_supplement_to_latest_partial_uses_same_run_and_never_old_partial_after_
     runtime.store.status(newer['id'], 1, 'succeeded')
     local = AsyncMock(return_value={'id': 'new-goal'})
     monkeypatch.setattr(goal_routing, 'submit_local_goal', local)
+    runtime.model_provider = None
+    runtime.connection = SimpleNamespace(view=lambda: {'available': False})
     assert asyncio.run(runtime.submit(session['id'], 'A separate goal', 'separate'))['id'] == 'new-goal'
     assert len(runtime.store.rows('SELECT * FROM inbox WHERE run_id=?', (run['id'],))) == 1
 

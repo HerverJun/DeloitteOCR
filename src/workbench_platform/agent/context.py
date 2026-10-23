@@ -24,7 +24,7 @@ CORE_TOOLS = (
 
 
 GENERAL_CORE_TOOLS = ('tools_search', 'workspace_get_context', 'ask_user', 'session_read_history',
-                      'workspace_publish_outputs', 'extract_text', 'data_clean_files')
+                      'workspace_publish_outputs', 'extract_text', 'data_clean_files', 'classification_predict', 'data_compare_files')
 
 
 def core_tools(registry, *, contract=None):

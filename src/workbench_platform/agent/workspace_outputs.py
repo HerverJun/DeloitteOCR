@@ -93,12 +93,15 @@ async def automatic(runtime, state, request_id):
         return None
     root = Path(state['working_directory'])
     baseline = state.get('workspace_baseline', {})
-    changed = [path.relative_to(root).as_posix() for path in output_files(root)
-               if baseline.get(path.relative_to(root).as_posix()) != hashlib.sha256(path.read_bytes()).hexdigest()]
+    changed = {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+               for path in output_files(root)}
+    changed = {path: sha for path, sha in changed.items() if baseline.get(path) != sha}
     if not changed:
         return None
-    return await runtime.registry.dispatch({'call_id': 'auto_files_' + digest(request_id)[:32],
-        'tool': 'workspace_publish_outputs', 'arguments': {'paths': changed}}, runtime.context(state))
+    # Repeated finalization reuses the same operation and fixed output bundle.
+    # A real file change creates a new identity, even within the same run.
+    return await runtime.registry.dispatch({'call_id': 'auto_files_' + digest(changed)[:32],
+        'tool': 'workspace_publish_outputs', 'arguments': {'paths': sorted(changed)}}, runtime.context(state))
 
 
 def register(registry):

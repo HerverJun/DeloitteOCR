@@ -4,7 +4,7 @@ from contextlib import closing
 import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
-                   'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1','data-financial-amount-v1')
+                   'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','agent-usability-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1','data-financial-amount-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {

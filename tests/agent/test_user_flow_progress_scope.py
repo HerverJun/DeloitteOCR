@@ -47,21 +47,29 @@ def execute(runtime, state, name, receipt, index):
         'arguments': {'receipt': receipt, 'irrelevant_retry_number': index}}))
 
 
-def test_alternating_delivery_failure_and_same_readback_is_bounded(tmp_path):
+def test_alternating_discovery_does_not_exhaust_a_business_field_counter(tmp_path):
     runtime, state = runner(tmp_path)
     for index in range(12):
         receipt = (result('error', error={'code': 'delivery_checks_failed', 'message': 'amount missing'})
                    if index % 2 == 0 else result(data={'items': [{'text': 'unchanged 10.00'}]}))
         execute(runtime, state, 'delivery_publish' if index % 2 == 0 else 'read_result', receipt, index)
     assert state.get('no_progress', 0) >= 6
-    assert state.get('progress_blocker', {}).get('code') == 'delivery_checks_failed'
+    assert state.get('repeated_action', 0) == 1
+    assert not state.get('progress_repair')
+
+
+def test_repeated_call_gets_feedback_then_pauses_on_fourth(tmp_path):
+    runtime, state = runner(tmp_path)
+    for index in range(4):
+        value = execute(runtime, state, 'read_result', result(data={'text': 'unchanged'}), 0)
+        if index == 2:
+            assert 'continuation_guard' in value['data']
     runtime.harness_wait = lambda _: asyncio.sleep(0)
     runtime.tasks.apply_scope = lambda _: None
     runtime.harness_config = lambda _: {}
     stopped = asyncio.run(runtime.harness_prepare(state, {'messages': [], 'incoming': []}))
     assert stopped == {'stop': True}
     assert runtime.store.run(state['run_id'])['status'] == 'paused'
-    assert 'amount missing' in runtime.store.run(state['run_id'])['error']
 
 
 def test_real_business_progress_can_exceed_twenty_steps(tmp_path):
