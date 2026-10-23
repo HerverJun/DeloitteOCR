@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import Field
 from packages.contracts.agent import AgentModel, AgentRef, AgentToolResult, Identity
 from packages.contracts.multimodal import ManualInput, ManualOptions
-from workbench_platform.application_services.identity import canonical, digest, Conflict
+from workbench_platform.application_services.identity import canonical, digest, Conflict, RunSuperseded
 from workbench_platform.application_services.references import asset_allowed
 
 KINDS = ('face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image')
@@ -16,6 +16,7 @@ KINDS = ('face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image')
 class Analyze(AgentModel):
     inputs: list[ManualInput] = Field(min_length=1, max_length=2)
     options: ManualOptions = Field(default_factory=ManualOptions)
+    output: Literal['preview', 'files'] = 'files'
 
 
 class Prepare(Analyze):
@@ -92,7 +93,7 @@ def availability(services, kind):
         return {'state':'unavailable','reason':item.get('gpu_reason') or '整图 AIGC 需要独立本机 CUDA 工程验证；普通 CPU 准备不适用',
             'dependencies':item.get('missing',[]),'cpu_ready':False,'gpu_ready':False,'hard_cancel':True}
     return {'state': 'ready' if ready else 'unavailable' if item.get('missing') else 'preparable',
-        'reason': '' if ready else '缺少资源：' + '、'.join(item['missing']) if item.get('missing') else '已有资源，尚缺有效的本机推理验证回执',
+        'reason': '' if ready else '缺少资源：' + '、'.join(item['missing']) if item.get('missing') else '已有本地资源；CPU 首次使用将在分析时自动准备',
         'dependencies': item.get('missing', []), 'cpu_ready': bool(item.get('cpu_ready')),
         'gpu_ready': bool(item.get('gpu_ready')), 'hard_cancel': True}
 
@@ -109,17 +110,17 @@ def scoped_job(ctx, job_id, *, owned=False):
     return item
 
 
-def job_ref(ctx, item):
+def job_ref(ctx, item, *, output=None):
     return AgentRef(kind='job', application='multimodal', workspace_id=ctx.workspace_id,
         object_id=item['job_id'], parent_id=item['job_id'], revision=item['generation'],
-        coverage={'kind': item['kind'], 'generation': item['generation']})
+        coverage={'kind': item['kind'], 'generation': item['generation'], **({'output': output} if output else {})})
 
 
-def submitted(ctx, item):
+def submitted(ctx, item, *, output=None):
     return AgentToolResult(status='pending', summary='已提交平台原生分析，任务层等待权威回执后继续',
         data={'job_id': item['job_id'], 'generation': item['generation'], 'status': item['status'],
               'purpose': item.get('purpose', 'analysis')},
-        job_refs=[job_ref(ctx, item)]).model_dump()
+        job_refs=[job_ref(ctx, item, output=output)]).model_dump()
 
 
 def prepare(args, ctx):
@@ -151,7 +152,7 @@ def analyze(kind, args, ctx):
     options['reference_ids'] = references if kind == 'face' else []
     item = service(ctx).create(ctx.workspace_id, {'request_id': ctx.operation_id, 'kind': kind,
         'inputs': [item.model_dump() for item in args.inputs], 'options': options})
-    return submitted(ctx, item)
+    return submitted(ctx, item, output=args.output)
 
 
 def lookup_analysis(kind, args, ctx):
@@ -161,7 +162,7 @@ def lookup_analysis(kind, args, ctx):
     item = scoped_job(ctx, value['resource_id'])
     if item['kind'] != kind:
         raise ValueError('原提交类型不一致')
-    return submitted(ctx, item)
+    return submitted(ctx, item, output=args.output)
 
 
 def checked_snapshot(ctx, args):
@@ -274,7 +275,9 @@ def collect(args, ctx):
         return request_action(UserAction(action='review', job_id=args.job_id, snapshot_id=snapshot['snapshot_id']), ctx)
     bundle = service(ctx).collect_snapshot(ctx.workspace_id, args.job_id, snapshot['snapshot_id'])
     return AgentToolResult(status='success', summary='已归集固定版本成果；' + ('含复核回执' if snapshot['review_revision'] else '标记为未复核草稿'),
-        data={'bundle': bundle, 'review_state': snapshot['review_state']},
+        data={'bundle': bundle, 'review_state': snapshot['review_state'],
+            'completed_asset_ids': [source['asset_id'] for source in snapshot['sources']],
+            'completed_failure_keys': [f'multimodal-export:{args.job_id}:{snapshot["snapshot_id"]}']},
         result_refs=[result_ref(ctx, snapshot)],
         artifact_refs=[AgentRef(kind='artifact', workspace_id=ctx.workspace_id, object_id=bundle['bundle_id'], revision=1,
             application='multimodal', parent_id=args.job_id, coverage={'kind': snapshot['kind'],
@@ -518,4 +521,21 @@ def settle(ref, ctx):
                 'expected_revision': item['revision'], 'expected_generation': item['generation']})
             if item['status'] in {'queued', 'running'}:
                 return None
-    return read(Result(job_id=item['job_id']), ctx)
+    preview = read(Result(job_id=item['job_id']), ctx)
+    if preview['status'] != 'success' or item.get('purpose') == 'preparation' or (ref.get('coverage') or {}).get('output') != 'files':
+        return preview
+    snapshot_id = preview['data']['snapshot_id']
+    try:
+        ctx.current()
+        files = collect(Collect(job_id=item['job_id'], snapshot_id=snapshot_id), ctx)
+    except (RunSuperseded, Conflict):
+        raise
+    except (OSError, ValueError) as error:
+        return {**preview, 'summary': '分析已完成，成果文件尚未生成；继续导出即可，无需重新分析',
+            'data': {**preview['data'], 'output_pending': True,
+                'failures': [{'asset_id': source['asset_id'], 'job_id': item['job_id'], 'snapshot_id': snapshot_id,
+                    'failure_key': f'multimodal-export:{item["job_id"]}:{snapshot_id}', 'stage': 'export', 'tool': 'multimodal_collect',
+                    'arguments': {'job_id': item['job_id'], 'snapshot_id': snapshot_id}} for source in item['inputs']]},
+            'warnings': [*preview.get('warnings', []), str(error)[:300]]}
+    return {**preview, 'summary': '分析与固定成果文件已完成，可直接下载',
+        'data': {**preview['data'], **files['data']}, 'artifact_refs': files.get('artifact_refs', [])}

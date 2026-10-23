@@ -13,11 +13,15 @@ def remaining_items(results):
     for result in results:
         data = result.get('data') or {}
         for failure in data.get('failures', []):
-            identifiers = failure.get('asset_ids') or ([failure['asset_id']] if failure.get('asset_id') else [])
+            identifiers = ([failure['failure_key']] if failure.get('failure_key') else
+                           failure.get('asset_ids') or ([failure['asset_id']] if failure.get('asset_id') else []))
             for identifier in identifiers or [json.dumps(failure, sort_keys=True, ensure_ascii=False)]:
                 remaining[identifier] = failure
         if result.get('status') == 'success':
-            completed = [item.get('asset_id') for item in data.get('files', [])]
+            for key in data.get('completed_failure_keys', []):
+                remaining.pop(key, None)
+            completed = list(data.get('completed_asset_ids', []))
+            completed.extend(item.get('asset_id') for item in data.get('files', []))
             completed.extend((item.get('source_locator') or {}).get('asset_id') for item in data.get('readable_text', []))
             for identifier in completed:
                 remaining.pop(identifier, None)

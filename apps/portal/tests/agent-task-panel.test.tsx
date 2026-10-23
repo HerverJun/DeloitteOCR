@@ -33,10 +33,11 @@ test('completed native output remains downloadable while analysis failed', () =>
   expect(results).not.toHaveTextContent('已完成交付')
 })
 
-test('draft delivery remains marked pending review in the task results even when execution succeeded', () => {
+test('unreviewed delivery stays downloadable without implying approval is required', () => {
   const events = [event(1, 'delivery', { status: 'succeeded', content: '正式成果已完成', delivery: { artifact_refs: [artifactRef], data: { draft: true, review_state: 'unreviewed', delivery: [] } } })]
   render(<MemoryRouter><TaskPanel task={task({ status: 'succeeded' })} events={events} {...callbacks()} /></MemoryRouter>)
-  expect(screen.getByLabelText('任务成果')).toHaveTextContent('未复核草稿 · 待用户核准')
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('未复核 · 可下载')
+  expect(screen.queryByText(/待用户核准/)).not.toBeInTheDocument()
   expect(screen.getByLabelText('任务成果')).not.toHaveTextContent('已完成交付')
   const formal = createWorkbenchView(task({ status: 'succeeded' }), [...events, event(2, 'delivery', { status: 'succeeded', content: '正式核准成果', delivery: { artifact_refs: [artifactRef], data: { draft: false, review_state: 'not_required_or_confirmed', delivery: [] } } })])
   expect(formal.draftDelivery).toBe(false)
@@ -102,13 +103,14 @@ test('current plan step is explicit and project materials skills and editing rem
   expect(screen.getByLabelText('当前任务').querySelector('.ant-typography-edit')).toBeInTheDocument()
 })
 
-test('completed delivery explains unsynced plan progress without completing actual steps', () => {
+test('run details retain the actual plan without making synchronization a user task', () => {
   const actualPlan = [{ key: 'read', title: '读取资料', purpose: '确认范围', status: 'completed', depends_on: [], result_refs: [] },
     { key: 'deliver', title: '核验交付文件', purpose: '读取实际文件', status: 'running', depends_on: ['read'], result_refs: [] }]
   const renderTask = (status: string, plan = actualPlan) => <MemoryRouter><TaskPanel task={task({ status, plan })} {...callbacks()} /></MemoryRouter>
   const mounted = render(renderTask('succeeded'))
   const plan = screen.getByLabelText('任务计划')
-  expect(plan).toHaveTextContent('成果已交付，计划状态待同步。')
+  expect(screen.queryByText('成果已交付，计划状态待同步。')).not.toBeInTheDocument()
+  expect(plan.closest('details')).not.toHaveAttribute('open')
   expect(plan).toHaveTextContent('1 / 2')
   expect(within(plan).getByText('核验交付文件').closest('li')).toHaveAttribute('data-state', 'current')
   expect(actualPlan[1].status).toBe('running')
@@ -125,4 +127,11 @@ test('unobserved linked jobs and waiting input show honest state without synthet
   expect(screen.getByLabelText('当前作业')).toHaveTextContent('已关联，等待状态回执')
   expect(screen.getByLabelText('任务阻碍')).toHaveTextContent('金额字段应保留几位小数？')
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+})
+
+
+test('explicit review requirement waits for the user while the file remains available', () => {
+  const events = [event(1, 'delivery', { status: 'succeeded', delivery: { artifact_refs: [artifactRef], data: { draft: true, review_state: 'unreviewed', delivery: [] } } })]
+  render(<MemoryRouter><TaskPanel task={task({ status: 'waiting_user', delivery_policy: 'reviewed' })} events={events} {...callbacks()} /></MemoryRouter>)
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('未复核 · 待用户核准')
 })

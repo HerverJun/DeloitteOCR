@@ -356,6 +356,8 @@ class HarnessEngine:
                 review = state.pop('completion_review_notice', None)
                 content = ('[正式成果的固定版本复核已收到真实用户答复。确认时加载并使用适用的复核应用工具，'
                     '再生成核准后的成果；不确认时保留未复核标识并说明当前限制。不得代替用户确认。]\n' + canonical(review)) if review else (
+                    '[继续原任务；已保存成果可直接读取下载，只补齐明确缺失项。复用原操作回执，勿重做成功项。完成后自然回复，确实缺少用户信息才提问。]\n' + canonical(state.get('remaining_delivery_work', {}))
+                    if state.get('execution_contract') == 'clear-general-agent-v1' else
                     '[任务尚未通过交付检查。根据原目标、当前计划及真实回执继续执行；完成业务任务需调用 delivery_publish 核验交付，需要输入时调用 ask_user。]')
                 fresh = False
                 self.save(state)

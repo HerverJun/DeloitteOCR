@@ -279,3 +279,12 @@ def register(registry):
         ExtractText, extract_text, effect='derive', idempotent=True, availability=lambda services: {'state': 'ready'}))
     registry.register(ToolSpec('data_clean_files', '按已有Data算子批量清洗文件，内部完成导入、步骤、等待、读回和逐文件导出。trim_columns一次处理多列；只改变指定列，保留其余原值和来源。files需真实asset_id；多工作表需options.sheet_name。返回成功文件与失败项。',
         CleanFiles, clean_files, effect='derive', idempotent=True, availability=data.available))
+
+    from .native import availability as native_availability
+    from .composed_business import ClassificationPredict, CompareFiles, classification_predict, data_compare_files
+    registry.register(ToolSpec('classification_predict', '使用指定或唯一活动的已有模型预测所选图片；内部完成准备、固定输入、等待、读回和导出。无需内部版本或资料集ID；不训练、不修改人工标签。失败返回原操作续办入口。',
+        ClassificationPredict, classification_predict, effect='derive', idempotent=True,
+        lookup_operation=classification_predict, availability=lambda services: native_availability(services, 'classification')))
+    registry.register(ToolSpec('data_compare_files', '按明确条件核对两份文件；内部完成导入、清洗、比对、读回与导出。列配对接受实际列ID或唯一表头，amount_pairs自动精确转Decimal；steps使用列ID。只有多工作表或重复列名需澄清。',
+        CompareFiles, data_compare_files, effect='derive', idempotent=True,
+        lookup_operation=data_compare_files, availability=data.available))

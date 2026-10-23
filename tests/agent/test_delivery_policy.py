@@ -109,6 +109,7 @@ class PolicyPersistenceTests(unittest.IsolatedAsyncioTestCase):
         with self.store.transaction() as db:
             body, revision = self.services.agent.tasks._body(db, self.ctx.session_id)
             body['goal'] = '请生成正式结果'
+            body.pop('delivery_policy_version', None)
             with patch('workbench_platform.resources.reader_features.require_features') as feature:
                 self.services.agent.tasks._save(db, self.ctx.session_id, body, revision)
                 feature.assert_called_with(self.store.root.parent, 'agent-multimodal-v1')
@@ -139,14 +140,14 @@ class PolicyPersistenceTests(unittest.IsolatedAsyncioTestCase):
         tasks.control(self.ctx.session_id, {'request_id': 'manual-user', 'expected_revision': task['revision'], 'action': 'take_over'})
         task = self.task()
         tasks.return_results(self.ctx.session_id, {'request_id': 'return-user', 'expected_revision': task['revision'],
-            'summary': '请沿本任务生成正式结果', 'references': [], 'include_asset_ids': []})
+            'summary': '请沿本任务在人工确认后生成正式结果', 'references': [], 'include_asset_ids': []})
         self.assertTrue(self.task()['delivery_policy_resolution']['require_review'])
         self.assertEqual(self.task()['delivery_policy_inference']['source'], 'user_manual_return')
 
     def test_replaying_an_old_user_message_cannot_replace_a_newer_user_policy(self):
         tasks = self.services.agent.tasks
         tasks.record_goal(self.ctx.session_id, '仅交付草稿', 'old-draft-user')
-        tasks.record_goal(self.ctx.session_id, '请生成正式结果', 'new-formal-user')
+        tasks.record_goal(self.ctx.session_id, '请在人工确认后生成正式结果', 'new-formal-user')
         tasks.record_goal(self.ctx.session_id, '仅交付草稿', 'old-draft-user')
         self.assertTrue(self.task()['delivery_policy_resolution']['require_review'])
         with self.assertRaises(Conflict):
@@ -156,7 +157,7 @@ class PolicyPersistenceTests(unittest.IsolatedAsyncioTestCase):
         tasks = self.services.agent.tasks
         self.store.event(self.ctx.session_id, self.ctx.run_id, 'legacy-draft-user', 'message', {'role': 'user', 'content': '仅交付草稿'})
         task = self.task()
-        tasks.update(self.ctx.session_id, {'request_id': 'new-formal-goal', 'expected_revision': task['revision'], 'goal': '请生成正式结果'})
+        tasks.update(self.ctx.session_id, {'request_id': 'new-formal-goal', 'expected_revision': task['revision'], 'goal': '请在人工确认后生成正式结果'})
         tasks.record_goal(self.ctx.session_id, '仅交付草稿', 'legacy-draft-user')
         self.assertTrue(self.task()['delivery_policy_resolution']['require_review'])
 
