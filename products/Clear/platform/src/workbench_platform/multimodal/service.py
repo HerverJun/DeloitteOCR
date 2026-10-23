@@ -434,7 +434,7 @@ class MultimodalService:
                     path=output/name
                     if Path(name).name!=name or not path.is_file() or path.stat().st_size!=identity.get('bytes') or self.file_hash(path)!=identity.get('sha256'):return
                 self._accept_result(item,output)
-                if item.get('purpose')=='preparation':self._record_prepared(item,output)
+                if item.get('purpose')=='preparation' or item.get('prepare_on_success'):self._record_readiness(item,output)
                 item['recovery_receipt']={'from_generation':item['generation'],'verified_at':now(),'result_recovered':True}
                 return
             self._feature()
@@ -737,8 +737,9 @@ class MultimodalService:
                 return self.public(json.loads(existing['body']))
             capability=next(x for x in self.capabilities()['items'] if x['kind']==kind)
             if capability['missing']:raise DataError('模型或运行环境尚未备齐：'+', '.join(capability['missing']),503)
-            if value['options']['device']=='cpu' and not capability['cpu_ready'] and not preparation:
-                raise DataError('此模型尚未完成真实 CPU 推理验证，请先运行交付诊断',409)
+            if value['options']['device']=='cpu' and kind in deep_backend.DEEP_KINDS and deep_backend.backend(self.config)=='safire':
+                raise DataError('此模型仅开放已完成推理验证的 CUDA 路线，不提供 CPU 切换',409)
+            prepare_on_success=value['options']['device']=='cpu' and not capability['cpu_ready'] and not preparation
             if value['options']['device']=='cuda' and not capability['gpu_ready']:
                 raise DataError('此模型的 GPU 路线尚未通过本机工程实测，请先运行交付诊断',409)
             if kind=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
@@ -773,7 +774,7 @@ class MultimodalService:
             item={'schema_version':'1.0','job_id':identifier,'workspace_id':workspace,'request_id':value['request_id'],
                   'kind':kind,'inputs':inputs,'options':value['options'],'status':'queued','stage':'queued','revision':1,
                   'created_at':now(),'updated_at':now(),'result':None,'result_hash':None,'review':None,'error':None,'generation':1,
-                  'progress':{},'actual_device':None,'frozen_references':frozen_references,'purpose':'preparation' if preparation else 'analysis'}
+                  'progress':{},'actual_device':None,'frozen_references':frozen_references,'purpose':'preparation' if preparation else 'analysis','prepare_on_success':prepare_on_success}
             if kind in deep_backend.DEEP_KINDS:
                 item['model_binding']=deep_backend.bind(self)
                 if item['model_binding']['engine']=='safire':require_features(self.root.parent,'safire-forensics-v1')
@@ -796,7 +797,7 @@ class MultimodalService:
                 generation=item['generation']
                 item.update(status='running',stage='prepare',worker_epoch=epoch,updated_at=now());self.save(db,item)
             output=f_path(self.root/job/f"attempt-{item['generation']}");output.mkdir(parents=True,exist_ok=True)
-            if item.get('purpose')=='preparation':self._validate_preparation(item)
+            if item.get('purpose')=='preparation' or item.get('prepare_on_success'):self._validate_preparation(item)
             checkpoints=local_path(self.root/job/'audio-checkpoints');checkpoints.mkdir(parents=True,exist_ok=True)
             reduced=item.get('oom_retries',0)>0
             pinned=aigc_backend.item_binding(item) if item['kind']=='aigc_image' else deep_backend.item_binding(self,item) if item['kind'] in deep_backend.DEEP_KINDS else None
@@ -872,7 +873,7 @@ class MultimodalService:
                         current.update(status='failed',stage='failed',error=outcome.error)
                     else:
                         self._accept_result(current,output)
-                        if current.get('purpose')=='preparation':self._record_prepared(current,output)
+                        if current.get('purpose')=='preparation' or current.get('prepare_on_success'):self._record_readiness(current,output)
                     if current['status']!='queued':self._cancel_pending(current)
                     current.update(updated_at=now());self.save(db,current)
         except Exception as error:
@@ -928,13 +929,27 @@ class MultimodalService:
             current['progress']={**current.get('progress',{}),'processed_ms':duration,'duration_ms':duration,
                 'completed_chunks':chunks,'total_chunks':chunks}
 
+    def _record_readiness(self,item,output):
+        from .cpu_validation import ReadinessRecordError
+        if item.get('purpose')=='preparation':
+            return self._record_prepared(item,output)
+        try:
+            self._record_prepared(item,output)
+        except ReadinessRecordError as error:
+            # Readiness bookkeeping is separate from a completed business result.
+            item['preparation_pending']=True
+            item['preparation_record_error']=str(error)[:500]
+        else:
+            item.pop('preparation_pending',None)
+            item.pop('preparation_record_error',None)
+
     def _record_prepared(self,item,output):
         from .cpu_validation import record_cpu_validation
         runtime=next(value['runtime'] for value in self.capabilities()['items'] if value['kind']==item['kind'])
         record_cpu_validation(SOURCE,self.program,self.root.parent,item['kind'],self.program/runtime,output,
             {'kind':item['kind'],'outcome':{'status':'succeeded'},'actual_device':item['actual_device'],
              'cleanup_confirmed':True,'output':str(output),'job_id':item['job_id'],'generation':item['generation'],
-             'scope':'Durable selected-input preparation; not business accuracy qualification'})
+             'scope':'Successful offline selected-input CPU inference; not business accuracy qualification'})
 
     def _validate_preparation(self,item):
         from .cpu_validation import validate_inventory
@@ -967,7 +982,12 @@ class MultimodalService:
                     raise DataError('原执行终止凭证尚未核实，不能重试',409)
                 capability=self.capability_for_item(item)
                 target='cpu' if action=='retry_cpu' else item['options']['device']
-                if not capability['cpu_ready' if target=='cpu' else 'gpu_ready']:
+                if target=='cpu':
+                    if (item.get('model_binding') or {}).get('engine')=='safire':
+                        raise DataError('此模型仅开放已完成推理验证的 CUDA 路线，不提供 CPU 切换',409)
+                    if capability.get('missing'):raise DataError('模型或运行环境缺失，不能重试',409)
+                    item['prepare_on_success']=not capability['cpu_ready']
+                elif not capability['gpu_ready']:
                     raise DataError('模型或运行环境已变化，请完成推理验证后重试',409)
                 if item['kind']=='audio':self._check_disk_budget(db,additional_audio=AUDIO_DISK_BUDGET)
                 self._cancel_pending(item)

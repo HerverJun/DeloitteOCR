@@ -1,16 +1,16 @@
-> 当前登记（2026-10-23）：正式 8879 仍为 Clear 0.16.0 SAFIRE；独立文档主题对比候选 0.18.0 使用 8988，整图 AIGC 实验候选 0.19.0 使用 8990，均未切换正式登记。本目录同步 2,076 个登记源码文件，实际运行版本以各候选清单及正式登记为准。详见[文档对比验收](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)与[AIGC 实测报告](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)。
+> 当前登记（2026-10-23）：正式 8879 仍为 Clear 0.16.0 SAFIRE；0.20.0 易用性候选使用 8992，已封存并等待实用验收，尚未切换正式登记。审阅源码同步自登记工作树 HEAD `12a1db8557f645d2a7f371d5b36bc0c7b8227bdd`，保留文档主题对比 0.18.0（8988）和整图 AIGC 实验 0.19.0（8990）的独立源码；0.20.0 候选来自独立 `e65c401c5f3787e3246d4f38576657c87cfd0048` 分支，不含上述实验扩展。本目录同步 2,079 个登记源码文件，实际运行版本以各候选清单及正式登记为准。详见[文档对比验收](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)与[AIGC 实测报告](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)。
 
 # Clear 三应用源码与版本对应
 
-本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-22；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
+本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-23；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
 
 | 本仓目录 | 原开发目录 | 本轮文件数 | 作用 |
 |---|---|---:|---|
-| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 946 | 门户、Agent 工作台、文档主题对比、整图 AIGC 检测、Harness 适配与业务服务 |
+| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 949 | 门户、Agent 工作台、文档主题对比、整图 AIGC 检测、Harness 适配与业务服务 |
 | [classification](classification/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\classification` | 195 | 图像标注、训练、模型、推理与人工复核 |
 | [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 935 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可，含 MinerU Pro 接入 |
 
-每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。本轮平台 HEAD 为 `a50f8751127dcf897e65bd86a8cca9cf91e25bc4`，OCR 为 `adab40a77ad294a5011f1212491dd4277ed8d772`，分类为 `1be916be64fcbe425cae356f28c106c586da3d7a`，捕获时三仓均干净。来源仓库和远端配置保留。
+每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。本轮平台 HEAD 为 `12a1db8557f645d2a7f371d5b36bc0c7b8227bdd`，OCR 为 `adab40a77ad294a5011f1212491dd4277ed8d772`，分类为 `1be916be64fcbe425cae356f28c106c586da3d7a`，捕获时三仓均干净。来源仓库和远端配置保留。
 
 当前正式入口为 **0.16.0 SAFIRE**、<http://127.0.0.1:8879/>。本轮审阅源码包含文档/Pro 接入、真实 Debug 修复、[文档主题对比](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)和[独立整图 AIGC 检测](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)，没有切换正式登记。AIGC 保留 SAFIRE 局部定位，最坏变换误报率的单侧 95% 上界为 1.88%，超过 1% 目标，且缺少生成文档正例，保持实验能力；具体范围与数据缺口见实测报告。此前 0.14.0 的通用 Agent 能力、旧会话/成果下载、冷备和回退历史证据见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述较早候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
 

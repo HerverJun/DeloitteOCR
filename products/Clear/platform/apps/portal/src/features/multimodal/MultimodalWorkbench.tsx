@@ -65,7 +65,7 @@ export function MultimodalApplicationCard({ kind }: { kind: 'face' | 'audio' | '
     <Text className="application-purpose">{kind === 'face' ? '静态照片核对与项目参考库' : kind === 'aigc_image' ? '独立整图分类 · 生成相关信号复核' : '中文录音转写与片段复核'}</Text>
     <Paragraph className="application-description" type="secondary">{descriptions[kind]}</Paragraph>
     <div className="application-state"><Tag color={current?.cpu_ready || kind === 'aigc_image' && current?.gpu_ready ? 'success' : current?.missing.length ? 'warning' : 'default'}>
-      {capability.isPending ? '正在核实' : kind === 'aigc_image' && current?.gpu_ready ? 'GPU 推理已验证' : current?.cpu_ready ? 'CPU 推理已验证' : current?.missing.length ? '资源待准备' : '待推理验证'}</Tag>
+      {capability.isPending ? '正在核实' : kind === 'aigc_image' && current?.gpu_ready ? 'GPU 推理已验证' : current?.cpu_ready ? 'CPU 推理已验证' : current?.missing.length ? '资源待准备' : kind === 'aigc_image' ? '待 GPU 验证' : '首次使用自动准备'}</Tag>
       <Text type="secondary">{kind === 'face' ? '项目内独立参考库' : kind === 'aigc_image' ? '实验能力 · 独立人工复核' : '原音时间定位与人工修订'}</Text></div>
     {capability.isError && <Alert type="error" title="能力状态暂不可读取" />}
     <Link className="application-actions" to={to}><Button type="primary">打开{names[kind]}</Button></Link>
@@ -116,10 +116,11 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
   const suffixes: Record<Kind, RegExp> = { face: /\.(jpe?g|png|webp|bmp)$/i, audio: /\.(wav|mp3|m4a|flac|ogg|aac|wma)$/i, seal: /\.(jpe?g|png|webp|bmp|pdf)$/i, catnet: /\.(jpe?g|png|webp|bmp|tiff?)$/i, document_forensics: /\.(jpe?g|png|webp|bmp|tiff?)$/i, aigc_image: /\.(jpe?g|png|webp|bmp|tiff?)$/i }
   const files = media.data?.filter(item => suffixes[kind].test(item.original_name)) || []
   const count = kind === 'face' && action === 'compare' ? 2 : 1
-  const deviceReady = device === 'cuda' ? capability?.gpu_ready : capability?.cpu_ready
+  const cpuAvailable = !!capability && (capability.cpu_ready || !isDeepKind(kind) && kind !== 'aigc_image' && !capability.missing.length)
+  const deviceReady = device === 'cuda' ? capability?.gpu_ready : cpuAvailable
   return <>
     <details className="panel mm-input" open={!selected}><summary className="mm-input-heading"><span>选择资料与分析方式</span><Tag color={deviceReady ? 'success' : 'default'}>
-      {deviceReady ? `${device === 'cuda' ? 'GPU' : 'CPU'} 已验证` : capability?.missing.length ? '资源未齐' : '待验证'}</Tag></summary>
+      {deviceReady ? device === 'cpu' && !capability?.cpu_ready ? 'CPU · 首次使用自动准备' : `${device === 'cuda' ? 'GPU' : 'CPU'} 已就绪` : capability?.missing.length ? '资源未齐' : '待验证'}</Tag></summary>
       <UploadQueue workspaceId={workspaceId} compact allowLargeAudio={kind === 'audio'} onUploaded={assetId => { void media.refetch(); setSelectedInputs([assetId]) }} />
       {capabilities.isPending ? <Skeleton paragraph={{ rows: 2 }} /> : capability?.missing.length ? <Alert type="warning" title="此能力的模型或运行环境尚未备齐" description="可先导入资料；资源准备完成后开始分析。" /> : null}
       {(media.error || capabilities.error) && <Alert type="error" title={(media.error || capabilities.error)?.message} action={<Button onClick={() => { void media.refetch(); void capabilities.refetch() }}>重试</Button>} />}

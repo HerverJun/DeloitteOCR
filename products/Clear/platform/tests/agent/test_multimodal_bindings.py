@@ -191,3 +191,40 @@ class BindingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(multimodal.authorized(self.ctx), set())
         self.services.agent.tasks.apply_scope(self.session['id'])
         self.assertEqual(multimodal.authorized(self.ctx), {'face1'})
+
+
+    def test_analysis_files_settle_reuses_snapshot_and_only_retries_export(self):
+        self.native.collect_snapshot.side_effect = [OSError('export interrupted'),
+            {'bundle_id': 'bundle1', 'files': [{'name': 'result.json'}]}]
+        ref = multimodal.job_ref(self.ctx, self.item, output='files').model_dump()
+        partial = multimodal.settle(ref, self.ctx)
+        self.assertEqual(partial['status'], 'success')
+        self.assertEqual(partial['data']['failures'][0]['arguments']['snapshot_id'], 'ms1')
+        completed = multimodal.settle(ref, self.ctx)
+        self.assertEqual(completed['artifact_refs'][0]['object_id'], 'bundle1')
+        self.assertEqual(completed['data']['completed_asset_ids'], ['asset1'])
+        self.native.create.assert_not_called()
+        self.native.snapshot_export.assert_not_called()
+        self.assertEqual(self.native.collect_snapshot.call_count, 2)
+
+    def test_preview_settle_does_not_generate_files(self):
+        ref = multimodal.job_ref(self.ctx, self.item, output='preview').model_dump()
+        result = multimodal.settle(ref, self.ctx)
+        self.assertEqual(result['status'], 'success')
+        self.native.collect_snapshot.assert_not_called()
+
+
+    def test_export_continuation_keeps_generation_and_snapshot_boundaries(self):
+        from workbench_platform.agent.general_outputs import remaining_items
+        from workbench_platform.agent.store import RunSuperseded
+        failure = {'asset_id': 'asset1', 'failure_key': 'multimodal-export:j1:ms1'}
+        initial = {'status': 'success', 'data': {'failures': [failure]}}
+        unrelated = {'status': 'success', 'data': {'completed_asset_ids': ['asset1'],
+            'completed_failure_keys': ['multimodal-export:j2:ms2']}}
+        self.assertEqual(remaining_items([initial, unrelated]), [failure])
+        exact = {'status': 'success', 'data': {'completed_failure_keys': ['multimodal-export:j1:ms1']}}
+        self.assertEqual(remaining_items([initial, unrelated, exact]), [])
+        self.native.collect_snapshot.side_effect = RunSuperseded('cancelled')
+        ref = multimodal.job_ref(self.ctx, self.item, output='files').model_dump()
+        with self.assertRaises(RunSuperseded):
+            multimodal.settle(ref, self.ctx)

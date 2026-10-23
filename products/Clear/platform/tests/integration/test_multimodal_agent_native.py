@@ -287,30 +287,32 @@ def test_data_local_cpu_receipt_requires_success_and_exact_program_resource_iden
     assert json.loads(bundled.read_text('utf-8'))=={'face':{'resources':resources,'cpu':False}}
 
 
-def test_preparation_is_an_identified_async_job_and_normal_analysis_still_requires_readiness(service,monkeypatch):
+def test_first_cpu_analysis_prepares_once_and_optional_diagnostic_stays_compatible(service,monkeypatch):
     value,_,calls,_=service;ready=[False];prepared=[]
     monkeypatch.setattr(MultimodalService,'capabilities',lambda _self:{'items':[
         {'kind':kind,'runtime':__import__('sys').executable,'cpu_ready':ready[0],'gpu_ready':False,'missing':[]}
         for kind in ('face','audio','seal','catnet')]})
     def committed(item,output):
-        assert item['purpose']=='preparation' and item['actual_device']=='cpu'
+        assert item['purpose'] in {'analysis','preparation'} and item['actual_device']=='cpu'
         prepared.append(item['job_id']);ready[0]=True
     monkeypatch.setattr(value,'_record_prepared',committed)
     monkeypatch.setattr(value,'_validate_preparation',lambda _item:None)
     source=value.registry.get('wTest','aTest')
     command={'request_id':'prepareIdentity','inputs':[{'asset_id':'aTest','asset_revision':1,'blob_hash':source.blob_hash}],
              'options':{'device':'cpu','action':'detect'}}
-    with pytest.raises(DataError,match='真实 CPU 推理验证'):
-        value.create('wTest',{**command,'kind':'face','request_id':'notReadyBusiness'})
+    first=value.create('wTest',{**command,'kind':'face','request_id':'firstBusiness'})
+    final=terminal(value,first['job_id'])
+    assert final['purpose']=='analysis' and prepared==[first['job_id']] and len(calls)==1
+    assert value.create('wTest',{**command,'kind':'face','request_id':'firstBusiness'})['job_id']==first['job_id']
     submitted=value.prepare('wTest','face',command)
     assert submitted['purpose']=='preparation' and submitted['status']=='queued'
     final=terminal(value,submitted['job_id'])
-    assert final['purpose']=='preparation' and prepared==[submitted['job_id']]
-    assert value.prepare('wTest','face',command)['job_id']==submitted['job_id'] and len(calls)==1
+    assert final['purpose']=='preparation' and prepared==[first['job_id'],submitted['job_id']]
+    assert value.prepare('wTest','face',command)['job_id']==submitted['job_id'] and len(calls)==2
     assert value.lookup_operation('wTest','prepare','prepareIdentity')['resource_id']==submitted['job_id']
     assert value.lookup_operation('wTest','create','prepareIdentity')['found'] is False
     business=value.create('wTest',{**command,'request_id':'readyBusiness','kind':'face'})
-    terminal(value,business['job_id']);assert len(calls)==2
+    terminal(value,business['job_id']);assert len(calls)==3
     with pytest.raises(DataError):value.prepare('wTest','face',{**command,'request_id':'gpuNotQualification','options':{'device':'cuda'}})
 
 
@@ -386,3 +388,23 @@ def test_preparation_cannot_execute_a_model_without_sealed_resource_identity(ser
         'inputs':[{'asset_id':'aTest','asset_revision':1,'blob_hash':source.blob_hash}]})
     failed=terminal(value,submitted['job_id'],'failed')
     assert '模型资源清单' in failed['error'] and calls==[]
+
+
+def test_first_cpu_result_survives_readiness_registry_write_failure(service,monkeypatch):
+    value,_,calls,_=service
+    monkeypatch.setattr(MultimodalService,'capabilities',lambda _self:{'items':[
+        {'kind':kind,'runtime':__import__('sys').executable,'cpu_ready':False,'gpu_ready':False,'missing':[]}
+        for kind in ('face','audio','seal','catnet')]})
+    monkeypatch.setattr(value,'_validate_preparation',lambda _item:None)
+    from workbench_platform.multimodal.cpu_validation import ReadinessRecordError
+    def failed_registry(_item,_output):raise ReadinessRecordError('readiness registry unavailable')
+    monkeypatch.setattr(value,'_record_prepared',failed_registry)
+    source=value.registry.get('wTest','aTest')
+    command={'request_id':'cpuRegistryFailure','kind':'face',
+        'inputs':[{'asset_id':'aTest','asset_revision':1,'blob_hash':source.blob_hash}],
+        'options':{'device':'cpu','action':'detect'}}
+    job=value.create('wTest',command)
+    final=terminal(value,job['job_id'])
+    assert final['status']=='succeeded' and raw(value,job['job_id'])['preparation_pending'] is True
+    assert value.snapshot('wTest',job['job_id'])['analysis']['result']
+    assert value.create('wTest',command)['job_id']==job['job_id'] and len(calls)==1

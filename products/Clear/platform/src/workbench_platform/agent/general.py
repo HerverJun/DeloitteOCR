@@ -61,10 +61,29 @@ async def finish_text(runtime, state):
     verified = (delivery or {}).get('data', {}).get('verified') is True
     incomplete = bool(remaining) or bool(delivery) and (not verified or delivery.get('data', {}).get('completeness') == 'partial')
     if incomplete:
+        # Keep the same DSH turn alive for bounded repair of missing outputs.
+        # Review denials and unknown effects remain genuine blockers.
+        from .goal_progress import stable
+        details = {'failures': remaining, 'coverage': (delivery or {}).get('data', {}).get('requirement_coverage', {}),
+                   'limitations': (delivery or {}).get('data', {}).get('limitations', [])}
+        error_code = (delivery or {}).get('error', {}).get('code')
+        repairable = bool(remaining or verified) and error_code not in {'review_required', 'response_unknown'}
+        signature = digest(stable(details))
+        attempts = state.get('output_repair_attempts', 0) + 1 if signature == state.get('output_repair_signature') else 1
+        if repairable and attempts <= 2 and not state.get('completion_review_notice'):
+            state.update(output_repair_signature=signature, output_repair_attempts=attempts,
+                         remaining_delivery_work={**details, 'instruction': '已有成果可读取下载；只补齐失败或缺失项，复用原回执，不重做成功项。可用自然文字完成。'},
+                         delivery=None)
+            state.pop('final_response', None)
+            runtime.graph.save(state)
+            return False
         reason = ('已有输出已保存，仍有' + str(len(remaining)) + '项未完成') if remaining else delivery.get('summary', '已有输出已保存，部分要求仍待完成')
         status = 'paused'
         content += '\n\n' + reason
     else:
+        state.pop('remaining_delivery_work', None)
+        state.pop('output_repair_signature', None)
+        state.pop('output_repair_attempts', None)
         status = 'succeeded' if state.get('business_started') or references else 'answered'
     display_id = response['request_id'] + ':text'
     refs = list(references.values())

@@ -18,7 +18,11 @@ def runtime_for(tmp_path):
     runtime.running, runtime.reschedules, runtime.maintenance = {}, {}, {}
     runtime.closing, runtime.agent_enabled, runtime.model_provider = False, True, object()
     runtime.tasks = SimpleNamespace(get=lambda _: {'manual': False, 'scope_revision': 1})
-    runtime.graph = SimpleNamespace(load=lambda _: dict(state), save=Mock(),
+    def save_state(value):
+        snapshot = dict(value)
+        state.clear()
+        state.update(snapshot)
+    runtime.graph = SimpleNamespace(load=lambda _: dict(state), save=Mock(side_effect=save_state),
         ainvoke=AsyncMock(side_effect=ProviderFault('provider_unavailable', '503 synthetic')))
     runtime.registry = SimpleNamespace(tools={})
     runtime.schedule = Mock()
@@ -243,8 +247,8 @@ def test_actual_harness_continues_original_goal_after_rejected_or_unknown_genera
             requests.append(state['run_id'])
             if len(requests) == 1:
                 raise ProviderFault(fault_code, 'Injected model interruption')
-            return {'id': 'resumed-response', 'role': 'assistant', 'content': '',
-                'calls': [{'call_id': 'resumed-answer', 'tool': 'conversation_answer', 'arguments': {'content': '原目标已继续'}}],
+            return {'id': 'resumed-response', 'role': 'assistant', 'content': '原目标已继续',
+                'calls': [],
                 'protocol': 'openai_chat_completions', 'private': {}, 'blocks': None, 'usage': {'input_tokens': 1, 'output_tokens': 1}}
         runtime = AgentRuntime(tmp_path / 'actual-harness', services, model_provider=provider)
         services.agent = runtime
@@ -269,13 +273,6 @@ def test_actual_harness_continues_original_goal_after_rejected_or_unknown_genera
                         return saved
                     await asyncio.sleep(.05)
                 raise AssertionError(runtime.store.events(session['id'], limit=10000))
-            if fault_code == 'response_unknown':
-                assert (await wait_for({'needs_verification', 'failed'}))['status'] == 'needs_verification', errors
-                active = runtime.running.get(run['id'])
-                if active:
-                    await active
-                await asyncio.sleep(0)
-                await runtime.reconcile(run['id'])
             assert (await wait_for({'answered', 'failed', 'paused'}))['status'] == 'answered', errors
             assert requests == [run['id'], run['id']]
             assert len(runtime.store.rows('SELECT id FROM runs')) == 1

@@ -35,7 +35,7 @@ class AuditTasks:
         row = db.execute('SELECT * FROM audit_tasks WHERE session_id=?', (session_id,)).fetchone()
         if not row:
             body = {'title': session['name'], 'goal': '', 'scope_revision': 1,
-                    'plan': [], 'plan_revision': 0, 'manual': False, 'pending_scope': None, 'authorized_reference_ids': [], 'delivery_policy': 'auto'}
+                    'plan': [], 'plan_revision': 0, 'manual': False, 'pending_scope': None, 'authorized_reference_ids': [], 'delivery_policy': 'auto', 'delivery_policy_version': 2}
             db.execute('INSERT INTO audit_tasks VALUES(?,1,?,?)', (session_id, canonical(body), now()))
             return body, 1
         body = json.loads(row['body'])
@@ -113,7 +113,8 @@ class AuditTasks:
                 db.execute('INSERT INTO audit_policy_user_inputs VALUES(?,?,?)', (session_id, request_id, content_hash))
             if previous_at and datetime.fromisoformat(received_at.replace('Z', '+00:00')) < datetime.fromisoformat(previous_at.replace('Z', '+00:00')):
                 return
-            changed = False
+            from .delivery_policy import adopt_explicit_policy
+            changed = adopt_explicit_policy(body)
             inference = infer_user_delivery_policy(content, source='user_goal' if not body['goal'] or body['goal'] == content else 'user_message', request_id=request_id)
             if inference and inference != body.get('delivery_policy_inference'):
                 from workbench_platform.resources.reader_features import require_features
@@ -152,6 +153,8 @@ class AuditTasks:
                 body['title'] = payload['name']
                 db.execute('UPDATE sessions SET name=? WHERE id=?', (payload['name'], session_id))
             if payload.get('goal') is not None:
+                from .delivery_policy import adopt_explicit_policy
+                adopt_explicit_policy(body)
                 body['goal'] = payload['goal']
                 if inference:
                     body['delivery_policy_inference'] = inference

@@ -238,6 +238,40 @@ class GeneralAgentTests(unittest.IsolatedAsyncioTestCase):
         finally:
             await runtime.close()
 
+    async def test_partial_outputs_continue_in_same_harness_run_without_delivery_tool(self):
+        from dataclasses import replace
+        from unittest.mock import Mock
+        seen = []
+        async def provider(state, schemas):
+            seen.append(state['run_id'])
+            if state['step'] == 0:
+                return response(state, 'write', {'file_path': 'completed.txt', 'content': '已成功部分42'})
+            if state['step'] in {1, 3}:
+                return response(state, 'workspace_get_context', {})
+            if state['step'] == 2:
+                return response(state, content='已保存可用部分，继续补齐失败项。')
+            self.assertIn('只补齐', json.dumps(state['messages'], ensure_ascii=False))
+            return response(state, content='失败项已补齐。')
+        runtime, session = await self.runtime(provider)
+        calls = []
+        def execute(args, ctx):
+            calls.append(ctx.run_id)
+            return {'status': 'success', 'summary': 'receipt', 'job_refs': [], 'result_refs': [], 'artifact_refs': [],
+                    'data': {'failures': [{'asset_id': 'missing', 'message': 'temporary'}]} if len(calls) == 1 else {'completed_asset_ids': ['missing']}}
+        runtime.registry.tools['workspace_get_context'] = replace(runtime.registry.tools['workspace_get_context'], execute=execute)
+        try:
+            run = await runtime.submit(session['id'], '处理资料并补齐可恢复失败', 'general-partial-repair')
+            await self.wait_status(runtime, run['id'], {'answered', 'succeeded', 'paused', 'failed'})
+            self.assertEqual(runtime.store.run(run['id'])['status'], 'succeeded', runtime.store.run(run['id']))
+            self.assertEqual(seen, [run['id']] * 5)
+            published = runtime.store.rows("SELECT result FROM operations WHERE tool='workspace_publish_outputs'")
+            self.assertEqual(len(published), 1)
+            self.assertTrue(json.loads(published[0]['result'])['artifact_refs'])
+            self.assertEqual(calls, [run['id']] * 2)
+            self.assertEqual(runtime.store.rows("SELECT id FROM operations WHERE tool='delivery_publish'"), [])
+        finally:
+            await runtime.close()
+
     async def test_legacy_state_keeps_explicit_answer_contract(self):
         async def provider(*_):
             self.fail('Pure legacy completion probe must not call a model')

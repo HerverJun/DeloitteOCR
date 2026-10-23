@@ -442,7 +442,7 @@ class AgentRuntime(HarnessService):
                 'continuation_deferred', {'reason': str(error)[:500], 'input_preserved': True,
                     'version': 1, 'generation': run['generation']})
 
-    async def drive(self, run_id, input, *, _recovery_attempt=0):
+    async def drive(self, run_id, input):
         generation = self.store.run(run_id)['generation']
         try:
             driver = self.store.run(run_id).get('driver', 'harness')
@@ -473,31 +473,48 @@ class AgentRuntime(HarnessService):
             from workbench_platform.application_services.image_text import ReceiptUnknown
             from workbench_platform.application_services.errors import ResourceBusy
             if isinstance(error, ResourceBusy):
-                self.finish_error(run_id, generation, 'paused', 'resource_busy', str(error) + ' 关联任务释放后点击继续原任务。')
+                self.wait_for_resource(run_id, generation, str(error))
             elif isinstance(error, ReceiptUnknown):
                 self.finish_error(run_id, generation, 'needs_verification', 'response_unknown', str(error))
             else:
                 self.finish_error(run_id, generation, 'failed', 'execution_conflict',
                                   '执行身份或配置版本已变化，请读取当前状态后继续')
         except ProviderFault as error:
-            if self.store.run(run_id)['status'] == 'paused':
+            current = self.store.run(run_id)
+            if self.closing or current['generation'] != generation or current['status'] in {'paused', 'cancelled'}:
                 return
-            from .task_recovery import RECOVERABLE, AUTO_RETRY, recovery_message
-            unknown = self.store.rows("SELECT id FROM model_requests WHERE run_id=? AND state='sent'", (run_id,))
-            if error.code in AUTO_RETRY and _recovery_attempt < 1 and not unknown:
-                self.store.public_event(run_id, generation, run_id + ':controller-retry:' + str(
-                    self.store.rows('SELECT COUNT(*) AS n FROM model_requests WHERE run_id=?', (run_id,))[0]['n']),
-                    'controller_retry', {'reason': error.code, 'attempt': 1})
-                if self.graph is not None and driver not in DIRECT_DRIVERS:
-                    state = self.graph.load(run_id)
-                    state.pop('last_bridge_error', None)
-                    self.graph.save(state)
-                await self.collect_available_results(run_id)
-                await asyncio.sleep(.2)
-                current = self.store.run(run_id)
-                if current['generation'] != generation or current['status'] in {'paused', 'cancelled'}:
+            from .task_recovery import RECOVERABLE, AUTO_RETRY, recovery_message, prepare_resume, retry_delay
+            state = self.graph.load(run_id) if self.graph is not None else {}
+            retries = state.get('provider_retries', {})
+            attempts = retries.get(error.code, 0)
+            retryable = error.http_status is None or error.http_status == 429 or error.http_status >= 500
+            if error.code in AUTO_RETRY and retryable and attempts < 2 and driver not in DIRECT_DRIVERS:
+                try:
+                    await prepare_resume(self, self.store.run(run_id), automatic=True)
+                except Conflict:
+                    # An unknown business effect cannot be retried as a model fault.
+                    self.finish_error(run_id, generation, 'needs_verification', 'response_unknown',
+                                      '原业务操作回执尚不可核实，已保留成果；恢复原服务后继续')
                     return
-                await self.drive(run_id, None, _recovery_attempt=1)
+                state = self.graph.load(run_id)
+                state['provider_retries'] = {**retries, error.code: attempts + 1}
+                state.pop('last_bridge_error', None)
+                self.graph.save(state)
+                delay = retry_delay(error, attempts)
+                self.store.public_event(run_id, generation, run_id + ':controller-retry:' + str(
+                    self.store.rows('SELECT COUNT(*) AS n FROM model_requests WHERE run_id=?', (run_id,))[0]['n']) + ':' + str(attempts),
+                    'controller_retry', {'reason': error.code, 'attempt': attempts + 1, 'delay_seconds': delay})
+                await self.collect_available_results(run_id)
+                while delay > 0:
+                    await asyncio.sleep(min(delay, 1))
+                    delay -= min(delay, 1)
+                    current = self.store.run(run_id)
+                    if self.closing or current['generation'] != generation or current['status'] in {'paused', 'cancelled'}:
+                        return
+                current = self.store.run(run_id)
+                if self.closing or current['generation'] != generation or current['status'] in {'paused', 'cancelled'}:
+                    return
+                await self.drive(run_id, None)
                 return
             status = 'needs_verification' if error.code == 'response_unknown' else 'paused' if error.code in RECOVERABLE else 'failed'
             message = recovery_message(self, run_id, error.code, str(error)) if error.code in RECOVERABLE else str(error)
@@ -560,6 +577,33 @@ class AgentRuntime(HarnessService):
                                    **({'context_metrics': context_metrics} if context_metrics else {})})
         self.store.finish_public(run_id, status, message, generation=generation)
 
+    def wait_for_resource(self, run_id, generation, message):
+        run = self.store.run(run_id)
+        saved = json.loads(run.get('driver_state') or '{}')
+        saved['resource_wait_generation'] = generation
+        self.store.save_driver_state(run_id, generation, saved)
+        self.store.status(run_id, generation, 'waiting_job', '等待关联任务释放资源，随后自动继续。' + message)
+        self.store.public_event(run_id, generation, run_id + ':resource-wait:' + str(generation),
+                                'resource_wait', {'message': '等待资源释放后自动继续'})
+
+    def resource_ready(self, run):
+        saved = json.loads(run.get('driver_state') or '{}')
+        waiting = saved.get('resource_wait_generation')
+        if waiting is None:
+            return True
+        if run['status'] != 'waiting_job' or waiting != run['generation']:
+            return False
+        from workbench_platform.application_services.errors import ResourceBusy
+        try:
+            self.store.claim_run_scope(run['id'], run['generation'])
+        except ResourceBusy:
+            return False
+        saved = json.loads(self.store.run(run['id']).get('driver_state') or '{}')
+        saved.pop('resource_wait_generation', None)
+        self.store.save_driver_state(run['id'], run['generation'], saved)
+        self.store.status(run['id'], run['generation'], 'running')
+        return True
+
     async def observe(self):
         observation = 0
         while not self.closing:
@@ -567,8 +611,11 @@ class AgentRuntime(HarnessService):
             for run in self.store.rows("SELECT * FROM runs WHERE status IN ('waiting_job','waiting_user')"):
                 if self.graph is None and run.get('driver') not in DIRECT_DRIVERS:
                     continue
-                if run['id'] not in self.running:
-                    self.schedule(run['id'], None)
+                try:
+                    if run['id'] not in self.running and self.resource_ready(run):
+                        self.schedule(run['id'], None)
+                except RunSuperseded:
+                    continue  # A user pause/cancel won the resource-release race.
             observation += 1
             if observation % 4:
                 continue
@@ -689,7 +736,7 @@ class AgentRuntime(HarnessService):
         from workbench_platform.resources.reader_features import require_features
         route_state = {'scope_claims': self.store.scope_resolver({'session_id': session_id}),
                        'execution_contract': CONTRACT}
-        require_features(self.store.root.parent, 'agent-general-v1')
+        require_features(self.store.root.parent, 'agent-general-v1', 'agent-usability-v1')
         run, fresh = self.store.start_run(session_id, content, request_id, view.get('revision', 0),
             self.round_limit or view.get('round_limit'), self.tool_limit or view.get('tool_limit'),
             driver_state=route_state)

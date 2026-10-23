@@ -84,3 +84,7 @@
 @media (prefers-reduced-motion: reduce) {
   .audit-task-panel-refined * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }
+
+.audit-task-run-details { border-top: 1px solid var(--clear-border); padding-top: 12px; }
+.audit-task-run-details > summary { cursor: pointer; color: var(--clear-muted); padding: 8px 0; font-size: 12px; }
+.audit-task-run-details[open] > summary { margin-bottom: 8px; }
