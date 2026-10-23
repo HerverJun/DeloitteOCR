@@ -142,7 +142,8 @@
         "audio",
         "seal",
         "catnet",
-        "document_forensics"
+        "document_forensics",
+        "aigc_image"
       ],
       "title": "Kind",
       "type": "string"

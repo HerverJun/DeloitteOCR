@@ -68,11 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
-      "head": "be637428d867fac9357b33ad26d62fe67b54efdf",
-      "branch": "codex/document-topic-comparison-20261022",
+      "head": "a50f8751127dcf897e65bd86a8cca9cf91e25bc4",
+      "branch": "codex/aigc-image-detection-20261022",
       "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 934,
+      "file_count": 946,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -185,8 +185,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 21947,
-          "sha256": "a8015156bb364f39c9a5bf3138c0b89c883d4126e007935e19198ebc2e81128f"
+          "bytes": 21972,
+          "sha256": "d48f9c9205d9333747c6fd19ff146efd06901acfa2d9d58c4f4c9b47d1323f9e"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/common.css",
@@ -413,8 +413,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/referencePath.ts",
           "source_path": "apps/portal/src/features/agent/referencePath.ts",
-          "bytes": 2887,
-          "sha256": "f91648cece44a8df3812f4a45daf6f0cba8143ce4a5824452cb7c08d35f7e14e"
+          "bytes": 2923,
+          "sha256": "654fd58ea4710125bc88ec24ad457c1a570092cd6999bd796cacf5b0285b2268"
         },
         {
           "path": "platform/apps/portal/src/features/agent/statusLabels.ts",
@@ -461,8 +461,8 @@
         {
           "path": "platform/apps/portal/src/features/artifacts/ArtifactCenter.tsx",
           "source_path": "apps/portal/src/features/artifacts/ArtifactCenter.tsx",
-          "bytes": 25795,
-          "sha256": "72d90f81bc1bccdd71adc036eeab1d4acec272fa84675e8071410b8cff88024d"
+          "bytes": 25831,
+          "sha256": "ed3ade6d8c9e7d0fd360856d4452eec24f585467fc666840ee8d99bf030df5cc"
         },
         {
           "path": "platform/apps/portal/src/features/artifacts/artifacts.css",
@@ -587,8 +587,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
-          "bytes": 10394,
-          "sha256": "b0f2cb7a97761fb66e9807279b49a80952d9918400ce90190f31f76536010eaa"
+          "bytes": 10677,
+          "sha256": "9b1abff23b7ca7e39ba4d1162bab864b62b1be593644bc2ae8b39a4cf5499305"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
@@ -719,8 +719,8 @@
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicWorkbench.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicWorkbench.tsx",
-          "bytes": 21147,
-          "sha256": "72707be81152d9c7da4ee97edb8415f93d8c77553fc1fe1a90bc0a21ad3e91ef"
+          "bytes": 21252,
+          "sha256": "fa173a7a5b21a5e733673a0be08879f97a7f2fc7fd9725f5182cdddf925f60c6"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/forensics.css",
@@ -753,6 +753,12 @@
           "sha256": "e439cf172d8802bae12ffc45c19989e67ee86e3dc86d70b9c793dd51e3710151"
         },
         {
+          "path": "platform/apps/portal/src/features/multimodal/AigcResultView.tsx",
+          "source_path": "apps/portal/src/features/multimodal/AigcResultView.tsx",
+          "bytes": 4253,
+          "sha256": "b6e8320fce2ee1904b62b46144aabc5c02a09f7576a11dd5b5af1bb92a2b5a8a"
+        },
+        {
           "path": "platform/apps/portal/src/features/multimodal/ManualEvidencePicker.tsx",
           "source_path": "apps/portal/src/features/multimodal/ManualEvidencePicker.tsx",
           "bytes": 2132,
@@ -761,8 +767,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 42549,
-          "sha256": "af45a6baa869fb55a0f5f45a6315d989513da90974232b10d933d97e3c477a1d"
+          "bytes": 45192,
+          "sha256": "582a39a2a74b7d12c1654fb782c48d44cf067a87cb8c893fb95a2b3e742cf740"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
@@ -773,8 +779,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/multimodal.css",
           "source_path": "apps/portal/src/features/multimodal/multimodal.css",
-          "bytes": 2454,
-          "sha256": "cdfce4a30046df162a69725d1dac952b14b9380177404e5f20c43d31db4196de"
+          "bytes": 3271,
+          "sha256": "2e8123086d7dfc3fc3c6b6b645def47d9bf33c7a5ca51a84fd1bf8347a79ede7"
         },
         {
           "path": "platform/apps/portal/src/features/ocr/OcrWorkflow.tsx",
@@ -821,8 +827,8 @@
         {
           "path": "platform/apps/portal/src/features/tasks/TaskHistory.tsx",
           "source_path": "apps/portal/src/features/tasks/TaskHistory.tsx",
-          "bytes": 23259,
-          "sha256": "3d7baae65361733c63302879d3fea1a18272228cd46baf59e2f7298ea485f65e"
+          "bytes": 23311,
+          "sha256": "79e70f984c578edaf9f7fba20a450363de978fa88bc53b9331a50b6fb013b493"
         },
         {
           "path": "platform/apps/portal/src/features/tasks/session.tsx",
@@ -869,8 +875,8 @@
         {
           "path": "platform/apps/portal/src/router.tsx",
           "source_path": "apps/portal/src/router.tsx",
-          "bytes": 8059,
-          "sha256": "c40a627f805574b6967736acce9422e37f6d06c8ecafe4af3c72b0dbd506b3b0"
+          "bytes": 8148,
+          "sha256": "55c79027ec1157e42c75c3011658aaa79b26d29d81c535726aeefd9b4e6096e0"
         },
         {
           "path": "platform/apps/portal/src/style.css",
@@ -925,6 +931,12 @@
           "source_path": "apps/portal/tests/agent-workbench-visual.test.tsx",
           "bytes": 5950,
           "sha256": "b2a7b30cc9c64c060686d2fa33a2a7e0cbc6b3d5247934c5e3be0f6d2dcaf568"
+        },
+        {
+          "path": "platform/apps/portal/tests/aigc-image.test.tsx",
+          "source_path": "apps/portal/tests/aigc-image.test.tsx",
+          "bytes": 10392,
+          "sha256": "80b55ed500b3c81826699128485f9ab2347108387c0a01f041579d0d0dcbc95e"
         },
         {
           "path": "platform/apps/portal/tests/architecture-revision.test.tsx",
@@ -1139,8 +1151,8 @@
         {
           "path": "platform/config/multimodal.json",
           "source_path": "config/multimodal.json",
-          "bytes": 1179,
-          "sha256": "8a8eceeec695e59578b807d2d2dc2195b54a648ea491ad13e555920f8eac4321"
+          "bytes": 1515,
+          "sha256": "9d53433843a723623bcd8f56bcf37ab8023d5f68123eb72e11a98717aeb5a071"
         },
         {
           "path": "platform/config/runtime-locks/agent.json",
@@ -1315,6 +1327,12 @@
           "source_path": "docs/agent/streaming-ux-20261005.md",
           "bytes": 3391,
           "sha256": "f776af2f3d344fb3b2f207da8d3a8740f16cdfe13be2c260ccd7cc17609db34d"
+        },
+        {
+          "path": "platform/docs/aigc-image.md",
+          "source_path": "docs/aigc-image.md",
+          "bytes": 1297,
+          "sha256": "436ab37e99b609975939c89d941b7f72af0e007cd7259195fd22e07765e37733"
         },
         {
           "path": "platform/docs/automation/candidate-switch.md",
@@ -1563,6 +1581,18 @@
           "sha256": "ed9da61f73f8debd67c46ca5a7e739b27f65cbf8d764d7e09addca22c507bd2b"
         },
         {
+          "path": "platform/modules/manual_multimodal/aigc_processing.py",
+          "source_path": "modules/manual_multimodal/aigc_processing.py",
+          "bytes": 15946,
+          "sha256": "3de8b4c690fa1b346ffaa82c58f251057005633b6901aa53fd8b6ea08180693d"
+        },
+        {
+          "path": "platform/modules/manual_multimodal/aigc_worker.py",
+          "source_path": "modules/manual_multimodal/aigc_worker.py",
+          "bytes": 1806,
+          "sha256": "4b3e98307c1e4ae12b558754d5c9e7ec1d7ade0878e1b9cc5b2e85fdfdb08433"
+        },
+        {
           "path": "platform/modules/manual_multimodal/audio_processing.py",
           "source_path": "modules/manual_multimodal/audio_processing.py",
           "bytes": 49875,
@@ -1643,8 +1673,8 @@
         {
           "path": "platform/packages/contracts/adapter.openapi.json",
           "source_path": "packages/contracts/adapter.openapi.json",
-          "bytes": 565300,
-          "sha256": "5d6c096655aa4892554b390f4a9909c02b46d130fe4450b9c6064d551fe11911"
+          "bytes": 568050,
+          "sha256": "5fa2ff119df9df4f91767262e864e4081468f09839ab59ba7f770731bc0e68cf"
         },
         {
           "path": "platform/packages/contracts/agent-agentcall.schema.json",
@@ -2325,22 +2355,28 @@
           "sha256": "43836044ddf0f4138d969c017e08ae2650c2550939f7563596dad005b8cbfa7d"
         },
         {
+          "path": "platform/packages/contracts/manual-aigcimageresult.schema.json",
+          "source_path": "packages/contracts/manual-aigcimageresult.schema.json",
+          "bytes": 2020,
+          "sha256": "a0e8639bd6f46cc304364a55b21736c7d0c8b876f928c70df306ffe8f5b5ae1c"
+        },
+        {
           "path": "platform/packages/contracts/manual-manualanalysis.schema.json",
           "source_path": "packages/contracts/manual-manualanalysis.schema.json",
-          "bytes": 5857,
-          "sha256": "3f9fa6c6dd42203b708998fcf01f6c042c8b5307e6150957524bd987c43146fb"
+          "bytes": 5880,
+          "sha256": "123420ac0b2e6679c995d6477cc87db75e7da0853ff6336ff8d48a4c6fe3477c"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysiscreate.schema.json",
           "source_path": "packages/contracts/manual-manualanalysiscreate.schema.json",
-          "bytes": 3607,
-          "sha256": "e08efdf65defd6b7c1d1f9d5e55a3f261f8c4ea4926ad3746d21f86de692cc73"
+          "bytes": 3630,
+          "sha256": "3e807e9645b05d7a348e6e866119d947792ee193737a49986906c4f1808f37e7"
         },
         {
           "path": "platform/packages/contracts/manual-manualanalysispage.schema.json",
           "source_path": "packages/contracts/manual-manualanalysispage.schema.json",
-          "bytes": 7049,
-          "sha256": "8fa644a2cf804302705f7b390a5ade7fd8dc216a24e2ee417808c0bbf727a62e"
+          "bytes": 7076,
+          "sha256": "a12ed7fc778ba91433a059c4d00e0d23d04186a2a3acb2c51f83c255fbaa3259"
         },
         {
           "path": "platform/packages/contracts/manual-manualcontrol.schema.json",
@@ -2381,8 +2417,8 @@
         {
           "path": "platform/packages/contracts/manual-manualresultsnapshot.schema.json",
           "source_path": "packages/contracts/manual-manualresultsnapshot.schema.json",
-          "bytes": 9139,
-          "sha256": "af6ffa6be3d197542f554c1e14421cb86cee3cd18859ecfaefe8fbbd957357c3"
+          "bytes": 9189,
+          "sha256": "8365e00f32cf29eecc584d71d717f6e08b13f37d954ee0d5d1f0e30af2a1a4f2"
         },
         {
           "path": "platform/packages/contracts/manual-manualreview.schema.json",
@@ -2405,8 +2441,8 @@
         {
           "path": "platform/packages/contracts/multimodal.py",
           "source_path": "packages/contracts/multimodal.py",
-          "bytes": 7618,
-          "sha256": "3bc5e3dadbdf3a469f6794bc100b356d955c61000a8763cf783b1a369447a9c3"
+          "bytes": 9035,
+          "sha256": "fc74f4b70ca7128b74a610946bb733ccf0142ed01d037cf25447fe19837654f8"
         },
         {
           "path": "platform/packages/contracts/pyproject.toml",
@@ -2453,8 +2489,8 @@
         {
           "path": "platform/packages/contracts/task-taskcreate.schema.json",
           "source_path": "packages/contracts/task-taskcreate.schema.json",
-          "bytes": 1924,
-          "sha256": "a2c5f21105e5276db0dfc40192758aafd265175d5cd0ff82bf648c1a0e4ed781"
+          "bytes": 1947,
+          "sha256": "96f243852ca2c22b7ae377f4019993fcd0838f418e36e76f2b55a33cf236724d"
         },
         {
           "path": "platform/packages/contracts/task-taskdetail.schema.json",
@@ -2501,14 +2537,14 @@
         {
           "path": "platform/packages/contracts/tasks.py",
           "source_path": "packages/contracts/tasks.py",
-          "bytes": 6809,
-          "sha256": "e5b34af43841155918753b3478b5f755cd42201de648add044ccb52d4bd0b67e"
+          "bytes": 6822,
+          "sha256": "d3c7665a9d0e11a22c2423a565b6a2f52e261fd4844c3d6c9194d607e9d04dc9"
         },
         {
           "path": "platform/packages/contracts/types.generated.ts",
           "source_path": "packages/contracts/types.generated.ts",
-          "bytes": 47704,
-          "sha256": "2c6d06d3cb3e6c6d43b5d4715e654badaab05f2fecaf482eea23950f9e9491f3"
+          "bytes": 48164,
+          "sha256": "6c9245070a1bda0a68092764dfd49df794c1cf841fd655fc39848a1ffdc8df7e"
         },
         {
           "path": "platform/packages/contracts/upload-audiouploadbinding.schema.json",
@@ -2647,6 +2683,12 @@
           "source_path": "scripts/agent_native_preview.py",
           "bytes": 20709,
           "sha256": "546ca18be710e4988f2ef554f5ee6355d20b485799c83d676645ecaa3c422cd1"
+        },
+        {
+          "path": "platform/scripts/aigc_evaluation.py",
+          "source_path": "scripts/aigc_evaluation.py",
+          "bytes": 16597,
+          "sha256": "5dafff5e58f524cc86898ad3504dfff0105755b11e6306a0c8bae3f252e12904"
         },
         {
           "path": "platform/scripts/backup_workspace.py",
@@ -2819,8 +2861,8 @@
         {
           "path": "platform/scripts/harness_candidate_launch.py",
           "source_path": "scripts/harness_candidate_launch.py",
-          "bytes": 20519,
-          "sha256": "6650c8773f0178dc982976d704811b21c97d971ee8778af5359336936322b956"
+          "bytes": 26641,
+          "sha256": "b63fba21fec20517cb4862de7b8b20e15a3188cd93032d633c74ef49cf251e2c"
         },
         {
           "path": "platform/scripts/harness_candidate_smoke.mjs",
@@ -2927,8 +2969,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 21539,
-          "sha256": "25de1a3bab03c4efb996f8945043e9735b46af9a810caad528defaea29d2eec8"
+          "bytes": 21789,
+          "sha256": "fd4b98dce8d92af5d34a96363423e481b09b36a6e2cb34f2ca3a64fd47d72044"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -2939,8 +2981,8 @@
         {
           "path": "platform/scripts/qualify_multimodal.py",
           "source_path": "scripts/qualify_multimodal.py",
-          "bytes": 12518,
-          "sha256": "765c9a7592d02e66092fb6c184fc5260ab32b12337887cab0686bbccbbce35f3"
+          "bytes": 13973,
+          "sha256": "4ef043745d10a14f1fe7bf5330bd6a42888bbe7b3b970c423ebd24eb5ce075e1"
         },
         {
           "path": "platform/scripts/real_cli_smoke.py",
@@ -3101,8 +3143,8 @@
         {
           "path": "platform/src/workbench_platform/agent/capabilities.py",
           "source_path": "src/workbench_platform/agent/capabilities.py",
-          "bytes": 3855,
-          "sha256": "3277406b8002c4958306da6fda3af0b12fc6e9b196f926cdc780c00d5651019e"
+          "bytes": 4055,
+          "sha256": "136ee4088db38ab9cdeb60156dd7cb502fb95ce2e36052c7f51cd56e11ba4df3"
         },
         {
           "path": "platform/src/workbench_platform/agent/connection.py",
@@ -3125,8 +3167,8 @@
         {
           "path": "platform/src/workbench_platform/agent/delivery_jobs.py",
           "source_path": "src/workbench_platform/agent/delivery_jobs.py",
-          "bytes": 6322,
-          "sha256": "eeabf8b497e1fa5ddd35ca8820a8288f61e24bda138d0d51e92b84bc38a8ffd4"
+          "bytes": 6336,
+          "sha256": "617282e2fba2859022c220e977aa0b14b262bd023d5b3bfd804002a3d1575488"
         },
         {
           "path": "platform/src/workbench_platform/agent/delivery_policy.py",
@@ -3377,8 +3419,8 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/multimodal.py",
           "source_path": "src/workbench_platform/agent/tools/multimodal.py",
-          "bytes": 4024,
-          "sha256": "518d7fb7e11e8e0200ebdc2d8516566be5f104f8e74f54a03f3119bf2d824dcb"
+          "bytes": 4315,
+          "sha256": "53d726c280a788578ab895f6dc819dcdba330497d3b5811e462ec4d6a35dd203"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/native_catalog.py",
@@ -3551,8 +3593,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/job_lifecycle.py",
           "source_path": "src/workbench_platform/application_services/job_lifecycle.py",
-          "bytes": 12901,
-          "sha256": "42b007b1fface664f6ab21dcedd24ea3830bd4009e82b5e92e2c644169be7455"
+          "bytes": 12915,
+          "sha256": "e38d5ed1418486def931d7f6fd557ca959134d50751fc76f0baccc1c9556b1dc"
         },
         {
           "path": "platform/src/workbench_platform/application_services/job_observations.py",
@@ -3635,14 +3677,14 @@
         {
           "path": "platform/src/workbench_platform/application_services/operations/jobs.py",
           "source_path": "src/workbench_platform/application_services/operations/jobs.py",
-          "bytes": 9476,
-          "sha256": "ceef114779ae8a9322c73a8fa18bb818977c6d6e2e14db21ea860c2232ce7dfc"
+          "bytes": 9498,
+          "sha256": "7eef32d720c8a68fc1278aa45d2f31de50613f408aed9f0ab8b6de389dc7fffc"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/multimodal.py",
           "source_path": "src/workbench_platform/application_services/operations/multimodal.py",
-          "bytes": 30712,
-          "sha256": "0029f29745783704792d78b22953bd153cf1ee78b58d210ebd02edc053a222db"
+          "bytes": 31920,
+          "sha256": "5cde3be9df1c3d5d79ef3087877d2b39995957b4fed66cd033b5158e6b0da723"
         },
         {
           "path": "platform/src/workbench_platform/application_services/operations/ocr.py",
@@ -3683,8 +3725,8 @@
         {
           "path": "platform/src/workbench_platform/application_services/references.py",
           "source_path": "src/workbench_platform/application_services/references.py",
-          "bytes": 20885,
-          "sha256": "552adf40a24b8ab6de4227cd9964aa484d0b6cd03a207c3049e5c11c0b818c49"
+          "bytes": 20959,
+          "sha256": "1acb8bebce34f46ad07236531c6a1db19e873fae2f71b95eaaa32c320d3a7666"
         },
         {
           "path": "platform/src/workbench_platform/application_services/requirement_coverage.py",
@@ -4157,14 +4199,20 @@
         {
           "path": "platform/src/workbench_platform/jobs/routes.py",
           "source_path": "src/workbench_platform/jobs/routes.py",
-          "bytes": 18199,
-          "sha256": "fcfa1d66544e7727fc6664d6ecb3a71a0949079ba4034726b64326c7b5cea8c6"
+          "bytes": 18225,
+          "sha256": "51b59290fd60fea88c784dbc05e5dbfa3c7f6afbfde57b78b6d21983e33eb488"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/__init__.py",
           "source_path": "src/workbench_platform/multimodal/__init__.py",
           "bytes": 83,
           "sha256": "fdbd5c68bc8e76bf2799582011a658b0728f27ec144aa8e8dccb8fb3ec27b211"
+        },
+        {
+          "path": "platform/src/workbench_platform/multimodal/aigc_backend.py",
+          "source_path": "src/workbench_platform/multimodal/aigc_backend.py",
+          "bytes": 14140,
+          "sha256": "f31bd17b93413f4d90bb4844c2b0df15519454929094f8b86e012cfbaf85c9a1"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/artifacts.py",
@@ -4193,8 +4241,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/qualification.py",
           "source_path": "src/workbench_platform/multimodal/qualification.py",
-          "bytes": 6569,
-          "sha256": "da2841563d9c78d8ffe1bd49236b736885312f60b2fd60229779668e00546fcf"
+          "bytes": 6583,
+          "sha256": "d304ea896d72df376937fd7185d15c77297048e277f46956198417029a4201b2"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/revisions.py",
@@ -4205,8 +4253,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/routes.py",
           "source_path": "src/workbench_platform/multimodal/routes.py",
-          "bytes": 6537,
-          "sha256": "52a0d3bc95bcc3194e622e716e550ff77892757846036f3c2a159d7ddef9b5d5"
+          "bytes": 6548,
+          "sha256": "762a7cc4f6561f3f928a903a4f9324483cc9523078f3bd9baa544d8264995fd3"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/runner.py",
@@ -4217,8 +4265,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 86867,
-          "sha256": "f047dd27f2cb63360b50d7d4a31189aa4025ea62023129cfe3f3f797672adce8"
+          "bytes": 92816,
+          "sha256": "537f9258f6419424c36d59ca8e7ac8c012217d67b780a270e516391c2401eefc"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
@@ -4325,8 +4373,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/legacy.py",
           "source_path": "src/workbench_platform/tasks/legacy.py",
-          "bytes": 9679,
-          "sha256": "c178d4ce38b81d81d7c8a6369732c902a41973eefbc51e0c9e00f0fc374c3d5a"
+          "bytes": 9717,
+          "sha256": "be77b8f86da24bc329411e6617a50f75d3c36a3f626e7ba15d76a17790cb5e33"
         },
         {
           "path": "platform/src/workbench_platform/tasks/legacy_evidence.py",
@@ -4409,14 +4457,14 @@
         {
           "path": "platform/src/workbench_platform/tasks/recover.py",
           "source_path": "src/workbench_platform/tasks/recover.py",
-          "bytes": 9991,
-          "sha256": "510d0f2942343d7673d0b614d525cde176a335ad33b22602b2b50436b0bde14b"
+          "bytes": 10004,
+          "sha256": "c5ce5a8e73bcae95f573a18078b0df1aa8fdf6530c573c9ced8a0036c7706fee"
         },
         {
           "path": "platform/src/workbench_platform/tasks/registry.py",
           "source_path": "src/workbench_platform/tasks/registry.py",
-          "bytes": 6992,
-          "sha256": "e64c9b81771cfa67a581c730f86a30c400f2c0809134c20fc9dd9a08aba37210"
+          "bytes": 7056,
+          "sha256": "3c1183fc679c70d3882ffd118db166e8bff5a74151bd111d9446822da1869604"
         },
         {
           "path": "platform/src/workbench_platform/tasks/scheduler.py",
@@ -4823,8 +4871,8 @@
         {
           "path": "platform/tests/agent/test_multimodal_bindings.py",
           "source_path": "tests/agent/test_multimodal_bindings.py",
-          "bytes": 10472,
-          "sha256": "2a78691c2ca5e6781659858e65a84ed786513a87e46bd56ada0dfda7c304f2bd"
+          "bytes": 11572,
+          "sha256": "71190cdead27d6f65d3a945df73a9f30a8ada414253fc9b66f7c6d1b59e5d0dc"
         },
         {
           "path": "platform/tests/agent/test_multimodal_security.py",
@@ -5021,8 +5069,8 @@
         {
           "path": "platform/tests/contract/test_contracts.py",
           "source_path": "tests/contract/test_contracts.py",
-          "bytes": 13890,
-          "sha256": "93f922961cc94fb3091fb899f69a3ec7d0ab55b1f990c70af9ce10970b263599"
+          "bytes": 13983,
+          "sha256": "616dd799a93418bee7fd93ede3ea7cfa52b4aaf9c7cc4633fdfcb4490c6c2d60"
         },
         {
           "path": "platform/tests/contract/test_source_locators.py",
@@ -5197,6 +5245,12 @@
           "source_path": "tests/harness/test_receipts.py",
           "bytes": 20817,
           "sha256": "79db4db359e1427537d4c7e5a68cb5dc0544da8521c550040ec6ee1c2e9bc90a"
+        },
+        {
+          "path": "platform/tests/integration/test_aigc_dispatch.py",
+          "source_path": "tests/integration/test_aigc_dispatch.py",
+          "bytes": 6112,
+          "sha256": "f100a62b72017ad07a33438dd918355fd43f9cdfc78ba713aea0d7610f30d2f4"
         },
         {
           "path": "platform/tests/integration/test_app_launch.py",
@@ -5551,6 +5605,24 @@
           "source_path": "tests/tasks/test_store.py",
           "bytes": 6937,
           "sha256": "46539cf279a90b1805e254751135fd5a170590c85fb706bf81ba79283e154599"
+        },
+        {
+          "path": "platform/tests/unit/test_aigc_backend.py",
+          "source_path": "tests/unit/test_aigc_backend.py",
+          "bytes": 11820,
+          "sha256": "b3a79f85a5d451fa1882ed9e21933cbd83840f2fbd8ccb455829cd8434e9adf6"
+        },
+        {
+          "path": "platform/tests/unit/test_aigc_evaluation.py",
+          "source_path": "tests/unit/test_aigc_evaluation.py",
+          "bytes": 5060,
+          "sha256": "70bb9df5df0125ac384f1a66eda856ad374c1959a58a22d0375be55b64d7ba4d"
+        },
+        {
+          "path": "platform/tests/unit/test_aigc_processing.py",
+          "source_path": "tests/unit/test_aigc_processing.py",
+          "bytes": 3584,
+          "sha256": "f1a83bbca57b0fabaee700a4f386817c6cf09e63d63493a5b7caf708e86c57f8"
         },
         {
           "path": "platform/tests/unit/test_asset_identity.py",

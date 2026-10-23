@@ -60,6 +60,7 @@ class BindingTests(unittest.IsolatedAsyncioTestCase):
         return multimodal.Analyze(inputs=self.item['inputs'], options=options)
 
     def test_all_new_contracts_strict_and_chinese_discovery(self):
+        self.assertIn('aigc_image_analyze', self.registry.tools)
         self.assertIn('document_forensics_analyze', self.registry.tools)
         self.assertIn('catnet_analyze', self.registry.tools)
         self.assertTrue(all(spec.input_schema.model_config['extra'] == 'forbid' for spec in self.registry.tools.values()))
@@ -67,6 +68,22 @@ class BindingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('audio_transcribe', [item['name'] for item in page['tools']])
         self.assertEqual([item['name'] for item in self.registry.catalog(capability='seal')['tools']], ['seal_extract'])
         self.native.create.assert_not_called()
+
+    def test_aigc_uses_authorized_asset_and_independent_lifecycle(self):
+        self.item['kind']='aigc_image'
+        self.snapshot['kind']='aigc_image'
+        self.snapshot['analysis']['kind']='aigc_image'
+        value=multimodal.analyze('aigc_image',self.analyze(),self.ctx)
+        self.assertEqual(value['status'],'pending')
+        self.assertEqual(value['job_refs'][0]['coverage']['kind'],'aigc_image')
+        self.assertEqual(self.native.create.call_args.args[1]['kind'],'aigc_image')
+        self.assertEqual(self.native.create.call_args.args[1]['options']['reference_ids'],[])
+        ref=multimodal.result_ref(self.ctx,self.snapshot).model_dump()
+        self.assertIn('/apps/forensics/aigc',reference_location(ref))
+        self.assertIsNotNone(adapter(value['job_refs'][0]))
+        self.assertTrue(ref['coverage']['experimental'])
+        read=multimodal.read(multimodal.Result(job_id='j1',snapshot_id='ms1'),self.ctx)
+        self.assertTrue(any('AIGC' in warning for warning in read['warnings']))
 
     def test_pending_capability_is_explicit(self):
         registry = ToolRegistry()

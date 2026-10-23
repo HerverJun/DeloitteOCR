@@ -22,11 +22,11 @@ from workbench_platform.multimodal.runner import WorkerRunner, worker_environmen
 from workbench_platform.multimodal.qualification import Qualification
 from workbench_platform.multimodal.service import MultimodalService, AUDIO_DISK_BUDGET, DISK_MARGIN, ACTIVE
 from workbench_platform.multimodal.cpu_validation import record_cpu_validation, validate_inventory
-from workbench_platform.multimodal import deep_backend
+from workbench_platform.multimodal import deep_backend, aigc_backend
 
 RUNTIMES = {'face': 'runtimes/forensics/python.exe', 'audio': 'runtimes/audio/python.exe',
             'seal': 'bundles/ocr/runtimes/ppocr/python.exe', 'catnet': 'runtimes/catnet/python.exe',
-            'document_forensics':'runtimes/catnet/python.exe'}
+            'document_forensics':'runtimes/catnet/python.exe', 'aigc_image':None}
 
 
 def digest(path):
@@ -37,11 +37,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--program', type=Path, required=True)
     parser.add_argument('--data', type=Path, required=True)
+    parser.add_argument('--gpu-ledger', type=Path, help='Explicit shared F GPU ledger; receipts remain under --data')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--kind', choices=RUNTIMES, required=True)
     parser.add_argument('--device', choices=['cpu', 'cuda'], default='cpu')
     parser.add_argument('--backend', choices=['catnet','safire'],help='Explicit detector for deep routes; default follows current configuration')
+    parser.add_argument('--aigc-engine', choices=sorted(aigc_backend.ENGINES), help='Explicit pinned AIGC research engine')
     parser.add_argument('--checkpoint-root', type=Path)
     parser.add_argument('--channel', type=int)
     parser.add_argument('--stop-after-chunks', type=int)
@@ -77,12 +79,15 @@ def main():
     bridge.models,bridge.program,bridge.config=program/'models/multimodal',program,config
     bridge.qualification=Qualification(data/'gpu-qualification.json')
     bridge.safire_qualification=Qualification(data/'safire-gpu-qualification.json')
+    bridge.aigc_qualification=Qualification(data/'aigc-gpu-qualification.json')
     bridge.resource_hash_cache={}
-    pinned=deep_backend.bind(bridge,'safire' if safire else 'catnet') if args.kind in deep_backend.DEEP_KINDS else None
+    aigc=args.kind=='aigc_image'
+    pinned=aigc_backend.bind(bridge,args.aigc_engine) if aigc else deep_backend.bind(bridge,'safire' if safire else 'catnet') if args.kind in deep_backend.DEEP_KINDS else None
     runtime=local_path(pinned['runtime']) if pinned else local_path(program/RUNTIMES[args.kind])
     if safire and args.device!='cuda':raise ValueError('SAFIRE diagnostic requires CUDA; explicit CPU is not replaced')
-    if not safire:validate_inventory(program,'catnet' if args.kind=='document_forensics' else args.kind,runtime)
-    coordinator = GpuCoordinator(data / 'gpu.sqlite3')
+    if not safire and not aigc:validate_inventory(program,'catnet' if args.kind=='document_forensics' else args.kind,runtime)
+    if aigc and cpu_receipt:raise ValueError('AIGC CPU research cannot create a legacy product CPU qualification')
+    coordinator = GpuCoordinator(local_path(args.gpu_ledger) if args.gpu_ledger else data / 'gpu.sqlite3')
     request_id = 'qualify' + uuid.uuid4().hex
     if args.device == 'cuda':
         if coordinator.snapshot().owner or coordinator.snapshot().pending:
@@ -100,9 +105,10 @@ def main():
     atomic_json(output / 'request.json', request)
     if pinned:
         request['model_binding']=pinned
-        request['runner']['safire_points_per_batch']=64
+        if aigc:request['runner']['aigc_feature_batch_size']=32
+        elif safire:request['runner']['safire_points_per_batch']=64
         atomic_json(output/'request.json',request)
-    worker=SOURCE/'modules/manual_multimodal'/('safire_worker.py' if pinned else 'worker.py')
+    worker=SOURCE/'modules/manual_multimodal'/aigc_backend.worker_entry(args.kind,pinned)
     if args.trace_python_stalls:
         bootstrap=output/'diagnostic-bootstrap.py'
         bootstrap.write_text('import faulthandler,runpy,sys\n'
@@ -139,8 +145,9 @@ def main():
     monitor = threading.Thread(target=sample, daemon=True) if args.device == 'cuda' else None
     if monitor: monitor.start()
     try:
+        command=aigc_backend.worker_command(runtime,worker,output/'request.json') if aigc else [str(runtime),str(worker),str(output/'request.json')]
         outcome = WorkerRunner(coordinator, data / 'gpu-owners').run(
-            [str(runtime), str(worker), str(output / 'request.json')],
+            command,
             output, env, request, request_id=request_id if args.device == 'cuda' else None,
             cancelled=lambda:cancel.is_set() or cancel_file.is_file(), progress=progress, committed=on_commit, timeout=7200)
     finally:
@@ -168,8 +175,16 @@ def main():
         if args.qualify:
             if args.device != 'cuda' or not committed and args.kind == 'audio':
                 raise ValueError('Qualification requires fresh CUDA inference, not only checkpoint reuse')
-            qualification=bridge.safire_qualification if safire else bridge.qualification
-            if safire:
+            qualification=bridge.aigc_qualification if aigc else bridge.safire_qualification if safire else bridge.qualification
+            if aigc:
+                from packages.contracts.multimodal import AigcImageResult
+                signal=AigcImageResult.model_validate(result.get('aigc_image'))
+                if (result.get('model_binding')!=pinned or result.get('source_sha256')!=digest(source)
+                        or signal.preprocessing_version!=pinned['preprocessing_version']
+                        or signal.calibration!=pinned.get('calibration')):
+                    raise ValueError('AIGC engineering result does not match its pinned model and input')
+                binding=bridge.aigc_gpu_binding(pinned)
+            elif safire:
                 binding=bridge.safire_gpu_binding(args.kind,pinned)
             else:
                 resources=json.loads((bridge.models/'validation.json').read_text('utf-8'))['catnet' if args.kind=='document_forensics' else args.kind]['resources']

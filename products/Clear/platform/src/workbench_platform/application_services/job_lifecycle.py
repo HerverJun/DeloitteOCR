@@ -280,7 +280,7 @@ ADAPTERS = {
     ('data','multimodal_transfer'): Lifecycle(_data_read, partial(_observe,'multimodal_transfer'), _data_cancel, _data_progress),
     **{('multimodal', kind): Lifecycle(_multimodal_read, partial(_observe, 'multimodal'),
                                     _multimodal_cancel, _multimodal_progress)
-       for kind in ('face', 'audio', 'seal', 'catnet', 'document_forensics')},
+       for kind in ('face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image')},
     ('data','data'): Lifecycle(_data_read, partial(_observe,'data'), _data_cancel, _data_progress),
     ('forensics','forensics'): Lifecycle(_forensic_read, partial(_observe,'forensics'), _forensic_cancel, _forensic_progress),
     ('platform','batch'): Lifecycle(_batch_read, partial(_observe,'platform_management'), _batch_cancel, _batch_progress),
