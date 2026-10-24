@@ -4,6 +4,7 @@ import json
 import os
 import time
 import unittest
+from unittest.mock import Mock
 
 import test_data_tools as fixtures
 import test_graph as graph_tests
@@ -42,6 +43,7 @@ class GeneralAgentTests(unittest.IsolatedAsyncioTestCase):
             observed.append(state['step'])
             return response(state, content='2 + 3 = 5。')
         runtime, session = await self.runtime(provider)
+        runtime.session_facts = Mock(side_effect=AssertionError('General turns must not build legacy audit history'))
         try:
             run = await runtime.submit(session['id'], '计算2+3', 'general-plain')
             await self.wait_status(runtime, run['id'], {'answered', 'failed'})
@@ -52,6 +54,7 @@ class GeneralAgentTests(unittest.IsolatedAsyncioTestCase):
             rows = runtime.store.rows("SELECT * FROM public_responses WHERE run_id=? AND status='confirmed'", (run['id'],))
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]['content'], '2 + 3 = 5。')
+            runtime.session_facts.assert_not_called()
         finally:
             await runtime.close()
 
