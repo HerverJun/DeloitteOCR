@@ -11,7 +11,7 @@
 | 对象 | 实际位置与用途 | 本说明中的定位 |
 | --- | --- | --- |
 | Clear 0.20.0正式入口使用的OCR | `release/Clear/current.json` 选择的candidate-006根 `ocr`；由其 `launch.py` 加载 `ocr/src` 与 `ocr/frontend/dist` | 当前源码SCHEMA_VERSION为18；切换时原工作区数据库为17，兼容检查通过，不代表本轮已迁移该库 |
-| 统一主线原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；在 `codex/workspace-organized-20261023` 直接维护 | schema 22；已整合 MinerU Pro、屏拍批次、诊断、精细候选与单元格复核，来源见[整合记录](platform-automation/分支整合记录-20261024.md) |
+| 统一主线原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；在 `main` 直接维护 | schema 22；已整合 MinerU Pro、屏拍批次、诊断、精细候选与单元格复核，来源见[整合记录](platform-automation/分支整合记录-20261024.md) |
 | 根目录 OCR 兼容入口 | [src/ocr_workbench](../src/ocr_workbench/) 与 [frontend/src](../frontend/src/) | schema 22；同步收齐屏拍后续实现，完整 Clear 开发以 `products/Clear` 为准 |
 | 内嵌 OCR 资产包 | `release/Clear/versions/0.10.0/program/bundles/ocr` | 提供模型、运行时、配置等资产；其中遗留的 `src` 为 schema 15、`web` 也较旧，不能据此判断正式入口实际显示的 UI |
 

@@ -5,7 +5,7 @@
   "purpose": "Integrated authored sources maintained on the single project branch; runtime assets and deployed releases are separate.",
   "source_authority": {
     "repository": "F:/OCR",
-    "branch": "codex/workspace-organized-20261023",
+    "branch": "main",
     "integration_base_head": "5a3a980dfdb4c07ed92488cf4896bd15b5dbc2ae",
     "path": "products/Clear"
   },
@@ -75,7 +75,7 @@
       "source_kind": "integrated-main-branch",
       "source_path": "F:/OCR/products/Clear/platform",
       "source_git_dir": "F:/OCR/.git",
-      "branch": "codex/workspace-organized-20261023",
+      "branch": "main",
       "upstream_sources": [
         {
           "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
@@ -6072,7 +6072,7 @@
       "source_kind": "integrated-main-branch",
       "source_path": "F:/OCR/products/Clear/classification",
       "source_git_dir": "F:/OCR/.git",
-      "branch": "codex/workspace-organized-20261023",
+      "branch": "main",
       "upstream_sources": [
         {
           "source_path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/classification",
@@ -7261,7 +7261,7 @@
       "source_kind": "integrated-main-branch",
       "source_path": "F:/OCR/products/Clear/ocr",
       "source_git_dir": "F:/OCR/.git",
-      "branch": "codex/workspace-organized-20261023",
+      "branch": "main",
       "upstream_sources": [
         {
           "source_path": "F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr",
