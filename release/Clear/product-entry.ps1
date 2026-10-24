@@ -56,7 +56,10 @@ $productRuntimeRoot = Resolve-ProductPath (Join-Path (Split-Path $productRegistr
 New-Item -ItemType Directory -Force -Path $productRuntimeRoot | Out-Null
 $productLeasePath = Resolve-ProductPath (Join-Path $productRuntimeRoot 'entry.lock')
 $productLease = $null
-$productLeaseDeadline = [DateTime]::UtcNow.AddSeconds(80)
+$productStartupWaitSeconds = 900
+# A second start waits for the same verified initialization and its entry checks.
+$productLeaseWaitSeconds = if ($Action -eq 'start') { $productStartupWaitSeconds + 80 } else { 80 }
+$productLeaseDeadline = [DateTime]::UtcNow.AddSeconds($productLeaseWaitSeconds)
 while (-not $productLease) {
     try {
         $productLease = [IO.File]::Open($productLeasePath, [IO.FileMode]::OpenOrCreate,
@@ -193,7 +196,7 @@ $productOwnedProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $($pro
 if (-not $productOwnedProcess) { throw '产品进程启动后已退出，查看本地日志' }
 Write-ProductJson $productReceiptPath @{format='clear-product-process-v1';pid=$productChild.Id;candidate=$productRoot;
     data=$productData;port=$productPort;created=$productOwnedProcess.CreationDate.ToUniversalTime().ToString('o');agent_enabled=[bool]$productAgentEnabled}
-$productDeadline = [DateTime]::UtcNow.AddSeconds(60)
+$productDeadline = [DateTime]::UtcNow.AddSeconds($productStartupWaitSeconds)
 do {
     if ($productChild.HasExited) { throw '产品启动失败，查看本地日志；当前登记未改变' }
     try {

@@ -55,8 +55,8 @@ export function PlatformTools({ open, close, workspace, referenceIds, saveRefere
         <Radio.Group aria-label="选择交付策略" value={policy} disabled={busy || policySaving} onChange={event => { setPolicy(event.target.value); setPolicyEdited(true); setPolicyNotice('') }}>
           <Space orientation="vertical"><Radio value="auto">按用户目标判断</Radio><Radio value="draft">仅交付草稿</Radio><Radio value="reviewed">正式交付前须人工核准</Radio></Space>
         </Radio.Group>
-        <Typography.Paragraph type="secondary">草稿分析可持续推进，并保留未复核标识；正式字段与成果等待用户核准。先草稿、后正式的任务可选择人工核准，草稿预览仍可保留。</Typography.Paragraph>
-        {deliveryPolicy === 'auto' && policyResolution && <Typography.Paragraph>{policyResolution.require_review ? '当前用户要求：正式交付前须核准。' : '当前未要求正式核准；可交付明确标记的草稿。'}{policyResolution.evidence && <small>依据：{policyResolution.evidence}</small>}</Typography.Paragraph>}
+        <Typography.Paragraph type="secondary">按用户目标生成并交付文件，包括正式报告。只有明确要求或选择人工核准时才等待；未复核状态如实保留。</Typography.Paragraph>
+        {deliveryPolicy === 'auto' && policyResolution && <Typography.Paragraph>{policyResolution.require_review ? '当前用户要求：正式交付前须核准。' : '当前无需人工核准，可直接生成并交付文件。'}{policyResolution.evidence && <small>依据：{policyResolution.evidence}</small>}</Typography.Paragraph>}
         {policyError && <Alert type="error" title={policyError} />}{policyNotice && <Alert type="success" title={policyNotice} />}
         <Button disabled={!workspace || !saveDeliveryPolicy || policy === deliveryPolicy || busy || policySaving} loading={policySaving} onClick={() => {
           setPolicySaving(true); setPolicyError(''); setPolicyNotice(''); void saveDeliveryPolicy!(policy).then(() => { setPolicyEdited(false); setPolicyNotice('交付要求已保存。') }).catch(caught => setPolicyError(caught.message)).finally(() => setPolicySaving(false))

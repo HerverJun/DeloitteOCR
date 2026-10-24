@@ -1,8 +1,8 @@
 {
   "format": "clear-current-product-v1",
-  "product_version": "0.16.0",
-  "candidate": "F:\\OCR\\output\\forensics-effective-upgrade-20261020\\safire-integration-20261021\\deployment-20261021\\delivery\\Clear-0.16.0-safire-candidate-003",
-  "candidate_manifest_sha256": "d372c68faa832801951bab4a808c865e601f979873bd92996d63ae6ea75de81e",
+  "product_version": "0.20.0",
+  "candidate": "F:\\OCR\\output\\agent-usability-upgrade-20261023\\delivery\\Clear-0.20.0-usability-candidate-006",
+  "candidate_manifest_sha256": "47045fd159ef824b165ecd2aa4ff071f96614941d76f3f862753cc6dcb461c44",
   "shared_program": "F:\\OCR\\release\\Clear\\versions\\0.10.0\\program",
   "data": "F:\\OCR\\output\\ai-audit-product-dev-20261004\\workspace",
   "port": 8879,
@@ -30,8 +30,12 @@
       "bounded-goal-interpretation-v1",
       "partial-goal-continuation-v1",
       "agent-general-v1",
+      "agent-usability-v1",
       "document-forensics-v1",
-      "safire-forensics-v1"
+      "safire-forensics-v1",
+      "structured-documents-v1",
+      "ocr-mineru-pro-v1",
+      "data-financial-amount-v1"
     ],
     "sqlite": {
       "workspaces.sqlite3": {
@@ -148,6 +152,36 @@
           ]
         }
       },
+      "documents/documents.sqlite3": {
+        "user_versions": [
+          0,
+          1
+        ],
+        "reject_nonempty_unversioned": true,
+        "require_versioned_tables": true,
+        "tables": {
+          "documents": [
+            "document_id",
+            "workspace_id",
+            "request_id",
+            "payload_hash",
+            "body"
+          ],
+          "document_reviews": [
+            "document_id",
+            "table_id",
+            "revision",
+            "body",
+            "created_at"
+          ],
+          "document_results": [
+            "document_id",
+            "revision",
+            "result_hash",
+            "body"
+          ]
+        }
+      },
       "native/ocr/workbench.sqlite3": {
         "user_versions": [
           0,
@@ -167,7 +201,8 @@
           14,
           15,
           16,
-          17
+          17,
+          18
         ],
         "tables": {}
       },
@@ -198,7 +233,7 @@
       ]
     }
   },
-  "release_name": "统一工作台 · SAFIRE 深度定位",
+  "release_name": "易用性优先 · 连续执行与直接成果",
   "ui_contract_version": "1.4.0",
   "agent_enabled": true
 }

@@ -1,6 +1,6 @@
 # ClearOCR 详细使用说明
 
-编写日期：2026-10-14。面向在 Clear 审计平台中完成图片、PDF、文字及表格识别和校对的使用者。
+编写日期：2026-10-14；当前入口更新：2026-10-24。面向在 Clear 审计平台中完成图片、PDF、文字及表格识别和校对的使用者。
 
 平台入口、其他子工具及跨工具操作见[Clear 审计平台使用说明书](Clear审计平台使用说明书.md)。本说明重点解释 ClearOCR 的界面、按钮、操作顺序、结果状态和交付限制。
 
@@ -10,12 +10,12 @@
 
 | 对象 | 实际位置与用途 | 本说明中的定位 |
 | --- | --- | --- |
-| Clear 0.10.0 正式入口使用的 OCR | 本机 `F:\OCR\release\Clear\versions\0.10.0\ocr`；由同版本 `launch.py` 经平台启动器加载 `ocr/src`，前端使用 `ocr/frontend/dist` | 本说明的主要操作基线，数据库 schema 17 |
-| GitHub 中整理的原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；来源为 `output/clear-automation-dev-20261002/worktrees/ocr` | 原生开发快照，schema 17；布局及样式工作区修改也随源码保留 |
+| Clear 0.20.0正式入口使用的OCR | `release/Clear/current.json` 选择的candidate-006根 `ocr`；由其 `launch.py` 加载 `ocr/src` 与 `ocr/frontend/dist` | 当前源码SCHEMA_VERSION为18；切换时原工作区数据库为17，兼容检查通过，不代表本轮已迁移该库 |
+| GitHub 中整理的原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；来源为 `output/clear-automation-dev-20261002/worktrees/ocr` | 原生开发快照，SCHEMA_VERSION为18；布局及样式工作区修改也随源码保留 |
 | 根目录 OCR 研发线 | [src/ocr_workbench](../src/ocr_workbench/) 与 [frontend/src](../frontend/src/) | schema 18；新增「拍屏表格批量转 Excel」等功能，见第 14 节 |
 | 内嵌 OCR 资产包 | `release/Clear/versions/0.10.0/program/bundles/ocr` | 提供模型、运行时、配置等资产；其中遗留的 `src` 为 schema 15、`web` 也较旧，不能据此判断正式入口实际显示的 UI |
 
-启动链的关键点是：平台启动器先加载版本目录下的原生 `ocr/src`，并显式传入 `--web-root` 指向原生 `ocr/frontend/dist`，同时通过 `--bundle` 引用资产包。查看资产包里的旧网页，不等于查看 Clear 当前入口的页面。
+当前正式版保留既有MinerU Pro文档路线；共享 `program` 仍位于0.10.0依赖目录，其版本不能当作当前产品版本。启动链的关键点是：平台启动器先加载版本目录下的原生 `ocr/src`，并显式传入 `--web-root` 指向原生 `ocr/frontend/dist`，同时通过 `--bundle` 引用资产包。查看资产包里的旧网页，不等于查看 Clear 当前入口的页面。
 
 从平台首页打开 ClearOCR 后，可通过页眉品牌入口返回审计平台首页；从平台项目进入时，应核对平台项目上下文。会话链接由启动入口生成，服务重启后从平台重新打开，避免反复使用已经失效的旧链接。
 
@@ -378,7 +378,7 @@ ClearOCR 的「文档助手」是原生 OCR 页面内的助手，负责查询当
 
 ## 14. 研发版新增：拍屏表格批量转 Excel
 
-本节对应根目录 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及相关后端，数据库 schema 18。Clear 0.10.0 当前正式入口和 `products/Clear/ocr` 的 schema 17 原生快照没有此入口；不能只复制前端文件就认为完成升级。
+本节对应根目录 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及相关后端，数据库 schema 18。2026-10-14编写时的Clear 0.10.0入口和schema17原生快照没有此入口；当前版本与源码身份按第1节核对，不能只复制前端文件就认为完成升级。
 
 ### 14.1 新建批次与查看进度
 
@@ -519,7 +519,7 @@ GPU OCR、去弯曲、定位及本地视觉相关工作受串行资源调度约�
 
 应用目录与资料工作区是两套内容；只复制发行程序不等于备份资料，只复制 SQLite 文件也不等于完整备份。平台整体备份还应覆盖平台数据和其他子工具原生资料，见主手册。
 
-当前正式原生 OCR 支持 schema 17，根研发版支持 schema 18。新版可能先备份数据库再进行迁移，但自动数据库备份不包含所有图片和输出。升到 schema 18 后不能让 schema 17 程序写入该数据库；回退时使用与旧版匹配的完整备份，不手工改版本号。
+当前006原生OCR和根研发源码的SCHEMA_VERSION均为18；本次切换时既有原库为17，读取兼容检查已通过。新版可能先备份数据库再进行迁移，但自动数据库备份不包含所有图片和输出。升到 schema 18 后不能让 schema 17 程序写入该数据库；回退时使用与旧版匹配的完整备份，不手工改版本号。
 
 ## 18. 交付前核对与文档依据
 

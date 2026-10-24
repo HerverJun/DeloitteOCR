@@ -73,6 +73,49 @@ class ContinuationPolicyTests(unittest.TestCase):
         self.assertEqual(facts['task']['plan'], [{'key': 'next', 'title': 'next', 'status': 'pending'}])
         runtime.session_facts.assert_not_called()
 
+    def test_general_initial_state_skips_audit_history_and_keeps_selected_scope(self):
+        from workbench_platform.agent.general import CONTRACT
+        from workbench_platform.agent.runtime import AgentRuntime
+        session = {'id': 'session', 'workspace_id': 'w', 'selected_assets': ['asset'],
+                   'initial_refs': [{'object_id': 'fixed-source'}]}
+        runtime = object.__new__(AgentRuntime)
+        runtime.store = SimpleNamespace(session=Mock(return_value=session),
+            rows=Mock(side_effect=AssertionError('legacy history query')))
+        runtime.registry = SimpleNamespace(tools={})
+        runtime.session_facts = Mock(side_effect=AssertionError('legacy snapshot'))
+        run = {'id': 'run', 'session_id': 'session', 'request_id': 'request', 'generation': 1,
+               'driver_state': json.dumps({'execution_contract': CONTRACT})}
+        state = runtime.initial_state(run, 'Only the current goal')
+        self.assertEqual(state['execution_contract'], CONTRACT)
+        self.assertFalse(state['business_started'])
+        self.assertEqual([message['id'] for message in state['messages']], ['run:scope', 'request'])
+        self.assertEqual(state['messages'][-1]['content'], 'Only the current goal')
+        scope = json.loads(state['messages'][0]['content'].split('\n', 1)[1])
+        self.assertEqual(scope['selected_assets'], ['asset'])
+        self.assertEqual(scope['initial_refs'], session['initial_refs'])
+        runtime.session_facts.assert_not_called()
+        runtime.store.rows.assert_not_called()
+
+    def test_legacy_initial_state_preserves_audit_history_and_previous_delivery(self):
+        from workbench_platform.agent.runtime import AgentRuntime
+        session = {'id': 'session', 'workspace_id': 'w', 'selected_assets': [], 'initial_refs': []}
+        history = {'task': {'delivery_requirements': {'stages': ['fixed-stage']}}}
+        runtime = object.__new__(AgentRuntime)
+        runtime.store = SimpleNamespace(session=Mock(return_value=session),
+            rows=Mock(return_value=[{'payload': '{"delivery":"fixed"}'}]))
+        runtime.registry = SimpleNamespace(tools={})
+        runtime.session_facts = Mock(return_value=history)
+        run = {'id': 'run', 'session_id': 'session', 'request_id': 'request', 'generation': 1,
+               'driver_state': '{}'}
+        state = runtime.initial_state(run, 'Legacy goal')
+        self.assertIsNone(state['execution_contract'])
+        self.assertTrue(state['business_started'])
+        self.assertEqual([message['id'] for message in state['messages']],
+            ['run:scope', 'run:prior-delivery', 'run:session-facts', 'request'])
+        self.assertIn('fixed-stage', state['messages'][2]['content'])
+        self.assertIn('"delivery":"fixed"', state['messages'][1]['content'])
+        runtime.session_facts.assert_called_once_with(run)
+
 
 class RuntimeRecoveryTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
@@ -91,8 +134,9 @@ class RuntimeRecoveryTests(unittest.IsolatedAsyncioTestCase):
         directory.mkdir()
         output = directory / 'answer.txt'
         output.write_text('first', encoding='utf-8')
-        state = {'working_directory': str(directory)}
-        runtime = SimpleNamespace(context=lambda _: None, registry=SimpleNamespace(dispatch=AsyncMock(return_value={})))
+        state = {'working_directory': str(directory), 'run_id': self.run['id']}
+        runtime = SimpleNamespace(store=self.runtime.store, context=lambda _: None,
+            registry=SimpleNamespace(dispatch=AsyncMock(return_value={})))
         await automatic(runtime, state, 'response-one')
         await automatic(runtime, state, 'response-two')
         calls = runtime.registry.dispatch.call_args_list

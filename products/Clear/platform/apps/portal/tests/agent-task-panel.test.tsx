@@ -29,8 +29,48 @@ test('completed native output remains downloadable while analysis failed', () =>
   render(<MemoryRouter><TaskPanel task={task({ status: 'failed' })} events={events} {...callbacks()} /></MemoryRouter>)
   const results = screen.getByLabelText('任务成果')
   expect(within(results).getByRole('link', { name: /ocr-text.txt/ })).toHaveAttribute('href', '/download/original')
-  expect(results).toHaveTextContent('后续分析待继续')
+  expect(results).toHaveTextContent('后续分析未完成，请查看具体原因。')
   expect(results).not.toHaveTextContent('已完成交付')
+})
+
+test.each([
+  ['running', '后续分析正在继续。'],
+  ['waiting_job', '正在等待工具或资源，随后自动继续。'],
+  ['waiting_user', '等待你补充信息后继续。'],
+  ['paused', '任务已暂停。'],
+  ['cancelled', '后续处理已停止。'],
+  ['needs_verification', '后续操作需先核实结果。'],
+])('available files remain usable while %s describes the actual next step', (status, notice) => {
+  const events = [event(1, 'result_available', { result: { artifact_refs: [artifactRef], data: { delivery: [
+    { bundle_id: 'original-bundle', title: '原文', files: [{ name: 'ocr-text.txt', download_url: '/download/original' }] },
+  ] } } })]
+  render(<MemoryRouter><TaskPanel task={task({ status })} events={events} {...callbacks()} /></MemoryRouter>)
+  const results = screen.getByLabelText('任务成果')
+  expect(within(results).getByRole('link', { name: /ocr-text.txt/ })).toHaveAttribute('href', '/download/original')
+  expect(results).toHaveTextContent(notice)
+  expect(results).not.toHaveTextContent('后续分析待继续')
+})
+
+test('an observed automatic wait never overrides a user pause or cancellation', () => {
+  const events = [event(1, 'result_available', { result: { artifact_refs: [artifactRef] } }),
+    event(2, 'agent_activity', { version: 1, generation: 1, phase: 'waiting_job' })]
+  const renderTask = (status: string) => <MemoryRouter><TaskPanel task={task({ status })} events={events} {...callbacks()} /></MemoryRouter>
+  const mounted = render(renderTask('running'))
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('正在等待工具或资源，随后自动继续。')
+  mounted.rerender(renderTask('paused'))
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('任务已暂停。')
+  expect(screen.getByLabelText('任务成果')).not.toHaveTextContent('自动继续')
+  mounted.rerender(renderTask('cancelled'))
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('后续处理已停止。')
+  expect(screen.getByLabelText('任务成果')).not.toHaveTextContent('自动继续')
+})
+
+test('a pause receipt stops the continuation notice before the task snapshot refreshes', () => {
+  const events = [event(1, 'result_available', { result: { artifact_refs: [artifactRef] } }),
+    event(2, 'agent_activity', { version: 1, generation: 1, phase: 'paused' })]
+  render(<MemoryRouter><TaskPanel task={task()} events={events} {...callbacks()} /></MemoryRouter>)
+  expect(screen.getByLabelText('任务成果')).toHaveTextContent('任务已暂停。')
+  expect(screen.getByLabelText('任务成果')).not.toHaveTextContent('正在继续')
 })
 
 test('unreviewed delivery stays downloadable without implying approval is required', () => {

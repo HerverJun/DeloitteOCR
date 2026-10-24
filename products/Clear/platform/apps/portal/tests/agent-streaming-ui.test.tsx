@@ -45,7 +45,8 @@ test('original text is usable without a final model summary and does not claim g
   expect(screen.getByRole('heading', { name: '原文已完成' })).toBeVisible()
   expect(screen.getByText('编号 00001 金额 10.00')).toBeVisible()
   expect(screen.getByRole('link', { name: 'ocr-text.txt' })).toHaveAttribute('href', '/download/original')
-  expect(screen.getByText(/后续分析待继续/)).toBeVisible()
+  expect(screen.getByText('已完成成果可读取和下载。')).toBeVisible()
+  expect(screen.queryByText(/后续分析待继续/)).not.toBeInTheDocument()
 })
 
 test('a streamed answer is one stable segment through generated, confirmation and official references', () => {

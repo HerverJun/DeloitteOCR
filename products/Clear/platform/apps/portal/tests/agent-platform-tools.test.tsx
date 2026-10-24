@@ -141,6 +141,18 @@ test('delivery policy is an explicit user choice and shows the saved goal requir
   expect(save).not.toHaveBeenCalledWith('draft')
 })
 
+test('a formal report without a review requirement can be delivered directly', () => {
+  fetchCatalog(); const save = vi.fn(async () => {})
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><PlatformTools open close={() => {}} workspace="workspace" referenceIds={[]} saveReferences={async () => {}}
+    deliveryPolicy="auto" policyResolution={{ require_review: false, source: 'user_goal', evidence: '生成正式报告' }} saveDeliveryPolicy={save} /></QueryClientProvider>)
+  expect(screen.getByRole('radio', { name: '按用户目标判断' })).toBeChecked()
+  expect(screen.getByText('当前无需人工核准，可直接生成并交付文件。', { exact: false })).toBeInTheDocument()
+  expect(screen.getByText(/按用户目标生成并交付文件，包括正式报告/)).toBeInTheDocument()
+  expect(screen.queryByText(/正式字段与成果等待用户核准/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/可交付明确标记的草稿/)).not.toBeInTheDocument()
+  expect(save).not.toHaveBeenCalled()
+})
+
 test('a policy chosen before starting a task is preserved in session creation', async () => {
   class SilentSource { readyState = 1; onopen = null; onmessage = null; onerror = null; close() {} }
   vi.stubGlobal('EventSource', SilentSource)

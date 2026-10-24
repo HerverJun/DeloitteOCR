@@ -102,7 +102,7 @@ export function applyConversationEvents(previous: ConversationProjection, incomi
     if (event.kind === 'result_available') {
       const available = p.result && typeof p.result === 'object' ? p.result as Record<string, unknown> : undefined
       if (!available) continue
-      const delivered = { ...event, payload: { ...p, status: 'available', delivery: available, content: '已完成成果可读取和下载；后续分析待继续。' } }
+      const delivered = { ...event, payload: { ...p, status: 'available', delivery: available, content: '已完成成果可读取和下载。' } }
       const item = message(delivered)
       item.status = 'confirmed'; item.source = 'available_result'; item.content = String(delivered.payload.content); item.delivery = delivered
       item.references = [...references(available.result_refs), ...references(available.artifact_refs)]

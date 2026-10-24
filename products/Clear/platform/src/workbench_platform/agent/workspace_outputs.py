@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import mimetypes
 import os
 from pathlib import Path
@@ -10,7 +11,7 @@ from pydantic import Field
 from packages.contracts.agent import AgentModel, AgentRef, AgentToolResult
 from packages.contracts.models import SourceLocator
 from workbench_platform.supervisor.processes import require_f_path
-from workbench_platform.artifacts.native_exports import publish, lookup_result
+from workbench_platform.artifacts.native_exports import publish, lookup_result as lookup_native_result
 from .general import enabled
 from .registry import ToolSpec
 from .store import canonical, digest
@@ -88,24 +89,90 @@ def execute(args, ctx):
             object_id=bundle['bundle_id'], revision=1)]).model_dump(mode='json')
 
 
+def fixed_output_files(bundle_id, ctx):
+    ctx.current()
+    center = ctx.services.artifact_center
+    bundle = center.get(ctx.workspace_id, bundle_id)
+    manifest = center.file(ctx.workspace_id, bundle_id, 'clear-output-files.json')
+    with center.store.stage_download(ctx.workspace_id, manifest.artifact_id,
+            expected_revision=manifest.revision, expected_hash=manifest.blob_hash) as path:
+        files = json.loads(path.read_bytes())
+    if not isinstance(files, list) or len(files) > 512 or any(not isinstance(item, dict) for item in files):
+        raise ValueError('The fixed task output manifest is invalid')
+    names = [item.get('filename') for item in files]
+    if (any(not isinstance(name, str) for name in names) or len(set(names)) != len(names)
+            or set(names) != {item['name'] for item in bundle['files']} - {'clear-output-files.json'}):
+        raise ValueError('The fixed task output manifest differs from its bundle')
+    for item in files:
+        artifact = center.file(ctx.workspace_id, bundle_id, item['filename'])
+        if (not isinstance(item.get('path'), str) or artifact.blob_hash != item.get('sha256')
+                or artifact.size_bytes != item.get('bytes')):
+            raise ValueError('The fixed task output identity differs from its artifact')
+    return files
+
+
+def lookup_outputs(args, ctx):
+    result = lookup_native_result(ctx)
+    if result is not None:
+        result['data']['files'] = fixed_output_files(result['data']['bundle']['bundle_id'], ctx)
+    return result
+
+
 async def automatic(runtime, state, request_id):
     if not state.get('working_directory'):
         return None
     root = Path(state['working_directory'])
     baseline = state.get('workspace_baseline', {})
-    changed = {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+    current = {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
                for path in output_files(root)}
-    changed = {path: sha for path, sha in changed.items() if baseline.get(path) != sha}
-    if not changed:
+    if not current:
         return None
-    # Repeated finalization reuses the same operation and fixed output bundle.
-    # A real file change creates a new identity, even within the same run.
-    return await runtime.registry.dispatch({'call_id': 'auto_files_' + digest(changed)[:32],
-        'tool': 'workspace_publish_outputs', 'arguments': {'paths': sorted(changed)}}, runtime.context(state))
+    normalized = {os.path.normcase(path): (path, sha) for path, sha in current.items()}
+    saved, references, latest = {}, {}, None
+
+    def remember(result):
+        nonlocal latest
+        data = result.get('data') or {}
+        bundle_id = (data.get('bundle') or {}).get('bundle_id')
+        refs = [ref for ref in result.get('artifact_refs', [])
+                if ref.get('kind') == 'artifact' and ref.get('object_id') == bundle_id]
+        if result.get('status') != 'success' or not bundle_id or not refs:
+            return
+        files = data.get('files')
+        if files is None:
+            files = fixed_output_files(bundle_id, runtime.context(state))
+        matched = False
+        for item in files:
+            identity = normalized.get(os.path.normcase(item.get('path', '')))
+            if identity and identity[1] == item.get('sha256'):
+                saved[identity[0]] = {**item, 'path': identity[0], 'bundle_id': bundle_id}
+                matched = True
+        if matched:
+            latest = result
+            references.update((digest(ref), ref) for ref in refs)
+
+    for record in runtime.store.rows("SELECT result FROM operations WHERE run_id=? AND tool='workspace_publish_outputs' "
+            "AND state='finished' AND result IS NOT NULL ORDER BY created", (state['run_id'],)):
+        remember(json.loads(record['result']))
+    changed = {path: sha for path, sha in current.items() if baseline.get(path) != sha and path not in saved}
+    if changed:
+        # Explicit and automatic publication share the durable run receipts.
+        # Only new bytes need a new operation; failed/unknown receipts stay out.
+        result = await runtime.registry.dispatch({'call_id': 'auto_files_' + digest(changed)[:32],
+            'tool': 'workspace_publish_outputs', 'arguments': {'paths': sorted(changed)}}, runtime.context(state))
+        if result.get('status') != 'success':
+            return result
+        remember(result)
+        if latest is None:
+            return result
+    if latest is None:
+        return None
+    return {**latest, 'data': {**latest['data'], 'files': list(saved.values())},
+            'artifact_refs': list(references.values())}
 
 
 def register(registry):
     registry.register(ToolSpec('workspace_publish_outputs',
         '保存任务工作目录中的实际输出文件并提供下载；自动收尾也会保存。可指定相对paths；原件、缓存和依赖不作为输出。',
-        PublishOutputs, execute, effect='derive', lookup_operation=lookup_result, idempotent=True,
+        PublishOutputs, execute, effect='derive', lookup_operation=lookup_outputs, idempotent=True,
         input_kinds=('file',), output_kinds=('artifact',)))

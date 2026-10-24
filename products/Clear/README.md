@@ -1,18 +1,18 @@
-> 当前登记（2026-10-23）：正式 8879 仍为 Clear 0.16.0 SAFIRE；0.20.0 易用性候选使用 8992，已封存并等待实用验收，尚未切换正式登记。审阅源码同步自登记工作树 HEAD `12a1db8557f645d2a7f371d5b36bc0c7b8227bdd`，保留文档主题对比 0.18.0（8988）和整图 AIGC 实验 0.19.0（8990）的独立源码；0.20.0 候选来自独立 `e65c401c5f3787e3246d4f38576657c87cfd0048` 分支，不含上述实验扩展。本目录同步 2,079 个登记源码文件，实际运行版本以各候选清单及正式登记为准。详见[文档对比验收](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)与[AIGC 实测报告](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)。
+> 当前登记（2026-10-24）：正式8879为Clear 0.20.0易用性版candidate-006，沿用原工作区。审阅源码来自登记工作树HEAD `1c8d3459a0c4b179835b7457dc585ed9db9c91a9`，保留0.18.0文档主题对比和0.19.0 AIGC实验源码；正式发行来自独立HEAD `073a5325e2be8415e48a626a06a1056e3fe49ae0`，不合入上述实验。本目录包含2,080个登记源码文件，来源以[source-manifest.json](source-manifest.json)为准，运行身份以正式登记及候选清单为准。实用检查、正式启动、旧会话/下载及回退见[本轮实施记录](../../docs/platform-automation/Clear易用性优先与Agent简化实施-20261023.md)。
 
 # Clear 三应用源码与版本对应
 
-本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-23；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
+本目录把当前 Clear 的平台、分类和原生 OCR 自有工程文件集中到同一 GitHub 仓库，便于审阅、检索和后续开发。最新捕获日期为 2026-10-24；**这是带来源身份的源码快照，不是完整离线安装目录，也不是三个原开发仓库的 Git 历史迁移。** 原目录、正式运行服务和业务数据均保留。
 
 | 本仓目录 | 原开发目录 | 本轮文件数 | 作用 |
 |---|---|---:|---|
-| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 949 | 门户、Agent 工作台、文档主题对比、整图 AIGC 检测、Harness 适配与业务服务 |
+| [platform](platform/) | `F:\OCR\output\frontend-workbench-20261015\worktrees\platform` | 950 | 门户、Agent 工作台、文档主题对比、整图 AIGC 检测、Harness 适配与业务服务 |
 | [classification](classification/) | `F:\OCR\output\clear-automation-dev-20261002\worktrees\classification` | 195 | 图像标注、训练、模型、推理与人工复核 |
 | [ocr](ocr/) | 同登记开发根 `worktrees/ocr` | 935 | Clear 对应的原生 OCR 源码、前端、配置、测试和许可，含 MinerU Pro 接入 |
 
-每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。本轮平台 HEAD 为 `12a1db8557f645d2a7f371d5b36bc0c7b8227bdd`，OCR 为 `adab40a77ad294a5011f1212491dd4277ed8d772`，分类为 `1be916be64fcbe425cae356f28c106c586da3d7a`，捕获时三仓均干净。来源仓库和远端配置保留。
+每仓 HEAD、分支、工作区状态以及全部快照文件的 SHA256/大小见 [source-manifest.json](source-manifest.json)。快照读取当前工作区字节。本轮平台 HEAD 为 `1c8d3459a0c4b179835b7457dc585ed9db9c91a9`，OCR 为 `adab40a77ad294a5011f1212491dd4277ed8d772`，分类为 `1be916be64fcbe425cae356f28c106c586da3d7a`，捕获时三仓均干净。来源仓库和远端配置保留。
 
-当前正式入口为 **0.16.0 SAFIRE**、<http://127.0.0.1:8879/>。本轮审阅源码包含文档/Pro 接入、真实 Debug 修复、[文档主题对比](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)和[独立整图 AIGC 检测](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)，没有切换正式登记。AIGC 保留 SAFIRE 局部定位，最坏变换误报率的单侧 95% 上界为 1.88%，超过 1% 目标，且缺少生成文档正例，保持实验能力；具体范围与数据缺口见实测报告。此前 0.14.0 的通用 Agent 能力、旧会话/成果下载、冷备和回退历史证据见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述较早候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
+当前正式入口为 **0.20.0易用性版candidate-006**、<http://127.0.0.1:8879/>。本轮审阅源码包含文档/Pro 接入、真实 Debug 修复、[文档主题对比](../../docs/platform-automation/Clear文档主题对比实施与验收-20261022.md)和[独立整图 AIGC 检测](../../docs/platform-automation/整图AIGC检测实施与真实评测报告-20261023.md)，其中主题对比与AIGC实验未纳入本轮正式发行。AIGC 保留 SAFIRE 局部定位，最坏变换误报率的单侧 95% 上界为 1.88%，超过 1% 目标，且缺少生成文档正例，保持实验能力；具体范围与数据缺口见实测报告。此前 0.14.0 的通用 Agent 能力、旧会话/成果下载、冷备和回退历史证据见[通用能力实施与验收](../../docs/platform-automation/Agent通用能力恢复实施与验收-20261019.md)。Agent 的开放分析仍使用官方 DeepSeek Harness 内核。下述较早候选与预览记录保留作历史来源，当前登记以 `release/Clear/current.json` 为准。
 
 新版前端的参考来源、改动与本机预览见[改版记录](../../docs/platform-automation/前端工作台改版与预览-20261015.md)。最新[门户首页补齐](../../docs/platform-automation/门户首页评估与补齐-20261015.md)将默认入口改为导航门户，AI 工作区独立为 `/agent`，保留旧会话链接；本轮 29 项定向回归、23 项首页和 21 项工具目录浏览器检查通过。预览首页为 <http://127.0.0.1:8910/>，正式入口继续使用 8879。
 
@@ -23,7 +23,7 @@
 ## 与根仓和发行版本的区别
 
 - 根仓 `src/`、`frontend/` 是独立 OCR 研发线，当前 schema 18，含较新的屏拍等功能。
-- 本目录 `ocr/` 是 Clear 原生 OCR 开发线。正式运行源码取自 `current.json` 选择的 0.16.0 候选根 `ocr/`，本轮 0.17.1 使用其独立候选源码；0.10.0 目录继续提供已登记的共享运行时/模型。运行身份须以各候选逐文件清单核对。
+- 本目录 `ocr/` 是 Clear 原生 OCR 开发线。正式运行源码取自 `current.json` 选择的0.20.0 candidate-006根 `ocr/`，保留0.17.1文档及MinerU Pro改动；0.10.0 目录继续提供已登记的共享运行时/模型。运行身份须以各候选逐文件清单核对。
 - 正式 Clear 指针在 [current.json](../../release/Clear/current.json)。运行时 `launch.py` 从发行根的 `platform`、`ocr`、`classification` 加载代码，OCR 网页由发行根 `ocr/frontend/dist` 提供；`program/bundles/ocr` 中旧 `src/web` 是底层资产，不是实际界面基线。
 - `release/Clear/versions/` 里的完整离线安装目录及 `output/` 下候选封包留在本机并忽略。Python、模型、GPU DLL、依赖、样本、编译产物、业务工作区和大型 ZIP 不随 Git 上传。GitHub 提供可审阅源码及交付记录，不能直接替代完整离线介质；资产身份、兼容要求和完整包证据仍由登记与交付文档说明。
 

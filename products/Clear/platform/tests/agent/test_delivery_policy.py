@@ -10,7 +10,38 @@ from workbench_platform.agent.store import Conflict
 from workbench_platform.agent import routes
 
 
+EXPLICIT_REVIEW_GOAL = ('请根据source.txt拟一份独立的正式情况说明报告，先给可下载的草稿，'
+                        '明确等我人工确认后才能定稿；现在不要替我确认、署名或宣称报告已经核准。')
+
+
 class PolicyInferenceTests(unittest.TestCase):
+    def test_natural_confirmation_before_finalization_is_an_explicit_requirement(self):
+        for goal in (EXPLICIT_REVIEW_GOAL, '先给草稿，等我人工确认后才能定稿。',
+                     '等待人工确认后再定稿。', '请等我确认后再定稿。',
+                     '必须人工复核通过后才能定稿。', '人工确认后才可发布报告。',
+                     '待用户确认后方可出具报告。'):
+            with self.subTest(goal=goal):
+                inference = infer_user_delivery_policy(goal, request_id='explicit-review-user')
+                self.assertEqual(inference['policy'], 'reviewed')
+                self.assertEqual(inference['request_id'], 'explicit-review-user')
+                self.assertTrue(effective_policy({'goal': goal, 'delivery_policy_version': 2})['require_review'])
+
+    def test_formality_unreviewed_labels_negations_and_questions_are_not_review_requests(self):
+        for goal in ('请生成正式报告', '请生成正式报告，并注明未经过人工复核。',
+                     '仅说明未复核即可，直接生成正式报告。',
+                     '不用等人工确认后定稿，直接完成正式报告。',
+                     '不要等待我确认后才定稿，直接给出报告。',
+                     '是否需要等待人工确认后才能定稿？',
+                     '生成正式报告是否要等人工确认后才能定稿？',
+                     '正式报告需要人工复核吗？',
+                     '解释“等人工确认后才能定稿”是什么意思。',
+                     '说明“等人工确认后才能定稿”的含义。',
+                     '等待人工确认后不需要定稿。',
+                     '请生成正式报告；不必等待人工确认。'):
+            with self.subTest(goal=goal):
+                self.assertIsNone(infer_user_delivery_policy(goal))
+                self.assertFalse(effective_policy({'goal': goal, 'delivery_policy_version': 2})['require_review'])
+
     def test_explicit_formal_user_goal_requires_review(self):
         for goal in ('请生成正式核对结果', '输出正式审计底稿', '核准后生成报告', 'deliver a formal report'):
             with self.subTest(goal=goal):
@@ -49,6 +80,15 @@ class PolicyPersistenceTests(unittest.IsolatedAsyncioTestCase):
 
     def task(self):
         return self.services.agent.tasks.get(self.ctx.session_id)
+
+    def test_natural_draft_then_confirmation_requirement_survives_a_continuation(self):
+        tasks = self.services.agent.tasks
+        tasks.record_goal(self.ctx.session_id, EXPLICIT_REVIEW_GOAL, 'natural-review-goal')
+        tasks.record_goal(self.ctx.session_id, '继续', 'natural-review-continue')
+        task = self.task()
+        self.assertEqual(task['delivery_policy_version'], 2)
+        self.assertTrue(task['delivery_policy_resolution']['require_review'])
+        self.assertEqual(task['delivery_policy_inference']['request_id'], 'natural-review-goal')
 
     def test_trusted_goal_and_later_message_are_persisted_without_model_downgrade(self):
         tasks = self.services.agent.tasks

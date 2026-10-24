@@ -35,7 +35,7 @@ async def finish_text(runtime, state):
                 references[digest(ref)] = ref
     delivery = outputs if outputs and outputs['status'] != 'success' else state.get('delivery')
     remaining = remaining_items(results)
-    if references and not (delivery or {}).get('data', {}).get('verified'):
+    if references:
         policy = runtime.tasks.get(state['session_id']).get('delivery_policy_resolution', {})
         if policy.get('require_review'):
             call = {'call_id': 'auto_output_' + digest(response['request_id'])[:32],
@@ -54,7 +54,7 @@ async def finish_text(runtime, state):
                 state['delivery'] = None
                 runtime.graph.save(state)
                 return False
-        else:
+        elif not (delivery or {}).get('data', {}).get('verified'):
             delivery = await verify_outputs(runtime, state, list(references.values()), content)
         state['delivery'] = delivery
     await runtime.collect_available_results(state['run_id'])

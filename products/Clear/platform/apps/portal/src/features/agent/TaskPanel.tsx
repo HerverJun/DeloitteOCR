@@ -28,6 +28,22 @@ export function ReferenceLinks({ refs, taskId }: { refs: AgentRef[]; taskId?: st
 const applicationLabels: Record<string, string> = { data: '数据处理', ocr: '文字识别', classification: '智能分类', forensics: '图像取证', multimodal: '专项分析', platform: '平台作业' }
 const jobStatusLabels: Record<string, string> = { ...statusLabels, queued: '排队中', pending: '等待执行', success: '已完成', error: '未完成', unknown: '状态未确认' }
 const emptyEvents: AgentEvent[] = []
+function availableResultNotice(task: AuditTask, view: WorkbenchView, awaitingReview: boolean) {
+  if (['succeeded', 'answered'].includes(task.status)) return undefined
+  const halted = ['paused', 'cancelled', 'stopped', 'manual', 'needs_verification', 'failed', 'partial', 'incomplete']
+  const status = task.manual ? 'manual' : halted.includes(task.status) ? task.status
+    : halted.includes(view.phase) ? view.phase
+      : task.status === 'running' && ['waiting_job', 'waiting_resource', 'compacting'].includes(view.phase) ? view.phase : task.status
+  const continuation: Record<string, string> = {
+    running: '后续分析正在继续。', compacting: '正在整理上下文，随后自动继续。',
+    waiting_job: '正在等待工具或资源，随后自动继续。', waiting_resource: '正在等待资源，随后自动继续。',
+    waiting_user: awaitingReview ? '等待你核准当前版本后继续。' : '等待你补充信息后继续。',
+    paused: '任务已暂停。', cancelled: '后续处理已停止。', stopped: '后续处理已停止。', manual: '已转人工处理。',
+    needs_verification: '后续操作需先核实结果。', failed: '后续分析未完成，请查看具体原因。',
+    partial: '剩余工作尚未完成。', incomplete: '剩余工作尚未完成。',
+  }
+  return '已完成成果可直接读取和下载。' + (continuation[status] || '')
+}
 function TaskJob({ job, taskId }: { job: WorkbenchJob; taskId?: string }) {
   const unavailable = job.observation === 'unavailable'
   const hasProgress = !unavailable && typeof job.processed === 'number' && Number.isFinite(job.processed) && job.processed >= 0
@@ -51,6 +67,7 @@ export function TaskPanel({ task, events = emptyEvents, projection, view: provid
   const check = view.deliveryCheck
   const completed = task?.plan.filter(item => ['completed', 'succeeded', 'success'].includes(item.status)).length || 0
   const awaitingReview = task?.status === 'waiting_user' && (task.delivery_policy === 'reviewed' || task.delivery_policy_resolution?.require_review === true)
+  const resultNotice = task && view.availableResults ? availableResultNotice(task, view, awaitingReview) : undefined
   return <aside className="audit-task-panel audit-task-panel-refined" aria-label="当前任务">
     <div className="audit-panel-heading"><Typography.Text strong>当前任务</Typography.Text><Tag>{task ? statusLabels[task.status] || task.status : '尚未开始'}</Tag></div>
     {task ? <><section className="audit-task-overview" aria-label="任务目标">
@@ -70,7 +87,7 @@ export function TaskPanel({ task, events = emptyEvents, projection, view: provid
         {task.manual && <p className="audit-task-scope-notice">已停止 Agent 后续动作。原生作业可继续完成，手动修改后带回最新结果。</p>}
       </section>}
       <section className="audit-task-section" aria-label="任务成果"><h3 className="audit-task-section-heading">成果与来源</h3>
-        {view.availableResults && !['succeeded', 'answered'].includes(task.status) && <p className="audit-task-scope-notice" role="status">已完成成果可直接读取和下载；后续分析待继续。</p>}
+        {resultNotice && <p className="audit-task-scope-notice" role="status">{resultNotice}</p>}
         {view.bundles.length || view.deliveryRefs.length ? <><span className="audit-task-delivery-status" data-state={view.draftDelivery ? 'draft' : task.status}>{view.draftDelivery ? awaitingReview ? '未复核 · 待用户核准' : '未复核 · 可下载' : task.status === 'succeeded' ? '已完成交付' : task.status === 'partial' ? '部分成果' : task.status === 'needs_verification' ? '待核实成果' : '已保存成果'}</span>
           {view.bundles.map(bundle => <div className="audit-task-bundle" key={bundle.id}><strong className="audit-task-bundle-title">{bundle.title}</strong>{bundle.files.map(file => <a className="audit-task-file" key={file.downloadUrl} href={file.downloadUrl}><FileOutlined aria-hidden="true" /><span className="audit-task-file-name">{file.name}</span><DownloadOutlined aria-hidden="true" /></a>)}</div>)}
           <ReferenceLinks refs={view.deliveryRefs} taskId={task.id} />

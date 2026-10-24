@@ -20,12 +20,12 @@ class CompatibilityTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def readonly_admission(self,root,reject=False):
+    def readonly_admission(self,root,reject=False,descriptor=DATA_COMPATIBILITY):
         before={str(path.relative_to(root)):path.read_bytes() for path in root.rglob('*') if path.is_file()}
         if reject:
-            with self.assertRaises(ValueError): check(root,DATA_COMPATIBILITY)
+            with self.assertRaises(ValueError): check(root,descriptor)
         else:
-            result=check(root,DATA_COMPATIBILITY)
+            result=check(root,descriptor)
             self.assertTrue(result['compatible']);self.assertEqual(result['writes'],0)
         after={str(path.relative_to(root)):path.read_bytes() for path in root.rglob('*') if path.is_file()}
         self.assertEqual(after,before)
@@ -121,6 +121,29 @@ class CompatibilityTests(unittest.TestCase):
             db.execute('INSERT INTO asset_audio_upload VALUES(?)',('{}',))
         with self.assertRaisesRegex(ValueError,'大音频'):check(self.root,old)
         self.assertTrue(check(self.root,DATA_COMPATIBILITY)['compatible'])
+
+    def test_cpu_readiness_records_reopen_only_for_capable_readers_without_writes(self):
+        path=self.root/'jobs.sqlite3'
+        item={'schema_version':'1.0','job_id':'mCpuReady','workspace_id':'wtest','request_id':'rCpuReady',
+              'kind':'face','inputs':[],'options':{'device':'cpu'},'status':'succeeded','stage':'completed',
+              'revision':1,'generation':1,'created_at':'2026-10-24T00:00:00Z','updated_at':'2026-10-24T00:00:00Z',
+              'result':{'images':[]},'actual_device':'cpu','purpose':'analysis','review':None,'error':None}
+        with closing(sqlite3.connect(path)) as db,db:
+            db.execute('CREATE TABLE manual_analysis(job_id TEXT,workspace_id TEXT,request_id TEXT,payload_hash TEXT,body TEXT)')
+            db.execute('INSERT INTO manual_analysis VALUES(?,?,?,?,?)',('mCpuReady','wtest','rCpuReady','a'*64,json.dumps(item)))
+        old=deepcopy(DATA_COMPATIBILITY);old['reader_features'].remove('agent-usability-v1')
+        for private in ({'prepare_on_success':True}, {'prepare_on_success':False},
+                        {'preparation_pending':True}, {'preparation_record_error':'Readiness record could not be saved'},
+                        {'prepare_on_success':True,'preparation_pending':True,'preparation_record_error':'storage unavailable'}):
+            with self.subTest(private=private):
+                with closing(sqlite3.connect(path)) as db,db:
+                    db.execute('UPDATE manual_analysis SET body=?',(json.dumps({**item,**private}),))
+                self.readonly_admission(self.root)
+                self.readonly_admission(self.root,reject=True,descriptor=old)
+        with closing(sqlite3.connect(path)) as db,db:
+            db.execute('UPDATE manual_analysis SET body=?',(json.dumps({**item,'preparation_future_state':'ready'}),))
+        self.readonly_admission(self.root,reject=True)
+        self.readonly_admission(self.root,reject=True,descriptor=old)
 
     def test_formal_findings_origin_and_direct_refs_validate_without_migration(self):
         store=AuditStore(self.root/'audit')

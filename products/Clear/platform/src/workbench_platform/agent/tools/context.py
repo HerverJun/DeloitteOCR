@@ -10,7 +10,7 @@ from pydantic import Field, model_validator
 from packages.contracts.agent import AgentError, AgentModel, AgentRef, AgentToolResult, Identity
 from packages.contracts.models import AssetSetItem, SourceLocator
 from workbench_platform.agent.registry import ToolSpec
-from workbench_platform.agent.store import digest
+from workbench_platform.agent.store import canonical, digest
 from workbench_platform.application_services.decisions import AskUser, ask_user
 
 
@@ -493,6 +493,45 @@ def _delivery_failures(records, current, current_id, *, requirement_coverage=Non
     return failed, repaired
 
 
+def _delivery_review(args, files, published, readable_text, ctx):
+    """A delivery approval comes from the user decision for these fixed bytes."""
+    fingerprint = digest({'artifacts': sorted((ref.model_dump(mode='json') for ref in args.artifact_refs), key=canonical),
+        'results': sorted((ref.model_dump(mode='json') for ref in args.result_refs), key=canonical),
+        'files': sorted(files, key=canonical)})
+    action = {'action': 'review_delivery', 'fingerprint': fingerprint}
+    data = {'delivery': published, 'readable_text': readable_text, 'verified': False, 'finalized': False,
+            'draft': True, 'review_state': 'unreviewed', 'action': action}
+    decisions = ctx.store.rows("SELECT d.id,d.reply,d.request_id,o.result FROM decisions d JOIN operations o ON o.id=d.id "
+        "WHERE d.run_id=? AND d.kind='delivery_review' AND o.tool='delivery_publish' AND o.result IS NOT NULL "
+        'ORDER BY o.created DESC,o.rowid DESC', (ctx.run_id,))
+    for decision in decisions:
+        recorded = (json.loads(decision['result']).get('data') or {}).get('action') or {}
+        if recorded != action:
+            continue
+        if decision['reply'] is None:
+            return AgentToolResult(status='needs_user', summary='草稿已保存，等待您确认当前固定版本后定稿',
+                artifact_refs=args.artifact_refs, result_refs=args.result_refs,
+                data={**data, 'decision_id': decision['id'], 'revision': 1,
+                      'options': ['确认此版本', '不确认']}).model_dump(), None
+        trusted_reply = decision['request_id'] and ctx.store.rows("SELECT 1 FROM events WHERE run_id=? AND identity=? "
+            "AND kind='message' AND json_extract(payload,'$.role')='user' "
+            "AND json_extract(payload,'$.decision_id')=?", (ctx.run_id, decision['request_id'], decision['id']))
+        if trusted_reply and decision['reply'] == '确认此版本':
+            return None, {'fingerprint': fingerprint, 'decision_id': decision['id'],
+                          'request_id': decision['request_id'], 'reply': decision['reply']}
+        return AgentToolResult(status='error', summary='当前固定版本尚未获得真实用户确认；草稿可下载，不能作为核准成果',
+            artifact_refs=args.artifact_refs, result_refs=args.result_refs, data=data,
+            error=AgentError(code='review_required', message='请保留未复核草稿；只有真实用户确认当前版本后才能定稿')).model_dump(), None
+    question = ask_user(AskUser(question='草稿已生成并可下载审阅。是否确认当前固定版本，并允许将这批成果定稿？',
+                               options=['确认此版本', '不确认']), ctx)
+    with ctx.store.transaction() as db:
+        db.execute("UPDATE decisions SET kind='delivery_review' WHERE id=? AND run_id=?", (ctx.operation_id, ctx.run_id))
+    question.update(artifact_refs=[ref.model_dump() for ref in args.artifact_refs],
+                    result_refs=[ref.model_dump() for ref in args.result_refs])
+    question['data'].update(data)
+    return question, None
+
+
 def delivery(args, ctx):
     from .. import delivery_staging as staging
     request = args
@@ -514,7 +553,7 @@ def delivery(args, ctx):
         raise ValueError('交付必须引用实际结果或成果')
     published, bundles, allowed_files, outcomes, readable_text = [], {}, {}, [], []
     fixed_artifacts, fixed_results, checked_files, verified_results = [], [], [], []
-    review_snapshots, has_draft = [], False
+    review_snapshots, has_draft, needs_delivery_decision = [], False, False
     from workbench_platform.application_services.references import verify
     from workbench_platform.application_services.review_provenance import inspect_review_provenance
     def blocked_review():
@@ -533,6 +572,9 @@ def delivery(args, ctx):
         outcomes.extend(review['checks'])
         review_snapshots.extend(review['snapshots'])
         has_draft |= review['draft']
+        # Native fixed exports retain their existing actual review path.
+        # A general report cannot borrow a source result's review as its own.
+        needs_delivery_decision |= bundle.get('kind') != 'manual_analysis' or not review['snapshots']
         fixed_artifacts.append(reference.model_copy(update={'sha256': bundle['content_sha256']}))
         bundles[bundle['bundle_id']] = bundle
         for file in bundle['files']:
@@ -572,6 +614,8 @@ def delivery(args, ctx):
         outcomes.extend(review['checks'])
         review_snapshots.extend(review['snapshots'])
         has_draft |= review['draft']
+        needs_delivery_decision |= not (reference.application == 'multimodal' and reference.kind == 'result'
+                                        and review['snapshots'])
         verified_results.append(value)
         if reference.application == 'multimodal' and reference.kind == 'result':
             from .multimodal import result_ref
@@ -637,11 +681,12 @@ def delivery(args, ctx):
             'files': delivered_files, 'download_url': base + '/download'})
         exported.add(snapshot_id)
     if not args.finalize:
+        draft = has_draft or policy['require_review'] or args.require_review
         result = AgentToolResult(status='success', summary=('已分批核验本批成果并保存验收要求；尚未最终交付。' + args.summary)[:2000],
             artifact_refs=args.artifact_refs, result_refs=args.result_refs,
             data={'delivery': published, 'verified': True, 'finalized': False,
                   'readable_text': readable_text,
-                  'draft': has_draft, 'review_state': 'unreviewed' if has_draft else 'not_required_or_confirmed',
+                  'draft': draft, 'review_state': 'unreviewed' if draft else 'not_required_or_confirmed',
                   'delivery_checks': outcomes, 'staged': True}).model_dump()
         return staging.commit(request, staged_args, checked_files, result, stages_fingerprint, ctx,
                               provisional=has_draft and policy['require_review'])
@@ -674,13 +719,19 @@ def delivery(args, ctx):
         'references_verified': bool(args.artifact_refs or args.result_refs)}, ctx.operation_id,
         requirement_coverage=requirement_coverage, tool_effects=tool_effects, verified_final=True,
         nonblocking_operations=nonblocking_operations, refused_pdf_imports=_refused_pdf_imports(records, ctx))
+    review_receipt = None
+    if args.require_review and needs_delivery_decision:
+        blocked, review_receipt = _delivery_review(args, checked_files, published, readable_text, ctx)
+        if blocked is not None:
+            return blocked
     result = AgentToolResult(status='success', summary=args.summary, artifact_refs=args.artifact_refs,
         result_refs=args.result_refs, data={'delivery': published, 'readable_text': readable_text,
         'requirement_coverage': requirement_coverage,
         'completeness': 'partial' if failed or native_limitations or requirement_coverage['missing'] or requirement_coverage['unverified'] else 'complete',
         'verified': True, 'finalized': True, 'delivery_checks': outcomes,
         'completion_rule_version': COMPLETION_RULE_VERSION, 'nonblocking_operations': nonblocking_operations,
-        'draft': has_draft, 'review_state': 'unreviewed' if has_draft else 'not_required_or_confirmed',
+        'draft': has_draft, 'review_state': 'unreviewed' if has_draft else 'confirmed' if review_receipt else 'not_required_or_confirmed',
+        **({'delivery_review': review_receipt} if review_receipt else {}),
         'repaired_operations': repaired,
         'limitations': [*[value['summary'] for value in failed], *native_limitations]}).model_dump()
     return staging.commit(request, staged_args, checked_files, result, stages_fingerprint, ctx)

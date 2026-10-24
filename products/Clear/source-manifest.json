@@ -1,6 +1,6 @@
 {
   "format": "clear-authored-source-snapshot-v1",
-  "captured_on": "2026-10-23",
+  "captured_on": "2026-10-24",
   "release_pointer": "release/Clear/current.json",
   "purpose": "Reviewable authored working-tree sources; not an offline installation package.",
   "exclusions": {
@@ -68,11 +68,11 @@
       "name": "platform",
       "source_path": "F:/OCR/output/frontend-workbench-20261015/worktrees/platform",
       "source_git_dir": "F:/OCR/output/clear-automation-dev-20261002/worktrees/platform/.git/worktrees/platform4",
-      "head": "12a1db8557f645d2a7f371d5b36bc0c7b8227bdd",
+      "head": "1c8d3459a0c4b179835b7457dc585ed9db9c91a9",
       "branch": "codex/aigc-image-detection-20261022",
       "working_tree_status": [],
       "excluded_count": 0,
-      "file_count": 949,
+      "file_count": 950,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -329,8 +329,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/PlatformTools.tsx",
           "source_path": "apps/portal/src/features/agent/PlatformTools.tsx",
-          "bytes": 12580,
-          "sha256": "e17330ff64625a73f13f4ad7c89c54dfc511beccbbd789c80c5d2869a9cc9737"
+          "bytes": 12644,
+          "sha256": "ad53f9c70842ac95c3a8c8508b182b788d5428bebc14e885f23dc49425b3afe2"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ProjectHome.tsx",
@@ -365,8 +365,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/TaskPanel.tsx",
           "source_path": "apps/portal/src/features/agent/TaskPanel.tsx",
-          "bytes": 13672,
-          "sha256": "ab1127ea0c43826573fa9c07150218111b45c22ee28d5103af49c4ed7d27ab0a"
+          "bytes": 15205,
+          "sha256": "0041f54d2f135ba170af360bf62ac0479709bedcda025024a9aed5931da21990"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ToolActivity.tsx",
@@ -395,8 +395,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/conversationProjection.ts",
           "source_path": "apps/portal/src/features/agent/conversationProjection.ts",
-          "bytes": 17839,
-          "sha256": "eabcf918f7bf149be33da973ed2a0d1c367c012b7c0ec10ae9b79ae66f2e10e9"
+          "bytes": 17815,
+          "sha256": "fc921629638803e0993197d7d4b3a66ba3ebb78c6df6d06c54be5c64edb89b58"
         },
         {
           "path": "platform/apps/portal/src/features/agent/experience.css",
@@ -911,20 +911,20 @@
         {
           "path": "platform/apps/portal/tests/agent-platform-tools.test.tsx",
           "source_path": "apps/portal/tests/agent-platform-tools.test.tsx",
-          "bytes": 14620,
-          "sha256": "809a27d00018d48b2735c717efa1d6b002bc9ad365108783f8b6cde4020d8a2c"
+          "bytes": 15872,
+          "sha256": "23de639f0898e44b29880b2b0f47bd95bfd4c30ed34423ac0db8c2d889a0f15a"
         },
         {
           "path": "platform/apps/portal/tests/agent-streaming-ui.test.tsx",
           "source_path": "apps/portal/tests/agent-streaming-ui.test.tsx",
-          "bytes": 27296,
-          "sha256": "b7e5b67f55ce1adf366a98ec656cc04a8e956d211bb366fa3aa4898ef5ded2cb"
+          "bytes": 27390,
+          "sha256": "19640501cf2a8cda9b9b901b8d6d15da202a50e502afe397d77ba66bb6f089b1"
         },
         {
           "path": "platform/apps/portal/tests/agent-task-panel.test.tsx",
           "source_path": "apps/portal/tests/agent-task-panel.test.tsx",
-          "bytes": 12326,
-          "sha256": "14f78feff6b99ba31f28b6337844dfd14306e57a7055012ee382ce2664f18bfb"
+          "bytes": 15172,
+          "sha256": "8b8eb999bb2b439ff8041170300447583c6cc0c549d9ad90da178b994eec59b8"
         },
         {
           "path": "platform/apps/portal/tests/agent-workbench-visual.test.tsx",
@@ -2969,8 +2969,8 @@
         {
           "path": "platform/scripts/product_compatibility.py",
           "source_path": "scripts/product_compatibility.py",
-          "bytes": 21810,
-          "sha256": "2a882652c149002fee4be983119299e48d880d68bd60572c3e968e364f08e6c6"
+          "bytes": 22188,
+          "sha256": "aecb346be934568c3e6869cecb538267b022b32d358cc9339cb78467a31c1b36"
         },
         {
           "path": "platform/scripts/provision_task_runtime.py",
@@ -3173,8 +3173,8 @@
         {
           "path": "platform/src/workbench_platform/agent/delivery_policy.py",
           "source_path": "src/workbench_platform/agent/delivery_policy.py",
-          "bytes": 4917,
-          "sha256": "f3992869186994968b2c4ac24e3c1d00744d30f1fd0c1105e87cff8a933e7684"
+          "bytes": 6857,
+          "sha256": "2663ae9734df0d343d9cdc8bf1b904bb86ea6ed35aa9037d06dbbb6224c524c5"
         },
         {
           "path": "platform/src/workbench_platform/agent/delivery_staging.py",
@@ -3197,14 +3197,14 @@
         {
           "path": "platform/src/workbench_platform/agent/general.py",
           "source_path": "src/workbench_platform/agent/general.py",
-          "bytes": 6208,
-          "sha256": "27bee8f8005896ff59ae99d580d3104dedf3aeb87dfb6f7c94f42de097603fb3"
+          "bytes": 6309,
+          "sha256": "7c82ddd90dc2aa721265623b36d89a1452cf611c2e101ce1780843cdae03ba51"
         },
         {
           "path": "platform/src/workbench_platform/agent/general_outputs.py",
           "source_path": "src/workbench_platform/agent/general_outputs.py",
-          "bytes": 5890,
-          "sha256": "2e52827413d7b1f0ac18c06a6a8a22d8b1349241d0b99baa7d21ef6b62dda4aa"
+          "bytes": 6050,
+          "sha256": "3a81db2340ab27a5893f0dc14b5f768135fe64df1503de7e5c351eae0da850ce"
         },
         {
           "path": "platform/src/workbench_platform/agent/general_python.py",
@@ -3311,8 +3311,8 @@
         {
           "path": "platform/src/workbench_platform/agent/runtime.py",
           "source_path": "src/workbench_platform/agent/runtime.py",
-          "bytes": 64691,
-          "sha256": "3ac4c1cac4cebfa1ec630258c6cb670f9f774a5555cea1bb46af05dbc806034a"
+          "bytes": 65998,
+          "sha256": "ed30daf37abc1781b3ebb251cf3b345b94db36e0750c02194610b852b878a83e"
         },
         {
           "path": "platform/src/workbench_platform/agent/skills.py",
@@ -3383,8 +3383,8 @@
         {
           "path": "platform/src/workbench_platform/agent/tools/context.py",
           "source_path": "src/workbench_platform/agent/tools/context.py",
-          "bytes": 46202,
-          "sha256": "d73d663fd0f850d0f8a316e5245aee1325fe4d27f477e5b5a437b763bca4eab9"
+          "bytes": 50270,
+          "sha256": "d8b9d8d279ae5d8a1d99b8809ef830c9edd90da94228d60ade2edf2e952553a1"
         },
         {
           "path": "platform/src/workbench_platform/agent/tools/data.py",
@@ -3479,8 +3479,8 @@
         {
           "path": "platform/src/workbench_platform/agent/workspace_outputs.py",
           "source_path": "src/workbench_platform/agent/workspace_outputs.py",
-          "bytes": 5828,
-          "sha256": "d6f19cad1ab2cf43b70ea697443f5045f56ffe23e7e04458fe386b0e96169069"
+          "bytes": 9326,
+          "sha256": "bd74fd42d7491b906141b4e5c997f60088be29db53c39963444c4be52898fc72"
         },
         {
           "path": "platform/src/workbench_platform/app.py",
@@ -4583,8 +4583,8 @@
         {
           "path": "platform/tests/agent/test_agent_continuation_policy.py",
           "source_path": "tests/agent/test_agent_continuation_policy.py",
-          "bytes": 9326,
-          "sha256": "eb20b11540dfa25b6c52d3e50de28258290983bd41f2a3651173eecc2e2a2b22"
+          "bytes": 12450,
+          "sha256": "5be1aae812360b3438cd4050bed9c656e694eb072180fc299b049f22c3c91ae0"
         },
         {
           "path": "platform/tests/agent/test_architecture_services.py",
@@ -4667,8 +4667,8 @@
         {
           "path": "platform/tests/agent/test_delivery_policy.py",
           "source_path": "tests/agent/test_delivery_policy.py",
-          "bytes": 12742,
-          "sha256": "f351ea4ed3adaf3f40ebe6b0a9c5109a44bc69e6eaa68d9be388cc2dfbf2d42b"
+          "bytes": 15842,
+          "sha256": "2bc72b6022916b61ddec9871ce0dde2d2b1eadbc1baa7f7657872d54cf50bdf7"
         },
         {
           "path": "platform/tests/agent/test_delivery_staging.py",
@@ -4743,6 +4743,12 @@
           "sha256": "b9f327d232a794f7b5d01770bbefba4fd354fee0e3463963bcf2c378ed9e4271"
         },
         {
+          "path": "platform/tests/agent/test_file_delivery_review.py",
+          "source_path": "tests/agent/test_file_delivery_review.py",
+          "bytes": 10571,
+          "sha256": "8f509c7c767c619b320229a8f8f11fe4085a2e7e4059073331f55f6311551558"
+        },
+        {
           "path": "platform/tests/agent/test_formal_delivery_policy.py",
           "source_path": "tests/agent/test_formal_delivery_policy.py",
           "bytes": 3741,
@@ -4763,8 +4769,8 @@
         {
           "path": "platform/tests/agent/test_general_agent.py",
           "source_path": "tests/agent/test_general_agent.py",
-          "bytes": 25049,
-          "sha256": "b7cb7bb09bdc97732b40f80d55c8b8f5403a4fda0550e7b7c8fd1a51cf5dae96"
+          "bytes": 35896,
+          "sha256": "f8e89506f870c84b40dc17ceacd71de402493212ff08db6f4bb34afec2c19d68"
         },
         {
           "path": "platform/tests/agent/test_general_integrations.py",
@@ -4961,8 +4967,8 @@
         {
           "path": "platform/tests/agent/test_product_entry.py",
           "source_path": "tests/agent/test_product_entry.py",
-          "bytes": 14298,
-          "sha256": "23d9e9e8a5a46372f71e3726956567656b2473eb425657ae0ecf9c442717b6aa"
+          "bytes": 16283,
+          "sha256": "558079c2a11a63bfc1c334b8a8bf177f9bcf7cedf7d989dde9f6da9d89574383"
         },
         {
           "path": "platform/tests/agent/test_prompt_skills.py",
