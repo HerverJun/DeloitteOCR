@@ -794,17 +794,22 @@ class AgentRuntime(HarnessService):
         self.schedule(run_id, state)
 
     def initial_state(self, run, content):
+        from .general import CONTRACT
         session = self.store.session(run['session_id'])
         execution_contract = json.loads(run.get('driver_state') or '{}').get('execution_contract')
-        previous = self.store.rows("SELECT payload FROM events WHERE session_id=? AND kind='delivery' AND run_id!=? ORDER BY seq DESC LIMIT 1", (session['id'], run['id']))
         inputs = [{'id': run['request_id'], 'role': 'user', 'content': content}]
-        history = self.session_facts(run)
-        if history:
-            inputs.insert(0, {'id': run['id'] + ':session-facts', 'role': 'user',
-                'content': '[此前服务器记录的会话目标和操作引用；状态是历史回执，继续前查询当前工具状态]\n' + canonical(history)})
-        if previous:
-            inputs.insert(0, {'id': run['id'] + ':prior-delivery', 'role': 'user',
-                             'content': '[上一轮服务器记录的交付]\n' + previous[0]['payload']})
+        history = {}
+        if execution_contract != CONTRACT:
+            # Legacy controllers still need their recorded audit snapshots.
+            # General turns use Harness history and on-demand record reads.
+            history = self.session_facts(run)
+            if history:
+                inputs.insert(0, {'id': run['id'] + ':session-facts', 'role': 'user',
+                    'content': '[此前服务器记录的会话目标和操作引用；状态是历史回执，继续前查询当前工具状态]\n' + canonical(history)})
+            previous = self.store.rows("SELECT payload FROM events WHERE session_id=? AND kind='delivery' AND run_id!=? ORDER BY seq DESC LIMIT 1", (session['id'], run['id']))
+            if previous:
+                inputs.insert(0, {'id': run['id'] + ':prior-delivery', 'role': 'user',
+                                 'content': '[上一轮服务器记录的交付]\n' + previous[0]['payload']})
         inputs.insert(0, {'id': run['id'] + ':scope', 'role': 'user', 'content': '[服务器会话范围]\n' +
             canonical({'workspace_id': session['workspace_id'], 'selected_assets': session['selected_assets'],
                        'initial_refs': session['initial_refs']})})
