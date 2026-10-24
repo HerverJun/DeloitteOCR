@@ -1,17 +1,32 @@
 """Validate user edits independently of the browser and export literal text."""
 
 import html
+import json
 from ocr_workbench.tables import parse_tables
 
 
 def validate_edit(edit):
     if (
         not isinstance(edit, dict)
-        or set(edit) != {"text", "tables"}
+        or set(edit) not in ({"text", "tables"}, {"text", "tables", "screen"})
         or not isinstance(edit["text"], str)
         or len(edit["text"]) > 5_000_000
     ):
         raise ValueError("无效的文字编辑内容")
+    if "screen" in edit:
+        screen = edit["screen"]
+        metadata_keys = {"business_metadata", "metadata_edit_log", "metadata_review"}
+        if (not isinstance(screen, dict) or set(screen) not in
+                (metadata_keys, metadata_keys | {'cell_review_state'}, {'cell_review_state'})):
+            raise ValueError("无效的屏拍复核修订内容")
+        if metadata_keys <= set(screen):
+            _validate_screen_metadata({key: screen[key] for key in metadata_keys})
+        try:
+            size = len(json.dumps(screen, ensure_ascii=False, allow_nan=False))
+        except (TypeError, ValueError) as error:
+            raise ValueError("无效的屏拍复核证据结构") from error
+        if size > 50_000_000:
+            raise ValueError("屏拍复核证据超出限制")
     if not isinstance(edit["tables"], list) or len(edit["tables"]) > 100:
         raise ValueError("表格数量超出限制")
     for table in edit["tables"]:
@@ -51,6 +66,34 @@ def validate_edit(edit):
                     if (y, x) in occupied:
                         raise ValueError("合并单元格发生重叠")
                     occupied.add((y, x))
+
+    if 'cell_review_state' in edit.get('screen', {}):
+        from ocr_workbench.screen_cell_contract import validate_cell_state
+        validate_cell_state(edit['screen']['cell_review_state'], edit['tables'])
+
+
+def _validate_screen_metadata(screen):
+    if (not isinstance(screen, dict)
+            or set(screen) != {"business_metadata", "metadata_edit_log", "metadata_review"}
+            or not isinstance(screen["business_metadata"], list)
+            or len(screen["business_metadata"]) > 10000
+            or any(not isinstance(part, dict) or not isinstance(part.get("text"), str)
+                   or not isinstance(part.get("kind"), str)
+                   or type(part.get("human_confirmed")) is not bool
+                   or type(part.get("review_required")) is not bool
+                   for part in screen["business_metadata"])
+            or not isinstance(screen["metadata_edit_log"], list)
+            or any(not isinstance(entry, dict) for entry in screen["metadata_edit_log"])
+            or not isinstance(screen["metadata_review"], dict)):
+        raise ValueError("无效的业务说明修订内容")
+    review = screen["metadata_review"]
+    if (review.get("state") not in {"accepted", "retain", "deferred"}
+            or review.get("actor") != "human"
+            or not isinstance(review.get("input_version_id"), str)
+            or not review["input_version_id"]
+            or type(review.get("base_revision")) is not int
+            or review["base_revision"] < 0):
+        raise ValueError("无效的业务说明复核身份")
 
 
 def tables_html(tables):

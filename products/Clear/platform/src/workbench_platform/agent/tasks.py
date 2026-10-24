@@ -267,8 +267,8 @@ class AuditTasks:
                 self.runtime.services.asset_library[0].get(session['workspace_id'], identifier)
             if selected:
                 selected = list(dict.fromkeys([*selected, *included]))
-                if len(selected) > 100:
-                    raise ValueError('资料范围超过100份，请收窄带回的结果')
+                if len(selected) > 1000:
+                    raise ValueError('资料范围超过1000份，请使用固定输入集合')
             refs = {canonical(ref): ref for ref in json.loads(session['initial_refs']) + payload['references']}
             if len(refs) > 100:
                 raise ValueError('任务引用过多，请收窄本次带回结果')

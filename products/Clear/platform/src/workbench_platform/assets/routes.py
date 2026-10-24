@@ -215,12 +215,12 @@ async def upload_recoverable(workspace_id: str, request_id: str, request: Reques
 @router.post("/sets", status_code=201)
 async def create_set(workspace_id: str, request: Request):
     registry, sets, _ = library(request, workspace_id, write=True)
-    payload = await json_body(request, 16384)
+    payload = await json_body(request, 128000)
     asset_ids = payload.get("asset_ids") if isinstance(payload, dict) else None
-    if (not isinstance(asset_ids, list) or not 1 <= len(asset_ids) <= 200
+    if (not isinstance(asset_ids, list) or not 1 <= len(asset_ids) <= 1000
             or any(not isinstance(value, str) for value in asset_ids)
             or len(set(asset_ids)) != len(asset_ids)):
-        raise HTTPException(400, "请选择 1 至 200 份不重复的资料")
+        raise HTTPException(400, "请选择 1 至 1000 份不重复的资料")
     try:
         items = []
         for asset_id in asset_ids:

@@ -39,6 +39,10 @@ def remaining_delivery_work(result):
 
 
 class HarnessService:
+    def screen_scope_facts(self, state):
+        """Policy-only instances have no selection; AgentRuntime adds live scope."""
+        return {}
+
     def harness_config(self, state):
         if 'frozen_config' not in state:
             if self.model_provider:
@@ -55,7 +59,7 @@ class HarnessService:
         """Current constraints only; DSH holds dialogue and history holds receipts."""
         from .delivery_policy import effective_policy
         facts = {'task': {key: task[key] for key in ('scope_revision', 'manual') if key in task},
-                 'selected_assets': task.get('selected_assets', []),
+                 **self.screen_scope_facts(state),
                  'full_record_access': {'history': 'session_read_history'}}
         policy = effective_policy(task)
         if policy['require_review'] or policy['policy'] != 'auto':
@@ -82,7 +86,8 @@ class HarnessService:
         skill_prompt = '' if general_enabled(state) else '[登记技能精简名录；正文按需启用]\n' + canonical(snapshot.catalog) + '\n' + snapshot.instructions
         system, injection, components = compose(base_system, config, environment_values=values, skill_prompt=skill_prompt)
         if general_enabled(state):
-            system += ('\n[执行与输出]\n专业工具已有结果会自动保存并展示。可以用自然文字给出最终答复；'
+            system += ('\n[图片转Excel]\n固定图片批量转换优先使用ocr_screen_batch_run，一次提交全批；等待由现有后台观察器处理，完成后ocr_screen_batch_export导出每图一个XLSX的ZIP。状态和诊断按需分页，保留待复核和失败范围。工具按需用tools_search加载，不重复提交原任务。'
+                       '\n[执行与输出]\n专业工具已有结果会自动保存并展示。可以用自然文字给出最终答复；'
                        '文件和实际业务输出由服务核验，不需要为了结束对话另行调用delivery_publish。'
                        '组合服务已提供逐文件行数、预览、来源和真实download_url，可直接引用这些下载地址。'
                        '核对用户条件后正常回复，按实际结果只修复失败项。审计安排只在需要时维护。')
@@ -106,6 +111,7 @@ class HarnessService:
             rows = self.store.rows('SELECT id,tool,state,result FROM operations WHERE run_id=? AND parent_id IS NULL ORDER BY created DESC LIMIT 6', (state['run_id'],))
         else:
             rows = self.store.rows('SELECT id,tool,state,result FROM operations WHERE run_id=? ORDER BY created DESC LIMIT 15', (state['run_id'],))
+        facts.update(self.screen_scope_facts(state))
         facts['current_operations'] = [{'operation_id': row['id'], 'tool': row['tool'], 'state': row['state'],
             **({key: json.loads(row['result']).get(key) for key in
                 ('status', 'summary', 'result_refs', 'artifact_refs', 'job_refs', 'coverage')} if row['result'] else {})} for row in reversed(rows)]
@@ -121,7 +127,10 @@ class HarnessService:
         facts['continuation'] = {'authorized': state.get('continuation_authorized', True),
                                  'delivery_required': bool(state.get('business_started')) and not general_enabled(state)}
         if general_enabled(state):
-            facts['execution'] = {key: state.get(key) for key in ('working_directory', 'python_executable', 'workspace_inputs')}
+            facts['execution'] = {key: state.get(key) for key in ('working_directory', 'python_executable')}
+            inputs = state.get('workspace_inputs') or []
+            facts['execution'].update(workspace_inputs=inputs[:10], workspace_input_count=len(inputs),
+                inputs_manifest='.clear/inputs.json', inputs_preview_only=len(inputs) > 10)
         if state.get('remaining_delivery_work'):
             facts['continuation']['remaining_work'] = state['remaining_delivery_work']
         injection.update(skills=snapshot.active if snapshot else [], facts_version=digest(facts))

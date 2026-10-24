@@ -94,6 +94,19 @@ def configured_worker_source(environ=None):
     return source
 
 
+class EngineLoadTimeout(EngineTimeout):
+    """The worker did not publish readiness within its startup deadline."""
+
+    phase = 'engine_load'
+
+    def __init__(self, engine, timeout_seconds, ipc, last_stage=None):
+        self.engine = engine
+        self.timeout_seconds = timeout_seconds
+        self.ipc = Path(ipc)
+        self.last_stage = last_stage
+        super().__init__('load')
+
+
 def runtime_path(runtime, system_root):
     site = runtime.parent / 'Lib' / 'site-packages' / 'nvidia'
     bundled = sorted(path for path in site.glob('*/bin') if path.is_dir())
@@ -118,7 +131,7 @@ class EngineAdapter:
         self.load_timeout_seconds = loading_timeout()
         self.bundle = Path(bundle).resolve()
         self.engine = engine
-        self.worker_source = Path(worker_source).resolve() if worker_source else configured_worker_source()
+        self.worker_source = Path(worker_source).resolve() if worker_source else (configured_worker_source() or Path(__file__).resolve().parents[1])
         if engine == 'mineru_pro' and self.worker_source is None and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
             self.worker_source = Path(__file__).resolve().parents[1]
         from ocr_workbench.mineru_pro import engine_catalog
@@ -141,6 +154,7 @@ class EngineAdapter:
         self.load_progress = None
         self.progress_callback = None
         self.ready = False
+        self.recognition_timeout = 900
         self.geometry_provider = 'paddle'
 
     def configure_geometry(self, provider):
@@ -210,7 +224,15 @@ class EngineAdapter:
         if self.reservation:
             self.reservation.track(self.process, self.job)
         load_wait_started = time.perf_counter()
-        status = self.wait_for(self.ipc / "status.json", self.load_timeout_seconds, stage='load')
+        try:
+            status = self.wait_for(self.ipc / "status.json", self.load_timeout_seconds, stage='load')
+        except TimeoutError as error:
+            stage = None
+            try:
+                stage = read_json(self.ipc / 'loading.json').get('stage')
+            except (OSError, ValueError, TypeError, AttributeError):
+                pass
+            raise EngineLoadTimeout(self.engine, self.load_timeout_seconds, self.ipc, stage) from error
         self.load_wait_seconds = time.perf_counter() - load_wait_started
         if status["status"] != "ready":
             raise EngineFailure('engine_load_failed', 'load', '引擎权重加载失败；尚未开始识别。',
@@ -251,21 +273,27 @@ class EngineAdapter:
                         if self.progress_callback is not None:
                             self.progress_callback(progress)
             if self.process is None or self.process.poll() is not None:
+                if self.cancelled.is_set():
+                    raise Cancelled("任务已取消")
                 raise EngineFailure('engine_worker_exited', stage, '引擎进程异常退出。',
                     accepted_write=stage != 'load', user_action='查看该尝试的引擎日志；先核实原请求与进程状态，再明确恢复或创建新尝试。')
             self.cancelled.wait(0.05)
         raise EngineTimeout(stage)
 
-    def recognize(self, image, output, geometry_request=None, *, allow_empty=False):
+    def recognize(self, image, output, geometry_request=None, *, allow_empty=False, recognition_mode='page'):
         request_started = time.perf_counter()
+        from ocr_workbench.recognition_modes import validate_recognition_mode
+        validate_recognition_mode(self.engine, recognition_mode)
+        if recognition_mode == 'local_text' and geometry_request is not None:
+            raise ValueError('Local text cannot use a geometry request')
         key = uuid.uuid4().hex
         response = self.ipc / "response.json"
         response.unlink(missing_ok=True)
-        publish(
-            self.ipc / "request.json",
-            {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request},
-        )
-        reply = self.wait_for(response, 900)
+        request = {"id": key, "image": str(image), "output": str(output), "geometry_request": geometry_request}
+        if recognition_mode != 'page':
+            request['recognition_mode'] = recognition_mode
+        publish(self.ipc / "request.json", request)
+        reply = self.wait_for(response, getattr(self, 'recognition_timeout', 900))
         if reply.get('id') != key:
             raise EngineFailure('engine_response_unknown', 'inference', '引擎响应身份无法核实；原请求不得自动重发。',
                 accepted_write=True, user_action='保留原尝试身份，检查回执和输出；核实处理结果后再继续。')
@@ -286,6 +314,15 @@ class EngineAdapter:
             return result
         result = json.loads((Path(output) / "result.json").read_text(encoding="utf-8"))
         check_recognition_result(result, allow_empty=allow_empty)
+        if recognition_mode == 'local_text':
+            raw = result.get('raw')
+            if (result.get('recognition_mode') != 'local_text'
+                    or not isinstance(raw, dict)
+                    or raw.get('recognition_mode') != 'local_text'
+                    or raw.get('layout_applied') is not False
+                    or raw.get('formatter_applied') is not False
+                    or result.get('tables') != []):
+                raise RuntimeError('局部文字识别回执与请求模式不一致，结果未采用')
         result["engine_session"] = {
             "id": self.ipc.name,
             "load_seconds": self.load_seconds,
@@ -296,6 +333,10 @@ class EngineAdapter:
             'request_response_seconds': time.perf_counter() - request_started,
         }
         return result
+
+    def recognize_local_text(self, image, output, *, allow_empty=False):
+        """Explicit whole-crop text request; never inferred from geometry payloads."""
+        return self.recognize(image, output, allow_empty=allow_empty, recognition_mode='local_text')
 
     def cancel(self):
         self.cancelled.set()

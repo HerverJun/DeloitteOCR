@@ -67,4 +67,10 @@
 .screen-candidate-table td { border: 1px solid #d6dbd0; padding: 7px; min-width: 70px; max-width: 340px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .screen-candidate-table caption { text-align: left; padding-bottom: 8px; font-weight: 600; }
 .screen-candidate-reasons ul { max-height: 180px; overflow: auto; }
+.screen-diagnostics { border: 1px solid #dde1da; padding: 12px; margin: 12px 0; line-height: 1.6; }
+.screen-diagnostics h4 { margin: 0 0 8px; }
+.screen-diagnostic-list, .screen-diagnostic-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.screen-diagnostic-list button { height: auto; text-align: left; white-space: normal; }
+.screen-diagnostics pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 220px; overflow: auto; }
+.screen-diagnostic-actions small { color: var(--muted); }
 @media (max-width: 800px) { .screen-batch-workspace { grid-template-columns: 1fr; } .screen-batch-review { padding-left: 0; border-left: 0; border-top: 1px solid #dde1da; padding-top: 18px; } .screen-item-list { max-height: 250px; } .screen-batch-progress dl { gap: 15px; } }

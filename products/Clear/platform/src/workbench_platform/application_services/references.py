@@ -38,6 +38,11 @@ def reference_location(reference, task_id=None, evidence_id=None, offset=0):
             query['analysis'] = ref.object_id
             path = {'face': '/apps/face', 'audio': '/apps/audio', 'seal': '/apps/ocr/seals',
                     'catnet': '/apps/forensics/deep', 'document_forensics':'/apps/forensics/document', 'aigc_image':'/apps/forensics/aigc'}[ref.coverage['kind']]
+        elif ref.coverage.get('kind') == 'screen_batch':
+            query['screen_batch'] = ref.object_id
+            if ref.coverage.get('asset_set_id'): query['set'] = str(ref.coverage['asset_set_id'])
+            if ref.parent_id: query['handoff'] = ref.parent_id
+            path = '/apps/ocr/workflow'
         elif ref.coverage.get('kind') == 'batch':
             query['batch'] = ref.object_id; path = '/batches'
         else:
@@ -321,6 +326,12 @@ def verify(reference, ctx):
         for source in value.get('inputs', []):
             if source.get('asset_id') and not asset_allowed(ctx, source['asset_id']):
                 raise ValueError('成果来源超出会话范围')
+        if (ref.application == 'ocr' and ref.parent_id and value.get('handoff_id') == ref.parent_id
+                and value.get('items') and all(item.get('input_version_id') for item in value['items'])):
+            freshness = ctx.services.screen_batches.export_freshness(ctx.workspace_id, ref.parent_id, ref.object_id)
+            if not freshness['current']:
+                raise ValueError('此 ZIP 是历史成果；当前选择已变化，请重新导出后交付')
+            value = {**value, 'screen_delivery': freshness}
         identities = []
         source_assets = set()
         for file in value['files']:

@@ -126,6 +126,26 @@ def _pdf_read(ref, ctx):
     return {**value, **_pdf_progress(value)}
 
 
+def _screen_read(ref, ctx):
+    from workbench_platform.agent.tools.screen_batches import status_reference
+    return status_reference(ref,ctx)
+
+
+def _screen_cancel(ref, ctx):
+    from workbench_platform.agent.tools.screen_batches import cancel_reference
+    return cancel_reference(ref,ctx)
+
+
+def _local_screen_read(ref, ctx):
+    from workbench_platform.agent.tools.screen_local_candidates import status_reference
+    return status_reference(ref, ctx)
+
+
+def _local_screen_cancel(ref, ctx):
+    from workbench_platform.agent.tools.screen_local_candidates import cancel_reference
+    return cancel_reference(ref, ctx)
+
+
 def _native_cancel(ref, ctx):
     require_write(ctx)
     current = _native_read(ref, ctx)
@@ -288,6 +308,8 @@ ADAPTERS = {
     ('ocr','fusion'): Lifecycle(_native_read, partial(_ocr_observe,'ocr_processing'), _native_cancel, _ordinary_progress, _prepare_native),
     ('ocr','visual_review'): Lifecycle(_native_read, partial(_ocr_observe,'ocr_management'), _native_cancel, _ordinary_progress, _prepare_native),
     ('ocr','pdf_pages'): Lifecycle(_pdf_read, partial(_observe,'pdf'), _pdf_cancel, _pdf_progress, _prepare_native),
+    ('ocr','screen_batch'): Lifecycle(_screen_read,partial(_observe,'screen_batches'),_screen_cancel,_ordinary_progress,_prepare_native),
+    ('ocr','screen_local_candidates'): Lifecycle(_local_screen_read,partial(_observe,'screen_local_candidates'),_local_screen_cancel,_ordinary_progress,_prepare_native),
     ('classification','classification'): Lifecycle(_native_read, partial(_observe,'classification'), _native_cancel, _ordinary_progress, _prepare_native),
     ('classification','train'): Lifecycle(_native_read, partial(_observe,'classification_management'), _native_cancel, _ordinary_progress, _prepare_native),
 }

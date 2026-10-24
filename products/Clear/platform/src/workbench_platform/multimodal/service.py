@@ -983,7 +983,7 @@ class MultimodalService:
                 capability=self.capability_for_item(item)
                 target='cpu' if action=='retry_cpu' else item['options']['device']
                 if target=='cpu':
-                    if (item.get('model_binding') or {}).get('engine')=='safire':
+                    if item['kind']=='aigc_image' or (item.get('model_binding') or {}).get('engine')=='safire':
                         raise DataError('此模型仅开放已完成推理验证的 CUDA 路线，不提供 CPU 切换',409)
                     if capability.get('missing'):raise DataError('模型或运行环境缺失，不能重试',409)
                     item['prepare_on_success']=not capability['cpu_ready']

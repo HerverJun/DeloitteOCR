@@ -90,7 +90,7 @@ class ControllerModelsDraft(ControllerDraft):
 
 class AgentSessionCreate(AgentModel):
     name: str = Field(default='新任务', min_length=1, max_length=100)
-    selected_assets: list[Identity] = Field(default_factory=list, max_length=100)
+    selected_assets: list[Identity] = Field(default_factory=list, max_length=1000)
     initial_refs: list[AgentRef] = Field(default_factory=list, max_length=20)
     authorized_reference_ids: list[Identity] = Field(default_factory=list, max_length=100)
     delivery_policy: Literal['auto', 'draft', 'reviewed'] = 'auto'
@@ -98,7 +98,8 @@ class AgentSessionCreate(AgentModel):
 
 
 class AgentReferenceRequest(AgentModel):
-    kind: Literal['artifact', 'table', 'result']
+    kind: Literal['artifact', 'table', 'result', 'asset_set']
+    revision: int | None = Field(default=None,ge=1)
     object_id: Identity
     parent_id: Identity | None = None
 
@@ -123,7 +124,7 @@ class AgentTaskWrite(AgentModel):
     expected_revision: int = Field(ge=1)
     name: str | None = Field(default=None, min_length=1, max_length=100)
     goal: str | None = Field(default=None, max_length=16000)
-    selected_assets: list[Identity] | None = Field(default=None, max_length=100)
+    selected_assets: list[Identity] | None = Field(default=None, max_length=1000)
     initial_refs: list[AgentRef] | None = Field(default=None, max_length=100)
     authorized_reference_ids: list[Identity] | None = Field(default=None, max_length=100)
     delivery_policy: Literal['auto', 'draft', 'reviewed'] | None = None

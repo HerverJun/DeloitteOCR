@@ -5,7 +5,9 @@ import argparse, json, sqlite3, sys
 
 READER_FEATURES = ('agent-request-snapshot-v1','agent-harness-v1','formal-direct-evidence-v1','fixed-draft-transfer-v1','manual-multimodal-v1','source-media-segment-v1','manual-long-audio-v1','task-ledger-pg-v1','agent-multimodal-v1','direct-image-text-v1','direct-pdf-text-v1','direct-data-action-v1','direct-classification-predict-v1','direct-resource-claims-v1',
                    'direct-catalog-goals-v1','harness-native-scope-v1','same-goal-continuation-v1','independent-results-v1','bounded-goal-interpretation-v1','partial-goal-continuation-v1','agent-general-v1','agent-usability-v1','document-forensics-v1','safire-forensics-v1','structured-documents-v1','ocr-mineru-pro-v1','data-financial-amount-v1')
-READER_FEATURES = (*READER_FEATURES, 'document-comparisons-v1', 'aigc-image-v1')
+READER_FEATURES = (*READER_FEATURES, 'document-comparisons-v1', 'aigc-image-v1',
+    'screen-batch-v1', 'agent-preferences-v1', 'screen-delivery-snapshot-v1', 'screen-resolution-v1',
+    'screen-local-candidates-v1', 'screen-business-metadata-edit-v1', 'screen-business-language-route-v1')
 DATA_COMPATIBILITY = {
     'format':'clear-data-compatibility-v1', 'reader_features':list(READER_FEATURES),
     'sqlite': {
@@ -18,7 +20,11 @@ DATA_COMPATIBILITY = {
                      'module_project_link':['link_id','workspace_id','app_id','module_project_id','role','revision']}}},
         'agent/operations.sqlite3': {'user_versions':[0], 'tables':{
             'sessions':['id','workspace_id','request_id'], 'runs':['id','status','generation'],
-            'events':['kind','payload'], 'model_requests':['id','state','response']}},
+            'events':['kind','payload'], 'model_requests':['id','state','response']},
+            'optional_tables':{
+                'agent_preference_profiles':['workspace_id','business','revision','body','updated'],
+                'agent_preference_snapshots':['run_id','business','workspace_id','session_id','body','sha256','created'],
+                'agent_preference_requests':['request_id','fingerprint','response']}},
         'audit/audit.sqlite3': {'user_versions':[0,1], 'tables':{
             'projects':['project_id','workspace_id','revision','body'],
             'evidence_snapshots':['evidence_id','project_id','body']}},
@@ -36,7 +42,9 @@ DATA_COMPATIBILITY = {
                 'comparison_versions':['job_id','revision','body'],
                 'comparison_configs':['workspace_id','kind','id','version','body','key_ref'],
                 'comparison_calls':['job_id','cache_key','status','body']}},
-        'native/ocr/workbench.sqlite3': {'user_versions':list(range(19)), 'tables':{}},
+        'native/ocr/workbench.sqlite3': {'user_versions':list(range(23)), 'tables':{}},
+        'screen-batches.sqlite3': {'user_versions':[0], 'tables':{}, 'optional_tables':{
+            'screen_batch_exports':['workspace_id','batch_id','payload_hash','bundle_id']}},
         'native/classification/platform.sqlite3': {'user_versions':list(range(6)), 'tables':{}},
     },
     'records': {'audit_evidence_versions':['1.0'], 'direct_evidence_snapshot_versions':[1,2],
@@ -64,14 +72,20 @@ def read_database(path):
 
 
 def check(data, descriptor):
+    from workbench_platform.reader_requirements import infer_reader_requirements
     data=f_path(data)
     if descriptor.get('format')!='clear-data-compatibility-v1':
         raise ValueError('候选没有可识别的数据兼容声明')
+    inferred = infer_reader_requirements(data)
+    required_features = set(inferred['reader_features'])
+    if set(inferred['reader_features']) - set(descriptor['reader_features']):
+        raise ValueError('该候选缺少实际业务记录所需读取能力，不能直接降级')
     marker=data/'product-reader-requirements.json'
     if marker.exists():
         requirements=json.loads(marker.read_text(encoding='utf-8-sig'))
         if requirements.get('format')!='clear-product-reader-requirements-v1':
             raise ValueError('工作区读取能力记录不可识别，原文件保留')
+        required_features.update(requirements['reader_features'])
         if set(requirements['reader_features'])-set(descriptor['reader_features']):
             raise ValueError('该候选缺少工作区所需记录读取能力，不能直接降级')
         if 'task-ledger-pg-v1' in requirements['reader_features']:
@@ -154,6 +168,11 @@ def check(data, descriptor):
             if relative=='audit/audit.sqlite3' and version==0 and tables:
                 raise ValueError('正式审计数据库缺少有效迁移版本')
             required_tables=requirements.get('tables_by_version',{}).get(str(version),requirements['tables'])
+            for table,required in requirements.get('optional_tables',{}).items():
+                if table in tables:
+                    columns={row[1] for row in db.execute('PRAGMA table_info("'+table+'")')}
+                    if not set(required)<=columns:
+                        raise ValueError('数据库可选结构不兼容: '+relative+'/'+table)
             for table,required in required_tables.items():
                 columns={row[1] for row in db.execute('PRAGMA table_info("'+table+'")')}
                 must_check=bool(tables) or version!=0 and requirements.get('require_versioned_tables',False)
@@ -232,6 +251,7 @@ def check(data, descriptor):
                         raise ValueError('该候选缺少 Harness 请求读取能力，不能直接降级')
             checked.append({'database':relative,'user_version':version,'tables':len(tables)})
     return {'compatible':True,'data':str(data),'reader_features':descriptor['reader_features'],
+            'required_reader_features':sorted(required_features), 'inferred_requirements':inferred,
             'databases':checked,'writes':0}
 
 

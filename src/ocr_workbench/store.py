@@ -1,6 +1,7 @@
 """Transactional project, queue and edit history storage outside the application."""
 
 from contextlib import contextmanager, closing
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 import hashlib
@@ -14,7 +15,7 @@ from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
 
 
-SCHEMA_VERSION = 18
+SCHEMA_VERSION = 22
 HISTORY_MAGIC = b"OCRZ1\0"
 
 
@@ -44,6 +45,22 @@ class Conflict(ValueError):
     pass
 
 
+
+
+def _migrate_screen_tables(db):
+    from ocr_workbench.screen_schema import migrate_screen_schema
+    migrate_screen_schema(db)
+
+
+def _migrate_engine_routes(db):
+    db.execute("""CREATE TABLE IF NOT EXISTS task_engine_routes(
+        task_id TEXT PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
+        requested_engine TEXT NOT NULL,fallback_engine TEXT NOT NULL,
+        actual_engine TEXT,attempts TEXT NOT NULL DEFAULT '[]',
+        baseline_result_id TEXT REFERENCES results(id) ON DELETE SET NULL,baseline_revision INTEGER,
+        crop_box TEXT)""")
+
+
 class Store(DocumentStoreMixin, FusionStoreMixin):
     def __init__(self, root):
         self.root = Path(root).resolve()
@@ -54,8 +71,15 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         path = self.root / "workbench.sqlite3"
         exists = path.is_file()
         if exists:
+            # A closed WAL database has no frames to replay. SQLite mode=ro
+            # alone may create empty WAL/SHM sidecars even on schema refusal.
+            # Immutable reads avoid that; live WALs still require replay.
+            wal = path.with_name(path.name + '-wal')
+            probe_uri = path.as_uri() + '?mode=ro'
+            if not wal.is_file() or wal.stat().st_size == 0:
+                probe_uri += '&immutable=1'
             with closing(
-                sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
+                sqlite3.connect(probe_uri, uri=True)
             ) as probe:
                 version = probe.execute("PRAGMA user_version").fetchone()[0]
             if version > SCHEMA_VERSION:
@@ -266,6 +290,21 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         elif version == 18:
             from ocr_workbench.screen_schema import migrate_screen_schema
             migrate_screen_schema(db)
+        elif version == 19:
+            _migrate_screen_tables(db)
+            from ocr_workbench.screen_local_candidates import migrate_local_candidates
+            migrate_local_candidates(db)
+        elif version == 20:
+            # Routed preparation/attempt JSON carries engine and reserve meaning
+            # that a schema19 coordinator would silently ignore on recovery.
+            # The version barrier changes no historical records or budgets.
+            pass
+        elif version == 21:
+            from ocr_workbench.screen_cell_review import migrate_cell_reviews
+            migrate_cell_reviews(db)
+        elif version == 22:
+            _migrate_screen_tables(db)
+            _migrate_engine_routes(db)
 
     @staticmethod
     def _revision_triggers(db, table):
@@ -522,7 +561,9 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
             # Claim atomically accounts the old segment before replacing its start.
             timestamp = now()
             if task['started']:
-                for table in ('screen_tasks', 'screen_contexts'):
+                for table in ('screen_tasks', 'screen_contexts', 'screen_local_requests'):
+                    if table == 'screen_local_requests' and self.schema_version < 19:
+                        continue
                     db.execute('''UPDATE ''' + table + ''' SET spent_seconds=spent_seconds+
                         MAX(0,(julianday(COALESCE(?,?))-julianday(?))*86400) WHERE task_id=?''',
                         (task['finished'], timestamp, task['started'], task['id']))
@@ -736,65 +777,82 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         rows = self.rows('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation_id,))
         return json.loads(rows[0]['receipt']) if rows else None
 
-    def save(self, key, edit, expected_revision, *, operation=None):
+    def save(self, key, edit, expected_revision, *, operation=None, screen_metadata=None):
+        with self.transaction() as db:
+            db.execute("BEGIN IMMEDIATE")
+            receipt = self._save_in_transaction(db, key, edit, expected_revision,
+                                                operation=operation, screen_metadata=screen_metadata)
+        return receipt if operation else self.result(key)
+
+    def _save_in_transaction(self, db, key, edit, expected_revision, *, operation=None, screen_metadata=None):
+        """Shared edit/history write inside an already-open atomic transaction."""
         from ocr_workbench.editing import validate_edit
 
         if type(expected_revision) is not int or expected_revision < 0:
             raise ValueError("必须提供用户所见的修订版本")
         validate_edit(edit)
-        with self.transaction() as db:
-            db.execute("BEGIN IMMEDIATE")
-            if operation:
-                db.execute('CREATE TABLE IF NOT EXISTS platform_edits (operation_id TEXT PRIMARY KEY, receipt TEXT NOT NULL)')
-                old = db.execute('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation['operation_id'],)).fetchone()
-                if old:
-                    receipt = json.loads(old['receipt'])
-                    if receipt['payload_hash'] != operation['payload_hash'] or receipt['result_id'] != key:
-                        raise Conflict('编辑身份已绑定不同内容')
-                    return receipt
-            row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
-            if not row:
-                raise KeyError("识别结果不存在")
-            if row["revision"] != expected_revision:
-                raise Conflict("该结果已在其他窗口更新，请重新加载后编辑")
-            fusion = json.loads(row["original"]).get("origin") == "fusion"
-            if fusion:
-                from ocr_workbench.fusion_alignment import canonical_edit
-                edit = canonical_edit(edit)
-            if json.loads(row["edited"]) == edit:
-                if operation:
-                    receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': row['revision']}
-                    db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
-                    return receipt
-                return self.result(key)
-            cursor = row["cursor"] + 1
-            db.execute(
-                "DELETE FROM edits WHERE result_id=? AND position>?",
-                (key, row["cursor"]),
-            )
-            db.execute(
-                "INSERT INTO edits VALUES(?,?,?,?)",
-                (key, cursor, history_encoded(edit), now()),
-            )
-            db.execute(
-                "UPDATE results SET edited=?,cursor=?,revision=revision+1,updated=? WHERE id=?",
-                (encoded(edit), cursor, now(), key),
-            )
-            if fusion:
-                from ocr_workbench.review_issues import reconcile
-                reconcile(db, key, json.loads(row["edited"]), edit)
-            from ocr_workbench.geometry import reconcile_geometry
-            reconcile_geometry(db, key, json.loads(row['edited']), edit)
-            from ocr_workbench.structure_store import reconcile_structure
-            reconcile_structure(db, key, json.loads(row['edited']), edit)
-            from ocr_workbench.multimodal_store import reconcile_review
-            reconcile_review(db, key)
-            if operation:
-                receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': expected_revision+1}
-                db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
         if operation:
-            return receipt
-        return self.result(key)
+            db.execute('CREATE TABLE IF NOT EXISTS platform_edits (operation_id TEXT PRIMARY KEY, receipt TEXT NOT NULL)')
+            old = db.execute('SELECT receipt FROM platform_edits WHERE operation_id=?', (operation['operation_id'],)).fetchone()
+            if old:
+                receipt = json.loads(old['receipt'])
+                if receipt['payload_hash'] != operation['payload_hash'] or receipt['result_id'] != key:
+                    raise Conflict('编辑身份已绑定不同内容')
+                return receipt
+        row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
+        if not row:
+            raise KeyError("识别结果不存在")
+        if row["revision"] != expected_revision:
+            raise Conflict("该结果已在其他窗口更新，请重新加载后编辑")
+        previous_edit = json.loads(row["edited"])
+        # Ordinary result-edit APIs may echo, but cannot change, metadata.
+        # The screen review action supplies a fully validated internal value.
+        if 'screen' in edit and edit['screen'] != previous_edit.get('screen'):
+            raise Conflict('业务说明必须通过当前屏拍复核操作修改')
+        edit = deepcopy(edit)
+        if screen_metadata is not None:
+            if json.loads(row["original"]).get('origin') != 'screen_batch':
+                raise Conflict('非屏拍结果不能写入业务说明修订')
+            edit['screen'] = deepcopy(screen_metadata)
+            validate_edit(edit)
+        elif 'screen' in previous_edit:
+            edit['screen'] = deepcopy(previous_edit['screen'])
+        fusion = json.loads(row["original"]).get("origin") == "fusion"
+        if fusion:
+            from ocr_workbench.fusion_alignment import canonical_edit
+            edit = canonical_edit(edit)
+        if json.loads(row["edited"]) == edit:
+            if operation:
+                receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': row['revision']}
+                db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+                return receipt
+            return None
+        cursor = row["cursor"] + 1
+        db.execute(
+            "DELETE FROM edits WHERE result_id=? AND position>?",
+            (key, row["cursor"]),
+        )
+        db.execute(
+            "INSERT INTO edits VALUES(?,?,?,?)",
+            (key, cursor, history_encoded(edit), now()),
+        )
+        db.execute(
+            "UPDATE results SET edited=?,cursor=?,revision=revision+1,updated=? WHERE id=?",
+            (encoded(edit), cursor, now(), key),
+        )
+        if fusion:
+            from ocr_workbench.review_issues import reconcile
+            reconcile(db, key, json.loads(row["edited"]), edit)
+        from ocr_workbench.geometry import reconcile_geometry
+        reconcile_geometry(db, key, json.loads(row['edited']), edit)
+        from ocr_workbench.structure_store import reconcile_structure
+        reconcile_structure(db, key, json.loads(row['edited']), edit)
+        from ocr_workbench.multimodal_store import reconcile_review
+        reconcile_review(db, key)
+        if operation:
+            receipt = {**operation, 'state': 'committed', 'result_id': key, 'revision': expected_revision+1}
+            db.execute('INSERT INTO platform_edits VALUES(?,?)', (operation['operation_id'], encoded(receipt)))
+        return receipt if operation else None
 
     def history(self, key, direction, expected_revision):
         if type(direction) is not int or direction not in {-1, 1}:

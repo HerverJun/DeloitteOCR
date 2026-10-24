@@ -4,8 +4,47 @@ from packages.contracts.agent import AgentSkillActivate as Activate, AgentSkillD
 from workbench_platform.assets.routes import library
 from .routes import runtime, session_scope, parsed
 from .store import Conflict
+from .preferences import Business, PreferenceWrite
 
 router = APIRouter(prefix='/api/platform/v1', tags=['platform-agent-skills'])
+
+
+@router.get('/workspaces/{workspace_id}/agent/preferences')
+def preferences(workspace_id: str, request: Request, business: Business = 'project'):
+    agent = runtime(request)
+    library(request, workspace_id)
+    return agent.preferences.preview(workspace_id, business)
+
+
+@router.post('/workspaces/{workspace_id}/agent/preferences')
+async def preferences_update(workspace_id: str, request: Request):
+    agent = runtime(request, True)
+    library(request, workspace_id, write=True)
+    payload = await parsed(request, PreferenceWrite)
+    try:
+        return agent.preferences.update(workspace_id, payload.business, payload.expected_revision,
+            payload.values, payload.revoke_keys, payload.source, payload.request_id)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from None
+
+
+@router.get('/agent/sessions/{session_id}/preferences/snapshots')
+def preference_snapshots(session_id: str, request: Request):
+    agent = runtime(request)
+    session = session_scope(agent, request, session_id)
+    try:
+        return agent.preferences.snapshots(session['workspace_id'], session_id)
+    except Conflict as error:
+        raise HTTPException(409, str(error)) from None
+
+
+@router.get('/agent/sessions/{session_id}/skills/match')
+def match(session_id: str, request: Request, goal: str = Query(..., min_length=1, max_length=12000)):
+    agent = runtime(request)
+    session = session_scope(agent, request, session_id)
+    return agent.skills.match(session['workspace_id'], session_id, goal)
 
 
 @router.get('/agent/skills')

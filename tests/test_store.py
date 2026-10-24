@@ -14,7 +14,7 @@ from PIL import Image
 
 def drop_post_v15_tables(db):
     # Build a real legacy schema rather than retaining later-version tables.
-    for table in ('screen_cache', 'screen_contexts', 'screen_actions',
+    for table in ('screen_local_requests', 'screen_cache', 'screen_contexts', 'screen_actions',
                   'screen_final_tasks', 'screen_tasks', 'screen_items',
                   'screen_batches', 'platform_page_requests'):
         db.execute('DROP TABLE IF EXISTS ' + table)

@@ -33,34 +33,58 @@ class GeometryContextSession:
     def __init__(self, models):
         self.models = Path(models)
         self.layout = None
+        self.ocr = None
         self.loaded = 0
 
     def predict(self, image_path, request):
         import numpy as np
         from PIL import Image
         started = time.perf_counter()
+        previously_loaded = self.loaded
         regions = request.get('regions', [])
-        if not regions:
+        layout_blocks = request.get('layout_blocks', [])
+        with Image.open(image_path) as im:
+            from ocr_workbench.image_utils import normalized_rgb
+            normalized = normalized_rgb(im)
+            width, height = normalized.size
+        if not regions or request.get('include_all_layout') and not layout_blocks:
             from paddlex import create_model
             if self.layout is None:
+                loading = time.perf_counter()
                 self.layout = create_model('PP-DocLayoutV3', model_dir=str(self.models / 'PP-DocLayoutV3'), device='gpu:0')
-            with Image.open(image_path) as im:
-                pixels = np.ascontiguousarray(np.asarray(im.convert('RGB'))[:, :, ::-1])
+                self.loaded += time.perf_counter() - loading
+            pixels = np.ascontiguousarray(np.asarray(normalized)[:, :, ::-1])
             layout = next(iter(self.layout(pixels)))
-            regions = [{'box': b['coordinate'], 'source': 'PP-DocLayoutV3'}
-                       for b in layout['boxes'] if b['label'] == 'table']
+            layout_blocks = [{'box': b['coordinate'], 'label': b['label'], 'kind': b['label'],
+                              'confidence': b.get('score'), 'source': 'PP-DocLayoutV3'} for b in layout['boxes']]
+            if not regions:
+                regions = [{'box': b['coordinate'], 'source': 'PP-DocLayoutV3', 'confidence': b.get('score')}
+                           for b in layout['boxes'] if b['label'] == 'table']
         blocks, source = request.get('ocr_blocks', []), request.get('ocr_source')
         if not blocks:
             if request.get('allow_auxiliary_ocr') is False:
                 raise ValueError('冻结 OCR 输入没有文字框；禁止隐式补识别')
-            from ocr_workbench.worker import load_paddle, paddle_engine
-            ocr, seconds = load_paddle('ppocr', self.models)
-            _, blocks, _ = paddle_engine('ppocr', self.models, image_path, ocr, seconds)
-            del ocr
+            from ocr_workbench.worker import load_paddle
+            seconds = 0
+            if self.ocr is None:
+                self.ocr, seconds = load_paddle('ppocr', self.models)
+                self.loaded += seconds
+            pixels = np.ascontiguousarray(np.asarray(normalized)[:, :, ::-1])
+            blocks = []
+            for prediction in self.ocr.predict(pixels):
+                data = prediction.json
+                data = data.get('res', data)
+                for text, score, poly in zip(data['rec_texts'],data['rec_scores'],data['rec_polys']):
+                    blocks.append({'text':text,'confidence':float(score),'polygon':poly,'kind':'text','source':'PP-OCRv6-auxiliary'})
             source = 'PP-OCRv6-auxiliary'
+        total_seconds = time.perf_counter() - started
+        load_seconds = self.loaded - previously_loaded
         return {'status': 'success', 'component': 'shared-geometry-context', 'regions': regions,
+                'layout_blocks': layout_blocks, 'image': {'width': width, 'height': height},
+                'coordinate_space': 'exif_normalized_original',
                 'ocr_blocks': blocks, 'ocr_source': source, 'image_version': request.get('image_version'),
-                'contributes_to_votes': False, 'inference_seconds': time.perf_counter() - started}
+                'contributes_to_votes': False, 'load_seconds': load_seconds, 'total_load_seconds': self.loaded,
+                'elapsed_seconds': total_seconds, 'inference_seconds': max(0.,total_seconds-load_seconds)}
 
     def write(self, image, output, request):
         from ocr_workbench.atomic_files import write_json

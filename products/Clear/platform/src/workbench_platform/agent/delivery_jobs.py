@@ -19,7 +19,7 @@ def _identity(reference):
                       ('kind', 'workspace_id', 'application', 'object_id', 'parent_id', 'revision', 'native_id')})
 
 
-def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_coverage=None):
+def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_coverage=None, partial_screen_batches=()):
     from workbench_platform.application_services.operations.jobs import read_reference
     wanted = {_identity(ref) for ref in references}
     jobs, matched, known_jobs = {}, set(), {}
@@ -40,7 +40,12 @@ def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_cove
             continue
         kind = value.get('kind')
         application, identifier, parent = None, None, None
-        if kind in {'ocr_result', 'classification_result'} or value.get('platform_job_id') and value.get('handoff_id'):
+        if value.get('screen_delivery') and value.get('handoff_id'):
+            application, identifier = 'ocr', value['handoff_id']
+            known = known_jobs.get((application, identifier))
+            source = ctx.services.screen_batches._row(ctx.workspace_id, identifier)
+            parent = known.get('parent_id') if known else source['handoff_id']
+        elif kind in {'ocr_result', 'classification_result'} or value.get('platform_job_id') and value.get('handoff_id'):
             application = 'classification' if kind == 'classification_result' or value.get('native_job_id') else 'ocr'
             identifier, parent = value.get('platform_job_id'), value.get('handoff_id')
         elif value.get('export_id') and value.get('session_id'):
@@ -56,6 +61,8 @@ def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_cove
             ref = known_jobs.get((application, identifier)) or {
                 'kind': 'job', 'workspace_id': ctx.workspace_id, 'application': application,
                 'object_id': identifier, 'parent_id': parent, 'revision': 1}
+            if value.get('screen_delivery'):
+                ref = {**ref, 'coverage': {**ref.get('coverage', {}), 'kind': 'screen_batch'}}
             if application == 'multimodal' and not ref.get('coverage', {}).get('kind'):
                 ref = {**ref, 'coverage': {'kind': value.get('kind') if value.get('kind') in {'face', 'audio', 'seal', 'catnet', 'document_forensics', 'aigc_image'} else value.get('analysis_kind')}}
             if application == 'multimodal' and value.get('snapshot_id'):
@@ -73,7 +80,10 @@ def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_cove
     for ref in jobs.values():
         try:
             ctx.current()
-            value = read_reference(ref, ctx)
+            if ref.get('coverage', {}).get('kind') == 'screen_batch':
+                value = ctx.services.screen_batches.status(ctx.workspace_id, ref['object_id'], limit=1)
+            else:
+                value = read_reference(ref, ctx)
             status = value.get('status', value.get('state'))
             evidence = {'job_id': ref['object_id'], 'application': ref['application'],
                         'parent_id': ref.get('parent_id'), 'native_status': status}
@@ -85,7 +95,15 @@ def verify_native_jobs(references, ctx, *, verified_objects=(), requirement_cove
             evidence = {'job_id': ref['object_id'], 'application': ref['application'],
                         'native_status': status, 'error_type': type(error).__name__}
         passed = status in {'succeeded', 'completed', 'success'}
-        terminal = passed or status in {'partial', 'failed', 'cancelled'}
+        terminal = passed or status in {'partial', 'failed', 'cancelled', 'needs_review'}
+        if ref.get('coverage', {}).get('kind') == 'screen_batch':
+            counts = value.get('counts', {})
+            terminal = terminal and not counts.get('pending')
+            if counts.get('needs_review') or counts.get('failed') or counts.get('cancelled'):
+                passed = False
+            if ref['object_id'] in partial_screen_batches and status != 'unverified':
+                terminal, passed = True, False
+                evidence['explicit_partial_export'] = True
         message = '原生作业已完成' if passed else '原生作业状态：' + str(status or 'unknown')
         if terminal and not passed and ref['object_id'] in repaired_jobs:
             passed = True

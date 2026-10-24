@@ -6,10 +6,25 @@ vi.mock("./RegionPreview", () => ({ RegionPreview: () => null }));
 import { ScreenBatchPanel } from "./ScreenBatchPanel";
 import { ScreenCandidatePreview } from "./ScreenCandidatePreview";
 import { ImageCanvas } from "./ImageCanvas";
+import { ScreenDiagnosticPanel } from "./ScreenDiagnosticPanel";
+import { ScreenBusinessMetadata } from "./ScreenBusinessMetadata";
 import type { ScreenCandidate } from "./screenBatchWorkflow";
 import type { Version } from "./types";
 
 describe("ordinary OCR batch entry", () => {
+  it("retains metadata readings, source evidence and manual draft without claiming confirmation", () => {
+    const markup=renderToStaticMarkup(<ScreenBusinessMetadata busy={false} change={() => {}} edits={{0:{item_index:0,before:"表注：+20",after:"表注：-20",choice:"auxiliary"}}}
+      items={[{kind:"note",text:"表注：+20",source:"primary_transcription",review_required:true,human_confirmed:false,
+        alternative_text:"表注：-20",alternative_source:"rapidocr",transcription_evidence:{primary_text:"表注：+20",auxiliary_text:"表注：-20",primary_source:{result_id:"source-result"},auxiliary_source:{source:"rapidocr"}}}]} />);
+    expect(markup).toContain("表注：+20");expect(markup).toContain("表注：-20");expect(markup).toContain("source-result");
+    expect(markup).toContain("待核对");expect(markup).toContain("选用辅助识别原文 1");expect(markup).not.toContain("人工已确认");
+  });
+  it("shows unlocalized source evidence and disabled unverified actions without a guessed cell", () => {
+    const markup = renderToStaticMarkup(<ScreenDiagnosticPanel index={0} busy={false} select={() => {}} action={() => {}}
+      data={{items:[{id:"i1",code:"difference",severity:"high",reason:"未能可靠对应错格",location:{level:"table",table:0,basis:"candidate_table_without_source_geometry"},evidence:[{kind:"auxiliary_ocr",current:"01.10",alternative:"01.20"}],applicable_actions:[{action:"local_reread",label:"局部复识",enabled:false,reason:"capability_not_verified"}]}],summary:{issues:1,groups:1,cell:0,table:1,image:0},budget:{remaining_seconds:null}}} />);
+    expect(markup).toContain("无可靠单格定位"); expect(markup).toContain("能力尚未核实"); expect(markup).toContain("01.20");
+    expect(markup).not.toContain("可靠单格）"); expect(markup).toContain("disabled");
+  });
   it("offers the business batch action without requiring a model choice", () => {
     const markup = renderToStaticMarkup(<ScreenBatchPanel projectId="project-1" images={[]} selectedImageIds={[]}
       onError={() => {}} onRefresh={async () => {}} onOpenResult={async () => {}} />);

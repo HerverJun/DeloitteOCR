@@ -11,8 +11,8 @@
 | 对象 | 实际位置与用途 | 本说明中的定位 |
 | --- | --- | --- |
 | Clear 0.20.0正式入口使用的OCR | `release/Clear/current.json` 选择的candidate-006根 `ocr`；由其 `launch.py` 加载 `ocr/src` 与 `ocr/frontend/dist` | 当前源码SCHEMA_VERSION为18；切换时原工作区数据库为17，兼容检查通过，不代表本轮已迁移该库 |
-| GitHub 中整理的原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；来源为 `output/clear-automation-dev-20261002/worktrees/ocr` | 原生开发快照，SCHEMA_VERSION为18；布局及样式工作区修改也随源码保留 |
-| 根目录 OCR 研发线 | [src/ocr_workbench](../src/ocr_workbench/) 与 [frontend/src](../frontend/src/) | schema 18；新增「拍屏表格批量转 Excel」等功能，见第 14 节 |
+| 统一主线原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；在 `codex/workspace-organized-20261023` 直接维护 | schema 22；已整合 MinerU Pro、屏拍批次、诊断、精细候选与单元格复核，来源见[整合记录](platform-automation/分支整合记录-20261024.md) |
+| 根目录 OCR 兼容入口 | [src/ocr_workbench](../src/ocr_workbench/) 与 [frontend/src](../frontend/src/) | schema 22；同步收齐屏拍后续实现，完整 Clear 开发以 `products/Clear` 为准 |
 | 内嵌 OCR 资产包 | `release/Clear/versions/0.10.0/program/bundles/ocr` | 提供模型、运行时、配置等资产；其中遗留的 `src` 为 schema 15、`web` 也较旧，不能据此判断正式入口实际显示的 UI |
 
 当前正式版保留既有MinerU Pro文档路线；共享 `program` 仍位于0.10.0依赖目录，其版本不能当作当前产品版本。启动链的关键点是：平台启动器先加载版本目录下的原生 `ocr/src`，并显式传入 `--web-root` 指向原生 `ocr/frontend/dist`，同时通过 `--bundle` 引用资产包。查看资产包里的旧网页，不等于查看 Clear 当前入口的页面。
@@ -378,7 +378,7 @@ ClearOCR 的「文档助手」是原生 OCR 页面内的助手，负责查询当
 
 ## 14. 研发版新增：拍屏表格批量转 Excel
 
-本节对应根目录 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及相关后端，数据库 schema 18。2026-10-14编写时的Clear 0.10.0入口和schema17原生快照没有此入口；当前版本与源码身份按第1节核对，不能只复制前端文件就认为完成升级。
+本节对应 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及 Clear OCR 中对应的前后端实现，整合源码数据库为 schema 22。此前两个研发方向都曾使用 schema 18，整合迁移按实际表结构补齐 MinerU 路由和屏拍记录；升级检查覆盖两种旧库及事务回滚。2026-10-14 的 Clear 0.10.0 入口没有此功能；正式安装与开发源码身份仍按第1节分别核对。
 
 ### 14.1 新建批次与查看进度
 
@@ -519,7 +519,7 @@ GPU OCR、去弯曲、定位及本地视觉相关工作受串行资源调度约�
 
 应用目录与资料工作区是两套内容；只复制发行程序不等于备份资料，只复制 SQLite 文件也不等于完整备份。平台整体备份还应覆盖平台数据和其他子工具原生资料，见主手册。
 
-当前006原生OCR和根研发源码的SCHEMA_VERSION均为18；本次切换时既有原库为17，读取兼容检查已通过。新版可能先备份数据库再进行迁移，但自动数据库备份不包含所有图片和输出。升到 schema 18 后不能让 schema 17 程序写入该数据库；回退时使用与旧版匹配的完整备份，不手工改版本号。
+正式 0.20.0 candidate-006 的原生 OCR 为 schema 18；本轮整合开发源码与根兼容入口均为 schema 22，尚未用它升级正式工作区。新版可能先备份数据库再进行迁移，但自动数据库备份不包含所有图片和输出。旧程序不能写入新版数据库；回退时使用与旧版匹配的完整备份，不手工改版本号。
 
 ## 18. 交付前核对与文档依据
 

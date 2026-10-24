@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Modal, Select, Space, Table, Tag, Typography } from 'antd'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import './assets.css'
 import { parseableDocument } from '../documents/api'
 
@@ -30,6 +30,7 @@ function bytes(value: number) {
 }
 
 export function AssetLibrary() {
+  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const workspaceId = params.get('workspace')
   const setId = params.get('set')
@@ -77,6 +78,9 @@ export function AssetLibrary() {
   } })
   const openUrl = (asset: Asset, download = false) =>
     `${base}/${encodeURIComponent(asset.asset_id)}/content?revision=${asset.revision}${download ? '&download=true' : ''}`
+  const sendAgent = useMutation({ mutationFn: () => request<AssetSet>(`${base}/sets`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ asset_ids: selected }),
+  }), onSuccess: fixed => navigate(`/agent?workspace=${encodeURIComponent(workspaceId || '')}&asset_set=${encodeURIComponent(fixed.asset_set_id)}`) })
 
   return <div className="asset-library">
     <div className="asset-heading"><div><Text className="eyebrow">LIBRARY / INPUTS</Text><Title level={1}>资料库</Title></div>
@@ -95,9 +99,10 @@ export function AssetLibrary() {
       <div className="asset-table-head"><Title level={3}>已登记资料 <Text type="secondary">{listing.data?.total ?? 0}</Text></Title>
         <Space><Text type="secondary">已选 {selected.length}</Text><Button disabled={!selected.length} loading={makeSet.isPending}
           onClick={() => makeSet.mutate()}>固定输入集合</Button>
-          <Button disabled={!selected.length}><Link to={`/agent?workspace=${encodeURIComponent(workspaceId || '')}&assets=${encodeURIComponent(selected.join(','))}`}>交给 Agent</Link></Button>
+          <Button disabled={!selected.length || selected.length > 1000} loading={sendAgent.isPending} onClick={() => sendAgent.mutate()}>交给 Agent</Button>
         </Space></div>
       {makeSet.isError && <Alert type="error" showIcon title={makeSet.error.message} className="asset-alert" />}
+      {sendAgent.isError && <Alert type="error" showIcon title={sendAgent.error.message} className="asset-alert" />}
       <Table<Asset> size="small" rowKey="asset_id" loading={listing.isPending} dataSource={listing.data?.items || []}
         scroll={{ x: 850 }} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true,
           onChange: keys => setSelected(keys.map(String)) }}

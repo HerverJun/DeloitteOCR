@@ -166,6 +166,9 @@ def test_fresh_pycache_prefix_ignores_valid_unpinned_preexisting_bytecode(tmp_pa
     driver.write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).parent))\nimport victim\nprint(victim.VALUE)\n',encoding='utf-8')
     request=tmp_path/'request.json';request.write_text('{}',encoding='utf-8')
     env=worker_environment(tmp_path,Path(sys.executable))
+    # The baseline deliberately reads a matching local pyc. The outer test
+    # runner may already redirect caches to another F-drive directory.
+    env.pop('PYTHONPYCACHEPREFIX',None)
     baseline=subprocess.run([sys.executable,'-B',str(driver)],env=env,cwd=tmp_path,capture_output=True,text=True,check=True)
     assert baseline.stdout.strip()=='poison'  # -B alone still READS matching pyc.
     command=aigc_backend.worker_command(sys.executable,driver,request)

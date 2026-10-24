@@ -30,6 +30,7 @@ export function ImageCanvas({
   manualBinding,
   onManualBind,
   onCancelBinding,
+  readOnly = false,
 }: {
   version: Version | null;
   versions: Version[];
@@ -44,6 +45,7 @@ export function ImageCanvas({
   manualBinding?: string;
   onManualBind?: (box: number[]) => Promise<void>;
   onCancelBinding?: () => void;
+  readOnly?: boolean;
 }) {
   const [url, setUrl] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -65,7 +67,7 @@ export function ImageCanvas({
     corner?: number;
   } | null>(null);
   const [size, setSize] = useState([800, 700]);
-  useEffect(() => { if (manualBinding) { setMode("binding"); setBox(null); setPoints([]); } else setMode(m => m === "binding" ? "pan" : m); }, [manualBinding]);
+  useEffect(() => { if (readOnly) { setMode("pan"); setBox(null); setPoints([]); } else if (manualBinding) { setMode("binding"); setBox(null); setPoints([]); } else setMode(m => m === "binding" ? "pan" : m); }, [manualBinding, readOnly]);
   useEffect(() => {
     if (!stage.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -151,6 +153,7 @@ export function ImageCanvas({
   };
   const pointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!version || busy) return;
+    setReviewZoom(false);
     if (mode === "perspective") {
       const p = point(event);
       if (points.length < 4) setPoints([...points, p]);
@@ -197,6 +200,7 @@ export function ImageCanvas({
     setFit(false);
   };
   const choose = (next: typeof mode) => {
+    if (readOnly && next !== "pan") return;
     if (mode === "binding" && next !== "binding") onCancelBinding?.();
     setMode(next);
     setBox(
@@ -237,7 +241,7 @@ export function ImageCanvas({
   return (
     <section
       className="image-workspace"
-      aria-label="图片工作区"
+      aria-label={readOnly ? "原图核对工作区" : "图片工作区"}
       onKeyDown={(event) => {
         if (event.key === "Escape" && mode !== "pan") {
           event.preventDefault();
@@ -246,10 +250,10 @@ export function ImageCanvas({
       }}
     >
       <header className="canvas-panel-heading">
-        <h2>原始文档</h2>{" "}
+        <h2>{readOnly ? "原图核对" : "原始文档"}</h2>{" "}
         {version && (
           <div className="version-bar">
-            <select
+            {!readOnly && <select
               aria-label="图片版本"
               value={version.id}
               onChange={(e) => onVersion(e.target.value)}
@@ -261,11 +265,11 @@ export function ImageCanvas({
                     : `版本 ${i + 1} · ${operationName(v.operations)}`}
                 </option>
               ))}
-            </select>
+            </select>}
             <span>
               {version.width} × {version.height}
             </span>
-            {version.parent_id && (
+            {!readOnly && version.parent_id && (
               <Button
                 size="small"
                 appearance="subtle"
@@ -290,7 +294,7 @@ export function ImageCanvas({
             onClick={() => choose("pan")}
           />
         </div>
-        <div className="tool-group" role="group" aria-label="区域选择">
+        {!readOnly && <div className="tool-group" role="group" aria-label="区域选择">
           <Button
             title="裁剪"
             aria-label="裁剪"
@@ -318,8 +322,8 @@ export function ImageCanvas({
             icon={<Focus size={17} />}
             onClick={() => choose("region")}
           />
-        </div>
-        <details className="image-more">
+        </div>}
+        {!readOnly && <details className="image-more">
           <summary title="更多图像修正">更多</summary>
           <div className="image-more-content">
             <Button
@@ -351,9 +355,10 @@ export function ImageCanvas({
               去弯曲
             </Button>
           </div>
-        </details>
+        </details>}
         <div className="zoom-tools">
           {polygon && <Button size="small" onClick={focusReview}>放大疑点区域</Button>}
+          {readOnly && <Button size="small" aria-label="按100%查看原图" title="按原图像素显示" onClick={() => { setZoom(1); setFit(false); setReviewZoom(false); }}>100%</Button>}
           <Button
             title="缩小"
             aria-label="缩小"
@@ -363,6 +368,7 @@ export function ImageCanvas({
           />
           <button
             className="zoom-label"
+            aria-label={readOnly ? "适合原图核对窗口" : undefined}
             onClick={() => { setFit(true); setReviewZoom(false); }}
             title="适合窗口"
           >

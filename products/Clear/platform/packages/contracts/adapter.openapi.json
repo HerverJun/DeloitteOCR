@@ -733,7 +733,8 @@
             "enum": [
               "artifact",
               "table",
-              "result"
+              "result",
+              "asset_set"
             ],
             "title": "Kind",
             "type": "string"
@@ -755,6 +756,19 @@
             ],
             "default": null,
             "title": "Parent Id"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Revision"
           }
         },
         "required": [
@@ -1016,7 +1030,7 @@
               "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
               "type": "string"
             },
-            "maxItems": 100,
+            "maxItems": 1000,
             "title": "Selected Assets",
             "type": "array"
           }
@@ -1215,7 +1229,7 @@
                   "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$",
                   "type": "string"
                 },
-                "maxItems": 100,
+                "maxItems": 1000,
                 "type": "array"
               },
               {

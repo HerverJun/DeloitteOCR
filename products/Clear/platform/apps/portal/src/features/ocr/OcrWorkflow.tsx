@@ -7,6 +7,7 @@ import { useNativeWindow } from '../catalog/nativeWindow'
 import { nativeReviewReturn } from '../catalog/nativeReviewReturn'
 import { FixedNativeEvidence } from '../agent/FixedNativeEvidence'
 import { NativeResultPreview } from '../agent/NativeResultPreview'
+import { ScreenBatch } from './ScreenBatch'
 
 const { Title, Text, Paragraph } = Typography
 type Project = { project_id: string; name: string; link_id: string | null; role: string | null }
@@ -118,7 +119,7 @@ function OcrHandoffWorkflow() {
         <Link to={`/assets?workspace=${encodeURIComponent(workspaceId)}${setId ? `&set=${encodeURIComponent(setId)}` : ''}`}>返回资料库</Link></Space></div>
         {assetSet.isError && <Alert type="error" title="资料集无法读取" action={<Button onClick={() => void assetSet.refetch()}>重试</Button>} />}
         {assetSet.data ? <><Text type="secondary">版本 {assetSet.data.revision} · {assetSet.data.members.length} 份</Text>
-          <ul className="ocr-input-list">{assetSet.data.members.map(item => <li key={item.asset_id}>{item.original_name}</li>)}</ul></> :
+          <ul className="ocr-input-list">{assetSet.data.members.slice(0, 20).map(item => <li key={item.asset_id}>{item.original_name}</li>)}</ul>{assetSet.data.members.length > 20 && <Text type="secondary">其余 {assetSet.data.members.length - 20} 张保存在固定输入集合</Text>}</> :
           !setId && <Empty description="从资料库选择并固定输入集合" />}
       </section>
       <section className="panel"><div className="section-head"><Title level={3}>OCR 项目</Title>
@@ -140,6 +141,7 @@ function OcrHandoffWorkflow() {
         {chosen?.link_id && <Button className="ocr-open" loading={native.opening} onClick={openNative}>打开原生项目</Button>}
         {native.error && <Alert type="error" title={native.error} className="ocr-notice" />}
       </section>
+      {assetSet.data && assetSet.data.members.every(item => /\.(jpe?g|png|bmp|tiff?|webp|heic|heif)$/i.test(item.original_name)) && <ScreenBatch key={`${workspaceId}:${setId}`} workspaceId={workspaceId} setId={assetSet.data.asset_set_id} revision={assetSet.data.revision} count={assetSet.data.members.length} linkId={chosen?.link_id} ready={!!chosen?.link_id} />}
       {assetSet.data && <section className="panel"><div className="section-head"><Title level={3}>资料交接</Title>
         <Text type="secondary">{assetSet.data.members.length} 份资料</Text></div>
         {unsupported.length > 0 && <Alert type="warning" title="当前导入入口只接收图片或 PDF"

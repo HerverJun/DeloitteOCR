@@ -4,6 +4,7 @@ import argparse
 from contextlib import ExitStack
 import json
 from pathlib import Path
+import threading
 import time
 import traceback
 from types import SimpleNamespace
@@ -13,6 +14,95 @@ def publish(path, data):
     from ocr_workbench.atomic_files import write_json
 
     write_json(path, data)
+
+
+class LoadProgress:
+    """Observe startup boundaries without changing the engine's startup budget.
+
+    The clock starts after argument parsing, not at process creation. A Paddle
+    pipeline stage includes any dependency imports inside load_paddle; its
+    internals are deliberately not reported as independently observed stages.
+    """
+
+    def __init__(self, ipc, engine, *, interval=2):
+        requested = Path(ipc).absolute()
+        resolved = requested.resolve()
+        if requested.drive.upper() != 'F:' or resolved.drive.upper() != 'F:':
+            raise ValueError('Engine loading receipts must remain on the local F drive')
+        self.path = resolved / 'loading.json'
+        self.engine = engine
+        self.interval = interval
+        self.started = self.stage_started = time.perf_counter()
+        self.stage = 'worker_start'
+        self.detail = 'Worker arguments parsed; Python process startup is not included'
+        self.status = 'loading'
+        self.stages = []
+        self.error = None
+        self._lock = threading.RLock()
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._heartbeat, name='engine-load-heartbeat', daemon=True)
+        with self._lock:
+            self._write_locked()
+        self._thread.start()
+
+    def _write_locked(self):
+        from ocr_workbench.atomic_files import write_json
+
+        now = time.perf_counter()
+        receipt = {
+            'schema_version': 1,
+            'engine': self.engine,
+            'status': self.status,
+            'stage': self.stage,
+            'detail': self.detail,
+            'clock_origin': 'after_argument_parsing',
+            'elapsed_seconds': max(0, now - self.started),
+            'stage_elapsed_seconds': max(0, now - self.stage_started),
+            'heartbeat_unix_seconds': time.time(),
+            'stages': list(self.stages),
+        }
+        if self.error is not None:
+            receipt['message'] = self.error
+        try:
+            write_json(self.path, receipt, durable=True)
+        except OSError as error:
+            # Diagnostics must not turn a healthy model load into a retry or
+            # conceal the exception that actually caused startup to fail.
+            print(f'Engine loading receipt write failed: {error}', flush=True)
+
+    def _heartbeat(self):
+        while not self._stop.wait(self.interval):
+            with self._lock:
+                if self.status != 'loading':
+                    return
+                self._write_locked()
+
+    def enter(self, stage, detail):
+        with self._lock:
+            if self.status != 'loading':
+                return
+            now = time.perf_counter()
+            self.stages.append({'stage': self.stage, 'seconds': max(0, now - self.stage_started)})
+            self.stage, self.detail, self.stage_started = stage, detail, now
+            self._write_locked()
+
+    @property
+    def elapsed_seconds(self):
+        return max(0, time.perf_counter() - self.started)
+
+    def finish(self, status, error=None):
+        self._stop.set()
+        with self._lock:
+            if self.status == 'loading':
+                now = time.perf_counter()
+                self.stages.append({'stage': self.stage, 'seconds': max(0, now - self.stage_started)})
+                self.status = status
+                self.error = str(error) if error is not None else None
+                if status == 'ready':
+                    self.stage, self.detail = 'ready', 'Engine readiness was published to status.json'
+                    self.stage_started = now
+                self._write_locked()
+        self._thread.join()
 
 
 def consume_request(path, stop_path):
@@ -34,27 +124,38 @@ def consume_request(path, stop_path):
 
 
 class Resident:
-    def __init__(self, bundle, engine, ipc, geometry_provider='paddle'):
+    def __init__(self, bundle, engine, ipc, geometry_provider='paddle', progress=None):
         self.bundle, self.engine = bundle, engine
         self.stack = ExitStack()
         self.first = True
+        def stage(name, detail):
+            if progress is not None:
+                progress.enter(name, detail)
+
         try:
             if engine == 'geometry' and geometry_provider in ('tableformer-raw', 'rapidtable'):
+                stage('dependency_import', 'Importing geometry candidate worker')
                 from ocr_workbench.geometry_candidate_worker import CandidateSession
+                stage('model_initialization', 'Constructing geometry candidate session')
                 self.session = CandidateSession(geometry_provider)
                 self.loaded = self.session.loaded
             elif engine in {"ppocr", "paddlevl", "dewarp", "geometry"}:
+                stage('dependency_import', 'Importing Paddle worker and model path helpers')
                 from ocr_workbench.windows_paths import ascii_model_directory
                 from ocr_workbench.worker import load_paddle
 
+                stage('model_path_preparation', 'Preparing the existing local model directory')
                 self.models = self.stack.enter_context(
                     ascii_model_directory(bundle / "models")
                 )
                 if engine == "geometry":
+                    stage('dependency_import', 'Importing table geometry sessions')
                     from ocr_workbench.table_geometry_worker import GeometrySession, GeometryContextSession
+                    stage('model_initialization', 'Constructing the table geometry session')
                     self.session = (GeometryContextSession if geometry_provider == 'context' else GeometrySession)(self.models)
                     self.loaded = self.session.loaded
                 elif engine == "dewarp":
+                    stage('dependency_import', 'Importing PaddleX and Paddle')
                     from paddlex import create_model
                     import paddle
 
@@ -63,6 +164,7 @@ class Resident:
                         or paddle.device.cuda.device_count() < 1
                     ):
                         raise RuntimeError("UVDoc requires CUDA")
+                    stage('model_initialization', 'Constructing the existing UVDoc model')
                     started = time.perf_counter()
                     self.session = create_model(
                         "UVDoc",
@@ -72,15 +174,27 @@ class Resident:
                     )
                     self.loaded = time.perf_counter() - started
                 else:
+                    # load_paddle's original load_seconds clock excludes the
+                    # Paddle import. Pre-import only Paddle here to observe
+                    # this boundary while retaining that clock's meaning.
+                    stage('paddle_import', 'Importing Paddle runtime before the existing loader')
+                    import paddle
+
+                    stage('paddle_pipeline_initialization',
+                          'Calling load_paddle; includes PaddleOCR imports and pipeline/model initialization, with no internal stage instrumentation')
                     self.session, self.loaded = load_paddle(engine, self.models)
             elif engine == "glm":
+                stage('dependency_import', 'Importing GLM session loader')
                 from ocr_workbench.glm import load_session
 
-                self.session = load_session(bundle / "models")
+                stage('model_initialization', 'Calling the existing GLM session loader')
+                self.session = load_session(bundle / "models", stage=stage)
                 self.loaded = self.session[5]
             else:
+                stage('dependency_import', 'Importing Hunyuan session')
                 from ocr_workbench.hunyuan import Session
 
+                stage('model_initialization', 'Constructing Hunyuan session; internal loading stages are not instrumented')
                 self.session = Session(bundle, ipc)
                 self.stack.callback(self.session.close)
                 self.loaded = self.session.loaded
@@ -88,8 +202,13 @@ class Resident:
             self.stack.close()
             raise
 
-    def recognize(self, image, output):
-        if self.engine in {"ppocr", "paddlevl"}:
+    def recognize(self, image, output, *, recognition_mode='page'):
+        from ocr_workbench.recognition_modes import validate_recognition_mode
+        validate_recognition_mode(self.engine, recognition_mode)
+        if recognition_mode == 'local_text':
+            from ocr_workbench.glm import recognize_local_text
+            raw, blocks, _ = recognize_local_text(self.bundle / 'models', image, self.session)
+        elif self.engine in {"ppocr", "paddlevl"}:
             from ocr_workbench.worker import paddle_engine
 
             raw, blocks, _ = paddle_engine(
@@ -157,17 +276,24 @@ def main():
     p.add_argument("--ipc", type=Path, required=True)
     p.add_argument('--geometry-provider', choices=['paddle', 'tableformer-raw', 'rapidtable', 'context'], default='paddle')
     args = p.parse_args()
-    from ocr_workbench.offline import configure, install_guard
-
-    configure(args.ipc)
-    install_guard(args.ipc / "network-blocked.log")
+    progress = LoadProgress(args.ipc, args.engine)
     session = None
     try:
-        session = Resident(args.bundle, args.engine, args.ipc, args.geometry_provider)
+        progress.enter('offline_import', 'Importing the existing offline configuration helpers')
+        from ocr_workbench.offline import configure, install_guard
+
+        progress.enter('offline_configuration', 'Applying the existing local cache and network guard configuration')
+        configure(args.ipc)
+        install_guard(args.ipc / "network-blocked.log")
+        session = Resident(args.bundle, args.engine, args.ipc, args.geometry_provider, progress=progress)
+        initialization_seconds = progress.elapsed_seconds
+        progress.enter('readiness_publish', 'Publishing engine readiness after successful session construction')
         publish(
             args.ipc / "status.json",
-            {"status": "ready", "load_seconds": session.loaded},
+            {"status": "ready", "load_seconds": session.loaded,
+             "initialization_seconds": initialization_seconds},
         )
+        progress.finish('ready')
         while not (args.ipc / "stop.json").exists():
             request = args.ipc / "request.json"
             if not request.exists():
@@ -178,6 +304,11 @@ def main():
                 break
             try:
                 from ocr_workbench.worker import run_image
+
+                from ocr_workbench.recognition_modes import validate_recognition_mode
+                mode = validate_recognition_mode(args.engine, data.get('recognition_mode', 'page'))
+                if mode == 'local_text' and data.get('geometry_request') is not None:
+                    raise ValueError('Local text cannot use a geometry request')
 
                 if args.engine == "geometry":
                     session.session.write(Path(data['image']), Path(data['output']), data['geometry_request'])
@@ -190,6 +321,7 @@ def main():
                             engine=args.engine,
                             image=Path(data["image"]),
                             output=Path(data["output"]),
+                            recognition_mode=mode,
                         ),
                         session,
                     )
@@ -204,6 +336,8 @@ def main():
                 return 1
         return 0
     except BaseException as error:
+        if progress.status == 'loading':
+            progress.finish('failed', error)
         publish(
             args.ipc / "status.json",
             {
@@ -214,6 +348,8 @@ def main():
         )
         raise
     finally:
+        if progress.status == 'loading':
+            progress.finish('failed', 'Worker startup ended before readiness')
         if session is not None:
             session.close()
 

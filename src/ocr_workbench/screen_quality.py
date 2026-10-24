@@ -10,11 +10,14 @@ from copy import deepcopy
 from decimal import Decimal, InvalidOperation
 import math
 import re
+import unicodedata
 
 from ocr_workbench.coordinates import bounds, polygon
 from ocr_workbench.tables import parse_tables
+from ocr_workbench.screen_diagnostics import (diagnose_screen_structure, observed_box,
+    observe_screen_grid_cells, localized_grid_box)
 
-POLICY_VERSION = "screen-quality-v2"
+POLICY_VERSION = "screen-quality-v4"
 ID_WORDS = re.compile(r"编号|账号|账户|代码|流水|证件|序号|identifier|\b(id|code|account|reference)\b", re.I)
 NUMBER_WORDS = re.compile(r"金额|数量|单价|余额|税额|税率|百分|amount|quantity|price|balance|total|rate", re.I)
 TOTAL_WORDS = re.compile(r"^(合计|总计|小计|总额|total|subtotal|grand total)[:：]?\s*$", re.I)
@@ -23,10 +26,15 @@ UI_KINDS = {"toolbar", "taskbar", "formula_bar", "ruler", "window_border", "scro
 
 
 def _normal(value):
-    return "".join(str(value).split())
+    return "".join(unicodedata.normalize('NFC',str(value)).split())
 
 
 def _box(item):
+    # Existing source-bound full-cell geometry can live in structure_source.
+    # This reads an actual polygon; it does not divide a table into guessed cells.
+    supplied = observed_box(item)
+    if supplied:
+        return supplied
     value = item.get("box", item.get("bbox", item.get("coordinate")))
     if value is None and item.get("polygon"):
         try:
@@ -174,6 +182,7 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
     image_info = image_info or {}
     tables = raw.get("tables",[])
     evidence = [v for v in _evidence(text_evidence) if isinstance(v,dict)]
+    grid_localization=observe_screen_grid_cells(raw,image_info,text_evidence)
     issues = []
     seen = set()
     checks = {"structure":"checked","text_coverage":"unavailable" if not evidence else "checked",
@@ -304,15 +313,22 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
         inside = [r for r in regions if r.get("table_box",r.get("box")) and _intersection(box,r.get("table_box",r.get("box")))/_area(box) >= .65]
         if regions and not inside:
             continue  # caption/notes are checked separately from cell coverage
-        spatial = [(ti,c) for ti,c in all_cells if (cb := _box(c)) and _intersection(box,cb)/_area(box) >= .7]
+        spatial = [(ti,c) for ti,c in all_cells if (cb := _box(c) or localized_grid_box(grid_localization,ti,c))
+                   and _intersection(box,cb)/_area(box) >= .7]
         if len(spatial) == 1:
             ti,cell = spatial[0]
             recognized, actual = _normal(cell.get("text","")), _normal(item.get("text",""))
-            if actual not in recognized:
-                severity = "high" if _field_kind(tables[ti],cell) in {"id","numeric"} or _field_kind(tables[ti],{**cell,"text":item.get("text","")}) in {"id","numeric"} else "medium"
+            critical = _field_kind(tables[ti],cell) in {"id","numeric"} or _field_kind(tables[ti],{**cell,"text":item.get("text","")}) in {"id","numeric"}
+            # A shorter numeric reading (1 vs 10, a missing zero or minus sign)
+            # is a disagreement, even when it is a substring of the candidate.
+            disagrees = actual != recognized if critical else actual not in recognized
+            if disagrees:
+                severity = "high" if critical else "medium"
                 issue("localized_text_disagreement",severity,"独立文字证据与该格转录不同。","text",table=ti,row=cell["row"],column=cell["column"],
                       evidence_index=index,visible_text=item.get("text"),value=cell.get("text"),evidence_source=item.get("source",item.get("engine")))
-        elif all_cells and any(_box(c) for _,c in all_cells):
+        elif all_cells and (any(_box(c) for _,c in all_cells) or any(
+                table.get('status')=='verified' and table.get('region_id') in {region.get('id') for region in inside}
+                for table in grid_localization['tables'])):
             issue("unassigned_visible_text","high","表区内可见文字未唯一归入单元格。","structure",evidence_index=index,text=item.get("text"),box=box)
         elif _normal(item.get("text","")) not in _normal(" ".join(str(c.get("text","")) for _,c in all_cells)):
             issue("uncovered_text_without_geometry","medium","独立文字未见于结果，缺少可靠单格定位。","structure",evidence_index=index,text=item.get("text"),box=box)
@@ -325,6 +341,11 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
     for warning in image_info.get("warnings",[]):
         if warning.get("code") == "region_limit":
             issue("region_budget_incomplete","high","表区数量超过预算，可能漏表。","structure")
+    observed = diagnose_screen_structure(raw,image_info,text_evidence,grid_localization=grid_localization)
+    checks.update(observed['checks'])
+    for diagnostic in observed['issues']:
+        details = {key:value for key,value in diagnostic.items() if key not in {'code','severity','message','upgrade_kind'}}
+        issue(diagnostic['code'],diagnostic['severity'],diagnostic['message'],diagnostic['upgrade_kind'],**details)
     # Risk is bounded and deterministic for ordering, not a probability.
     weights = {"low":3,"medium":16,"high":35}
     risk = min(100,sum(weights[i["severity"]] for i in issues))
@@ -333,6 +354,7 @@ def assess_screen_result(raw, image_info=None, text_evidence=None):
     upgrade = "visual" if any(i["code"] == "unreadable_source" for i in blocking) else ("structure" if "structure" in kinds else "text" if "text" in kinds else "visual" if "visual" in kinds else None)
     return {"policy_version":POLICY_VERSION,"issues":issues,"risk":risk,"automatic_delivery":bool(tables) and not blocking,
             "review_required":bool(blocking),"human_review":"not_performed","upgrade_kind":upgrade,"checks":checks,
+            "grid_localization":grid_localization,
             "summary":{"tables":len(tables),"cells":len(all_cells),"high_risk":sum(i["severity"]=="high" for i in issues),
                        "medium_risk":sum(i["severity"]=="medium" for i in issues),"low_risk":sum(i["severity"]=="low" for i in issues)}}
 

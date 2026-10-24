@@ -42,6 +42,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 shutil.rmtree(folder)
     registry = EnginePackages(bundle, store.root)
     queue = TaskQueue(store, bundle, registry=registry)
+    from ocr_workbench.screen_batches import ScreenBatches
+    screen_batches = ScreenBatches(store, queue, bundle, hold_wal=False)
     fusion_queue = FusionQueue(store, bundle)
     from ocr_workbench.external_review import ExternalConnection
     external_connection = ExternalConnection(store)
@@ -71,6 +73,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
                 app.state.agent_startup_error = "助手依赖或检查点不可用；请核对安装与诊断，普通工作台仍可使用"
         if start_queue and not review_only:
             queue.start()
+            screen_batches.start()
         if start_queue:
             fusion_queue.start()
             external_queue.start()
@@ -83,6 +86,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
             if start_queue:
                 documents.stop()
                 external_queue.stop()
+            screen_batches.stop()
             if start_queue and not review_only:
                 queue.stop()
             if start_queue:
@@ -97,6 +101,7 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     )
     app.state.store = store
     app.state.queue = queue
+    app.state.screen_batches = screen_batches
     app.state.fusion_queue = fusion_queue
     app.state.external_queue = external_queue
     app.state.external_connection = external_connection
@@ -137,6 +142,8 @@ def create_app(bundle, data, token, *, start_queue=True, review_only=False, agen
     register_multimodal_routes(app, store, bundle, queue, maintenance, require_recognition)
     from ocr_workbench.platform_imports import register_platform_import_routes
     register_platform_import_routes(app, store, import_one, documents.import_document)
+    from ocr_workbench.screen_routes import register_screen_routes
+    register_screen_routes(app, screen_batches, require_recognition)
 
     @app.middleware("http")
     async def local_auth(request: Request, call_next):

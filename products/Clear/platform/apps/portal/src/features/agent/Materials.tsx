@@ -3,19 +3,26 @@ import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Checkbox, Empty, Input, Modal, Tabs, Typography } from 'antd'
 import { UploadQueue } from '../batches/UploadQueue'
 import { agentRequest, type AuditProfile } from './api'
+import { useNavigate } from 'react-router-dom'
 
 type Asset = { asset_id: string; original_name: string; size_bytes: number; revision: number }
 export function Materials({ open, workspace, selected, close, save }: { open: boolean; workspace: string | null; selected: string[]; close: () => void; save: (ids: string[]) => Promise<void> }) {
+  const navigate = useNavigate()
   const [ids, setIds] = useState(selected), [busy, setBusy] = useState(false), [error, setError] = useState('')
   const assets = useQuery({ queryKey: ['assets', workspace, 'agent-picker'], enabled: open && !!workspace,
     queryFn: async () => { const all: Asset[] = []; let offset = 0; let total: number
-      do { const page = await agentRequest<{ items: Asset[]; total: number }>(`/workspaces/${workspace}/assets?offset=${offset}&limit=100`); all.push(...page.items); offset += page.items.length; total = page.total; if (!page.items.length) break } while (offset < total)
+      do { const page = await agentRequest<{ items: Asset[]; total: number }>(`/workspaces/${workspace}/assets?offset=${offset}&limit=100`); all.push(...page.items); offset += page.items.length; total = page.total; if (!page.items.length) break } while (offset < total && offset < 1000)
       return all
     } })
   useEffect(() => { if (open) { setIds(selected); setError('') } }, [open])
   return <Modal title="添加文件与资料" open={open} onCancel={close} width={760} okText="加入任务" cancelText="返回对话" okButtonProps={{ disabled: !workspace || busy, loading: busy }}
     onOk={() => { setBusy(true); void save(ids).then(close).catch(e => setError(e.message)).finally(() => setBusy(false)) }}>
     <Typography.Paragraph type="secondary">选择当前任务使用的文件与资料。后续可以继续补充，已有结果保留原始来源。</Typography.Paragraph>
+    <div className="audit-material-batch"><Button disabled={!assets.data?.length || busy} onClick={() => setIds(assets.data!.filter(asset => /\.(png|jpe?g|bmp|tiff?|webp|heic|heif)$/i.test(asset.original_name)).map(asset => asset.asset_id))}>选择本页全部图片（最多 1000 张）</Button>
+      <Button disabled={!workspace || !ids.length || busy || ids.length > 1000} loading={busy} onClick={() => {
+        setBusy(true); setError(''); void agentRequest<{ asset_set_id: string }>(`/workspaces/${workspace}/assets/sets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ asset_ids: ids }) })
+          .then(fixed => { close(); navigate(`/apps/ocr/workflow?workspace=${encodeURIComponent(workspace!)}&set=${encodeURIComponent(fixed.asset_set_id)}`) }).catch(error => setError(error.message)).finally(() => setBusy(false))
+      }}>整批转 Excel</Button></div>
     {(error || assets.error) && <Alert type="error" title={error || assets.error?.message} />}
     {!workspace ? <Typography.Paragraph>正在准备项目…</Typography.Paragraph> : <Tabs items={[
       { key: 'existing', label: `项目资料 · 已选 ${ids.length}`, children: assets.data?.length ? <div className="audit-asset-picker">{assets.data.map(asset => <Checkbox key={asset.asset_id} checked={ids.includes(asset.asset_id)} onChange={e => setIds(old => e.target.checked ? [...old, asset.asset_id] : old.filter(id => id !== asset.asset_id))}>

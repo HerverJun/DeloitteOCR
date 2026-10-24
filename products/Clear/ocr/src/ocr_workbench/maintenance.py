@@ -26,6 +26,9 @@ class ProjectMaintenance:
         self.store.one("projects", key)
         paths = [self.store.root / "projects" / key]
         paths.append(self.store.root / "agent-artifacts" / key)
+        if self.store.rows("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_batches'"):
+            paths.extend(self.store.root / 'screen-batches' / row['id'] for row in
+                         self.store.rows('SELECT id FROM screen_batches WHERE project_id=?', (key,)))
         paths.extend(
             self.store.root / "task-results" / row["id"]
             for row in self.store.rows(
@@ -47,6 +50,8 @@ class ProjectMaintenance:
         valid = (
             (len(parts) == 2 and parts[0] == "projects" and parts[1] == key)
             or (len(parts) == 2 and parts[0] == "agent-artifacts" and parts[1] == key)
+            or (len(parts) == 2 and parts[0] == 'screen-batches' and re.fullmatch('[a-f0-9]{32}', parts[1])
+                and bool(self.store.rows('SELECT 1 FROM screen_batches WHERE id=? AND project_id=?', (parts[1], key))))
             or (
                 len(parts) == 2
                 and parts[0] == "task-results"
@@ -373,6 +378,9 @@ class ProjectMaintenance:
             )
             try:
                 with self.store.transaction() as db:
+                    if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_batches'").fetchone():
+                        if db.execute("SELECT 1 FROM screen_batches WHERE project_id=? AND status='running'", (key,)).fetchone():
+                            raise ValueError('请先暂停或取消该项目的屏拍批次')
                     if db.execute("""SELECT 1 FROM agent_runs r JOIN agent_sessions s ON s.id=r.session_id
                         WHERE s.project_id=? AND r.status NOT IN ('completed','failed','cancelled')""", (key,)).fetchone():
                         raise ValueError("请先停止该项目的助手运行，再删除项目")
@@ -388,6 +396,8 @@ class ProjectMaintenance:
                         raise ValueError("请先暂停或取消该项目的等待任务")
                     for index, relative in enumerate(relatives):
                         self.safe(relative, key).replace(folder / str(index))
+                    if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_batches'").fetchone():
+                        db.execute('DELETE FROM screen_batches WHERE project_id=?', (key,))
                     db.execute(
                         "DELETE FROM selections WHERE image_id IN (SELECT id FROM images WHERE project_id=?)",
                         (key,),

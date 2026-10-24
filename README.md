@@ -1,5 +1,7 @@
 # Clear 审计平台与 DeloitteOCR
 
+**唯一开发主线：`codex/workspace-organized-20261023`，工作目录 `F:\OCR`。** 平台、分类和原生 OCR 统一在 [`products/Clear`](products/Clear/README.md) 维护，收齐屏拍专项、平台接入及本地 GLM 辅助工具；0.18 文档对比、0.19 AIGC 与 0.20 易用性源码保留各自功能身份。修改、检查和历史来源见[整合记录](docs/platform-automation/分支整合记录-20261024.md)。下方“正式版本”指已安装程序，源码整合不自动切换运行入口。
+
 **当前正式版本（2026-10-24）：Clear 0.20.0 易用性版，candidate-006。** 普通目标连续完成准备、处理和文件交付，已有模型分类和双表核对使用组合服务，多模态分析可直接返回结果文件。普通“生成正式报告”直接提供文件；明确要求人工确认后定稿时，先提供可下载草稿并在原任务等待。八个实用案例覆盖六组目标，正式启动、旧会话和下载已核对，范围与证据只维护在[本轮实施记录](docs/platform-automation/Clear易用性优先与Agent简化实施-20261023.md)。本轮基于已验收 0.17.1（e5ca875），不合入独立 0.18.0 文档主题对比、0.19.0 AIGC 实验功能。
 
 当前正式入口以 [release/Clear/current.json](release/Clear/current.json) 的实际登记为准。双击 `F:\OCR\release\Clear\启动智能审计.cmd`，打开[门户首页](http://127.0.0.1:8879/)或[智能审计](http://127.0.0.1:8879/agent)，沿用原工作区。既有文档与 MinerU Pro 能力保留，前期证据见[实用集成交付](docs/platform-automation/Clear-MinerU实用集成交付-20261022.md)。产品版本与共享 0.10.0 运行时分别管理；审阅源码在 `products/Clear`，不把历史版本号或共享依赖路径当作当前安装版本。
@@ -20,7 +22,7 @@ Clear 统一承接项目资料、任务、Agent、复核和成果；ClearOCR 提
 - [各手动工具详细使用说明](docs/Clear手动工具使用说明.md)：Data、分类、取证、人脸、音频、印章，含实际按钮、输入限制、修订、保存与导出。
 - [ClearOCR 详细使用说明](docs/ClearOCR详细使用说明.md)：原生界面、既有引擎与 MinerU Pro 文档路线、图文表格校对、视觉审校、导出及发行/研发版本区别。
 - [架构设计与实现思路](docs/Clear架构设计与实现思路.md)：模块边界、统一契约、来源定位、固定证据、任务持久化、离线发行与扩展方法。
-- [三应用源码快照与来源](products/Clear/README.md)：平台、分类和 Clear 原生 OCR 共 2,080 个登记源码文件，带原仓版本、工作区状态及逐文件 SHA256。
+- [三应用统一源码与来源](products/Clear/README.md)：平台、分类和 Clear 原生 OCR 在同一开发分支维护，清单保留原始导入来源及逐文件 SHA256。
 - [取证稳定性候选说明](products/Clear/platform/docs/forensics-stability-20261014.md)：经典热图定位、EXIF 坐标、CAT-Net 上下文分块及复核查看器；独立候选不切换正式入口。
 - [取证稳定性首轮实施记录](docs/platform-automation/取证稳定性首轮实施记录-20261014.md)：2026-10-15 完成候选封存、完整性检查、启动验收与回退说明；保留实验低召回及业务准确率未验收限制。
 - [本轮整理与验证记录](docs/Clear文档与源码整理记录-20261014.md)：提交范围、版本核对、源码完整性和实际 CPU 检查结果。

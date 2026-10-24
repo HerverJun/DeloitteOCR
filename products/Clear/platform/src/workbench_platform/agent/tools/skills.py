@@ -11,6 +11,10 @@ class SkillQuery(AgentModel):
     limit: int = Field(default=20, ge=1, le=50)
 
 
+class SkillMatch(AgentModel):
+    goal: str = Field(min_length=1, max_length=12000)
+
+
 class SkillActivate(AgentModel):
     name: str = Field(min_length=1, max_length=64, pattern=r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
     version: str | None = Field(default=None, pattern=r'^[0-9a-f]{64}$')
@@ -34,6 +38,11 @@ def list_skills(args, ctx):
     page = _service(ctx).catalog(ctx.workspace_id, ctx.session_id, args.keyword, args.offset, args.limit)
     return AgentToolResult(status='success', summary='已发现登记技能；正文和资源需明确激活后按需读取',
                            data=page, next_offset=page['next_offset']).model_dump()
+
+
+def match_skills(args, ctx):
+    return AgentToolResult(status='success', summary='已匹配常用任务的登记技能/工具组；没有改变授权或加载契约',
+        data=_service(ctx).match(ctx.workspace_id, ctx.session_id, args.goal)).model_dump()
 
 
 def activate(args, ctx):
@@ -70,6 +79,7 @@ def deactivation_lookup(args, ctx):
 
 def register(registry):
     for name, schema, handler, description, effect, lookup in [
+        ('skills_match', SkillMatch, match_skills, '按明确目标匹配屏拍转换、票据核对、分类或底稿的登记技能/工具组；混合/未知目标保留按需发现，不扩大权限。', 'read', None),
         ('skills_list', SkillQuery, list_skills, '分页发现登记的技能名称、说明、来源、兼容状态；发现不加载正文。', 'read', None),
         ('skills_activate', SkillActivate, activate, '按目标选择并激活登记技能，固定正文与全部资源版本；只能缩小工具范围。', 'derive', activation_lookup),
         ('skills_read_resource', SkillResource, resource, '分页读取已激活技能的固定 SKILL.md、references 或 assets 模板；不执行 scripts。', 'read', None),

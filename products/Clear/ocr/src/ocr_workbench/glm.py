@@ -10,8 +10,74 @@ import json
 import time
 
 
-def load_session(models):
+class LocalTextTruncatedOutput(RuntimeError):
+    def __init__(self, evidence):
+        self.recognition_evidence = evidence
+        super().__init__('GLM local text generation reached token limit; output may be truncated')
+
+
+def recognize_local_text(models, image_path, session=None):
+    """Decode one supplied crop with the official text prompt, without layout.
+
+    This returns one whole-crop text block. It creates no table, guessed cell
+    structure, formatting, confidence, source position or acceptance decision.
+    """
+    import hashlib
     import torch
+    from PIL import Image
+
+    _, model, processor, loader, _, loaded, _ = session or load_session(models)
+    with Image.open(image_path) as opened:
+        image = opened.convert('RGB')
+    payload = loader.build_request_from_image(image, task_type='text')
+    # Preserve the SDK's resize, JPEG, text prompt and decoding parameters.
+    prompt = [{ 'role':message['role'], 'content':[dict(item) for item in message['content']
+              if item.get('type') != 'image_url']} for message in payload['messages']]
+    image_bindings = []
+    for message in payload['messages']:
+        for item in message['content']:
+            if item['type'] == 'image_url':
+                encoded = item['image_url']['url'].split(',', 1)[1]
+                encoded_bytes = base64.b64decode(encoded)
+                with Image.open(io.BytesIO(encoded_bytes)) as opened:
+                    decoder_image = opened.convert('RGB')
+                image_bindings.append({'encoded_image_sha256':hashlib.sha256(encoded_bytes).hexdigest(),
+                    'decoder_image_size':list(decoder_image.size),
+                    'decoder_rgb_pixels_sha256':hashlib.sha256(decoder_image.tobytes()).hexdigest()})
+                item.clear()
+                item.update(type='image', image=decoder_image)
+    if len(image_bindings) != 1:
+        raise ValueError('Official local text loader must produce exactly one crop image')
+    inputs = processor.apply_chat_template(payload['messages'], tokenize=True,
+        add_generation_prompt=True, return_dict=True, return_tensors='pt').to(model.device)
+    with torch.inference_mode():
+        output = model.generate(**inputs, max_new_tokens=payload['max_tokens'],
+            do_sample=False, repetition_penalty=payload['repetition_penalty'])
+    ids = output[0][inputs['input_ids'].shape[-1]:]
+    text = processor.decode(ids, skip_special_tokens=True)
+    with open(image_path, 'rb') as handle:
+        source_sha = hashlib.file_digest(handle, 'sha256').hexdigest()
+    raw = {'recognition_mode':'local_text', 'layout_applied':False, 'formatter_applied':False,
+        'input_image_sha256':source_sha,
+        'input_image_size':list(image.size), 'request':{'task_type':'text','prompt':prompt,
+            'max_new_tokens':payload['max_tokens'],'do_sample':False,
+            'repetition_penalty':payload['repetition_penalty'],'image_bindings':image_bindings},
+        'generated':[{'bbox_2d':[0,0,1000,1000], 'task':'text', 'content':text,
+            'token_count':len(ids),'token_limit':payload['max_tokens']}],
+        'truncated':len(ids)>=payload['max_tokens']}
+    if raw['truncated']:
+        raise LocalTextTruncatedOutput(raw)
+    blocks = [{'kind':'text', 'text':text, 'confidence':None,
+        'polygon':[[0,0],[image.width,0],[image.width,image.height],[0,image.height]]}]
+    return raw, blocks, loaded
+
+
+def load_session(models, *, stage=None):
+    def progress(name, detail):
+        if stage is not None:stage(name, detail)
+    progress('glm_torch_import', 'Importing PyTorch and its runtime libraries')
+    import torch
+    progress('glm_sdk_import', 'Importing Transformers and the existing GLM OCR SDK')
     from PIL import Image
     from transformers import AutoProcessor, AutoModelForImageTextToText
     from glmocr.config import load_config
@@ -20,29 +86,36 @@ def load_session(models):
     from glmocr.postprocess import ResultFormatter
     from glmocr.utils.image_utils import crop_image_region
 
+    progress('glm_cuda_capability', 'Checking CUDA availability and BF16 support')
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
         raise RuntimeError("GLM requires CUDA with BF16 support")
     start = time.perf_counter()
+    progress('glm_configuration', 'Loading the existing local GLM pipeline configuration')
     config = load_config()
     config.pipeline.maas.enabled = False
     config.pipeline.max_workers = 1
     config.pipeline.layout.model_dir = str(models / "PP-DocLayoutV3_safetensors")
     config.pipeline.layout.device = "cpu"
+    progress('glm_layout_initialization', 'Constructing the existing CPU layout detector')
     detector = PPDocLayoutDetector(config.pipeline.layout)
+    progress('glm_layout_start', 'Starting the existing CPU layout detector')
     detector.start()
-    model = (
-        AutoModelForImageTextToText.from_pretrained(
+    progress('glm_weights_loading', 'Loading local GLM weights with the existing dtype and attention configuration')
+    model = AutoModelForImageTextToText.from_pretrained(
             str(models / "GLM-OCR"),
             dtype=torch.bfloat16,
             local_files_only=True,
             attn_implementation="sdpa",
         )
-        .to("cuda")
-        .eval()
-    )
+    progress('glm_cuda_transfer', 'Moving the existing model to CUDA')
+    model = model.to("cuda")
+    progress('glm_evaluation_mode', 'Applying the existing evaluation mode')
+    model = model.eval()
+    progress('glm_processor_loading', 'Loading the local GLM processor')
     processor = AutoProcessor.from_pretrained(
         str(models / "GLM-OCR"), local_files_only=True
     )
+    progress('glm_formatter_initialization', 'Constructing the existing page loader and result formatter')
     loader = PageLoader(config.pipeline.page_loader)
     formatter = ResultFormatter(config.pipeline.result_formatter)
     loaded = time.perf_counter() - start

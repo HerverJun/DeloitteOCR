@@ -6,6 +6,14 @@ import test_wire_context as wire_tests
 from workbench_platform.agent.providers import SYSTEM, SYSTEM_PROMPTS
 
 
+class ProviderScopePromptTests(unittest.TestCase):
+    def test_plan_tool_guidance_respects_current_registered_scope(self):
+        self.assertIn('用audit_update_plan展示并更新简短安排',
+                      SYSTEM_PROMPTS['clear-agent-system-v5'])
+        self.assertIn('只有audit_update_plan出现在当前工具目录且获授权时才加载使用', SYSTEM)
+        self.assertIn('未注册时直接使用已注册业务工具', SYSTEM)
+
+
 class PromptSkillTests(unittest.IsolatedAsyncioTestCase):
     setUp = wire_tests.WireContextTests.setUp
     tearDown = wire_tests.WireContextTests.tearDown

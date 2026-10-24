@@ -20,7 +20,7 @@ from .providers import payload_for, request, ProviderFault, SYSTEM, SYSTEM_VERSI
 from .registry import ToolContext, ToolRegistry, invoke, tool_activity
 from .store import AgentStore, Conflict, RunSuperseded, canonical, digest, now
 from .tools import context, data, ocr, classification, forensics, jobs, pdf, results, audit, classification_management, ocr_management, ocr_processing, native_catalog, platform_management, documents, skills, history
-from .tools import multimodal
+from .tools import multimodal, screen_batches, preferences
 from workbench_platform.application_services.native import model_projection
 
 DIRECT_DRIVERS = {'image-text-v1': 'image_text', 'pdf-text-v1': 'pdf_text',
@@ -52,6 +52,8 @@ class AgentRuntime(HarnessService):
         platform_management.register(self.registry)
         skills.register(self.registry)
         history.register(self.registry)
+        screen_batches.register(self.registry)
+        preferences.register(self.registry)
         from .workspace_outputs import register as register_workspace_outputs
         register_workspace_outputs(self.registry)
         from workbench_platform.application_services.composed import register as register_composed
@@ -74,6 +76,8 @@ class AgentRuntime(HarnessService):
                 return True
             return call['tool'] in self.skills.allowed_tools(ctx.session_id, [call['tool']], core=core_tools(self.registry))
         self.registry.tool_guard = tool_allowed
+        from .preferences import TaskPreferences
+        self.preferences = TaskPreferences(self.store)
         self.connection = ControllerConnection(self.store, production_preflight=self.production_preflight)
         from .tasks import AuditTasks
         self.tasks = AuditTasks(self)
@@ -821,6 +825,10 @@ class AgentRuntime(HarnessService):
             'business_started': bool(history.get('task', {}).get('delivery_requirements', {}).get('stages')),
             'visible': core_tools(self.registry, contract=execution_contract), 'protected_tools': [],
             'inbox_received': [], 'delivery': None, 'calls': [], 'results': [], 'correction_count': 0}
+
+    def screen_scope_facts(self, state):
+        from .scope import scope_summary
+        return scope_summary(self.context(state))
 
     def session_facts(self, run, *, task=None):
         goals = self.store.rows("SELECT payload FROM events WHERE session_id=? AND (run_id IS NULL OR run_id!=?) AND kind='message' ORDER BY seq DESC LIMIT 30",

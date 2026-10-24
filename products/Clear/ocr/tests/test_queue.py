@@ -30,6 +30,11 @@ class QueueTests(unittest.TestCase):
         self.unloaded = []
         self.factories = []
         self.failure = None
+        self.cancel_exception = None
+        self.stop_on_cancel = False
+        self.block_inference = False
+        self.inference_started = threading.Event()
+        self.inference_release = threading.Event()
         owner = self
 
         class Fake:
@@ -44,15 +49,24 @@ class QueueTests(unittest.TestCase):
                 owner.loaded.set()
                 while not owner.release.wait(0.01):
                     if self.cancelled.is_set():
-                        raise Cancelled()
+                        self.cancel_failure()
                 if owner.failure:
                     failure, owner.failure = owner.failure, None
                     raise RuntimeError(failure)
 
             def recognize(self, image, output):
+                owner.inference_started.set()
+                while owner.block_inference and not owner.inference_release.wait(0.01):
+                    if self.cancelled.is_set():
+                        self.cancel_failure()
                 if self.cancelled.is_set():
-                    raise Cancelled()
+                    self.cancel_failure()
                 return {"text": "actual test state", "tables": [], "blocks": []}
+
+            def cancel_failure(self):
+                if owner.stop_on_cancel:
+                    owner.queue.stopping.set()
+                raise owner.cancel_exception or Cancelled()
 
             def unload(self):
                 owner.unloaded.append(self.engine)
@@ -62,6 +76,7 @@ class QueueTests(unittest.TestCase):
 
     def tearDown(self):
         self.release.set()
+        self.inference_release.set()
         self.queue.stop()
         self.temp.cleanup()
 
@@ -136,6 +151,81 @@ class QueueTests(unittest.TestCase):
             {"interrupted", "paused"},
         )
         self.assertEqual(self.unloaded, ["glm"])
+
+    def test_stop_process_exit_while_loading_is_interrupted(self):
+        self.cancel_exception = RuntimeError("引擎异常退出")
+        key = self.enqueue(["hunyuan"])[0]
+        self.assertTrue(self.loaded.wait(3))
+        self.queue.stop()
+        task = self.store.one("tasks", key)
+        self.assertEqual(task["status"], "interrupted")
+        self.assertIsNone(task["error"])
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
+        self.assertIsNone(self.queue.adapter)
+
+    def test_stop_process_exit_during_inference_is_interrupted(self):
+        self.cancel_exception = RuntimeError("引擎异常退出")
+        self.block_inference = True
+        self.release.set()
+        key = self.enqueue(["hunyuan"])[0]
+        self.assertTrue(self.inference_started.wait(3))
+        self.queue.stop()
+        task = self.store.one("tasks", key)
+        self.assertEqual(task["status"], "interrupted")
+        self.assertIsNone(task["error"])
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
+        self.assertEqual(self.unloaded, ["hunyuan"])
+        self.assertIsNone(self.queue.adapter)
+
+    def test_user_cancel_process_exit_is_cancelled(self):
+        self.cancel_exception = RuntimeError("引擎异常退出")
+        self.block_inference = True
+        self.release.set()
+        key = self.enqueue(["hunyuan"])[0]
+        self.assertTrue(self.inference_started.wait(3))
+        self.queue.action(self.project, "cancel", [key])
+        self.wait(lambda: self.queue.status()["task_id"] is None)
+        task = self.store.one("tasks", key)
+        self.assertEqual(task["status"], "cancelled")
+        self.assertIsNone(task["error"])
+        self.assertFalse(self.queue.stopping.is_set())
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
+        self.assertIsNone(self.queue.adapter)
+
+    def test_process_exit_without_cancel_remains_failed(self):
+        self.failure = "引擎异常退出"
+        self.release.set()
+        key = self.enqueue(["hunyuan"])[0]
+        self.wait(lambda: self.store.one("tasks", key)["status"] == "failed")
+        self.wait(lambda: self.queue.adapter is None)
+        self.assertIn("引擎异常退出", self.store.one("tasks", key)["error"])
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
+
+    def test_request_timeout_during_stop_remains_failed(self):
+        self.cancel_exception = TimeoutError("识别超时")
+        self.block_inference = True
+        self.release.set()
+        key = self.enqueue(["hunyuan"])[0]
+        self.assertTrue(self.inference_started.wait(3))
+        self.queue.stop()
+        task = self.store.one("tasks", key)
+        self.assertEqual(task["status"], "failed")
+        self.assertIn("识别超时", task["error"])
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
+        self.assertIsNone(self.queue.adapter)
+
+    def test_budget_expiry_process_exit_takes_priority_over_stop(self):
+        self.cancel_exception = RuntimeError("引擎异常退出")
+        self.stop_on_cancel = True
+        with patch.object(self.queue, "_screen_budget_remaining", return_value=.03):
+            key = self.enqueue(["hunyuan"])[0]
+            self.wait(lambda: self.store.one("tasks", key)["status"] == "failed")
+            self.wait(lambda: self.queue.adapter is None)
+        task = self.store.one("tasks", key)
+        self.assertTrue(self.queue.stopping.is_set())
+        self.assertEqual(task["phase"], "预算已用尽")
+        self.assertIn("预算已用尽", task["error"])
+        self.assertEqual(self.store.rows("SELECT * FROM results"), [])
 
     def test_pause_resume_and_engine_switch_release_old_session(self):
         ids = self.enqueue(["glm", "ppocr"])
@@ -287,7 +377,10 @@ class QueueTests(unittest.TestCase):
                 self.db = db
 
             def execute(self, sql, args=()):
-                if "status='failed'" in sql and not failed:
+                is_failure = "status='failed'" in sql or (
+                    "UPDATE tasks SET status=?" in sql and args and args[0] == "failed"
+                )
+                if is_failure and not failed:
                     failed.append(True)
                     raise sqlite3.OperationalError("database is locked")
                 return self.db.execute(sql, args)

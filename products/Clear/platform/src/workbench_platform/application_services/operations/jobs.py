@@ -72,9 +72,11 @@ def retry(args, ctx, allow_new=True):
         return retry_multimodal(Retry(job_id=args.job_id, expected_revision=item['revision'],
             expected_generation=item['generation']), ctx, lookup=not allow_new)
     special = ref.get('coverage', {}).get('kind')
-    if special in {'train', 'visual_review', 'fusion', 'batch'}:
+    if special in {'train', 'visual_review', 'fusion', 'batch', 'screen_batch', 'screen_local_candidates'}:
         next_tool = {'train': 'classification_train', 'visual_review': 'ocr_visual_review',
-                     'fusion': 'ocr_fuse_results', 'batch': 'batch_control'}[special]
+                     'fusion': 'ocr_fuse_results', 'batch': 'batch_control',
+                     'screen_batch': 'ocr_screen_batch_control',
+                     'screen_local_candidates': 'ocr_screen_local_candidates_control'}[special]
         return AgentToolResult(status='unsupported', summary='此任务不是图片推理失败子集；读取原错误后用对应业务工具创建新操作',
             data={'job_id': args.job_id, 'kind': special, 'next_tool': next_tool}).model_dump()
     if ref.get('coverage', {}).get('kind') == 'pdf_pages':

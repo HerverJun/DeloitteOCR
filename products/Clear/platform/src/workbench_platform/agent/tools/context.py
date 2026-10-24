@@ -50,7 +50,7 @@ class AssetDescribe(AgentModel):
 
 
 class AssetSetCreate(AssetDescribe):
-    pass
+    asset_ids: list[Identity] = Field(min_length=1, max_length=1000)
 
 
 class DeliveryCheck(AgentModel):
@@ -82,6 +82,7 @@ class Delivery(AgentModel):
     result_refs: list[AgentRef] = Field(default_factory=list, max_length=50)
     checks: list[DeliveryCheck] = Field(default_factory=list, max_length=50)
     require_review: bool = False
+    allow_partial_screen_batch: bool = False
 
 
 class ArtifactGet(AgentModel):
@@ -95,8 +96,9 @@ def safe_asset(asset):
 def context(args, ctx):
     project = ctx.services.workspace_store.get_workspace(ctx.workspace_id)
     registry = ctx.services.asset_library[0]
-    selected = [safe_asset(registry.describe(ctx.workspace_id, asset_id)) for asset_id in ctx.selected_assets]
-    data = {'workspace': asdict(project), 'selected_assets': selected,
+    from ..scope import scope_summary
+    selected = [safe_asset(registry.describe(ctx.workspace_id, asset_id)) for asset_id in ctx.selected_assets[:10]]
+    data = {'workspace': asdict(project), **scope_summary(ctx), 'selected_assets': selected,
             'authorized_reference_ids': (ctx.services.agent.tasks.get(ctx.session_id).get('authorized_reference_ids', [])
                                          if hasattr(ctx.services.agent, 'tasks') else []),
             'initial_refs': ctx.store.session(ctx.session_id).get('initial_refs', []),
@@ -552,6 +554,7 @@ def delivery(args, ctx):
     if not args.artifact_refs and not args.result_refs:
         raise ValueError('交付必须引用实际结果或成果')
     published, bundles, allowed_files, outcomes, readable_text = [], {}, {}, [], []
+    screen_coverage = []
     fixed_artifacts, fixed_results, checked_files, verified_results = [], [], [], []
     review_snapshots, has_draft, needs_delivery_decision = [], False, False
     from workbench_platform.application_services.references import verify
@@ -568,6 +571,13 @@ def delivery(args, ctx):
         if reference.workspace_id != ctx.workspace_id or reference.kind != 'artifact':
             raise ValueError('跨项目成果')
         bundle = verify(reference.model_dump(), ctx)
+        if bundle.get('screen_delivery'):
+            items = bundle['items']
+            screen_coverage.append({'batch_id': reference.parent_id, 'bundle_id': bundle['bundle_id'],
+                'current_verified': True, 'total': len(items), 'file_count': sum(bool(item.get('file_name')) for item in items),
+                'settled_without_file': sum(item.get('status') in {'completed','needs_review'} and not item.get('file_name') and bool(item.get('export_error')) for item in items),
+                'pending': sum(item.get('status') not in {'completed','needs_review','failed','cancelled'} for item in items),
+                **{key: sum(item.get('status') == key for item in items) for key in ('needs_review','failed','cancelled')}})
         review = inspect_review_provenance(reference, ctx, verified=bundle, require_review=args.require_review)
         outcomes.extend(review['checks'])
         review_snapshots.extend(review['snapshots'])
@@ -698,7 +708,13 @@ def delivery(args, ctx):
     outstanding = [row for row in task_receipts if row['result'] is None
                    or json.loads(row['result'])['status'] in {'pending', 'needs_verification'}]
     if outstanding:
-        raise ValueError('仍有未完成任务')
+        from ..graph import screen_pending
+        pending = [json.loads(row['result']) for row in outstanding if row['result']]
+        batches = {item['batch_id'] for item in screen_coverage}
+        if (not args.allow_partial_screen_batch or len(pending) != len(outstanding)
+                or not all(value['status'] == 'pending' and screen_pending(value) and
+                    all(ref['object_id'] in batches for ref in value['job_refs']) for value in pending)):
+            raise ValueError('仍有未完成任务；部分导出须显式指定并仅交付原批次已核实的文件')
     from ..requirement_coverage import project_requirements
     requirement_coverage = project_requirements(records, [*args.artifact_refs, *args.result_refs], ctx,
         verified_objects=[*bundles.values(), *verified_results])
@@ -706,7 +722,8 @@ def delivery(args, ctx):
     from ..delivery_jobs import verify_native_jobs, NativeDeliveryBlocked
     try:
         native_checks, native_limitations = verify_native_jobs([*args.artifact_refs, *args.result_refs], ctx,
-            verified_objects=[*bundles.values(), *verified_results, *review_snapshots], requirement_coverage=requirement_coverage)
+            verified_objects=[*bundles.values(), *verified_results, *review_snapshots], requirement_coverage=requirement_coverage,
+            partial_screen_batches={item['batch_id'] for item in screen_coverage} if args.allow_partial_screen_batch else ())
     except NativeDeliveryBlocked as error:
         return AgentToolResult(status='error', summary=str(error)[:2000],
             error=AgentError(code='native_delivery_unverified', message=str(error)[:500]),
@@ -726,8 +743,9 @@ def delivery(args, ctx):
             return blocked
     result = AgentToolResult(status='success', summary=args.summary, artifact_refs=args.artifact_refs,
         result_refs=args.result_refs, data={'delivery': published, 'readable_text': readable_text,
-        'requirement_coverage': requirement_coverage,
-        'completeness': 'partial' if failed or native_limitations or requirement_coverage['missing'] or requirement_coverage['unverified'] else 'complete',
+        'requirement_coverage': requirement_coverage, 'screen_batch_coverage': screen_coverage,
+        'continuing_job_refs': [ref for row in outstanding for ref in json.loads(row['result']).get('job_refs', [])],
+        'completeness': 'partial' if outstanding or any(item['pending'] or item['needs_review'] or item['failed'] or item['cancelled'] or item['file_count'] != item['total'] for item in screen_coverage) or failed or native_limitations or requirement_coverage['missing'] or requirement_coverage['unverified'] else 'complete',
         'verified': True, 'finalized': True, 'delivery_checks': outcomes,
         'completion_rule_version': COMPLETION_RULE_VERSION, 'nonblocking_operations': nonblocking_operations,
         'draft': has_draft, 'review_state': 'unreviewed' if has_draft else 'confirmed' if review_receipt else 'not_required_or_confirmed',

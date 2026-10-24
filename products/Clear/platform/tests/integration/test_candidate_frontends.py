@@ -23,6 +23,8 @@ def native_tree(tmp_path):
         write_file(source / f'config/apps/{family}.json', '{}')
         write_file(program / f'bundles/{family}/runtimes/control/python.exe', 'synthetic runtime identity')
         write_file(program / f'bundles/{family}/bundle.manifest.json', '{}')
+    write_file(source.parent / 'ocr/build/public-quality-20260916/tool/site-packages/pdfplumber/__init__.py',
+               '# Synthetic packaging preflight dependency; never imported')
     return source, program, tmp_path
 
 

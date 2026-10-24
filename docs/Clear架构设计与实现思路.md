@@ -28,11 +28,11 @@
 | 当前正式登记 | 本机 `F:\OCR\release\Clear\current.json` | 指定候选版本、候选清单哈希、共享程序根、工作区、端口和读取兼容声明；当前登记为0.20.0易用性版candidate-006 |
 | 当前运行源码/门户 | 上述 current.json 的 `candidate` 所指目录 | 当前登记的platform、ocr、classification及前端；逐文件身份由candidate.json核对 |
 | 共享离线依赖 | 本机 `F:\OCR\release\Clear\versions\0.10.0\program` | 当前候选只读复用的Python、专业运行环境、模型、DLL及底层资产；不能据此把实际运行源码称为0.10.0 |
-| GitHub 审阅源码快照 | [`products/Clear`](../products/Clear) 中的 `platform`、`ocr`、`classification` | 本轮整理的关联开发仓库自有源码，便于共同审阅、修改和追溯；不包含完整离线运行依赖，也不自动等于发行包的全部字节 |
+| 唯一主线开发源码 | [`products/Clear`](../products/Clear) 中的 `platform`、`ocr`、`classification` | 同一分支维护的集成源码，包含屏拍专项、文档对比、AIGC 与 0.20.0 易用性行为；运行依赖和正式安装分别管理 |
 | 独立 OCR 主仓 | 根目录 [`src/ocr_workbench`](../src/ocr_workbench) 和 [`frontend`](../frontend) | 独立 OCR 研发主线；不能与 Clear 内置 OCR 交叉替换数据库或前端 |
 | 当前用户工作区 | 本机 `F:\OCR\output\ai-audit-product-dev-20261004\workspace` | 用户资料、原生项目、会话、修订、成果及审计记录；不属于可公开源码或程序包内容 |
 
-当前平台开发来源为 `F:\OCR\output\frontend-workbench-20261015\worktrees\platform`；OCR/分类分别为 `F:\OCR\output\clear-automation-dev-20261002\worktrees\ocr` 与 `worktrees\classification`。正式发行源HEAD为`073a5325e2be8415e48a626a06a1056e3fe49ae0`，登记开发源HEAD为`1c8d3459a0c4b179835b7457dc585ed9db9c91a9`；后者保留独立实验源码。本轮 `products/Clear` 是2,080文件的可审阅源码归档，原开发仓库及正式入口保留。来源 HEAD、工作区状态和文件哈希应与该快照的来源清单一起使用；已有测试记录只能证明当时实际受测的候选。
+当前开发统一到 `F:\OCR` 的 `codex/workspace-organized-20261023`，平台、OCR 与分类源码直接在 `products/Clear` 的三个同级目录维护。此前 `output` 下的开发仓只作保留来源；清单记录原始导入版本与当前集成文件哈希，日常刷新不再用旧源覆盖本仓改动。正式安装仍来自独立候选 `073a532`，源码整合不自动切换正式入口；新旧数据库兼容、专项接入及本轮检查见[整合记录](platform-automation/分支整合记录-20261024.md)。已有测试记录仅证明实际受测版本与范围。
 
 独立 OCR 主仓、正式006及已登记 OCR 开发源码的 `SCHEMA_VERSION` 为 **18**；本次正式切换时既有原生 OCR 数据库的 `user_version` 仍为 **17**，兼容检查已通过，不代表本轮已经迁移该库。旧 Clear 0.10.0 原生 OCR 发行源码为 **17**。正式入口使用的程序版本与允许读取的数据范围应以当时的 `current.json` 登记和实际启动绑定为准。历史文档中的 schema 15 或更早版本属于对应阶段记录，不代表本次候选所用的源码。数据库迁移版本、产品版本、UI 契约版本和原生应用版本是不同编号，不能互相推导。
 
@@ -514,8 +514,8 @@ F:\OCR
 │  │  ├─ config/                     应用、模型接入、Skills 等模板
 │  │  ├─ scripts/                    构建、启动、兼容与备份工具
 │  │  └─ tests/                      服务、契约、恢复等测试
-│  ├─ ocr/                           Clear 原生 OCR 源码快照
-│  └─ classification/                Clear 原生分类源码快照
+│  ├─ ocr/                           Clear 原生 OCR 集成源码
+│  └─ classification/                Clear 原生分类集成源码
 ├─ docs/                             使用说明、架构与历史交付依据
 ├─ release/Clear/                    本机发行登记与完整离线版本，不入源码快照
 └─ output/                           本机开发仓、运行证据、用户数据和交付材料

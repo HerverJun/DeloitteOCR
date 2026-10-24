@@ -16,12 +16,13 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+import sys
 import uuid
 
 
 PLATFORM_FILES = ("assets.sqlite3", "workspaces.sqlite3", "jobs.sqlite3",
                   "recent-work.sqlite3", "ocr-handoffs.sqlite3",
-                  "classification-handoffs.sqlite3", "product-reader-requirements.json")
+                  "classification-handoffs.sqlite3", "screen-batches.sqlite3", "product-reader-requirements.json")
 PLATFORM_DIRS = ("asset-blobs", "asset-uploads", "artifact-center", "data-workbench", "batches", "audit", "forensics", "agent", "manual-analysis")
 REQUIRED = {"platform": ("assets.sqlite3", "workspaces.sqlite3"),
             "ocr": ("workbench.sqlite3",)}
@@ -165,6 +166,21 @@ def _check_agent_pair(root: Path) -> None:
                         raise ValueError('Harness backup requires one durable session log: ' + session_id)
 
 
+def _screen_reader_required(root: Path) -> bool:
+    path = root / 'screen-batches.sqlite3'
+    if not path.is_file():
+        return False
+    from workbench_platform.reader_requirements import read_database
+    with closing(read_database(path)) as db:
+        table = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='screen_batch_refs'").fetchone()
+        return bool(table and db.execute('SELECT 1 FROM screen_batch_refs LIMIT 1').fetchone())
+
+
+def _screen_requirements(root: Path, *, create_missing: bool = False) -> None:
+    from workbench_platform.reader_requirements import ensure_reader_requirements
+    ensure_reader_requirements(root, create_missing=create_missing)
+
+
 def _copy_member(source: Path, target: Path, *, immutable_archive: bool = False) -> dict:
     target.parent.mkdir(parents=True, exist_ok=True)
     before = source.stat()
@@ -222,9 +238,16 @@ def create(source: Path, destination: Path, *, kind: str = "platform") -> dict:
                 immutable_archive=kind == 'platform' and relative.startswith('agent/harness/legacy/'))
         if _members(source, kind) != members:
             raise ValueError("Source file set changed during backup")
+        _screen_requirements(stage, create_missing=True)
+        marker = stage / 'product-reader-requirements.json'
+        if marker.is_file():
+            digest, size = _hash(marker)
+            records[marker.name] = {'sha256': digest, 'bytes': size, 'sqlite': False}
         manifest = {"format": FORMAT, "kind": kind,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "files": records}
+        if kind == 'ocr':
+            manifest['source_data_dir'] = str(source)
         (stage / "manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
         verify(stage)
@@ -245,6 +268,11 @@ def verify(backup: Path) -> dict:
             or kind not in REQUIRED
             or not all(name in files for name in REQUIRED[kind])):
         raise ValueError("Unsupported or incomplete platform backup")
+    if 'source_data_dir' in manifest:
+        root = manifest['source_data_dir']
+        if not isinstance(root, str) or not Path(root).is_absolute() or '..' in Path(root).parts:
+            raise ValueError('Invalid backup source data directory')
+        _f_path(Path(root), 'Backup source data directory')
     for name, recorded in files.items():
         relative = _relative(name)
         target = backup / relative
@@ -256,7 +284,115 @@ def verify(backup: Path) -> dict:
         if recorded["sqlite"]:
             _check_db(target)
     _check_agent_pair(backup)
+    from workbench_platform.reader_requirements import infer_reader_requirements
+    if infer_reader_requirements(backup)['reader_features'] and 'product-reader-requirements.json' not in files:
+        raise ValueError('Actual-record reader capabilities are missing from the backup manifest')
+    _screen_requirements(backup)
     return manifest
+
+
+def _relocate_screen_paths(stage: Path, destination: Path, manifest: dict) -> dict:
+    """Move only live preparation/task references, preserving OCR history JSON."""
+    counts = {'screen_input_paths_relocated': 0, 'screen_prepared_paths_relocated': 0,
+              'screen_task_metadata_paths_relocated': 0}
+    if manifest.get('kind', 'platform') != 'ocr':
+        return counts
+    database = stage / 'workbench.sqlite3'
+    source_root = Path(manifest['source_data_dir']) if 'source_data_dir' in manifest else None
+    members = manifest['files']
+
+    def component(value):
+        if (not isinstance(value, str) or not value or value in {'.', '..'}
+                or Path(value).drive or Path(value).is_absolute() or len(Path(value).parts) != 1
+                or '/' in value or '\\' in value):
+            raise ValueError('Invalid screen path ownership identity')
+        return value
+
+    def relative(value):
+        if not isinstance(value, str) or not value or '..' in Path(value).parts:
+            raise ValueError('Invalid live screen path')
+        path = Path(value)
+        if path.is_absolute():
+            if source_root is None:
+                raise ValueError('Absolute screen paths require a backup source data directory')
+            try:
+                path = path.relative_to(source_root)
+            except ValueError as error:
+                raise ValueError('Live screen path is outside its recorded source root') from error
+        elif path.drive:
+            raise ValueError('Invalid live screen path drive')
+        return _relative(path.as_posix())
+
+    def member(path, expected_hash=None):
+        record = members.get(path.as_posix())
+        copied = stage / path
+        if (record is None or record['sqlite'] or not copied.is_file()
+                or not copied.resolve().is_relative_to(stage)):
+            raise ValueError('Live screen path has no owned backup file')
+        if expected_hash is not None and record['sha256'] != expected_hash:
+            raise ValueError('Live screen file content identity differs')
+
+    def mapped(value, expected, expected_hash=None):
+        if relative(value) != expected:
+            raise ValueError('Live screen path belongs to a different version or crop')
+        member(expected, expected_hash)
+        return str(destination / expected)
+
+    with closing(sqlite3.connect(database)) as db, db:
+        db.row_factory = sqlite3.Row
+        tables = {row['name'] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if 'screen_items' not in tables:
+            return counts
+        images = {}
+        for row in db.execute('''SELECT s.batch_id,s.input_version_id,s.image_id,s.source_hash,s.preparation,
+                v.path AS version_path,v.sha256 AS version_hash,v.image_id AS version_image
+                FROM screen_items s LEFT JOIN versions v ON v.id=s.input_version_id''').fetchall():
+            batch, version = component(row['batch_id']), component(row['input_version_id'])
+            if row['version_image'] != row['image_id'] or row['source_hash'] != row['version_hash']:
+                raise ValueError('Screen item lost its source version identity')
+            if not row['preparation']:
+                continue
+            preparation = json.loads(row['preparation'])
+            if not isinstance(preparation, dict) or not isinstance(preparation.get('prepared_images'), list):
+                raise ValueError('Invalid screen preparation')
+            version_path = relative(row['version_path'])
+            member(version_path, row['version_hash'])
+            if 'input_path' in preparation:
+                if preparation.get('input_sha256', row['source_hash']) != row['source_hash']:
+                    raise ValueError('Preparation input content identity differs')
+                preparation['input_path'] = mapped(preparation['input_path'], version_path, row['source_hash'])
+                counts['screen_input_paths_relocated'] += 1
+            for image in preparation['prepared_images']:
+                if not isinstance(image, dict):
+                    raise ValueError('Invalid prepared crop')
+                ident = component(image.get('id'))
+                key = (batch, version, ident)
+                expected = Path('screen-batches') / batch / version / 'prepared' / (ident + '.png')
+                if key in images:
+                    raise ValueError('Duplicate prepared crop identity')
+                image['path'] = mapped(image.get('path'), expected)
+                images[key] = expected
+                counts['screen_prepared_paths_relocated'] += 1
+            db.execute('UPDATE screen_items SET preparation=? WHERE batch_id=? AND input_version_id=?',
+                       (json.dumps(preparation, ensure_ascii=False, separators=(',', ':')), batch, version))
+        if 'screen_tasks' in tables:
+            for row in db.execute('SELECT task_id,batch_id,input_version_id,prepared_id,prepared_path,metadata FROM screen_tasks').fetchall():
+                key = (component(row['batch_id']), component(row['input_version_id']), component(row['prepared_id']))
+                expected = images.get(key)
+                metadata = json.loads(row['metadata'])
+                if (expected is None or relative(row['prepared_path']) != expected or not isinstance(metadata, dict)
+                        or (metadata.get('batch_id'), metadata.get('input_version_id'), metadata.get('id')) != key):
+                    raise ValueError('Screen task lost its version or crop identity')
+                if not isinstance(metadata.get('prepared_pixel_sha256'), str):
+                    raise ValueError('Screen task lost its prepared file content identity')
+                member(expected, metadata.get('prepared_pixel_sha256'))
+                if 'path' in metadata:
+                    metadata['path'] = mapped(metadata['path'], expected, metadata.get('prepared_pixel_sha256'))
+                    db.execute('UPDATE screen_tasks SET metadata=? WHERE task_id=?',
+                               (json.dumps(metadata, ensure_ascii=False, separators=(',', ':')), row['task_id']))
+                    counts['screen_task_metadata_paths_relocated'] += 1
+    _check_db(database)
+    return counts
 
 
 def restore(backup: Path, destination: Path) -> dict:
@@ -275,6 +411,7 @@ def restore(backup: Path, destination: Path) -> dict:
         shutil.copy2(backup / "manifest.json", stage / "manifest.json")
         verify(stage)
         (stage / "manifest.json").unlink()
+        screen_paths = _relocate_screen_paths(stage, destination, manifest)
         agent_db = stage / 'agent/operations.sqlite3'
         relocated = 0
         if agent_db.is_file():
@@ -291,7 +428,8 @@ def restore(backup: Path, destination: Path) -> dict:
                             relocated += 1
             _check_db(agent_db)
         os.replace(stage, destination)
-        return {"destination": str(destination), "files": len(manifest["files"]), 'agent_paths_relocated': relocated}
+        return {"destination": str(destination), "files": len(manifest["files"]),
+                'agent_paths_relocated': relocated, **screen_paths}
     except BaseException:
         shutil.rmtree(stage)
         raise
@@ -323,4 +461,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parents[1] / 'src')]
     main()

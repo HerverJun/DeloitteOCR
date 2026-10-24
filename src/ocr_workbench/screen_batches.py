@@ -26,15 +26,15 @@ def fingerprint(value):
 
 def screen_seconds_spent(store, batch_id, version_id, attempt=0):
     timestamp = now()
-    rows = store.rows('''SELECT COALESCE(SUM(s.spent_seconds + MAX(0,(julianday(COALESCE(t.finished,?))-julianday(t.started))*86400)),0) seconds
+    rows = store.rows('''SELECT COALESCE(SUM(s.spent_seconds + CASE WHEN t.started IS NULL THEN 0 ELSE MAX(0,(julianday(COALESCE(t.finished,?))-julianday(t.started))*86400) END),0) seconds
         FROM tasks t JOIN screen_tasks s ON s.task_id=t.id
-        WHERE s.batch_id=? AND s.input_version_id=? AND s.attempt=? AND t.started IS NOT NULL''',
+        WHERE s.batch_id=? AND s.input_version_id=? AND s.attempt=?''',
         (timestamp, batch_id, version_id, attempt))
     spent = rows[0]['seconds']
     if attempt == 0:
-        context = store.rows('''SELECT COALESCE(SUM(s.spent_seconds + MAX(0,(julianday(COALESCE(t.finished,?))-julianday(t.started))*86400)),0) seconds
+        context = store.rows('''SELECT COALESCE(SUM(s.spent_seconds + CASE WHEN t.started IS NULL THEN 0 ELSE MAX(0,(julianday(COALESCE(t.finished,?))-julianday(t.started))*86400) END),0) seconds
             FROM tasks t JOIN screen_contexts s ON s.task_id=t.id
-            WHERE s.batch_id=? AND s.input_version_id=? AND t.started IS NOT NULL''', (timestamp, batch_id, version_id))
+            WHERE s.batch_id=? AND s.input_version_id=?''', (timestamp, batch_id, version_id))
         spent += context[0]['seconds']
     return spent
 
@@ -46,7 +46,8 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     permitted = {'primary_engine', 'fallback_engines', 'max_upgrades', 'mode',
                  'group_size', 'budget_seconds', 'request_timeout_seconds', 'perspective', 'allow_text_fixes',
                  'visual_review', 'strategy_version', 'layout_evidence', 'batch_budget_seconds',
-                 'upgrade_trigger', 'require_human_review'}
+                 'upgrade_trigger', 'require_human_review', 'context_schedule', 'render_math_text',
+                 'engine_route', 'technical_fallback_reserve_seconds'}
     if set(value) - permitted:
         raise ValueError('未知的屏拍批次策略参数')
     result = {**(defaults or {}), **value}
@@ -69,6 +70,10 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
     # measured defaults explicitly opt in through config/screen-policy.json.
     result.setdefault('upgrade_trigger', 'quality')
     result.setdefault('require_human_review', False)
+    result.setdefault('context_schedule', 'whole_batch')
+    result.setdefault('render_math_text', False)
+    result.setdefault('engine_route','fixed')
+    result.setdefault('technical_fallback_reserve_seconds',0)
     if result['primary_engine'] not in ENGINES:
         raise ValueError('首轮模型必须具备表格结构输出能力')
     choices = result['fallback_engines']
@@ -83,18 +88,20 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
             raise ValueError('批次预算或分组大小无效')
     if result['mode'] not in {'auto', 'accuracy'}:
         raise ValueError('未知处理模式')
+    if result['context_schedule'] not in {'whole_batch', 'grouped'}:
+        raise ValueError('未知表区证据分组方式')
     if not isinstance(result['upgrade_trigger'], str) or result['upgrade_trigger'] not in {'failure_only', 'quality'}:
         raise ValueError('升级触发条件无效')
-    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence', 'require_human_review'):
+    for key in ('perspective', 'allow_text_fixes', 'visual_review', 'layout_evidence', 'require_human_review', 'render_math_text'):
         if type(result[key]) is not bool:
             raise ValueError('处理开关必须为布尔值')
     if result['visual_review']:
         raise ValueError('局部视觉审校仍在评测中，请通过复核工作流调用；批次自动审校尚未启用')
     if not isinstance(result['strategy_version'], str) or not 1 <= len(result['strategy_version']) <= 120:
         raise ValueError('策略版本无效')
-    # The existing checkbox submits accuracy + auto. Give new requests the
-    # measured precision route, while explicit model/trigger choices and frozen
-    # requests retain their original meaning.
+    # Preserve the historical accuracy + auto API interpretation. The current
+    # checkbox submits the explicit business-language route; explicit choices
+    # and frozen requests must retain their original meaning.
     if (resolve_precision and 'upgrade_trigger' in (defaults or {})
             and value.get('mode') == 'accuracy'
             and value.get('primary_engine', 'auto') == 'auto'
@@ -104,6 +111,19 @@ def validate_policy(value, defaults=None, *, resolve_precision=True):
         result.update(primary_engine='glm', fallback_engines=alternatives,
             max_upgrades=min(1, len(alternatives)), upgrade_trigger='quality',
             require_human_review=True, strategy_version='screen-glm-quality-human-v1-20261007')
+    if not isinstance(result['engine_route'], str) or result['engine_route'] not in {'fixed','business_language_v1'}:
+        raise ValueError('未知的逐图模型路线')
+    reserve=result['technical_fallback_reserve_seconds']
+    if type(reserve) is not int or not 0<=reserve<=900:
+        raise ValueError('技术兜底预留须为0–900整数秒')
+    if result['engine_route']=='business_language_v1':
+        if (result['primary_engine']!='glm' or result['fallback_engines']!=['hunyuan']
+                or result['max_upgrades']!=1 or result['mode']!='accuracy'
+                or result['upgrade_trigger']!='failure_only' or not result['require_human_review']
+                or not result['layout_evidence'] or not 10<=reserve<=result['budget_seconds']-10):
+            raise ValueError('逐图精度路线须明确GLM/H、一次技术兜底、定位、人工复核和原额度内预留')
+    elif reserve:
+        raise ValueError('固定路线不接受逐图精度兜底预留')
     return result
 
 
@@ -112,6 +132,8 @@ class ScreenBatches:
         self.store, self.queue, self.bundle = store, queue, Path(bundle)
         self.prepare_override, self.assess_override, self.select_override = prepare, assess, select
         self.guard = threading.RLock()
+        # Serialize coordinators, without making controls wait for CPU work.
+        self.step_guard = threading.Lock()
         self.stopping, self.wake = threading.Event(), threading.Event()
         self.thread = None
         self.worker_error = None
@@ -214,7 +236,8 @@ class ScreenBatches:
             policy = validate_policy(body.get('policy'), saved_policy if previous else self.defaults(),
                                      resolve_precision=not bool(previous))
             if previous:
-                for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review'):
+                for key in ('request_timeout_seconds', 'upgrade_trigger', 'require_human_review',
+                            'engine_route','technical_fallback_reserve_seconds'):
                     if key not in saved_policy and key not in (body.get('policy') or {}):
                         policy.pop(key)
             signature = fingerprint({'version_ids': versions, 'policy': policy, 'export_options': None, 'parent_batch_id': parent_batch_id})
@@ -223,6 +246,9 @@ class ScreenBatches:
                     raise Conflict('请求编号已绑定不同的批次范围或策略')
                 batch_id = previous['id']
             else:
+                if (policy.get('engine_route')=='business_language_v1'
+                        and policy['batch_budget_seconds']<len(versions)*policy['budget_seconds']):
+                    raise ValueError('逐图精度路线的整批原额度须覆盖每图完整额度，不能挤占其它图片的兜底预留')
                 batch_id = uid()
                 db.execute('INSERT INTO screen_batches(id,project_id,request_id,payload_hash,policy,status,created,updated,parent_batch_id,deadline) VALUES(?,?,?,?,?,?,?,?,?,?)',
                            (batch_id, project_id, request_id, signature, encoded(policy), 'running', now(), now(), parent_batch_id, time.time() + policy['batch_budget_seconds']))
@@ -257,6 +283,16 @@ class ScreenBatches:
     def _prepare_item(self, batch, item):
         from ocr_workbench.screen_imaging import prepare_screen_image
         prepare = self.prepare_override or prepare_screen_image
+        with self.guard, self.store.file_lock:
+            current = self.store.rows('SELECT * FROM screen_items WHERE batch_id=? AND input_version_id=?',
+                                      (batch['id'], item['input_version_id']))[0]
+            if (current['status'] != 'queued' or current['attempt'] != item['attempt']
+                    or self._batch(batch['project_id'], batch['id'])['status'] != 'running'):
+                return None
+            # An existing precision request can retain a historical candidate
+            # for its frozen input. A change during this computation must not
+            # be mistaken for that original request's unchanged input state.
+            active_version_at_start = self.store.one('images', item['image_id'])['active_version']
         source = self.store.one('versions', item['input_version_id'])
         actual = hashlib.sha256(self.store.file(source['path']).read_bytes()).hexdigest()
         if actual != item['source_hash']:
@@ -275,42 +311,83 @@ class ScreenBatches:
             if not path.is_relative_to(folder.resolve()):
                 raise ValueError('预处理图像路径越界')
             prepared['path'] = str(path)
-        self._update(batch['id'], item['input_version_id'], preparation=encoded(info), status='prepared', started=now())
-        return self.store.rows('SELECT * FROM screen_items WHERE batch_id=? AND input_version_id=?', (batch['id'], item['input_version_id']))[0]
+        with self.guard, self.store.file_lock:
+            current = self.store.rows('SELECT * FROM screen_items WHERE batch_id=? AND input_version_id=?',
+                                      (batch['id'], item['input_version_id']))[0]
+            if current['attempt'] != item['attempt'] or current['status'] not in {'queued', 'paused', 'cancelled'}:
+                return None
+            image = self.store.one('images', item['image_id'])
+            if (image['active_version'] != active_version_at_start
+                    or hashlib.sha256(self.store.file(source['path']).read_bytes()).hexdigest() != item['source_hash']):
+                raise Conflict('预处理期间原图版本或内容已变化')
+            # Retain successful preparation for a paused item, so continuing
+            # does not recompute it. Never undo a pause/cancel with late work.
+            changes = {'preparation': encoded(info), 'started': current['started'] or now()}
+            if current['status'] == 'queued':
+                changes['status'] = 'prepared'
+            self._update(batch['id'], item['input_version_id'], **changes)
+            if current['status'] != 'queued':
+                return None
+            return self.store.rows('SELECT * FROM screen_items WHERE batch_id=? AND input_version_id=?',
+                                   (batch['id'], item['input_version_id']))[0]
 
     def _contexts(self, batch, items):
         """Complete the resident layout/text stage before switching to OCR."""
         from ocr_workbench.screen_evidence import normalize_screen_context
         worked = False
-        with self.store.transaction() as db:
+        with self.guard, self.store.file_lock:
             for item in items:
                 if item['status'] != 'queued' or item.get('evidence'):
                     continue
-                old = db.execute('SELECT * FROM screen_contexts WHERE batch_id=? AND input_version_id=?', (batch['id'], item['input_version_id'])).fetchone()
+                old=self.store.rows('SELECT * FROM screen_contexts WHERE batch_id=? AND input_version_id=?',(batch['id'],item['input_version_id']))
                 if old:
                     continue
                 key = uid()
-                source = db.execute('''SELECT c.task_id FROM screen_contexts c
+                sources=self.store.rows('''SELECT c.task_id FROM screen_contexts c
                     JOIN tasks t ON t.id=c.task_id JOIN screen_items i
                     ON i.batch_id=c.batch_id AND i.input_version_id=c.input_version_id
                     WHERE c.batch_id=? AND i.source_hash=? AND t.kind='screen_context'
                     AND t.status IN ('queued','running','succeeded') ORDER BY i.position LIMIT 1''',
-                    (batch['id'], item['source_hash'])).fetchone()
-                db.execute('''INSERT INTO tasks(id,project_id,image_id,version_id,input_version_id,engine,batch,status,phase,kind,created)
+                    (batch['id'], item['source_hash']))
+                source=sources[0] if sources else None
+                allowance=0
+                if not source:
+                    budget=self._execution_budget(batch,item)
+                    from ocr_workbench.screen_engine_route import reserve_seconds
+                    allowance=int(max(0,budget['remaining_seconds']-reserve_seconds(batch['policy'])))
+                    if allowance<1:
+                        if reserve_seconds(batch['policy']) and budget['remaining_seconds']>=1:
+                            self._update(batch['id'],item['input_version_id'],evidence=encoded({
+                                'layout':[],'text':[],'provenance':{'image_version':item['input_version_id'],
+                                    'contains_reference_input':False},
+                                'warnings':[{'code':'context_budget_reserved','message':'来源剩余额度保留给识别；未调用定位模型。'}]}))
+                            worked=True
+                            continue
+                        self._budget_stop(batch,item,budget)
+                        continue
+                pending_raw=encoded({'cache_pending_source_task_id':source['task_id'],
+                    'cache_key':fingerprint([item['source_hash'],self.model_identity,'context']),
+                    'budget_reservation_seconds':0}) if source else encoded({'budget_reservation_seconds':allowance})
+                with self.store.transaction() as db:
+                    db.execute('''INSERT INTO tasks(id,project_id,image_id,version_id,input_version_id,engine,batch,status,phase,kind,created)
                               VALUES(?,?,?,?,?,?,?,?,?,?,?)''', (key, batch['project_id'], item['image_id'], item['input_version_id'],
                     item['input_version_id'], 'geometry', batch['id'] + '-stage-0-context', 'queued',
                     '等待相同图片定位结果' if source else '定位业务表区',
                     'screen_context_cached' if source else 'screen_context', now()))
-                pending_raw = encoded({'cache_pending_source_task_id': source['task_id'],
-                    'cache_key': fingerprint([item['source_hash'], self.model_identity, 'context'])}) if source else None
-                db.execute('INSERT INTO screen_contexts(task_id,batch_id,input_version_id,raw) VALUES(?,?,?,?)',
-                           (key, batch['id'], item['input_version_id'], pending_raw))
+                    db.execute('INSERT INTO screen_contexts(task_id,batch_id,input_version_id,raw) VALUES(?,?,?,?)',
+                        (key,batch['id'],item['input_version_id'],pending_raw))
                 worked = True
         worked = self._resolve_context_reuse(batch, items) or worked
         rows = self.store.rows('''SELECT c.*,t.status,t.error FROM screen_contexts c JOIN tasks t ON t.id=c.task_id WHERE c.batch_id=?''', (batch['id'],))
-        pending = False
+        by_version = {item['input_version_id']: item for item in items}
+        pending=any(item['status']=='queued' and not item.get('evidence') and
+            not self.store.rows('SELECT 1 FROM screen_contexts WHERE batch_id=? AND input_version_id=?',
+                (batch['id'],item['input_version_id'])) for item in self._items(batch['id'])
+            if item['input_version_id'] in by_version)
         for row in rows:
-            item = next(i for i in items if i['input_version_id'] == row['input_version_id'])
+            item = by_version.get(row['input_version_id'])
+            if item is None:
+                continue
             if item['status'] != 'queued' or item.get('evidence'):
                 continue
             if row['status'] == 'succeeded' and row['raw']:
@@ -339,6 +416,8 @@ class ScreenBatches:
         waiters = self.store.rows('''SELECT c.*,t.status FROM screen_contexts c JOIN tasks t ON t.id=c.task_id
             WHERE c.batch_id=? AND t.kind='screen_context_cached' AND t.status='queued' ORDER BY t.created,t.id''', (batch['id'],))
         for row in waiters:
+            if row['input_version_id'] not in by_version:
+                continue
             item = by_version[row['input_version_id']]
             pending = json.loads(row['raw'] or '{}')
             source_id = pending.get('cache_pending_source_task_id')
@@ -386,8 +465,17 @@ class ScreenBatches:
                         pending['cache_pending_source_task_id']=replacement['task_id']
                         db.execute('UPDATE screen_contexts SET raw=? WHERE task_id=?',(encoded(pending),row['task_id']))
                     else:
+                        budget=self._execution_budget(batch,item)
+                        from ocr_workbench.screen_engine_route import reserve_seconds
+                        allowance=int(max(0,budget['remaining_seconds']-reserve_seconds(batch['policy'])))
+                        if allowance<1:
+                            if budget['potential_remaining_seconds']<1 or reserve_seconds(batch['policy']) and budget['remaining_seconds']>=1:
+                                db.execute("UPDATE tasks SET status='failed',phase='定位额度不可用',error='剩余额度保留给有界识别或来源累计预算已用尽',finished=? WHERE id=? AND status='queued'",(now(),row['task_id']))
+                                worked=True
+                            continue
                         db.execute("UPDATE tasks SET kind='screen_context',phase='定位业务表区' WHERE id=? AND status='queued'",(row['task_id'],))
-                        db.execute('UPDATE screen_contexts SET raw=NULL,artifact=NULL WHERE task_id=?',(row['task_id'],))
+                        db.execute('UPDATE screen_contexts SET raw=?,artifact=NULL WHERE task_id=?',
+                            (encoded({'budget_reservation_seconds':allowance}),row['task_id']))
                     worked = True
         return worked
 
@@ -433,7 +521,20 @@ class ScreenBatches:
                     if replacement:
                         metadata['cache_pending_source_task_id']=replacement['task_id']
                     else:
+                        item=next(item for item in self._items(batch['id']) if item['input_version_id']==row['input_version_id'])
+                        budget=self._execution_budget(batch,item)
+                        reserve=metadata.get('technical_fallback_reserved_seconds',0)
+                        allowance=int(max(0,budget['remaining_seconds']-reserve))
+                        if allowance<1:
+                            if budget['potential_remaining_seconds']<1 or reserve and budget['remaining_seconds']>=1:
+                                phase = '首轮额度不可用' if reserve else '来源链预算已用尽'
+                                error = '首轮可用额度已用尽，剩余额度保留给有界技术兜底' if reserve else '相同原图累计处理预算已用尽'
+                                db.execute("UPDATE tasks SET status='failed',phase=?,error=?,finished=? WHERE id=? AND status IN ('queued','running')",(phase,error,now(),row['task_id']))
+                                worked=True
+                            continue
                         metadata.pop('cache_pending_source_task_id',None)
+                        metadata.update(timeout_seconds=allowance,budget_reservation_seconds=allowance,
+                            request_timeout_seconds=min(allowance,batch['policy'].get('request_timeout_seconds',900)))
                         db.execute("UPDATE tasks SET kind='ocr',status='queued',phase='屏拍表格识别' WHERE id=? AND status IN ('queued','running')",(row['task_id'],))
                     db.execute('UPDATE screen_tasks SET metadata=? WHERE task_id=?',(encoded(metadata),row['task_id']))
                     worked = True
@@ -441,50 +542,119 @@ class ScreenBatches:
             self.queue.wake.set()
         return worked
 
+    def _execution_budget(self, batch, item, *, task_id=None):
+        from ocr_workbench.screen_resolution import execution_budget
+        return execution_budget(self,batch['project_id'],batch['id'],item['input_version_id'],task_id=task_id)
+
+    def _budget_stop(self,batch,item,budget,*,waiting_status=None):
+        waiting=budget['potential_remaining_seconds']>=1
+        changes={'stage':'waiting_budget' if waiting else 'source_budget_reached',
+            'error':'来源链剩余额度已由在途任务预留，等待其结束后再处理。' if waiting else
+                    '此原图或来源链累计处理预算已用尽，保留已有结果及复核状态，不再发起模型任务。'}
+        if not waiting and budget.get('wall_deadline_remaining_seconds')==0:
+            changes.update(stage='batch_budget_reached',error='整批墙钟时间预算已到期，保留已有结果及复核状态，不再发起模型任务。')
+        if waiting and waiting_status:changes['status']=waiting_status
+        if not waiting:changes['status']='needs_review' if item['result_id'] else 'failed'
+        self._update(batch['id'],item['input_version_id'],**changes)
+        return not waiting
+
     def _enqueue(self, batch, items, engine, pass_index):
         from ocr_workbench.screen_imaging import select_screen_first_pass
-        with self.guard, self.store.transaction() as db:
-            db.execute('BEGIN IMMEDIATE')
+        from ocr_workbench.screen_engine_route import reserve_seconds
+        with self.guard, self.store.file_lock:
             for item in items:
+                choices = self._engine_choices(batch, item)
+                if not 0 <= pass_index < len(choices) or choices[pass_index] != engine:
+                    raise ValueError('派发模型与已冻结的逐图路线不一致')
                 info = json.loads(item['preparation'])
                 chosen = select_screen_first_pass(info)
                 if not chosen:
                     raise ValueError('预处理没有提供有效识别图像')
+                planned=[]
                 for image in chosen:
-                    prior = db.execute('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=? AND pass_index=? AND prepared_id=? AND attempt=?',
-                                       (batch['id'], item['input_version_id'], pass_index, image['id'], item['attempt'])).fetchone()
-                    if prior:
-                        continue
-                    task_id = self.store._enqueue(db, batch['project_id'], [item['input_version_id']], [engine],
-                                                  request_id='screen-' + fingerprint([batch['id'], item['input_version_id'], pass_index, image['id'], item['attempt']])[:64])[0]
-                    db.execute('UPDATE tasks SET batch=?,phase=? WHERE id=?',
-                               (batch['id'] + '-stage-' + str(pass_index + 1) + '-' + engine, '屏拍表格识别', task_id))
+                    prior=self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=? AND pass_index=? AND prepared_id=? AND attempt=?',
+                        (batch['id'],item['input_version_id'],pass_index,image['id'],item['attempt']))
+                    if prior:continue
                     pixel_hash = hashlib.sha256(Path(image['path']).read_bytes()).hexdigest()
-                    metadata = {**image, 'input_version_id': item['input_version_id'], 'batch_id': batch['id'],
-                                'prepared_pixel_sha256':pixel_hash,
-                                'strategy_version': batch['policy']['strategy_version'],
-                                'timeout_seconds': batch['policy']['budget_seconds'],
-                                'request_timeout_seconds': batch['policy'].get('request_timeout_seconds', 900),
-                                'attempt': item['attempt'],
-                                'cache_key': fingerprint([pixel_hash,
-                                                          engine, self.model_identity, batch['policy']['strategy_version']])}
-                    path = str(Path(image['path']).relative_to(self.store.root))
-                    db.execute('INSERT INTO screen_tasks(task_id,batch_id,input_version_id,pass_index,prepared_id,prepared_path,metadata,attempt) VALUES(?,?,?,?,?,?,?,?)',
-                               (task_id, batch['id'], item['input_version_id'], pass_index, image['id'], path, encoded(metadata), item['attempt']))
-                    hit = db.execute('SELECT r.task_id FROM screen_cache c JOIN results r ON r.id=c.result_id WHERE c.cache_key=?', (metadata['cache_key'],)).fetchone()
-                    if not hit:
-                        hit = db.execute('''SELECT s.task_id FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
+                    key=fingerprint([pixel_hash,engine,self.model_identity,batch['policy']['strategy_version']])
+                    hits=self.store.rows('SELECT r.task_id FROM screen_cache c JOIN results r ON r.id=c.result_id WHERE c.cache_key=?',(key,))
+                    if not hits:
+                        hits=self.store.rows('''SELECT s.task_id FROM screen_tasks s JOIN tasks t ON t.id=s.task_id
                             WHERE s.batch_id=? AND json_extract(s.metadata,'$.cache_key')=?
-                            AND t.id!=? AND t.kind!='screen_cached' AND t.status IN ('queued','running','succeeded')
-                            ORDER BY t.created,t.id LIMIT 1''',(batch['id'],metadata['cache_key'],task_id)).fetchone()
-                    if hit:
-                        metadata['cache_pending_source_task_id']=hit['task_id']
-                        db.execute('UPDATE screen_tasks SET metadata=? WHERE task_id=?',(encoded(metadata),task_id))
-                        db.execute("UPDATE tasks SET kind='screen_cached',phase='等待相同图片结果' WHERE id=?", (task_id,))
-                db.execute('UPDATE screen_items SET status=?,stage=?,pass_index=?,updated=? WHERE batch_id=? AND input_version_id=?',
-                           ('running', 'first_pass' if pass_index == 0 else 'upgrading', pass_index, now(), batch['id'], item['input_version_id']))
+                            AND t.kind!='screen_cached' AND t.status IN ('queued','running','succeeded')
+                            ORDER BY t.created,t.id LIMIT 1''',(batch['id'],key))
+                    planned.append((image,pixel_hash,key,hits[0]['task_id'] if hits else None))
+                computing=sum(hit is None for _,_,_,hit in planned)
+                allowance=0
+                reserve=reserve_seconds(batch['policy']) if pass_index==0 and len(choices)>1 else 0
+                if computing:
+                    budget=self._execution_budget(batch,item)
+                    allowance=int(max(0,budget['remaining_seconds']-reserve)//computing)
+                    if allowance<1:
+                        if reserve and budget['remaining_seconds']>=1:
+                            info['engine_route_primary_skip'] = {'reason': 'primary_envelope_exhausted',
+                                'original_remaining_seconds': budget['remaining_seconds'],
+                                'fallback_reserve_seconds': reserve,
+                                'original_budget': deepcopy(budget), 'model_invoked': False}
+                            self._update(batch['id'],item['input_version_id'],status='awaiting_upgrade',
+                                stage='primary_budget_reserved',pass_index=0,
+                                preparation=encoded(info),
+                                error='独立上下文已耗用首轮可用额度；首轮识别未调用，剩余额度留给有界技术兜底。')
+                            continue
+                        self._budget_stop(batch,item,budget,waiting_status='prepared')
+                        continue
+                # Commit each input's frozen allocation before sizing the next
+                # input. Independent connections must see sibling reservations.
+                with self.store.transaction() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    for image,pixel_hash,key,hit in planned:
+                        task_id=self.store._enqueue(db,batch['project_id'],[item['input_version_id']],[engine],
+                            request_id='screen-'+fingerprint([batch['id'],item['input_version_id'],pass_index,image['id'],item['attempt']])[:64])[0]
+                        rank = ('0-' if engine == 'hunyuan' else '1-') if batch['policy'].get('engine_route') == 'business_language_v1' else ''
+                        db.execute('UPDATE tasks SET batch=?,phase=? WHERE id=?',
+                            (batch['id']+'-stage-'+str(pass_index+1)+'-'+rank+engine,'屏拍表格识别',task_id))
+                        frozen=0 if hit else allowance
+                        metadata = {**image, 'input_version_id': item['input_version_id'], 'batch_id': batch['id'],
+                            'prepared_pixel_sha256':pixel_hash,'strategy_version':batch['policy']['strategy_version'],
+                            'model_identity':self.model_identity,
+                            'timeout_seconds':frozen,'budget_reservation_seconds':frozen,
+                            'request_timeout_seconds':min(frozen,batch['policy'].get('request_timeout_seconds',900)),
+                            'attempt':item['attempt'],'cache_key':key}
+                        if info.get('engine_route_snapshot'):
+                            metadata['engine_route_snapshot']=deepcopy(info['engine_route_snapshot'])
+                            metadata['technical_fallback_reserved_seconds']=reserve
+                        if hit:metadata['cache_pending_source_task_id']=hit
+                        path=str(Path(image['path']).relative_to(self.store.root))
+                        db.execute('INSERT INTO screen_tasks(task_id,batch_id,input_version_id,pass_index,prepared_id,prepared_path,metadata,attempt) VALUES(?,?,?,?,?,?,?,?)',
+                            (task_id,batch['id'],item['input_version_id'],pass_index,image['id'],path,encoded(metadata),item['attempt']))
+                        if hit:db.execute("UPDATE tasks SET kind='screen_cached',phase='等待相同图片结果' WHERE id=?",(task_id,))
+                    db.execute('UPDATE screen_items SET status=?,stage=?,pass_index=?,updated=? WHERE batch_id=? AND input_version_id=?',
+                        ('running','first_pass' if pass_index==0 else 'upgrading',pass_index,now(),batch['id'],item['input_version_id']))
         self._resolve_ocr_reuse(batch)
         self.queue.wake.set()
+
+    def _engine_choices(self,batch,item):
+        if batch['policy'].get('engine_route')!='business_language_v1':
+            return [batch['policy']['primary_engine'],*batch['policy']['fallback_engines']]
+        from ocr_workbench.screen_engine_route import frozen_engine_route
+        info=json.loads(item['preparation'])
+        evidence=json.loads(item['evidence']) if item.get('evidence') else {}
+        route=frozen_engine_route(info,evidence,item['source_hash'],item['input_version_id'])
+        if info.get('engine_route_snapshot') is None:
+            info['engine_route_snapshot']=route
+            item['preparation']=encoded(info)
+            self._update(batch['id'],item['input_version_id'],preparation=item['preparation'])
+        return route['engines']
+
+    def _route_binding_stop(self, batch, item, error):
+        tasks = self.store.rows('''SELECT t.id FROM tasks t JOIN screen_tasks s ON s.task_id=t.id
+            WHERE s.batch_id=? AND s.input_version_id=? AND t.status NOT IN ('succeeded','failed','cancelled')''',
+            (batch['id'], item['input_version_id']))
+        if tasks:
+            self.queue.action(batch['project_id'], 'cancel', [task['id'] for task in tasks])
+        self._update(batch['id'], item['input_version_id'],
+            status='needs_review' if item['result_id'] else 'failed',
+            stage='route_binding_failed', error=str(error)[:500])
 
     def _candidate(self, batch, item, rows):
         from ocr_workbench.screen_quality import map_screen_result_to_source
@@ -493,25 +663,6 @@ class ScreenBatches:
         truncated = False
         preparation = json.loads(item['preparation'])
         evidence = json.loads(item['evidence']) if item.get('evidence') else {}
-        ancillary = []
-        seen_ancillary = set()
-        for region in preparation.get('business_regions', []):
-            for part in region.get('ancillary', []):
-                area = part['box']
-                for token in evidence.get('text', []):
-                    box = token.get('box')
-                    text = token.get('text', '').strip()
-                    if not box or not text:
-                        continue
-                    intersection = max(0, min(area[2], box[2])-max(area[0], box[0])) * max(0,min(area[3],box[3])-max(area[1],box[1]))
-                    if intersection < .6 * (box[2]-box[0])*(box[3]-box[1]):
-                        continue
-                    key = (text, tuple(box))
-                    if key in seen_ancillary:
-                        continue
-                    seen_ancillary.add(key)
-                    ancillary.append({'kind': part['kind'], 'text': text, 'box': box,
-                        'source': token.get('source'), 'confidence': token.get('confidence'), 'human_confirmed': False})
         elapsed = 0.0
         for row in rows:
             result = self.store.result(row['result_id'])
@@ -530,19 +681,35 @@ class ScreenBatches:
             finishes.append(raw.get('finish_reason'))
             truncated = truncated or bool(raw.get('truncated')) or raw.get('finish_reason') in {'length', 'max_tokens', 'token_limit'}
             sources.append({'result_id': result['id'], 'revision': result['revision'], 'engine': row['engine'],
+                            'text_sha256':hashlib.sha256(result['edited'].get('text','').encode('utf-8')).hexdigest(),
+                            'table_caption':raw['tables'][0].get('caption','') if len(raw.get('tables',[]))==1 else None,
                             'task_id': row['task_id'], 'prepared_id': row['prepared_id'],
                             'transform': metadata.get('prepared_to_source'), 'prepared_metadata': metadata,
                             'warnings': raw.get('warnings', []), 'finish_reason': raw.get('finish_reason'),
                             'cache_hit': deepcopy(raw.get('cache_hit'))})
-        return {'id': fingerprint([x['result_id'] for x in sources]), 'engine': rows[0]['engine'],
+        candidate = {'id': fingerprint([x['result_id'] for x in sources]), 'engine': rows[0]['engine'],
                 'raw': {'status': 'success', 'engine': rows[0]['engine'], 'text': '\n\n'.join(texts), 'tables': tables,
                         'blocks': blocks, 'warnings': warnings, 'truncated': truncated,
                         'finish_reason': 'length' if truncated else next((v for v in finishes if v), None),
                         'elapsed_seconds': elapsed, 'project_image_version': item['input_version_id'],
                         'origin': 'screen_batch', 'screen': {'version': VERSION, 'batch_id': batch['id'],
                         'input_sha256': item['source_hash'], 'strategy_version': batch['policy']['strategy_version'],
-                        'sources': sources, 'prepared': preparation, 'business_metadata': ancillary,
+                        'sources': sources, 'prepared': preparation,
                         'context_provenance': deepcopy(evidence.get('provenance'))}}}
+        original_pixels = [image for image in preparation.get('prepared_images',[]) if image.get('kind')=='original'
+                           and image.get('source_to_prepared') == [1,0,0,0,1,0,0,0,1]
+                           and image.get('prepared_to_source') == [1,0,0,0,1,0,0,0,1]]
+        if len(original_pixels)==1:
+            source_path = Path(original_pixels[0]['path'])
+            candidate['raw']['screen']['context_pixel_source'] = {'path':str(source_path),
+                'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                'image_version':item['input_version_id'],'input_sha256':item['source_hash']}
+        from ocr_workbench.screen_evidence import apply_screen_business_metadata
+        candidate['raw'] = apply_screen_business_metadata(candidate['raw'], preparation, evidence)
+        if batch['policy'].get('render_math_text', False) and all(source['revision'] == 0 for source in sources):
+            from ocr_workbench.screen_text_rendering import render_screen_table_text
+            candidate['raw'] = render_screen_table_text(candidate['raw'])
+        return candidate
 
     def _final_result(self, batch, item, raw):
         content = fingerprint(raw)
@@ -594,10 +761,15 @@ class ScreenBatches:
             if not any(c['id'] == candidate['id'] for c in candidates):
                 candidates.append(candidate)
         if not candidates:
-            if (item['pass_index'] < len(batch['policy']['fallback_engines']) and item['pass_index'] < batch['policy']['max_upgrades']
-                    and spent < batch['policy']['budget_seconds']):
-                self._update(batch['id'], item['input_version_id'], status='awaiting_upgrade', stage='technical_retry',
-                             error='；'.join(str(r.get('error') or r['status']) for r in rows)[:500])
+            if item['pass_index']+1 < len(self._engine_choices(batch,item)) and item['pass_index'] < batch['policy']['max_upgrades']:
+                budget=self._execution_budget(batch,item)
+                if budget['remaining_seconds']>=1:
+                    self._update(batch['id'],item['input_version_id'],status='awaiting_upgrade',stage='technical_retry',
+                        error='；'.join(str(r.get('error') or r['status']) for r in rows)[:500])
+                elif budget['potential_remaining_seconds']>=1:
+                    self._update(batch['id'],item['input_version_id'],status='awaiting_upgrade',stage='waiting_budget',
+                        error='来源链剩余额度已由在途任务预留，等待其结束后再处理。')
+                else:self._budget_stop(batch,item,budget)
             else:
                 self._update(batch['id'], item['input_version_id'], status='failed', stage='failed',
                              error='；'.join(str(r.get('error') or r['status']) for r in rows)[:500])
@@ -608,21 +780,40 @@ class ScreenBatches:
         raw = selected['selected_result']
         raw.setdefault('screen', {})['selection'] = {key: selected.get(key) for key in
             ('selected_id', 'conflicts', 'modifications', 'automatic_delivery', 'review_required', 'upgrade_kind')}
-        checks_passed = bool(selected.get('automatic_delivery', False))
-        human_required = batch['policy'].get('require_human_review', False) and item['review_state'] != 'accepted'
+        table_checks_passed = bool(selected.get('automatic_delivery', False))
+        metadata_items = raw.get('screen',{}).get('business_metadata',[])
+        metadata_issues = [{'code':'business_metadata_review_required','category':'business_metadata',
+            'severity':'medium','scope':'metadata','item_index':index,'kind':part.get('kind'),
+            'selected_text':part.get('text'),'alternative_text':part.get('alternative_text'),
+            'selected_source':part.get('source'),'alternative_source':part.get('alternative_source'),
+            'primary_source':deepcopy(part.get('primary_source')),
+            'auxiliary_source':deepcopy(part.get('transcription_evidence',{}).get('auxiliary_source')),
+            'human_confirmed':False,
+            'reason':part.get('review_reason') or part.get('classification_basis') or 'ambiguous_business_context',
+            'message':('业务说明待核对；当前候选（'+str(part.get('source') or '来源未确定')+'）：'+str(part.get('text') or '')
+                + ('；另一候选（'+str(part.get('alternative_source') or '来源未确定')+'）：'+str(part['alternative_text'])
+                   if part.get('alternative_text') is not None else '')+'。初始候选选择不代表人工确认。')}
+            for index,part in enumerate(metadata_items) if part.get('review_required')]
+        metadata_pending = bool(metadata_issues) and item['review_state'] != 'accepted'
+        checks_passed = table_checks_passed and not metadata_pending
+        human_required = (batch['policy'].get('require_human_review', False) or metadata_pending) and item['review_state'] != 'accepted'
         raw['screen']['selection'].update(automatic_checks_passed=checks_passed,
+            table_checks_passed=table_checks_passed,business_metadata_review_required=metadata_pending,
             human_review_required=human_required)
+        if metadata_pending:
+            raw['screen']['selection'].update(automatic_delivery=False,review_required=True)
         chosen_assessment = selected.get('selected_assessment') or next((a for a in selected.get('assessments', []) if a['id'] == selected.get('selected_id')), {})
         issues = list(chosen_assessment.get('issues', []))
         if selected.get('conflicts'):
             issues.extend(selected['conflicts'])
+        issues.extend(metadata_issues)
         result_id = self._final_result(batch, item, raw)
         legacy_accuracy_pass = ('upgrade_trigger' not in batch['policy']
             and batch['policy']['mode'] == 'accuracy' and item['pass_index'] == 0)
         needs_upgrade = (batch['policy'].get('upgrade_trigger', 'quality') == 'quality'
-            and (not checks_passed or legacy_accuracy_pass))
+            and (not table_checks_passed or legacy_accuracy_pass))
         can_upgrade = (item['pass_index'] < batch['policy']['max_upgrades']
-                       and item['pass_index'] < len(batch['policy']['fallback_engines'])
+                       and item['pass_index']+1 < len(self._engine_choices(batch,item))
                        and spent < batch['policy']['budget_seconds'])
         if needs_upgrade and can_upgrade:
             state, stage = 'awaiting_upgrade', selected.get('upgrade_kind') or 'accuracy_check'
@@ -643,66 +834,116 @@ class ScreenBatches:
         return True
 
     def step(self):
+        with self.step_guard:
+            batches = self.store.rows("SELECT id,project_id FROM screen_batches WHERE status='running' ORDER BY created")
+            worked = False
+            for record in batches:
+                worked = self._step_batch(record['project_id'], record['id']) or worked
+            return worked
+
+    def _expire_batch(self, batch, items):
+        if not batch.get('deadline') or time.time() < batch['deadline']:
+            return False
+        self.action(batch['project_id'], batch['id'], {'action': 'cancel'})
+        for item in items:
+            if item['status'] not in TERMINAL:
+                self._update(batch['id'], item['input_version_id'], status='needs_review' if item['result_id'] else 'failed',
+                             stage='batch_budget_reached', error='已达到整批时间预算，成果已保留')
+        self._reconcile(batch)
+        return True
+
+    def _step_batch(self, project_id, batch_id):
         worked = False
         with self.guard, self.store.file_lock:
-            batches = self.store.rows("SELECT id,project_id FROM screen_batches WHERE status='running' ORDER BY created")
-            for record in batches:
-                batch = self._batch(record['project_id'], record['id'])
-                items = self._items(batch['id'])
-                if batch.get('deadline') and time.time() >= batch['deadline']:
-                    self.action(batch['project_id'], batch['id'], {'action': 'cancel'})
-                    for item in items:
-                        if item['status'] not in TERMINAL:
-                            self._update(batch['id'], item['input_version_id'], status='needs_review' if item['result_id'] else 'failed',
-                                         stage='batch_budget_reached', error='已达到整批时间预算，成果已保留')
-                    self._reconcile(batch)
-                    worked = True
-                    continue
-                worked = self._resolve_ocr_reuse(batch) or worked
-                if batch['policy']['layout_evidence']:
-                    changed, pending = self._contexts(batch, items)
-                    worked = worked or changed
-                    if pending:
+            batch = self._batch(project_id, batch_id)
+            if batch['status'] != 'running':
+                return False
+            items = self._items(batch_id)
+            if self._expire_batch(batch, items):
+                return True
+            if batch['policy'].get('engine_route') == 'business_language_v1':
+                for item in items:
+                    if item['status'] in TERMINAL or not item.get('preparation'):
                         continue
-                    items = self._items(batch['id'])
-                todo = [item for item in items if item['status'] == 'queued'][:batch['policy']['group_size']]
-                if todo:
-                    prepared = []
-                    with ThreadPoolExecutor(max_workers=2) as pool:
-                        futures = [(item, pool.submit(self._prepare_item, batch, item)) for item in todo]
-                        for item, future in futures:
-                            try:
-                                prepared.append(future.result())
-                            except Exception as error:
-                                self._update(batch['id'], item['input_version_id'], status='failed', stage='preparation_failed', error=str(error)[:500])
-                    if prepared:
-                        self._enqueue(batch, prepared, batch['policy']['primary_engine'], 0)
-                    worked = True
-                # Prepared items can survive a crash between preparation and enqueue.
-                prepared = [item for item in self._items(batch['id']) if item['status'] == 'prepared']
-                if prepared:
-                    self._enqueue(batch, prepared, batch['policy']['primary_engine'], 0)
-                    worked = True
-                for item in self._items(batch['id']):
-                    if item['status'] == 'running':
-                        worked = self._collect(batch, item) or worked
-                current = self._items(batch['id'])
-                # Finish the resident engine group before scheduling another model.
-                active = any(i['status'] in {'queued', 'prepared', 'running'} for i in current)
-                if not active:
-                    upgrades = [i for i in current if i['status'] == 'awaiting_upgrade']
-                    grouped = {}
-                    for item in upgrades:
-                        next_pass = item['pass_index'] + 1
-                        choices = batch['policy']['fallback_engines']
-                        if next_pass > len(choices):
-                            self._update(batch['id'], item['input_version_id'], status='needs_review' if item['result_id'] else 'failed', stage='review')
-                            continue
-                        grouped.setdefault((choices[next_pass - 1], next_pass), []).append(item)
-                    for (engine, index), group in grouped.items():
-                        self._enqueue(batch, group, engine, index)
+                    try:
+                        self._engine_choices(batch, item)
+                    except (ValueError, OSError, TypeError, KeyError) as error:
+                        self._route_binding_stop(batch, item, error)
                         worked = True
-                self._reconcile(batch)
+                items = self._items(batch_id)
+            worked = self._resolve_ocr_reuse(batch) or worked
+            grouped_context = batch['policy'].get('context_schedule') == 'grouped' and batch['policy']['layout_evidence']
+            resident_group = grouped_context and any(item['status'] in {'prepared', 'running'} for item in items)
+            if batch['policy']['layout_evidence']:
+                context_items = ([] if resident_group else
+                    [item for item in items if item['status'] == 'queued'][:batch['policy']['group_size']]) if grouped_context else items
+                changed, pending = self._contexts(batch, context_items) if context_items else (False, False)
+                worked = worked or changed
+                if pending:
+                    return worked
+                items = self._items(batch_id)
+            todo = [] if resident_group else [item for item in items if item['status'] == 'queued'][:batch['policy']['group_size']]
+            eligible = []
+            for item in todo:
+                budget = self._execution_budget(batch, item)
+                if budget['remaining_seconds'] >= 1:
+                    eligible.append(item)
+                else:
+                    worked = self._budget_stop(batch, item, budget) or worked
+        # CPU work may take minutes for a group. Controls and status readers
+        # operate on persisted state while these futures run; each late result
+        # checks its attempt, input and pause/cancel state before committing.
+        if eligible:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = [(item, pool.submit(self._prepare_item, batch, item)) for item in eligible]
+                for item, future in futures:
+                    try:
+                        future.result()
+                    except Exception as error:
+                        with self.guard, self.store.file_lock:
+                            current = next(row for row in self._items(batch_id) if row['input_version_id'] == item['input_version_id'])
+                            if current['status'] == 'queued' and current['attempt'] == item['attempt']:
+                                self._update(batch_id, item['input_version_id'], status='failed',
+                                             stage='preparation_failed', error=str(error)[:500])
+            worked = True
+        with self.guard, self.store.file_lock:
+            batch = self._batch(project_id, batch_id)
+            if batch['status'] != 'running':
+                return worked
+            current = self._items(batch_id)
+            if self._expire_batch(batch, current):
+                return True
+            # Prepared items also survive a crash between preparation/enqueue.
+            prepared = [item for item in current if item['status'] == 'prepared']
+            if prepared:
+                first_groups={}
+                for item in prepared:
+                    try:
+                        first_groups.setdefault(self._engine_choices(batch,item)[0],[]).append(item)
+                    except (ValueError, OSError, TypeError, KeyError) as error:
+                        self._route_binding_stop(batch, item, error)
+                for engine,group in sorted(first_groups.items(),key=lambda pair:pair[0]!='hunyuan'):
+                    self._enqueue(batch,group,engine,0)
+                worked = True
+            for item in self._items(batch_id):
+                if item['status'] == 'running':
+                    worked = self._collect(batch, item) or worked
+            current = self._items(batch_id)
+            # Finish the resident engine group before scheduling another model.
+            active = any(i['status'] in {'queued', 'prepared', 'running'} for i in current)
+            if not active:
+                grouped = {}
+                for item in [i for i in current if i['status'] == 'awaiting_upgrade']:
+                    next_pass = item['pass_index'] + 1
+                    choices = self._engine_choices(batch,item)
+                    if next_pass >= len(choices):
+                        self._update(batch_id, item['input_version_id'], status='needs_review' if item['result_id'] else 'failed', stage='review')
+                        continue
+                    grouped.setdefault((choices[next_pass], next_pass), []).append(item)
+                for (engine, index), group in grouped.items():
+                    self._enqueue(batch, group, engine, index)
+                    worked = True
+            self._reconcile(batch)
         return worked
 
     def _reconcile(self, batch):
@@ -739,7 +980,10 @@ class ScreenBatches:
             UNION ALL SELECT t.id,t.kind,t.engine,t.status,t.started,t.finished,t.created,-1,c.spent_seconds
             FROM screen_contexts c JOIN tasks t ON t.id=c.task_id WHERE c.batch_id=?''',(batch_id,batch_id))
         eta = estimate_screen_eta(timed_tasks,batch_status=batch['status'],pending_images=coverage['pending'])
+        delivery = self.delivery_snapshot(project_id, batch_id)
         return {'batch_id': batch_id, 'project_id': project_id, 'status': 'partial' if stale and batch['status'] in {'succeeded', 'partial'} else batch['status'],
+                'delivery_snapshot_id': delivery['snapshot_id'], 'delivery_fresh': delivery['fresh'],
+                'stale_item_count': len(delivery['stale_items']),
                 'parent_batch_id': batch.get('parent_batch_id'),
                 'counts': coverage, 'policy': batch['policy'], 'items': page, 'total_items': len(filtered), 'eta':eta,
                 'next_offset': offset + limit if offset + limit < len(filtered) else None,
@@ -759,17 +1003,91 @@ class ScreenBatches:
         return value
 
     def detail(self, project_id, batch_id, version_id):
-        self._batch(project_id, batch_id)
+        batch = self._batch(project_id, batch_id)
         rows = self.store.rows('SELECT * FROM screen_items WHERE batch_id=? AND input_version_id=?', (batch_id, version_id))
         if not rows:
             raise KeyError('批次没有该图片')
         value = self._display(rows[0], detail=True)
         value['result'] = self.store.result(rows[0]['result_id']) if rows[0]['result_id'] else None
         value['candidate_results'] = json.loads(rows[0]['candidates'])
+        if value['result']:
+            with self.store.transaction() as db:
+                context = self._review_context(db, rows[0])
+            value['review_binding_token'] = fingerprint(context)
+            value['business_metadata'] = self._current_business_metadata(value['result'])
+            value['business_metadata_source'] = ('edited' if 'business_metadata' in
+                (value['result']['edited'].get('screen') or {}) else 'original')
+            value['current_result_revision'] = value['result']['revision']
+            value['human_confirmed'] = (rows[0]['review_state'] == 'accepted'
+                and context['human_review_status'] == 'confirmed'
+                and context['review_result_id'] == value['result']['id']
+                and context['review_revision'] == value['result']['revision']
+                and context['review_version_id'] == version_id and context['active_version'] == version_id
+                and context['selected_result_id'] in {None, value['result']['id']})
+            value['review_stale'] = (value['result']['revision'] != rows[0]['result_revision']
+                or rows[0]['review_state'] == 'accepted' and not value['human_confirmed']
+                or context['active_version'] != version_id
+                or context['selected_result_id'] not in {None, value['result']['id']})
+            if not value['human_confirmed']:
+                for part in value['business_metadata']:
+                    if part.get('human_confirmed'):
+                        part.update(human_confirmed=False, review_required=True, review_reason='human_review_binding_changed')
+            from ocr_workbench.screen_diagnostics import build_screen_diagnostics
+            from ocr_workbench.screen_resolution import precision_capability
+            result = value['result']
+            raw = {**deepcopy(result['original']), **deepcopy(result['edited'])}
+            raw['screen'] = {**deepcopy(result['original'].get('screen') or {}),
+                             **deepcopy(result['edited'].get('screen') or {})}
+            evidence = json.loads(rows[0]['evidence']) if rows[0].get('evidence') else {}
+            budget = self._execution_budget(batch, rows[0])
+            remaining = budget['remaining_seconds']
+            value['diagnostics'] = build_screen_diagnostics(raw, value['preparation'], evidence,
+                remaining_seconds=remaining, capabilities={'structure_compare': len(value['candidate_results']) > 1,
+                    'precision_subbatch': precision_capability(self)['available'], 'local_reread': False})
+            value['diagnostics']['result_id'] = result['id']
+            value['diagnostics']['result_revision'] = result['revision']
+            value['diagnostics']['input_version_id'] = version_id
+            value['diagnostics']['execution_budget'] = {
+                'basis': budget['basis'], 'root_batch_id': budget['root_batch_id'],
+                'remaining_seconds': remaining, 'actual_seconds': budget['actual_seconds'],
+                'inflight_reserved_seconds': budget['inflight_reserved_seconds'],
+                'local_input_actual_seconds': budget['local_input_actual_seconds'],
+                'source_actual_seconds': budget['per_source_actual_seconds'].get(rows[0]['source_hash'], 0),
+                'wall_deadline_remaining_seconds': budget['wall_deadline_remaining_seconds']}
         value['image_url'] = '/api/versions/' + version_id + '/image'
+        from ocr_workbench.screen_cell_review import review_summary
+        value['cell_review'] = review_summary(self, batch_id, version_id)
         return value
 
-    def action(self, project_id, batch_id, body):
+    def resolve(self, project_id, batch_id, body, *, allow_new=True):
+        from ocr_workbench.screen_resolution import resolve_screen_issues
+        return resolve_screen_issues(self, project_id, batch_id, body, allow_new=allow_new)
+
+    def compare(self, project_id, batch_id, version_id, body):
+        from ocr_workbench.screen_diagnostics import compare_screen_candidates
+        with self.guard, self.store.file_lock:
+            value = self.detail(project_id, batch_id, version_id)
+            result = value.get('result')
+            if (not result or body.get('result_id') != result['id']
+                    or type(body.get('expected_revision')) is not int
+                    or body['expected_revision'] != result['revision']):
+                raise Conflict('当前结果版本已变化，请重新读取候选')
+            candidate = next((item for item in value['candidate_results'] if item['id'] == body.get('candidate_id')), None)
+            if candidate is None:
+                raise ValueError('候选不属于当前图片或批次')
+            row = next(item for item in self._items(batch_id) if item['input_version_id'] == version_id)
+            evidence = json.loads(row['evidence']) if row.get('evidence') else {}
+            current = {**deepcopy(result['original']), **deepcopy(result['edited'])}
+            current['screen'] = {**deepcopy(result['original'].get('screen') or {}),
+                                 **deepcopy(result['edited'].get('screen') or {})}
+            report = compare_screen_candidates(current,
+                candidate['raw'], value['preparation'], evidence, current_id=result['id'], alternative_id=candidate['id'],
+                remaining_seconds=value['diagnostics']['budget']['remaining_seconds'],
+                capabilities={'structure_compare': True, 'precision_subbatch': None, 'local_reread': False})
+            return {**report, 'input_version_id': version_id, 'result_id': result['id'],
+                    'result_revision': result['revision']}
+
+    def action(self, project_id, batch_id, body, *, allow_new=True):
         if not isinstance(body, dict):
             raise ValueError('批次操作无效')
         action = body.get('action')
@@ -795,44 +1113,86 @@ class ScreenBatches:
             if action == 'upgrade':
                 if selected is None or not request_id:
                     raise ValueError('提高精度必须指定图片和操作请求编号')
+                if len(items) > 50:
+                    raise ValueError('一次精度处理最多选择 50 张图片')
+                resolution_id = 'screen-' + fingerprint([batch_id, request_id, body])[:64]
+                resolution_rows = self.store.rows('SELECT receipt FROM screen_actions WHERE batch_id=? AND request_id=?',
+                                                 (batch_id, resolution_id))
+                if not allow_new:
+                    if not resolution_rows:
+                        return None
+                    frozen = json.loads(resolution_rows[0]['receipt'])
+                    targets = [{key: binding[key] for key in ('input_version_id', 'result_id', 'result_revision', 'issue_ids')}
+                               for binding in frozen['bindings']]
+                    return self.resolve(project_id, batch_id, {'request_id': resolution_id, 'action': 'precision_subbatch',
+                        'budget_seconds': batch['policy']['batch_budget_seconds'], 'targets': targets}, allow_new=False)
                 if any(i['status'] not in TERMINAL for i in items):
                     raise Conflict('请等待指定图片的当前尝试结束')
-                policy = deepcopy(batch['policy'])
-                alternatives = [engine for engine in [policy['primary_engine'], *policy['fallback_engines']] if engine != 'glm']
-                policy.update(primary_engine='glm', fallback_engines=alternatives,
-                    mode='accuracy', upgrade_trigger='quality', require_human_review=True,
-                    max_upgrades=min(1, len(alternatives)))
-                receipt = self.submit(project_id, {'version_ids': [i['input_version_id'] for i in items],
-                    'request_id': 'upgrade-' + fingerprint([batch_id, request_id])[:64], 'policy': policy}, parent_batch_id=batch_id)
+                targets = []
+                for item in items:
+                    detail = self.detail(project_id, batch_id, item['input_version_id'])
+                    result = detail.get('result')
+                    issues = detail.get('diagnostics', {}).get('items', [])
+                    if not result or not issues:
+                        receipt = {'resolution_version': 'screen-resolution-v1', 'status': 'blocked', 'action': 'upgrade',
+                            'request_id': request_id, 'parent_batch_id': batch_id, 'batch_id': None,
+                            'reason': 'no_current_result_or_diagnosed_issue', 'input_version_id': item['input_version_id'],
+                            'values_modified': False, 'selection_applied': False, 'human_review': 'not_performed'}
+                        break
+                    targets.append({'input_version_id': item['input_version_id'], 'result_id': result['id'],
+                        'result_revision': result['revision'], 'issue_ids': [issue['id'] for issue in issues[:50]]})
+                else:
+                    receipt = self.resolve(project_id, batch_id, {'request_id': resolution_id, 'action': 'precision_subbatch',
+                        'budget_seconds': batch['policy']['batch_budget_seconds'], 'targets': targets})
+                    if receipt.get('attempt'):
+                        receipt = {**receipt, 'policy': receipt['attempt']['policy']}
                 with self.store.transaction() as db:
                     db.execute('INSERT INTO screen_actions VALUES(?,?,?,?)', (batch_id, request_id, fingerprint(body), encoded(receipt)))
                 return receipt
+            if not allow_new:
+                return None
             if action == 'review':
+                if body.get('metadata_edits') and (selected is None or len(items)!=1):
+                    raise ValueError('编辑业务说明必须明确指定单张图片')
                 if len(items) != 1:
                     raise ValueError('单次复核必须指定一张图片')
                 self._review(batch, items[0], body)
             elif action == 'retry_failed':
+                retried=False
                 for item in items:
                     if item['status'] != 'failed':
+                        continue
+                    budget=self._execution_budget(batch,item)
+                    if budget['remaining_seconds']<1:
+                        self._budget_stop(batch,item,budget)
                         continue
                     # A technical retry gets a new pass identity, preserving every failed task.
                     self._update(batch_id, item['input_version_id'], status='prepared' if item['preparation'] else 'queued',
                                  stage='retry', pass_index=0, attempt=item['attempt'] + 1, error=None)
-                with self.store.transaction() as db:
-                    db.execute("UPDATE screen_batches SET status='running',updated=? WHERE id=?", (now(), batch_id))
+                    retried=True
+                if retried:
+                    with self.store.transaction() as db:
+                        db.execute("UPDATE screen_batches SET status='running',updated=? WHERE id=?", (now(), batch_id))
             else:
                 active = [i for i in items if i['status'] not in TERMINAL]
-                task_ids = [r['task_id'] for i in active for r in self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=?', (batch_id, i['input_version_id']))]
-                task_ids.extend(r['task_id'] for i in active for r in self.store.rows('SELECT task_id FROM screen_contexts WHERE batch_id=? AND input_version_id=?', (batch_id, i['input_version_id'])))
+                # Read the batch once and commit item controls together. Per-item
+                # connections/FULL commits made cancelling 240 queued inputs
+                # exceed an HTTP timeout before the durable receipt was saved.
+                task_rows = self.store.rows('SELECT input_version_id,task_id,attempt FROM screen_tasks WHERE batch_id=?', (batch_id,))
+                context_rows = self.store.rows('SELECT input_version_id,task_id FROM screen_contexts WHERE batch_id=?', (batch_id,))
+                active_versions = {i['input_version_id'] for i in active}
+                task_ids = [r['task_id'] for r in [*task_rows, *context_rows] if r['input_version_id'] in active_versions]
                 if task_ids:
                     self.queue.action(project_id, action, task_ids)
-                for item in active:
-                    existing = self.store.rows('SELECT task_id FROM screen_tasks WHERE batch_id=? AND input_version_id=? AND attempt=?',
-                                               (batch_id, item['input_version_id'], item['attempt']))
-                    self._update(batch_id, item['input_version_id'], status='cancelled' if action == 'cancel' else
-                                 'paused' if action == 'pause' else 'running' if existing else 'prepared' if item['preparation'] else 'queued',
-                                 stage='cancelled' if action == 'cancel' else 'paused' if action == 'pause' else 'resuming')
+                existing_attempts = {(r['input_version_id'], r['attempt']) for r in task_rows}
+                updated = now()
                 with self.store.transaction() as db:
+                    db.executemany('UPDATE screen_items SET status=?,stage=?,updated=? WHERE batch_id=? AND input_version_id=?', [
+                        ('cancelled' if action == 'cancel' else 'paused' if action == 'pause' else
+                         'running' if (item['input_version_id'], item['attempt']) in existing_attempts else
+                         'prepared' if item['preparation'] else 'queued',
+                         'cancelled' if action == 'cancel' else 'paused' if action == 'pause' else 'resuming',
+                         updated, batch_id, item['input_version_id']) for item in active])
                     if selected is None and action == 'pause':
                         db.execute('UPDATE screen_batches SET paused_at=COALESCE(paused_at,?) WHERE id=?', (time.time(), batch_id))
                     if selected is None and action == 'resume' and batch.get('paused_at'):
@@ -862,17 +1222,37 @@ class ScreenBatches:
         image = self.store.one('images', item['image_id'])
         if image['active_version'] != item['input_version_id']:
             raise Conflict('原图版本已变化，不能复核旧批次')
+        with self.store.transaction() as db:
+            review_context = self._review_context(db, item)
+        if (review_context['selected_result_id'] not in {None, result_id}
+                or body.get('expected_review_token') is not None
+                and body['expected_review_token'] != fingerprint(review_context)):
+            raise Conflict('采用结果或人工复核状态已变化，请重新加载')
         candidate_id = body.get('candidate_id')
+        metadata_edits = body.get('metadata_edits',[])
+        if not isinstance(metadata_edits,list) or len(metadata_edits)>100:
+            raise ValueError('业务说明编辑范围无效')
+        if candidate_id and metadata_edits:
+            raise Conflict('切换整图候选后请先重新加载当前业务说明，再编辑')
         if candidate_id:
             candidate = next((c for c in json.loads(item['candidates']) if c['id'] == candidate_id), None)
             if not candidate:
                 raise ValueError('整图候选不存在')
             result_id = self._final_result(batch, item, deepcopy(candidate['raw']))
             result = self.store.result(result_id)
+            # _final_result may select the new untouched candidate itself.
+            with self.store.transaction() as db:
+                switched_context = self._review_context(db, item)
+            if (switched_context['selected_result_id'] not in {review_context['selected_result_id'], result_id}
+                    or {key: value for key, value in switched_context.items() if key != 'selected_result_id'}
+                    != {key: value for key, value in review_context.items() if key != 'selected_result_id'}):
+                raise Conflict('切换候选期间人工复核或原图已变化')
+            review_context = switched_context
         edits = body.get('edits') or []
         if not isinstance(edits, list) or len(edits) > 100:
             raise ValueError('复核编辑范围无效')
-        if edits:
+        metadata = self._current_business_metadata(result)
+        if edits or metadata_edits or metadata and state == 'accepted':
             value = deepcopy(result['edited'])
             for edit in edits:
                 if (not isinstance(edit, dict) or any(type(edit.get(k)) is not int or edit[k] < 0 for k in ('table_index', 'row', 'column'))
@@ -883,23 +1263,96 @@ class ScreenBatches:
                 if len(cells) != 1 or cells[0]['text'] != edit['before'] or not isinstance(edit['after'], str):
                     raise Conflict('待修改单元格已变化')
                 cells[0]['text'] = edit['after']
-            result = self.store.save(result_id, value, result['revision'])
-        with self.store.lock:
-            with self.store.transaction() as db:
-                current = db.execute('SELECT revision FROM results WHERE id=?', (result_id,)).fetchone()
-                version = db.execute('SELECT active_version FROM images WHERE id=?', (item['image_id'],)).fetchone()
-                if current['revision'] != result['revision'] or version['active_version'] != item['input_version_id']:
-                    raise Conflict('复核内容或图片已变化')
-                db.execute('INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id', (item['image_id'], result_id))
-            self.store.set_review(item['image_id'], 'confirmed' if state == 'accepted' else 'question',
-                                  result_id, result['revision'], item['input_version_id'])
+            metadata_log = deepcopy((value.get('screen') or {}).get('metadata_edit_log',[]))
+            original_metadata = result['original'].get('screen',{}).get('business_metadata',[])
+            seen = set()
+            for edit in metadata_edits:
+                if (not isinstance(edit,dict) or set(edit)-{'item_index','before','after','choice'}
+                        or type(edit.get('item_index')) is not int or edit['item_index']<0
+                        or edit['item_index']>=len(metadata) or edit['item_index'] in seen
+                        or not isinstance(edit.get('before'),str) or not isinstance(edit.get('after'),str)
+                        or len(edit['after'])>10000 or any(ord(c)<32 and c not in '\n\r\t' for c in edit['after'])):
+                    raise ValueError('业务说明编辑内容或位置无效')
+                index=edit['item_index'];seen.add(index);part=metadata[index]
+                if part.get('text')!=edit['before']:
+                    raise Conflict('待修改业务说明已变化，请重新加载')
+                choice=edit.get('choice','manual')
+                source_part=original_metadata[index] if index<len(original_metadata) else None
+                if not source_part:
+                    raise Conflict('业务说明原始证据不存在，不能按旧位置修改')
+                evidence=source_part.get('transcription_evidence') or {}
+                if (choice=='primary' and not evidence.get('primary_source')
+                        or choice=='auxiliary' and 'auxiliary_text' not in evidence):
+                    raise Conflict('所选识别候选缺少原始来源证据')
+                source_text=(evidence.get('auxiliary_text') if choice=='auxiliary' else
+                    evidence.get('primary_text',source_part.get('text')) if choice=='primary' else edit['after'])
+                if choice not in {'manual','primary','auxiliary'} or source_text!=edit['after']:
+                    raise Conflict('所选识别候选与原始证据不一致')
+                metadata_log.append({'item_index':index,'before':edit['before'],'after':edit['after'],
+                    'choice':choice,'base_revision':result['revision'],'image_version':item['input_version_id'],
+                    'original_selected_text':source_part.get('text'),
+                    'original_evidence_refs':deepcopy(source_part.get('evidence_refs',[])),
+                    'original_transcription_evidence':deepcopy(evidence),
+                    'actor':'human','at':now(),'confirmed_in_this_review':state=='accepted'})
+                part.update(text=edit['after'],source='human_edit' if choice=='manual' else 'human_selected_'+choice,
+                    selected_text_basis='human_metadata_'+choice,review_required=state!='accepted',
+                    review_reason='human_edit_pending_confirmation' if state!='accepted' else None,
+                    human_confirmed=state=='accepted',automatic_metadata_selection=False)
+                part.update(alternative_text=(evidence.get('primary_text',source_part['text']) if choice!='primary'
+                    else evidence.get('auxiliary_text',source_part['text'])),
+                    alternative_source=(source_part.get('source') if choice!='primary' else
+                        (evidence.get('auxiliary_source') or {}).get('source')))
+            if metadata_edits or metadata and state=='accepted':
+                if state=='accepted':
+                    for part in metadata:
+                        part.update(human_confirmed=True,review_required=False,review_reason=None)
+                value.setdefault('screen',{}).update(business_metadata=metadata,metadata_edit_log=metadata_log,
+                    metadata_review={'state':state,'actor':'human','input_version_id':item['input_version_id'],
+                                     'base_revision':result['revision'],'at':now()})
+            screen_metadata = value.pop('screen', None)
+            result = self.store.save(result_id, value, result['revision'], screen_metadata=screen_metadata)
         issues = json.loads(item['issues'])
+        if metadata_edits:
+            current_metadata = self._current_business_metadata(result)
+            for issue in issues:
+                if issue.get('code')=='business_metadata_review_required':
+                    index=issue.get('item_index')
+                    if type(index) is int and 0<=index<len(current_metadata):
+                        part=current_metadata[index]
+                        issue.update(selected_text=part['text'],selected_source=part.get('source'),
+                            alternative_text=part.get('alternative_text'),alternative_source=part.get('alternative_source'),
+                            human_confirmed=part.get('human_confirmed',False),reason=part.get('review_reason'),
+                            message='业务说明已人工编辑，当前文字：'+part['text']+'；尚需确认当前版本。')
         if state == 'accepted':
             issues = [issue for issue in issues if issue.get('code') not in {
                 'human_confirmation_required', 'quality_review_required'}]
-        self._update(batch['id'], item['input_version_id'], result_id=result_id, result_revision=result['revision'],
-                     issues=encoded(issues), review_state=state,
-                     status='completed' if state == 'accepted' else 'needs_review', stage='completed' if state == 'accepted' else 'review')
+            issues = [issue for issue in issues if issue.get('code') != 'business_metadata_review_required']
+        with self.store.transaction() as db:
+            db.execute('BEGIN IMMEDIATE')
+            current = db.execute('SELECT revision FROM results WHERE id=?', (result_id,)).fetchone()
+            if (current['revision'] != result['revision']
+                    or self._review_context(db, item) != review_context):
+                raise Conflict('复核内容、采用结果或人工复核状态已变化')
+            db.execute('INSERT INTO selections VALUES(?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id', (item['image_id'], result_id))
+            target = self.store._review_target(db, item['image_id'])
+            if (target['result_id'] != result_id or target['revision'] != result['revision']
+                    or target['active_version'] != item['input_version_id'] or target['version_id'] != item['input_version_id']):
+                raise Conflict('当前候选来源版本已变化')
+            stamp = now()
+            db.execute('INSERT INTO reviews VALUES(?,?,?,?,?,?) ON CONFLICT(image_id) DO UPDATE SET result_id=excluded.result_id,version_id=excluded.version_id,revision=excluded.revision,status=excluded.status,updated=excluded.updated',
+                (item['image_id'], result_id, item['input_version_id'], result['revision'], 'confirmed' if state == 'accepted' else 'question', stamp))
+            db.execute('UPDATE screen_items SET result_id=?,result_revision=?,issues=?,review_state=?,status=?,stage=?,updated=? WHERE batch_id=? AND input_version_id=?',
+                (result_id, result['revision'], encoded(issues), state, 'completed' if state == 'accepted' else 'needs_review',
+                 'completed' if state == 'accepted' else 'review', stamp, batch['id'], item['input_version_id']))
+
+    @staticmethod
+    def _review_context(db, item):
+        row = db.execute('''SELECT im.active_version,s.result_id selected_result_id,
+            rv.result_id review_result_id,rv.version_id review_version_id,rv.revision review_revision,
+            rv.status human_review_status,rv.updated review_epoch FROM images im
+            LEFT JOIN selections s ON s.image_id=im.id LEFT JOIN reviews rv ON rv.image_id=im.id WHERE im.id=?''',
+            (item['image_id'],)).fetchone()
+        return dict(row)
 
     def file(self, project_id, batch_id, version_id, file_id):
         detail = self.detail(project_id, batch_id, version_id)
@@ -910,6 +1363,10 @@ class ScreenBatches:
                     raise ValueError('图像路径越界')
                 return path
         raise KeyError('预处理图像不存在')
+
+    def delivery_snapshot(self, project_id, batch_id):
+        from ocr_workbench.screen_delivery import delivery_snapshot
+        return delivery_snapshot(self, project_id, batch_id)
 
     def export(self, project_id, batch_id, body=None):
         from ocr_workbench.tables import export_xlsx
@@ -923,12 +1380,21 @@ class ScreenBatches:
                 or any(not isinstance(v, dict) for v in numeric.values())):
             raise ValueError('数值列须按本批次图片版本逐项指定')
         include_review = body.get('include_pending_review', False)
+        options = {'include_pending_review': include_review,
+                   'numeric_columns': body.get('numeric_columns')}
         folder = self.root / batch_id / 'exports' / uid()
         folder.mkdir(parents=True)
         archive_path = folder / 'screen-tables.zip'
         manifest = {'format': VERSION + '-export', 'batch_id': batch_id, 'project_id': project_id,
                     'policy': batch['policy'], 'created': now(), 'items': [], 'success_files': 0}
         with self.guard, self.store.file_lock, zipfile.ZipFile(archive_path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+            delivery = self.delivery_snapshot(project_id, batch_id)
+            if not delivery['fresh']:
+                raise Conflict('图片、采用结果或复核状态已变化，请刷新当前结果后重新导出')
+            manifest['snapshot_id'] = delivery['snapshot_id']
+            manifest['export_options'] = options
+            manifest['version_vector'] = {**{key: delivery[key] for key in
+                ('snapshot_id', 'batch_id', 'project_id', 'policy_sha256', 'items')}, 'export_options': options}
             snapshots = []
             for item in self._items(batch_id):
                 entry = self._display(item)
@@ -945,7 +1411,7 @@ class ScreenBatches:
                         target = folder / name
                         export_xlsx(result['edited']['tables'], target,
                                     source_rows=self._export_source_rows(batch, item, result, name))
-                        metadata = result['original'].get('screen', {}).get('business_metadata', [])
+                        metadata = self._current_business_metadata(result)
                         if metadata:
                             self._export_metadata(target, metadata)
                         numeric = (body.get('numeric_columns') or {}).get(item['input_version_id'])
@@ -966,6 +1432,8 @@ class ScreenBatches:
                 if (self.store.one('images', image_id)['active_version'] != version_id
                         or self.store.result(result_id)['revision'] != revision):
                     raise Conflict('导出期间结果或图片已变化，请重新导出')
+            if self.delivery_snapshot(project_id, batch_id)['snapshot_id'] != delivery['snapshot_id']:
+                raise Conflict('导出期间采用结果、复核状态或批次范围已变化，请重新导出')
             archive.writestr('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=2))
         (folder / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
         return archive_path, manifest
@@ -991,14 +1459,33 @@ class ScreenBatches:
                 for index, table in enumerate(result['edited']['tables'])]
 
     @staticmethod
+    def _current_business_metadata(result):
+        screen = result.get('edited',{}).get('screen') or {}
+        metadata = screen.get('business_metadata') if 'business_metadata' in screen else (
+            result.get('original',{}).get('screen') or {}).get('business_metadata',[])
+        if not isinstance(metadata,list) or any(not isinstance(item,dict) or not isinstance(item.get('text'),str) for item in metadata):
+            raise Conflict('当前业务说明结构无效，请重新加载')
+        metadata = deepcopy(metadata)
+        review = screen.get('metadata_review') or {}
+        if review.get('state') == 'accepted' and result.get('revision') != review.get('base_revision', -2) + 1:
+            for part in metadata:
+                part.update(human_confirmed=False, review_required=True, review_reason='metadata_confirmation_revision_changed')
+        return metadata
+
+    @staticmethod
     def _export_metadata(path, metadata):
         from openpyxl import load_workbook
         book = load_workbook(path)
         sheet = book.create_sheet('业务说明')
-        sheet.append(['类别', '识别原文', '来源', '原图坐标', '核对状态'])
+        sheet.append(['类别', '识别原文', '来源', '原图坐标', '核对状态', '另一识别候选（未人工确认）', '处理依据', '另一候选来源'])
         for part in metadata:
-            sheet.append([part['kind'], part['text'], part.get('source', ''), encoded(part.get('box')), '独立文字识别，未逐项人工确认'])
+            status = ('人工已确认' if part.get('human_confirmed') else
+                      '需要人工核对' if part.get('review_required') else '识别候选，未逐项人工确认')
+            sheet.append([part['kind'], part['text'], part.get('source', ''), encoded(part.get('box')), status,
+                          part.get('alternative_text',''),part.get('review_reason',part.get('selected_text_basis','')),
+                          part.get('alternative_source','')])
             sheet.cell(sheet.max_row, 2).data_type = 's'
+            sheet.cell(sheet.max_row, 6).data_type = 's'
         sheet.column_dimensions['B'].width = 70
         book.save(path)
 

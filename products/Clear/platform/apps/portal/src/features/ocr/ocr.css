@@ -1,9 +1,13 @@
 .ocr-workflow .page-heading { margin-bottom: 16px; }
+.ocr-screen-batch { margin-top: 20px; }
+.ocr-screen-batch .ant-progress { margin: 16px 0; }
+.ocr-review-image { display: block; width: 100%; max-height: 450px; object-fit: contain; background: #f6f7f8; margin: 12px 0; }
 .ocr-input-list { padding-left: 20px; margin: 12px 0 0; }
 .ocr-input-list li { margin: 7px 0; }
 .ocr-project-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
 .ocr-project-controls .ant-select, .ocr-project-controls .ant-input { width: min(420px, 100%); }
 .ocr-notice { margin-top: 14px; }
+.ocr-numeric-columns { display: flex; margin-bottom: 8px; }
 .ocr-open { margin-top: 14px; }
 .ocr-handoff-state { margin-top: 18px; }
 .ocr-handoff-state ul { list-style: none; padding: 0; max-width: 600px; }

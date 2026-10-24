@@ -48,6 +48,10 @@ def describe(args, ctx):
         if args.reference.kind == 'evidence':
             from .audit import evidence_data
             data = evidence_data(value)
+        elif args.reference.kind == 'asset_set':
+            fixed=value['asset_set']
+            data={'asset_set':{key:fixed[key] for key in ('asset_set_id','revision','manifest_hash')},
+                  'item_count':len(fixed['items']),'preview_only':True,'items':fixed['items'][:10]}
     elif args.reference.kind == 'result' and args.reference.application == 'ocr':
         tables = value['table_snapshot']['tables']
         catalog = [{'table_index': index, 'rows': table['rows'], 'columns': table['columns'],

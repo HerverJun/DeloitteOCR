@@ -32,6 +32,12 @@ export function referencePath(ref: AgentRef, taskId?: string) {
     return `/assets?${params}`
   }
   if (ref.kind === 'job') {
+    if (ref.coverage?.kind === 'screen_batch') {
+      params.set('screen_batch', ref.object_id)
+      if (ref.coverage.asset_set_id) params.set('set', String(ref.coverage.asset_set_id))
+      if (ref.parent_id) params.set('handoff', ref.parent_id)
+      return `/apps/ocr/workflow?${params}`
+    }
     if (ref.coverage?.kind === 'batch') { params.set('batch', ref.object_id); return `/batches?${params}` }
     params.set('job', ref.object_id); return `/jobs?${params}`
   }

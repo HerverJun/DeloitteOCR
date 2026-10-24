@@ -32,6 +32,9 @@ def _content_digest(data: bytes, media_type: str) -> str:
 
 def _readable_export(snapshot):
     """Read only the fixed exported JSON; never reconstruct text from tables."""
+    if snapshot.get('platform_job', {}).get('stage') == 'screen_batch':
+        # Per-image XLSX ZIPs have a batch manifest, not result JSON text.
+        return None
     if snapshot['media_type'] == 'application/zip':
         with zipfile.ZipFile(io.BytesIO(snapshot['export'])) as archive:
             values = [json.loads(archive.read(name)) for name in sorted(archive.namelist())

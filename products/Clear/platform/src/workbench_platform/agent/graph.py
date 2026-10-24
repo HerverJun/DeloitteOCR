@@ -7,6 +7,49 @@ from dataclasses import replace
 from .state import AgentState
 
 
+def screen_pending(result):
+    refs = result.get('job_refs', [])
+    return bool(refs) and all(ref.get('application') == 'ocr' and
+        ref.get('coverage', {}).get('kind') == 'screen_batch' for ref in refs)
+
+
+def screen_waiting(result):
+    refs = result.get('job_refs', [])
+    return bool(refs) and all(ref.get('application') == 'ocr' and
+        ref.get('coverage', {}).get('kind') in {'screen_batch', 'screen_local_candidates'} for ref in refs)
+
+
+def screen_controls(results):
+    kinds = {ref.get('coverage', {}).get('kind') for result in results for ref in result.get('job_refs', [])}
+    return [name for kind, name in (('screen_batch', 'ocr_screen_batch_control'),
+        ('screen_local_candidates', 'ocr_screen_local_candidates_control')) if kind in kinds]
+
+
+def terminal_screen_delivery(state,delivery):
+    """Only a fully accounted export scope over settled jobs can end directly."""
+    data=delivery.get('data',{})
+    if state.get('background_jobs') or not data.get('verified') or data.get('continuing_job_refs'):
+        return False
+    jobs={}
+    for message in state.get('messages',[]):
+        if message['role']!='tool':continue
+        receipt=message['result'];refs=receipt.get('job_refs',[])
+        if receipt['status'] in {'pending','needs_verification'}:return False
+        if not refs:continue
+        if not screen_pending(receipt):return False
+        coverage=receipt.get('coverage',{})
+        if receipt['status']!='success' or coverage.get('pending')!=0 or type(coverage.get('total')) is not int:
+            return False
+        for ref in refs:jobs[ref['object_id']]=coverage
+    if not jobs:return False
+    exports={item['batch_id']:item for item in data.get('screen_batch_coverage',[])}
+    return all(batch_id in exports and exports[batch_id].get('pending')==0 and
+        exports[batch_id].get('current_verified') is True and
+        exports[batch_id].get('total')==coverage['total'] and
+        exports[batch_id].get('file_count', 0)+exports[batch_id].get('settled_without_file', 0)==
+        coverage.get('completed',0)+coverage.get('needs_review',0) for batch_id,coverage in jobs.items())
+
+
 def build_graph(runtime, saver):
     StateGraph, _ = load_dependencies()
     from langgraph.graph import START, END
