@@ -134,8 +134,9 @@ class RuntimeRecoveryTests(unittest.IsolatedAsyncioTestCase):
         directory.mkdir()
         output = directory / 'answer.txt'
         output.write_text('first', encoding='utf-8')
-        state = {'working_directory': str(directory)}
-        runtime = SimpleNamespace(context=lambda _: None, registry=SimpleNamespace(dispatch=AsyncMock(return_value={})))
+        state = {'working_directory': str(directory), 'run_id': self.run['id']}
+        runtime = SimpleNamespace(store=self.runtime.store, context=lambda _: None,
+            registry=SimpleNamespace(dispatch=AsyncMock(return_value={})))
         await automatic(runtime, state, 'response-one')
         await automatic(runtime, state, 'response-two')
         calls = runtime.registry.dispatch.call_args_list

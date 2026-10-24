@@ -112,16 +112,19 @@ def check(data, descriptor):
                     from packages.contracts.multimodal import ManualAnalysis
                     internal={'gpu_request_id','worker_epoch','oom_retries','active_seconds'}
                     business_internal={'frozen_references','recovery_receipt','termination_receipt','recovery_intent'}
+                    readiness_internal={'prepare_on_success','preparation_pending','preparation_record_error'}
                     for row in rows:
                         item=json.loads(row[0])
                         if item.get('kind')=='aigc_image' and 'aigc-image-v1' not in descriptor['reader_features']:
                             raise ValueError('该候选缺少整图 AIGC 结果读取能力，不能直接降级')
+                        if set(item)&readiness_internal and 'agent-usability-v1' not in descriptor['reader_features']:
+                            raise ValueError('该候选缺少 CPU 自动准备就绪记录读取能力，不能直接降级')
                         if (any(item.get(name) for name in business_internal) or 'purpose' in item
                                 or 'reference_ids' in item.get('options',{})) and 'agent-multimodal-v1' not in descriptor['reader_features']:
                             raise ValueError('该候选缺少 Agent 多模态授权参考与恢复读取能力，不能直接降级')
                         if (set(item)&internal or 'channel' in item.get('options',{})) and 'manual-long-audio-v1' not in descriptor['reader_features']:
                             raise ValueError('该候选缺少长录音与受管任务读取能力，不能直接降级')
-                        ManualAnalysis.model_validate({key:value for key,value in item.items() if key not in internal|business_internal})
+                        ManualAnalysis.model_validate({key:value for key,value in item.items() if key not in internal|business_internal|readiness_internal})
     assets=data/'assets.sqlite3'
     if assets.is_file():
         with closing(read_database(assets)) as db:

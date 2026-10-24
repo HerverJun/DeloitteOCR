@@ -383,3 +383,155 @@ class GeneralAgentTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(runtime.store.run(run['id'])['rounds'], 3)
         finally:
             await runtime.close()
+
+
+class WorkspaceOutputTests(unittest.IsolatedAsyncioTestCase):
+    tearDown = fixtures.DataToolTests.tearDown
+
+    def setUp(self):
+        from types import SimpleNamespace
+        from workbench_platform.agent.workspace_outputs import register
+        fixtures.DataToolTests.setUp(self)
+        self.directory = Path(self.temporary.name) / 'outputs'
+        self.directory.mkdir()
+        self.state = {'run_id': self.ctx.run_id, 'working_directory': str(self.directory),
+                      'execution_contract': CONTRACT, 'workspace_baseline': {}}
+        register(self.registry)
+        self.services.agent = SimpleNamespace(graph=SimpleNamespace(load=lambda _: self.state))
+        self.runtime = SimpleNamespace(store=self.store, registry=self.registry, context=lambda _: self.ctx)
+
+    async def publish(self, paths, call_id='explicit-save'):
+        result = await self.registry.dispatch({'call_id': call_id, 'tool': 'workspace_publish_outputs',
+            'arguments': {'paths': paths}}, self.ctx)
+        self.assertEqual(result['status'], 'success', result)
+        return result
+
+    def publications(self, run_id=None):
+        return self.store.rows("SELECT * FROM operations WHERE run_id=? AND tool='workspace_publish_outputs' ORDER BY created",
+                               (run_id or self.ctx.run_id,))
+
+    def downloaded(self, result, name):
+        artifact = self.center.file('wtest', result['data']['bundle']['bundle_id'], name)
+        with self.center.store.stage_download('wtest', artifact.artifact_id,
+                expected_revision=artifact.revision, expected_hash=artifact.blob_hash) as path:
+            return path.read_bytes()
+
+    async def test_explicitly_saved_files_finish_without_a_second_publication(self):
+        from workbench_platform.agent.workspace_outputs import automatic
+        from workbench_platform.agent.general_outputs import output_links
+        (self.directory / 'answer.txt').write_text('verified 42', encoding='utf-8')
+        explicit = await self.publish(['answer.txt'])
+        outputs = await automatic(self.runtime, self.state, 'final-response')
+        self.assertEqual(len(self.publications()), 1)
+        self.assertEqual(outputs['artifact_refs'], explicit['artifact_refs'])
+        link = output_links('[结果](sandbox:/answer.txt)', outputs, 'wtest')
+        self.assertIn('/artifacts/' + explicit['data']['bundle']['bundle_id'] + '/files/answer.txt', link)
+        self.assertEqual(self.downloaded(explicit, 'answer.txt'), b'verified 42')
+
+    async def test_lost_publication_receipt_recovers_its_fixed_manifest_without_republishing(self):
+        from dataclasses import replace
+        from workbench_platform.agent.workspace_outputs import automatic, execute, PublishOutputs
+        from workbench_platform.agent.general_outputs import output_links
+        output = self.directory / 'answer.txt'
+        output.write_text('accepted before disconnect', encoding='utf-8')
+        call = {'call_id': 'accepted-output', 'tool': 'workspace_publish_outputs',
+                'arguments': {'paths': ['answer.txt']}}
+        operation, _ = self.store.begin_operation(self.ctx.run_id, 1, call)
+        accepted = execute(PublishOutputs(paths=['answer.txt']), replace(self.ctx, operation_id=operation['id']))
+        self.assertIsNone(self.publications()[0]['result'])
+        self.assertEqual(self.publications()[0]['state'], 'intent')
+        # Replay must look up the accepted operation instead of reading the
+        # workspace again. The original bundle and its manifest remain usable.
+        with unittest.mock.patch('workbench_platform.agent.workspace_outputs.output_files',
+                side_effect=AssertionError('accepted outputs must not be republished')):
+            restored = await self.registry.dispatch(call, self.ctx)
+        self.assertEqual(restored['status'], 'success', restored)
+        self.assertEqual(restored['artifact_refs'], accepted['artifact_refs'])
+        self.assertEqual(restored['data']['files'], accepted['data']['files'])
+        outputs = await automatic(self.runtime, self.state, 'recovered-final')
+        self.assertEqual(len(self.publications()), 1)
+        self.assertEqual(outputs['artifact_refs'], accepted['artifact_refs'])
+        self.assertNotIn('sandbox:/', output_links('[结果](sandbox:/answer.txt)', outputs, 'wtest'))
+        # Older recovered receipts carried only bundle+artifact_refs. Read the
+        # fixed manifest for those too, without changing the historical receipt.
+        legacy_receipt = {**restored, 'data': {'bundle': restored['data']['bundle']}}
+        self.store.finish_operation(operation['id'], legacy_receipt)
+        outputs = await automatic(self.runtime, self.state, 'legacy-recovered-final')
+        self.assertEqual(len(self.publications()), 1)
+        self.assertEqual(outputs['data']['files'][0]['sha256'], accepted['data']['files'][0]['sha256'])
+        self.assertEqual(json.loads(self.publications()[0]['result']), legacy_receipt)
+
+    async def test_partial_save_publishes_only_new_file_and_keeps_both_download_links(self):
+        from workbench_platform.agent.workspace_outputs import automatic
+        from workbench_platform.agent.general_outputs import output_links
+        (self.directory / 'first.txt').write_text('first', encoding='utf-8')
+        explicit = await self.publish(['first.txt'])
+        (self.directory / 'second.txt').write_text('second', encoding='utf-8')
+        outputs = await automatic(self.runtime, self.state, 'first-finalization')
+        rows = self.publications()
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(json.loads(rows[1]['arguments'])['paths'], ['second.txt'])
+        automatic_result = json.loads(rows[1]['result'])
+        self.assertEqual({item['path'] for item in outputs['data']['files']}, {'first.txt', 'second.txt'})
+        self.assertEqual(len(outputs['artifact_refs']), 2)
+        links = output_links('[一](sandbox:/first.txt) [二](sandbox:/second.txt)', outputs, 'wtest')
+        self.assertIn('/artifacts/' + explicit['data']['bundle']['bundle_id'] + '/files/first.txt', links)
+        self.assertIn('/artifacts/' + automatic_result['data']['bundle']['bundle_id'] + '/files/second.txt', links)
+        self.assertEqual(self.downloaded(automatic_result, 'second.txt'), b'second')
+        await automatic(self.runtime, self.state, 'second-finalization')
+        self.assertEqual(len(self.publications()), 2)
+
+    async def test_an_edit_after_explicit_save_publishes_new_bytes_and_preserves_old_bundle(self):
+        from workbench_platform.agent.workspace_outputs import automatic
+        output = self.directory / 'answer.txt'
+        output.write_text('old', encoding='utf-8')
+        explicit = await self.publish(['answer.txt'])
+        output.write_text('changed', encoding='utf-8')
+        outputs = await automatic(self.runtime, self.state, 'final-response')
+        self.assertEqual(len(self.publications()), 2)
+        self.assertNotEqual(outputs['artifact_refs'], explicit['artifact_refs'])
+        self.assertEqual(self.downloaded(explicit, 'answer.txt'), b'old')
+        self.assertEqual(self.downloaded(outputs, 'answer.txt'), b'changed')
+        await automatic(self.runtime, self.state, 'repeated-finalization')
+        self.assertEqual(len(self.publications()), 2)
+
+    async def test_failed_unknown_pending_or_unreferenced_receipts_do_not_count_as_saved(self):
+        import hashlib
+        from workbench_platform.agent.workspace_outputs import automatic
+        for index, (status, has_ref) in enumerate((('error', True), ('needs_verification', True),
+                                                  ('pending', True), ('success', False))):
+            with self.subTest(status=status, has_ref=has_ref):
+                filename = f'output-{index}.txt'
+                payload = f'bytes-{index}'.encode('utf-8')
+                (self.directory / filename).write_bytes(payload)
+                call = {'call_id': f'uncertain-{index}', 'tool': 'workspace_publish_outputs',
+                        'arguments': {'paths': [filename]}}
+                operation, _ = self.store.begin_operation(self.ctx.run_id, 1, call)
+                receipt = {'status': status, 'summary': 'unverified receipt',
+                    'artifact_refs': [{'kind': 'artifact', 'workspace_id': 'wtest', 'object_id': 'unverified', 'revision': 1}] if has_ref else [],
+                    'data': {'bundle': {'bundle_id': 'unverified'}, 'files': [{'path': filename, 'filename': filename,
+                        'sha256': hashlib.sha256(payload).hexdigest(), 'bytes': len(payload)}]}}
+                self.store.finish_operation(operation['id'], receipt)
+                before = len(self.publications())
+                await automatic(self.runtime, self.state, f'final-{index}')
+                rows = self.publications()
+                self.assertEqual(len(rows), before + 1)
+                self.assertEqual(json.loads(rows[-1]['arguments'])['paths'], [filename])
+                self.assertEqual(json.loads(self.store.rows('SELECT result FROM operations WHERE id=?',
+                    (operation['id'],))[0]['result']), receipt)
+
+    async def test_another_run_does_not_suppress_publication_or_erase_its_history(self):
+        from dataclasses import replace
+        from workbench_platform.agent.workspace_outputs import automatic
+        (self.directory / 'answer.txt').write_text('same bytes', encoding='utf-8')
+        original = await self.publish(['answer.txt'])
+        old_run = self.ctx.run_id
+        old_rows = self.publications()
+        self.store.status(old_run, 1, 'succeeded')
+        run, _ = self.store.start_run(self.ctx.session_id, 'Publish again', 'next-publish-request', 1)
+        self.ctx = replace(self.ctx, run_id=run['id'])
+        self.state['run_id'] = run['id']
+        outputs = await automatic(self.runtime, self.state, 'new-run-final')
+        self.assertEqual(len(self.publications()), 1)
+        self.assertNotEqual(outputs['artifact_refs'], original['artifact_refs'])
+        self.assertEqual(self.publications(old_run), old_rows)

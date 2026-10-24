@@ -89,7 +89,8 @@ def output_links(content, outputs, workspace_id):
     basenames = {}
     for item in paths:
         relative = item['path'].replace('\\', '/').lstrip('/')
-        url = f'/api/platform/v1/workspaces/{workspace_id}/artifacts/{bundle["bundle_id"]}/files/' + quote(item['filename'])
+        bundle_id = item.get('bundle_id') or bundle['bundle_id']
+        url = f'/api/platform/v1/workspaces/{workspace_id}/artifacts/{bundle_id}/files/' + quote(item['filename'])
         mapping[relative] = url
         basenames.setdefault(relative.rsplit('/', 1)[-1], []).append(url)
     mapping.update({name: urls[0] for name, urls in basenames.items() if len(urls) == 1})
