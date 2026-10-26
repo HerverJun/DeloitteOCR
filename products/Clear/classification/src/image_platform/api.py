@@ -249,7 +249,8 @@ def create_app(settings=None):
                 "return_url": target.return_url}
 
     @app.get("/api/v1/runtime")
-    def runtime():
+    def runtime(include_devices: bool = False, refresh_devices: bool = False):
+        from .runtime import device_readiness
         versions = {}
         for name in ("torch", "timm", "onnxruntime-gpu", "onnxruntime"):
             try:
@@ -268,6 +269,7 @@ def create_app(settings=None):
                 pass
         disk = shutil.disk_usage(settings.data_dir)
         return {"python": sys.version.split()[0], "packages": versions, "gpu": gpu,
+                **({'devices': device_readiness(refresh=refresh_devices)} if include_devices or refresh_devices else {}),
                 "data_dir": str(settings.data_dir), "free_bytes": disk.free,
                 "worker": store.one("SELECT resource,expires FROM leases WHERE resource='worker'"),
                 "note": "空闲时工作进程不占用任务租约；GPU 实际执行由训练导出验证记录确认。"}

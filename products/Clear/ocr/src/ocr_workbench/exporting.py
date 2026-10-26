@@ -10,8 +10,9 @@ from ocr_workbench.editing import validate_edit, export_markdown, export_text
 from ocr_workbench.tables import export_xlsx
 
 
-def build_export(store, keys, format, aggregate=False, confirmed_only=False, expected_results=None):
-    if not isinstance(keys, list) or not keys or len(keys) > 1000:
+def build_export(store, keys, format, aggregate=False, confirmed_only=False, expected_results=None,
+                 allow_partial=False, image_scope=None):
+    if not isinstance(keys, list) or (not keys and image_scope is None) or len(keys) > 1000:
         raise ValueError("请选择需要导出的结果（最多 1000 个）")
     if not all(isinstance(key, str) for key in keys):
         raise ValueError("结果编号无效")
@@ -21,6 +22,18 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False, exp
         raise ValueError("汇总选项必须为布尔值")
     if not isinstance(confirmed_only, bool):
         raise ValueError("仅导出已确认选项必须为布尔值")
+    if not isinstance(allow_partial, bool):
+        raise ValueError("部分导出选项必须为布尔值")
+    if allow_partial and image_scope is None:
+        raise ValueError("部分导出必须明确原图片范围")
+    if image_scope is not None:
+        if (not isinstance(image_scope, dict) or not isinstance(image_scope.get('project_id'), str)
+                or not isinstance(image_scope.get('image_ids'), list) or not image_scope['image_ids']
+                or len(image_scope['image_ids']) > 1000
+                or any(not isinstance(key, str) for key in image_scope['image_ids'])):
+            raise ValueError("导出图片范围无效（最多 1000 张）")
+        if not hasattr(store, 'transaction'):
+            raise ValueError("此数据源不支持一致的范围检查")
     keys = list(dict.fromkeys(keys))
     parent = store.root / "exports"
     parent.mkdir(exist_ok=True)
@@ -29,6 +42,8 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False, exp
     fusion_sources = []
     structure_files = []
     multimodal_files = []
+    coverage = {'schema_version': 1, 'format': format, 'confirmed_only': confirmed_only,
+                'partial_export_requested': allow_partial, 'included': [], 'excluded': []}
 
     def capture_snapshot():
         if not hasattr(store, "transaction"):
@@ -39,6 +54,39 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False, exp
         # Workbook generation runs after this transaction and releases its lock.
         with store.transaction() as db:
             db.execute("BEGIN")
+            if image_scope is not None:
+                keys.clear()
+                for image_id in dict.fromkeys(image_scope['image_ids']):
+                    photo = db.execute('SELECT * FROM images WHERE id=? AND project_id=?',
+                                       (image_id, image_scope['project_id'])).fetchone()
+                    if photo is None:
+                        raise ValueError("导出范围包含不属于当前项目的图片")
+                    target = store._review_target(db, image_id)
+                    reason = None
+                    if not target or not target['result_id']:
+                        reason = '尚无可导出的采用结果（可能等待识别、失败或已取消）'
+                    elif target['version_id'] != photo['active_version']:
+                        reason = '采用结果不属于当前图片版本，请重新识别或采用'
+                    elif confirmed_only:
+                        review = db.execute('SELECT * FROM reviews WHERE image_id=?', (image_id,)).fetchone()
+                        if (not review or review['status'] != 'confirmed' or review['result_id'] != target['result_id']
+                                or review['revision'] != target['revision'] or review['version_id'] != photo['active_version']):
+                            reason = '未确认或确认已失效'
+                    if not reason and format == 'xlsx':
+                        value = db.execute('SELECT edited FROM results WHERE id=?', (target['result_id'],)).fetchone()
+                        if not json.loads(value['edited']).get('tables'):
+                            reason = '没有结构化表格，可改用 TXT、Markdown 或 JSON'
+                    identity = {'image_id': image_id, 'image_name': photo['name'],
+                                'image_version': photo['active_version'], 'result_id': target['result_id'] if target else None}
+                    if reason:
+                        coverage['excluded'].append({**identity, 'reason': reason})
+                    else:
+                        keys.append(target['result_id'])
+                        coverage['included'].append({**identity, 'revision': target['revision']})
+                if coverage['excluded'] and not allow_partial:
+                    raise ValueError('范围内有未完成或不符合导出条件的图片，请调整范围或显式选择部分导出')
+                if not keys:
+                    raise ValueError('此范围没有符合导出条件的已完成结果')
             for index, key in enumerate(keys):
                 row = db.execute("SELECT * FROM results WHERE id=?", (key,)).fetchone()
                 if row is None:
@@ -279,6 +327,26 @@ def build_export(store, keys, format, aggregate=False, confirmed_only=False, exp
                 for source in multimodal_files:
                     archive.write(source['path'], f"sources/multimodal-{source['result_id']}.json")
                     source['path'].unlink()
+            if original_target != target:
+                original_target.unlink()
+        if image_scope is not None:
+            coverage['project_id'] = image_scope['project_id']
+            coverage['requested_count'] = len(set(image_scope['image_ids']))
+            coverage['included_count'] = len(coverage['included'])
+            coverage['excluded_count'] = len(coverage['excluded'])
+            original_target = target
+            if target.suffix != '.zip':
+                target = folder / 'OCR-scoped-export.zip'
+            with zipfile.ZipFile(target, 'a' if target == original_target else 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+                if original_target != target:
+                    archive.write(original_target, original_target.name)
+                archive.writestr('export-coverage.json', json.dumps(coverage, ensure_ascii=False, indent=2))
+                lines = ['导出范围说明', f"原范围 {coverage['requested_count']} 张；已包含 {coverage['included_count']} 张；未包含 {coverage['excluded_count']} 张。",
+                         '仅使用本次保存快照中的采用结果；已确认筛选保持有效。', '', '已包含：']
+                lines.extend(f"{item['image_name']} · 修订 {item['revision']}" for item in coverage['included'])
+                lines.append('\n未包含及原因：')
+                lines.extend(f"{item['image_name']}：{item['reason']}" for item in coverage['excluded'])
+                archive.writestr('导出范围说明.txt', '\n'.join(lines))
             if original_target != target:
                 original_target.unlink()
         for path in snapshots.values():

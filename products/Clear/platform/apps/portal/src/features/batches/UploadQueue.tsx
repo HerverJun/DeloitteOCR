@@ -9,12 +9,14 @@ export { fileSha256 } from './fileHash'
 const { Text, Paragraph } = Typography
 type UploadState = 'queued' | 'sending' | 'uncertain' | 'failed' | 'committed' | 'cancelled'
 type QueueItem = { binding: UploadBinding; state: UploadState; message?: string; asset_id?: string; receipt?: UploadReceipt; mode?: 'audio_chunks'; offset?: number }
+type NewFileChoice = { file: File; sha256: string; chunked: boolean }
 type AudioStatus = Omit<UploadStatus, 'status'> & { status: 'uploading' | 'committed' | 'cancelled' | 'rejected'; next_offset: number; chunk_bytes: number }
 const labels: Record<UploadState, string> = { queued: '未提交', sending: '上传中', uncertain: '待核实', failed: '失败', committed: '成功', cancelled: '已取消' }
 const AUDIO_MAX_BYTES = 4 * 1024 * 1024 * 1024
 const LEGACY_MAX_BYTES = 128 * 1024 * 1024
 const audioName = (name: string) => /\.(wav|mp3|m4a|flac|ogg|aac|wma)$/i.test(name)
 const unfinished = (row: QueueItem) => !['committed', 'cancelled'].includes(row.state)
+const globalFailure = (failure: unknown) => failure instanceof HttpError && ([401, 403, 408, 429].includes(failure.status) || failure.status >= 500)
 const key = (workspaceId: string) => `clear-upload-queue:${workspaceId}`
 function restored(workspaceId: string): QueueItem[] {
   try {
@@ -31,19 +33,21 @@ function restored(workspaceId: string): QueueItem[] {
 function matches(left: UploadBinding, right: UploadBinding) {
   return left.workspace_id === right.workspace_id && left.request_id === right.request_id && left.name === right.name && left.size_bytes === right.size_bytes && left.sha256 === right.sha256
 }
-export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded, compact = false, allowLargeAudio = false }: { workspaceId: string; disabled?: boolean; onBusy?: (value: boolean) => void; onUploaded?: (assetId: string) => void; compact?: boolean; allowLargeAudio?: boolean }) {
+export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded, compact = false, allowLargeAudio = false, autoUpload = false }: { workspaceId: string; disabled?: boolean; onBusy?: (value: boolean) => void; onUploaded?: (assetId: string) => void; compact?: boolean; allowLargeAudio?: boolean; autoUpload?: boolean }) {
   const client = useQueryClient()
   const [rows, setRows] = useState(() => restored(workspaceId))
   const current = useRef(rows)
   const files = useRef(new Map<string, File>())
   const active = useRef<AbortController | null>(null)
+  const busyRef = useRef(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [hashProgress, setHashProgress] = useState('')
+  const [newFiles, setNewFiles] = useState<NewFileChoice[]>([])
   useEffect(() => () => active.current?.abort(new DOMException('页面已关闭', 'AbortError')), [])
   const remember = (value: QueueItem[]) => { localStorage.setItem(key(workspaceId), JSON.stringify(value)); current.current = value; setRows(value) }
   const update = (id: string, value: Partial<QueueItem>) => remember(current.current.map(row => row.binding.request_id === id ? { ...row, ...value } : row))
-  const loading = (value: boolean) => { setBusy(value); onBusy?.(value) }
+  const loading = (value: boolean) => { busyRef.current = value; setBusy(value); onBusy?.(value) }
   const path = (binding: UploadBinding, audio = false) => `/workspaces/${encodeURIComponent(workspaceId)}/assets/${audio ? 'audio-uploads' : 'uploads'}/${encodeURIComponent(binding.request_id)}`
   const refreshAssets = () => Promise.all([client.invalidateQueries({ queryKey: ['batch-assets', workspaceId] }), client.invalidateQueries({ queryKey: ['assets', workspaceId] })])
   function committed(status: UploadStatus | AudioStatus, binding: UploadBinding) {
@@ -103,33 +107,68 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
     if (status.status === 'uploading') throw new Error('完整文件校验尚需核实，请恢复原请求')
   }
   async function add(selected: File[]) {
-    if (busy || disabled) return
+    if (busyRef.current || disabled) return
     loading(true); setError('')
+    const automatic = new Set<string>()
+    let selectionReady = false
     try {
       for (const file of selected) {
         const chunked = allowLargeAudio && audioName(file.name)
         if (!file.size || file.size > (chunked ? AUDIO_MAX_BYTES : LEGACY_MAX_BYTES)) throw new Error(`${file.name}：请选择非空且不超过 ${chunked ? '4 GiB' : '128 MB'} 的${chunked ? '音频' : ''}文件`)
         const controller = new AbortController(); active.current = controller
         const sha256 = await fileSha256(file, (done, total) => setHashProgress(`正在校验 ${file.name} · ${Math.floor(done / total * 100)}%`), controller.signal)
-        const sameName = current.current.find(row => row.binding.name === file.name && row.state !== 'cancelled')
-        if (sameName) {
-          if (sameName.binding.size_bytes !== file.size || sameName.binding.sha256 !== sha256) throw new Error(`${file.name}：名称相同但大小或 SHA256 不同，不能替换原恢复请求`)
-          files.current.set(sameName.binding.request_id, file)
+        const sameName = current.current.filter(row => row.binding.name === file.name && row.state !== 'cancelled')
+        const same = sameName.find(row => row.binding.size_bytes === file.size && row.binding.sha256 === sha256)
+        if (same) {
+          files.current.set(same.binding.request_id, file)
+          if (same.state === 'queued') automatic.add(same.binding.request_id)
+          if (autoUpload && same.state === 'committed') {
+            // Re-selecting a previous upload selects its verified original asset.
+            // A cached receipt alone is not enough to attach a file to a task.
+            try {
+              const status = await request<UploadStatus | AudioStatus>(path(same.binding, same.mode === 'audio_chunks'))
+              if (!committed(status, same.binding)) throw new Error('原上传尚未确认，请核实后继续')
+            } catch (failure) {
+              update(same.binding.request_id, { state: 'uncertain', message: (failure as Error).message })
+              throw failure
+            }
+          }
+        } else if (sameName.length) {
+          setNewFiles(old => old.some(item => item.file.name === file.name && item.sha256 === sha256 && item.file.size === file.size) ? old : [...old, { file, sha256, chunked }])
         } else {
-          const binding: UploadBinding = { schema_version: '1.0', workspace_id: workspaceId, request_id: newRequestId(), name: file.name, size_bytes: file.size, sha256 }
-          files.current.set(binding.request_id, file)
-          remember([...current.current, { binding, state: 'queued', ...(chunked ? { mode: 'audio_chunks' as const, offset: 0 } : {}) }])
+          automatic.add(enqueue({ file, sha256, chunked }))
         }
       }
+      selectionReady = true
     } catch (failure) { setError((failure as Error).message) }
     finally { active.current = null; setHashProgress(''); loading(false) }
+    // Only this explicit selection's never-submitted files start automatically.
+    // Existing failed or uncertain requests still require deliberate recovery.
+    if (autoUpload && selectionReady && automatic.size) await upload(automatic)
   }
-  async function upload() {
-    if (busy || disabled) return
+  function enqueue({ file, sha256, chunked }: NewFileChoice) {
+    const binding: UploadBinding = { schema_version: '1.0', workspace_id: workspaceId, request_id: newRequestId(), name: file.name, size_bytes: file.size, sha256 }
+    files.current.set(binding.request_id, file)
+    remember([...current.current, { binding, state: 'queued', ...(chunked ? { mode: 'audio_chunks' as const, offset: 0 } : {}) }])
+    return binding.request_id
+  }
+  async function addAsNew(choice: NewFileChoice) {
+    if (busyRef.current || disabled) return
+    const id = enqueue(choice)
+    setNewFiles(old => old.filter(item => item !== choice))
+    await upload(new Set([id]))
+  }
+  function removeQueued(row: QueueItem) {
+    if (busyRef.current || disabled || row.mode || row.state !== 'queued') return
+    update(row.binding.request_id, { state: 'cancelled', message: '已移出，未提交文件' })
+    files.current.delete(row.binding.request_id)
+  }
+  async function upload(only?: ReadonlySet<string>) {
+    if (busyRef.current || disabled) return
     loading(true); setError('')
     try {
       for (const original of [...current.current]) {
-        if (!unfinished(original)) continue
+        if (!unfinished(original) || only && !only.has(original.binding.request_id)) continue
         const binding = original.binding
         const controller = new AbortController(); active.current = controller
         try {
@@ -137,11 +176,12 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
           if (original.state !== 'queued') {
             try {
               const status = await request<UploadStatus>(path(binding))
-              if (committed(status, binding)) { await refreshAssets(); continue }
+              if (committed(status, binding)) { await refreshAssets(); if (controller.signal.aborted) break; continue }
               if (!matches(status.binding, binding)) throw new Error('服务保存的原请求元数据不一致，不能重复提交')
               if (status.status === 'rejected' && status.error?.details.effect !== 'no_registration') throw new Error('服务尚未证明未登记，请继续核实原请求')
             } catch (failure) { if (!(failure instanceof HttpError) || failure.status !== 404) throw failure }
           }
+          controller.signal.throwIfAborted()
           const file = files.current.get(binding.request_id)
           if (!file) throw new Error(`${binding.name}：重选原文件后继续，必须匹配名称、大小和 SHA256`)
           update(binding.request_id, { state: 'sending', message: undefined })
@@ -149,17 +189,26 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
           const status = await request<UploadStatus>(`${path(binding)}?${query}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file, signal: controller.signal })
           if (!committed(status, binding)) throw new Error(status.error?.message || '上传尚未完成，请核实同一请求')
           await refreshAssets()
+          if (controller.signal.aborted) break
         } catch (failure) {
+          let stopQueue = globalFailure(failure)
           // A lost response may already have registered the asset. Query before presenting a retry.
           try {
             const status = await request<UploadStatus | AudioStatus>(path(binding, original.mode === 'audio_chunks'))
-            if (committed(status, binding)) { await refreshAssets(); if (controller.signal.aborted) break; continue }
+            if (committed(status, binding)) {
+              await refreshAssets()
+              if (controller.signal.aborted) break
+              if (stopQueue) { setError('上传已暂停，请恢复连接或项目权限后继续。' + (failure as Error).message); break }
+              continue
+            }
             if (status.status === 'cancelled') update(binding.request_id, { state: 'cancelled', message: '上传已取消' })
             else update(binding.request_id, { state: status.status === 'rejected' ? 'failed' : 'uncertain', ...('next_offset' in status ? { offset: status.next_offset } : {}), message: controller.signal.aborted ? '已暂停；恢复时先核实已确认位置' : status.error?.message || (failure as Error).message })
           } catch (verification) {
             update(binding.request_id, { state: verification instanceof HttpError && verification.status === 404 ? 'failed' : 'uncertain', message: (failure as Error).message })
+            stopQueue ||= !(verification instanceof HttpError && verification.status === 404)
           }
-          break
+          if (controller.signal.aborted) break
+          if (stopQueue) { setError('上传已暂停，请恢复连接或项目权限后继续。' + (failure as Error).message); break }
         }
       }
     } finally { active.current = null; loading(false) }
@@ -184,19 +233,31 @@ export function UploadQueue({ workspaceId, disabled = false, onBusy, onUploaded,
   const success = rows.filter(row => row.state === 'committed').length
   const failed = rows.filter(row => row.state === 'failed' || row.state === 'uncertain').length
   const waiting = rows.filter(row => row.state === 'queued').length
-  return <div className="batch-upload-queue"><Space wrap><label className="batch-upload">{busy ? '核实 / 上传资料中…' : rows.some(unfinished) ? '添加或重选原文件' : '添加新资料'}
+  const attachmentView = compact && autoUpload
+  const friendlySize = (bytes: number) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : bytes >= 1024 ? `${Math.ceil(bytes / 1024)} KB` : `${bytes} B`
+  return <div className="batch-upload-queue"><Space wrap><label className="batch-upload">{busy ? '核实 / 上传资料中…' : rows.some(unfinished) ? '添加或重选原文件' : autoUpload ? '选择文件' : '添加新资料'}
     <input aria-label={compact ? '添加审计资料' : '添加批次资料'} type="file" multiple disabled={disabled || busy} onChange={event => { const selected = Array.from(event.target.files || []); event.target.value = ''; if (selected.length) void add(selected) }} /></label>
-    <Button disabled={disabled || busy || !rows.some(unfinished)} onClick={() => void upload()}>{failed ? '核实并恢复失败与未提交' : '上传未提交资料'}</Button>
+    {(!autoUpload || rows.some(unfinished) && !busy) && <Button disabled={disabled || busy || !rows.some(unfinished)} onClick={() => void upload()}>{failed ? attachmentView ? '核实并继续上传' : '核实并恢复失败与未提交' : '上传未提交资料'}</Button>}
     {busy && <Button onClick={() => active.current?.abort(new DOMException('已暂停', 'AbortError'))}>暂停上传 / 校验</Button>}
-    {!!rows.length && <Text>成功 {success} · 失败 / 待核实 {failed} · 未提交 {waiting}</Text>}
-    {!!rows.length && !rows.some(unfinished) && <Button disabled={busy || disabled} onClick={() => { remember([]); files.current.clear() }}>清除已完成上传记录</Button>}</Space>
+    {!attachmentView && !!rows.length && <Text>成功 {success} · 失败 / 待核实 {failed} · 未提交 {waiting}</Text>}
+    {!attachmentView && !!rows.length && !rows.some(unfinished) && <Button disabled={busy || disabled} onClick={() => { remember([]); files.current.clear() }}>清除已完成上传记录</Button>}</Space>
     {hashProgress && <Text role="status">{hashProgress}</Text>}
     {error && <Alert type="error" title={error} />}
-    {!!rows.length && <><Table<QueueItem> size="small" rowKey={row => row.binding.request_id} dataSource={rows} pagination={false}
+    {newFiles.map(choice => <Alert key={`${choice.file.name}:${choice.sha256}`} type="info" title={`${choice.file.name}：与已有同名文件内容不同`}
+      description="可以作为新资料添加。已有原件和待核实的上传请求都会保留。"
+      action={<Space wrap><Button disabled={disabled || busy} onClick={() => void addAsNew(choice)}>作为新资料上传</Button><Button disabled={busy} onClick={() => setNewFiles(old => old.filter(item => item !== choice))}>取消添加</Button></Space>} />)}
+    {!!rows.length && <>{attachmentView ? <ul className="agent-attachment-upload-list" aria-label="上传文件列表">{rows.map(row => <li key={row.binding.request_id}>
+      <div className="agent-attachment-upload-summary"><div><span className="agent-attachment-upload-name">{row.binding.name}</span><small>{friendlySize(row.binding.size_bytes)}</small></div>
+        <Tag color={row.state === 'committed' ? 'success' : row.state === 'failed' ? 'error' : row.state === 'uncertain' ? 'warning' : 'default'}>{row.state === 'committed' ? '已上传' : labels[row.state]}</Tag></div>
+      {(row.state === 'failed' || row.state === 'uncertain') && row.message && <p className="agent-attachment-upload-note">{row.message}</p>}
+      {!row.mode && row.state === 'queued' && <Button size="small" disabled={busy || disabled} onClick={() => removeQueued(row)}>移出本次上传</Button>}
+      {row.mode === 'audio_chunks' && unfinished(row) && <Space wrap><Text>{Math.floor((row.offset || 0) / row.binding.size_bytes * 100)}% 已确认</Text><Button size="small" disabled={busy || disabled} onClick={() => void cancel(row)}>取消此上传</Button></Space>}
+    </li>)}</ul> : <Table<QueueItem> size="small" rowKey={row => row.binding.request_id} dataSource={rows} pagination={false}
       columns={[{ title: '文件', key: 'name', render: (_, row) => row.binding.name }, { title: '大小', key: 'size', render: (_, row) => `${row.binding.size_bytes.toLocaleString()} 字节` },
         { title: '上传状态', key: 'state', render: (_, row) => <Tag color={row.state === 'committed' ? 'success' : row.state === 'failed' ? 'error' : 'default'}>{labels[row.state]}</Tag> },
-        { title: '恢复说明', key: 'recovery', render: (_, row) => <Space wrap>{row.mode === 'audio_chunks' && <Text>{Math.floor((row.offset || 0) / row.binding.size_bytes * 100)}% 已确认</Text>}{row.message}{row.mode === 'audio_chunks' && unfinished(row) && <Button size="small" disabled={busy || disabled} onClick={() => void cancel(row)}>取消此上传</Button>}</Space> }]} />
+        { title: '恢复说明', key: 'recovery', render: (_, row) => <Space wrap>{row.mode === 'audio_chunks' && <Text>{Math.floor((row.offset || 0) / row.binding.size_bytes * 100)}% 已确认</Text>}{row.message}{!row.mode && row.state === 'queued' && <Button size="small" disabled={busy || disabled} onClick={() => removeQueued(row)}>移出本次上传</Button>}{row.mode === 'audio_chunks' && unfinished(row) && <Button size="small" disabled={busy || disabled} onClick={() => void cancel(row)}>取消此上传</Button>}</Space> }]} />}
       {allowLargeAudio && <Paragraph type="secondary">音频支持最多 4 GiB，并可断点续传；其他资料仍限 128 MB。暂停保留进度，取消释放临时文件。</Paragraph>}
-      <Paragraph type="secondary">{compact ? '上传成功的资料可直接加入当前任务。上传中断后可在这里继续。' : '成功项保留；发生问题时后续文件暂不提交。页面重载后，原文件需重新选择，名称、大小和 SHA256 必须一致。恢复先核实原请求，再只继续必要文件。'}</Paragraph></>}
+      {!attachmentView && <Paragraph type="secondary">{compact ? '上传成功的资料可直接加入当前任务。上传中断后可在这里继续。' : '成功项保留；单个文件失败不影响其它文件，连接或权限异常时暂停整批。页面重载后需重选原文件，恢复时先核实原请求。'}</Paragraph>}
+      {attachmentView && failed > 0 && <Paragraph type="secondary">未确认的文件可在这里核实后继续，已上传的文件不会重复提交。</Paragraph>}</>}
   </div>
 }

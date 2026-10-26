@@ -12,6 +12,7 @@ import { useSession } from '../tasks/session'
 import { ToolGlyph } from '../catalog/ToolIdentity'
 import { toolCatalog } from '../catalog/toolCatalog'
 import { statusLabels } from '../agent/statusLabels'
+import { taskIntents } from './taskIntents'
 import type { AuditTask } from '../agent/api'
 import './home.css'
 
@@ -20,6 +21,12 @@ export function PortalHome() {
   const location = useLocation(), workspaceId = useWorkspaceId(), workspaces = useWorkspaces(), { user } = useSession()
   const selected = workspaces.data?.find(item => item.workspace_id === workspaceId)
   const href = (path: string) => navigationHref(path, location.search)
+  const intentHref = (intent: string) => {
+    const next = new URL(href('/agent'), window.location.origin)
+    next.searchParams.delete('session'); next.searchParams.delete('task_return')
+    next.searchParams.set('intent', intent)
+    return `${next.pathname}${next.search}`
+  }
   const visits = useRecentVisits(user?.id || 'single').filter(item => !item.workspace || workspaces.data?.some(project => project.workspace_id === item.workspace))
   const overview = useQuery({ queryKey: ['audit-overview', workspaceId], enabled: !!workspaceId,
     queryFn: async ({ signal }) => {
@@ -33,7 +40,7 @@ export function PortalHome() {
     <header className="home-heading"><div><span className="eyebrow">CLEAR WORKSPACE</span><h1>开始今天的工作</h1><p>{selected ? selected.name : '继续已有工作，或把一个新需求交给 Agent。'}</p></div>
       <Link className="home-start" to={href('/agent')}><PlusOutlined aria-hidden="true" />新任务<ArrowRightOutlined aria-hidden="true" /></Link></header>
     <section className="home-quick-start" aria-labelledby="home-start-title"><div><span className="home-section-label">AGENT</span><h2 id="home-start-title">你想完成什么？</h2><p>问一个问题、处理文件，或调用专业工具完成分析。</p></div>
-      <div className="home-intents">{[['解释与整理', '读取资料，概括重点并解释内容。'], ['文件与表格', '清洗数据、计算和生成可下载文件。'], ['审计与核对', '对照来源，整理差异和底稿草稿。']].map(([title, text]) => <Link key={title} to={href('/agent')}><strong>{title}</strong><span>{text}</span><ArrowRightOutlined aria-hidden="true" /></Link>)}</div></section>
+      <div className="home-intents">{taskIntents.map(intent => <Link key={intent.id} to={intentHref(intent.id)}><strong>{intent.title}</strong><span>{intent.description}</span><ArrowRightOutlined aria-hidden="true" /></Link>)}</div></section>
     <div className="home-work-grid"><section className="home-section" aria-labelledby="home-continue-title"><header><h2 id="home-continue-title"><ClockCircleOutlined aria-hidden="true" />继续工作</h2>{workspaceId && <Link to={href('/agent')}>全部任务<ArrowRightOutlined aria-hidden="true" /></Link>}</header>
       {workspaceId ? overview.isPending ? <Skeleton active paragraph={{ rows: 3 }} /> : overview.error ? <Alert type="error" title={overview.error.message} action={<Button onClick={() => void overview.refetch()}>重试</Button>} /> :
         overview.data?.tasks.items.length ? <div className="home-work-list">{overview.data.tasks.items.slice(0, 6).map(task => <Link key={task.id} to={`/agent?workspace=${encodeURIComponent(workspaceId)}&session=${encodeURIComponent(task.id)}`}><span><strong>{task.title}</strong><small>Agent 任务</small></span><Tag>{statusLabels[task.status] || task.status}</Tag><ArrowRightOutlined aria-hidden="true" /></Link>)}</div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前项目还没有任务，从新任务开始" /> :

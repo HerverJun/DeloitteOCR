@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Card, Empty, Form, Input, InputNumber, Modal, Select, Space, Table, Tag, Typography } from 'antd';
 import { DownloadOutlined, ExperimentOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { api, post, base, dateText, type Dataset, type Model } from '../api';
 import { useCommand, QueryError, type PanelProps } from '../workbench';
+import { DeviceReadiness, useDeviceReadiness } from './DeviceReadiness';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -13,14 +14,17 @@ export function TrainPanel({ project, navigate }: PanelProps) {
   const [form] = Form.useForm();
   const [versionForm] = Form.useForm();
   const method = Form.useWatch('head_method', form);
+  const device = Form.useWatch('device', form) || 'cuda';
+  const runtime = useDeviceReadiness(true, device);
   const command = useCommand();
+  useEffect(() => { if (datasets.data?.length && !form.getFieldValue('dataset_id')) form.setFieldValue('dataset_id', datasets.data[0].id); }, [datasets.data, form]);
 
   async function createDataset(values: { name: string; seed: number }) {
     const result = await command.run(() => post<Dataset>(`/projects/${project.id}/dataset-versions`, values), '数据版本已冻结');
     if (result) { setDatasetOpen(false); form.setFieldValue('dataset_id', result.id); versionForm.resetFields(); }
   }
   async function train(values: unknown) {
-    const result = await command.run(() => post(`/projects/${project.id}/experiments`, values), '训练任务已提交，可在任务中心查看进度');
+    const result = await command.run(async () => { await runtime.verifyDevice('training'); return post(`/projects/${project.id}/experiments`, values); }, '训练任务已提交，可在任务中心查看进度');
     if (result) navigate('jobs');
   }
   return <>
@@ -30,17 +34,21 @@ export function TrainPanel({ project, navigate }: PanelProps) {
       <div className="training-core-fields">
       <Form.Item name="dataset_id" label="数据版本" rules={[{ required: true, message: '请先发布并选择数据版本' }]}><Select placeholder="选择不可变的数据快照" options={datasets.data?.map(dataset => ({ label: `${dataset.name} · ${dataset.stats.total} 张`, value: dataset.id }))} /></Form.Item>
       <Form.Item name="encoder" label="预训练编码器"><Select options={[{ label: 'ResNet18 · 速度与效果基线', value: 'resnet18' }, { label: 'DINOv2 ViT-S/14 · 通用视觉特征', value: 'dinov2' }, { label: 'MobileNetV4 Conv-S · 小体积', value: 'mobilenetv4' }, { label: 'RepViT M0.9 · 轻量视觉特征', value: 'repvit' }]} /></Form.Item>
-      <Form.Item className="full-width" name="head_method" label="分类头方法" extra="正则化搜索只用验证集选择 C；无需设置训练轮数。"><Select options={[{ label: 'AdamW 线性分类头 · 基线', value: 'adamw' }, { label: '逻辑回归 · 验证集正则化搜索', value: 'logistic_cv' }]} /></Form.Item>
-      </div><div className="training-parameter-grid">
-      <Form.Item name="input_size" label="输入分辨率"><Select options={[{ label: '224 × 224', value: 224 }, { label: '336 × 336', value: 336 }]} /></Form.Item>
       <Form.Item name="device" label="计算设备"><Select options={[{ label: 'NVIDIA GPU', value: 'cuda' }, { label: 'CPU（较慢）', value: 'cpu' }]} /></Form.Item>
+      </div>
+      <Paragraph type="secondary">推荐从 ResNet18、224 × 224、AdamW 基线开始；优先选中最新数据版本。可展开调整训练参数。</Paragraph>
+      {!datasets.isPending && !datasets.data?.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="先导入图片并标注，再发布数据版本"><Space><Button onClick={() => navigate('assets')}>准备图片与标签</Button><Button onClick={() => setDatasetOpen(true)}>发布数据版本</Button></Space></Empty>}
+      <DeviceReadiness runtime={runtime.data} kind="training" device={device} loading={runtime.isPending} error={runtime.error} refresh={() => { void runtime.refreshDevices(); }} />
+      <details className="training-advanced"><summary>高级训练参数</summary><div className="training-parameter-grid">
+      <Form.Item className="full-width" name="head_method" label="分类头方法" extra="正则化搜索只用验证集选择 C；无需设置训练轮数。"><Select options={[{ label: 'AdamW 线性分类头 · 基线', value: 'adamw' }, { label: '逻辑回归 · 验证集正则化搜索', value: 'logistic_cv' }]} /></Form.Item>
+      <Form.Item name="input_size" label="输入分辨率"><Select options={[{ label: '224 × 224', value: 224 }, { label: '336 × 336', value: 336 }]} /></Form.Item>
       <Form.Item name="epochs" label="分类头训练轮数"><InputNumber disabled={method === 'logistic_cv'} min={1} max={500} style={{ width: '100%' }} /></Form.Item>
       <Form.Item name="batch_size" label="特征提取批大小"><Select options={[8, 16, 32, 64].map(value => ({ label: `${value} 张`, value }))} /></Form.Item>
       <Form.Item name="seed" label="随机种子"><InputNumber min={0} max={2147483647} style={{ width: '100%' }} /></Form.Item>
       <Form.Item name="minimum_precision" label="验证集精确率目标"><InputNumber min={0.5} max={1} step={0.01} style={{ width: '100%' }} /></Form.Item>
-      </div>
+      </div></details>
       <Alert type="info" showIcon message="首次训练会下载预训练权重。该精确率目标用于选阈值，不是业务效果承诺。" />
-      <Button htmlType="submit" type="primary" size="large" block icon={<ExperimentOutlined />} loading={command.busy} className="start-training">开始训练并导出 ONNX</Button>
+      <Button htmlType="submit" type="primary" size="large" block icon={<ExperimentOutlined />} disabled={!datasets.data?.length || device === 'cuda' && (runtime.isPending || !!runtime.error) || runtime.data?.devices?.training[device as 'cpu' | 'cuda'].available === false || runtime.data?.devices?.inference[device as 'cpu' | 'cuda'].available === false} loading={command.busy} className="start-training">开始训练并导出 ONNX</Button>
     </Form></Card><div className="training-side"><Card title="数据版本"><Table<Dataset> rowKey="id" dataSource={datasets.data} loading={datasets.isPending} pagination={false} size="small" locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="先为每类准备至少 3 个独立来源组" /> }} columns={[{ title: '版本', dataIndex: 'name', render: (value, row) => <div><strong>{value}</strong><div><Text type="secondary">{dateText(row.created_at)}</Text></div></div> }, { title: '划分', render: (_, row) => <Space direction="vertical" size={2}><Text>训练 {row.stats.splits.train}</Text>{row.stats.holdout_policy?.startsWith('external') && <Tag>外部固定划分</Tag>}<Text type="secondary">验证 {row.stats.splits.val} / 测试 {row.stats.splits.test}</Text></Space> }]} /></Card><Card title="实验会保留什么" className="quiet-card"><ul className="check-list"><li><CheckCircleOutlined /> 样本、类别和来源分组快照</li><li><CheckCircleOutlined /> 预训练权重、预处理与环境版本</li><li><CheckCircleOutlined /> 各类指标与混淆矩阵</li><li><CheckCircleOutlined /> ONNX 数值、类别与接受状态校验</li></ul><Paragraph type="secondary">少样本指标会有较大波动。模型选择使用验证集；最终业务报告需要保留独立测试数据。</Paragraph></Card></div></div>
     <Modal title="发布数据版本" open={datasetOpen} onCancel={() => setDatasetOpen(false)} footer={null}><Paragraph type="secondary">将当前已标注图片冻结为快照，按来源分组划分训练、验证与测试集合。后续改标签不会改变此版本。</Paragraph><Form form={versionForm} layout="vertical" initialValues={{ seed: 42 }} onFinish={createDataset}><Form.Item name="name" label="版本名称" rules={[{ required: true }]}><Input placeholder="例如：首批样本 v1" /></Form.Item><Form.Item name="seed" label="划分种子"><InputNumber min={0} max={2147483647} /></Form.Item><div className="modal-actions"><Button onClick={() => setDatasetOpen(false)}>取消</Button><Button type="primary" htmlType="submit" loading={command.busy}>冻结并发布</Button></div></Form></Modal>
   </>;

@@ -79,7 +79,8 @@ class ApplicationServices:
                 return build_pdf_export(self.store, self.documents, body)
             from ocr_workbench.exporting import build_export
             return build_export(self.store, body.get("result_ids", []), body.get("format"), body.get("aggregate", False),
-                                confirmed_only=body.get("confirmed_only", False), expected_results=body.get("expected_results"))
+                                confirmed_only=body.get("confirmed_only", False), expected_results=body.get("expected_results"),
+                                allow_partial=body.get("allow_partial", False), image_scope=body.get("image_scope"))
 
     def search_document(self, key, q, offset=0, limit=50):
         self.store.one("documents", key)

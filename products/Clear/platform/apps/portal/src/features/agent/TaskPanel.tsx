@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { CheckOutlined, DownloadOutlined, FileOutlined, InfoCircleOutlined, ProfileOutlined } from '@ant-design/icons'
-import { Button, Empty, Input, List, Tag, Typography } from 'antd'
+import { Alert, Button, Empty, Input, List, Tag, Typography } from 'antd'
 import { Link } from 'react-router-dom'
 import type { AuditTask, AgentRef, AgentEvent } from './api'
 import { referencePath } from './referencePath'
@@ -121,7 +121,13 @@ export function TaskPanel({ task, events = emptyEvents, projection, view: provid
   </aside>
 }
 
-export function RecentTasks({ tasks, current, choose, keyword, search }: { tasks: AuditTask[]; current: string | null; choose: (id: string) => void; keyword: string; search: (value: string) => void }) {
+export function RecentTasks({ tasks, current, choose, keyword, search, hasProject = true, loading = false, error, retry, unavailable = false }: {
+  tasks: AuditTask[]; current: string | null; choose: (id: string) => void; keyword: string; search: (value: string) => void;
+  hasProject?: boolean; loading?: boolean; error?: Error | null; retry?: () => void; unavailable?: boolean
+}) {
+  if (!hasProject) return <Typography.Paragraph>选择项目后查看并继续已有任务。</Typography.Paragraph>
+  if (error) return <Alert type="error" title="暂时无法读取最近任务" description={error.message} action={<Button onClick={retry}>重试读取任务</Button>} />
+  if (unavailable) return <Alert type="info" title="任务服务暂不可用" description="已有任务保留，恢复服务后可继续读取。" action={<Button onClick={retry}>重试读取任务</Button>} />
   return <><Input.Search aria-label="查找任务" placeholder="查找任务" value={keyword} onChange={event => search(event.target.value)} />
-    <List dataSource={tasks} locale={{ emptyText: '本项目还没有任务' }} renderItem={item => <List.Item><Button type={current === item.id ? 'primary' : 'text'} onClick={() => choose(item.id)}>{item.title}</Button><Tag>{statusLabels[item.status] || item.status}</Tag></List.Item>} /></>
+    {loading ? <Typography.Paragraph role="status">正在读取最近任务…</Typography.Paragraph> : <List dataSource={tasks} locale={{ emptyText: keyword.trim() ? '没有匹配的任务，请换个关键词' : '本项目还没有任务' }} renderItem={item => <List.Item><Button type={current === item.id ? 'primary' : 'text'} onClick={() => choose(item.id)}>{item.title}</Button><Tag>{statusLabels[item.status] || item.status}</Tag></List.Item>} />}</>
 }

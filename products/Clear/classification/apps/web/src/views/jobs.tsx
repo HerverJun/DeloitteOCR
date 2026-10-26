@@ -4,6 +4,7 @@ import { App, Alert, Button, Card, Checkbox, Empty, Form, Input, Modal, Paginati
 import { DownloadOutlined, PauseOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, StopOutlined, CheckOutlined, ClockCircleOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { api, post, base, stateLabels, kindLabels, activeStates, dateText, type Job, type Model, type Result } from '../api';
 import { QueryError, useCommand, type PanelProps } from '../workbench';
+import { DeviceReadiness, useDeviceReadiness } from './DeviceReadiness';
 
 const { Title, Text, Paragraph } = Typography;
 const colors: Record<string, string> = { queued: 'default', running: 'processing', pausing: 'warning', paused: 'warning',
@@ -33,6 +34,8 @@ export function JobsPanel({ project }: PanelProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [tab, setTab] = useState('results');
   const [form] = Form.useForm();
+  const device = Form.useWatch('device', form) || 'cuda';
+  const runtime = useDeviceReadiness(createOpen, device);
   const command = useCommand();
   const current = jobs.data?.find(job => job.id === selected?.id) ?? selected;
   const logs = useQuery({ queryKey: ['logs', current?.id], queryFn: () => api<{ text: string }>(`/jobs/${current!.id}/logs`), enabled: !!current && tab === 'logs', refetchInterval: current && activeStates.includes(current.state) ? 2500 : false });
@@ -41,7 +44,7 @@ export function JobsPanel({ project }: PanelProps) {
     await command.run(() => post(`/jobs/${job.id}/actions`, { action }), '操作已提交');
   }
   async function create(values: unknown) {
-    const result = await command.run(() => post<{ job_id: string }>(`/projects/${project.id}/batch-jobs`, values), '分类任务已创建');
+    const result = await command.run(async () => { await runtime.verifyDevice('inference'); return post<{ job_id: string }>(`/projects/${project.id}/batch-jobs`, values); }, '分类任务已创建');
     if (result) setCreateOpen(false);
   }
 
@@ -72,9 +75,10 @@ export function JobsPanel({ project }: PanelProps) {
         <Form.Item name="model_id" label="模型版本" rules={[{ required: true, message: '请选择可用模型' }]}><Select placeholder="选择模型" options={models.data?.map(model => ({ label: model.name, value: model.id }))} /></Form.Item>
         <Form.Item name="scope" label="图片范围"><Select options={[{ label: '未标注图片', value: 'unlabeled' }, { label: '项目内全部图片', value: 'all' }]} /></Form.Item>
         <div className="form-two-columns"><Form.Item name="batch_size" label="批大小"><Select options={[8, 16, 32, 64].map(value => ({ label: `${value} 张`, value }))} /></Form.Item><Form.Item name="device" label="设备"><Select options={[{ label: 'NVIDIA GPU', value: 'cuda' }, { label: 'CPU', value: 'cpu' }]} /></Form.Item></div>
+        <DeviceReadiness runtime={runtime.data} kind="inference" device={device} loading={runtime.isPending} error={runtime.error} refresh={() => { void runtime.refreshDevices(); }} />
         <Form.Item name="auto_accept" valuePropName="checked"><Checkbox>按验证集阈值自动接受结果（试验）</Checkbox></Form.Item>
         <Alert type="info" message="默认所有结果进入待复核。开启自动接受后仍需独立抽查；分数不是正确率保证。" showIcon />
-        <div className="modal-actions"><Button onClick={() => setCreateOpen(false)}>取消</Button><Button type="primary" htmlType="submit" loading={command.busy}>开始分类</Button></div>
+        <div className="modal-actions"><Button onClick={() => setCreateOpen(false)}>取消</Button><Button type="primary" htmlType="submit" disabled={device === 'cuda' && (runtime.isPending || !!runtime.error) || runtime.data?.devices?.inference[device as 'cpu' | 'cuda'].available === false} loading={command.busy}>开始分类</Button></div>
       </Form>
     </Modal>
   </>;

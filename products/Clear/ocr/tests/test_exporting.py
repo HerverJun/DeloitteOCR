@@ -252,6 +252,50 @@ class ExportSnapshotTests(unittest.TestCase):
         self.assertEqual(book['来源索引']['C2'].value, 'a.png')
         self.assertEqual(book['来源索引']['L2'].value, '0')
 
+    def test_explicit_partial_export_keeps_scope_and_omission_reasons_in_every_format(self):
+        from ocr_workbench.imaging import add_image
+        from PIL import Image
+        source = self.store.root.parent / 'waiting.png'
+        Image.new('RGB', (3, 3), 'white').save(source)
+        missing = add_image(self.store, self.project['id'], 'waiting.png', source)
+        scope = {'project_id': self.project['id'], 'image_ids': [p['id'] for p in self.photos] + [missing['id']]}
+        for format in ['txt', 'md', 'json', 'xlsx']:
+            target = build_export(self.store, [], format, allow_partial=True, image_scope=scope)
+            with zipfile.ZipFile(target) as archive:
+                coverage = json.loads(archive.read('export-coverage.json'))
+                self.assertEqual((coverage['requested_count'], coverage['included_count'], coverage['excluded_count']), (3, 2, 1))
+                self.assertEqual(coverage['excluded'][0]['image_name'], 'waiting.png')
+                self.assertIn('尚无', coverage['excluded'][0]['reason'])
+                self.assertIn('waiting.png', archive.read('导出范围说明.txt').decode('utf-8'))
+                self.assertEqual(len([n for n in archive.namelist() if n.endswith('.' + format) and n != 'export-coverage.json' and n != '导出范围说明.txt']), 2)
+
+    def test_partial_excel_omits_no_table_without_changing_confirmed_filter(self):
+        key = self.keys[1]
+        result = self.store.result(key)
+        self.store.save(key, {**result['edited'], 'tables': []}, result['revision'])
+        scope = {'project_id': self.project['id'], 'image_ids': [p['id'] for p in self.photos]}
+        for confirmed, reason in [(False, '没有结构化表格'), (True, '未确认或确认已失效')]:
+            path = build_export(self.store, [], 'xlsx', aggregate=True, confirmed_only=confirmed, allow_partial=True, image_scope=scope)
+            with zipfile.ZipFile(path) as archive:
+                coverage = json.loads(archive.read('export-coverage.json'))
+                self.assertEqual(coverage['included_count'], 1)
+                self.assertIn(reason, coverage['excluded'][0]['reason'])
+                self.assertEqual(load_workbook(io.BytesIO(archive.read('OCR-tables.xlsx')))['Table 1']['A1'].value, '0001')
+
+    def test_partial_export_does_not_take_other_candidate_or_cross_project_scope(self):
+        scope = {'project_id': self.project['id'], 'image_ids': [p['id'] for p in self.photos]}
+        with self.store.transaction() as db:
+            db.execute('UPDATE images SET active_version=? WHERE id=?', ('different-version', self.photos[1]['id']))
+        path = build_export(self.store, [self.keys[1]], 'json', allow_partial=True, image_scope=scope)
+        with zipfile.ZipFile(path) as archive:
+            coverage = json.loads(archive.read('export-coverage.json'))
+            self.assertEqual(coverage['included'][0]['result_id'], self.keys[0])
+            self.assertIn('不属于当前图片版本', coverage['excluded'][0]['reason'])
+        with self.assertRaisesRegex(ValueError, '不属于当前项目'):
+            build_export(self.store, [], 'json', allow_partial=True, image_scope={**scope, 'project_id': 'other-project'})
+        with self.assertRaisesRegex(ValueError, '显式选择部分导出'):
+            build_export(self.store, [], 'json', image_scope=scope)
+
 
 if __name__ == "__main__":
     unittest.main()

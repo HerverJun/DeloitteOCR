@@ -1,6 +1,6 @@
 # Clear 智能审计使用说明
 
-本机固定入口为 `F:\OCR\release\Clear\启动智能审计.cmd`，状态与停止由同目录 `product-entry.ps1` 提供。候选和共享资产由 `current.json` 登记；启动检查文件身份、数据库结构/迁移版本和记录读取能力。共享模型继续复用，工作区与所有缓存、日志、临时文件留在 F 盘。
+**当前源码尚未定版、尚未正式发布。** 本机已有源码预览使用 [8992 首页](http://127.0.0.1:8992/)，该地址不自动代表最新源码或构建；使用前核对实际进程、原生服务、静态资源和 DATA。历史 `current.json`、8879 及“启动智能审计.cmd”不再作为现行正式入口建议。共享模型继续复用，工作区与所有缓存、日志、临时文件留在 F 盘。
 
 主导航收为智能审计、审计项目、手动工具，设置为次级入口。项目只在全局选择一次；输入目标、添加资料、发送即可开始。背景、规则、计划、技能调整在可收起的任务详情中。浏览设置或平台技能目录不会自动新建项目。
 
@@ -22,21 +22,15 @@
 
 ## 启动与数据
 
-本机主启动文件：`F:\OCR\release\Clear\启动智能审计.cmd`。统一首页：http://127.0.0.1:8879/ 。无需另找 `/agent`。
+开发源码以 `F:\OCR\products\Clear\platform` 为准；完整 Clear 的 OCR 与分类分别位于同级目录。已有预览可打开 [8992 首页](http://127.0.0.1:8992/)或[智能审计](http://127.0.0.1:8992/agent)，实际加载的代码和前端仍须核对，不因地址可打开就认定最新修改已生效。
 
-实际发行、共享程序、工作区和端口以同目录 `current.json` 为准；本次迁移沿用 `F:\OCR\output\ai-audit-product-dev-20261004\workspace` 的项目、会话与成果身份。首次启动先转换并核验旧会话，再继续保存过的运行。迁移前一致性备份和原发行保留，程序回退必须搭配对应备份。
+源码预览应显式指定主线源码、前端构建、共享依赖、DATA 与端口。当前8992进程使用的工作区为 `F:\OCR\output\preview-main-20261024\workspace-user`；历史工作区另行保留。迁移或更换读取代码前，核对数据库和旧会话兼容性并保留匹配备份，不能用旧候选直接写入新格式数据。
 
-平台工具接入验收使用 `F:\OCR\output\clear-platform-tools-20261016\runs\autonomous-data`（8932）及 `autonomous-data-002`（8933）；原 Harness 迁移验收保留在 `F:\OCR\output\agent-harness-upgrade-20261015\runs\acceptance-data`。隔离项目不进入正式工作区。不要同时用两个平台进程打开同一 DATA；启动、停止与状态查询统一使用登记入口。
+历史平台工具接入检查使用 `F:\OCR\output\clear-platform-tools-20261016\runs\autonomous-data`（8932）及 `autonomous-data-002`（8933）；Harness 迁移检查保留在 `F:\OCR\output\agent-harness-upgrade-20261015\runs\acceptance-data`。这些目录和端口只说明当时的验证范围。开发验证使用隔离数据，不要同时用两个平台进程写入同一 DATA；状态和停止操作必须核对当前预览进程身份。
 
-可显式选择工作区：
+启动前按项目存储规范配置 F 盘环境，并核对当前源码预览脚本的实际参数。旧工作树内的 `start-development.ps1` 属于历史来源，不能直接作为当前主线启动命令。状态查询和停止应沿当前预览的运行配置进行，不再使用历史发行包装入口。
 
-```powershell
-& 'F:\OCR\output\clear-automation-dev-20261002\worktrees\platform\start-development.ps1' `
-  -DevelopmentRoot 'F:\OCR\output\clear-automation-dev-20261002' `
-  -Data 'F:\OCR\output\my-audit-workspace' -Port 8879
-```
-
-源码、门户、共享运行时、模型、依赖、应用数据、凭据、日志和临时文件全部位于 F 盘。启动使用已验证 Agent 依赖层及私有原生配置。共享 `program` 必须保留，无需重复复制模型。打包脚本生成的独立包用“启动智能审计.cmd”，默认使用包内 workspace；本轮候选位置见 [流式交互使用说明](streaming-ux-20261005.md)。
+源码、门户、共享运行时、模型、依赖、应用数据、凭据、日志和临时文件全部位于 F 盘。运行时和模型可能仍复用带旧版本号的共享 `program`，保留开发所需依赖不表示保留正式安装身份。打包工具与旧候选记录仅作开发材料，现阶段没有正式发布包。
 
 ## 第一次使用
 

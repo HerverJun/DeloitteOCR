@@ -102,8 +102,9 @@ def refresh_integrated() -> dict:
     manifest = {
         "format": INTEGRATED_FORMAT,
         "captured_on": datetime.now(timezone(timedelta(hours=8))).date().isoformat(),
-        "release_pointer": "release/Clear/current.json",
-        "purpose": "Integrated authored sources maintained on the single project branch; runtime assets and deployed releases are separate.",
+        "release_status": "development_unreleased",
+        "release_pointer": None,
+        "purpose": "Integrated authored sources under development on the single project branch; no finalized or published installation is declared.",
         "source_authority": {
             "repository": local_f(ROOT).as_posix(),
             "branch": git(ROOT, "branch", "--show-current").strip(),
@@ -153,7 +154,8 @@ def capture(platform_source: Path | None = None) -> dict:
     manifest = {
         "format": "clear-authored-source-snapshot-v1",
         "captured_on": datetime.now(timezone(timedelta(hours=8))).date().isoformat(),
-        "release_pointer": "release/Clear/current.json",
+        "release_status": "development_unreleased",
+        "release_pointer": None,
         "purpose": "Reviewable authored working-tree sources; not an offline installation package.",
         "exclusions": {"root_directories": sorted(EXCLUDED_ROOTS), "path_parts": sorted(EXCLUDED_PARTS), "suffixes": sorted(EXCLUDED_SUFFIXES)},
         "sources": [],

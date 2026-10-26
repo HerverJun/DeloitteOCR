@@ -4,6 +4,7 @@ import os
 from collections import OrderedDict
 from pathlib import Path
 import threading
+import time
 
 import jsonschema
 import numpy as np
@@ -13,6 +14,62 @@ from .settings import REPO
 
 _CUDA_LIBRARY_HANDLES = []
 _CUDA_LIBRARY_DIRECTORIES = set()
+_DEVICE_PROBE = None
+_DEVICE_PROBE_LOCK = threading.Lock()
+
+
+def probe_devices():
+    """Inspect framework availability without loading weights or running a model."""
+    result = {}
+    try:
+        import torch
+        cuda = bool(torch.cuda.is_available())
+        result['training'] = {
+            'framework': 'PyTorch', 'cpu': {'available': True, 'reason': 'PyTorch 可使用 CPU'},
+            'cuda': {'available': cuda, 'reason': 'PyTorch 已检测到可用 CUDA 设备' if cuda else 'PyTorch 未检测到可用 CUDA；可显式选择 CPU'},
+        }
+    except Exception as error:
+        reason = 'PyTorch 未就绪：' + str(error)
+        result['training'] = {'framework': 'PyTorch', 'cpu': {'available': False, 'reason': reason}, 'cuda': {'available': False, 'reason': reason}}
+    try:
+        import onnxruntime as ort
+        providers = ort.get_available_providers()
+        cpu = 'CPUExecutionProvider' in providers
+        cuda = 'CUDAExecutionProvider' in providers
+        result['inference'] = {
+            'framework': 'ONNX Runtime', 'providers': providers,
+            'cpu': {'available': cpu, 'reason': 'ONNX Runtime CPU 已安装' if cpu else 'ONNX Runtime CPU provider 不可用'},
+            'cuda': {'available': None if cuda else False, 'reason': 'CUDA provider 已安装；CUDA DLL 与设备需在模型初始化时核实' if cuda else 'ONNX Runtime CUDA provider 未安装；可显式选择 CPU'},
+        }
+    except Exception as error:
+        reason = 'ONNX Runtime 未就绪：' + str(error)
+        result['inference'] = {'framework': 'ONNX Runtime', 'cpu': {'available': False, 'reason': reason}, 'cuda': {'available': False, 'reason': reason}}
+    return result
+
+
+def device_readiness(refresh=False):
+    """Keep framework imports and any CUDA initialization outside the API process."""
+    global _DEVICE_PROBE
+    import subprocess
+    import sys
+    with _DEVICE_PROBE_LOCK:
+        if not refresh and _DEVICE_PROBE and time.monotonic() - _DEVICE_PROBE[0] < 30:
+            return _DEVICE_PROBE[1]
+        try:
+            script = ('import sys, json; sys.path.insert(0, ' + repr(str(Path(__file__).resolve().parents[1])) + '); '
+                      'from image_platform.runtime import probe_devices; print(json.dumps(probe_devices(), ensure_ascii=False))')
+            value = subprocess.run([sys.executable, '-B', '-c', script],
+                capture_output=True, text=True, encoding='utf-8', timeout=45,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if value.returncode:
+                raise RuntimeError('环境检测进程未完成')
+            devices = json.loads(value.stdout.strip().splitlines()[-1])
+        except (OSError, subprocess.TimeoutExpired, RuntimeError, ValueError, IndexError):
+            unknown = {'available': None, 'reason': '暂时无法核实计算环境，可刷新检测；任务仍会按所选设备执行'}
+            devices = {name: {'framework': framework, 'cpu': dict(unknown), 'cuda': dict(unknown)}
+                       for name, framework in [('training', 'PyTorch'), ('inference', 'ONNX Runtime')]}
+        _DEVICE_PROBE = (time.monotonic(), devices)
+        return devices
 
 
 def prepare_cuda_libraries():

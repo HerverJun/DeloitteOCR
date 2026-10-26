@@ -52,6 +52,8 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
   const chosen = Object.values(selected)
   const included = [...new Map(chosen.flatMap(item => item.required_assets || []).map(asset => [asset.asset_id, asset])).values()]
   const mergedAssets = task.data?.selected_assets.length ? [...new Set([...task.data.selected_assets, ...included.map(asset => asset.asset_id)])] : []
+  const scopeError = included.length > 100 ? `本次结果需加入 ${included.length} 份资料，超过单次带回的 100 份上限。请减少所选结果，分次带回。`
+    : mergedAssets.length > 1000 ? `合并后任务范围为 ${mergedAssets.length} 份资料，超过 1000 份上限。请减少所选结果或调整任务资料范围。` : ''
   const show = () => {
     setSelected({}); setPageOffsets([0]); setKeyword(''); setIncludeOthers(false); setExpanded(false); setNativeLink(undefined); setNativeOffsets([0]); setOpen(true)
     void client.invalidateQueries({ queryKey: ['audit-manual-results', id] })
@@ -65,6 +67,7 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
   }
   const returnToAgent = async (replay = false) => {
     if (!task.data || task.data.workspace_id !== workspace) return
+    if (!replay && scopeError) { setError(scopeError); return }
     setBusy(true); setError('')
     const key = `clear-manual-return:${id}`
     const old = pendingReturn(id)
@@ -88,7 +91,7 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
     description={task.data?.manual ? '保存工具里的修改，再选择最新结果带回。仍在运行的原生作业可继续完成。' : '可以查看结果；修改前接管任务，停止 Agent 的后续动作。'}
     action={<Space><Link to={href}>查看对话</Link>{pending ? <Button loading={busy} disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void returnToAgent(true)}>核实原带回</Button> : task.data?.manual ? <Button onClick={show}>带回结果</Button> : <Button disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void takeOver()}>手动接管</Button>}</Space>} />}
     {error && !open && <Alert type="error" title={error} />}
-    <Modal title="带回人工处理结果" open={open} onCancel={() => setOpen(false)} okText={pending ? '核实原带回' : '返回 Agent'} cancelText="继续手动处理" okButtonProps={{ loading: busy, disabled: !pending && (!summary.trim() || !results.data || mergedAssets.length > 100) }} onOk={() => void returnToAgent(!!pending)}>
+    <Modal title="带回人工处理结果" open={open} onCancel={() => setOpen(false)} okText={pending ? '核实原带回' : '返回 Agent'} cancelText="继续手动处理" okButtonProps={{ loading: busy, disabled: !pending && (!summary.trim() || !results.data || !!scopeError) }} onOk={() => void returnToAgent(!!pending)}>
       {pending && <Alert type="warning" title="原带回回包待核实，将使用原结果版本和原请求核实。" />}
       <Typography.Paragraph>选择你修改或生成的版本，Agent 会在继续时读取这些结果。</Typography.Paragraph>
       <Typography.Paragraph type="secondary">{includeOthers ? '正在显示项目内可带回的结果；只有勾选并提交的版本才会采用。' : '默认只显示与当前任务资料或已有结果相关的版本。'}</Typography.Paragraph>
@@ -104,6 +107,8 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
         <Button disabled={results.data?.next_offset == null || results.isFetching} onClick={() => setPageOffsets(old => [...old, results.data!.next_offset!])}>下一页</Button>
         <Typography.Text type="secondary">已选 {chosen.length} 项，最多 50 项</Typography.Text></Space>
       {!!included.length && <Alert type="info" title="同时加入任务资料范围" description={included.map(asset => asset.name).join('、')} />}
+      <Typography.Paragraph type="secondary">本次随结果加入 {included.length} 份资料，单次最多 100 份。{task.data?.selected_assets.length ? `合并后任务范围 ${mergedAssets.length} 份，最多 1000 份。` : '任务沿用全部项目资料范围。'}</Typography.Paragraph>
+      {scopeError && <Alert type="warning" title={scopeError} />}
       <details className="audit-return-sources" open={expanded} onToggle={event => setExpanded(event.currentTarget.open)}><summary>更多来源</summary>
       <Checkbox disabled={!!pending || busy} checked={includeOthers} onChange={event => { setIncludeOthers(event.target.checked); setPageOffsets([0]) }}>显示项目内其它结果</Checkbox>
       <Typography.Text strong>接回工具内独立导入的结果</Typography.Text>

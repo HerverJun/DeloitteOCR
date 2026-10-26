@@ -1,33 +1,52 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Button, Checkbox, Empty, Input, Modal, Tabs, Typography } from 'antd'
+import { Alert, Button, Checkbox, Empty, Input, Modal, Pagination, Tabs, Typography } from 'antd'
 import { UploadQueue } from '../batches/UploadQueue'
 import { agentRequest, type AuditProfile } from './api'
-import { useNavigate } from 'react-router-dom'
+import './materials.css'
 
 type Asset = { asset_id: string; original_name: string; size_bytes: number; revision: number }
+const assetPageSize = 50
 export function Materials({ open, workspace, selected, close, save }: { open: boolean; workspace: string | null; selected: string[]; close: () => void; save: (ids: string[]) => Promise<void> }) {
-  const navigate = useNavigate()
-  const [ids, setIds] = useState(selected), [busy, setBusy] = useState(false), [error, setError] = useState('')
-  const assets = useQuery({ queryKey: ['assets', workspace, 'agent-picker'], enabled: open && !!workspace,
-    queryFn: async () => { const all: Asset[] = []; let offset = 0; let total: number
-      do { const page = await agentRequest<{ items: Asset[]; total: number }>(`/workspaces/${workspace}/assets?offset=${offset}&limit=100`); all.push(...page.items); offset += page.items.length; total = page.total; if (!page.items.length) break } while (offset < total && offset < 1000)
-      return all
-    } })
-  useEffect(() => { if (open) { setIds(selected); setError('') } }, [open])
-  return <Modal title="添加文件与资料" open={open} onCancel={close} width={760} okText="加入任务" cancelText="返回对话" okButtonProps={{ disabled: !workspace || busy, loading: busy }}
-    onOk={() => { setBusy(true); void save(ids).then(close).catch(e => setError(e.message)).finally(() => setBusy(false)) }}>
-    <Typography.Paragraph type="secondary">选择当前任务使用的文件与资料。后续可以继续补充，已有结果保留原始来源。</Typography.Paragraph>
-    <div className="audit-material-batch"><Button disabled={!assets.data?.length || busy} onClick={() => setIds(assets.data!.filter(asset => /\.(png|jpe?g|bmp|tiff?|webp|heic|heif)$/i.test(asset.original_name)).map(asset => asset.asset_id))}>选择本页全部图片（最多 1000 张）</Button>
-      <Button disabled={!workspace || !ids.length || busy || ids.length > 1000} loading={busy} onClick={() => {
-        setBusy(true); setError(''); void agentRequest<{ asset_set_id: string }>(`/workspaces/${workspace}/assets/sets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ asset_ids: ids }) })
-          .then(fixed => { close(); navigate(`/apps/ocr/workflow?workspace=${encodeURIComponent(workspace!)}&set=${encodeURIComponent(fixed.asset_set_id)}`) }).catch(error => setError(error.message)).finally(() => setBusy(false))
-      }}>整批转 Excel</Button></div>
-    {(error || assets.error) && <Alert type="error" title={error || assets.error?.message} />}
-    {!workspace ? <Typography.Paragraph>正在准备项目…</Typography.Paragraph> : <Tabs items={[
-      { key: 'existing', label: `项目资料 · 已选 ${ids.length}`, children: assets.data?.length ? <div className="audit-asset-picker">{assets.data.map(asset => <Checkbox key={asset.asset_id} checked={ids.includes(asset.asset_id)} onChange={e => setIds(old => e.target.checked ? [...old, asset.asset_id] : old.filter(id => id !== asset.asset_id))}>
-        <span>{asset.original_name}</span><small>v{asset.revision} · {(asset.size_bytes / 1024).toFixed(1)} KB</small></Checkbox>)}</div> : <Empty description="上传资料后即可在当前任务使用" /> },
-      { key: 'upload', label: '上传文件', children: <UploadQueue key={workspace} workspaceId={workspace} compact onBusy={setBusy} onUploaded={id => setIds(old => old.includes(id) ? old : [...old, id])} /> },
+  const [ids, setIds] = useState(selected), [uploading, setUploading] = useState(false), [saving, setSaving] = useState(false), [error, setError] = useState('')
+  const [tab, setTab] = useState('upload'), [keyword, setKeyword] = useState('')
+  const [queryKeyword, setQueryKeyword] = useState(''), [page, setPage] = useState(1)
+  const scope = useRef({ workspace, open, generation: 0 }), saveAttempt = useRef(0)
+  if (scope.current.workspace !== workspace || scope.current.open !== open) scope.current = { workspace, open, generation: scope.current.generation + 1 }
+  const uploadGeneration = scope.current.generation
+  const assets = useQuery({ queryKey: ['assets', workspace, 'agent-picker', queryKeyword, page], enabled: open && !!workspace && tab === 'existing',
+    queryFn: ({ signal }) => agentRequest<{ items: Asset[]; total: number }>(`/workspaces/${encodeURIComponent(workspace!)}/assets?${new URLSearchParams({ offset: String((page - 1) * assetPageSize), limit: String(assetPageSize), keyword: queryKeyword })}`, { signal }) })
+  useEffect(() => { setUploading(false); if (open) { setIds(selected); setError(''); setTab('upload'); setKeyword(''); setQueryKeyword(''); setPage(1) } }, [open, workspace])
+  useEffect(() => { saveAttempt.current += 1; setUploading(false); setSaving(false) }, [workspace])
+  useEffect(() => {
+    if (keyword.trim() === queryKeyword) return
+    const timer = setTimeout(() => { setQueryKeyword(keyword.trim()); setPage(1) }, 250)
+    return () => clearTimeout(timer)
+  }, [keyword, queryKeyword])
+  const visibleAssets = assets.data?.items || []
+  const submit = async () => {
+    if (!workspace || uploading || saving) return
+    const generation = scope.current.generation, attempt = ++saveAttempt.current
+    setSaving(true); setError('')
+    try { await save([...ids]); if (scope.current.generation === generation) close() }
+    catch (caught) { if (scope.current.generation === generation) setError((caught as Error).message) }
+    finally { if (saveAttempt.current === attempt) setSaving(false) }
+  }
+  return <Modal title="添加文件" rootClassName="agent-materials-modal" open={open} onCancel={close} width={680} okText="加入对话" cancelText="取消"
+    okButtonProps={{ disabled: !workspace || uploading || saving || !ids.length && !selected.length, loading: saving }} onOk={() => { void submit() }}>
+    <Typography.Paragraph type="secondary">上传文件或选用项目中的文件，然后在对话里说明你想完成的工作。</Typography.Paragraph>
+    <div className="agent-materials-selection" role="status">{ids.length ? `已选择 ${ids.length} 份文件` : '尚未选择文件'}</div>
+    {error && <Alert type="error" title={error} />}
+    {!workspace ? <Typography.Paragraph>正在准备项目…</Typography.Paragraph> : <Tabs activeKey={tab} onChange={setTab} items={[
+      { key: 'upload', label: '上传文件', children: open && <UploadQueue key={workspace} workspaceId={workspace} compact autoUpload disabled={saving}
+        onBusy={value => { if (scope.current.generation === uploadGeneration) setUploading(value) }}
+        onUploaded={id => { if (scope.current.generation === uploadGeneration) setIds(old => old.includes(id) ? old : [...old, id]) }} /> },
+      { key: 'existing', label: '已有文件', children: <div className="agent-materials-existing">
+        <Input.Search aria-label="搜索已有文件" placeholder="搜索项目中的文件名" value={keyword} onChange={event => setKeyword(event.target.value)} onSearch={value => { setQueryKeyword(value.trim()); setPage(1) }} allowClear />
+        {assets.error ? <Alert type="error" title="暂时无法读取已有文件" description={assets.error.message} action={<Button size="small" onClick={() => { void assets.refetch() }}>重试</Button>} /> : assets.isPending ? <Typography.Text type="secondary">正在读取文件…</Typography.Text> : visibleAssets.length ? <div className="audit-asset-picker">{visibleAssets.map(asset => <Checkbox key={asset.asset_id} checked={ids.includes(asset.asset_id)} disabled={saving} onChange={event => setIds(old => event.target.checked ? [...old, asset.asset_id] : old.filter(id => id !== asset.asset_id))}>
+          <span>{asset.original_name}</span><small>{asset.size_bytes >= 1024 * 1024 ? `${(asset.size_bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.ceil(asset.size_bytes / 1024))} KB`}</small></Checkbox>)}</div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={keyword.trim() ? '没有匹配的文件' : '项目中还没有文件，可切换到“上传文件”添加'} />}
+        {!!assets.data?.total && <Pagination aria-label="已有文件分页" current={page} pageSize={assetPageSize} total={assets.data.total} showSizeChanger={false} disabled={saving || assets.isFetching} showTotal={total => `共 ${total} 份文件，跨页保留选择`} onChange={setPage} />}
+      </div> },
     ]} />}
   </Modal>
 }

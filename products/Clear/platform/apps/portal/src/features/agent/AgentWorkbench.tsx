@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Button, Card, Drawer, Input, Space, Tag, Typography } from 'antd'
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
+import { Alert, Button, Card, Drawer, Input, Select, Space, Tag, Typography } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ControllerSettings } from './ControllerSettings'
@@ -18,9 +18,10 @@ import { terminalActivity } from './conversationProjection'
 import { Materials, ProjectBackground } from './Materials'
 import { RecentTasks, TaskPanel, ReferenceLinks, statusLabels } from './TaskPanel'
 import { createWorkbenchView } from './workbenchView'
-import { DirectImageTextButton } from './DirectImageTextButton'
-import { DirectPdfTextButton } from './DirectPdfTextButton'
+import { FileTextTools } from './FileTextTools'
 import { documentsApi } from '../documents/api'
+import { taskIntents } from '../home/taskIntents'
+import { useWorkspaces } from '../../App'
 import './agent.css'
 import './workbench-visual.css'
 import './experience.css'
@@ -97,6 +98,7 @@ export function AgentWorkbench() {
   const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session'), sourceDocument = params.get('document')
   const [settings, setSettings] = useState(false), [skills, setSkills] = useState(false), [goal, setGoal] = useState('')
   const [preferences, setPreferences] = useState(false)
+  const [directTools, setDirectTools] = useState(false)
   const [materials, setMaterials] = useState(false), [background, setBackground] = useState(false), [recent, setRecent] = useState(false), [keyword, setKeyword] = useState('')
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [controlling, setControlling] = useState(false), [taskDrawer, setTaskDrawer] = useState(false)
   const [pendingControl, setPendingControl] = useState<'take_over' | 'return_to_agent' | null>(null)
@@ -104,10 +106,15 @@ export function AgentWorkbench() {
   const [wide, setWide] = useState(() => !!window.matchMedia?.('(min-width: 1280px)').matches)
   const [panelVisible, setPanelVisible] = useState(() => localStorage.getItem('clear-agent-task-panel-v2') === 'open')
   const [diagnostics, setDiagnostics] = useState(false)
+  const [offeredIntent, setOfferedIntent] = useState<typeof taskIntents[number] | null>(null)
+  const goalInput = useRef<ComponentRef<typeof Input.TextArea>>(null)
   const actionMenu = useRef<HTMLDetailsElement>(null), panelToggle = useRef<HTMLButtonElement>(null)
   const actionScope = useRef(`${workspace}:${sessionId}`); actionScope.current = `${workspace}:${sessionId}`
+  const mounted = useRef(true)
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   const client = useQueryClient()
   const { user } = useSession()
+  const projects = useWorkspaces(recent && !workspace)
   const composing = useRef(false)
   const health = useQuery({ queryKey: ['agent-health'], queryFn: () => agentRequest<{ enabled: boolean; direct_enabled?: boolean; reason: string; engine?: string; engine_version?: string }>('/agent/health') })
   const neutralAvailable = !!(health.data?.direct_enabled ?? health.data?.enabled)
@@ -140,41 +147,77 @@ export function AgentWorkbench() {
   const latestRun = session.data?.runs?.[0]
   const active = session.data?.runs?.find(run => ['running', 'waiting_job', 'waiting_user', 'needs_verification', 'paused'].includes(run.status) && !terminalActivity(projection.activities[run.id]?.phase || ''))
     || (['failed', 'partial'].includes(latestRun?.status || '') && latestRun?.can_resume ? latestRun : undefined)
+  const canStop = !!active && ['running', 'waiting_job', 'waiting_user', 'needs_verification', 'paused', 'partial'].includes(active.status)
   const mismatch = !!session.data && !!workspace && session.data.workspace_id !== workspace
   const answered = new Set(events.filter(event => event.kind === 'question_answered' || event.payload.decision_id && event.kind === 'message')
     .map(event => String(event.payload.decision_id)))
   const timelineIds = useMemo(() => projection.items.map(item => item.id), [projection.items])
   const scroll = useConversationScroll(`${workspace}:${sessionId}`, timelineIds, events.at(-1)?.seq || 0, subscription.status === 'connected')
   const activity = active ? projection.activities[active.id] : Object.values(projection.activities).sort((a, b) => b.seq - a.seq)[0]
-  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session', 'document', 'asset_set'].forEach(key => next.delete(key)) }
+  const clearSource = (next: URLSearchParams) => { ['assets', 'bundle', 'result', 'data_session', 'document', 'asset_set', 'intent'].forEach(key => next.delete(key)) }
   const choose = (id: string) => { const next = new URLSearchParams(params); next.set('session', id); clearSource(next); setGoal(''); setParams(next); setRecent(false) }
   const draftKey = `clear-audit-draft:${workspace || 'new'}:${sessionId || 'new'}`
+  useEffect(() => { setOfferedIntent(null) }, [draftKey])
   useEffect(() => {
     const draft = localStorage.getItem(draftKey)
-    try { const value = draft ? JSON.parse(draft) : null; setGoal(value?.goal || ''); setDraftAssets(value?.assets || (params.get('assets') || '').split(',').filter(Boolean)); setDraftReferenceIds(value?.authorized_reference_ids || []); setDraftPolicy(['auto', 'draft', 'reviewed'].includes(value?.delivery_policy) ? value.delivery_policy : 'auto') } catch { setGoal(''); setDraftReferenceIds([]); setDraftPolicy('auto') }
-  }, [draftKey, params.get('continue')])
+    try {
+      const value = draft ? JSON.parse(draft) : null
+      const previousGoal = typeof value?.goal === 'string' ? value.goal : ''
+      const preset = !sessionId ? taskIntents.find(item => item.id === params.get('intent')) : undefined
+      const nextGoal = previousGoal || preset?.draft || ''
+      const assets = value?.assets || (params.get('assets') || '').split(',').filter(Boolean)
+      setGoal(nextGoal); setDraftAssets(assets); setDraftReferenceIds(value?.authorized_reference_ids || [])
+      setDraftPolicy(['auto', 'draft', 'reviewed'].includes(value?.delivery_policy) ? value.delivery_policy : 'auto')
+      if (preset) {
+        if (previousGoal.trim()) setOfferedIntent(preset)
+        else localStorage.setItem(draftKey, JSON.stringify({ ...value, goal: nextGoal, assets }))
+        goalInput.current?.focus()
+      }
+    } catch { setGoal(''); setDraftReferenceIds([]); setDraftPolicy('auto') }
+    if (params.has('intent')) { const next = new URLSearchParams(params); next.delete('intent'); setParams(next, { replace: true }) }
+  }, [draftKey, params.get('continue'), params.get('intent')])
   const writeGoal = (value: string) => { setGoal(value); localStorage.setItem(draftKey, JSON.stringify({ goal: value, assets: selectedAssets, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy })) }
-  const createProject = async () => {
-    if (workspace) return workspace
+  const createProject = async (entryWorkspace = workspace, projectGoal = goal) => {
+    if (entryWorkspace) return entryWorkspace
     const key = 'clear-audit-new-project'
-    const attempt = JSON.parse(sessionStorage.getItem(key) || 'null') as { request_id: string } | null
-    const command = attempt || { request_id: requestId() }; sessionStorage.setItem(key, JSON.stringify(command))
-    const created = await agentWrite<Workspace>('/workspaces', { schema_version: '1.0', name: '智能审计项目', ...command })
+    const attempt = JSON.parse(sessionStorage.getItem(key) || 'null') as { request_id: string; name?: string } | null
+    const baseName = `${projectGoal.trim().replace(/\s+/g, ' ').slice(0, 40) || '资料处理'} · ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}`
+    const existingNames = new Set(projects.data?.map(project => project.name))
+    let name = baseName, suffix = 2
+    while (existingNames.has(name)) name = `${baseName} (${suffix++})`
+    const command = attempt || { request_id: requestId(), name }, pending = JSON.stringify(command)
+    sessionStorage.setItem(key, pending)
+    // Old pending requests used the fixed name; keep their original payload when verifying them.
+    const created = await agentWrite<Workspace>('/workspaces', { schema_version: '1.0', name: command.name || '智能审计项目', request_id: command.request_id })
+    if (sessionStorage.getItem(key) === pending) sessionStorage.removeItem(key)
     client.setQueryData<Workspace[]>(['workspaces'], previous => [...(previous || []).filter(item => item.workspace_id !== created.workspace_id), created])
     void client.invalidateQueries({ queryKey: ['workspaces'] }); return created.workspace_id
   }
   const openProjectAction = async (kind: 'materials' | 'background') => {
+    const scope = actionScope.current, entryParams = params.toString()
+    const draft = { goal, assets: [...selectedAssets], authorized_reference_ids: [...authorizedReferenceIds], delivery_policy: deliveryPolicy }
     try {
       if (kind === 'background') { setBackground(true); return }
       const project = await createProject()
-      if (!workspace) { localStorage.setItem(`clear-audit-draft:${project}:new`, JSON.stringify({ goal, assets: selectedAssets, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy })); const next = new URLSearchParams(params); next.set('workspace', project); setParams(next) }
+      if (!workspace) localStorage.setItem(`clear-audit-draft:${project}:new`, JSON.stringify(draft))
+      if (!mounted.current || scope !== actionScope.current) return
+      if (!workspace) { const next = new URLSearchParams(entryParams); next.set('workspace', project); setParams(next) }
       setMaterials(true)
-    } catch (caught) { setError((caught as Error).message) }
+    } catch (caught) { if (mounted.current && scope === actionScope.current) setError((caught as Error).message) }
   }
   const refreshTask = () => { if (sessionId) { void task.refetch(); void session.refetch() } void client.invalidateQueries({ queryKey: ['audit-tasks', workspace] }) }
   const saveScope = async (ids: string[]) => {
-    if (sessionId && task.data) await agentWrite(`/agent/sessions/${sessionId}/task`, { request_id: requestId(), expected_revision: task.data.revision, selected_assets: ids }, 'PUT')
-    setDraftAssets(ids); localStorage.setItem(draftKey, JSON.stringify({ goal, assets: ids, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy })); refreshTask()
+    if (mismatch) throw new Error('会话与项目不一致，请重新选择任务。')
+    if (sessionId && !task.data) throw new Error('正在读取当前任务，请稍后再添加文件。')
+    const scope = actionScope.current
+    if (sessionId && task.data) {
+      await agentWrite(`/agent/sessions/${sessionId}/task`, { request_id: requestId(), expected_revision: task.data.revision, selected_assets: ids }, 'PUT')
+      void client.invalidateQueries({ queryKey: ['audit-task', sessionId] })
+      void client.invalidateQueries({ queryKey: ['agent-session', sessionId] })
+    }
+    localStorage.setItem(draftKey, JSON.stringify({ goal, assets: ids, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy }))
+    void client.invalidateQueries({ queryKey: ['audit-tasks', workspace] })
+    if (scope === actionScope.current) setDraftAssets(ids)
   }
   const saveReferences = async (ids: string[]) => {
     if (mismatch) throw new Error('会话与项目不一致，请重新选择任务。')
@@ -225,31 +268,35 @@ export function AgentWorkbench() {
       if (identity[0] === workspace && identity[1] === sessionId) setGoal(pending.content || identity[3])
     } catch { /* An invalid stale draft cannot authorize a write. */ }
   }, [workspace, sessionId])
-  useEffect(() => { setError(''); setNotice(''); setControlling(false); setTaskDrawer(false); setDiagnostics(false)
+  useEffect(() => { setError(''); setNotice(''); setControlling(false); setTaskDrawer(false); setDiagnostics(false); setDirectTools(false)
     try { const pending = JSON.parse(sessionStorage.getItem(`clear-agent-control:${sessionId}`) || 'null') as { action?: string } | null
       setPendingControl(pending?.action === 'take_over' || pending?.action === 'return_to_agent' ? pending.action : null)
     } catch { setPendingControl(null) }
   }, [workspace, sessionId])
-  const send = useMutation({ mutationFn: async ({ content, execute }: { content: string; execute: boolean }) => {
-    if (mismatch) throw new Error('会话属于其他项目，请重新选择会话')
-    if ((bundle || sourceResult || sourceDocument || assetSetSource) && !sessionId && !source.data) throw new Error('先核实带入成果的来源和版本')
-    const references = source.data ? [source.data.reference] : []
-    const stamp = JSON.stringify([workspace, sessionId, selectedAssets, content, references, authorizedReferenceIds, deliveryPolicy])
+  const captureSend = (content: string, execute: boolean) => ({ content, execute, workspace, sessionId, scope: actionScope.current, draftKey, params: params.toString(),
+    selectedAssets: [...selectedAssets], authorizedReferenceIds: [...authorizedReferenceIds], deliveryPolicy,
+    references: source.data ? [structuredClone(source.data.reference)] : [], mismatch,
+    missingSource: !!((bundle || sourceResult || sourceDocument || assetSetSource) && !sessionId && !source.data) })
+  const send = useMutation({ mutationFn: async (entry: ReturnType<typeof captureSend>) => {
+    const { content, execute, workspace: entryWorkspace, sessionId: entrySession, selectedAssets: assets, authorizedReferenceIds: referenceIds, deliveryPolicy: policy, references } = entry
+    if (entry.mismatch) throw new Error('会话属于其他项目，请重新选择会话')
+    if (entry.missingSource) throw new Error('先核实带入成果的来源和版本')
+    const stamp = JSON.stringify([entryWorkspace, entrySession, assets, content, references, referenceIds, policy])
     const stored = sessionStorage.getItem('clear-agent-pending-send')
     let attempt = stored ? JSON.parse(stored) as { stamp: string; content: string; project: string | null; conversation: string | null; projectRequest: string; sessionRequest: string; messageRequest: string } : null
-    if (!attempt || attempt.stamp !== stamp) attempt = { stamp, content, project: workspace, conversation: sessionId,
+    if (!attempt || attempt.stamp !== stamp) attempt = { stamp, content, project: entryWorkspace, conversation: entrySession,
       projectRequest: requestId(), sessionRequest: requestId(), messageRequest: requestId() }
     const retain = () => sessionStorage.setItem('clear-agent-pending-send', JSON.stringify(attempt))
     retain()
     let project = attempt.project, conversation = attempt.conversation
     if (!project) {
-      project = await createProject()
+      project = await createProject(entryWorkspace, content)
       attempt.project = project; retain()
       void client.invalidateQueries({ queryKey: ['workspaces'] })
     }
     if (!conversation) {
       const created = await agentWrite<AgentSession>(`/workspaces/${project}/agent/sessions`,
-        { name: content.slice(0, 60), selected_assets: selectedAssets, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy, initial_refs: references, request_id: attempt.sessionRequest })
+        { name: content.slice(0, 60), selected_assets: assets, authorized_reference_ids: referenceIds, delivery_policy: policy, initial_refs: references, request_id: attempt.sessionRequest })
       conversation = created.id
       attempt.conversation = conversation; retain()
     }
@@ -257,13 +304,14 @@ export function AgentWorkbench() {
     else { const current = await agentRequest<AuditTask>(`/agent/sessions/${conversation}/task`)
       await agentWrite(`/agent/sessions/${conversation}/task`, { request_id: attempt.messageRequest, expected_revision: current.revision, goal: content }, 'PUT') }
     sessionStorage.removeItem('clear-agent-pending-send')
-    return { project, conversation, execute, content }
-  }, onSuccess: ({ project, conversation, execute, content }) => {
-    localStorage.removeItem(draftKey); sessionStorage.removeItem('clear-audit-new-project')
-    localStorage.setItem(`clear-audit-draft:${project}:${conversation}`, JSON.stringify({ goal: execute ? '' : content, assets: selectedAssets, authorized_reference_ids: authorizedReferenceIds, delivery_policy: deliveryPolicy }))
-    setGoal(execute ? '' : content); const next = new URLSearchParams(params); next.set('workspace', project); next.set('session', conversation); clearSource(next); setParams(next)
+    return { project, conversation, entry }
+  }, onSuccess: ({ project, conversation, entry }) => {
+    localStorage.removeItem(entry.draftKey)
+    localStorage.setItem(`clear-audit-draft:${project}:${conversation}`, JSON.stringify({ goal: entry.execute ? '' : entry.content, assets: entry.selectedAssets, authorized_reference_ids: entry.authorizedReferenceIds, delivery_policy: entry.deliveryPolicy }))
     void client.invalidateQueries({ queryKey: ['audit-tasks', project] }); void client.invalidateQueries({ queryKey: ['agent-session', conversation] }); void client.invalidateQueries({ queryKey: ['audit-task', conversation] })
-  }, onError: caught => setError(caught.message) })
+    if (!mounted.current || entry.scope !== actionScope.current) return
+    setGoal(entry.execute ? '' : entry.content); const next = new URLSearchParams(entry.params); next.set('workspace', project); next.set('session', conversation); clearSource(next); setParams(next)
+  }, onError: (caught, entry) => { if (mounted.current && entry.scope === actionScope.current) setError(caught.message) } })
   const reply = async (id: string, revision: number, content: string) => {
     const key = `clear-agent-reply-${id}-${revision}`
     const old = sessionStorage.getItem(key)
@@ -274,7 +322,7 @@ export function AgentWorkbench() {
     catch (caught) { setError((caught as Error).message) }
   }
   const stop = async (owned: boolean) => {
-    if (!active || controlling || mismatch) return
+    if (!active || !canStop || controlling || mismatch) return
     const scope = actionScope.current, id = active.id, conversation = sessionId
     setControlling(true)
     try { await agentWrite(`/agent/runs/${id}/cancel`, { cancel_owned_jobs: owned }) }
@@ -329,7 +377,7 @@ export function AgentWorkbench() {
     if (workspace && sessionId && task.data?.title) rememberVisit(user?.id || 'single', { href: '/agent?workspace=' + encodeURIComponent(workspace) + '&session=' + encodeURIComponent(sessionId), title: task.data.title, workspace })
   }, [workspace, sessionId, task.data?.title, user?.id])
   const sendDisabled = !goal.trim() || controlling || !neutralAvailable || task.data?.manual || mismatch || !!((bundle || sourceResult || sourceDocument) && !sessionId && !source.data)
-  const submitGoal = () => { if (!sendDisabled && !send.isPending) { setError(''); send.mutate({ content: goal.trim(), execute: true }) } }
+  const submitGoal = () => { if (!sendDisabled && !send.isPending) { setError(''); send.mutate(captureSend(goal.trim(), true)) } }
   const manualParams = new URLSearchParams(params)
   manualParams.delete('session')
   manualParams.delete('continue')
@@ -342,14 +390,13 @@ export function AgentWorkbench() {
         <Tag className="agent-model-state" title={connection.data?.model} color={connection.data?.available ? 'success' : 'default'}>{connection.data?.available ? connection.data.model : '模型待连接'}</Tag></div>
       <Typography.Text className="agent-current-task" type="secondary">对话、文件处理与专业分析</Typography.Text></div>
       <nav className="audit-context-bar" aria-label="审计任务操作"><Button icon={<PlusOutlined aria-hidden="true" />} onClick={newSession}>新任务</Button>
-        <Button type="text" onClick={() => setPlatformTools(true)}>平台工具</Button>
-        <Button type="text" disabled={!workspace || mismatch} onClick={() => setPreferences(true)}>默认偏好</Button>
-        {task.data && !task.data.manual && !pendingControl && <Button type="text" disabled={controlling || send.isPending || mismatch} onClick={() => { void control(true) }}>手动接管</Button>}
         <Button type="text" icon={<HistoryOutlined aria-hidden="true" />} onClick={() => setRecent(true)}>最近任务</Button><Button ref={panelToggle} type="text" icon={<LayoutOutlined aria-hidden="true" />} aria-controls="agent-task-region" aria-expanded={wide ? panelVisible : taskDrawer} onClick={togglePanel}>任务详情</Button></nav></header>
     {health.data && !health.data.enabled && <Alert type="info" title={neutralAvailable ? '分析能力当前不可用，明确的本地操作仍可使用' : '执行服务当前不可用'} description={health.data.reason} />}
     {health.error && <Alert type="error" title={health.error.message} />}
     {error && <Alert type="error" title={error} closable onClose={() => setError('')} />}
     {notice && <Alert type="info" title={notice} closable onClose={() => setNotice('')} />}
+    {offeredIntent && <Alert type="info" title={`已保留未发送的草稿，可切换为“${offeredIntent.title}”示例。`} closable onClose={() => setOfferedIntent(null)}
+      action={<Button onClick={() => { writeGoal(offeredIntent.draft); setOfferedIntent(null); goalInput.current?.focus() }}>使用所选示例</Button>} />}
     {mismatch && <Alert type="error" title="会话与当前项目不一致，请重新选择会话" />}
     {source.error && <Alert type="error" title={`带入成果不可用：${source.error.message}`} />}
     {source.data && !sessionId && <Alert type="info" title="已核实带入成果，可继续处理或与其它资料比较" />}
@@ -383,30 +430,30 @@ export function AgentWorkbench() {
           </div>
           <div className="agent-input-surface">
           {!!selectedAssets.length && <button type="button" className="agent-material-chip" onClick={() => { void openProjectAction('materials') }}><span className="agent-material-mark" aria-hidden="true" />{selectedAssets.length} 份资料<DownOutlined aria-hidden="true" /></button>}
-          <Input.TextArea aria-label="任务或问题" value={goal} onChange={event => writeGoal(event.target.value)} autoSize={{ minRows: 2, maxRows: narrow ? 4 : 6 }}
-            placeholder={active ? '补充条件、资料口径或下一步需求…' : '描述你想完成的工作…'} maxLength={16000}
+          <Input.TextArea ref={goalInput} aria-label="任务或问题" value={goal} onChange={event => writeGoal(event.target.value)} autoSize={{ minRows: 2, maxRows: narrow ? 4 : 6 }}
+            placeholder={active ? '补充条件、资料口径或下一步需求…' : '直接提问，或添加文件后说说你想完成什么…'} maxLength={16000}
             onCompositionStart={() => { composing.current = true }} onCompositionEnd={() => { composing.current = false }}
             onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); submitGoal() } }} />
           <div className="audit-composer-actions"><div className="agent-input-tools"><Button type="text" icon={<PlusOutlined aria-hidden="true" />} onClick={() => { void openProjectAction('materials') }} disabled={!neutralAvailable}>添加文件</Button>
-            {workspace && <DirectImageTextButton key={`${workspace}:${sessionId}`} workspace={workspace} sessionId={sessionId} selectedAssets={selectedAssets} scopeRevision={task.data?.scope_revision}
-              disabled={!!active || controlling || send.isPending || mismatch || !neutralAvailable || !!sessionId && !task.data || !!task.data?.pending_scope}
-              onAccepted={id => { setError(''); if (id !== sessionId) choose(id); refreshTask(); reconnect() }} />}
-            {workspace && <DirectPdfTextButton key={`pdf:${workspace}:${sessionId}`} workspace={workspace} sessionId={sessionId} selectedAssets={selectedAssets} scopeRevision={task.data?.scope_revision}
-              disabled={!!active || controlling || send.isPending || mismatch || !neutralAvailable || !!sessionId && !task.data || !!task.data?.pending_scope}
-              onAccepted={id => { setError(''); if (id !== sessionId) choose(id); refreshTask(); reconnect() }} />}
             {(active || task.data) && <div className="agent-control-actions">
             {active?.status === 'needs_verification' && <Button disabled={controlling || mismatch} onClick={() => { void changeRun('resume') }}>核对任务并继续</Button>}
             {active?.status === 'paused' && <Button disabled={controlling || mismatch} onClick={() => { void changeRun('resume') }}>继续任务</Button>}
             {['failed', 'partial'].includes(active?.status || '') && active?.can_resume && <Button disabled={controlling || mismatch} onClick={() => { void changeRun('resume') }}>继续原任务</Button>}
             {active && ['running', 'waiting_job', 'waiting_user'].includes(active.status) && <Button type="text" disabled={controlling || mismatch} onClick={() => { void changeRun('pause') }}>暂停任务</Button>}
+            {canStop && !task.data?.manual && <Button danger type="text" disabled={controlling || mismatch} title="停止后续步骤，并请求取消支持取消的本轮作业；已完成成果保留。" onClick={() => { void stop(true) }}>停止任务</Button>}
           </div>}
           <details ref={actionMenu} className="agent-action-menu" onKeyDown={event => { if (event.key === 'Escape' && actionMenu.current) { actionMenu.current.open = false; actionMenu.current.querySelector('summary')?.focus(); event.stopPropagation() } }}><summary>更多<DownOutlined aria-hidden="true" /></summary><div className="agent-menu-surface" role="group" aria-label="辅助任务操作">
+            <span className="agent-menu-label">可选操作</span>
+            {workspace && <Button type="text" onClick={() => { if (actionMenu.current) actionMenu.current.open = false; setDirectTools(true) }}>直接提取文字</Button>}
+            <Button type="text" onClick={() => { if (actionMenu.current) actionMenu.current.open = false; setPlatformTools(true) }}>工具与参考设置</Button>
+            <Button type="text" disabled={!workspace || mismatch} onClick={() => { if (actionMenu.current) actionMenu.current.open = false; setPreferences(true) }}>默认偏好</Button>
             <span className="agent-menu-label">任务与资料</span>
-            <Button type="text" disabled={!goal.trim() || send.isPending || !!active || mismatch || !health.data?.enabled} onClick={() => send.mutate({ content: goal.trim(), execute: false })}>保存目标</Button>
+            {task.data && !task.data.manual && !pendingControl && <Button type="text" disabled={controlling || send.isPending || mismatch} onClick={() => { if (actionMenu.current) actionMenu.current.open = false; void control(true) }}>手动接管</Button>}
+            <Button type="text" disabled={!goal.trim() || send.isPending || !!active || mismatch || !health.data?.enabled} onClick={() => send.mutate(captureSend(goal.trim(), false))}>保存目标</Button>
             {pendingControl ? <Button disabled={controlling || mismatch} onClick={() => { void control(pendingControl === 'take_over') }}>核实原{pendingControl === 'take_over' ? '接管' : '返回'}操作</Button> : task.data && (task.data.manual || hasPendingManualReturn(sessionId) ? <><Link to={manualHref}>打开手动工具</Link><ManualReturn compact taskId={task.data.id} workspaceId={task.data.workspace_id} /></> : null)}
             {sessionId && <Button loading={compact.isPending} disabled={controlling || mismatch || compactionPending || task.data?.manual} onClick={() => compact.mutate({ id: sessionId, scope: actionScope.current })}>{compactionPending ? '上下文整理已安排' : '整理上下文'}</Button>}
             <Button type="text" onClick={() => setDiagnostics(true)}>查看运行详情</Button>
-            {active && <><span className="agent-menu-label">停止执行</span><Button disabled={controlling || mismatch} onClick={() => { void stop(false) }}>停止后续步骤</Button><small>保留已提交的原生作业与成果。</small><Button disabled={controlling || mismatch} onClick={() => { void stop(true) }}>停止并取消支持取消的本轮任务</Button><small>同时请求取消支持取消的本轮原生作业。</small></>}
+            {canStop && <><span className="agent-menu-label">保留原生作业</span><Button disabled={controlling || mismatch} onClick={() => { void stop(false) }}>停止后续步骤</Button><small>保留已提交的原生作业与成果；主区“停止任务”会同时请求取消支持取消的作业。</small></>}
           </div></details></div>
             <Button className="agent-send" type="primary" icon={<ArrowUpOutlined aria-hidden="true" />} loading={send.isPending} disabled={sendDisabled}
               onClick={submitGoal}>{active ? '追加要求' : '发送'}</Button></div>
@@ -416,6 +463,10 @@ export function AgentWorkbench() {
       </section>
       {wide && <div className="agent-task-region" id="agent-task-region" inert={!panelVisible} aria-hidden={!panelVisible}>{panelVisible && <><div className="agent-task-region-heading"><span>任务进展</span><Button type="text" size="small" aria-label="收起任务详情" onClick={togglePanel}>收起</Button></div>{taskPanel}</>}</div>}
     </div>
+    {workspace && <FileTextTools key={`${workspace}:${sessionId}`} open={directTools} close={() => setDirectTools(false)} workspace={workspace} sessionId={sessionId} selectedAssets={selectedAssets} scopeRevision={task.data?.scope_revision}
+      selectFiles={() => { void openProjectAction('materials') }}
+      disabled={!!active || controlling || send.isPending || mismatch || !neutralAvailable || !!sessionId && !task.data || !!task.data?.pending_scope}
+      onAccepted={id => { setError(''); if (id !== sessionId) choose(id); refreshTask(); reconnect() }} />}
     <ControllerSettings open={settings} close={() => setSettings(false)} />
     <SkillsPanel open={skills} close={() => setSkills(false)} workspace={workspace} sessionId={sessionId} running={!!active && !task.data?.manual} />
     <AgentPreferences open={preferences} close={() => setPreferences(false)} workspace={workspace} sessionId={sessionId} />
@@ -424,7 +475,13 @@ export function AgentWorkbench() {
     <ProjectBackground open={background} profile={profile.data} close={() => setBackground(false)} save={async value => {
       const { revision, ...body } = value; await agentWrite(`/workspaces/${workspace}/audit-profile`, { ...body, expected_revision: revision, request_id: requestId() }, 'PUT'); void profile.refetch()
     }} />
-    <Drawer title="最近任务" open={recent} onClose={() => setRecent(false)}><RecentTasks tasks={listing.data?.items || []} current={sessionId} choose={choose} keyword={keyword} search={setKeyword} /></Drawer>
+    <Drawer title="最近任务" open={recent} onClose={() => setRecent(false)}>
+      {!workspace && <>{projects.error ? <Alert type="error" title="暂时无法读取项目" action={<Button onClick={() => void projects.refetch()}>重试读取项目</Button>} /> : <Select aria-label="选择任务所在项目" placeholder={projects.isPending ? '正在读取项目…' : '选择项目'} loading={projects.isPending} showSearch optionFilterProp="label" style={{ width: '100%', marginBottom: 16 }}
+        options={projects.data?.map(project => ({ value: project.workspace_id, label: project.name }))} onChange={id => { const next = new URLSearchParams(params); next.set('workspace', id); next.delete('session'); next.delete('continue'); clearSource(next); setKeyword(''); setParams(next) }} />}</>}
+      <RecentTasks tasks={listing.data?.items || []} current={sessionId} choose={choose} keyword={keyword} search={setKeyword} hasProject={!!workspace}
+        loading={health.isPending || listing.isFetching && !listing.data} error={listing.error || health.error} unavailable={!health.isPending && !neutralAvailable}
+        retry={() => { void health.refetch(); if (workspace && neutralAvailable) void listing.refetch() }} />
+    </Drawer>
     <Drawer title="任务详情" open={!wide && taskDrawer} onClose={() => setTaskDrawer(false)}>{!wide && taskDrawer && <div id="agent-task-region">{taskPanel}</div>}</Drawer>
     <Drawer title="运行详情" open={diagnostics} onClose={() => setDiagnostics(false)} size={480}>
       {diagnostics && <div className="agent-runtime-details">{latestBudget ? <ContextBudgetContent budget={latestBudget} /> : <Typography.Paragraph type="secondary">收到模型请求后显示上下文预算。</Typography.Paragraph>}

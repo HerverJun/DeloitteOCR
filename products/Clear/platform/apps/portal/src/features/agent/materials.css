@@ -1,0 +1,27 @@
+.agent-materials-modal .ant-modal-body > .ant-typography { margin-bottom: 16px; line-height: 1.75; }
+.agent-materials-selection { margin-bottom: 12px; color: var(--clear-muted); font-size: 13px; }
+.agent-materials-modal .ant-tabs-nav { margin-bottom: 20px; }
+.agent-materials-modal .batch-upload-queue { margin-top: 0; padding-top: 0; border-top: 0; }
+.agent-materials-modal .batch-upload { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius, 6px); color: var(--clear-text); cursor: pointer; overflow: hidden; }
+.agent-materials-modal .batch-upload input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.agent-materials-modal .batch-upload:focus-within { outline: 2px solid var(--clear-focus); outline-offset: 2px; }
+.agent-materials-modal .batch-upload-queue .ant-table-wrapper { margin-top: 16px; }
+.agent-materials-modal .batch-upload-queue .ant-table-content { overflow-x: auto; }
+.agent-materials-modal .agent-attachment-upload-list { list-style: none; margin: 18px 0 0; padding: 0; }
+.agent-materials-modal .agent-attachment-upload-list > li { padding: 14px 0; border-bottom: 1px solid var(--clear-border); }
+.agent-materials-modal .agent-attachment-upload-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.agent-materials-modal .agent-attachment-upload-summary > div { display: grid; gap: 5px; min-width: 0; }
+.agent-materials-modal .agent-attachment-upload-name { overflow-wrap: anywhere; font-size: 14px; }
+.agent-materials-modal .agent-attachment-upload-summary small { color: var(--clear-muted); font-size: 12px; }
+.agent-materials-modal .agent-attachment-upload-summary .ant-tag { margin: 0; flex: none; }
+.agent-materials-modal .agent-attachment-upload-note { margin: 10px 0 0; color: var(--clear-muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.agent-materials-existing { display: grid; gap: 16px; }
+.agent-materials-modal .audit-asset-picker { gap: 0; padding: 0; }
+.agent-materials-modal .audit-asset-picker .ant-checkbox-wrapper { margin: 0; padding: 14px 4px; border-bottom: 1px solid var(--clear-border); align-items: flex-start; }
+.agent-materials-modal .audit-asset-picker .ant-checkbox-wrapper > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.agent-materials-modal .audit-asset-picker small { margin-top: 5px; }
+@media (max-width: 680px) {
+  .agent-materials-modal .ant-modal { max-width: calc(100vw - 24px); margin-inline: auto; }
+  .agent-materials-modal .ant-modal-footer .ant-btn { min-height: 44px; }
+  .agent-materials-modal .batch-upload { min-height: 44px; }
+}

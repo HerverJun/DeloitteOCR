@@ -10,9 +10,9 @@
 
 整合保留 0.20.0 的连续执行和文件交付行为，以及 0.18 文档主题对比、0.19 AIGC 的实验身份。旧专项的业务实现适配当前主循环，不恢复过时的 Agent 调度和任务计划门槛。具体修改、验证和限制见[整合记录](../../docs/platform-automation/分支整合记录-20261024.md)。
 
-## 源码与安装程序
+## 开发状态与运行依赖
 
-本目录是当前开发源码。正式安装仍由 [current.json](../../release/Clear/current.json) 单独登记；源码整合不自动切换已安装的 0.20.0 candidate-006，也不修改原业务 DATA。完整 Python、依赖、模型、GPU DLL、构建和业务资料保留在本机 F 盘，不进入 Git。
+本目录是当前开发源码，尚未定版或正式发布。旧发行登记与固定启动入口已撤销；历史候选编号不表示用户认可了某个正式安装版本。开发仍会复用既有 F 盘 Python、依赖、模型和 GPU DLL，业务资料独立保留，不进入 Git。
 
 根目录 `src/`、`frontend/` 继续提供独立 OCR 的兼容入口，屏拍后续实现同步收齐；Clear 全套应用的开发入口以本目录为准。准备发行时，打包器的 `--source`、`--ocr-source`、`--classification-source` 应分别指向这里的三个同级目录，不再从旧工作树取代码。使用隔离 F 盘工作区验证，避免直接升级真实业务数据库。
 
@@ -27,7 +27,7 @@ python -B scripts/sync_clear_sources.py --refresh-manifest
 python -B scripts/sync_clear_sources.py --verify
 ```
 
-现在无参数运行清单脚本只刷新本仓文件登记，不会重新用旧工作树覆盖已经合并的代码。针对集成源码的旧 `--platform-source` 覆盖操作会被拒绝。`--verify` 只读核对文件成员及字节，不调用模型，也不代表正式安装已更新。
+现在无参数运行清单脚本只刷新本仓文件登记，不会重新用旧工作树覆盖已经合并的代码。针对集成源码的旧 `--platform-source` 覆盖操作会被拒绝。清单标记为 `development_unreleased`；`--verify` 只读核对文件成员及字节，不调用模型，也不构成发布确认。
 
 根仓 `.gitattributes` 为本目录保留原始字节；来源仓的换行规则存为 `.gitattributes.source`。修改本目录后刷新清单，再提交对应源码和清单；单一开发分支中的 Git 记录是后续维护依据。
 

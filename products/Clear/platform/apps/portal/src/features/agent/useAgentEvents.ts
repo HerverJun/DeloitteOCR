@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { agentBase, agentRequest, type AgentEvent } from './api'
+import { AgentRequestError, agentBase, agentRequest, type AgentEvent } from './api'
 import { applyConversationEvents, applyJobSnapshot, createProjection, terminalActivity, validJobSnapshot, type ConversationProjection } from './conversationProjection'
 
 export type SubscriptionStatus = 'idle' | 'loading' | 'connected' | 'reconnecting' | 'failed'
@@ -10,6 +10,8 @@ export function validAgentEvent(value: unknown): value is AgentEvent {
     (event.run_id === null || typeof event.run_id === 'string') && !!event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
 }
 const urgent = (event: AgentEvent) => ['question', 'error', 'cancelled', 'task_control', 'response_state', 'context_compaction', 'delivery_check', 'job_progress', 'delivery'].includes(event.kind) || event.kind === 'agent_activity' && (terminalActivity(String(event.payload.phase)) || event.payload.phase === 'paused')
+const temporaryFailure = (error: unknown) => error instanceof TypeError || error instanceof AgentRequestError &&
+  ([408, 425, 429].includes(error.status) || error.status >= 500) || error instanceof DOMException && ['NetworkError', 'TimeoutError'].includes(error.name)
 
 export function useAgentEvents(workspace: string | null, sessionId: string | null, enabled: boolean) {
   const key = `${workspace || ''}:${sessionId || ''}`
@@ -20,7 +22,7 @@ export function useAgentEvents(workspace: string | null, sessionId: string | nul
   const [connection, setConnection] = useState<{ key: string; status: SubscriptionStatus; error: string }>({ key, status: 'idle', error: '' })
   const [retry, setRetry] = useState(0)
   useEffect(() => {
-    let stopped = false, source: EventSource | undefined, batchTimer: ReturnType<typeof setTimeout> | undefined, failureTimer: ReturnType<typeof setTimeout> | undefined, snapshotTimer: ReturnType<typeof setTimeout> | undefined, catchingUp = false, readingJobs = false
+    let stopped = false, source: EventSource | undefined, batchTimer: ReturnType<typeof setTimeout> | undefined, failureTimer: ReturnType<typeof setTimeout> | undefined, snapshotTimer: ReturnType<typeof setTimeout> | undefined, retryTimer: ReturnType<typeof setTimeout> | undefined, catchingUp = false, readingJobs = false, connecting = false, permanentFailure = false, attempts = 0
     const abort = new AbortController(), pending = new Map<number, AgentEvent>()
     const cached = cache.current.get(key)
     let projection = cached?.protocolIssue ? createProjection() : cached || createProjection()
@@ -50,7 +52,7 @@ export function useAgentEvents(workspace: string | null, sessionId: string | nul
         do {
           page = await agentRequest(`/agent/sessions/${encodeURIComponent(sessionId!)}/events?after=${cursor}&limit=100`, { signal: abort.signal })
           if (!live()) return
-          if (!Array.isArray(page.items) || !Number.isInteger(page.next_cursor) || page.items.some(value => !validAgentEvent(value))) throw new Error('会话事件格式不可用，请重新连接订阅。')
+          if (!page || !Array.isArray(page.items) || !Number.isInteger(page.next_cursor) || page.next_cursor < cursor || page.items.length === 100 && page.next_cursor === cursor || page.items.some(value => !validAgentEvent(value))) throw new Error('会话事件格式不可用，请重新连接订阅。')
           for (const event of page.items as AgentEvent[]) receive(event)
           cursor = Math.max(cursor, page.next_cursor)
         } while (page.items.length === 100)
@@ -74,25 +76,46 @@ export function useAgentEvents(workspace: string | null, sessionId: string | nul
       try { await catchUp() } finally { await readJobs() }
     }
     const pollJobs = async () => {
+      snapshotTimer = undefined
       await readJobs()
-      if (live()) snapshotTimer = setTimeout(pollJobs, projection.jobVerification === 'unavailable' ? 5000 : 1500)
+      if (live() && !permanentFailure) snapshotTimer = setTimeout(pollJobs, projection.jobVerification === 'unavailable' ? 5000 : 1500)
+    }
+    const failed = (caught: unknown) => {
+      if (!live() || caught instanceof DOMException && caught.name === 'AbortError') return
+      if (temporaryFailure(caught)) {
+        status('reconnecting', '连接中断，正在恢复读取；模型与工具不会重发。')
+        if (!retryTimer) retryTimer = setTimeout(() => { retryTimer = undefined; void connect() }, Math.min(1000 * 2 ** Math.min(attempts++, 5), 30000))
+      } else {
+        permanentFailure = true
+        source?.close()
+        if (retryTimer) clearTimeout(retryTimer); retryTimer = undefined
+        if (failureTimer) clearTimeout(failureTimer); failureTimer = undefined
+        if (snapshotTimer) clearTimeout(snapshotTimer); snapshotTimer = undefined
+        status('failed', caught instanceof Error ? caught.message : '会话读取失败，请重新连接订阅。')
+      }
     }
     const connect = async () => {
+      if (connecting || permanentFailure || !live()) return
       if (!enabled || !sessionId || !workspace) {
         if (!enabled && sessionId && workspace) { projection = applyJobSnapshot(projection); publish() }
         status('idle'); return
       }
-      status('loading')
+      connecting = true
+      status(attempts || source ? 'reconnecting' : 'loading')
       try {
         await recover()
         if (!live()) return
-        snapshotTimer = setTimeout(pollJobs, 1500)
+        attempts = 0
+        if (retryTimer) clearTimeout(retryTimer); retryTimer = undefined
+        if (!snapshotTimer) snapshotTimer = setTimeout(pollJobs, 1500)
+        if (source && source.readyState !== 2) { status(source.readyState === 1 ? 'connected' : 'reconnecting'); return }
+        source?.close()
         source = new EventSource(`${agentBase}/agent/sessions/${encodeURIComponent(sessionId)}/stream?after=${cursor}`)
         source.onopen = () => {
           if (!live()) return
           if (failureTimer) clearTimeout(failureTimer)
           status('connected')
-          void recover().catch(caught => { if (live()) status('failed', (caught as Error).message) })
+          void connect()
         }
         source.onmessage = message => {
           if (!live()) return
@@ -100,21 +123,32 @@ export function useAgentEvents(workspace: string | null, sessionId: string | nul
             const value: unknown = JSON.parse(message.data)
             if (!validAgentEvent(value)) throw new Error('会话事件格式不可用，请重新连接订阅。')
             receive(value)
-          } catch { status('failed', '收到不可读的会话事件；已保留当前内容，请重新连接订阅。') }
+          } catch { failed(new Error('收到不可读的会话事件；已保留当前内容，请重新连接订阅。')) }
         }
         source.onerror = () => {
           if (!live()) return
           flush()
           projection = applyJobSnapshot(projection); publish()
-          status(source?.readyState === 2 ? 'failed' : 'reconnecting', '连接中断，正在恢复读取；模型与工具不会重发。')
-          void recover().catch(() => { /* Job snapshot independently reports unverified state. */ })
+          // EventSource hides HTTP status codes. A permanently closed stream
+          // can be a missing endpoint or denied session, so require an explicit
+          // reconnect instead of creating an unbounded series of new streams.
+          if (source?.readyState === 2) { failed(new Error('订阅已关闭，已有内容保留；可重新连接核实会话。')); return }
+          status('reconnecting', '连接中断，正在恢复读取；模型与工具不会重发。')
+          void connect()
           if (failureTimer) clearTimeout(failureTimer)
           failureTimer = setTimeout(() => status('failed', '订阅暂未恢复，可重新连接；已有内容保留。'), 15000)
         }
-      } catch (caught) { if (live() && !(caught instanceof DOMException && caught.name === 'AbortError')) status('failed', (caught as Error).message) }
+      } catch (caught) { failed(caught) }
+      finally { connecting = false }
     }
+    const online = () => {
+      if (permanentFailure || !live()) return
+      if (retryTimer) clearTimeout(retryTimer); retryTimer = undefined
+      void connect()
+    }
+    window.addEventListener('online', online)
     void connect()
-    return () => { flush(); stopped = true; abort.abort(); source?.close(); if (batchTimer) clearTimeout(batchTimer); if (failureTimer) clearTimeout(failureTimer); if (snapshotTimer) clearTimeout(snapshotTimer) }
+    return () => { flush(); stopped = true; abort.abort(); source?.close(); window.removeEventListener('online', online); if (batchTimer) clearTimeout(batchTimer); if (failureTimer) clearTimeout(failureTimer); if (snapshotTimer) clearTimeout(snapshotTimer); if (retryTimer) clearTimeout(retryTimer) }
   }, [key, workspace, sessionId, enabled, retry])
   const projection = state.key === key ? state.projection : cache.current.get(key) || createProjection()
   const subscription = connection.key === key ? connection : { key, status: 'loading' as SubscriptionStatus, error: '' }

@@ -1,25 +1,25 @@
 # ClearOCR 详细使用说明
 
-编写日期：2026-10-14；当前入口更新：2026-10-24。面向在 Clear 审计平台中完成图片、PDF、文字及表格识别和校对的使用者。
+编写日期：2026-10-14；开发状态更新：2026-10-25。**当前源码尚未定版、尚未正式发布。** 本文面向在 Clear 源码预览中完成图片、PDF、文字及表格识别和校对的使用者；历史候选与资产目录不构成正式安装身份。
 
 平台入口、其他子工具及跨工具操作见[Clear 审计平台使用说明书](Clear审计平台使用说明书.md)。本说明重点解释 ClearOCR 的界面、按钮、操作顺序、结果状态和交付限制。
 
 ## 1. 适用版本与入口
 
-本项目中同时保留了发行程序、原生工具开发源码和根目录研发源码，不能只按目录中的版本号判断功能。
+本项目中保留了主线开发源码、兼容入口、共享依赖和历史候选记录，不能只按目录中的版本号判断功能或发布状态。
 
 | 对象 | 实际位置与用途 | 本说明中的定位 |
 | --- | --- | --- |
-| Clear 0.20.0正式入口使用的OCR | `release/Clear/current.json` 选择的candidate-006根 `ocr`；由其 `launch.py` 加载 `ocr/src` 与 `ocr/frontend/dist` | 当前源码SCHEMA_VERSION为18；切换时原工作区数据库为17，兼容检查通过，不代表本轮已迁移该库 |
+| 既有源码预览 | 本机平台预览使用 `http://127.0.0.1:8992/`，原生 OCR 由实际预览配置装配 | 该地址不自动代表最新源码或构建，使用前核对实际原生源码、前端和 DATA |
 | 统一主线原生 OCR 源码 | [products/Clear/ocr](../products/Clear/ocr/)；在 `main` 直接维护 | schema 22；已整合 MinerU Pro、屏拍批次、诊断、精细候选与单元格复核，来源见[整合记录](platform-automation/分支整合记录-20261024.md) |
 | 根目录 OCR 兼容入口 | [src/ocr_workbench](../src/ocr_workbench/) 与 [frontend/src](../frontend/src/) | schema 22；同步收齐屏拍后续实现，完整 Clear 开发以 `products/Clear` 为准 |
-| 内嵌 OCR 资产包 | `release/Clear/versions/0.10.0/program/bundles/ocr` | 提供模型、运行时、配置等资产；其中遗留的 `src` 为 schema 15、`web` 也较旧，不能据此判断正式入口实际显示的 UI |
+| 共享 OCR 资产包 | `release/Clear/versions/0.10.0/program/bundles/ocr` | 开发环境复用的模型、运行时和配置；遗留的旧 `src/web` 不代表当前服务实际加载的源码和 UI |
 
-当前正式版保留既有MinerU Pro文档路线；共享 `program` 仍位于0.10.0依赖目录，其版本不能当作当前产品版本。启动链的关键点是：平台启动器先加载版本目录下的原生 `ocr/src`，并显式传入 `--web-root` 指向原生 `ocr/frontend/dist`，同时通过 `--bundle` 引用资产包。查看资产包里的旧网页，不等于查看 Clear 当前入口的页面。
+主线源码已整合 MinerU Pro 文档路线；共享 `program` 仍位于带旧版本号的依赖目录，该路径不表示产品已发布。启动链的关键点是：平台预览配置明确选定原生 `ocr/src`，并传入 `--web-root` 指向选定的前端构建，同时通过 `--bundle` 引用资产。历史 `current.json`、8879 和“启动智能审计.cmd”不再作为现行正式入口建议；查看资产包里的旧网页也不能证明当前页面版本。
 
 从平台首页打开 ClearOCR 后，可通过页眉品牌入口返回审计平台首页；从平台项目进入时，应核对平台项目上下文。会话链接由启动入口生成，服务重启后从平台重新打开，避免反复使用已经失效的旧链接。
 
-本机源码、资料、导出、备份、临时文件与缓存只允许保存到 F 盘。运行及开发路径配置见[项目文件存储规范](项目文件存储规范.md)。正式平台入口会设置其存储环境；独立运行根目录研发版时，仍须同时配置 `--data`、应用数据和临时/缓存目录，不能只更改项目目录。
+本机源码、资料、导出、备份、临时文件与缓存只允许保存到 F 盘。运行及开发路径配置见[项目文件存储规范](项目文件存储规范.md)。每个源码预览或独立 OCR 进程都须明确配置 `--data`、应用数据和临时/缓存目录，不能假定旧启动入口会代为配置，也不能只更改项目目录。
 
 ## 2. 第一次使用：完成一份资料
 
@@ -378,7 +378,7 @@ ClearOCR 的「文档助手」是原生 OCR 页面内的助手，负责查询当
 
 ## 14. 研发版新增：拍屏表格批量转 Excel
 
-本节对应 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及 Clear OCR 中对应的前后端实现，整合源码数据库为 schema 22。此前两个研发方向都曾使用 schema 18，整合迁移按实际表结构补齐 MinerU 路由和屏拍记录；升级检查覆盖两种旧库及事务回滚。2026-10-14 的 Clear 0.10.0 入口没有此功能；正式安装与开发源码身份仍按第1节分别核对。
+本节对应 [frontend/src/ScreenBatchPanel.tsx](../frontend/src/ScreenBatchPanel.tsx) 及 Clear OCR 中对应的前后端实现，整合源码数据库为 schema 22。此前两个研发方向都曾使用 schema 18，整合迁移按实际表结构补齐 MinerU 路由和屏拍记录；升级检查覆盖两种旧库及事务回滚。历史2026-10-14的 Clear 0.10.0 候选没有此功能；当前预览、主线源码和依赖资产身份仍按第1节分别核对。
 
 ### 14.1 新建批次与查看进度
 
@@ -532,12 +532,12 @@ GPU OCR、去弯曲、定位及本地视觉相关工作受串行资源调度约�
 - 导出格式和范围正确，主文件、来源清单、失败/待核对清单齐全。
 - 文件已下载到 F 盘，并实际打开检查；工作区已按需要完成备份。
 
-本说明依据当前正式入口的启动代码、原生 OCR 源码/前端、根研发线及发行静态文件核对编写。可追溯入口包括：
+本说明依据主线原生 OCR 源码/前端、兼容入口和已记录的静态构建核对编写，不能据此认定已有正式安装版。可追溯入口包括：
 
 - [原生 OCR 主界面](../products/Clear/ocr/frontend/src/App.tsx)、[布局](../products/Clear/ocr/frontend/src/WorkspaceLayout.tsx)、[识别设置](../products/Clear/ocr/frontend/src/RecognitionBar.tsx)、[结果视图导航](../products/Clear/ocr/frontend/src/ResultViewNavigation.tsx)。
 - [原生文档树](../products/Clear/ocr/frontend/src/DocumentTree.tsx)、[表格编辑器](../products/Clear/ocr/frontend/src/TableEditor.tsx)、[结构复核](../products/Clear/ocr/frontend/src/StructureReview.tsx)、[定位绑定](../products/Clear/ocr/frontend/src/GeometryPanel.tsx)、[视觉审校](../products/Clear/ocr/frontend/src/MultimodalReview.tsx)。
 - [原生引擎配置](../products/Clear/ocr/config/engines.json)、[数据版本](../products/Clear/ocr/src/ocr_workbench/store.py)、[审校范围契约](../products/Clear/ocr/src/ocr_workbench/multimodal_contract.py)。
-- [平台原生启动器](../products/Clear/platform/scripts/agent_native_preview.py)，及本机发行目录下的 `launch.py`、`ocr/frontend/dist/index.html`。
+- [平台原生预览装配](../products/Clear/platform/scripts/agent_native_preview.py)，以及实际预览进程配置的原生源码和前端构建。
 - [根研发屏拍批次](../frontend/src/ScreenBatchPanel.tsx)、[研发数据版本](../src/ocr_workbench/store.py)。
 
 本次说明编写以源码、编译页面资源和启动参数为依据，未重新运行全部模型、外部服务或全量资料验收；实际可用性以环境检查、任务结果及当前界面为准。旧版 [DeloitteOCR 使用手册](DeloitteOCR使用手册.md) 保留历史背景，其版本、截图、端口和数据库版本不能直接替代本文的当前基线。

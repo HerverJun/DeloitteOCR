@@ -1,8 +1,9 @@
 {
   "format": "clear-integrated-source-v1",
-  "captured_on": "2026-10-24",
-  "release_pointer": "release/Clear/current.json",
-  "purpose": "Integrated authored sources maintained on the single project branch; runtime assets and deployed releases are separate.",
+  "captured_on": "2026-10-25",
+  "release_status": "development_unreleased",
+  "release_pointer": null,
+  "purpose": "Integrated authored sources under development on the single project branch; no finalized or published installation is declared.",
   "source_authority": {
     "repository": "F:/OCR",
     "branch": "main",
@@ -93,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 995,
+      "file_count": 1008,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -236,8 +237,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 21972,
-          "sha256": "d48f9c9205d9333747c6fd19ff146efd06901acfa2d9d58c4f4c9b47d1323f9e"
+          "bytes": 22095,
+          "sha256": "93484d1b5a80f74b4add6e5b379fb960cf87a909171995f7abf49d896e1b68c3"
         },
         {
           "path": "platform/apps/portal/src/main.tsx",
@@ -320,8 +321,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
           "source_path": "apps/portal/src/features/agent/AgentWorkbench.tsx",
-          "bytes": 45739,
-          "sha256": "f295b29f2c67c842e2f5dd53e5f05dc99929666f9bbc744f9f1180318c2d5017"
+          "bytes": 50789,
+          "sha256": "1156fd189f6ea0c82cfac03465148d1c5dddf77b5a68c4e137859f93727bdc14"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AuditHelp.tsx",
@@ -339,25 +340,31 @@
           "path": "platform/apps/portal/src/features/agent/ControllerSettings.tsx",
           "source_path": "apps/portal/src/features/agent/ControllerSettings.tsx",
           "bytes": 13295,
-          "sha256": "13431101442d177c22bcd0a4146c9928c833e896a59c90f2cab263091fa4e0bb"
+          "sha256": "0d9fcafe3f366bf183054d55dc4fd8a2015e28803aff822474f2ab059504519e"
         },
         {
           "path": "platform/apps/portal/src/features/agent/DirectImageTextButton.tsx",
           "source_path": "apps/portal/src/features/agent/DirectImageTextButton.tsx",
-          "bytes": 4018,
-          "sha256": "9a0e811e8d2f530cc9b6d2e9ac2fc67180f53910d6964e94d9135c8c83f04f1b"
+          "bytes": 4097,
+          "sha256": "434bc412d4c8f4187865d7d07b7c9193ed9b4396221ffe2e9cbedb1b8167b553"
         },
         {
           "path": "platform/apps/portal/src/features/agent/DirectPdfTextButton.tsx",
           "source_path": "apps/portal/src/features/agent/DirectPdfTextButton.tsx",
-          "bytes": 1606,
-          "sha256": "6c6ea06978f02a825f72bfc14759eafd62a2ae5de9a08695c6c5d29a81bfb378"
+          "bytes": 3288,
+          "sha256": "ec8b3e2d9c7735d5b949d8f382845d6c3c03dcae684d8480d13280a8cab9d4cf"
         },
         {
           "path": "platform/apps/portal/src/features/agent/EvidenceContent.tsx",
           "source_path": "apps/portal/src/features/agent/EvidenceContent.tsx",
           "bytes": 2542,
           "sha256": "e3bd987705d52c0c0226dec1bd06a91df6ad4f90c276863c86cf46d03146cad1"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/FileTextTools.tsx",
+          "source_path": "apps/portal/src/features/agent/FileTextTools.tsx",
+          "bytes": 2050,
+          "sha256": "f1a889d1a060a8a89ca412aad94ad447ef245c9614184acb27eb3e705ed63ffd"
         },
         {
           "path": "platform/apps/portal/src/features/agent/FindingTransfer.tsx",
@@ -386,14 +393,14 @@
         {
           "path": "platform/apps/portal/src/features/agent/ManualReturn.tsx",
           "source_path": "apps/portal/src/features/agent/ManualReturn.tsx",
-          "bytes": 13392,
-          "sha256": "2a02e3eb7d72230d7a4f17455339dacfef80cba64e9c1a94ea3517531a09b242"
+          "bytes": 14167,
+          "sha256": "28b2a3d9372252568ee261199fdd2cc9736b732323dbb4b676bbc1cb4e9e0d9b"
         },
         {
           "path": "platform/apps/portal/src/features/agent/Materials.tsx",
           "source_path": "apps/portal/src/features/agent/Materials.tsx",
-          "bytes": 5792,
-          "sha256": "eea659a2d66062f3c1689de004fd0a02bd331a53ce84e87658f1778b59e19590"
+          "bytes": 7625,
+          "sha256": "3265b23d376983680aaa6e24e23a1e9b85e13d8cb77e20799e1d2bef481dfebc"
         },
         {
           "path": "platform/apps/portal/src/features/agent/NativeResultPreview.tsx",
@@ -446,14 +453,14 @@
         {
           "path": "platform/apps/portal/src/features/agent/TaskPanel.tsx",
           "source_path": "apps/portal/src/features/agent/TaskPanel.tsx",
-          "bytes": 15205,
-          "sha256": "0041f54d2f135ba170af360bf62ac0479709bedcda025024a9aed5931da21990"
+          "bytes": 16063,
+          "sha256": "284b16b17e3bac9bc38d88c95ff182bb076298501f92968c3e67b7f8a96da17d"
         },
         {
           "path": "platform/apps/portal/src/features/agent/ToolActivity.tsx",
           "source_path": "apps/portal/src/features/agent/ToolActivity.tsx",
-          "bytes": 9168,
-          "sha256": "4bf8ebed56e0a7ab4b12104127c4491e5cd2f22ab24b59f406f9800093fd5faa"
+          "bytes": 10621,
+          "sha256": "c5fc359df91d578b39165e2797035198ee0d76a0b6085f324fd358c02926f3be"
         },
         {
           "path": "platform/apps/portal/src/features/agent/agent.css",
@@ -486,6 +493,18 @@
           "sha256": "83395102bbe746d173bb705f1574ee33542855a1be1a262ac5536c1edb45bab4"
         },
         {
+          "path": "platform/apps/portal/src/features/agent/file-text-tools.css",
+          "source_path": "apps/portal/src/features/agent/file-text-tools.css",
+          "bytes": 2095,
+          "sha256": "93f8bea1a5fe2f2520eb42a9a4d1e158eb30b1e6200cc40b503a1597edc270d0"
+        },
+        {
+          "path": "platform/apps/portal/src/features/agent/materials.css",
+          "source_path": "apps/portal/src/features/agent/materials.css",
+          "bytes": 2756,
+          "sha256": "fdd3665a27a00b6f989bb095e3a30bb29316b237d3d0f11c5e3f1e48e79bf619"
+        },
+        {
           "path": "platform/apps/portal/src/features/agent/platform-tools.css",
           "source_path": "apps/portal/src/features/agent/platform-tools.css",
           "bytes": 2349,
@@ -512,14 +531,14 @@
         {
           "path": "platform/apps/portal/src/features/agent/tool-activity.css",
           "source_path": "apps/portal/src/features/agent/tool-activity.css",
-          "bytes": 3709,
-          "sha256": "c03141b7e5e90d02fafe8d833f8f070f613897a866816322da54511179a61ccc"
+          "bytes": 3963,
+          "sha256": "eb916abb936a58e663333a45dfe582c06906a5362e50a4964d338e1953fd5f7d"
         },
         {
           "path": "platform/apps/portal/src/features/agent/useAgentEvents.ts",
           "source_path": "apps/portal/src/features/agent/useAgentEvents.ts",
-          "bytes": 7669,
-          "sha256": "adffc1f929bac4238c1f2fd98193444e0cb4cfb184cc21b0a00b4cd8717f7698"
+          "bytes": 9924,
+          "sha256": "9946d90a44cf1f8a11f588ab1f39b033c7e097d3ebc83676d3e902da0d9fc7be"
         },
         {
           "path": "platform/apps/portal/src/features/agent/useConversationScroll.ts",
@@ -530,8 +549,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/workbench-visual.css",
           "source_path": "apps/portal/src/features/agent/workbench-visual.css",
-          "bytes": 13120,
-          "sha256": "4b4e688e935bcd19fbbf26877676fa33776347ebc6e71400e40f8cd77987e058"
+          "bytes": 13336,
+          "sha256": "ee973f31299f6e4204f08da79ce0e70422d190a9605f3382c106568cb68353d1"
         },
         {
           "path": "platform/apps/portal/src/features/agent/workbenchView.ts",
@@ -620,8 +639,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/UploadQueue.tsx",
           "source_path": "apps/portal/src/features/batches/UploadQueue.tsx",
-          "bytes": 17095,
-          "sha256": "78a4a404ba84d95f42fea2dbb238993f50af96be2551afc3781e5b9f572cc48b"
+          "bytes": 22481,
+          "sha256": "35799c0807eae782bae5df8e5687339d476600e07866c2b9ddee41b790c1f4c2"
         },
         {
           "path": "platform/apps/portal/src/features/batches/api.ts",
@@ -674,8 +693,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
-          "bytes": 10677,
-          "sha256": "9b1abff23b7ca7e39ba4d1162bab864b62b1be593644bc2ae8b39a4cf5499305"
+          "bytes": 11462,
+          "sha256": "3ff449de13e5f87842ab93c6c6dc6e28995540cb81b9ae190dccf3b2b490b6c7"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
@@ -824,14 +843,20 @@
         {
           "path": "platform/apps/portal/src/features/home/PortalHome.tsx",
           "source_path": "apps/portal/src/features/home/PortalHome.tsx",
-          "bytes": 7250,
-          "sha256": "1dc8af4941e12f6f303168a1c7a35c81068d47ba10b299dab5882d65196cd9b5"
+          "bytes": 7396,
+          "sha256": "e4fe9d29a36ad1fbe56940971d5c797d636f35de166f9d9a15b1d64e1fcbdceb"
         },
         {
           "path": "platform/apps/portal/src/features/home/home.css",
           "source_path": "apps/portal/src/features/home/home.css",
           "bytes": 5347,
           "sha256": "9aa0221f8f5c62664fc422113c3e1b421fde0992317e9560ffb6f4b649043806"
+        },
+        {
+          "path": "platform/apps/portal/src/features/home/taskIntents.ts",
+          "source_path": "apps/portal/src/features/home/taskIntents.ts",
+          "bytes": 666,
+          "sha256": "7eb4a7add44b6cc339c2e54e1da330f2f62c07fdcec617797b9ccee1e38bfb55"
         },
         {
           "path": "platform/apps/portal/src/features/jobs/TaskCenter.tsx",
@@ -984,6 +1009,12 @@
           "sha256": "d1c14eb772dacf9b15d1b323dd831616c7d16f006a67251dadb7b2d6907ea7df"
         },
         {
+          "path": "platform/apps/portal/tests/agent-action-scope.test.tsx",
+          "source_path": "apps/portal/tests/agent-action-scope.test.tsx",
+          "bytes": 10923,
+          "sha256": "b49959ea71e7e249fdcf698c464e8b3a415b72e3276f78dae6ef844116872520"
+        },
+        {
           "path": "platform/apps/portal/tests/agent-context-skills.test.tsx",
           "source_path": "apps/portal/tests/agent-context-skills.test.tsx",
           "bytes": 20088,
@@ -1002,6 +1033,12 @@
           "sha256": "3e99b62dbedf3fb67c238968aa182f77d98612da7044f5c0f85550ed576c86d4"
         },
         {
+          "path": "platform/apps/portal/tests/agent-materials.test.tsx",
+          "source_path": "apps/portal/tests/agent-materials.test.tsx",
+          "bytes": 8846,
+          "sha256": "65df3f0bd9e6f8194576a54cf6e9639e2ab3a86d6533fb087d42206bb289ffa2"
+        },
+        {
           "path": "platform/apps/portal/tests/agent-motion.test.tsx",
           "source_path": "apps/portal/tests/agent-motion.test.tsx",
           "bytes": 14010,
@@ -1010,8 +1047,14 @@
         {
           "path": "platform/apps/portal/tests/agent-platform-tools.test.tsx",
           "source_path": "apps/portal/tests/agent-platform-tools.test.tsx",
-          "bytes": 15872,
-          "sha256": "23de639f0898e44b29880b2b0f47bd95bfd4c30ed34423ac0db8c2d889a0f15a"
+          "bytes": 16034,
+          "sha256": "5f5b47b84da58c1e9ca6b57aa7fa269969da9d2421e339d50c6786e80f5bce25"
+        },
+        {
+          "path": "platform/apps/portal/tests/agent-scope-save.test.tsx",
+          "source_path": "apps/portal/tests/agent-scope-save.test.tsx",
+          "bytes": 5904,
+          "sha256": "b42934059bf631a6d439141fcef6818e6fc1596eea6303f42ab6bcab1de2e38c"
         },
         {
           "path": "platform/apps/portal/tests/agent-streaming-ui.test.tsx",
@@ -1020,16 +1063,28 @@
           "sha256": "19640501cf2a8cda9b9b901b8d6d15da202a50e502afe397d77ba66bb6f089b1"
         },
         {
+          "path": "platform/apps/portal/tests/agent-subscription-recovery.test.tsx",
+          "source_path": "apps/portal/tests/agent-subscription-recovery.test.tsx",
+          "bytes": 5521,
+          "sha256": "201ce6a14e2ff0425a62944ee036ac11b2568620e14ecb36084a6e4d7436e6da"
+        },
+        {
           "path": "platform/apps/portal/tests/agent-task-panel.test.tsx",
           "source_path": "apps/portal/tests/agent-task-panel.test.tsx",
           "bytes": 15172,
           "sha256": "8b8eb999bb2b439ff8041170300447583c6cc0c549d9ad90da178b994eec59b8"
         },
         {
+          "path": "platform/apps/portal/tests/agent-usability-navigation.test.tsx",
+          "source_path": "apps/portal/tests/agent-usability-navigation.test.tsx",
+          "bytes": 9352,
+          "sha256": "42ab6b3cda899eca3752d7ce255ba2dfd8feac4bdc73933862a7a179288ce184"
+        },
+        {
           "path": "platform/apps/portal/tests/agent-workbench-visual.test.tsx",
           "source_path": "apps/portal/tests/agent-workbench-visual.test.tsx",
-          "bytes": 5950,
-          "sha256": "b2a7b30cc9c64c060686d2fa33a2a7e0cbc6b3d5247934c5e3be0f6d2dcaf568"
+          "bytes": 7713,
+          "sha256": "5fa9158bbfc5948496c4976713538c4c455c861d95997ace53520f16e34c4d9a"
         },
         {
           "path": "platform/apps/portal/tests/aigc-image.test.tsx",
@@ -1040,8 +1095,8 @@
         {
           "path": "platform/apps/portal/tests/architecture-revision.test.tsx",
           "source_path": "apps/portal/tests/architecture-revision.test.tsx",
-          "bytes": 18185,
-          "sha256": "8142a7aef237da19acfb4cf6f6fdb0c6c3e84371a223a89364b7f406aadb90b9"
+          "bytes": 18520,
+          "sha256": "ab832fd09f50449f004a7cfde78c77550bb88c2925e4feb505a8d45223e6efd1"
         },
         {
           "path": "platform/apps/portal/tests/audio-upload.test.tsx",
@@ -1072,6 +1127,12 @@
           "source_path": "apps/portal/tests/comparisons.test.tsx",
           "bytes": 15025,
           "sha256": "7dca2de10c0f7ddba05797f9831aa26f70315f4507fd608417a99929e4229152"
+        },
+        {
+          "path": "platform/apps/portal/tests/controller-first-use.test.tsx",
+          "source_path": "apps/portal/tests/controller-first-use.test.tsx",
+          "bytes": 4496,
+          "sha256": "8a1ff96f620e29ffea0e60dcf47289b22ac116ae191ceb2d5e657088431c6154"
         },
         {
           "path": "platform/apps/portal/tests/documents-loading.test.tsx",
@@ -1118,8 +1179,8 @@
         {
           "path": "platform/apps/portal/tests/home-routing.test.tsx",
           "source_path": "apps/portal/tests/home-routing.test.tsx",
-          "bytes": 5432,
-          "sha256": "52a5a3860c3e29708226b32c348e869e24a56ba7ef984dc2033cace076e1389a"
+          "bytes": 6442,
+          "sha256": "acd88efe76d29505eb0b601713e45244b67f165b22ba588ff4220ad875af274b"
         },
         {
           "path": "platform/apps/portal/tests/item-evidence.test.tsx",
@@ -1138,6 +1199,12 @@
           "source_path": "apps/portal/tests/local-candidates.test.tsx",
           "bytes": 9248,
           "sha256": "63768a111aa0cc1cc3051013b9336e60fb6b6bcdb9547d7b6ead2b3198d238e7"
+        },
+        {
+          "path": "platform/apps/portal/tests/manual-return-limits.test.tsx",
+          "source_path": "apps/portal/tests/manual-return-limits.test.tsx",
+          "bytes": 4220,
+          "sha256": "4d137ecd7d00b61392f0ecc8e22679111ce5e16131ecf7875fc329e6e4762459"
         },
         {
           "path": "platform/apps/portal/tests/multimodal-agent-results.test.tsx",
@@ -1166,8 +1233,8 @@
         {
           "path": "platform/apps/portal/tests/navigation.test.tsx",
           "source_path": "apps/portal/tests/navigation.test.tsx",
-          "bytes": 15860,
-          "sha256": "b80101c469605b8c1d0dc16e60d71ab03ea3ebdcfd1d3c067ccd8b76bc58c5af"
+          "bytes": 15955,
+          "sha256": "f810b1271a32d6c8ddb3fd07b539dd58ddb5c1d83313f111972b6c21cf814945"
         },
         {
           "path": "platform/apps/portal/tests/quick-start.test.tsx",
@@ -1212,6 +1279,18 @@
           "sha256": "2155e9df2908d23d0d759f2847cac4e27acad3d0e071037ee7e49e84a78a9099"
         },
         {
+          "path": "platform/apps/portal/tests/tool-activity-summary.test.tsx",
+          "source_path": "apps/portal/tests/tool-activity-summary.test.tsx",
+          "bytes": 4510,
+          "sha256": "ae437db6ff9067c1ca1593950b52b43686eeb51207c2076648e66f840ba97586"
+        },
+        {
+          "path": "platform/apps/portal/tests/tool-directory-usability.test.tsx",
+          "source_path": "apps/portal/tests/tool-directory-usability.test.tsx",
+          "bytes": 3804,
+          "sha256": "c9ca87dd8f66f518e29e9f23eccb52b24ae8cae2780fdab871169cef1bbbfa15"
+        },
+        {
           "path": "platform/apps/portal/tests/tool-project-entry.test.tsx",
           "source_path": "apps/portal/tests/tool-project-entry.test.tsx",
           "bytes": 12498,
@@ -1220,8 +1299,8 @@
         {
           "path": "platform/apps/portal/tests/upload-recovery.test.tsx",
           "source_path": "apps/portal/tests/upload-recovery.test.tsx",
-          "bytes": 6775,
-          "sha256": "ab12eb9014070aa7086e58b9ce405a0d59e69b0ebd75838882a710bf1481db09"
+          "bytes": 15862,
+          "sha256": "0b7a913020b6b580099a64152adfd2864dde27e27d104c1c1969037ef03f0af6"
         },
         {
           "path": "platform/config/forensics.json",
@@ -1466,8 +1545,8 @@
         {
           "path": "platform/docs/agent/README.md",
           "source_path": "docs/agent/README.md",
-          "bytes": 13137,
-          "sha256": "9983f8d1948b1de8d744e0a2bb8b451805942f7c98dba543708e86fadf8bc944"
+          "bytes": 13431,
+          "sha256": "4727272fdf0e562e8bcc5e60127f000d4f831c4ce7bee599b6c2897f6f959e0b"
         },
         {
           "path": "platform/docs/agent/architecture-revision-20261017.md",
@@ -2984,8 +3063,8 @@
         {
           "path": "platform/scripts/package_harness_candidate.py",
           "source_path": "scripts/package_harness_candidate.py",
-          "bytes": 21120,
-          "sha256": "f3130507a16bab38b41e40e0e9b53c6d10caedd3d8f2820f3bdc6d683c9b5e11"
+          "bytes": 21290,
+          "sha256": "632707a3465460cb633b747016fa3d190f49df436f24f71c76d9822f47cab435"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -6082,7 +6161,7 @@
           "working_tree_status": []
         }
       ],
-      "file_count": 195,
+      "file_count": 198,
       "files": [
         {
           "path": "classification/.gitattributes.source",
@@ -6231,8 +6310,8 @@
         {
           "path": "classification/apps/web/src/api.ts",
           "source_path": "apps/web/src/api.ts",
-          "bytes": 4087,
-          "sha256": "31245273f615a72a62deff763725638e2a4f70b1f4cd6bb3db2eefcace48912a"
+          "bytes": 4341,
+          "sha256": "023856812665507111d2138d6570a2b212c7ebc3893901a14780dac43df04ac0"
         },
         {
           "path": "classification/apps/web/src/main.tsx",
@@ -6265,10 +6344,16 @@
           "sha256": "c6d6e32ef5bc44c8489b0fe57afd4178396a14f5a3706edaabb41d9fd7d712a8"
         },
         {
+          "path": "classification/apps/web/src/runtimeRequests.ts",
+          "source_path": "apps/web/src/runtimeRequests.ts",
+          "bytes": 4040,
+          "sha256": "416d3b94ace6be67b3bf8bda15d1a4ea064456c02daa97222009379b4425e6f1"
+        },
+        {
           "path": "classification/apps/web/src/style.css",
           "source_path": "apps/web/src/style.css",
-          "bytes": 26781,
-          "sha256": "2d57f4b81e42c8a7457de5f59e3f339205e798d6f732303b8938c2e1e873458d"
+          "bytes": 26914,
+          "sha256": "54d2366b2e03e18cbb8ab360db5d81521e845c677d7a936767f2773e46f0332d"
         },
         {
           "path": "classification/apps/web/src/workbench.tsx",
@@ -6301,6 +6386,12 @@
           "sha256": "4138f3b0f7117ddde52f5d30bcde7a14234d8691f949345b5cf0c522f207478b"
         },
         {
+          "path": "classification/apps/web/src/views/DeviceReadiness.tsx",
+          "source_path": "apps/web/src/views/DeviceReadiness.tsx",
+          "bytes": 4221,
+          "sha256": "1a058d8b543354c4816156e2d8f4cf380ac078117463b52d9aeeff6b287a2d21"
+        },
+        {
           "path": "classification/apps/web/src/views/assets.tsx",
           "source_path": "apps/web/src/views/assets.tsx",
           "bytes": 9790,
@@ -6309,20 +6400,26 @@
         {
           "path": "classification/apps/web/src/views/jobs.tsx",
           "source_path": "apps/web/src/views/jobs.tsx",
-          "bytes": 20010,
-          "sha256": "4e741fdd0f662b0f0b18fa1880084d4ede9544b7d81fdfb698e7824564a8158e"
+          "bytes": 20600,
+          "sha256": "701652fe24ba3d534a358fe42b62a3c37da72e3bef344e03ca503da137e08704"
         },
         {
           "path": "classification/apps/web/src/views/models.tsx",
           "source_path": "apps/web/src/views/models.tsx",
-          "bytes": 13729,
-          "sha256": "6908c4ec26170851db5bef8e62c6bbd952c9c45f0afcd6d5446ab334c1d7019c"
+          "bytes": 15188,
+          "sha256": "0ae95a5450392c73aec2b541595bb793d80be3f88fd3ae36bc908f8edf3d58c0"
         },
         {
           "path": "classification/apps/web/src/views/runtime.tsx",
           "source_path": "apps/web/src/views/runtime.tsx",
-          "bytes": 2490,
-          "sha256": "887be3cb0bd131f4ff409cfc2515f0861b837c4e5a546f3599bd041fa15b254f"
+          "bytes": 3281,
+          "sha256": "9a553a8e64e83dca5ffb41f0ebafeb706a4cbfc8627912bf69e74212c7110102"
+        },
+        {
+          "path": "classification/apps/web/tests/runtimeRequests.test.ts",
+          "source_path": "apps/web/tests/runtimeRequests.test.ts",
+          "bytes": 5349,
+          "sha256": "83a31838094c9851d7b404dc0a259fd1e692a7503dbaf288aa0ad0fbf3ef47ef"
         },
         {
           "path": "classification/benchmarks/flowers102-protocol.json",
@@ -7059,8 +7156,8 @@
         {
           "path": "classification/src/image_platform/api.py",
           "source_path": "src/image_platform/api.py",
-          "bytes": 40745,
-          "sha256": "6e2400a62de516352477afd772e9466f1ecee38266e0da3bdf51cae962e650bf"
+          "bytes": 40973,
+          "sha256": "ab9cd521813f0e1cd42ba42ff6f72dae30bfaa1cc6bc548b3a8833828b615dd7"
         },
         {
           "path": "classification/src/image_platform/backup.py",
@@ -7131,8 +7228,8 @@
         {
           "path": "classification/src/image_platform/runtime.py",
           "source_path": "src/image_platform/runtime.py",
-          "bytes": 6918,
-          "sha256": "b26fc5a779214da66ec72239105ad9501f226ad0cecf75a644b365bd4b5b7c9f"
+          "bytes": 10146,
+          "sha256": "ddecc65fcc4d4cb570e2d238e7c1c8d4801f90d5e459ed25dbb8b0578dc1e588"
         },
         {
           "path": "classification/src/image_platform/settings.py",
@@ -7167,8 +7264,8 @@
         {
           "path": "classification/tests/test_api.py",
           "source_path": "tests/test_api.py",
-          "bytes": 5581,
-          "sha256": "ba50e124d22e298fc2b9b8765dfcbd35df1e5f4bf8392d40e91722d1b5ff7a52"
+          "bytes": 6458,
+          "sha256": "4ffebc9b1b0f093e3087967e9598826d8b2826a3de8307dd5418870ef3b044b1"
         },
         {
           "path": "classification/tests/test_backup.py",
@@ -7233,8 +7330,8 @@
         {
           "path": "classification/tests/test_runtime.py",
           "source_path": "tests/test_runtime.py",
-          "bytes": 1828,
-          "sha256": "18f2424ebdef195b12a76da97ee5749a8a40df2ff3684ae3f83e106ceb0f8d8d"
+          "bytes": 4279,
+          "sha256": "66ab00b21ffb48393db8fe3c860646565ac24dd4bf9102adc10913e586932c4c"
         },
         {
           "path": "classification/tools/benchmark_components.py",
@@ -8315,8 +8412,8 @@
         {
           "path": "ocr/frontend/src/App.tsx",
           "source_path": "frontend/src/App.tsx",
-          "bytes": 89655,
-          "sha256": "c42b48cc89595d28ffb5ba7b6d52c2e8cba5cd5a92dab3aa56082eff91a8d3cf"
+          "bytes": 91153,
+          "sha256": "b352d4d654065cad75690ec2b6827f859b3231c7144e8e2863d73c6e2f4c9704"
         },
         {
           "path": "ocr/frontend/src/BrandHeader.tsx",
@@ -8525,8 +8622,8 @@
         {
           "path": "ocr/frontend/src/api.ts",
           "source_path": "frontend/src/api.ts",
-          "bytes": 3401,
-          "sha256": "92704572da82d1e9346f0ce156df4cbc1c6a126e852580e8b69c571cfc49a93a"
+          "bytes": 3619,
+          "sha256": "4cab71a444973845fd34d89a0333530380b3c34a0e962c3203118c6f09414853"
         },
         {
           "path": "ocr/frontend/src/comparisonOps.ts",
@@ -11723,8 +11820,8 @@
         {
           "path": "ocr/src/ocr_workbench/application_services.py",
           "source_path": "src/ocr_workbench/application_services.py",
-          "bytes": 8214,
-          "sha256": "4d9da5654845a586b0d7c445af5051b0a364c18f8ab62a1f36caa0fe9d8916b6"
+          "bytes": 8331,
+          "sha256": "7a0d4ad20eae2138957b68171da20bafcb747217f63117f4d3ada345dbff8a55"
         },
         {
           "path": "ocr/src/ocr_workbench/atomic_files.py",
@@ -11807,8 +11904,8 @@
         {
           "path": "ocr/src/ocr_workbench/exporting.py",
           "source_path": "src/ocr_workbench/exporting.py",
-          "bytes": 16793,
-          "sha256": "69ab1c6d274cb68aaaa85c19e626287f7f7fe3130c56e41c32a64f13f08bb443"
+          "bytes": 21954,
+          "sha256": "fa271dc277a51e9fbf883540efb3ba399ba2d42a01a9d311e5cad11ce673ebf2"
         },
         {
           "path": "ocr/src/ocr_workbench/external_review.py",
@@ -12869,8 +12966,8 @@
         {
           "path": "ocr/tests/test_exporting.py",
           "source_path": "tests/test_exporting.py",
-          "bytes": 12771,
-          "sha256": "9a563c345e9d7c17b4846d2ec452f5e745a89532f99d728d43df3b830026138f"
+          "bytes": 16145,
+          "sha256": "75680155cc7b935d546c650ac9a0e4080f406b6febb147c93d468d849bd51681"
         },
         {
           "path": "ocr/tests/test_external_review.py",

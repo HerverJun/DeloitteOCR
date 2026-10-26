@@ -32,7 +32,15 @@ const metadata: Record<string, { category: Category; label: string; keywords: st
   aigc_image: { category: 'image', label: '图像分析', keywords: 'AIGC AI 整图 生成 检测 鉴别 图片 文档 信号 来源', formats: '图片 → 生成信号 / 复核报告' },
   face: { category: 'image', label: '图像分析', keywords: '人脸 比对 图片 照片 参考库 相似度 检索', formats: '照片 → 人脸 / 比对结果' },
   audio: { category: 'audio', label: '音频处理', keywords: '音频 分析 录音 中文 转写 语音 说话人 波形', formats: '录音 → 转写 / 定位片段' },
+  seals: { category: 'document', label: '印章识别', keywords: '印章 公章 识别 定位 文字 主体 文档 图片', formats: '图片 → 印章 / 文字线索' },
+  deep_forensics: { category: 'image', label: '深度定位', keywords: 'SAFIRE 深度 定位 图像 图片 取证 篡改 可疑 区域 JPEG PNG', formats: 'JPEG · PNG → 可疑区域' },
+  document_forensics: { category: 'document', label: '文档篡改排查', keywords: '文档 篡改 排查 改字 定位 原件 对照 复核 图片', formats: '文档图片 → 改字线索 / 复核' },
 }
+const extensions = [
+  { id: 'seals', path: '/apps/ocr/seals', title: '印章识别', summary: '定位印章、核对文字与主体', Icon: SafetyCertificateOutlined },
+  { id: 'deep_forensics', path: '/apps/forensics/deep', title: 'SAFIRE 深度定位', summary: 'JPEG、PNG 可疑区域辅助排查', Icon: SearchOutlined },
+  { id: 'document_forensics', path: '/apps/forensics/document', title: '文档篡改排查', summary: '改字定位、原件对照与复核', Icon: FileSearchOutlined },
+]
 
 export function ToolDirectory() {
   const workspaceId = useWorkspaceId(), apps = useApps(workspaceId), workspaces = useWorkspaces()
@@ -67,8 +75,10 @@ export function ToolDirectory() {
     })) || []),
   ]
   const query = search.trim().toLocaleLowerCase()
-  const visible = entries.filter(entry => (category === 'all' || metadata[entry.id]?.category === category)
-    && (!query || `${entry.id} ${metadata[entry.id]?.keywords || ''}`.toLocaleLowerCase().includes(query)))
+  const matches = (entry: { id: string }) => (category === 'all' || metadata[entry.id]?.category === category)
+    && (!query || `${entry.id} ${metadata[entry.id]?.keywords || ''}`.toLocaleLowerCase().includes(query))
+  const visible = entries.filter(matches), visibleExtensions = extensions.filter(matches)
+  const resultCount = visible.length + visibleExtensions.length
   return <div className="manual-directory">
     <header className="directory-heading">
       <div><div className="directory-kicker"><span />CLEAR WORKSPACE</div>
@@ -91,14 +101,14 @@ export function ToolDirectory() {
       <div className="directory-toolbar">
         <div className="directory-filters" role="group" aria-label="按工具类型筛选">
           {filters.map(filter => <button key={filter.id} type="button" aria-pressed={category === filter.id}
-            onClick={() => setCategory(filter.id)}>{filter.label}{filter.id === 'all' && !apps.isPending && <span>{entries.length}</span>}</button>)}
+            onClick={() => setCategory(filter.id)}>{filter.label}{filter.id === 'all' && !apps.isPending && <span>{entries.length + extensions.length}</span>}</button>)}
         </div>
         <Input ref={input} className="directory-search" prefix={<SearchOutlined />} value={search} allowClear
           onChange={event => setSearch(event.target.value)} placeholder="搜索工具或用途" aria-label="搜索工具或用途"
           suffix={!search && <kbd>Ctrl K</kbd>} />
       </div>
       <div className="directory-result-caption" role="status" aria-live="polite">
-        <span>{apps.isPending ? '正在读取工具目录…' : `${visible.length} 个工具${category !== 'all' || query ? '符合筛选' : '，按需打开'}`}</span>
+        <span>{apps.isPending ? '正在读取工具目录…' : `${resultCount} 个工具${category !== 'all' || query ? '符合筛选' : '，按需打开'}`}</span>
         <span>原件对照 · 人工确认 · 成果留存</span>
       </div>
       {apps.isError && <Alert className="directory-load-error" type="error" showIcon title="暂时无法取得服务数据"
@@ -110,20 +120,16 @@ export function ToolDirectory() {
         </article>)}
         {apps.isPending && category === 'all' && !query && <div className="catalog-tool catalog-loading" role="status" aria-label="正在读取原生工具"><Skeleton active paragraph={{ rows: 4 }} /></div>}
       </div>
-      {!visible.length && !apps.isPending && <div className="directory-empty"><Empty image={Empty.PRESENTED_IMAGE_SIMPLE}
+      {!resultCount && !apps.isPending && <div className="directory-empty"><Empty image={Empty.PRESENTED_IMAGE_SIMPLE}
         description={query ? `没有找到与“${search.trim()}”匹配的工具` : '这个分类下没有工具'} />
         <Button icon={<FilterOutlined />} onClick={() => { setSearch(''); setCategory('all'); input.current?.focus() }}>显示全部工具</Button></div>}
     </section>
 
-    <section className="directory-extensions" aria-label="专项扩展">
+    {!!visibleExtensions.length && <section className="directory-extensions" aria-label="专项扩展">
       <div className="extension-intro"><span className="directory-section-label">专项扩展</span><p>深入检查文档与图像</p></div>
-      <Link to={`/apps/ocr/seals${scope}`}><span className="extension-icon"><SafetyCertificateOutlined /></span>
-        <span><strong>印章识别</strong><small>定位印章、核对文字与主体</small></span><ArrowRightOutlined /></Link>
-      <Link to={`/apps/forensics/deep${scope}`}><span className="extension-icon"><SearchOutlined /></span>
-        <span><strong>SAFIRE 深度定位</strong><small>JPEG、PNG 可疑区域辅助排查</small></span><ArrowRightOutlined /></Link>
-      <Link to={`/apps/forensics/document${scope}`}><span className="extension-icon"><FileSearchOutlined /></span>
-        <span><strong>文档篡改排查</strong><small>改字定位、原件对照与复核</small></span><ArrowRightOutlined /></Link>
-    </section>
+      {visibleExtensions.map(({ id, path, title, summary, Icon }) => <Link key={id} to={`${path}${scope}`}><span className="extension-icon"><Icon /></span>
+        <span><strong>{title}</strong><small>{summary}</small></span><ArrowRightOutlined /></Link>)}
+    </section>}
     <RecentWorks workspaceId={workspaceId} />
     <footer className="directory-footnote"><span>Clear 审计工作台</span><span>分析结果经人工复核后形成审计成果</span></footer>
   </div>

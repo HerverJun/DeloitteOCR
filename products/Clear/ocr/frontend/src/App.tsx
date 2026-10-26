@@ -146,6 +146,7 @@ export function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("xlsx");
   const [exportScope, setExportScope] = useState("current");
+  const [exportPartial, setExportPartial] = useState(false);
   const exportMany = exportScope !== "current";
   const [confirmedOnly, setConfirmedOnly] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -649,8 +650,10 @@ export function App() {
   const exportResults = async () => {
     await editor.flush();
     let ids: string[] = [];
+    let imageIds: string[] = [];
     if (exportMany) {
       const latest = await api<ProjectState>("/projects/" + projectId);
+      imageIds = exportPhotos(latest.images, selected, exportScope, false).map(p => p.id);
       const photos = exportPhotos(
         latest.images,
         selected,
@@ -660,18 +663,23 @@ export function App() {
       ids = photos
         .map((p) => adoptedResult(p, latest.tasks))
         .filter(Boolean) as string[];
-      if (ids.length !== photos.length)
+      if (ids.length !== photos.length && !(exportPartial && exportFormat !== "pdf"))
         throw new Error(
           `此范围 ${photos.length} 张图片中有 ${photos.length - ids.length} 张尚无可导出的结果，请等待识别或调整范围。`,
         );
     } else if (editor.result) ids = [editor.result.id];
-    if (!ids.length)
+    if (!ids.length && !(exportMany && exportPartial && exportFormat !== "pdf"))
       throw new Error("此范围没有可导出的结果，请调整范围或复核筛选。");
     await download(
       ids,
       exportFormat,
       exportMany && exportFormat === "xlsx" && exportAggregate,
       confirmedOnly,
+      exportMany && exportPartial && exportFormat !== "pdf" ? {
+        project_id: projectId,
+        image_ids: imageIds,
+        allow_partial: true,
+      } : undefined,
     );
     setExportOpen(false);
     notify("导出文件已生成");
@@ -1856,9 +1864,15 @@ export function App() {
               </label>
               <p className="dialog-description">
                 {exportMany
-                  ? `范围内 ${targets.length} 张，可导出 ${exportableCount} 张${targets.length > exportableCount ? `；${targets.length - exportableCount} 张尚无结果，请调整范围。` : "。"}`
+                  ? `筛选后范围 ${targets.length} 张，已有采用结果 ${exportableCount} 张${targets.length > exportableCount ? `；${targets.length - exportableCount} 张尚无结果，可等待完成或选择部分导出。` : "。"}`
                   : `当前预览：${photo?.name || ""} · ${editor.result?.id === currentAdopted ? "已采用" : "未采用"}。批量导出使用每张图片的采用结果。`}
               </p>
+              {exportMany && exportFormat !== "pdf" && <label className="export-scope">
+                <input type="checkbox" checked={exportPartial} onChange={e => setExportPartial(e.target.checked)} />
+                仅导出可用部分，附完整范围与未包含原因清单
+              </label>}
+              {exportMany && exportPartial && exportFormat !== "pdf" && <p className="dialog-description">下载 ZIP 中包含本次范围清单。未完成、当前版本无采用结果、未通过已确认筛选及没有结构表的 Excel 项会明确列为未包含；不会自动采用其他候选。</p>}
+              {exportFormat === "pdf" && <p className="dialog-description">可搜索 PDF 按文档页面预检：所选页须有完整、可定位的文字层，不支持自动跳过不合格页。可在文档树指定较小页码范围；仅需已完成文字时请选择 TXT、Markdown 或 JSON 部分导出。</p>}
               {exportFormat === "xlsx" && exportMany && (
                 <label className="export-scope">
                   <input
@@ -1882,7 +1896,7 @@ export function App() {
                 disabled={
                   busy ||
                   !exportableCount ||
-                  (exportMany && exportableCount !== targets.length) ||
+                  (exportMany && exportableCount !== targets.length && !(exportPartial && exportFormat !== "pdf")) ||
                   (!exportMany &&
                     confirmedOnly &&
                     (reviewCurrent !== "confirmed" ||

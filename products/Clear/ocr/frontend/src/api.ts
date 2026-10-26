@@ -53,6 +53,7 @@ export async function download(
   format: string,
   aggregate = false,
   confirmedOnly = false,
+  scope?: { project_id: string; image_ids: string[]; allow_partial: boolean },
 ) {
   if (format === "pdf") {
     await downloadPdf({ result_ids: ids, confirmed_only: confirmedOnly });
@@ -65,6 +66,7 @@ export async function download(
       format,
       aggregate,
       confirmed_only: confirmedOnly,
+      ...(scope ? { image_scope: { project_id: scope.project_id, image_ids: scope.image_ids }, allow_partial: scope.allow_partial } : {}),
     }),
   });
   const blob = await response.blob();

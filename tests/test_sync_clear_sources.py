@@ -44,6 +44,8 @@ def test_default_refresh_keeps_new_main_branch_edits_and_upstream_history(invent
     current = destination / 'ocr/implementation.py'
     current.write_bytes(b'newer main branch work\r\n')
     second = module.capture()
+    assert second['release_status'] == 'development_unreleased'
+    assert second['release_pointer'] is None
     assert current.read_bytes() == b'newer main branch work\r\n'
     assert first['source_authority']['integration_base_head'] == second['source_authority']['integration_base_head']
     assert second['sources'][2]['upstream_sources'][0]['head'] == 'old-upstream-head'

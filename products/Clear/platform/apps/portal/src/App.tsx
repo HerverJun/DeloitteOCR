@@ -52,7 +52,7 @@ async function pages<T extends { items: unknown[]; next_cursor: string | null; s
 }
 
 export function useWorkspaceId() { const [params] = useSearchParams(); return params.get('workspace') || null }
-export function useWorkspaces() { return useQuery({ queryKey: ['workspaces'], queryFn: ({ signal }) => pages<WorkspacePage>('/api/platform/v1/workspaces', signal) as Promise<Workspace[]> }) }
+export function useWorkspaces(enabled = true) { return useQuery({ queryKey: ['workspaces'], enabled, queryFn: ({ signal }) => pages<WorkspacePage>('/api/platform/v1/workspaces', signal) as Promise<Workspace[]> }) }
 export function useApps(workspaceId: string | null) { return useQuery({ queryKey: ['apps', workspaceId], queryFn: ({ signal }) => pages<AppManifestPage>('/api/platform/v1/apps', signal) as Promise<AppManifest[]> }) }
 
 function ScopeLink({ to, children }: { to: string; children: React.ReactNode }) {
@@ -174,7 +174,7 @@ export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/
     return () => { mounted.current = false }
   }, [])
   const workspaceHref = (id: string) => {
-    if (!continueTo) return `/?workspace=${encodeURIComponent(id)}`
+    if (!continueTo) return `/projects?workspace=${encodeURIComponent(id)}`
     const next = new URLSearchParams(params)
     next.set('workspace', id)
     next.delete('create')
@@ -215,7 +215,7 @@ export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/
       {!!list.data?.length && !list.data.some(item => item.name.toLocaleLowerCase().includes(keyword.trim().toLocaleLowerCase())) && <Empty description="没有匹配的项目" />}
       <div className="workspace-list">{list.data?.filter(item => item.name.toLocaleLowerCase().includes(keyword.trim().toLocaleLowerCase())).map(item => <Card key={item.workspace_id} className={item.workspace_id === workspaceId ? 'selected' : ''}>
         <Space orientation="vertical"><Link to={workspaceHref(item.workspace_id)}>{item.name}</Link>
-          {!continueTo && <Link to={`/artifacts?workspace=${encodeURIComponent(item.workspace_id)}`}>查看项目输出</Link>}</Space><Tag>{item.workspace_id === workspaceId ? '当前项目' : continueTo ? '选择并继续' : '选择并开始'}</Tag>
+          {!continueTo && <><Link to={`/agent?workspace=${encodeURIComponent(item.workspace_id)}`}>开始任务</Link><Link to={`/artifacts?workspace=${encodeURIComponent(item.workspace_id)}`}>查看项目输出</Link></>}</Space><Tag>{item.workspace_id === workspaceId ? '当前项目' : continueTo ? '选择并继续' : '查看项目'}</Tag>
       </Card>)}</div>
     </QueryState>
     <Modal title="新建项目" open={open} closable={!create.isPending} mask={{ closable: !create.isPending }} keyboard={!create.isPending}

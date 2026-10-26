@@ -4,9 +4,10 @@ import { AgentRequestError, agentWrite, requestId, type AgentSession } from './a
 
 export type PdfTextParameters = { page_numbers: number[]; mode: 'auto' | 'native' | 'ocr'; engine: 'ppocr' | 'paddlevl' | 'glm' | 'hunyuan' }
 type Intent = { request_id: string; session_request_id: string; session_id: string | null; selected_assets: string[]; link_id?: string; expected_scope_revision?: number; parameters?: PdfTextParameters }
-export function DirectImageTextButton({ workspace, sessionId, selectedAssets, scopeRevision, linkId, disabled = false, onAccepted, action = 'image-text', parameters }: {
+export function DirectImageTextButton({ workspace, sessionId, selectedAssets, scopeRevision, linkId, disabled = false, onAccepted, action = 'image-text', parameters, buttonType = 'default' }: {
   workspace: string; sessionId?: string | null; selectedAssets: string[]; scopeRevision?: number; linkId?: string; disabled?: boolean
   onAccepted: (sessionId: string) => void; action?: 'image-text' | 'pdf-text'; parameters?: PdfTextParameters
+  buttonType?: 'default' | 'primary'
 }) {
   const key = `clear-direct-${action}:${workspace}:${sessionId || 'new'}`
   const currentKey = useRef(key), mounted = useRef(true)
@@ -43,7 +44,7 @@ export function DirectImageTextButton({ workspace, sessionId, selectedAssets, sc
     } finally { if (live()) setBusy(false) }
   }
   return <Space orientation="vertical" size="small">
-    <Button loading={busy} disabled={busy || !pending && (disabled || !selectedAssets.length)} onClick={() => { void submit() }}>{pending ? '核实原文字提取请求' : action === 'pdf-text' ? '提取指定页文字' : '提取所选图片文字'}</Button>
+    <Button type={buttonType} loading={busy} disabled={busy || !pending && (disabled || !selectedAssets.length)} onClick={() => { void submit() }}>{pending ? '核实原文字提取请求' : action === 'pdf-text' ? '提取指定页文字' : '提取所选图片文字'}</Button>
     {pending && !busy && <span role="status">上次请求待核实，继续读取原操作回执。</span>}
     {error && <Alert type="error" title={error} />}
   </Space>

@@ -70,25 +70,25 @@ export function ControllerSettings({ open, close }: { open: boolean; close: () =
       if ('base_url' in changed || 'protocol' in changed) form.setFieldsValue({ model_context_window: null, model_max_output_tokens: null })
       setSaved(null)
     }} onFinish={values => { setSaved(null); save.mutate({ ...values, context_cap: values.runtime_context_cap || values.context_cap }) }} preserve={false}>
+      <Form.Item name="protocol" label="接口协议" rules={[{ required: true }]}>
+        <Select options={[{ value: 'openai_chat_completions', label: 'OpenAI 兼容工具调用' }, { value: 'anthropic_messages', label: 'Anthropic Messages' }]} />
+      </Form.Item>
       <Form.Item name="base_url" label="API 地址" rules={[{ required: true }]}><Input placeholder="https://服务地址/v1" autoComplete="off" /></Form.Item>
+      <Form.Item name="api_key" label="API Key" extra={current.data?.configured ? '留空保留当前凭据；更换地址或协议时需重新填写。' : '凭据由本机 Windows 加密保存。本地匿名服务可填 local。'}>
+        <Input.Password autoComplete="new-password" /></Form.Item>
       <Form.Item name="model" label="模型" rules={[{ required: true }]}><Input placeholder="模型 ID" autoComplete="off" onChange={event => changeModel(event.target.value)} /></Form.Item>
       <Space orientation="vertical" style={{ width: '100%', marginBottom: 16 }}>
         <Button loading={listing.isPending} onClick={() => listing.mutate()}>读取服务模型列表</Button>
         {hasCurrentList && models.length > 0 && <Select aria-label="服务模型列表" style={{ width: '100%' }} placeholder="选择模型，也可以手填ID"
           options={models.map(model => ({ value: model.id, label: `${model.name || model.id}${model.context_window ? ` · ${model.context_window.toLocaleString('zh-CN')} tokens` : ' · 容量未知'}` }))} onChange={changeModel} />}
       </Space>
+      <details className="agent-connection-advanced"><summary>高级连接参数</summary>
       <div className="agent-model-capacity" aria-label="模型能力来源">
         <Typography.Text strong>模型能力</Typography.Text>
         <Typography.Paragraph>上下文容量：{windowCapacity.value ? `${windowCapacity.value.toLocaleString('zh-CN')} tokens` : '未知'} · {capacitySourceLabel(windowCapacity.source)}</Typography.Paragraph>
         <Typography.Paragraph>模型输出容量：{outputCapacity.value ? `${outputCapacity.value.toLocaleString('zh-CN')} tokens` : '未知'} · {capacitySourceLabel(outputCapacity.source)}</Typography.Paragraph>
         <Typography.Text type="secondary">读取列表后自动采用当前服务返回的能力元数据。网关别名只按当前服务解析；声明值尚未验证实际容量。</Typography.Text>
       </div>
-      <Form.Item name="api_key" label="API Key" extra={current.data?.configured ? '留空保留当前凭据；更换地址或协议时需重新填写。' : '凭据由本机 Windows 加密保存。本地匿名服务可填 local。'}>
-        <Input.Password autoComplete="new-password" /></Form.Item>
-      <details className="agent-connection-advanced"><summary>高级连接参数</summary>
-      <Form.Item name="protocol" label="接口协议" rules={[{ required: true }]}>
-        <Select options={[{ value: 'openai_chat_completions', label: 'OpenAI 兼容工具调用' }, { value: 'anthropic_messages', label: 'Anthropic Messages' }]} />
-      </Form.Item>
       <Form.Item name="token_parameter" label="输出长度参数"><Select options={[{ value: 'max_completion_tokens', label: 'max_completion_tokens' }, { value: 'max_tokens', label: 'max_tokens' }]} /></Form.Item>
       <Form.Item name="streaming" label="逐步显示模型回应" valuePropName="checked" extra="服务不支持流式工具协议时可关闭。"><Switch /></Form.Item>
       <Form.Item name="supports_images" label="主控支持图片输入" valuePropName="checked" extra="按所用模型的实际能力开启；Agent 可读取图片并发送给主控。OCR 专业识别仍可独立使用。"><Switch /></Form.Item>

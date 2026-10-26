@@ -16,6 +16,26 @@ def create_project(client):
     return response.json()["id"]
 
 
+def test_runtime_framework_probe_is_explicit_and_separate_from_hardware(client, monkeypatch):
+    from image_platform import runtime
+    import shutil
+    calls = []
+    monkeypatch.setattr(shutil, 'which', lambda _: None)
+    devices = {'training': {'cpu': {'available': True}, 'cuda': {'available': False}},
+               'inference': {'cpu': {'available': True}, 'cuda': {'available': None}}}
+    def readiness(refresh=False):
+        calls.append(refresh)
+        return devices
+    monkeypatch.setattr(runtime, 'device_readiness', readiness)
+    assert 'devices' not in client.get('/api/v1/runtime').json()
+    assert calls == []
+    response = client.get('/api/v1/runtime?include_devices=true').json()
+    assert response['gpu'] is None
+    assert response['devices'] == devices
+    client.get('/api/v1/runtime?refresh_devices=true')
+    assert calls == [False, True]
+
+
 def test_cross_site_writes_are_blocked(client):
     response = client.post("/api/v1/projects", json={}, headers={"Origin": "https://untrusted.example"})
     assert response.status_code == 403

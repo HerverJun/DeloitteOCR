@@ -35,6 +35,27 @@ function recordedDuration(tool: ToolStep) {
   if (!Number.isFinite(seconds) || seconds < 0) return undefined
   return seconds < 1 ? '不到 1 秒' : `${Math.floor(seconds)} 秒`
 }
+const nativePurposes: Record<string, string> = {
+  read: '读取文件', read_image: '查看图片', glob: '查找文件', grep: '搜索文件内容',
+  write: '写入文件', edit: '编辑文件', bash: '运行命令', powershell: '运行命令',
+  web_fetch: '读取网页', web_search: '搜索网页', task: '执行子任务',
+  task_list: '查看任务', task_read: '读取任务', task_output: '读取任务结果',
+  wait_task: '等待任务', job_list: '查看作业', job_output: '读取作业结果',
+  list_agents: '查看协作任务', skill: '读取操作指引',
+}
+function stepSummary(tool: ToolStep) {
+  const summary = tool.summary.trim(), purpose = nativePurposes[tool.tool]
+  const rawOutput = !!purpose && /[\r\n]|<\/?(?:path|type|content)\b|\b[A-Za-z]:[\\/]|(?:^|\s)\/(?:[^/\s]+\/)/i.test(summary)
+  if (purpose && (!isIssue(tool) || !summary || rawOutput || summary === '工具开始执行')) {
+    const path = summary.match(/<path>([^<\r\n]+)<\/path>/i)?.[1]
+    const filename = path?.replace(/\\/g, '/').split('/').filter(Boolean).at(-1)
+    const name = filename ? [...filename] : []
+    return name.length ? `${purpose} · ${name.slice(0, 40).join('')}${name.length > 40 ? '…' : ''}` : purpose
+  }
+  if (!summary || rawOutput) return purpose || '工具操作'
+  const readable = summary.replace(/\s+/g, ' '), characters = [...readable]
+  return characters.length > 120 ? `${characters.slice(0, 120).join('')}…` : readable
+}
 const ToolRow = memo(function ToolRow({ tool, taskId, diagnosticsOpen, toggleDiagnostics }: {
   tool: ToolStep; taskId?: string; diagnosticsOpen: boolean; toggleDiagnostics: (toolId: string, open: boolean) => void
 }) {
@@ -42,7 +63,7 @@ const ToolRow = memo(function ToolRow({ tool, taskId, diagnosticsOpen, toggleDia
   return <li className={`agent-tool-row${isIssue(tool) ? ' is-issue' : ''}${isComplete(tool) ? ' is-complete' : ' is-current'}`} data-call-id={tool.callId} data-reading-anchor={tool.id}>
     <div className="agent-tool-heading">
       <span className="agent-tool-state"><Tag color={isIssue(tool) ? 'warning' : isComplete(tool) ? 'success' : 'default'}>{stepLabel(tool)}</Tag></span>
-      <div className="agent-tool-description"><Typography.Text>{tool.summary || tool.tool}</Typography.Text></div>
+      <div className="agent-tool-description"><Typography.Text>{stepSummary(tool)}</Typography.Text></div>
       {duration && <span className="agent-tool-duration">用时 {duration}</span>}
     </div>
     <ReferenceLinks refs={tool.jobRefs} taskId={taskId} />
@@ -70,7 +91,7 @@ export const ToolActivity = memo(function ToolActivity({ item, taskId }: { item:
         return <li className="agent-tool-completed-run" key={run.id} data-completed-run={run.id}>
           <button className="agent-tool-run-toggle" type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setExpandedTools(previous => {
             const next = new Set(previous); for (const tool of run.tools) { if (open) next.delete(tool.id); else next.add(tool.id) }; return next
-          })}><span className="agent-tool-run-check" aria-hidden="true">✓</span><span>已完成 {run.tools.length} 项</span><span className="agent-tool-run-preview">{!open && (run.tools.at(-1)?.summary || '工具操作')}</span><span className="agent-tool-run-chevron" aria-hidden="true">›</span></button>
+          })}><span className="agent-tool-run-check" aria-hidden="true">✓</span><span>已完成 {run.tools.length} 项</span><span className="agent-tool-run-preview">{!open && stepSummary(run.tools.at(-1)!)}</span><span className="agent-tool-run-chevron" aria-hidden="true">›</span></button>
           <AnimatedDisclosure id={panelId} open={open}><ol>{run.tools.map(tool => <ToolRow key={tool.id} tool={tool} taskId={taskId} diagnosticsOpen={diagnostics.has(tool.id)} toggleDiagnostics={toggleDiagnostics} />)}</ol></AnimatedDisclosure>
         </li>
       })}</ol>

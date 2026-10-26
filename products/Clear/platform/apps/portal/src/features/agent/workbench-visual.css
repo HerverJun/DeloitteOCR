@@ -106,8 +106,10 @@
 }
 @media (max-width: 680px) {
   .agent-workbench { gap: 12px; }
-  .agent-workbench .agent-heading { gap: 10px; }
-  .agent-workbench .agent-heading-title { flex-basis: 100%; }
+  .agent-workbench .agent-heading { gap: 10px; flex-wrap: nowrap; }
+  .agent-workbench .agent-heading-title { flex: 0 1 auto; }
+  .agent-workbench .agent-heading-title, .agent-workbench .agent-heading-identity { width: 100%; max-width: 100%; }
+  .agent-workbench .agent-heading h2.ant-typography { min-width: 0; width: 100%; }
   .agent-workbench .agent-heading h2.ant-typography { max-width: 100%; font-size: 22px; }
   .agent-workbench .agent-current-task { display: none; }
   .agent-workbench .audit-context-bar { justify-content: flex-start; width: 100%; }

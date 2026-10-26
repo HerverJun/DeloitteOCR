@@ -1,12 +1,14 @@
 .agent-tool-activity .agent-activity-overview { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; color: var(--clear-muted); font-size: 12px; }
 .agent-tool-activity .agent-tool-runs { display: grid; gap: 8px; margin: 0; padding: 0; }
+.agent-tool-activity, .agent-tool-activity .agent-tool-runs, .agent-tool-activity .agent-tool-completed-run,
+.agent-tool-activity .agent-tool-disclosure-panel > ol { min-width: 0; max-width: 100%; }
 .agent-tool-activity .agent-tool-runs > li { margin: 0; border: 0; padding: 0; }
 .agent-tool-activity .agent-tool-row { border: 0; padding: 12px 14px; border-radius: 8px; background: var(--clear-subtle, #f6f8f7); }
 .agent-tool-activity .agent-tool-row.is-current { border-left: 2px solid var(--clear-primary, #527a17); }
 .agent-tool-activity .agent-tool-row.is-issue { border-left: 2px solid var(--clear-warning, #b78121); background: #fffcf5; }
 .agent-tool-activity .agent-tool-heading { gap: 8px 12px; }
 .agent-tool-activity .agent-tool-description > .ant-typography { font-size: 14px; line-height: 1.6; }
-.agent-tool-run-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--clear-muted); font: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
+.agent-tool-run-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; min-height: 40px; padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--clear-muted); font: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
 .agent-tool-run-toggle:hover { color: var(--clear-text); background: var(--clear-subtle); }
 .agent-tool-run-toggle:focus-visible { outline: 2px solid var(--clear-focus, #86bc25); outline-offset: 2px; }
 .agent-tool-run-check { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%; background: #edf4e6; color: var(--clear-primary, #527a17); font-size: 12px; }

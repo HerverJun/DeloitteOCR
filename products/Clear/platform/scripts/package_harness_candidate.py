@@ -296,14 +296,14 @@ def package(source, sealed_release, work, output=None, *, check_inputs=False, pr
 
 本候选包含完整锁定的 Harness JavaScript 依赖与 Node 24.22.0，离线安装不下载依赖。
 Python、原生服务和专业模型显式复用 candidate.json 的 shared_program；该 F 盘目录必须保留。
-未更改原发行、current.json 或业务 DATA。源码、前端构建及依赖的逐文件 SHA256 在 candidate.json。
+这是开发候选包，不表示源码已经定版或正式发布，也不会自动登记或启动为当前程序。源码、前端构建及依赖的逐文件 SHA256 在 candidate.json；业务 DATA 由使用者显式指定。
 
 以共享平台 Python 执行 launch.py --data F:\\明确工作区 --port 8920 --enable-agent。
 --check-only 只核对发行和 DATA 兼容性；--offline-smoke --output F:\\新的证据目录 验证本地 Harness 调用和持久历史。
 运行日志、缓存、临时文件均写入所选 DATA 的 F 盘目录，发行目录保持只读。
-产品入口可使用既有 product-entry.ps1 -RegistrationFile 指定独立登记文件。
-正式切换前由发布流程完成一致性 DATA 备份、旧会话迁移、业务回归和当前入口登记。
-回退使用切换前保留的发行登记及一致性 DATA 备份；先核对 reader_features，不要直接让旧程序打开新格式数据。
+不依赖历史 product-entry.ps1 或 current.json；运行时使用上方显式 launch.py 命令并核对实际源码、前端、共享依赖和 DATA。
+未来正式发布须另按用户确定的源码及交付范围准备；当前没有正式发布身份。
+更换读取代码前保留启动配置、代码身份及一致性 DATA 备份；先核对 reader_features，不要直接让旧程序打开新格式数据。
 ''', encoding='utf-8')
     files = {path.relative_to(output).as_posix(): sha(path) for path in members(output)}
     compatibility = harness_compatibility(sealed)

@@ -285,3 +285,5 @@ a { color: var(--clear-link); }
 }
 @media (max-height: 760px) and (min-width: 1101px) { .training-form .ant-form-item { margin-bottom: 8px; } .training-form .ant-form-item-extra { line-height: 1.4; min-height: 0; } .sidebar-bottom { padding: 8px 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } .workbench .ant-btn-primary:active { transform: none; } }
+.training-advanced { margin-block: 16px; }
+.training-advanced > summary { cursor: pointer; padding-block: 8px; font-weight: 600; }

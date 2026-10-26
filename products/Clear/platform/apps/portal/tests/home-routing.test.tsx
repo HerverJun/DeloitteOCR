@@ -20,7 +20,7 @@ function mount(url: string) {
     if (init?.method && init.method !== 'GET') writes.push(input)
     return { ok: true, json: async () => input.includes('/workspaces?')
       ? { items: [{ workspace_id: 'w1', name: '验收项目' }], next_cursor: null, snapshot_revision: 1 }
-      : input.endsWith('/audit-overview') ? { tasks: { items: [] }, artifacts: { items: [] } } : { multiuser: false } }
+      : input.endsWith('/audit-overview') ? { profile: {}, asset_count: 0, tasks: { items: [] }, findings: { items: [], total: 0 }, artifacts: { items: [], total: 0 }, formal_projects: { items: [], total: 0 } } : { multiuser: false } }
   }))
   const router = createMemoryRouter(routes, { initialEntries: [url] })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
@@ -32,7 +32,8 @@ test('plain root is a portal with all tool and work areas and no background writ
   const { writes, view } = mount('/')
   expect(await screen.findByRole('heading', { name: /开始今天的工作/ })).toBeInTheDocument()
   const tools = screen.getByRole('navigation', { name: '常用工具' })
-  expect(within(tools).getAllByRole('link')).toHaveLength(6)
+  expect(within(tools).getAllByRole('link')).toHaveLength(7)
+  expect(within(tools).getByRole('link', { name: /文档主题对比/ })).toHaveAttribute('href', '/apps/comparisons')
   expect(screen.getByRole('link', { name: '新任务' })).toHaveAttribute('href', '/agent')
   expect(screen.getByRole('link', { name: /全部工具与专项扩展/ })).toHaveAttribute('href', '/apps')
   expect(screen.queryByRole('heading', { name: '审计对话工作台' })).not.toBeInTheDocument()
@@ -84,4 +85,17 @@ test('native data session IDs cannot become AI session IDs when switching areas'
     .toBe('/agent?workspace=w1&revision=4')
   expect(navigationHref('/agent', '?workspace=w1&session=dataSession&task_return=auditTask&revision=4', '', '/apps/data'))
     .toBe('/agent?workspace=w1&revision=4&session=auditTask')
+})
+
+test('home intent carries the selected purpose while project links open the same project overview', async () => {
+  const { router, writes } = mount('/?workspace=w1')
+  const intent = await screen.findByRole('link', { name: /文件与表格/ })
+  expect(intent).toHaveAttribute('href', '/agent?workspace=w1&intent=files')
+  await router.navigate('/projects')
+  const project = await screen.findByRole('link', { name: '验收项目', exact: true })
+  expect(project).toHaveAttribute('href', '/projects?workspace=w1')
+  expect(screen.getByRole('link', { name: '开始任务' })).toHaveAttribute('href', '/agent?workspace=w1')
+  fireEvent.click(project)
+  expect(await screen.findByRole('heading', { name: '项目概况' })).toBeInTheDocument()
+  expect(writes).toEqual([])
 })
