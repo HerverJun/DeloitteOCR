@@ -29,7 +29,7 @@ export function JobsPanel({ project }: PanelProps) {
   const { modal } = App.useApp();
   const jobs = useQuery({ queryKey: ['jobs', project.id], queryFn: () => api<Job[]>(`/projects/${project.id}/jobs`), refetchInterval: 2000 });
   const models = useQuery({ queryKey: ['models', project.id], queryFn: () => api<Model[]>(`/projects/${project.id}/models`) });
-  const [selected, setSelected] = useState<Job>();
+  const [selected, setSelected] = useState<string>();
   const [historyKind, setHistoryKind] = useState('inference');
   const [createOpen, setCreateOpen] = useState(false);
   const [tab, setTab] = useState('results');
@@ -37,7 +37,7 @@ export function JobsPanel({ project }: PanelProps) {
   const device = Form.useWatch('device', form) || 'cuda';
   const runtime = useDeviceReadiness(createOpen, device);
   const command = useCommand();
-  const current = jobs.data?.find(job => job.id === selected?.id) ?? selected;
+  const current = jobs.data?.find(job => job.id === selected);
   const logs = useQuery({ queryKey: ['logs', current?.id], queryFn: () => api<{ text: string }>(`/jobs/${current!.id}/logs`), enabled: !!current && tab === 'logs', refetchInterval: current && activeStates.includes(current.state) ? 2500 : false });
 
   async function action(job: Job, action: string) {
@@ -45,17 +45,21 @@ export function JobsPanel({ project }: PanelProps) {
   }
   async function create(values: unknown) {
     const result = await command.run(async () => { await runtime.verifyDevice('inference'); return post<{ job_id: string }>(`/projects/${project.id}/batch-jobs`, values); }, '分类任务已创建');
-    if (result) setCreateOpen(false);
+    if (result) {
+      setSelected(result.job_id);
+      setTab('results');
+      setCreateOpen(false);
+    }
   }
 
   return <>
     <div className="page-heading"><div><div className="eyebrow">JOBS & REVIEW</div><Title level={2}>分类与复核</Title><Paragraph type="secondary">任务在后台运行，进度持续保存。发现问题后，确认标签并建立下一版数据。</Paragraph></div><Button type="primary" icon={<PlusOutlined />} onClick={() => { form.setFieldsValue({ model_id: project.active_model_id || models.data?.[0]?.id }); setCreateOpen(true); }}>新建分类任务</Button></div>
     <QueryError error={jobs.error || models.error} />
     <Card className="table-card" extra={<Select aria-label="执行记录类型" value={historyKind} onChange={setHistoryKind} options={[{value: 'inference', label: '分类任务'}, {value: 'all', label: '全部执行记录'}]} />}><Table<Job> rowKey="id" dataSource={jobs.data?.filter(job => historyKind === 'all' || job.kind === 'inference')} loading={jobs.isPending} pagination={{ pageSize: 8, showSizeChanger: false }} scroll={{ x: 920 }} locale={{ emptyText: <Empty description="导入、训练和分类任务会显示在这里" /> }} columns={[
-      { title: '任务', render: (_, job) => <div><button className="text-button" onClick={() => { setSelected(job); setTab(job.kind === 'inference' ? 'results' : 'logs'); }}>{kindLabels[job.kind]}</button><div><Text type="secondary" className="mono-small">{job.id.slice(-8)} · {dateText(job.created_at)}</Text></div></div> },
+      { title: '任务', render: (_, job) => <div><button className="text-button" onClick={() => { setSelected(job.id); setTab(job.kind === 'inference' ? 'results' : 'logs'); }}>{kindLabels[job.kind]}</button><div><Text type="secondary" className="mono-small">{job.id.slice(-8)} · {dateText(job.created_at)}</Text></div></div> },
       { title: '状态', render: (_, job) => <Status value={job.state} /> },
       { title: '进度', width: 260, render: (_, job) => <JobProgress job={job} /> },
-      { title: '操作', render: (_, job) => <Space wrap size={6}><Button size="small" onClick={() => { setSelected(job); setTab(job.kind === 'inference' ? 'results' : 'logs'); }}>详情</Button>
+      { title: '操作', render: (_, job) => <Space wrap size={6}><Button size="small" onClick={() => { setSelected(job.id); setTab(job.kind === 'inference' ? 'results' : 'logs'); }}>详情</Button>
         {job.kind === 'inference' && ['running', 'queued'].includes(job.state) && <Button size="small" icon={<PauseOutlined />} onClick={() => action(job, 'pause')}>暂停</Button>}
         {job.state === 'paused' && <Button size="small" icon={<PlayCircleOutlined />} onClick={() => action(job, 'resume')}>恢复</Button>}
         {['queued', 'running', 'paused', 'pausing'].includes(job.state) && <Button size="small" danger icon={<StopOutlined />} onClick={() => modal.confirm({ title: '取消此任务？', content: '已提交的结果会保留，其余项目停止处理。', okText: '取消任务', cancelText: '继续运行', onOk: () => action(job, 'cancel') })}>取消</Button>}
@@ -63,6 +67,7 @@ export function JobsPanel({ project }: PanelProps) {
       </Space> },
     ]} /></Card>
     {current && <Card className="job-detail" title={<Space>{kindLabels[current.kind]}<Status value={current.state} /><Text type="secondary" className="mono-small">{current.id.slice(-8)}</Text></Space>} extra={<Button type="text" onClick={() => setSelected(undefined)}>收起</Button>}>
+      <JobProgress job={current} />
       {current.error && <Alert showIcon type="error" message={current.error} className="bottom-gap" />}
       {current.kind === 'inference' && current.result && <div className="metric-summary"><div><Text type="secondary">处理吞吐</Text><strong>{Number(current.result.images_per_second_this_run ?? 0).toFixed(1)} 图/秒</strong></div><div><Text type="secondary">总执行时间（含初始化）</Text><strong>{current.result.execution_seconds === undefined ? '—' : `${Number(current.result.execution_seconds).toFixed(2)} 秒`}</strong></div><div><Text type="secondary">模型会话</Text><strong className="provider-text">{current.result.session_cache_hit === undefined ? '未记录' : current.result.session_cache_hit ? '已复用' : '本次加载'}</strong></div></div>}
       <Tabs activeKey={tab} onChange={setTab} items={[

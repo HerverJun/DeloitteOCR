@@ -1486,7 +1486,16 @@ input::placeholder {
   padding: 0 16px 12px;
   color: #b6bbb1;
   gap: 8px;
+  flex-wrap: wrap;
   font-size: var(--clear-caption-size);
+}
+.photo-selection {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.photo-filter-reset {
+  justify-self: start;
 }
 .photo-list-head label {
   color: #e3e6df;
@@ -1564,10 +1573,13 @@ input::placeholder {
   font-size: var(--clear-caption-size);
   line-height: 1.6;
 }
-.selection-notice button {
+.photo-list-link {
   border: 0;
-  padding: 0;
+  padding: 2px 0;
   background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   text-decoration: underline;
 }
 .sidebar-empty {

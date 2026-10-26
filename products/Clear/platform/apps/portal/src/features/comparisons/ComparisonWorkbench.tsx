@@ -82,6 +82,10 @@ export function ComparisonPanel({ workspace }: { workspace: string }) {
   const parseReady = [leftLayout, rightLayout].every(config => config.mode === 'local_ocr' || available.some(item => item.id === config.provider_id && item.supports_vision))
   const error = media.error || connections.error || profiles.error || listing.error || detail.error || saveProfile.error || suggest.error || create.error
   return <div className="comparison-workbench">
+    {detail.data && <ComparisonResults key={detail.data.comparison_id} workspace={workspace} run={detail.data} connections={available} refresh={refresh}
+      latestRevision={Math.max(detail.data.revision, latest.data?.revision || 0, listing.data?.items.find(item => item.comparison_id === selected)?.revision || 0)}
+      selectRevision={value => setParams(previous => { const next = new URLSearchParams(previous); const latestRevision = latest.data?.revision || listing.data?.items.find(item => item.comparison_id === selected)?.revision || detail.data?.revision;
+        if (value === latestRevision) next.delete('comparison_revision'); else next.set('comparison_revision', String(value)); return next })} />}
     <section className="panel" aria-label="比较材料与模型"><div className="section-head"><div><Title level={3}>1. 准备两侧材料</Title><Text type="secondary">A 侧：扫描 PDF · B 侧：PPTX 或有序幻灯片图片</Text></div>
       <Space wrap><Link to={`/assets?workspace=${encodeURIComponent(workspace)}`}>资料库</Link><Button onClick={() => setShowConnections(true)}>管理模型连接</Button></Space></div>
       <UploadQueue workspaceId={workspace} compact onBusy={setUploadBusy} onUploaded={() => void media.refetch()} />
@@ -115,10 +119,6 @@ export function ComparisonPanel({ workspace }: { workspace: string }) {
       { title: '任务', dataIndex: 'title' }, { title: '状态', render: (_, run) => <Tag>{stateNames[run.status] || run.status}</Tag> },
       { title: '修订', render: (_, run) => `v${run.revision}` }, { title: '操作', render: (_, run) => <Button type="link" onClick={() => choose(run)}>查看结果</Button> },
     ]} /></section>}
-    {detail.data && <ComparisonResults key={detail.data.comparison_id} workspace={workspace} run={detail.data} connections={available} refresh={refresh}
-      latestRevision={Math.max(detail.data.revision, latest.data?.revision || 0, listing.data?.items.find(item => item.comparison_id === selected)?.revision || 0)}
-      selectRevision={value => setParams(previous => { const next = new URLSearchParams(previous); const latestRevision = latest.data?.revision || listing.data?.items.find(item => item.comparison_id === selected)?.revision || detail.data?.revision;
-        if (value === latestRevision) next.delete('comparison_revision'); else next.set('comparison_revision', String(value)); return next })} />}
     {showConnections && <ConnectionSettings workspace={workspace} connections={available} close={() => setShowConnections(false)} saved={() => void connections.refetch()} />}
   </div>
 }

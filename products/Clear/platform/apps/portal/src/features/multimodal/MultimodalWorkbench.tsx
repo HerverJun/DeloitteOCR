@@ -250,6 +250,8 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   const seek = (milliseconds: number) => { if (audioRef.current) { audioRef.current.currentTime = milliseconds / 1000; void audioRef.current.play().catch(() => {}) } }
   return <div className="mm-result-body">
     <Space wrap><Tag color="processing">{outcomes[result.outcome] || result.outcome}</Tag><Tag color={item.review ? 'success' : 'warning'}>{item.review ? '人工复核已保存' : '未复核 · 可用于草稿'}</Tag><Text>{detectorLabel}</Text>{result.detector?.version && <Text type="secondary">{result.detector.version}</Text>}<Text type="secondary">{result.device.toUpperCase()} · {result.elapsed_seconds.toFixed(1)} 秒</Text>{safire && <Tag>未校准定位线索</Tag>}</Space>
+    <Space wrap><Button href={`${url}/download`}>{readOnly ? '下载此固定版本' : deep ? '下载已保存版本（报告与热图）' : item.kind === 'aigc_image' ? '下载已保存版本（报告与原始分数）' : '下载已保存版本（含 JSON / CSV / 字幕）'}</Button>
+      {!readOnly && <Text type="secondary">未保存的校正与复核不会包含在下载中。</Text>}</Space>
     {item.kind === 'aigc_image' && <AigcResultView value={result.aigc_image} model={result.model} performance={result.performance}
       preview={file(result.processing?.display_preview || 'preview.png')} sourceName={item.inputs[0]?.original_name || '原图'}
       workspaceId={workspaceId} assetId={item.inputs[0]?.asset_id} />}
@@ -315,13 +317,13 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
       ]} />
     </section>}
     <ul className="mm-limitations">{result.limitations.filter(value => item.kind !== 'aigc_image' || !result.aigc_image?.limitations.includes(value)).map((value, index) => <li key={index}>{value}</li>)}</ul>
-    {readOnly ? <Space wrap><a href={`${url}/download`}>下载此固定版本</a>{item.review && <Text type="secondary">复核人：{item.review.actor} · {item.review.note}</Text>}</Space> : <div className="mm-review"><Title level={4}>保存人工复核</Title><div className="mm-controls">
+    {readOnly ? item.review && <Text type="secondary">复核人：{item.review.actor} · {item.review.note}</Text> : <div className="mm-review"><Title level={4}>保存人工复核</Title><div className="mm-controls">
       <label>复核人<Input value={actor} maxLength={128} onChange={event => setActor(event.target.value)} /></label>
       <label>复核结论<Select value={assessment} onChange={setAssessment} options={[{ value: 'confirmed', label: '已人工确认所记录结果' }, { value: 'needs_investigation', label: '需要进一步调查' }, { value: 'inconclusive', label: '无法判断' }]} /></label>
     </div><Input.TextArea value={note} maxLength={10000} autoSize={{ minRows: 2 }} placeholder="填写复核依据、修改说明或待查事项" onChange={event => setNote(event.target.value)} />
       {draftError && <Alert type="warning" title={draftError} />}
       <Space wrap><Button type="primary" loading={review.isPending} disabled={!actor.trim() || !note.trim()} onClick={() => review.mutate()}>保存复核与校正</Button>
-        <a href={`${url}/download`}>{deep ? '下载已保存版本（报告与热图）' : item.kind === 'aigc_image' ? '下载已保存版本（报告与原始分数）' : '下载已保存版本（含 JSON / CSV / 字幕）'}</a><Button disabled={!item.review} loading={collect.isPending} onClick={() => collect.mutate()}>归集到成果中心</Button>
+        <Button disabled={!item.review} loading={collect.isPending} onClick={() => collect.mutate()}>归集到成果中心</Button>
         <Link to={`/artifacts?workspace=${workspaceId}`}>查看成果</Link></Space>
       {(review.error || collect.error) && <Alert type="error" title={(review.error || collect.error)?.message} />}
       {review.error && <Button onClick={() => { reviewIntent.current = null; localStorage.removeItem(`${draftKey}:request`); review.reset(); refresh() }}>刷新版本并修改复核请求</Button>}

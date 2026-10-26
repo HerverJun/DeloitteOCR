@@ -40,6 +40,7 @@ export function PhotoList({
   const ids = visible.map((p) => p.id);
   const checked = ids.length > 0 && ids.every((id) => selected.includes(id));
   const hiddenSelected = selected.filter((id) => !ids.includes(id)).length;
+  const hasFilters = search.length > 0 || status !== "all";
   return (
     <>
       <div className="photo-filters">
@@ -66,12 +67,22 @@ export function PhotoList({
           <option value="review:confirmed">已确认</option>
           <option value="review:question">有疑问</option>
         </select>
+        {hasFilters && (
+          <button
+            type="button"
+            className="photo-list-link photo-filter-reset"
+            onClick={() => { setSearch(""); setStatus("all"); }}
+          >
+            清除筛选
+          </button>
+        )}
       </div>
       <div className="photo-list-head">
         <label>
           <input
             type="checkbox"
-            aria-label="选择全部图片"
+            aria-label={`选择全部筛选结果（${ids.length} 张）`}
+            title={`选择全部 ${ids.length} 张筛选结果，包含尚未展开的图片`}
             checked={checked}
             ref={(el) => {
               if (el)
@@ -87,12 +98,18 @@ export function PhotoList({
             {visible.length} / {photos.length}
           </span>
         </label>
-        <span>{selected.length ? `已选 ${selected.length}` : ""}</span>
+        {selected.length > 0 && (
+          <span className="photo-selection">
+            已选 {selected.length}
+            <button type="button" className="photo-list-link" onClick={() => onSelection([])}>
+              清空选择
+            </button>
+          </span>
+        )}
       </div>
       {hiddenSelected > 0 && (
         <div className="selection-notice">
-          含 {hiddenSelected} 张筛选外已选图片{" "}
-          <button onClick={() => onSelection([])}>清空选择</button>
+          含 {hiddenSelected} 张筛选外已选图片
         </div>
       )}
       <div className="photo-list">

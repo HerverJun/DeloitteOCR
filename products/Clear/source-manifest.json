@@ -1,6 +1,6 @@
 {
   "format": "clear-integrated-source-v1",
-  "captured_on": "2026-10-25",
+  "captured_on": "2026-10-26",
   "release_status": "development_unreleased",
   "release_pointer": null,
   "purpose": "Integrated authored sources under development on the single project branch; no finalized or published installation is declared.",
@@ -754,7 +754,7 @@
           "path": "platform/apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
           "source_path": "apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
           "bytes": 16501,
-          "sha256": "3bc2524859bf045a1fcb7425cd0354870eed0bd370a5e0eb88491d30a3e69b28"
+          "sha256": "55142acbbade09602f5ac2e2f6fbb66a2eaf496617ae04c47ba9e6afab499ea7"
         },
         {
           "path": "platform/apps/portal/src/features/comparisons/Configuration.tsx",
@@ -777,14 +777,14 @@
         {
           "path": "platform/apps/portal/src/features/data/DataWorkbench.tsx",
           "source_path": "apps/portal/src/features/data/DataWorkbench.tsx",
-          "bytes": 45302,
-          "sha256": "8d8998fe7541c722876a58e3004d94a9deb645d71ed7af50f05b071cb245a7e6"
+          "bytes": 45711,
+          "sha256": "ea12c9c20f97dff44bdf8515d06a6abc11e3eb6fbb52264faf5a52ee9fefb803"
         },
         {
           "path": "platform/apps/portal/src/features/data/data.css",
           "source_path": "apps/portal/src/features/data/data.css",
-          "bytes": 7475,
-          "sha256": "4403829cc13b65bec1b537f2f5571e5974c49da5cb815a9bceedb480a263b43f"
+          "bytes": 7957,
+          "sha256": "4cb2e27c14905d03c237502b277192e69514bb928fd9b8baf9ebe1ed3b065ff6"
         },
         {
           "path": "platform/apps/portal/src/features/documents/DocumentTasks.tsx",
@@ -879,8 +879,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 45794,
-          "sha256": "5d2b80e6f36674a12249e29478d8d04eedb01fce55f7d94c7a51afb9672ed44b"
+          "bytes": 45899,
+          "sha256": "80017c91704c86911568460bf3a87d7de760aa070d669a7ee1b68f392a75d94e"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
@@ -6400,8 +6400,8 @@
         {
           "path": "classification/apps/web/src/views/jobs.tsx",
           "source_path": "apps/web/src/views/jobs.tsx",
-          "bytes": 20600,
-          "sha256": "701652fe24ba3d534a358fe42b62a3c37da72e3bef344e03ca503da137e08704"
+          "bytes": 20708,
+          "sha256": "ff3f62f4979503eb073542f3bdac76566dad4d195a306cf60c002e239b91b164"
         },
         {
           "path": "classification/apps/web/src/views/models.tsx",
@@ -8496,8 +8496,8 @@
         {
           "path": "ocr/frontend/src/PhotoList.tsx",
           "source_path": "frontend/src/PhotoList.tsx",
-          "bytes": 6425,
-          "sha256": "a8408497f3e6f33dccd8debc922d64e3c4c0d2531cdf4508eafd8e33daf258e1"
+          "bytes": 7010,
+          "sha256": "38993c1a8158996b22f3e2a23cc6e7f82c9fb350b3eb0e2e5d9d91c56bb7bcde"
         },
         {
           "path": "ocr/frontend/src/ProjectStorage.tsx",
@@ -8850,8 +8850,8 @@
         {
           "path": "ocr/frontend/src/style.css",
           "source_path": "frontend/src/style.css",
-          "bytes": 51071,
-          "sha256": "a24927f47d37736b4df832f838fb0d6c408585aad559df5855525ebbeb463ffa"
+          "bytes": 51267,
+          "sha256": "686b7ef248614b7ff2ccf0fc0c4f10884f7c0db6046b06b3af680d698cca8019"
         },
         {
           "path": "ocr/frontend/src/tableEditing.test.ts",

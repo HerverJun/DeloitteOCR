@@ -278,8 +278,11 @@ function Results({ session, busy, run, workspaceId }: { session: Session; busy: 
     <Button type="primary" disabled={busy || !selected} onClick={() => void run('export', { result_id: selected })}>生成下载文件</Button>
     {workspaceId && selected && session.workspace_id === workspaceId && <Link to={`/agent?workspace=${encodeURIComponent(workspaceId)}&data_session=${encodeURIComponent(session.id)}&result=${encodeURIComponent(selected)}`}><Button>交给 Agent 继续处理</Button></Link>}</div></div>
     {!selected ? <Empty description="完成比对后，这里显示固定版本的结果" /> : <>
-      {metadata && <div className="data-counts">{[['相同', 'same_pairs'], ['差异', 'different_pairs'], ['仅左', 'only_left'], ['仅右', 'only_right'], ['重复键', 'ambiguous_keys']].map(([title, key]) =>
-        <div key={key}><Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></div>)}</div>}
+      {metadata && <div className="data-counts">{[['相同', 'same_pairs', 'same'], ['差异', 'different_pairs', 'different'], ['仅左', 'only_left', 'only_left'], ['仅右', 'only_right', 'only_right']].map(([title, key, value]) =>
+        <button type="button" key={key} aria-label={`筛选${title}结果（${metadata.coverage[key]}）`} aria-pressed={category === value}
+          title={`筛选${title}结果；再次点击显示全部`} onClick={() => { setCategory(category === value ? '' : value); setPage(1) }}>
+          <Text type="secondary">{title}</Text><strong>{metadata.coverage[key]}</strong></button>)}
+        <div><Text type="secondary">重复键</Text><strong>{metadata.coverage.ambiguous_keys}</strong></div></div>}
       <Select aria-label="结果分类" value={category} style={{ width: 160, marginBottom: 16 }} onChange={value => { setCategory(value); setPage(1) }} options={[{ value: '', label: '全部结果' }, ...Object.entries(categoryNames).map(([value, label]) => ({ value, label }))]} />
       {query.isError && <Alert type="error" title="结果加载失败" action={<Button onClick={() => void query.refetch()}>重试</Button>} />}
       <Table size="small" loading={query.isPending} dataSource={query.data?.rows || []} rowKey="ordinal" scroll={{ x: 'max-content', y: 360 }}
