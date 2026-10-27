@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, update, and_, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
+from packages.runtime import require_path
 from .database import check_schema,f_path
 from .store import Ledger,LedgerError,key,now,wire,safe,digest,TERMINAL
 from . import schema_v1 as s
@@ -78,7 +79,7 @@ class ExecutionHost:
         for application in ('ocr','classification'):
             binding=root/'agent-native/bundles'/application/'binding.json'
             if binding.is_file():
-                source=f_path(json.loads(binding.read_text('utf-8'))['source'])
+                source=require_path(json.loads(binding.read_text('utf-8'))['source'],'Native worker source',role='read')
                 self.native_sources[application]={'path':source,'version':fingerprint(source)}
         self.command_db=root/'worker-commands.sqlite3';self.last_install=0
         from .schema_v3 import workers

@@ -71,6 +71,49 @@ def test_init_supports_chinese_data_without_writing_program(installation):
         assert config.check(os.environ[name]).drive.upper() == 'F:'
 
 
+def test_multi_portal_serves_registered_program_as_read_only(installation, monkeypatch):
+    from fastapi.testclient import TestClient
+    from workbench_platform.tasks.server import create_app
+    root = installation.program / 'app/platform/apps/portal/dist'
+    root.mkdir(parents=True)
+    (root / 'index.html').write_text('<html>portable portal</html>', encoding='utf-8')
+    (root / 'main.js').write_text('window.PORTABLE=true', encoding='utf-8')
+    with pytest.raises(ValueError, match='write roots'):
+        installation.check(root, role='write')
+    monkeypatch.setenv('WORKBENCH_PORTAL_DIST', str(root))
+    monkeypatch.setenv('CLEAR_PUBLIC_ORIGIN', 'http://192.168.1.8:9021')
+    monkeypatch.setenv('CLEAR_ALLOW_LAN_HTTP', '1')
+    monkeypatch.setenv('CLEAR_WORKER_TOKEN', 'p' * 40)
+    # These public static requests use no database or lifespan services.
+    client = TestClient(create_app(None), base_url='http://192.168.1.8:9021')
+    assert client.get('/jobs').text == '<html>portable portal</html>'
+    assert client.get('/main.js').text == 'window.PORTABLE=true'
+    assert client.get('/%2E%2E/clear.install.json').status_code == 404
+
+
+def test_worker_restart_reads_registered_native_program_source(installation, monkeypatch):
+    from workbench_platform.tasks.worker import ExecutionHost
+    from workbench_platform.tasks import source_identity
+    source = installation.program / 'app/platform'
+    binding = installation.data / 'agent-native/bundles/ocr/binding.json'
+    binding.parent.mkdir(parents=True)
+    binding.write_text(json.dumps({'source': str(source)}), encoding='utf-8')
+    with pytest.raises(ValueError, match='write roots'):
+        installation.check(source, role='write')
+
+    class SourceReadComplete(Exception):
+        pass
+
+    def fingerprint(path):
+        if path == source:
+            raise SourceReadComplete
+        return 'platform-version'
+
+    monkeypatch.setattr(source_identity, 'fingerprint', fingerprint)
+    with pytest.raises(SourceReadComplete):
+        ExecutionHost(None, installation.data, None)
+
+
 def test_service_credentials_are_account_bound_encrypted(installation):
     private = cli._read_secrets(installation)
     assert len(private['worker_token']) >= 32

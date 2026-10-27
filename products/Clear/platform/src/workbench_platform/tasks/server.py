@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import select, insert, update, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from starlette.concurrency import run_in_threadpool
+from packages.runtime import require_path
 from packages.contracts.tasks import TaskCreate, TaskSummary, TaskDetail, TaskPage, TaskControl, TaskEdit
 from .database import check_schema, f_path
 from .store import Ledger, LedgerError, token_hash, wire, key, digest, safe
@@ -551,7 +552,8 @@ def create_app(engine,worker_client=None):
 
     @app.get('/{path:path}')
     def portal(path:str):
-        root=f_path(os.environ.get('WORKBENCH_PORTAL_DIST',Path(__file__).resolve().parents[3]/'apps/portal/dist'))
+        root=require_path(os.environ.get('WORKBENCH_PORTAL_DIST',Path(__file__).resolve().parents[3]/'apps/portal/dist'),
+                          'Portal static files',role='read')
         if '\\' in path or ':' in path or any(part in {'.','..'} for part in path.split('/')):raise LedgerError('页面路径无效',404)
         target=(root/path).resolve()
         if not target.is_relative_to(root):raise LedgerError('页面路径无效',404)
