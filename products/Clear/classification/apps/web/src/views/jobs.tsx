@@ -25,14 +25,14 @@ function JobProgress({ job }: { job: Job }) {
 }
 
 
-export function JobsPanel({ project }: PanelProps) {
+export function JobsPanel({ project, focusJobId }: PanelProps & { focusJobId?: string }) {
   const { modal } = App.useApp();
   const jobs = useQuery({ queryKey: ['jobs', project.id], queryFn: () => api<Job[]>(`/projects/${project.id}/jobs`), refetchInterval: 2000 });
   const models = useQuery({ queryKey: ['models', project.id], queryFn: () => api<Model[]>(`/projects/${project.id}/models`) });
-  const [selected, setSelected] = useState<string>();
-  const [historyKind, setHistoryKind] = useState('inference');
+  const [selected, setSelected] = useState<string | undefined>(focusJobId);
+  const [historyKind, setHistoryKind] = useState(focusJobId ? 'all' : 'inference');
   const [createOpen, setCreateOpen] = useState(false);
-  const [tab, setTab] = useState('results');
+  const [tab, setTab] = useState(focusJobId ? 'logs' : 'results');
   const [form] = Form.useForm();
   const device = Form.useWatch('device', form) || 'cuda';
   const runtime = useDeviceReadiness(createOpen, device);

@@ -6376,8 +6376,8 @@
         {
           "path": "classification/apps/web/src/workbench.tsx",
           "source_path": "apps/web/src/workbench.tsx",
-          "bytes": 18594,
-          "sha256": "b4fe44932d04ccb92350464d8e6ee2992b224d0f0bc2812bec439a2a2c647e87"
+          "bytes": 18928,
+          "sha256": "22cab782ed029b3e48daa971b348a37b2ae5a7ab98fe069691f5e6b0253794a7"
         },
         {
           "path": "classification/apps/web/src/clear-ui/common.css",
@@ -6418,14 +6418,14 @@
         {
           "path": "classification/apps/web/src/views/jobs.tsx",
           "source_path": "apps/web/src/views/jobs.tsx",
-          "bytes": 20708,
-          "sha256": "ff3f62f4979503eb073542f3bdac76566dad4d195a306cf60c002e239b91b164"
+          "bytes": 20811,
+          "sha256": "f4007fe0b05634f9c037abd03667f1d84393f7f4bde7233658fa808aecdaa7a8"
         },
         {
           "path": "classification/apps/web/src/views/models.tsx",
           "source_path": "apps/web/src/views/models.tsx",
-          "bytes": 15188,
-          "sha256": "0ae95a5450392c73aec2b541595bb793d80be3f88fd3ae36bc908f8edf3d58c0"
+          "bytes": 15308,
+          "sha256": "830c911c191a677505a70d9827527f1f222de8c7f103cc1f3b37dc6c3e2f3d18"
         },
         {
           "path": "classification/apps/web/src/views/runtime.tsx",

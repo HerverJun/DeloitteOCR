@@ -55,6 +55,7 @@ const menu = [
 
 export function Workbench() {
   const [page, setPage] = useState<Page>('jobs');
+  const [submittedJob, setSubmittedJob] = useState<{ projectId: string; jobId: string }>();
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem('prism-project') || '');
   const [navigation, setNavigation] = useState<PlatformNavigation | null>(null);
   const [platformHome, setPlatformHome] = useState<string | null>(null);
@@ -105,6 +106,7 @@ export function Workbench() {
     try { sessionStorage.setItem('prism-platform-page', page); } catch { /* no storage */ }
   }, [navigation, page]);
   useEffect(() => { if (projectId) localStorage.setItem('prism-project', projectId); }, [projectId]);
+  useEffect(() => { if (page !== 'jobs') setSubmittedJob(undefined); }, [page]);
 
   async function create(values: { name: string; description: string; labels: string }) {
     const lines = values.labels.split('\n').map(line => line.trim()).filter(Boolean);
@@ -148,9 +150,9 @@ export function Workbench() {
           <>
             {page === 'overview' && <Overview project={project} navigate={setPage} />}
             {page === 'assets' && <AssetsPanel key={`assets-${project.id}`} project={project} navigate={setPage} focusAssetId={navigation?.module_project_id === project.id ? navigation.asset_id : null} />}
-            {page === 'train' && <TrainPanel key={`train-${project.id}`} project={project} navigate={setPage} />}
+            {page === 'train' && <TrainPanel key={`train-${project.id}`} project={project} navigate={setPage} onJobSubmitted={jobId => setSubmittedJob({ projectId: project.id, jobId })} />}
             {page === 'models' && <ModelsPanel key={`models-${project.id}`} project={project} navigate={setPage} />}
-            {page === 'jobs' && <JobsPanel key={`jobs-${project.id}`} project={project} navigate={setPage} />}
+            {page === 'jobs' && <JobsPanel key={`jobs-${project.id}`} project={project} navigate={setPage} focusJobId={submittedJob?.projectId === project.id ? submittedJob.jobId : undefined} />}
           </>}
       </main>
       <footer className="footer"><span>{brands.classification} · 图像分类与复核</span><span>数据留在本机，结果可追溯</span></footer>

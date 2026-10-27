@@ -8,7 +8,7 @@ import { DeviceReadiness, useDeviceReadiness } from './DeviceReadiness';
 
 const { Title, Text, Paragraph } = Typography;
 
-export function TrainPanel({ project, navigate }: PanelProps) {
+export function TrainPanel({ project, navigate, onJobSubmitted }: PanelProps & { onJobSubmitted?: (jobId: string) => void }) {
   const datasets = useQuery({ queryKey: ['datasets', project.id], queryFn: () => api<Dataset[]>(`/projects/${project.id}/dataset-versions`) });
   const [datasetOpen, setDatasetOpen] = useState(false);
   const [form] = Form.useForm();
@@ -24,8 +24,8 @@ export function TrainPanel({ project, navigate }: PanelProps) {
     if (result) { setDatasetOpen(false); form.setFieldValue('dataset_id', result.id); versionForm.resetFields(); }
   }
   async function train(values: unknown) {
-    const result = await command.run(async () => { await runtime.verifyDevice('training'); return post(`/projects/${project.id}/experiments`, values); }, '训练任务已提交，可在任务中心查看进度');
-    if (result) navigate('jobs');
+    const result = await command.run(async () => { await runtime.verifyDevice('training'); return post<{ job_id: string }>(`/projects/${project.id}/experiments`, values); }, '训练任务已提交，可在任务中心查看进度');
+    if (result) { onJobSubmitted?.(result.job_id); navigate('jobs'); }
   }
   return <>
     <div className="page-heading"><div><div className="eyebrow">TRAINING LAB</div><Title level={2}>训练与实验</Title><Paragraph type="secondary">冻结图像编码器，只训练分类头。从一个可复现的基线开始。</Paragraph></div><Button icon={<PlusOutlined />} onClick={() => setDatasetOpen(true)}>发布数据版本</Button></div>
