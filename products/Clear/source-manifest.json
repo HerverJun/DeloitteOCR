@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1049,
+      "file_count": 1051,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -1935,8 +1935,8 @@
         {
           "path": "platform/modules/manual_multimodal/paddle_cache.py",
           "source_path": "modules/manual_multimodal/paddle_cache.py",
-          "bytes": 5063,
-          "sha256": "31a4918f3933f75de32ebbf82b28c7440ebb189fadd2fd6a897a5a4fdf784ed6"
+          "bytes": 8297,
+          "sha256": "78a8e00ede37e6bc23e43419a455ebd08db1e16f19404510faa3887b1e94289d"
         },
         {
           "path": "platform/modules/manual_multimodal/runtime_paths.py",
@@ -3213,8 +3213,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 74066,
-          "sha256": "5ca1f05183b168e287bd6711b49937a12a6fcf29aacdc65b94567c91e7a23478"
+          "bytes": 80488,
+          "sha256": "17f421ec19fbff2c6fd8f3db008cc4a70734e17c56753530f67be5624ea466d0"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -3249,8 +3249,8 @@
         {
           "path": "platform/scripts/portable_acceptance.py",
           "source_path": "scripts/portable_acceptance.py",
-          "bytes": 22573,
-          "sha256": "b44e19097c3cffefa9a747aba24037bc7362867b00c2c6956fe0e8dc6dd74cf9"
+          "bytes": 22794,
+          "sha256": "e9a4c7a1db21d71a92c9770fe3a32fe48884d534902c4a85689962dcc8874ce6"
         },
         {
           "path": "platform/scripts/portable_native.py",
@@ -4929,8 +4929,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/server.py",
           "source_path": "src/workbench_platform/tasks/server.py",
-          "bytes": 44330,
-          "sha256": "06c528aa25a0c5b5ecee353b7f9968d7d145f864b024fa37b742580d9b9d6e29"
+          "bytes": 44439,
+          "sha256": "51c9d2c712b77136b4224fea474860370a7aafeb3b642573bc6b4f072b00c2e0"
         },
         {
           "path": "platform/src/workbench_platform/tasks/source_identity.py",
@@ -4953,8 +4953,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/worker.py",
           "source_path": "src/workbench_platform/tasks/worker.py",
-          "bytes": 83401,
-          "sha256": "d4121d28807de720bde05a89744ee28bdbc128bd8e0bbe5089f3e7d061e94b7c"
+          "bytes": 83484,
+          "sha256": "32737a86ab35e6736926bf0efaab0fe4c67fb13a4f1eee917b79ba29a6149a51"
         },
         {
           "path": "platform/src/workbench_platform/tasks/workspaces.py",
@@ -5007,8 +5007,8 @@
         {
           "path": "platform/tests/test_portable_cli.py",
           "source_path": "tests/test_portable_cli.py",
-          "bytes": 27564,
-          "sha256": "3060129b767f37090d48400993b51466c6b98a949e8c2e6f034c82675d482b15"
+          "bytes": 29626,
+          "sha256": "5e743bcf8cb6a37ea43bfb51451a110e534110f4dbf499f86997e0cd03b7a754"
         },
         {
           "path": "platform/tests/adapters/classification_native_smoke.py",
@@ -6327,8 +6327,14 @@
         {
           "path": "platform/tests/unit/test_paddle_cache.py",
           "source_path": "tests/unit/test_paddle_cache.py",
-          "bytes": 3519,
-          "sha256": "4eedb127223c357b2f39ee658e9d7fd892969bd6e7bcc64d9237a76d1ead5489"
+          "bytes": 9536,
+          "sha256": "8e226d9a9b223dd152a40dfcb86632132d0bfe3edfab4d1fdbba6103d016e954"
+        },
+        {
+          "path": "platform/tests/unit/test_portable_acceptance.py",
+          "source_path": "tests/unit/test_portable_acceptance.py",
+          "bytes": 2482,
+          "sha256": "ee5612def114fb7dcc9715d2ba177437b1feac4c925ab7148552d57fdfdb22eb"
         },
         {
           "path": "platform/tests/unit/test_portable_native.py",
@@ -6347,6 +6353,12 @@
           "source_path": "tests/unit/test_portable_vc.py",
           "bytes": 5488,
           "sha256": "5a7d82ac5e96dae618c1ad5e4b4a9a3286c7b888da7d7b9c57b47bccc4a45f89"
+        },
+        {
+          "path": "platform/tests/unit/test_portable_visual_vc.py",
+          "source_path": "tests/unit/test_portable_visual_vc.py",
+          "bytes": 6952,
+          "sha256": "9d580278f90d53ba31e81621cf31c612ebf3326f26da2d0330f4d8fa16fe1750"
         },
         {
           "path": "platform/tests/unit/test_runtime_config.py",
