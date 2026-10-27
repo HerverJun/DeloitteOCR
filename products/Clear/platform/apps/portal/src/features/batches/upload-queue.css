@@ -1,0 +1,16 @@
+.batch-upload { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius, 6px); color: var(--clear-text); cursor: pointer; overflow: hidden; }
+.batch-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.batch-upload:focus-within { outline: 2px solid var(--clear-focus); outline-offset: 2px; }
+.batch-upload:has(input:disabled) { opacity: .6; cursor: default; }
+.batch-upload-queue .agent-attachment-upload-list { list-style: none; margin: 18px 0 0; padding: 0; }
+.batch-upload-queue .agent-attachment-upload-list > li { padding: 14px 0; border-bottom: 1px solid var(--clear-border); }
+.batch-upload-queue .agent-attachment-upload-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.batch-upload-queue .agent-attachment-upload-summary > div { display: grid; gap: 5px; min-width: 0; }
+.batch-upload-queue .agent-attachment-upload-name { overflow-wrap: anywhere; font-size: 14px; }
+.batch-upload-queue .agent-attachment-upload-summary small { color: var(--clear-muted); font-size: 12px; }
+.batch-upload-queue .agent-attachment-upload-summary .ant-tag { margin: 0; flex: none; }
+.batch-upload-queue .agent-attachment-upload-note { margin: 10px 0 0; color: var(--clear-muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.batch-upload-queue .upload-history { margin-top: 12px; color: var(--clear-muted); font-size: 12px; }
+.batch-upload-queue .upload-history > summary { cursor: pointer; min-height: 32px; display: list-item; }
+.batch-upload-queue .upload-history[open] { max-height: 320px; overflow: auto; }
+@media (max-width: 680px) { .batch-upload { min-height: 44px; } }

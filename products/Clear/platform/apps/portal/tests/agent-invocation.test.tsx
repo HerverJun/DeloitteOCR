@@ -202,7 +202,8 @@ test('manual results default to task scope, expanding other results resets pagin
   expect(urls.some(url => url.includes('related_only=false') && url.includes('offset=50'))).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '继续手动处理' }))
   expect(writes).toHaveLength(0)
-  expect(screen.getByText('人工处理中 · 任务')).toBeInTheDocument()
+  expect(screen.getByText('来自 Agent · 任务')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '带回结果' })).toBeEnabled()
 })
 
 test('a lost manual return reply replays the same fixed request after reload and server manual state changes', async () => {

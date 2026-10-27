@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1012,
+      "file_count": 1015,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -237,8 +237,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 22095,
-          "sha256": "93484d1b5a80f74b4add6e5b379fb960cf87a909171995f7abf49d896e1b68c3"
+          "bytes": 22331,
+          "sha256": "71aae77415cfa6971e3618ad7799562e1457099717b9f92e728c24b9c4e53b07"
         },
         {
           "path": "platform/apps/portal/src/main.tsx",
@@ -273,8 +273,8 @@
         {
           "path": "platform/apps/portal/src/clear-ui/experience.css",
           "source_path": "apps/portal/src/clear-ui/experience.css",
-          "bytes": 5032,
-          "sha256": "522d80901917e9f67211ff14ff418468533db425de47398fd06b1286485ef7fd"
+          "bytes": 5762,
+          "sha256": "e9f3a7234bcc63617df031e2dec4606e29b63ce0f5b37f3d080b170ce314a69a"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/navigation.ts",
@@ -393,8 +393,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/ManualReturn.tsx",
           "source_path": "apps/portal/src/features/agent/ManualReturn.tsx",
-          "bytes": 14167,
-          "sha256": "28b2a3d9372252568ee261199fdd2cc9736b732323dbb4b676bbc1cb4e9e0d9b"
+          "bytes": 14609,
+          "sha256": "003c9778df6d6afdb9beb953428e57bb885e268af507932d61d338e1c807ed06"
         },
         {
           "path": "platform/apps/portal/src/features/agent/Materials.tsx",
@@ -405,8 +405,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/NativeResultPreview.tsx",
           "source_path": "apps/portal/src/features/agent/NativeResultPreview.tsx",
-          "bytes": 3329,
-          "sha256": "06c82dcfcdc67cb9bd311094c2c5eaff3e6195471c7ec9088adb21ac5931af62"
+          "bytes": 3196,
+          "sha256": "b976d51eb824472af26cfcf082f32e7534dce9cbca663288ebfc24f83acb565c"
         },
         {
           "path": "platform/apps/portal/src/features/agent/PlatformSettings.tsx",
@@ -639,8 +639,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/UploadQueue.tsx",
           "source_path": "apps/portal/src/features/batches/UploadQueue.tsx",
-          "bytes": 22481,
-          "sha256": "35799c0807eae782bae5df8e5687339d476600e07866c2b9ddee41b790c1f4c2"
+          "bytes": 23618,
+          "sha256": "e49d5a857e0034aa06a1cb540b793ced134be90a4a67f0a5e436e7fbe10c1c8d"
         },
         {
           "path": "platform/apps/portal/src/features/batches/api.ts",
@@ -679,6 +679,12 @@
           "sha256": "28364912185ce908001c941e207d0c1e308e51ccee860dda7212cd221cd0b7cc"
         },
         {
+          "path": "platform/apps/portal/src/features/batches/upload-queue.css",
+          "source_path": "apps/portal/src/features/batches/upload-queue.css",
+          "bytes": 1833,
+          "sha256": "d3f29ab7f453e2f0102ea6760c00a7127287831461dde8eb3db77094b4fd5a2e"
+        },
+        {
           "path": "platform/apps/portal/src/features/catalog/ApplicationCards.tsx",
           "source_path": "apps/portal/src/features/catalog/ApplicationCards.tsx",
           "bytes": 15863,
@@ -693,8 +699,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ToolDirectory.tsx",
           "source_path": "apps/portal/src/features/catalog/ToolDirectory.tsx",
-          "bytes": 11462,
-          "sha256": "3ff449de13e5f87842ab93c6c6dc6e28995540cb81b9ae190dccf3b2b490b6c7"
+          "bytes": 7187,
+          "sha256": "888ab4ba73aea0244e50075c4e6a2e5acf40009755532d5dc5546a328c2a74ba"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ToolIdentity.tsx",
@@ -705,8 +711,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/directory.css",
           "source_path": "apps/portal/src/features/catalog/directory.css",
-          "bytes": 11130,
-          "sha256": "c3845c2e1f1947a3a3f836d86dfd7d0b6e9297747ca261fb19a03dea495c8875"
+          "bytes": 6111,
+          "sha256": "8fe36eb0c43ca7e2c307b4b38ec970f43c055766cc42c867bd887ef2bda5d21d"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/nativeReviewReturn.ts",
@@ -723,8 +729,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/toolCatalog.ts",
           "source_path": "apps/portal/src/features/catalog/toolCatalog.ts",
-          "bytes": 1350,
-          "sha256": "9221416fc229007bc7ce1f0f022db605d7f3c6c24036856ce9974d59136dd25c"
+          "bytes": 4138,
+          "sha256": "99f95d0e696cbe79d0729617e7fcb7f8771ab3cc573ce8d29cb4a3404a49a40b"
         },
         {
           "path": "platform/apps/portal/src/features/classification/ClassificationWorkflow.tsx",
@@ -753,8 +759,8 @@
         {
           "path": "platform/apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
           "source_path": "apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
-          "bytes": 16501,
-          "sha256": "55142acbbade09602f5ac2e2f6fbb66a2eaf496617ae04c47ba9e6afab499ea7"
+          "bytes": 19472,
+          "sha256": "5228d2c1d13a6ae38a7907701c13cb74ee4d3b2555a797f7a917b884d97ab548"
         },
         {
           "path": "platform/apps/portal/src/features/comparisons/Configuration.tsx",
@@ -771,8 +777,8 @@
         {
           "path": "platform/apps/portal/src/features/comparisons/comparisons.css",
           "source_path": "apps/portal/src/features/comparisons/comparisons.css",
-          "bytes": 2776,
-          "sha256": "343a6668ffe2fd11db62a7ecb53b0e61356b52cefabddc8cc751a17fe9a76c93"
+          "bytes": 3288,
+          "sha256": "4f22a036967e8d973a9866e1fe03a59fe226100be34df91e2c74b699a2d8931b"
         },
         {
           "path": "platform/apps/portal/src/features/data/DataWorkbench.tsx",
@@ -795,8 +801,8 @@
         {
           "path": "platform/apps/portal/src/features/documents/DocumentWorkbench.tsx",
           "source_path": "apps/portal/src/features/documents/DocumentWorkbench.tsx",
-          "bytes": 15307,
-          "sha256": "c1f7b25d58eb76f2a44da5be8a3c6a62477efd5a94fb6166f57a44b22de91c45"
+          "bytes": 16624,
+          "sha256": "716387e80e12ddc80b7bfacd4d0341efa97d6789791064a0a172f75d31136bd5"
         },
         {
           "path": "platform/apps/portal/src/features/documents/api.ts",
@@ -807,8 +813,8 @@
         {
           "path": "platform/apps/portal/src/features/documents/documents.css",
           "source_path": "apps/portal/src/features/documents/documents.css",
-          "bytes": 469,
-          "sha256": "edcdb91ae97b9d3bf2f09671736bbb9b723ca9a5219dc54760d9f8e1ec392b9b"
+          "bytes": 704,
+          "sha256": "cf36609e87dad1d026a4c43cc1e097d0de52a2a5a557f606d3a17ae71e5c89d9"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicImageViewer.css",
@@ -825,14 +831,14 @@
         {
           "path": "platform/apps/portal/src/features/forensics/ForensicWorkbench.tsx",
           "source_path": "apps/portal/src/features/forensics/ForensicWorkbench.tsx",
-          "bytes": 21252,
-          "sha256": "fa173a7a5b21a5e733673a0be08879f97a7f2fc7fd9725f5182cdddf925f60c6"
+          "bytes": 24537,
+          "sha256": "313a41c6531967456e2c7cb1180607c7bfe4cc6dc51944769ebd8343a95e69f7"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/forensics.css",
           "source_path": "apps/portal/src/features/forensics/forensics.css",
-          "bytes": 2350,
-          "sha256": "36cabc74181ac7e7ecb54daf80ee5a4a7dd3220545eeee97d2af6c1efd2af78d"
+          "bytes": 2750,
+          "sha256": "b192d0a07f91c6a33b2a5493e2b1ff9b2ffb2a9f9b25b763103ac727733a8139"
         },
         {
           "path": "platform/apps/portal/src/features/forensics/geometry.ts",
@@ -843,14 +849,14 @@
         {
           "path": "platform/apps/portal/src/features/home/PortalHome.tsx",
           "source_path": "apps/portal/src/features/home/PortalHome.tsx",
-          "bytes": 7396,
-          "sha256": "e4fe9d29a36ad1fbe56940971d5c797d636f35de166f9d9a15b1d64e1fcbdceb"
+          "bytes": 7670,
+          "sha256": "d745f614da23a9e5f36ea051ba1f90b99fe165c04f09feb9769861894b4f59c8"
         },
         {
           "path": "platform/apps/portal/src/features/home/home.css",
           "source_path": "apps/portal/src/features/home/home.css",
-          "bytes": 5347,
-          "sha256": "9aa0221f8f5c62664fc422113c3e1b421fde0992317e9560ffb6f4b649043806"
+          "bytes": 5688,
+          "sha256": "d313010b097b31eea12ab96ec478f81dceb2cd7ea015b8bcaea6e651bdc61de3"
         },
         {
           "path": "platform/apps/portal/src/features/home/taskIntents.ts",
@@ -879,8 +885,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
           "source_path": "apps/portal/src/features/multimodal/MultimodalWorkbench.tsx",
-          "bytes": 45899,
-          "sha256": "80017c91704c86911568460bf3a87d7de760aa070d669a7ee1b68f392a75d94e"
+          "bytes": 50512,
+          "sha256": "f9d8d9a82d44d037b3e26a90024df86ad4fa676bc332df92f7c279df23f717bb"
         },
         {
           "path": "platform/apps/portal/src/features/multimodal/RegionReview.tsx",
@@ -891,8 +897,8 @@
         {
           "path": "platform/apps/portal/src/features/multimodal/multimodal.css",
           "source_path": "apps/portal/src/features/multimodal/multimodal.css",
-          "bytes": 3271,
-          "sha256": "2e8123086d7dfc3fc3c6b6b645def47d9bf33c7a5ca51a84fd1bf8347a79ede7"
+          "bytes": 3746,
+          "sha256": "41890537feaa08c31fe51073494f4a2db864bd4d87db0f87f1872183103da203"
         },
         {
           "path": "platform/apps/portal/src/features/ocr/BusinessMetadata.tsx",
@@ -1029,8 +1035,8 @@
         {
           "path": "platform/apps/portal/tests/agent-invocation.test.tsx",
           "source_path": "apps/portal/tests/agent-invocation.test.tsx",
-          "bytes": 19090,
-          "sha256": "3e99b62dbedf3fb67c238968aa182f77d98612da7044f5c0f85550ed576c86d4"
+          "bytes": 19165,
+          "sha256": "7c7044fd5a559a131c0a89a7019a79cc17cd05fddc6812d0156bb3f4975cccad"
         },
         {
           "path": "platform/apps/portal/tests/agent-materials.test.tsx",
@@ -1093,6 +1099,12 @@
           "sha256": "80b55ed500b3c81826699128485f9ab2347108387c0a01f041579d0d0dcbc95e"
         },
         {
+          "path": "platform/apps/portal/tests/aigc-upload.test.tsx",
+          "source_path": "apps/portal/tests/aigc-upload.test.tsx",
+          "bytes": 7983,
+          "sha256": "f115705a27c1168ea142f49f8f8ec82546318442cb6072046cb8a01097ebeeca"
+        },
+        {
           "path": "platform/apps/portal/tests/architecture-revision.test.tsx",
           "source_path": "apps/portal/tests/architecture-revision.test.tsx",
           "bytes": 18520,
@@ -1125,8 +1137,8 @@
         {
           "path": "platform/apps/portal/tests/comparisons.test.tsx",
           "source_path": "apps/portal/tests/comparisons.test.tsx",
-          "bytes": 15025,
-          "sha256": "7dca2de10c0f7ddba05797f9831aa26f70315f4507fd608417a99929e4229152"
+          "bytes": 15864,
+          "sha256": "793b9b2ef67869fa9d51689d37834096e60c5e2802f6fd006c2bc4b9c534b976"
         },
         {
           "path": "platform/apps/portal/tests/controller-first-use.test.tsx",
@@ -1137,8 +1149,8 @@
         {
           "path": "platform/apps/portal/tests/documents-loading.test.tsx",
           "source_path": "apps/portal/tests/documents-loading.test.tsx",
-          "bytes": 4113,
-          "sha256": "8a1eb9792e8afb8712a15adcac09e730736f12ff49f19b14ca95cdf92b22a15c"
+          "bytes": 8416,
+          "sha256": "aa34aee9309b9b81412d25595f1e99ef739c7cd92767417dfa185ad9a5c28745"
         },
         {
           "path": "platform/apps/portal/tests/documents-tasks.test.tsx",
@@ -1179,8 +1191,8 @@
         {
           "path": "platform/apps/portal/tests/home-routing.test.tsx",
           "source_path": "apps/portal/tests/home-routing.test.tsx",
-          "bytes": 6442,
-          "sha256": "acd88efe76d29505eb0b601713e45244b67f165b22ba588ff4220ad875af274b"
+          "bytes": 7927,
+          "sha256": "12e30c9aa0b99f9de59bb20a4b530cb70813438c0b1183921cf37000b45b28af"
         },
         {
           "path": "platform/apps/portal/tests/item-evidence.test.tsx",
@@ -1203,14 +1215,20 @@
         {
           "path": "platform/apps/portal/tests/manual-return-limits.test.tsx",
           "source_path": "apps/portal/tests/manual-return-limits.test.tsx",
-          "bytes": 4220,
-          "sha256": "4d137ecd7d00b61392f0ecc8e22679111ce5e16131ecf7875fc329e6e4762459"
+          "bytes": 5294,
+          "sha256": "54b23a336a17dc4f14408f7a52fb7e7a0a2c49b1c99d989ba123d7bdfa090b0c"
+        },
+        {
+          "path": "platform/apps/portal/tests/manual-tool-startup.test.tsx",
+          "source_path": "apps/portal/tests/manual-tool-startup.test.tsx",
+          "bytes": 13323,
+          "sha256": "561cecb712a2937f8afa6569edbdf46ace46e85f782cc5eeb2c9c6f1a1ece72d"
         },
         {
           "path": "platform/apps/portal/tests/multimodal-agent-results.test.tsx",
           "source_path": "apps/portal/tests/multimodal-agent-results.test.tsx",
-          "bytes": 5187,
-          "sha256": "1eb71d73c1cc1040788661c15ed6069285529b8d7c7526462a1eb3fff5d89227"
+          "bytes": 7548,
+          "sha256": "2d15f3717750da66738f40abd4c3b317abff31654c5d2d04d3ac140c6199f22b"
         },
         {
           "path": "platform/apps/portal/tests/multimodal-review.test.tsx",
@@ -1293,8 +1311,8 @@
         {
           "path": "platform/apps/portal/tests/tool-directory-usability.test.tsx",
           "source_path": "apps/portal/tests/tool-directory-usability.test.tsx",
-          "bytes": 3804,
-          "sha256": "c9ca87dd8f66f518e29e9f23eccb52b24ae8cae2780fdab871169cef1bbbfa15"
+          "bytes": 5491,
+          "sha256": "7fe662766c575c10aa390b9144814a6eb57b9e88548cd7c1eb7345bfd0b1a878"
         },
         {
           "path": "platform/apps/portal/tests/tool-project-entry.test.tsx",
@@ -1305,8 +1323,8 @@
         {
           "path": "platform/apps/portal/tests/upload-recovery.test.tsx",
           "source_path": "apps/portal/tests/upload-recovery.test.tsx",
-          "bytes": 15862,
-          "sha256": "0b7a913020b6b580099a64152adfd2864dde27e27d104c1c1969037ef03f0af6"
+          "bytes": 17023,
+          "sha256": "6e0f5160832e814fb26faf27fe559995aef36cafb02095427ea46912e9590ff5"
         },
         {
           "path": "platform/config/forensics.json",

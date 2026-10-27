@@ -4,6 +4,12 @@
 .mm-controls label { display: grid; gap: .4rem; min-width: 11rem; flex: 1 1 13rem; font-weight: 500; }
 .mm-controls .ant-select { width: 100%; }
 .mm-input > .ant-space { margin-bottom: .75rem; }
+.mm-operation { margin-block: 1rem; max-width: 28rem; }
+.mm-start-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: 1rem; }
+.mm-start-hint { flex: 1 1 18rem; line-height: 1.6; }
+.mm-settings { margin-block: 1rem; border-top: 1px solid var(--clear-border, #dfe5e2); padding-top: .85rem; }
+.mm-settings > summary { cursor: pointer; color: var(--clear-text-secondary, #606c65); }
+.mm-settings .mm-controls { margin-bottom: .5rem; }
 .mm-result-body { display: grid; gap: 1.2rem; margin-top: 1rem; }
 .mm-result-body audio { width: 100%; }
 .mm-score { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap; padding-block: 1rem; border-block: 1px solid var(--clear-border, #dfe5e2); }

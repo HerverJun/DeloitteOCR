@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Empty, Image, Input, InputNumber, Select, Skeleton, Space, Table, Tag, Typography } from 'antd'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useWorkspaceId, Workspaces } from '../../App'
 import { API, assets, newRequestId, post, request, stateNames, type Asset } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
 import { RegionReview, type Mark } from './RegionReview'
 import { readGeometry } from '../forensics/geometry'
 import { ToolIdentity } from '../catalog/ToolIdentity'
-import { ManualReturn } from '../agent/ManualReturn'
 import { AigcResultView, type AigcImageResult } from './AigcResultView'
+import { navigationHref } from '../../clear-ui/navigation'
 import './multimodal.css'
 
 const { Title, Paragraph, Text } = Typography
@@ -57,10 +57,10 @@ const clock = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms 
 const base = (workspace: string) => `/workspaces/${encodeURIComponent(workspace)}/multimodal`
 
 export function MultimodalApplicationCard({ kind }: { kind: 'face' | 'audio' | 'aigc_image' }) {
-  const [params] = useSearchParams()
+  const location = useLocation()
   const capability = useQuery({ queryKey: ['multimodal-capabilities'], queryFn: () => request<{ items: Capability[] }>('/multimodal/capabilities') })
   const current = capability.data?.items.find(value => value.kind === kind)
-  const to = routes[kind] + (params.size ? `?${params}` : '')
+  const to = navigationHref(routes[kind], location.search, location.hash, location.pathname)
   return <Card className="application-card" title={<ToolIdentity appId={kind} to={to} label={names[kind]} />}>
     <Text className="application-purpose">{kind === 'face' ? '静态照片核对与项目参考库' : kind === 'aigc_image' ? '独立整图分类 · 生成相关信号复核' : '中文录音转写与片段复核'}</Text>
     <Paragraph className="application-description" type="secondary">{descriptions[kind]}</Paragraph>
@@ -80,6 +80,7 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
   const [device, setDevice] = useState(prefersGpu(kind) ? 'cuda' : 'cpu'), [referenceName, setReferenceName] = useState('')
   const [channel, setChannel] = useState<number | null>(null)
   const [referenceIds, setReferenceIds] = useState<string[]>([])
+  const [uploadBusy, setUploadBusy] = useState(false)
   const [page, setPage] = useState(1)
   const selected = params.get('analysis') || ''
   const snapshotId = params.get('snapshot'), snapshotHash = params.get('sha256'), snapshotRevision = params.get('revision')
@@ -89,11 +90,21 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
   const capabilities = useQuery({ queryKey: ['multimodal-capabilities'], queryFn: () => request<{ items: Capability[] }>('/multimodal/capabilities') })
   const capability = capabilities.data?.items.find(value => value.kind === kind)
   const references = useQuery({ queryKey: ['face-references', workspaceId], enabled: kind === 'face', queryFn: () => request<{ items: Reference[] }>(`${base(workspaceId)}/face-references`) })
-  const detail = useQuery({ queryKey: ['manual-analysis-detail', workspaceId, selected], enabled: !!selected && !snapshotId,
-    queryFn: () => request<Analysis>(`${base(workspaceId)}/jobs/${encodeURIComponent(selected)}`),
-    refetchInterval: query => query.state.data && ['queued', 'running', 'cancelling'].includes(query.state.data.status) ? 1000 : false })
-  const snapshot = useQuery({ queryKey: ['manual-analysis-snapshot', workspaceId, selected, snapshotId], enabled: !!selected && !!snapshotId,
-    queryFn: () => request<AnalysisSnapshot>(`${base(workspaceId)}/jobs/${encodeURIComponent(selected)}/snapshots/${encodeURIComponent(snapshotId!)}`) })
+  const detail = useQuery({ queryKey: ['manual-analysis-detail', workspaceId, kind, selected], enabled: !!selected && !snapshotId,
+    queryFn: ({ signal }) => request<Analysis>(`${base(workspaceId)}/jobs/${encodeURIComponent(selected)}`, { signal }),
+    refetchInterval: query => query.state.data?.kind === kind && ['queued', 'running', 'cancelling'].includes(query.state.data.status) ? 1000 : false })
+  const snapshot = useQuery({ queryKey: ['manual-analysis-snapshot', workspaceId, kind, selected, snapshotId], enabled: !!selected && !!snapshotId,
+    queryFn: ({ signal }) => request<AnalysisSnapshot>(`${base(workspaceId)}/jobs/${encodeURIComponent(selected)}/snapshots/${encodeURIComponent(snapshotId!)}`, { signal }) })
+  const selectedAnalysis = snapshotId ? snapshot.data?.analysis : detail.data
+  const wrongKind = !!selectedAnalysis && selectedAnalysis.kind !== kind
+  const clearSelection = () => {
+    setSelectedInputs([])
+    setParams(previous => {
+      const next = new URLSearchParams(previous)
+      for (const key of ['analysis', 'snapshot', 'sha256', 'revision', 'asset']) next.delete(key)
+      return next
+    })
+  }
   const refresh = () => { void client.invalidateQueries({ queryKey: ['manual-analysis'] }); void client.invalidateQueries({ queryKey: ['manual-analysis-detail'] }) }
   const choose = (job: Analysis) => { setParams(previous => { const next = new URLSearchParams(previous); next.set('analysis', job.job_id); ['snapshot', 'sha256', 'revision'].forEach(key => next.delete(key)); return next }); refresh() }
   const pendingKey = `clear-manual-analysis:${workspaceId}:${kind}`
@@ -116,31 +127,61 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
   const suffixes: Record<Kind, RegExp> = { face: /\.(jpe?g|png|webp|bmp)$/i, audio: /\.(wav|mp3|m4a|flac|ogg|aac|wma)$/i, seal: /\.(jpe?g|png|webp|bmp|pdf)$/i, catnet: /\.(jpe?g|png|webp|bmp|tiff?)$/i, document_forensics: /\.(jpe?g|png|webp|bmp|tiff?)$/i, aigc_image: /\.(jpe?g|png|webp|bmp|tiff?)$/i }
   const files = media.data?.filter(item => suffixes[kind].test(item.original_name)) || []
   const count = kind === 'face' && action === 'compare' ? 2 : 1
+  const selectedCount = selectedInputs.filter(Boolean).length
   const cpuAvailable = !!capability && (capability.cpu_ready || !isDeepKind(kind) && kind !== 'aigc_image' && !capability.missing.length)
   const deviceReady = device === 'cuda' ? capability?.gpu_ready : cpuAvailable
+  const inputsReady = selectedInputs.length === count && Array.from({ length: count }, (_, index) => selectedInputs[index]).every(id => !!id && files.some(file => file.asset_id === id))
+  const acceptedFiles = kind === 'audio' ? '.wav,.mp3,.m4a,.flac,.ogg,.aac,.wma' : kind === 'seal' ? '.jpg,.jpeg,.png,.webp,.bmp,.pdf' : kind === 'face' ? '.jpg,.jpeg,.png,.webp,.bmp' : '.jpg,.jpeg,.png,.webp,.bmp,.tif,.tiff'
+  const startLabel = kind === 'face' ? action === 'compare' ? '开始两张照片比对' : action === 'search' ? '开始检索参考库' : '开始检测人脸' : `开始${names[kind]}`
+  const startHint = pending.current ? '上次提交尚未确认，请先核实原分析请求。'
+    : uploadBusy ? '正在准备文件，完成后即可开始。'
+    : capabilities.isPending ? '正在检查运行设备…'
+    : !deviceReady ? '当前设备尚未就绪，请查看提示或在更多设置中更换设备。'
+    : !selectedCount ? count === 2 ? '选择两张照片，上传完成后开始比对。' : '选择文件后自动上传，上传完成即可开始。'
+    : !inputsReady ? media.isFetching ? '正在确认所选资料…' : count === 2 && selectedCount === 1 ? '再选择另一张照片，即可开始比对。' : '所选文件暂不可用，请重新选择支持的资料。'
+    : kind === 'face' && action === 'search' && !referenceIds.length ? '请选择本次检索使用的参考人脸。'
+    : `已选择 ${count} 份资料，可以开始。`
   return <>
-    <details className="panel mm-input" open={!selected}><summary className="mm-input-heading"><span>选择资料与分析方式</span><Tag color={deviceReady ? 'success' : 'default'}>
+    {wrongKind && <Alert type="warning" title="结果类型与当前工具不一致"
+      description={routes[selectedAnalysis.kind] && <Link to={`${routes[selectedAnalysis.kind]}?${params}`}>在{names[selectedAnalysis.kind]}查看此结果</Link>}
+      action={<Button onClick={clearSelection}>开始新的{names[kind]}</Button>} />}
+    <details className="panel mm-input" open={!selected || wrongKind}><summary className="mm-input-heading"><span>选择资料与分析方式</span><Tag color={deviceReady ? 'success' : 'default'}>
       {deviceReady ? device === 'cpu' && !capability?.cpu_ready ? 'CPU · 首次使用自动准备' : `${device === 'cuda' ? 'GPU' : 'CPU'} 已就绪` : capability?.missing.length ? '资源未齐' : '待验证'}</Tag></summary>
-      <UploadQueue workspaceId={workspaceId} compact allowLargeAudio={kind === 'audio'} onUploaded={assetId => { void media.refetch(); setSelectedInputs([assetId]) }} />
+      {kind === 'face' && <div className="mm-controls mm-operation"><label>操作<Select aria-label="人脸分析方式" value={action} disabled={uploadBusy || create.isPending || !!pending.current} onChange={value => { setAction(value); setSelectedInputs([]) }} options={[
+        { value: 'detect', label: '检测人脸与质量' }, { value: 'compare', label: '两张照片比对' }, { value: 'search', label: '检索项目参考库' },
+      ]} /></label></div>}
+      <Paragraph type="secondary">{count === 2 ? '选择两张照片后自动上传并选中，再点击开始比对。' : `选择${kind === 'audio' ? '录音' : kind === 'seal' ? '图片或 PDF' : '图片'}后自动上传并选中，再点击开始。`}也可以选用项目中已有的资料。</Paragraph>
+      <UploadQueue workspaceId={workspaceId} compact autoUpload allowLargeAudio={kind === 'audio'} accept={acceptedFiles} multiple={count === 2}
+        buttonLabel={count === 2 ? '选择两张照片' : kind === 'audio' ? '选择录音' : kind === 'seal' ? '选择图片或 PDF' : '选择图片'}
+        disabled={create.isPending || !!pending.current} onBusy={setUploadBusy}
+        onFilesSelected={selection => { if (count === 1 || selection.length > 1 || selectedCount >= count) setSelectedInputs([]) }}
+        onUploaded={assetId => { void media.refetch(); setSelectedInputs(previous => {
+          if (count === 1) return [assetId]
+          if (previous.includes(assetId)) return previous
+          const next = Array.from({ length: count }, (_, index) => previous[index])
+          const empty = next.findIndex(id => !id)
+          if (empty >= 0) next[empty] = assetId
+          return next
+        }) }} />
       {capabilities.isPending ? <Skeleton paragraph={{ rows: 2 }} /> : capability?.missing.length ? <Alert type="warning" title="此能力的模型或运行环境尚未备齐" description="可先导入资料；资源准备完成后开始分析。" /> : null}
       {(media.error || capabilities.error) && <Alert type="error" title={(media.error || capabilities.error)?.message} action={<Button onClick={() => { void media.refetch(); void capabilities.refetch() }}>重试</Button>} />}
       <div className="mm-controls">
-        {kind === 'face' && <label>操作<Select value={action} onChange={value => { setAction(value); setSelectedInputs([]) }} options={[
-          { value: 'detect', label: '检测人脸与质量' }, { value: 'compare', label: '两张照片比对' }, { value: 'search', label: '检索项目参考库' },
-        ]} /></label>}
         {Array.from({ length: count }, (_, index) => <label key={index}>{count === 2 ? `照片 ${index + 1}` : '分析资料'}<Select showSearch optionFilterProp="label"
-          value={selectedInputs[index]} placeholder="选择已导入资料" options={files.map(item => ({ value: item.asset_id, label: item.original_name }))}
+          aria-label={count === 2 ? `照片 ${index + 1}` : '分析资料'} value={selectedInputs[index]} disabled={uploadBusy || create.isPending || !!pending.current} placeholder="或选择项目中已有的资料" options={files.map(item => ({ value: item.asset_id, label: item.original_name }))}
           onChange={value => setSelectedInputs(previous => { const next = [...previous]; next[index] = value; return next })} /></label>)}
-        <label>运行设备<Select value={device} onChange={setDevice} options={[{ value: 'cpu', label: 'CPU', disabled: prefersGpu(kind) && !capability?.cpu_ready }, { value: 'cuda', label: 'GPU', disabled: !capability?.gpu_ready }]} /></label>
-        {kind === 'audio' && <label>分析声道<Select value={channel === null ? 'mix' : 'selected'} onChange={value => setChannel(value === 'mix' ? null : 0)} options={[{ value: 'mix', label: '混合全部声道' }, { value: 'selected', label: '选择原始声道' }]} />{channel !== null && <InputNumber aria-label="原始声道序号" min={1} max={64} value={channel + 1} onChange={value => setChannel(Math.max(0, Number(value || 1) - 1))} />}</label>}
-        {kind === 'face' && action !== 'detect' && Array.from({ length: count }, (_, index) => <label key={index}>照片 {index + 1} 的人脸序号<InputNumber min={1} max={100} value={faceIndices[index] + 1}
-          onChange={value => setFaceIndices(previous => previous.map((old, i) => i === index ? Number(value || 1) - 1 : old))} /></label>)}
         {kind === 'face' && action === 'search' && <label>检索参考范围<Select mode="multiple" aria-label="检索参考范围" value={referenceIds} onChange={setReferenceIds} placeholder="明确选择本次可用的参考"
           loading={references.isPending} options={references.data?.items.map(reference => ({ value: reference.reference_id, label: `${reference.label} · ${reference.source.original_name}` }))} /></label>}
-        {kind === 'seal' && <label>待核对主体名称<Input value={subject} onChange={event => setSubject(event.target.value)} placeholder="可选：合同主体或供应商名称" maxLength={256} /></label>}
       </div>
-      <Space wrap><Button type="primary" loading={create.isPending} disabled={!pending.current && (!deviceReady || selectedInputs.filter(Boolean).length !== count || kind === 'face' && action === 'search' && !referenceIds.length)} onClick={() => create.mutate()}>
-        {pending.current ? '核实原分析请求' : `开始${names[kind]}`}</Button><Button onClick={() => void media.refetch()}>刷新资料</Button></Space>
+      <div className="mm-start-actions"><Button type="primary" size="large" loading={create.isPending || uploadBusy} disabled={uploadBusy || !pending.current && (!deviceReady || !inputsReady || kind === 'face' && action === 'search' && !referenceIds.length)} onClick={() => create.mutate()}>
+        {uploadBusy ? '正在准备资料…' : pending.current ? '核实原分析请求' : startLabel}</Button><Button onClick={() => void media.refetch()}>刷新资料</Button>
+      <Text className="mm-start-hint" type="secondary" role="status">{startHint}</Text></div>
+      <details className="mm-settings"><summary>更多设置 · {device === 'cuda' ? 'GPU' : 'CPU'}</summary><div className="mm-controls">
+        <label>运行设备<Select aria-label="运行设备" value={device} disabled={create.isPending || !!pending.current} onChange={setDevice} options={[{ value: 'cpu', label: 'CPU', disabled: prefersGpu(kind) && !capability?.cpu_ready }, { value: 'cuda', label: 'GPU', disabled: !capability?.gpu_ready }]} /></label>
+        {kind === 'audio' && <label>分析声道<Select value={channel === null ? 'mix' : 'selected'} disabled={create.isPending || !!pending.current} onChange={value => setChannel(value === 'mix' ? null : 0)} options={[{ value: 'mix', label: '混合全部声道' }, { value: 'selected', label: '选择原始声道' }]} />{channel !== null && <InputNumber aria-label="原始声道序号" min={1} max={64} value={channel + 1} onChange={value => setChannel(Math.max(0, Number(value || 1) - 1))} />}</label>}
+        {kind === 'face' && action !== 'detect' && Array.from({ length: count }, (_, index) => <label key={index}>照片 {index + 1} 的人脸序号<InputNumber min={1} max={100} value={faceIndices[index] + 1} disabled={create.isPending || !!pending.current}
+          onChange={value => setFaceIndices(previous => previous.map((old, i) => i === index ? Number(value || 1) - 1 : old))} /></label>)}
+        {kind === 'seal' && <label>待核对主体名称<Input value={subject} disabled={create.isPending || !!pending.current} onChange={event => setSubject(event.target.value)} placeholder="可选：合同主体或供应商名称" maxLength={256} /></label>}
+      </div></details>
       {kind === 'face' && <Paragraph type="secondary">多人照片可先检测，再按标注序号选择人脸进行比对或检索。相似分数需人工核对。</Paragraph>}
       {kind === 'audio' && <Paragraph type="secondary">单文件同时满足不超过 4 小时、4 GiB。长录音分块保存进度，可在中断后恢复；说话人分组需要人工回听核对。</Paragraph>}
       {isDeepKind(kind) && <Paragraph type="secondary">支持单帧 JPEG、PNG、WebP、BMP、TIFF，单图不超过 32 MiB、1200 万像素。定位线索尚未独立校准，区域需结合原件复核。</Paragraph>}
@@ -149,7 +190,7 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
       {kind === 'aigc_image' && !capabilities.isPending && !deviceReady && !capability?.missing.length && <Alert type="warning" title="当前设备尚未通过整图生成检测推理验证" description="请核查运行设备，或选择已验证的设备。" />}
       {create.error && <Alert type="error" title={create.error.message} action={<Button onClick={() => { pending.current = null; localStorage.removeItem(pendingKey); create.reset() }}>修改分析请求</Button>} />}
     </details>
-    {selected && snapshotId && <section className="panel mm-result" aria-label="固定版本分析结果"><div className="section-head"><Title level={3}>固定版本分析结果</Title>
+    {selected && snapshotId && !wrongKind && <section className="panel mm-result" aria-label="固定版本分析结果"><div className="section-head"><Title level={3}>固定版本分析结果</Title>
       <Button onClick={() => { setParams(previous => { const next = new URLSearchParams(previous); ['snapshot', 'sha256', 'revision'].forEach(key => next.delete(key)); return next }) }}>打开当前结果复核</Button></div>
       <Paragraph type="secondary">此引用固定到当时的结果与复核版本。后续重试和人工修改不会替换这里的内容。</Paragraph>
       {snapshot.isPending && <Skeleton active paragraph={{ rows: 4 }} />}{snapshot.error && <Alert type="error" title="固定结果不可读取" description={snapshot.error.message} />}
@@ -158,7 +199,7 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
         {snapshot.data.analysis.result && <ResultView key={snapshotId} item={snapshot.data.analysis} workspaceId={workspaceId} refresh={refresh} referenceName="" setReferenceName={() => {}} onReference={() => {}} referenceBusy={false} snapshotId={snapshotId} readOnly />}
       </>)}
     </section>}
-    {selected && !snapshotId && <section className="panel mm-result"><div className="section-head"><Title level={3}>分析结果与人工复核</Title>
+    {selected && !snapshotId && !wrongKind && <section className="panel mm-result"><div className="section-head"><Title level={3}>分析结果与人工复核</Title>
       <Button onClick={() => void detail.refetch()}>刷新结果</Button></div>
       {detail.isPending && <Skeleton active paragraph={{ rows: 4 }} />}
       {detail.error && <Alert type="error" title={detail.error.message} />}
@@ -174,7 +215,6 @@ function Workspace({ kind, workspaceId }: { kind: Kind; workspaceId: string }) {
       </>}
       {(control.error || addReference.error) && <Alert type="error" title={(control.error || addReference.error)?.message} />}
     </section>}
-    <ManualReturn taskId={params.get('task_return') || undefined} workspaceId={workspaceId} />
     {kind === 'face' && <section className="panel"><div className="section-head"><Title level={3}>当前项目参考库</Title><Text type="secondary">手动登记 · 最多 1000 张参考人脸</Text></div>
       {references.error && <Alert type="error" title={references.error.message} />}
       <Table<Reference> size="small" rowKey="reference_id" loading={references.isPending} dataSource={references.data?.items || []} pagination={{ pageSize: 10 }} columns={[
@@ -197,7 +237,7 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   item: Analysis; workspaceId: string; refresh: () => void; referenceName: string; setReferenceName: (value: string) => void;
   onReference: (input: number, index: number) => void; referenceBusy: boolean; snapshotId?: string; readOnly?: boolean;
 }) {
-  const result = item.result!, audioRef = useRef<HTMLAudioElement>(null), navigate = useNavigate()
+  const result = item.result!, audioRef = useRef<HTMLAudioElement>(null), navigate = useNavigate(), location = useLocation()
   const catGeometry = readGeometry(result.processing?.geometry)
   const displayPreview = result.processing?.display_preview
   const displayHeatmap = result.processing?.display_heatmap
@@ -225,6 +265,13 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
   useEffect(() => { if (readOnly) return; try { localStorage.setItem(draftKey, JSON.stringify({ actor, note, assessment, edits, regions: marks })); setDraftError('') } catch { setDraftError('浏览器草稿空间不足，请保存复核后再关闭页面。') } }, [draftKey, actor, note, assessment, edits, marks, readOnly])
   const url = `${API}${base(workspaceId)}/jobs/${item.job_id}${snapshotId ? `/snapshots/${encodeURIComponent(snapshotId)}` : ''}`
   const file = (name: string) => `${url}/files/${name}`
+  const resultLink = (target: string, original = false) => {
+    const scoped = new URLSearchParams(navigationHref(target, location.search, '', location.pathname).split('?')[1])
+    const params = new URLSearchParams({ workspace: workspaceId })
+    if (scoped.get('task_return')) params.set('task_return', scoped.get('task_return')!)
+    if (original) params.set('asset', item.inputs[0].asset_id)
+    return `${target}?${params}`
+  }
   const review = useMutation({ mutationFn: () => {
     reviewIntent.current ||= { request_id: newRequestId(), expected_revision: item.revision, actor: actor.trim(), note: note.trim(), assessment, edits, regions: marks }
     try { localStorage.setItem(`${draftKey}:request`, JSON.stringify(reviewIntent.current)) } catch { setDraftError('请求草稿未能保存在浏览器中，请先确认保存结果再关闭页面。') }
@@ -307,8 +354,8 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
       {!!proposed.length && <section aria-label="模型建议区域"><Paragraph type="secondary">虚线框为模型建议区域，采纳后可修改边界与说明并保存人工复核。</Paragraph>
         <Space wrap>{proposed.map((region, index) => <Button key={index} disabled={readOnly || !catCoordinatesReady || marks.length >= 200 || marks.some(mark => mark.box.every((value, position) => value === region.box[position]))}
           onClick={() => setMarks(previous => [...previous, { box: region.box, note: `${detectorLabel} 建议区域 ${index + 1}，待人工复核` }])}>采纳建议区域 {index + 1}</Button>)}</Space></section>}
-      <Space wrap><Link to={`/apps/forensics?workspace=${encodeURIComponent(workspaceId)}&asset=${encodeURIComponent(item.inputs[0].asset_id)}`}>使用经典取证工具继续核查</Link>
-        <Link to={`${routes.aigc_image}?workspace=${encodeURIComponent(workspaceId)}&asset=${encodeURIComponent(item.inputs[0].asset_id)}`}>分析同一原图的整图生成信号</Link></Space></>}
+      <Space wrap><Link to={resultLink('/apps/forensics', true)}>使用经典取证工具继续核查</Link>
+        <Link to={resultLink(routes.aigc_image, true)}>分析同一原图的整图生成信号</Link></Space></>}
     {item.kind === 'document_forensics' && !!result.classical?.evidence.length && <section aria-label="文档排查线索">
       <Table size="small" pagination={false} rowKey="tool" dataSource={result.classical.evidence} columns={[
         { title: '独立经典检查', dataIndex: 'tool', render: (value: string) => forensicLabels[value] || value },
@@ -324,19 +371,19 @@ export function ResultView({ item, workspaceId, refresh, referenceName, setRefer
       {draftError && <Alert type="warning" title={draftError} />}
       <Space wrap><Button type="primary" loading={review.isPending} disabled={!actor.trim() || !note.trim()} onClick={() => review.mutate()}>保存复核与校正</Button>
         <Button disabled={!item.review} loading={collect.isPending} onClick={() => collect.mutate()}>归集到成果中心</Button>
-        <Link to={`/artifacts?workspace=${workspaceId}`}>查看成果</Link></Space>
+        <Link to={resultLink('/artifacts')}>查看成果</Link></Space>
       {(review.error || collect.error) && <Alert type="error" title={(review.error || collect.error)?.message} />}
       {review.error && <Button onClick={() => { reviewIntent.current = null; localStorage.removeItem(`${draftKey}:request`); review.reset(); refresh() }}>刷新版本并修改复核请求</Button>}
-      {collect.data && <Alert type="success" title={`已归集 ${collect.data.files.length} 份固定成果`} description={<Link to={`/audit?workspace=${workspaceId}`}>在审计项目的调查事项中引用此成果</Link>} />}
+      {collect.data && <Alert type="success" title={`已归集 ${collect.data.files.length} 份固定成果`} description={<Link to={resultLink('/audit')}>在审计项目的调查事项中引用此成果</Link>} />}
     </div>}
     <details><summary>模型、来源及结果身份</summary><pre className="mm-log">{JSON.stringify({ result_hash: item.result_hash, inputs: item.inputs, result }, null, 2)}</pre></details>
   </div>
 }
 
 export function MultimodalWorkbench({ kind }: { kind: Kind }) {
-  const workspaceId = useWorkspaceId(), [params] = useSearchParams()
+  const workspaceId = useWorkspaceId(), location = useLocation()
   return <div className="multimodal-workbench"><div className="page-heading"><Text className="eyebrow">CLEAR / MANUAL ANALYSIS</Text><Title level={1}>{names[kind]}</Title><Paragraph>{descriptions[kind]}</Paragraph></div>
     {workspaceId ? <Workspace key={`${workspaceId}:${kind}`} workspaceId={workspaceId} kind={kind} /> : <Workspaces continueTo={routes[kind]} />}
-    <div className="back-link"><Link to={`/apps${params.size ? `?${params}` : ''}`}>← 返回手动工具</Link></div>
+    <div className="back-link"><Link to={navigationHref('/apps', location.search, location.hash, location.pathname)}>← 返回手动工具</Link></div>
   </div>
 }

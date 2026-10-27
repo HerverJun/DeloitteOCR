@@ -88,11 +88,13 @@ export function App() {
   const active = isAgent ? '/agent' : isProject ? '/projects' : ['/apps', '/manual', '/data', '/forensics'].some(path => location.pathname === path || location.pathname.startsWith(`${path}/`)) ? '/apps' : '/'
   const scoped = (path: string, id: string | null = workspaceId) => `${path}${id ? `?workspace=${encodeURIComponent(id)}` : ''}`
   const mainHref = (path: string) => navigationHref(path, location.search, '', location.pathname)
+  const currentTool = [...toolCatalog].sort((a, b) => b.path.length - a.path.length)
+    .find(tool => location.pathname === tool.path || location.pathname.startsWith(`${tool.path}/`))
   useEffect(() => {
     if (location.pathname === '/' || location.pathname === '/agent' && new URLSearchParams(location.search).has('session')) return
-    const label = location.pathname.startsWith('/apps/') ? toolCatalog.find(tool => location.pathname.startsWith(tool.path))?.title || '专业工具' : ({ '/agent': 'Agent', '/projects': '项目', '/assets': '资料库', '/artifacts': '成果', '/jobs': '任务', '/findings': '发现', '/apps': '工具' } as Record<string, string>)[location.pathname]
+    const label = location.pathname.startsWith('/apps/') ? currentTool?.title || '专业工具' : ({ '/agent': 'Agent', '/projects': '项目', '/assets': '资料库', '/artifacts': '成果', '/jobs': '任务', '/findings': '发现', '/apps': '工具' } as Record<string, string>)[location.pathname]
     if (label) rememberVisit(user?.id || 'single', { href: location.pathname + location.search, title: selected ? `${label} · ${selected.name}` : label, workspace: workspaceId })
-  }, [location.pathname, location.search, selected?.name, workspaceId, user?.id])
+  }, [location.pathname, location.search, selected?.name, workspaceId, user?.id, currentTool?.title])
   return <Layout className={"shell" + (isAgent ? " agent-shell" : "")}>
     <a className="skip-link" href="#platform-content">跳至工作区</a>
     <Header className="topbar"><div className="topbar-left">
@@ -101,17 +103,17 @@ export function App() {
         <NavigationIcon kind="menu" />
       </Button>
       <Link className="brand" to={mainHref('/')} title="返回审计平台首页" aria-label={`${brands.platform} · 返回审计平台首页`}><img src="/brand/clear-mark.svg" alt="" /><span>{brands.platform}</span></Link>
-      <span className="breadcrumb"><span>/</span> {isSettings ? '设置' : location.pathname === '/help' ? '使用指南' : primaryNavigation.find(item => item.key === active)?.label}</span>
+      <span className="breadcrumb"><span>/</span> {currentTool ? <><Link to={mainHref('/apps')}>工具</Link><span>/</span>{currentTool.title}</> : isSettings ? '设置' : location.pathname === '/help' ? '使用指南' : primaryNavigation.find(item => item.key === active)?.label}</span>
     </div>
       <div className="topbar-controls"><Popover trigger="click" placement="bottomRight" open={toolPicker} onOpenChange={setToolPicker}
         title="选择工具" content={<nav className="tool-picker" aria-label="工具快捷入口">{toolCatalog.map(tool => <Link key={tool.id} to={navigationHref(tool.path, location.search, location.hash, location.pathname)} onClick={() => setToolPicker(false)}><ToolGlyph appId={tool.id} /><span><strong>{tool.title}</strong><small>{tool.summary}</small></span></Link>)}</nav>}>
-        <Button type="text" className="tool-picker-trigger" icon={<AppstoreOutlined aria-hidden="true" />} aria-expanded={toolPicker}>工具</Button></Popover>{workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>项目加载失败 · 重试</Button> :
+        <Button className="tool-picker-trigger" icon={<AppstoreOutlined aria-hidden="true" />} aria-expanded={toolPicker}>选择工具</Button></Popover>{workspaces.isError ? <Button size="small" onClick={() => workspaces.refetch()}>项目加载失败 · 重试</Button> :
         <Select aria-label="当前项目" className="workspace-select" value={selected?.workspace_id || undefined}
           placeholder={workspaces.isPending ? '读取项目…' : '选择项目'} loading={workspaces.isPending}
           allowClear
           onChange={id => navigate(scoped(location.pathname, id ?? null))}
           options={workspaces.data?.map(item => ({ value: item.workspace_id, label: item.name }))} />}
-      <Link to={`/settings${location.search}`} className="topbar-settings"><SettingOutlined /> <span>设置</span></Link>
+      <Link to={mainHref('/settings')} className="topbar-settings"><SettingOutlined /> <span>设置</span></Link>
       </div>
     </Header>
     <Layout className="workspace-shell">

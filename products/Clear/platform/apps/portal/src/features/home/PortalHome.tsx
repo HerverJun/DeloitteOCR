@@ -38,7 +38,8 @@ export function PortalHome() {
     } })
   return <div className="portal-home">
     <header className="home-heading"><div><span className="eyebrow">CLEAR WORKSPACE</span><h1>开始今天的工作</h1><p>{selected ? selected.name : '继续已有工作，或把一个新需求交给 Agent。'}</p></div>
-      <Link className="home-start" to={href('/agent')}><PlusOutlined aria-hidden="true" />新任务<ArrowRightOutlined aria-hidden="true" /></Link></header>
+      <div className="home-heading-actions"><Link className="home-tools-entry" to={href('/apps')}>直接使用工具<ArrowRightOutlined aria-hidden="true" /></Link>
+        <Link className="home-start" to={href('/agent')}><PlusOutlined aria-hidden="true" />新任务<ArrowRightOutlined aria-hidden="true" /></Link></div></header>
     <section className="home-quick-start" aria-labelledby="home-start-title"><div><span className="home-section-label">AGENT</span><h2 id="home-start-title">你想完成什么？</h2><p>问一个问题、处理文件，或调用专业工具完成分析。</p></div>
       <div className="home-intents">{taskIntents.map(intent => <Link key={intent.id} to={intentHref(intent.id)}><strong>{intent.title}</strong><span>{intent.description}</span><ArrowRightOutlined aria-hidden="true" /></Link>)}</div></section>
     <div className="home-work-grid"><section className="home-section" aria-labelledby="home-continue-title"><header><h2 id="home-continue-title"><ClockCircleOutlined aria-hidden="true" />继续工作</h2>{workspaceId && <Link to={href('/agent')}>全部任务<ArrowRightOutlined aria-hidden="true" /></Link>}</header>
@@ -50,7 +51,7 @@ export function PortalHome() {
         workspaces.isPending ? <Skeleton active /> : workspaces.error ? <Alert type="error" title="项目读取失败" action={<Button onClick={() => void workspaces.refetch()}>重试</Button>} /> :
           <><div className="home-work-list">{workspaces.data?.slice(0, 3).map(item => <Link key={item.workspace_id} to={`/projects?workspace=${encodeURIComponent(item.workspace_id)}`}><span><strong>{item.name}</strong><small>资料、任务与成果</small></span><ArrowRightOutlined aria-hidden="true" /></Link>)}</div><Link className="home-create-project" to="/projects?create=1"><PlusOutlined aria-hidden="true" />新建项目</Link></>}
     </section></div>
-    <section className="home-tools" aria-labelledby="home-tools-title"><header><h2 id="home-tools-title">常用工具</h2><Link to={href('/apps')}>全部工具与专项扩展<ArrowRightOutlined aria-hidden="true" /></Link></header><nav aria-label="常用工具">{toolCatalog.map(tool => <Link key={tool.id} to={href(tool.path)}><ToolGlyph appId={tool.id} /><span><strong>{tool.title}</strong><small>{tool.summary}</small></span><ArrowRightOutlined aria-hidden="true" /></Link>)}</nav></section>
+    <section className="home-tools" aria-labelledby="home-tools-title"><header><h2 id="home-tools-title">常用工具</h2><Link to={href('/apps')}>查看全部工具<ArrowRightOutlined aria-hidden="true" /></Link></header><nav aria-label="常用工具">{toolCatalog.filter(tool => ['ocr', 'comparisons', 'data', 'classification', 'forensics', 'aigc_image'].includes(tool.id)).map(tool => <Link key={tool.id} to={href(tool.path)}><ToolGlyph appId={tool.id} /><span><strong>{tool.title}</strong><small>{tool.summary}</small></span><ArrowRightOutlined aria-hidden="true" /></Link>)}</nav></section>
     <footer className="home-footer"><span>Clear · 资料、处理与成果</span><Link to={href('/help')}>使用指南<ArrowRightOutlined aria-hidden="true" /></Link></footer>
   </div>
 }

@@ -214,6 +214,24 @@ test('opt-in selection uploads once and re-selecting the committed file attaches
   expect(reads).toBe(1)
 }, 15000)
 
+test('completed upload history stays folded while unfinished files remain visible and are never restarted on load', () => {
+  const previous: UploadBinding = { schema_version: '1.0', workspace_id: 'wUpload', request_id: 'rPrevious', name: '历史附件.csv', size_bytes: 20, sha256: 'a'.repeat(64) }
+  const pending = { ...previous, request_id: 'rPending', name: '待恢复附件.csv' }
+  localStorage.setItem('clear-upload-queue:wUpload', JSON.stringify([
+    { binding: previous, state: 'committed', receipt: committed(previous).receipt },
+    { binding: pending, state: 'uncertain', message: '请核实上次上传' },
+  ]))
+  const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
+  mount(true, undefined, true)
+  expect(screen.getByText('历史附件.csv')).not.toBeVisible()
+  expect(screen.getByText('待恢复附件.csv')).toBeVisible()
+  expect(screen.getByRole('button', { name: '核实并继续上传' })).toBeEnabled()
+  expect(fetch).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByText('已完成的上传记录（1）'))
+  expect(screen.getByText('历史附件.csv')).toBeVisible()
+  expect(fetch).not.toHaveBeenCalled()
+})
+
 test('automatic upload preserves an unknown request and only deliberate recovery consumes its original receipt', async () => {
   const uploaded = vi.fn(), original = new File(['收入\n01.10'], '自动附件.csv')
   let saved: UploadStatus | null = null, posts = 0, reads = 0, available = false

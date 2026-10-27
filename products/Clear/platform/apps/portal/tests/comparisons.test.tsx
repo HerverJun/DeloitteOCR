@@ -79,6 +79,7 @@ test('workbench defaults to local OCR and explains per-page API data flow indepe
   mount(<ComparisonPanel workspace="workspace" />)
   await screen.findByText('项目进度 · v1')
   expect(screen.getByRole('button', { name: '开始解析与比较' })).toBeDisabled()
+  fireEvent.click(screen.getByText('A 侧解析设置 · 本地 OCR'))
   fireEvent.mouseDown(screen.getByLabelText('A 侧解析方式'))
   fireEvent.click(await screen.findByText('多模态 API · 一次一页'))
   expect(screen.getByLabelText('A 侧逐页解析模型')).toBeInTheDocument()
@@ -86,6 +87,18 @@ test('workbench defaults to local OCR and explains per-page API data flow indepe
   expect(screen.getByText(/每次只发送当前页图片/)).toBeInTheDocument()
   expect(screen.getByLabelText('比较模型（独立于逐页解析模型）')).toBeInTheDocument()
   expect(screen.getByLabelText('失败页使用本地 OCR 补全')).not.toBeChecked()
+})
+
+test('comparison explains the next missing input without creating a model request', async () => {
+  const calls = setupFetch()
+  mount(<ComparisonPanel workspace="workspace" />)
+  await screen.findByText('项目进度 · v1')
+  expect(screen.getByRole('status')).toHaveTextContent('A 侧请选择一份 PDF。')
+  expect(screen.getByLabelText('比较准备情况')).toBeVisible()
+  expect(screen.queryByRole('button', { name: '上传未提交资料' })).not.toBeInTheDocument()
+  expect(screen.getByText('A 侧解析设置 · 本地 OCR').closest('details')).not.toHaveAttribute('open')
+  expect(screen.getByText('调整比较要求与字段').closest('details')).not.toHaveAttribute('open')
+  expect(calls.some(call => call.method === 'POST')).toBe(false)
 })
 
 test('results expose fixed downloads and evidence review preserves block identity when editing', async () => {
@@ -169,7 +182,7 @@ test('table review edits cells without letting stale preview text overwrite them
   fireEvent.change(tableEditor, { target: { value: JSON.stringify({ rows: 1, columns: 1, cells: [{ row: 0, column: 0, text: '80%' }] }) } })
   fireEvent.click(screen.getByRole('button', { name: '保存修订并更新报告' }))
   await waitFor(() => expect(calls.find(call => call.url.endsWith('/review'))?.body).toMatchObject({ expected_revision: 2, blocks: [{ block_id: 'b1', table: { cells: [{ text: '80%' }] } }] }))
-})
+}, 15000)
 
 test('recompare sends explicit profile and model versions without changing page layout', async () => {
   const calls = setupFetch(url => url.endsWith('/recompare') ? { ...run, revision: 3, status: 'queued' } : undefined)

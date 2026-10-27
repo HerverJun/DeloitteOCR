@@ -56,3 +56,20 @@ test('a merged scope above 1000 is blocked even when this return includes only o
   fireEvent.click(submit)
   expect(commands).toHaveLength(0)
 })
+
+test('a task from another project cannot expose a usable return action', async () => {
+  const writes: string[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    if (init?.method) writes.push(url)
+    return { ok: true, json: async () => ({ id: 'task', workspace_id: 'other', title: '其他项目任务', manual: true, revision: 1, selected_assets: [] }) }
+  }))
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createMemoryRouter([{ path: '*', element: <ManualReturn taskId="task" workspaceId="w" /> }], { initialEntries: ['/'] })
+  render(<QueryClientProvider client={client}><RouterProvider router={router} /></QueryClientProvider>)
+  expect(await screen.findByText('当前项目与关联任务不一致，请返回原对话核对。')).toBeVisible()
+  const bringBack = screen.getByRole('button', { name: '带回结果' })
+  expect(bringBack).toBeDisabled()
+  fireEvent.click(bringBack)
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(writes).toEqual([])
+})

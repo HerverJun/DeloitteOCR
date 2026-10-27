@@ -5,6 +5,8 @@
 .home-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
 .home-start { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; padding: 9px 16px; border-radius: 8px; background: var(--clear-primary); color: #fff; font-weight: 600; white-space: nowrap; }
 .home-start:hover { background: var(--clear-primary-hover); color: #fff; }
+.home-heading-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.home-tools-entry { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; padding: 9px 16px; border: 1px solid var(--clear-border); border-radius: 8px; background: var(--clear-panel); color: var(--clear-primary); font-weight: 600; }
 .home-quick-start { display: grid; grid-template-columns: minmax(200px, .9fr) minmax(0, 2fr); align-items: center; gap: 32px; padding: 24px 28px; border: 1px solid #dce5d7; border-radius: 12px; background: #f0f5ec; margin-bottom: 28px; }
 .home-section-label { color: var(--clear-primary); font-size: 12px; letter-spacing: .1em; }
 .home-quick-start h2 { margin: 6px 0; font-size: 23px; }

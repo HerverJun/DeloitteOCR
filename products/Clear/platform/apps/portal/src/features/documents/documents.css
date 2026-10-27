@@ -3,3 +3,6 @@
 .document-result { display: grid; gap: 16px; border-top: 1px solid var(--clear-border, #d9ddd8); padding-top: 20px; }
 .document-block-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 440px; overflow: auto; line-height: 1.7; }
 .document-workbench pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }
+.document-history { border-top: 1px solid var(--clear-border, #d9ddd8); padding-top: 16px; }
+.document-history summary { cursor: pointer; font-weight: 600; padding-block: 4px; }
+.document-history[open] summary { margin-bottom: 12px; }

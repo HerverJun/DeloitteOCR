@@ -35,6 +35,7 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
   const offset = pageOffsets[pageOffsets.length - 1]
   const task = useQuery({ queryKey: ['audit-task-return', id], enabled: !!id,
     queryFn: () => agentRequest<AuditTask>(`/agent/sessions/${id}/task`), refetchInterval: 3000 })
+  const taskActive = ['running', 'waiting_job', 'waiting_user', 'needs_verification', 'paused'].includes(task.data?.status || '')
   const results = useQuery({ queryKey: ['audit-manual-results', id, !includeOthers, offset, keyword], enabled: !!id && open && task.data?.manual,
     queryFn: () => agentRequest<Candidates>(`/agent/sessions/${id}/manual-results?offset=${offset}&limit=50&keyword=${encodeURIComponent(keyword)}&related_only=${!includeOthers}`) })
   const nativeCatalog = useQuery({ queryKey: ['audit-native-results', id, nativeLink, nativeOffsets], enabled: !!id && open && expanded && task.data?.manual,
@@ -87,9 +88,13 @@ export function ManualReturn({ taskId, workspaceId, compact = false }: { taskId?
     } catch (e) { setError((e as Error).message); void task.refetch() }
     finally { setBusy(false) }
   }
-  return <>{compact ? <Button disabled={busy || !task.data || !pending && !task.data.manual || task.data?.workspace_id !== workspace} onClick={() => pending ? void returnToAgent(true) : show()}>{pending ? '核实原带回' : '带回结果'}</Button> : <Alert className="audit-return-bar" type="info" title={task.data?.manual ? `人工处理中 · ${task.data.title}` : `关联审计任务 · ${task.data?.title || '正在读取'}`}
-    description={task.data?.manual ? '保存工具里的修改，再选择最新结果带回。仍在运行的原生作业可继续完成。' : '可以查看结果；修改前接管任务，停止 Agent 的后续动作。'}
-    action={<Space><Link to={href}>查看对话</Link>{pending ? <Button loading={busy} disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void returnToAgent(true)}>核实原带回</Button> : task.data?.manual ? <Button onClick={show}>带回结果</Button> : <Button disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void takeOver()}>手动接管</Button>}</Space>} />}
+  return <>{compact ? <Button disabled={busy || !task.data || !pending && !task.data.manual || task.data?.workspace_id !== workspace} onClick={() => pending ? void returnToAgent(true) : show()}>{pending ? '核实原带回' : '带回结果'}</Button> : <aside className="audit-return-bar" aria-label="Agent 任务上下文">
+    <div><strong>{`来自 Agent · ${task.data?.title || '正在读取任务'}`}</strong>
+      <p>{task.data?.workspace_id !== workspace && task.data ? '当前项目与关联任务不一致，请返回原对话核对。' : task.data?.manual ? '工具可以直接使用。完成后选择已保存的结果，带回原对话。'
+        : taskActive ? '工具可以直接使用。要接手当前任务，可暂停 Agent 的后续动作并手动处理。'
+        : '工具可以直接使用；需要把新结果带回原任务时，再手动接管。'}</p></div>
+    <Space><Link to={href}>返回 Agent 对话</Link>{pending ? <Button loading={busy} disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void returnToAgent(true)}>核实原带回</Button> : task.data?.manual ? <Button type="primary" disabled={busy || task.data.workspace_id !== workspace} onClick={show}>带回结果</Button> : <Button disabled={!task.data || task.data.workspace_id !== workspace} onClick={() => void takeOver()}>手动接管</Button>}</Space>
+  </aside>}
     {error && !open && <Alert type="error" title={error} />}
     <Modal title="带回人工处理结果" open={open} onCancel={() => setOpen(false)} okText={pending ? '核实原带回' : '返回 Agent'} cancelText="继续手动处理" okButtonProps={{ loading: busy, disabled: !pending && (!summary.trim() || !results.data || !!scopeError) }} onOk={() => void returnToAgent(!!pending)}>
       {pending && <Alert type="warning" title="原带回回包待核实，将使用原结果版本和原请求核实。" />}

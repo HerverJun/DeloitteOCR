@@ -7,6 +7,7 @@ import { assets, newRequestId, stateNames } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
 import { documentsApi, documentsBase, documentsUrl, parseableDocument, type DocumentCell, type DocumentPage, type DocumentRun } from './api'
 import { request } from '../batches/api'
+import { navigationHref } from '../../clear-ui/navigation'
 import './documents.css'
 
 const { Title, Text, Paragraph } = Typography
@@ -39,6 +40,7 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
   const selected = params.get('document') || '', [page, setPage] = useState(1), [blockPage, setBlockPage] = useState(1)
   const [tableId, setTableId] = useState(''), [query, setQuery] = useState(''), [search, setSearch] = useState(''), [copyMessage, setCopyMessage] = useState('')
   const [runPage, setRunPage] = useState(1)
+  const [uploadBusy, setUploadBusy] = useState(false)
   const media = useQuery({ queryKey: ['document-assets', workspace], queryFn: ({ signal }) => assets(workspace, signal) })
   const listing = useQuery({ queryKey: ['documents', workspace, runPage], queryFn: () => documentsApi.list(workspace, (runPage - 1) * 5), refetchInterval: value => value.state.data?.items.some(item => activeStates.includes(item.status)) ? 1500 : false })
   const detail = useQuery({ queryKey: ['document-detail', workspace, selected], enabled: !!selected, queryFn: () => documentsApi.get(workspace, selected), refetchInterval: value => value.state.data && activeStates.includes(value.state.data.status) ? 1200 : false })
@@ -63,20 +65,19 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
   const control = useMutation({ mutationFn: (action: 'cancel' | 'resume') => documentsApi.control(workspace, selected, action), onSuccess: () => { void detail.refetch(); void listing.refetch() } })
   const downloadBase = `${documentsUrl(workspace)}/${encodeURIComponent(selected)}`
   return <section className="panel document-workbench" aria-label="解析文档">
-    <div className="section-head"><div><Title level={3}>解析文档</Title><Text type="secondary">阅读文档结构、按页回查、校对表格与导出</Text></div><Link to={`/assets?workspace=${encodeURIComponent(workspace)}`}>资料库</Link></div>
+    <div className="section-head"><div><Title level={3}>解析文档</Title><Text type="secondary">阅读文档结构、按页回查、校对表格与导出</Text></div><Link to={navigationHref('/assets', params.toString(), '', '/apps/ocr/documents')}>资料库</Link></div>
     <Paragraph>支持 PDF、图片、DOCX、PPTX、OFD。原生内容直接读取，扫描内容由 Clear 调度识别；表格计算继续使用 ClearData。</Paragraph>
-    <UploadQueue workspaceId={workspace} compact onUploaded={id => { setAssetId(id); void media.refetch() }} />
-    <Space wrap className="document-controls"><Select aria-label="待解析文档" showSearch optionFilterProp="label" placeholder="选择已导入的文档" value={assetId || undefined} onChange={setAssetId} loading={media.isPending}
+    <Paragraph type="secondary">选择文件后自动上传并选中，再点击「解析文档」。已有资料可以直接从下方选择。</Paragraph>
+    <UploadQueue workspaceId={workspace} compact autoUpload multiple={false} accept=".pdf,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp,.docx,.pptx,.ofd" buttonLabel="选择文档"
+      disabled={parse.isPending || !!pending.current} onFilesSelected={() => setAssetId('')} onBusy={setUploadBusy} onUploaded={id => { setAssetId(id); void media.refetch() }} />
+    <Space wrap className="document-controls"><Select aria-label="待解析文档" showSearch optionFilterProp="label" placeholder="或选择项目中已有的文档" value={assetId || undefined} onChange={setAssetId} loading={media.isPending} disabled={uploadBusy || parse.isPending || !!pending.current}
       options={media.data?.filter(asset => parseableDocument(asset.original_name)).map(asset => ({ value: asset.asset_id, label: `${asset.original_name} · v${asset.revision}` }))} />
-      <Button type="primary" loading={parse.isPending || (!pending.current && media.isPending)} disabled={!pending.current && !selectedAsset} onClick={() => parse.mutate()}>{pending.current ? '核实上次解析请求' : '解析文档'}</Button>
+      <Button type="primary" loading={parse.isPending || uploadBusy || (!pending.current && media.isPending)} disabled={uploadBusy || !pending.current && !selectedAsset} onClick={() => parse.mutate()}>{uploadBusy ? '正在准备文档…' : pending.current ? '核实上次解析请求' : '解析文档'}</Button>
       <Button onClick={() => { void media.refetch(); void listing.refetch(); if (selected) void detail.refetch() }}>刷新</Button>
     </Space>
+    {!!pending.current && <Text type="secondary" role="status">上次解析提交尚未确认，请先核实原请求，避免重复解析或误用新文档。</Text>}
+    {!pending.current && <Text type="secondary" role="status">{uploadBusy ? '文件正在上传，完成后会自动选中。' : assetId && !selectedAsset && media.isFetching ? '正在读取所选文档，请稍候。' : selectedAsset ? `已选择「${selectedAsset.original_name}」，可以开始解析。` : '选择文档后即可开始解析。'}</Text>}
     {(media.error || listing.error || detail.error || parse.error || control.error) && <Alert type="error" title={(media.error || listing.error || detail.error || parse.error || control.error)?.message} />}
-    {!!listing.data?.items.length && <Table<DocumentRun> rowKey="document_id" size="small" dataSource={listing.data.items} pagination={{ current: runPage, pageSize: 5, total: listing.data.total, onChange: setRunPage, showSizeChanger: false }} columns={[
-      { title: '文档', render: (_, value) => value.source?.original_name || value.original_name || value.document_id },
-      { title: '状态', render: (_, value) => <Tag>{stateNames[value.status] || value.status}</Tag> },
-      { title: '操作', render: (_, value) => <Button type="link" onClick={() => choose(value)}>查看解析结果</Button> },
-    ]} />}
     {selected && detail.data && <div className="document-result"><Space wrap><Title level={4}>解析结果</Title><Tag>{stateNames[detail.data.status] || detail.data.status}</Tag>
       <a href={`${downloadBase}/original`} target="_blank" rel="noreferrer">查看原件</a>
       {activeStates.includes(detail.data.status) && <Button loading={control.isPending} onClick={() => control.mutate('cancel')}>取消解析</Button>}
@@ -106,6 +107,11 @@ export function DocumentPanel({ workspace }: { workspace: string }) {
       </>}
       {!detail.data.document && !detail.data.error && <Empty description={activeStates.includes(detail.data.status) ? '正在处理，结果保存后会自动显示' : '尚无可读取的结果'} />}
     </div>}
+    {!!listing.data?.items.length && <details className="document-history" open={!selected}><summary>历史解析 · {listing.data.total} 份</summary><Table<DocumentRun> rowKey="document_id" size="small" dataSource={listing.data.items} pagination={{ current: runPage, pageSize: 5, total: listing.data.total, onChange: setRunPage, showSizeChanger: false }} columns={[
+      { title: '文档', render: (_, value) => value.source?.original_name || value.original_name || value.document_id },
+      { title: '状态', render: (_, value) => <Tag>{stateNames[value.status] || value.status}</Tag> },
+      { title: '操作', render: (_, value) => <Button type="link" onClick={() => choose(value)}>查看解析结果</Button> },
+    ]} /></details>}
     {tableId && <TableReview key={`${selected}:${tableId}`} workspace={workspace} documentId={selected} tableId={tableId} close={() => setTableId('')} />}
   </section>
 }

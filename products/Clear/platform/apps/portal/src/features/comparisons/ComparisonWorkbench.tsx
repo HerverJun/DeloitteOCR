@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useWorkspaceId, Workspaces } from '../../App'
 import { assets, HttpError, newRequestId, stateNames, type Asset } from '../batches/api'
 import { UploadQueue } from '../batches/UploadQueue'
+import { navigationHref } from '../../clear-ui/navigation'
 import { ComparisonResults } from './ComparisonResults'
 import { ConnectionSettings, LayoutOptions, ProfileEditor, ProviderSelect } from './Configuration'
 import { activeComparison, assetReference, comparisonsApi, defaultLayout, defaultProfile, inputError, moveAsset, profileError,
@@ -13,9 +14,9 @@ import './comparisons.css'
 
 const { Title, Paragraph, Text } = Typography
 
-function MaterialSelector({ label, items, selected, change, multiple = false }: { label: string; items: Asset[]; selected: string[]; change: (ids: string[]) => void; multiple?: boolean }) {
+function MaterialSelector({ label, items, selected, change, multiple = false, disabled = false }: { label: string; items: Asset[]; selected: string[]; change: (ids: string[]) => void; multiple?: boolean; disabled?: boolean }) {
   return <><Form layout="vertical"><Form.Item label={label}><Select aria-label={label} mode={multiple ? 'multiple' : undefined} showSearch optionFilterProp="label" placeholder={multiple ? '选择 PPTX 或按顺序选择图片' : '选择 PDF'}
-    value={multiple ? selected : selected[0]} onChange={value => change(Array.isArray(value) ? value : [value])}
+    value={multiple ? selected : selected[0]} disabled={disabled} onChange={value => change(Array.isArray(value) ? value : [value])}
     options={items.map(item => ({ value: item.asset_id, label: `${item.original_name} · v${item.revision}` }))} /></Form.Item></Form>
     {multiple && selected.length > 1 && <ol className="comparison-image-order" aria-label="幻灯片图片顺序">{selected.map((id, index) => <li key={id}><span>{items.find(item => item.asset_id === id)?.original_name || id}</span>
       <Space><Button size="small" aria-label={`第 ${index + 1} 张上移`} disabled={index === 0} onClick={() => change(moveAsset(selected, index, -1))}>上移</Button>
@@ -80,38 +81,49 @@ export function ComparisonPanel({ workspace }: { workspace: string }) {
   }, onSuccess: run => { persist(null); choose(run); setHistoryPage(1); void listing.refetch(); setNotice('任务已登记，逐页结果会自动保存。') },
   onError: error => { if (error instanceof HttpError && error.status >= 400 && error.status < 500 && ![408, 409, 429].includes(error.status)) persist(null) } })
   const parseReady = [leftLayout, rightLayout].every(config => config.mode === 'local_ocr' || available.some(item => item.id === config.provider_id && item.supports_vision))
+  const nextStep = pending ? '继续将核实上次提交，不会创建重复任务。' : uploadBusy ? '正在上传材料，完成后在两侧选择本次要比较的文件。'
+    : media.isPending || connections.isPending || profiles.isPending ? '正在读取材料与配置，请稍候。'
+    : materialError || fieldsError || (!aliasesValid ? '请在比较要求中修正项目别名。' : '')
+      || (profileDirty ? '比较要求有未保存的修改，请先保存配置版本。' : '')
+      || (!provider ? '请选择用于比较两侧内容的模型。' : '')
+      || (!parseReady ? '请展开解析设置，为多模态解析选择支持图片的模型。' : '')
+      || '材料、比较要求与模型已就绪，可以开始。'
   const error = media.error || connections.error || profiles.error || listing.error || detail.error || saveProfile.error || suggest.error || create.error
   return <div className="comparison-workbench">
     {detail.data && <ComparisonResults key={detail.data.comparison_id} workspace={workspace} run={detail.data} connections={available} refresh={refresh}
       latestRevision={Math.max(detail.data.revision, latest.data?.revision || 0, listing.data?.items.find(item => item.comparison_id === selected)?.revision || 0)}
       selectRevision={value => setParams(previous => { const next = new URLSearchParams(previous); const latestRevision = latest.data?.revision || listing.data?.items.find(item => item.comparison_id === selected)?.revision || detail.data?.revision;
         if (value === latestRevision) next.delete('comparison_revision'); else next.set('comparison_revision', String(value)); return next })} />}
-    <section className="panel" aria-label="比较材料与模型"><div className="section-head"><div><Title level={3}>1. 准备两侧材料</Title><Text type="secondary">A 侧：扫描 PDF · B 侧：PPTX 或有序幻灯片图片</Text></div>
-      <Space wrap><Link to={`/assets?workspace=${encodeURIComponent(workspace)}`}>资料库</Link><Button onClick={() => setShowConnections(true)}>管理模型连接</Button></Space></div>
-      <UploadQueue workspaceId={workspace} compact onBusy={setUploadBusy} onUploaded={() => void media.refetch()} />
-      <div className="comparison-material-columns"><section aria-label="A 侧材料"><Title level={4}>A / PDF 文档</Title><MaterialSelector label="A 侧 PDF" items={mediaList.filter(item => /\.pdf$/i.test(item.original_name))} selected={left} change={setLeft} />
-        <LayoutOptions label="A 侧" value={leftLayout} onChange={setLeftLayout} connections={available} /></section>
-        <section aria-label="B 侧材料"><Title level={4}>B / 幻灯片</Title><MaterialSelector label="B 侧 PPTX 或图片" items={mediaList.filter(item => /\.(pptx|png|jpe?g|webp|bmp|tiff?)$/i.test(item.original_name))} selected={right} change={setRight} multiple />
-          <LayoutOptions label="B 侧" value={rightLayout} onChange={setRightLayout} connections={available} /></section></div>
+    <section className="panel" aria-label="比较材料与模型" inert={!!pending}><div className="section-head"><div><Title level={3}>1. 准备两侧材料</Title><Text type="secondary">A 侧：扫描 PDF · B 侧：PPTX 或有序幻灯片图片</Text></div>
+      <Space wrap><Link to={navigationHref('/assets', params.toString(), '', '/apps/comparisons')}>资料库</Link><Button onClick={() => setShowConnections(true)}>管理模型连接</Button></Space></div>
+      <Paragraph type="secondary">选择文件后会自动上传，再分别指定 A、B 两侧材料。也可以直接选择项目中已有的文件。</Paragraph>
+      <UploadQueue workspaceId={workspace} compact autoUpload accept=".pdf,.pptx,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff" buttonLabel="选择比较文件" disabled={create.isPending} onBusy={setUploadBusy} onUploaded={() => void media.refetch()} />
+      <div className="comparison-material-columns"><section aria-label="A 侧材料"><Title level={4}>A / PDF 文档</Title><MaterialSelector label="A 侧 PDF" items={mediaList.filter(item => /\.pdf$/i.test(item.original_name))} selected={left} change={setLeft} disabled={uploadBusy || create.isPending} />
+        <details className="comparison-parse-settings"><summary>A 侧解析设置 · {leftLayout.mode === 'local_ocr' ? '本地 OCR' : '多模态 API'}</summary><LayoutOptions label="A 侧" value={leftLayout} onChange={setLeftLayout} connections={available} /></details></section>
+        <section aria-label="B 侧材料"><Title level={4}>B / 幻灯片</Title><MaterialSelector label="B 侧 PPTX 或图片" items={mediaList.filter(item => /\.(pptx|png|jpe?g|webp|bmp|tiff?)$/i.test(item.original_name))} selected={right} change={setRight} multiple disabled={uploadBusy || create.isPending} />
+          <details className="comparison-parse-settings"><summary>B 侧解析设置 · {rightLayout.mode === 'local_ocr' ? '本地 OCR' : '多模态 API'}</summary><LayoutOptions label="B 侧" value={rightLayout} onChange={setRightLayout} connections={available} /></details></section></div>
       {!!left.length && !!right.length && materialError && <Alert type="warning" title={materialError} />}
       <Paragraph type="secondary">PDF 最多 200 页；PPTX / 图片最多 100 页；单文件 128 MiB。PPTX 使用静态页面，包含隐藏页并标记，备注不参与。</Paragraph>
     </section>
-    <section className="panel" aria-label="比较主题配置"><div className="section-head"><div><Title level={3}>2. 定义比较主题</Title><Text type="secondary">按指定字段提取事实，对照原文解释差异</Text></div>
+    <section className="panel" aria-label="比较主题配置" inert={!!pending}><div className="section-head"><div><Title level={3}>2. 定义比较主题</Title><Text type="secondary">按指定字段提取事实，对照原文解释差异</Text></div>
       <Select aria-label="选择比较配置" style={{ minWidth: 230 }} placeholder="已保存的比较配置" value={savedProfile?.id} options={profiles.data?.items.map(item => ({ value: item.id, label: `${item.name} · v${item.version}` }))}
         onChange={id => { const selectedProfile = profiles.data?.items.find(item => item.id === id); if (selectedProfile) { setProfile(selectedProfile); setSavedProfile(selectedProfile); setAliasesValid(true); setNotice('') } }} /></div>
       <Form layout="vertical"><ProviderSelect label="比较模型（独立于逐页解析模型）" value={providerId} connections={available} onChange={item => setProviderId(item.id)} /></Form>
-      <ProfileEditor key={profile.id} value={profile} onChange={setProfile} onValidityChange={setAliasesValid} />
+      <div className="comparison-topic-summary"><Text strong>{profile.name}</Text><Paragraph>{profile.instructions}</Paragraph><Text type="secondary">比较字段：{profile.fields.slice(0, 6).map(field => field.label).join('、')}{profile.fields.length > 6 ? `等 ${profile.fields.length} 项` : ''}</Text></div>
+      <details className="comparison-profile-editor" open={profileDirty}><summary>调整比较要求与字段{profileDirty ? ' · 尚未保存' : ''}</summary><ProfileEditor key={profile.id} value={profile} onChange={setProfile} onValidityChange={setAliasesValid} />
       <Space wrap className="comparison-profile-actions"><Button loading={suggest.isPending} disabled={!provider || !profile.instructions.trim()} onClick={() => suggest.mutate()}>根据要求生成字段建议</Button>
-        <Button loading={saveProfile.isPending} disabled={!profileDirty || !!fieldsError || !aliasesValid} onClick={() => saveProfile.mutate()}>保存配置版本</Button>
         {savedProfile && <Tag>{profileDirty ? '存在未保存修改' : `已保存 v${savedProfile.version}`}</Tag>}
-        <Button onClick={() => { setProfile({ ...profile, id: `profile_${crypto.randomUUID().replaceAll('-', '')}`, version: 1, name: `${profile.name}（副本）` }); setSavedProfile(null); setAliasesValid(true) }}>另存为新配置</Button></Space>
+        <Button onClick={() => { setProfile({ ...profile, id: `profile_${crypto.randomUUID().replaceAll('-', '')}`, version: 1, name: `${profile.name}（副本）` }); setSavedProfile(null); setAliasesValid(true) }}>另存为新配置</Button></Space></details>
       {fieldsError && <Alert type="warning" title={fieldsError} />}
       <Paragraph type="secondary">比较模型接收两侧解析文字与表格。日期口径不同或解析不完整时，结果会注明信息不足。</Paragraph>
     </section>
-    <section className="panel comparison-submit" aria-label="启动比较"><Title level={3}>3. 生成统一报告</Title><Form layout="vertical"><Form.Item label="任务名称"><Input aria-label="任务名称" value={title} onChange={event => setTitle(event.target.value)} /></Form.Item></Form>
+    <section className="panel comparison-submit" aria-label="启动比较"><Title level={3}>3. 生成统一报告</Title>
+      <ul className="comparison-ready-list" aria-label="比较准备情况"><li><Tag color={!materialError ? 'success' : 'default'}>{!materialError ? '已准备' : '待选择'}</Tag>A 侧 PDF 与 B 侧幻灯片</li><li><Tag color={!fieldsError && aliasesValid && !profileDirty ? 'success' : 'default'}>{!fieldsError && aliasesValid && !profileDirty ? '已保存' : '待保存'}</Tag>比较要求与字段</li><li><Tag color={provider && parseReady ? 'success' : 'default'}>{provider && parseReady ? '已选择' : '待选择'}</Tag>解析与比较模型</li></ul>
+      <details className="comparison-task-name"><summary>修改任务名称 · {title}</summary><Form layout="vertical"><Form.Item label="任务名称"><Input aria-label="任务名称" value={title} onChange={event => setTitle(event.target.value)} /></Form.Item></Form></details>
       {notice && <Alert type="success" title={notice} />}{error && <Alert type="error" title={error.message} />}
-      {pending && <Alert type="warning" title="上次提交结果待核实" description="继续将使用原请求编号、材料和配置，避免重复创建任务。" />}
-      <Space wrap><Button type="primary" loading={create.isPending} disabled={uploadBusy || (!pending && (!!materialError || !!fieldsError || !aliasesValid || profileDirty || !provider || !parseReady))} onClick={() => create.mutate()}>{pending ? '核实原请求并继续' : '开始解析与比较'}</Button>
+      {pending && <Alert type="warning" title="上次提交结果待核实" description="材料和配置已锁定；继续将沿用原请求编号、原材料和配置版本，避免重复创建任务。" />}
+      <Paragraph className="comparison-next-step" role="status">{nextStep}</Paragraph>
+      <Space wrap>{!pending && profileDirty && <Button loading={saveProfile.isPending} disabled={!!fieldsError || !aliasesValid || create.isPending} onClick={() => saveProfile.mutate()}>保存配置版本</Button>}<Button type="primary" loading={create.isPending || uploadBusy} disabled={uploadBusy || (!pending && (!!materialError || !!fieldsError || !aliasesValid || profileDirty || !provider || !parseReady))} onClick={() => create.mutate()}>{uploadBusy ? '正在准备材料…' : pending ? '核实原请求并继续' : '开始解析与比较'}</Button>
         <Button onClick={() => { refresh(); void media.refetch(); void connections.refetch() }}>刷新状态</Button></Space>
       <Paragraph type="secondary">HTML 报告采用固定模板、字体和章节；各项结论附来源证据。任务创建后锁定材料与配置版本。</Paragraph>
     </section>

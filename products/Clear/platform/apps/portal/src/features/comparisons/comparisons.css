@@ -16,6 +16,12 @@
 .comparison-connection-form { margin-top: 20px; }
 .comparison-submit .ant-form { max-width: 540px; }
 .comparison-submit > .ant-typography:last-child { margin: 12px 0 0; }
+.comparison-topic-summary { display: grid; gap: 6px; padding-block: 8px; }
+.comparison-topic-summary .ant-typography { margin: 0; }
+.comparison-ready-list { display: flex; flex-wrap: wrap; gap: 12px 24px; list-style: none; padding: 0; margin: 0 0 16px; }
+.comparison-ready-list li { display: flex; align-items: center; gap: 6px; }
+.comparison-next-step { margin-bottom: 12px; }
+.comparison-profile-editor, .comparison-parse-settings, .comparison-task-name { border-top: 1px solid var(--clear-border, #e1e6e9); }
 .comparison-page-buttons { display: flex; flex-wrap: wrap; gap: 8px; max-height: 240px; overflow: auto; }
 .comparison-downloads { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 16px 0; border-bottom: 1px solid #e1e6e9; }
 .comparison-value { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }

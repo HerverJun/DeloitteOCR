@@ -7,6 +7,11 @@
 .forensic-start-body .ant-select { max-width: 100%; }
 .forensic-asset-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clear-toolbar-gap); }
 .forensic-asset-select { flex: 1 1 280px; min-width: 0; max-width: 560px !important; }
+.forensic-start-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
+.forensic-start-actions > .ant-typography { flex: 1 1 240px; line-height: 1.6; }
+.forensic-find > summary { cursor: pointer; color: var(--clear-muted); }
+.forensic-find .ant-input-search { margin-block: 12px; max-width: 560px; }
+.forensic-find .ant-pagination { margin-bottom: 12px; }
 .forensic-report .section-head h3 { min-width: 0; overflow-wrap: anywhere; flex: 1; }
 .forensic-images { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
 .forensic-images figure { margin: 0; min-width: 0; padding: 8px; background: var(--clear-subtle); border: 1px solid var(--clear-border); border-radius: var(--clear-control-radius); }

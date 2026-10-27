@@ -63,3 +63,31 @@ test('snapshot page reads the pinned endpoint and blocks display on a citation h
   expect(paths.some(path => path.endsWith('/jobs/job'))).toBe(false)
   expect(screen.queryByLabelText('印章1text')).not.toBeInTheDocument()
 })
+
+test.each([false, true])('a foreign-kind live or fixed result never appears as an audio success (snapshot=%s)', async fixed => {
+  const foreign = { ...seal, kind: 'aigc_image', actual_device: 'cuda', progress: { completed_chunks: 1, total_chunks: 1 },
+    inputs: [{ original_name: '采购清单.png', asset_id: 'asset', asset_revision: 1 }] }
+  const writes: string[] = []
+  vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+    if (init?.method && init.method !== 'GET') writes.push(path)
+    if (path.endsWith('/agent/sessions/task/task')) return response({ id: 'task', workspace_id: 'workspace', selected_assets: [], manual: false, status: 'succeeded' })
+    if (path.endsWith('/multimodal/capabilities')) return response({ items: [{ kind: 'audio', cpu_ready: true, gpu_ready: false, missing: [] }] })
+    if (path.includes('/snapshots/')) return response({ snapshot_id: 'snapshot', revision: 1, snapshot_hash: 'b'.repeat(64), analysis: foreign })
+    if (path.endsWith('/jobs/job')) return response(foreign)
+    return response({ items: [], total: 0, next_offset: null })
+  }))
+  const query = '?workspace=workspace&task_return=task&analysis=job' + (fixed ? `&snapshot=snapshot&sha256=${'b'.repeat(64)}&revision=1` : '')
+  const router = mount(<MultimodalWorkbench kind="audio" />, '/apps/audio' + query)
+  await screen.findByText('结果类型与当前工具不一致')
+  expect(screen.queryByText('执行成功')).not.toBeInTheDocument()
+  expect(screen.queryByText(/实际设备 cuda/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/采购清单.png/)).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '取消任务' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '重试此任务' })).not.toBeInTheDocument()
+  expect(screen.getByText('选择资料与分析方式').closest('details')).toHaveAttribute('open')
+  expect(screen.getByRole('link', { name: '在整图 AI 生成检测查看此结果' })).toHaveAttribute('href', '/apps/forensics/aigc' + query)
+  fireEvent.click(screen.getByRole('button', { name: '开始新的音频分析' }))
+  await waitFor(() => expect(router.state.location.search).toBe('?workspace=workspace&task_return=task'))
+  expect(screen.queryByText('结果类型与当前工具不一致')).not.toBeInTheDocument()
+  expect(writes).toEqual([])
+})

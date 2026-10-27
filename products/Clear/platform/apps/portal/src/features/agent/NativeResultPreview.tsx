@@ -4,7 +4,6 @@ import { Alert, Button, Space, Typography } from 'antd'
 import { useSearchParams } from 'react-router-dom'
 import { agentRequest } from './api'
 import { FixedNativeEvidence } from './FixedNativeEvidence'
-import { ManualReturn } from './ManualReturn'
 import { useNativeWindow } from '../catalog/nativeWindow'
 
 type Preview = { application: 'ocr' | 'classification'; link_id: string; next_offset: number | null;
@@ -34,6 +33,5 @@ export function NativeResultPreview() {
       <Space><Button disabled={offsets.length === 1} onClick={() => setOffsets(old => old.slice(0, -1))}>上一页</Button>
         <Button disabled={value.data.next_offset == null} onClick={() => setOffsets(old => [...old, value.data!.next_offset!])}>下一页</Button></Space>
     </section>}
-    <ManualReturn taskId={task || undefined} workspaceId={workspace || undefined} />
   </div>
 }
