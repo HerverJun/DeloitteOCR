@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import stat
+import struct
 import subprocess
 import sys
 import urllib.request
@@ -51,6 +52,7 @@ RESOURCES = {
     'pdf_table_config': 'app/ocr/config/pdf-table-tool.json',
     'mineru_manifest': 'manifests/mineru-runtime.json',
     'deployment_guide': 'tools/docs/deployment.md',
+    'vc_runtime': 'runtimes/vc-runtime',
 }
 _HASH_CACHE = {}
 _SCAN_STATS = {}
@@ -216,6 +218,7 @@ def vendor_component_identities(prior_manifest, planned, records, *, generated=N
     """Update affected component identities without rehashing unchanged models."""
     by_member = {row.destination: row.component for row in planned}
     affected = {by_member[row['member']] for row in records}
+    affected.update(by_member[name] for name in (generated or {}) if name in by_member)
     changed = {component: {} for component in affected}
     for row in planned:
         if row.component in affected:
@@ -231,6 +234,109 @@ def vendor_component_identities(prior_manifest, planned, records, *, generated=N
         if component in affected:
             changed[component][member] = dict(expected)
     return changed
+
+
+def vc_runtime_lock(settings):
+    path = physical(settings['source'])/'platform/config/runtime-locks/vc-runtime.json'
+    lock = json.loads(path.read_text('utf-8-sig'))
+    if (lock.get('format') != 'clear-vc-runtime-lock-v1'
+            or not re.fullmatch(r'14\.\d+\.\d+\.\d+', lock.get('version', ''))
+            or not isinstance(lock.get('files'), dict)
+            or not {'msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'vcomp140.dll'} <= lock['files'].keys()
+            or not re.fullmatch('[0-9a-f]{64}', lock.get('archive', {}).get('sha256', ''))):
+        raise ValueError('Fixed Microsoft VC runtime source lock is incomplete')
+    for name, expected in lock['files'].items():
+        relative_member(name)
+        if ('/' in name or not isinstance(expected, dict)
+                or not re.fullmatch('[0-9a-f]{64}', expected.get('sha256', ''))
+                or type(expected.get('bytes')) is not int or expected['bytes'] <= 0):
+            raise ValueError('Invalid Microsoft VC runtime member lock: ' + name)
+    if not any(not name.lower().endswith('.dll') for name in lock['files']):
+        raise ValueError('Microsoft VC runtime license must accompany the binaries')
+    return lock
+
+
+def pe_machine(path):
+    """Read only the PE headers; do not load an untrusted candidate binary."""
+    with path.open('rb') as stream:
+        header = stream.read(64)
+        if len(header) != 64 or header[:2] != b'MZ':
+            raise ValueError('Expected a Windows PE binary: ' + str(path))
+        offset = struct.unpack_from('<I', header, 60)[0]
+        if not 64 <= offset <= 1024 * 1024:
+            raise ValueError('Invalid Windows PE header offset: ' + str(path))
+        stream.seek(offset)
+        signature = stream.read(6)
+        if len(signature) != 6 or signature[:4] != b'PE\0\0':
+            raise ValueError('Invalid Windows PE signature: ' + str(path))
+        return struct.unpack_from('<H', signature, 4)[0]
+
+
+def vc_runtime_targets(output, planned):
+    """Read-only inventory of the product's actual supported x64 entry roots."""
+    # These are product entry points, not setuptools/pip x86/ARM template stubs.
+    entries = {'tools/postgresql/bin/postgres.exe', 'tools/node/node.exe',
+        'tools/libreoffice/program/soffice.exe', 'assets/program/bundles/ocr/runtimes/llama/llama-server.exe'}
+    for row in planned:
+        name = PurePosixPath(row.destination).name.lower()
+        if name == 'python.exe':
+            entries.add(row.destination)
+        elif (name in {'openconsole.exe', 'rg.exe'}
+                and row.destination.startswith('app/platform/agent_harness/node_modules/')
+                and any(marker in row.destination for marker in ('win32-x64/', 'win10-x64/', 'ripgrep-win32-x64/'))):
+            entries.add(row.destination)
+    targets = {}
+    for member in sorted(entries):
+        path = physical(output/member, exists=True)
+        if pe_machine(path) != 0x8664:
+            raise ValueError('Supported Clear entry point is not x64: ' + member)
+        targets.setdefault(path.parent, []).append(member)
+    return targets
+
+
+def portable_vc_runtime(output, settings, planned):
+    """Bind the pinned x64 redistributables beside actual product executables.
+
+    Interpreter startup and PostgreSQL execute before Python can change DLL
+    search paths. App-local binaries provide their closure without an install,
+    registry changes, user PATH, or dependencies on another machine's System32.
+    """
+    output = physical(output, exists=True)
+    lock = vc_runtime_lock(settings)
+    runtime = output/RESOURCES['vc_runtime']
+    payload = {}
+    for name, expected in lock['files'].items():
+        path = physical(runtime/name, exists=True)
+        content = path.read_bytes()
+        if {'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest()} != expected:
+            raise ValueError('Microsoft VC runtime fixed content pin mismatch: ' + name)
+        if name.lower().endswith('.dll'):
+            if pe_machine(path) != 0x8664:
+                raise ValueError('Microsoft VC runtime binary is not x64: ' + name)
+            payload[name] = content
+    targets = vc_runtime_targets(output, planned)
+    # Preflight all input/entry-point paths before the first target write.
+    generated, bindings = {}, []
+    for target, entrypoints in sorted(targets.items()):
+        for name, content in payload.items():
+            path = physical(target/name)
+            # Windows may lock already loaded runtime DLLs. Never use this
+            # candidate's own Python to refresh it; close owned services first.
+            if not path.exists() or path.read_bytes() != content:
+                path.write_bytes(content)
+            expected = lock['files'][name]
+            info = path.stat()
+            _HASH_CACHE[(str(path), info.st_size, info.st_mtime_ns)] = dict(expected)
+            generated[path.relative_to(output).as_posix()] = dict(expected)
+        bindings.append({'directory': target.relative_to(output).as_posix(),
+            'entrypoints': entrypoints,
+            'resources': sorted(name for name, member in RESOURCES.items() if member in entrypoints),
+            'files': {name: lock['files'][name] for name in payload}})
+    save(output/'manifests/vc-runtime.json', {**lock,
+        'format': 'clear-portable-vc-runtime-v1', 'resource_id': 'vc_runtime',
+        'strategy': 'App-local x64 CRT/OpenMP beside supported product entry points',
+        'bindings': bindings, 'system_install_required': False})
+    return generated
 
 
 def environment(work):
@@ -316,6 +422,7 @@ def default_inputs(repository, work):
         'postgres': str(output / 'task-history-multiuser-20261015/dependencies/postgresql/pgsql'),
         'postgres_archive': str(output / 'task-history-multiuser-20261015/dependencies/postgresql-17.11-5.zip'),
         'task_wheelhouse': str(output / 'task-history-multiuser-20261015/dependencies/wheelhouse'),
+        'vc_runtime': str(work / 'dependencies/vc-runtime'),
         'pdf_table_tool': str(repository / 'release/Clear/versions/0.10.0/ocr/build/public-quality-20260916/tool/site-packages/pdfplumber'),
         'frontend': {name: str(work / 'build' / name) for name in ('portal', 'ocr', 'classification')},
         'downloads': [],
@@ -453,6 +560,11 @@ def plan_inputs(settings):
     add_root('harness-npm-lock', 'harness_modules', 'app/platform/agent_harness/node_modules')
     add_root('harness-npm-lock', 'harness_receipt', 'manifests/harness-install.json')
     add_root('multiuser-python-layer', 'task_layer', 'runtimes/task-layer')
+    vc_lock = vc_runtime_lock(settings)
+    if settings.get('vc_runtime'):
+        add_root('microsoft-vc-runtime', 'vc_runtime', RESOURCES['vc_runtime'], selected=sorted(vc_lock['files']))
+    else:
+        issues.append({'component': 'microsoft-vc-runtime', 'reason': 'Set the fixed vc_runtime input directory in the build input map'})
     # pgAdmin/StackBuilder are separate applications, including another Python
     # version; the Clear server needs only PostgreSQL's bin/lib/share/doc.
     add_root('postgresql', 'postgres', 'tools/postgresql', exclude={'pgAdmin 4', 'StackBuilder'})
@@ -552,6 +664,9 @@ def rebase_pth(member, output, mappings):
 def source_provenance(settings):
     """Check legacy per-file pins without requiring the missing candidate metadata."""
     pins = {}
+    vc_lock = vc_runtime_lock(settings)
+    for name, row in vc_lock['files'].items():
+        pins[physical(settings['vc_runtime'])/name] = row
     origin = json.loads((physical(settings['source']) / 'platform/config/runtime-locks/portable-inputs.json').read_text('utf-8-sig'))
     if origin.get('format') != 'clear-portable-origin-lock-v1' or origin['node']['archive_sha256'] != NODE_SHA256:
         raise ValueError('Portable origin lock is unavailable or disagrees with the fixed Node identity')
@@ -810,7 +925,7 @@ def refresh_sources(settings, work, output):
         save(work / 'refresh-report.json', {'status': 'blocked', 'missing': issues})
         raise ValueError('Input map is incomplete; see refresh-report.json')
     selected = [row for row in planned if row.component.endswith(('-source', '-current-source', '-frontend', '-tool'))
-                or row.component in {'safire-provenance', 'harness-npm-lock', 'deployment-guide'}]
+                or row.component in {'safire-provenance', 'harness-npm-lock', 'deployment-guide', 'microsoft-vc-runtime'}]
     names = {row.destination for row in selected}
     prefixes = ['app/platform/', 'app/ocr/', 'app/classification/',
         'assets/program/bundles/ocr/src/', 'assets/program/bundles/ocr/config/',
@@ -831,6 +946,7 @@ def refresh_sources(settings, work, output):
     write_readme(output)
     portable_pdf_tables(output, settings)
     vendor_records = portable_vendor_compatibility(output)
+    vc_bindings = portable_vc_runtime(output, settings, planned)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -841,7 +957,7 @@ def refresh_sources(settings, work, output):
         changed = {}
         for row in rows:
             changed.setdefault(row['component'], {})[row['destination']] = {key: row[key] for key in ('bytes', 'sha256')}
-        generated = {}
+        generated = dict(vc_bindings)
         for family in ('ocr', 'classification'):
             for filename in ('manifest.json', 'bundle.manifest.json'):
                 path = output/'assets/program/bundles'/family/filename
@@ -849,6 +965,9 @@ def refresh_sources(settings, work, output):
                     generated[path.relative_to(output).as_posix()] = identity(path)
         vendor_changes = vendor_component_identities(manifest, planned, vendor_records, generated=generated)
         changed.update(vendor_changes)
+        changed['microsoft-vc-app-local-bindings'] = vc_bindings
+        known_components = {component['id'] for component in component_manifest['components']}
+        component_manifest['components'].extend({'id': name} for name in changed if name not in known_components)
         for component in component_manifest['components']:
             files = changed.get(component['id'])
             if files is not None:
@@ -856,7 +975,9 @@ def refresh_sources(settings, work, output):
                     separators=(',', ':')).encode()).hexdigest(), file_count=len(files),
                     bytes=sum(row['bytes'] for row in files.values()))
             if component['id'] in vendor_changes:
-                component['build_transforms'] = ['manifests/vendor-compatibility.json']
+                component['build_transforms'] = ['manifests/vendor-compatibility.json', 'manifests/vc-runtime.json']
+            elif component['id'] == 'microsoft-vc-app-local-bindings':
+                component['build_transforms'] = ['manifests/vc-runtime.json']
         save(component_path, component_manifest)
     save(output / 'manifests/resource-scope.json', {'format': 'clear-portable-resource-scope-v1',
         'scope': 'All currently installed/selectable product routes; no research-only alternatives',
@@ -1085,6 +1206,7 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
     (output / 'Clear.cmd').write_text('@echo off\nsetlocal\n"%~dp0assets\\program\\runtimes\\platform\\python.exe" -I -B -X utf8 "%~dp0app\\platform\\scripts\\clear_portable.py" --package-root "%~dp0." %*\n', 'utf-8')
     portable_pdf_tables(output, settings)
     vendor_records = portable_vendor_compatibility(output)
+    vc_bindings = portable_vc_runtime(output, settings, planned)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -1092,6 +1214,8 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
     for row in rows:
         component = components.setdefault(row['component'], {'id': row['component'], 'files': {}})
         component['files'][row['destination']] = identity(output / row['destination'])
+    components['microsoft-vc-app-local-bindings'] = {
+        'id': 'microsoft-vc-app-local-bindings', 'files': vc_bindings}
     for component in components.values():
         component['version'] = 'sha256:' + hashlib.sha256(json.dumps(component['files'], sort_keys=True,
             separators=(',', ':')).encode()).hexdigest()
@@ -1099,6 +1223,8 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
         component['bytes'] = sum(row['bytes'] for row in component['files'].values())
         if any(row['member'] in component['files'] for row in vendor_records):
             component['build_transforms'] = ['manifests/vendor-compatibility.json']
+        if any(name in component['files'] for name in vc_bindings):
+            component.setdefault('build_transforms', []).append('manifests/vc-runtime.json')
         del component['files']
     save(output / 'manifests/components.json', {'format': 'clear-portable-components-v1',
         'components': list(components.values()), 'upstream_provenance': 'Original model/source/license receipts are retained beside their assets',

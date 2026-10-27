@@ -49,7 +49,8 @@
     "pdf_tables": "app/ocr/resources/pdf-tables/site-packages",
     "pdf_table_config": "app/ocr/config/pdf-table-tool.json",
     "mineru_manifest": "manifests/mineru-runtime.json",
-    "deployment_guide": "tools/docs/deployment.md"
+    "deployment_guide": "tools/docs/deployment.md",
+    "vc_runtime": "runtimes/vc-runtime"
   },
   "policy": {},
   "_example_note": "Place a generated config beside Clear, keep the base ASCII when using relative native-temp. Use Clear.cmd init to generate unique installation identity and actual machine paths; this example is not a preinitialized installation."

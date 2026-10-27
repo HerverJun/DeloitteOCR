@@ -1,0 +1,219 @@
+{
+  "format": "clear-vc-runtime-lock-v1",
+  "resource_id": "vc_runtime",
+  "version": "14.51.36247.0",
+  "archive": {
+    "url": "https://download.visualstudio.microsoft.com/download/pr/ebdab8e5-1d7b-4d9f-a11b-cbb1720c3b12/843068991DAAA1F73AD9F6239BCE4D0F6A07A51F18C37EA2A867E9BECA71295C/VC_redist.x64.exe",
+    "bytes": 18731856,
+    "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c",
+    "version": "14.51.36247.0",
+    "signature_status": "Valid",
+    "signer_subject": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+    "signer_thumbprint": "1D77A9B9E8FE2075D9AD15123257FB90DB0DA4A1"
+  },
+  "extraction": {
+    "method": "Static extraction only: CAB signature/length from official PE overlay, 7-Zip CAB extraction; no executable or MSI installation",
+    "container_offset": 630000,
+    "container_bytes": 18091661,
+    "payload": "a4 / packages/vcRuntimeMinimum_amd64/cab1.cab",
+    "payload_sha1": "21A16C194602BD649D37D0A27B21B9E60171E8B5",
+    "payload_bytes": 1065893,
+    "tool": "7-Zip 26.00 x64",
+    "unmodified_files": true
+  },
+  "licenses": [
+    {
+      "path": "LICENSE.microsoft-vc.docx",
+      "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual-C-V14-License-Redistributable_and_Runtime_ENU.docx",
+      "note": "Original upstream Microsoft end-user runtime terms, referenced by Burn license URL"
+    },
+    {
+      "path": "LICENSE.microsoft-vc.txt",
+      "derived_from": "LICENSE.microsoft-vc.docx",
+      "method": "DOCX word/document.xml paragraph text extraction using Python standard library"
+    },
+    {
+      "path": "LICENSE.microsoft-vc-redist-list.html",
+      "url": "https://learn.microsoft.com/en-us/visualstudio/releases/2026/redistribution",
+      "note": "Official Distributable List; applies subject to valid Visual Studio/Build Tools license and developer terms"
+    },
+    {
+      "path": "LICENSE.microsoft-vs-community.docx",
+      "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual_Studio_2026-License-Community_ENU.docx",
+      "note": "Original upstream developer terms included for distribution requirements; no developer license grant is asserted by this receipt"
+    },
+    {
+      "path": "LICENSE.microsoft-vs-community.txt",
+      "derived_from": "LICENSE.microsoft-vs-community.docx",
+      "method": "DOCX word/document.xml paragraph text extraction using Python standard library"
+    }
+  ],
+  "files": {
+    "concrt140.dll": {
+      "bytes": 374200,
+      "sha256": "54716f0738af891f283d213b5c8d11b25896bb8ee3097d301eae718560cf974e"
+    },
+    "LICENSE.microsoft-vc-redist-list.html": {
+      "bytes": 48844,
+      "sha256": "1ebfa4406ced79693b4b8177f31f5cec7a0c11e4b6200ff9652e26314830f988"
+    },
+    "LICENSE.microsoft-vc.docx": {
+      "bytes": 39553,
+      "sha256": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783"
+    },
+    "LICENSE.microsoft-vc.txt": {
+      "bytes": 11945,
+      "sha256": "c15f0776c632b97bc3b01dbc3090ae347bb406235ae7132601bbaba91624e4fc"
+    },
+    "LICENSE.microsoft-vs-community.docx": {
+      "bytes": 69066,
+      "sha256": "02ac07637f4a513a807cd3721c7620433fc483bc049d25784b0c10c54b05e1fb"
+    },
+    "LICENSE.microsoft-vs-community.txt": {
+      "bytes": 27314,
+      "sha256": "2c938dfd8101573c91141c80275158a81347a0144155073f35f9c300ef347a10"
+    },
+    "msvcp140_1.dll": {
+      "bytes": 35768,
+      "sha256": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982"
+    },
+    "msvcp140_2.dll": {
+      "bytes": 274872,
+      "sha256": "d50d7883f20d1dc6191768d3746f52dd9cac89c346ffaed5be1f110c2f34a838"
+    },
+    "msvcp140_atomic_wait.dll": {
+      "bytes": 57792,
+      "sha256": "3d0cbfaa1bf3eecf5a3f4491d2960ee803cb994f30292c6adc4a07c498f60e2b"
+    },
+    "msvcp140_codecvt_ids.dll": {
+      "bytes": 31160,
+      "sha256": "8a65c7596ef2e6938731f5a1058e7e40145b6d97967cc649231a076b9a608d78"
+    },
+    "msvcp140.dll": {
+      "bytes": 643512,
+      "sha256": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca"
+    },
+    "vcamp140.dll": {
+      "bytes": 417728,
+      "sha256": "dc283ffb87e9b82e687ed4e899ae062a209aa338207abfc9a89d61407d678bd4"
+    },
+    "vccorlib140.dll": {
+      "bytes": 350648,
+      "sha256": "09f93d5ff96ae09767f3e1af3cdd43a5a58f2598654fc63089429bb6f9f4737f"
+    },
+    "vcomp140.dll": {
+      "bytes": 212920,
+      "sha256": "95d4ce4a6802d1e18b5e0e1722cc30ea72ca7e033f83828f05c0b7b993fe7cbf"
+    },
+    "vcruntime140_1.dll": {
+      "bytes": 50112,
+      "sha256": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
+    },
+    "vcruntime140_threads.dll": {
+      "bytes": 38840,
+      "sha256": "40f39e8cee5f5a531b4010e18b807e8fe265b908dc58f959ecb7ebc6ea6cb11a"
+    },
+    "vcruntime140.dll": {
+      "bytes": 178616,
+      "sha256": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7"
+    }
+  },
+  "binary_signatures": {
+    "concrt140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "msvcp140_1.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "msvcp140_2.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "msvcp140_atomic_wait.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "msvcp140_codecvt_ids.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "msvcp140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vcamp140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vccorlib140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vcomp140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vcruntime140_1.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vcruntime140_threads.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    },
+    "vcruntime140.dll": {
+      "version": "14.51.36247.0",
+      "pe_machine": "0x8664",
+      "architecture": "x64",
+      "signature_status": "Valid",
+      "signer_subject": "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+      "signer_thumbprint": "2650247AC56048BC7928663C02733D25898A1D6E"
+    }
+  }
+}
