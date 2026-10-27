@@ -2,6 +2,7 @@
 import base64
 from copy import deepcopy
 import json
+import re
 
 import httpx
 import pytest
@@ -312,3 +313,56 @@ def test_model_estimated_bbox_remains_labeled_estimated():
     evidence = next(entry for entry in result['items'][0]['evidence'] if entry['side'] == 'a')
     assert evidence['precision'] == 'model_estimated'
     assert '模型估计坐标' in render_report(result)
+
+
+def test_purchase_theme_aligns_literal_order_identifiers_without_project_names():
+    profile = ComparisonProfile(name='采购核对', instructions='核对采购单号与采购金额，保留编号前导零。', fields=[
+        {'key': 'order', 'label': '采购单号', 'type': 'text'}, {'key': 'amount', 'label': '采购金额', 'type': 'number'}])
+    left = document('a', '采购单号000001，采购金额1200.00。\n采购单号000002，采购金额200.50。')
+    right = document('b', '采购单号000001，采购金额1350.00。\n采购单号000002，采购金额200.50。')
+    def call(*, stage, system, payload, schema):
+        assert stage.startswith('extract_')
+        facts = []
+        for block in payload['blocks']:
+            for match in re.finditer(r'采购单号(\d+)，采购金额([\d.]+)。', block['text']):
+                identifier, amount = match.groups()
+                for field, value in [('order', identifier), ('amount', amount)]:
+                    facts.append({'field': field, 'entity': identifier, 'work_item': '', 'value': value,
+                        'evidence': [{'block_id': block['block_id'], 'quote': match.group()}]})
+        return {'data': {'facts': facts}}
+    result = extract_and_compare(left, right, profile, call)
+    by_key = {(item['entity'], item['field']): item for item in result['items']}
+    assert len(by_key) == 4
+    assert by_key['000001', 'order']['status'] == 'consistent'
+    assert by_key['000001', 'amount']['status'] == 'different'
+    assert by_key['000002', 'amount']['status'] == 'consistent'
+    assert result['summary']['insufficient'] == 0
+
+
+def test_an_unknown_alignment_object_remains_insufficient_despite_complete_evidence():
+    call, _ = extraction_call('1200.00', '1350.00', a_entity='未注明', b_entity='未注明')
+    result = extract_and_compare(document('a', '采购金额1200.00'), document('b', '采购金额1350.00'), theme('number'), call)
+    assert result['coverage']['a']['complete'] and result['coverage']['b']['complete']
+    assert result['items'][0]['status'] == 'insufficient'
+    assert '对象' in result['items'][0]['explanation']
+
+
+@pytest.mark.parametrize(('attribute', 'expected_stages'), [
+    ('EXTRACTION_SYSTEM', ['extract_a', 'extract_b']), ('SEMANTIC_SYSTEM', ['compare'])])
+def test_prompt_changes_invalidate_only_the_corresponding_stage_checkpoints(monkeypatch, attribute, expected_stages):
+    from workbench_platform.comparisons import compare
+    storage = {}
+    def checkpoint(key, *values):
+        if values:
+            storage[key] = values[0]
+        return storage.get(key)
+    call, calls = extraction_call('进行中', '已完成')
+    left, right = document('a', '项目A 状态进行中'), document('b', '项目A 状态已完成')
+    profile = theme('text')
+    extract_and_compare(left, right, profile, call, checkpoint)
+    count = len(calls)
+    extract_and_compare(left, right, profile, call, checkpoint)
+    assert len(calls) == count
+    monkeypatch.setattr(compare, attribute, getattr(compare, attribute) + ' 使用修订后的主题对齐规则。')
+    extract_and_compare(left, right, profile, call, checkpoint)
+    assert [stage for stage, _ in calls[count:]] == expected_stages

@@ -4281,8 +4281,8 @@
         {
           "path": "platform/src/workbench_platform/comparisons/compare.py",
           "source_path": "src/workbench_platform/comparisons/compare.py",
-          "bytes": 26994,
-          "sha256": "979e6ed8c0373cd80084fb22de65a6e03697d4fc8d5661a17ed47d48e545bfcd"
+          "bytes": 27400,
+          "sha256": "389a7a5f4947cd8d6048f5b592f723206da8d050268a3a5fd4d5c0bbcc448a6e"
         },
         {
           "path": "platform/src/workbench_platform/comparisons/layout.py",
@@ -6063,8 +6063,8 @@
         {
           "path": "platform/tests/unit/test_document_comparison_core.py",
           "source_path": "tests/unit/test_document_comparison_core.py",
-          "bytes": 15480,
-          "sha256": "6354e3637920d7ec231c8244a53bed1190ebf94dd581e0bcd8244aa0b350736a"
+          "bytes": 18720,
+          "sha256": "c40bb062e4fbe73a3dc0d1d82486229c5f1697a2afffd0bfd64327c1ff62248d"
         },
         {
           "path": "platform/tests/unit/test_document_comparison_corpus.py",
