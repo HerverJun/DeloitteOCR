@@ -4233,8 +4233,8 @@
         {
           "path": "platform/src/workbench_platform/assets/audio_uploads.py",
           "source_path": "src/workbench_platform/assets/audio_uploads.py",
-          "bytes": 24462,
-          "sha256": "9d91cce9d6bd6517e8c8938f669bcbeb2bab336fc404caa4a21c4faec1ffa51b"
+          "bytes": 24469,
+          "sha256": "b41fe6ec8da1605216a254c1eda92a30032784ba12dfba5283daea41e13169b7"
         },
         {
           "path": "platform/src/workbench_platform/assets/registry.py",
@@ -4677,8 +4677,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/exports.py",
           "source_path": "src/workbench_platform/multimodal/exports.py",
-          "bytes": 3764,
-          "sha256": "7bc5ac51532ca2156a8861788f30b94a9aad88191da4a3c3ccf190a5f566dd11"
+          "bytes": 3771,
+          "sha256": "804e26e5c33ea0076b98d903ab08d66a7a2a5e40ad7de2a8b51670ad75567a72"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/qualification.py",
@@ -4707,8 +4707,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 97341,
-          "sha256": "5750be9df6c664d70fbcae30518da0caff507e52928434f7e0c94f12d6b09758"
+          "bytes": 97348,
+          "sha256": "7bc83aea6b0206a0f39226d5b1b1494d1a03e035a838ca6df6ba2e96d4d72ada"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
@@ -4762,7 +4762,7 @@
           "path": "platform/src/workbench_platform/supervisor/processes.py",
           "source_path": "src/workbench_platform/supervisor/processes.py",
           "bytes": 34813,
-          "sha256": "fcc42a63ac583b41d59999f2f4d69f0c6bec4915a7479298702aed10f84a1020"
+          "sha256": "31e8bf34b9b3cfe9a64d06c981c410a91d5235ca51a076a0eab0ddb4e2ae405e"
         },
         {
           "path": "platform/src/workbench_platform/tasks/__init__.py",
@@ -4779,8 +4779,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/benchmark.py",
           "source_path": "src/workbench_platform/tasks/benchmark.py",
-          "bytes": 6098,
-          "sha256": "dd030eaa730deab718d624858d1f9569b5d7ac363bdaa97832940e532794c414"
+          "bytes": 6121,
+          "sha256": "2e2a4f9cc4960bc059f2ca1a46bd97374d5bf15379f8802b5931861ecc233363"
         },
         {
           "path": "platform/src/workbench_platform/tasks/cli.py",
@@ -4905,8 +4905,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/server.py",
           "source_path": "src/workbench_platform/tasks/server.py",
-          "bytes": 44316,
-          "sha256": "6ebfabd7a198c6b1cd4139305d3140b659a4e9fb8232d4c0d2152bce4c4f213d"
+          "bytes": 44330,
+          "sha256": "06c528aa25a0c5b5ecee353b7f9968d7d145f864b024fa37b742580d9b9d6e29"
         },
         {
           "path": "platform/src/workbench_platform/tasks/source_identity.py",
