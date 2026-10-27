@@ -20,6 +20,7 @@ from .database import check_schema,f_path
 from .store import Ledger,LedgerError,key,now,wire,safe,digest,TERMINAL
 from . import schema_v1 as s
 from . import journal,registry,scope
+from .transport import private_worker_url, private_worker_headers
 
 def normalized(value):
     native=value.get('status') or value.get('state') or 'queued'
@@ -167,7 +168,7 @@ class ExecutionHost:
             except SQLAlchemyError:pass
 
     async def call(self,method,path,payload=None,step=None):
-        headers={'Origin':'http://127.0.0.1:8890','Host':'127.0.0.1:8890'}
+        headers=private_worker_headers()
         if step:headers['X-Clear-Step']=step
         return await self.client.request(method,path,json=payload if method not in {'GET','HEAD'} else None,headers=headers)
 
@@ -274,7 +275,7 @@ class ExecutionHost:
                     async def chunks():
                         with source.open('rb') as stream:
                             while chunk:=stream.read(1024*1024):yield chunk
-                    response=await self.client.request(method,path,content=chunks(),headers={'Content-Type':command['content_type'],'Origin':'http://127.0.0.1:8890','Host':'127.0.0.1:8890','X-Clear-Step':dispatch['run_id']})
+                    response=await self.client.request(method,path,content=chunks(),headers={'Content-Type':command['content_type'],**private_worker_headers(),'X-Clear-Step':dispatch['run_id']})
                 elif command.get('transport')=='native' and path=='/internal/native':
                     from .native import perform_native
                     from .files import response_bytes
@@ -907,6 +908,7 @@ class ExecutionHost:
 def create_worker_app(engine,initializer=None):
     token=os.environ.get('CLEAR_WORKER_TOKEN','')
     if len(token)<32:raise RuntimeError('Worker token required')
+    worker_origin=private_worker_url();service_headers=private_worker_headers()
     root=f_path(os.environ['WORKBENCH_DATA_DIR']);root.mkdir(parents=True,exist_ok=True)
     os.environ['CLEAR_EXECUTION_MODE']='worker'
     concurrency=int(os.environ.get('CLEAR_TASK_CONCURRENCY','1'))
@@ -926,7 +928,7 @@ def create_worker_app(engine,initializer=None):
             bind_directory(engine,root)
             if initializer:initializer()
             async with legacy.router.lifespan_context(legacy):
-                async with httpx.AsyncClient(transport=httpx.ASGITransport(app=legacy),base_url='http://127.0.0.1:8890',timeout=180) as client:
+                async with httpx.AsyncClient(transport=httpx.ASGITransport(app=legacy),base_url=worker_origin,timeout=180) as client:
                     host=ExecutionHost(engine,root,client);host.legacy=legacy;host.install_native_hooks();app.state.host=host;app.state.legacy=legacy
                     from .ai_services import capture_current
                     capture_current(engine,legacy,root,make_current=True)
@@ -937,6 +939,9 @@ def create_worker_app(engine,initializer=None):
     app=FastAPI(title='Clear private execution host',lifespan=lifespan)
     @app.middleware('http')
     async def trusted_service(request,call_next):
+        if (request.headers.get('host')!=service_headers['Host']
+                or request.headers.get('origin') not in {None,worker_origin}):
+            return JSONResponse({'detail':'Private service endpoint mismatch'},status_code=403)
         if not secrets.compare_digest(request.headers.get('authorization',''),'Bearer '+token):
             return JSONResponse({'detail':'Service authentication required'},status_code=403)
         response=await call_next(request)

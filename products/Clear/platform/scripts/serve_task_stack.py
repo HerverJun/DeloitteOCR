@@ -6,6 +6,31 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+from urllib.parse import urlsplit
+
+
+def portal_listen_address(args):
+    """Validate explicit LAN HTTP separately from loopback development mode."""
+    from workbench_platform.tasks.transport import is_lan_address, public_endpoint
+    endpoint=public_endpoint();parsed=urlsplit(endpoint.origin)
+    if not 1<=args.port<=65535 or not 1<=args.worker_port<=65535 or args.port==args.worker_port:
+        raise ValueError('Portal and private worker require distinct ports between 1 and 65535')
+    if (parsed.port or (443 if parsed.scheme=='https' else 80))!=args.port:
+        raise ValueError('--public-origin port must match --port')
+    if args.lan_http:
+        if (not args.listen_address or not is_lan_address(args.listen_address)
+                or parsed.hostname!=args.listen_address or parsed.scheme!='http'):
+            raise ValueError('LAN HTTP requires --listen-address with a private LAN IP and the same exact HTTP --public-origin')
+    if args.development_http and (parsed.scheme!='http' or parsed.hostname not in {'localhost','127.0.0.1'}):
+        raise ValueError('Development HTTP requires a loopback HTTP public origin')
+    if endpoint.insecure_http and (args.certificate or args.private_key):
+        raise ValueError('HTTP mode must not be combined with TLS certificate options')
+    if not endpoint.insecure_http and (not args.certificate or not args.private_key):
+        raise ValueError('HTTPS requires an explicitly configured TLS certificate and key')
+    address=args.listen_address or ('127.0.0.1' if args.development_http else '0.0.0.0')
+    if args.development_http and address!='127.0.0.1':
+        raise ValueError('Development HTTP may listen only on 127.0.0.1')
+    return address
 
 def main():
     parser=argparse.ArgumentParser()
@@ -15,7 +40,10 @@ def main():
     parser.add_argument('--port',type=int,default=8889);parser.add_argument('--worker-port',type=int,default=8890)
     parser.add_argument('--public-origin',default='https://localhost:8889')
     parser.add_argument('--certificate',type=Path);parser.add_argument('--private-key',type=Path)
-    parser.add_argument('--development-http',action='store_true')
+    network=parser.add_mutually_exclusive_group()
+    network.add_argument('--development-http',action='store_true')
+    network.add_argument('--lan-http',action='store_true',help='Explicitly serve plaintext HTTP on a configured private LAN IP')
+    parser.add_argument('--listen-address',help='Exact server LAN IP for --lan-http; must match --public-origin')
     parser.add_argument('--agent-layer',type=Path)
     parser.add_argument('--stop-worker-on-exit',action='store_true',help='Explicitly stop the execution service when closing this portal')
     args=parser.parse_args()
@@ -35,7 +63,7 @@ def main():
     os.environ.update(TEMP=str(temporary),TMP=str(temporary),TMPDIR=str(temporary),LOCALAPPDATA=str(cache/'localappdata'),APPDATA=str(cache/'appdata'),
         PYTHONDONTWRITEBYTECODE='1',WORKBENCH_DATA_DIR=str(args.data),WORKBENCH_PORTAL_DIST=str(source/'apps/portal/dist'),
         CLEAR_TASK_LAYER=str(args.dependency_layer),CLEAR_POSTGRES_BIN=str(args.postgres_bin),CLEAR_WORKER_URL=f'http://127.0.0.1:{args.worker_port}',
-        CLEAR_PUBLIC_ORIGIN=args.public_origin,CLEAR_ALLOW_HTTP_LOOPBACK='1' if args.development_http else '0',
+        CLEAR_PUBLIC_ORIGIN=args.public_origin,CLEAR_ALLOW_HTTP_LOOPBACK='1' if args.development_http else '0',CLEAR_ALLOW_LAN_HTTP='1' if args.lan_http else '0',
         PGPASSFILE=str(cache/'pgpass.conf'),PGSERVICEFILE=str(cache/'pg_service.conf'),PSQL_HISTORY=str(cache/'psql_history'))
     private=json.loads(args.private_config.read_text('utf-8-sig'))
     os.environ.update(CLEAR_DATABASE_URL=private['database_url'],CLEAR_WORKER_TOKEN=private['worker_token'])
@@ -57,7 +85,8 @@ def main():
     from workbench_platform.tasks.server import create_app
     from workbench_platform.tasks.source_identity import fingerprint
     from workbench_platform.tasks.store import digest
-    if not args.development_http and (not args.certificate or not args.private_key):raise ValueError('An F-drive TLS certificate and key are required')
+    listen_address=portal_listen_address(args)
+    public_app=create_app(engine)
     for file in (args.certificate,args.private_key):
         if file:physical(file)
     from datetime import datetime
@@ -88,7 +117,7 @@ def main():
                 except httpx.HTTPError:pass
                 time.sleep(.5)
             else:raise RuntimeError('Execution service startup timed out')
-            uvicorn.run(create_app(engine),host='127.0.0.1' if args.development_http else '0.0.0.0',port=args.port,access_log=False,
+            uvicorn.run(public_app,host=listen_address,port=args.port,access_log=False,
                 ssl_certfile=str(args.certificate) if args.certificate else None,ssl_keyfile=str(args.private_key) if args.private_key else None)
         finally:
             if args.stop_worker_on_exit:

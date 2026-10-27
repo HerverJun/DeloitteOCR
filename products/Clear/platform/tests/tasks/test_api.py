@@ -63,6 +63,53 @@ def test_plain_http_is_not_accidentally_exposed(api,monkeypatch):
     monkeypatch.setenv('CLEAR_ALLOW_HTTP_LOOPBACK','1')
     with pytest.raises(RuntimeError,match='HTTPS'):create_app(case[0].engine)
 
+
+def test_explicit_lan_http_preserves_login_csrf_project_scope_and_private_port(task_case,monkeypatch):
+    ledger,admin,editor,viewer,other,workspace=task_case
+    origin='http://192.168.1.8:9021'
+    monkeypatch.setenv('CLEAR_PUBLIC_ORIGIN',origin)
+    monkeypatch.setenv('CLEAR_ALLOW_LAN_HTTP','1')
+    monkeypatch.setenv('CLEAR_WORKER_TOKEN',secrets.token_urlsafe(40))
+    monkeypatch.setenv('CLEAR_WORKER_URL','http://127.0.0.1:19091')
+    def transport(request):
+        assert request.headers['Host']=='127.0.0.1:19091'
+        assert request.headers['Origin']=='http://127.0.0.1:19091'
+        if request.url.path=='/internal/scope':return httpx.Response(200,json={'workspace_id':workspace})
+        if request.url.path=='/internal/inputs':return httpx.Response(200,json={'items':[]})
+        return httpx.Response(404)
+    worker=httpx.AsyncClient(transport=httpx.MockTransport(transport),base_url='http://127.0.0.1:19091')
+    with TestClient(create_app(ledger.engine,worker),base_url=origin) as client:
+        assert client.get('/api/platform/v2/tasks').status_code==401
+        assert client.get('/api/platform/v2/health',headers={'Host':'other-server:9021'}).status_code==400
+        bad=client.post('/api/platform/v2/auth/login',headers={'Origin':'http://other-server:9021'},json={'username':editor['username'],'password':'correct horse battery staple'})
+        assert bad.status_code==403
+        response=client.post('/api/platform/v2/auth/login',headers={'Origin':origin},json={'username':editor['username'],'password':'correct horse battery staple'})
+        assert response.status_code==200
+        session=next(cookie for cookie in response.headers.get_list('set-cookie') if cookie.startswith('clear_session='))
+        assert 'HttpOnly' in session and 'SameSite=strict' in session and 'Secure' not in session
+        assert 'Strict-Transport-Security' not in response.headers
+        assert client.get('/api/platform/v2/auth/me').json()['user']['id']==editor['id']
+        headers={'Origin':origin,'X-Clear-CSRF':response.json()['csrf_token']}
+        value=submission(workspace,'explicit-lan');value['options']={'session_id':'sessionLAN','version':1}
+        assert client.post('/api/platform/v2/tasks',json=value,headers={'Origin':origin}).status_code==403
+        assert client.post('/api/platform/v2/tasks',json=value,headers={**headers,'Origin':'http://192.168.1.9:9021'}).status_code==403
+        assert client.post('/api/platform/v2/tasks',json=value,headers=headers).status_code==202
+        other_workspace=ledger.create_workspace(other,'LAN隔离项目')['workspace_id']
+        assert client.get('/api/platform/v2/workspaces/'+other_workspace+'/members').status_code==403
+        assert client.post('/api/platform/v2/users',json={'username':'denied','password':'correct horse battery staple','display_name':'管理员'},headers=headers).status_code==403
+
+
+def test_https_cookies_remain_secure_with_loopback_http_flag(api,monkeypatch):
+    client,case=api
+    monkeypatch.setenv('CLEAR_ALLOW_HTTP_LOOPBACK','1')
+    # Configuration is evaluated at app creation, including accidental leftover flags.
+    worker=httpx.AsyncClient(transport=httpx.MockTransport(lambda request:httpx.Response(404)),base_url='http://127.0.0.1:8890')
+    with TestClient(create_app(case[0].engine,worker),base_url='https://localhost:8889') as secure_client:
+        response=secure_client.post('/api/platform/v2/auth/login',headers={'Origin':'https://localhost:8889'},json={'username':case[2]['username'],'password':'correct horse battery staple'})
+        assert response.status_code==200
+        assert all('Secure' in cookie for cookie in response.headers.get_list('set-cookie'))
+        assert 'Strict-Transport-Security' in response.headers
+
 def test_native_route_also_requires_login(api):
     client,case=api
     response=client.get('/native/workspace/ocr/link/index.html')

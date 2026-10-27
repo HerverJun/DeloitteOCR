@@ -33,6 +33,9 @@ def main():
             from .server import create_app
             app=create_app(engine)
         else:
+            if args.host!='127.0.0.1':raise ValueError('The private worker must listen only on 127.0.0.1')
+            if not 1<=args.port<=65535:raise ValueError('Invalid private worker port')
+            os.environ['CLEAR_WORKER_URL']=f'http://127.0.0.1:{args.port}'
             from .worker import create_worker_app
             app=create_worker_app(engine)
         uvicorn.run(app,host=args.host,port=args.port,access_log=False);return

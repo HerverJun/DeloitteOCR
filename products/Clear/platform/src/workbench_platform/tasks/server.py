@@ -8,7 +8,6 @@ from pathlib import Path
 import re
 import secrets
 import time
-from urllib.parse import urlsplit
 import httpx
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
@@ -21,6 +20,7 @@ from .database import check_schema, f_path
 from .store import Ledger, LedgerError, token_hash, wire, key, digest, safe
 from . import schema_v1 as s
 from .registry import match, command_for,task_label
+from .transport import private_worker_url, private_worker_headers, public_endpoint
 
 COOKIE='clear_session'
 class Login(BaseModel):
@@ -34,25 +34,16 @@ class Member(BaseModel):
     user_id:str
     role:str
 
-def private_worker_url():
-    value=os.environ.get('CLEAR_WORKER_URL','http://127.0.0.1:8890')
-    parsed=urlsplit(value)
-    if parsed.scheme!='http' or parsed.hostname!='127.0.0.1' or not parsed.port or parsed.path not in {'','/'} or parsed.username or parsed.query or parsed.fragment:
-        raise RuntimeError('Worker transport must use an explicitly configured loopback endpoint')
-    return value.rstrip('/')
-
 def create_app(engine,worker_client=None):
     ledger=Ledger(engine); attempts=defaultdict(deque)
-    public_origin=os.environ.get('CLEAR_PUBLIC_ORIGIN','https://localhost:8889').rstrip('/')
-    parsed=urlsplit(public_origin)
-    allow_http=os.environ.get('CLEAR_ALLOW_HTTP_LOOPBACK')=='1' and parsed.hostname in {'localhost','127.0.0.1'}
-    if parsed.scheme!='https' and not allow_http: raise RuntimeError('Public portal requires HTTPS; HTTP development is loopback-only')
+    endpoint=public_endpoint();public_origin=endpoint.origin;allow_http=endpoint.insecure_http
+    worker_origin=private_worker_url();service_headers=private_worker_headers()
     worker_token=os.environ.get('CLEAR_WORKER_TOKEN','')
     if len(worker_token)<32: raise RuntimeError('An explicit worker service token is required')
     @asynccontextmanager
     async def lifespan(app):
         check_schema(engine)
-        app.state.worker=worker_client or httpx.AsyncClient(base_url=private_worker_url(),timeout=httpx.Timeout(180,connect=10),follow_redirects=False)
+        app.state.worker=worker_client or httpx.AsyncClient(base_url=worker_origin,timeout=httpx.Timeout(180,connect=10),follow_redirects=False)
         scheduler=None
         root=os.environ.get('WORKBENCH_DATA_DIR')
         if root and os.environ.get('CLEAR_DAILY_BACKUP','1')=='1':
@@ -72,6 +63,8 @@ def create_app(engine,worker_client=None):
 
     @app.middleware('http')
     async def authenticate(request,call_next):
+        if request.headers.get('host','')!=endpoint.authority:
+            return JSONResponse({'detail':'门户访问地址与已配置地址不一致'},status_code=400)
         path=request.url.path
         mutates=request.method not in {'GET','HEAD','OPTIONS'} or request.method=='GET' and bool(re.search(r'/(export|download|report)(?:/|$)',path))
         if path.startswith(('/api/','/native/')) and path not in {'/api/platform/v2/auth/login','/api/platform/v2/mode','/api/platform/v2/health'}:
@@ -99,7 +92,7 @@ def create_app(engine,worker_client=None):
 
     def actor(request):return request.state.actor
     def worker_headers(user,workspace=None,step=None):
-        headers={'Authorization':'Bearer '+worker_token,'Host':'127.0.0.1:8890','Origin':'http://127.0.0.1:8890',
+        headers={'Authorization':'Bearer '+worker_token,**service_headers,
                  'X-Clear-Actor':user['id'],'X-Clear-Display-Name':user['display_name'].encode('utf-8').hex()}
         if workspace:headers['X-Clear-Workspace']=workspace
         if step:headers['X-Clear-Step']=step
