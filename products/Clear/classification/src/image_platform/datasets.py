@@ -11,12 +11,12 @@ from .paths import require_path
 
 
 def register_asset(store, project_id, path, label_id=None, source_id="upload", group_id=None,
-                   job=None, on_accept=None):
+                   job=None, on_accept=None, expected_sha=None):
     path = require_path(path, 'Classification asset', role='read').resolve(strict=True)
     project = store.project(project_id)
     if label_id and label_id not in {x["label_id"] for x in project["labels"]}:
         raise ValueError("类别不属于该项目")
-    image, digest = decode(path)
+    image, digest = decode(path, expected_sha)
     with store.connect(write=True) as con:
         if job:
             store.assert_owner(con, job["id"], job["lease_token"])

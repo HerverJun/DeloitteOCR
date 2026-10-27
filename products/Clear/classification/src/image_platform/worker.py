@@ -33,15 +33,15 @@ def check_control(store, job):
 
 
 def import_directory(store, job, control, log):
+    from .ingress import validate_job_directory, copy_selected_input, record_source
     project = store.project(job["project_id"])
-    root = Path(job["params"]["path"]).resolve(strict=True)
-    if not root.is_dir():
-        raise ValueError("导入路径不是目录")
+    root, managed = validate_job_directory(store, job)
     label_lookup = {key: label["label_id"] for label in project["labels"] for key in (label["label_id"], label["display_name"])}
     source_id = job["params"].get("source_id") or root.name
     scanned = imported = duplicates = failed = 0
     for current, dirs, files in os.walk(root, followlinks=False):
-        dirs[:] = sorted(name for name in dirs if not (Path(current) / name).is_symlink())
+        dirs[:] = sorted(name for name in dirs if not (Path(current) / name).is_symlink()
+                         and not (Path(current) / name).is_junction())
         for name in sorted(files):
             if Path(name).suffix.lower() not in SUPPORTED:
                 continue
@@ -50,11 +50,17 @@ def import_directory(store, job, control, log):
             scanned += 1
             try:
                 resolved = path.resolve(strict=True)
-                if path.is_symlink() or not resolved.is_relative_to(root):
+                if path.is_symlink() or path.is_junction() or not resolved.is_relative_to(root):
                     raise ValueError("文件路径越出登记目录")
                 relative = resolved.relative_to(root)
                 label_id = label_lookup.get(relative.parts[0]) if job["params"].get("infer_labels", True) and len(relative.parts) > 1 else None
-                _, created = register_asset(store, project["id"], resolved, label_id, source_id, job=job)
+                provenance = None
+                if managed:
+                    resolved, provenance = copy_selected_input(store, job, path, root, control)
+                asset, created = register_asset(store, project["id"], resolved, label_id, source_id, job=job,
+                    expected_sha=provenance['sha256'] if provenance is not None else None)
+                if provenance is not None:
+                    record_source(store, job, asset['id'], source_id, provenance)
                 imported += int(created)
                 duplicates += int(not created)
             except (OSError, ValueError) as exc:

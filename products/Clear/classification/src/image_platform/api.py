@@ -307,11 +307,13 @@ def create_app(settings=None):
 
     @app.post("/api/v1/projects/{project_id}/imports", status_code=202)
     def import_images(project_id: str, body: ImportRequest, idempotency_key: str | None = Header(default=None)):
-        path = Path(body.path).expanduser().resolve()
-        if not path.is_dir():
-            raise ValueError("目录不存在，请填写此服务器上的完整路径")
+        from .ingress import authorize_directory
+        store.project(project_id)
+        path, ingress = authorize_directory(body.path, settings, project_id)
         params = body.model_dump()
         params["path"] = str(path)
+        if ingress is not None:
+            params['ingress'] = ingress
         job_id = store.submit(project_id, "import", params, key=idempotency_key)
         return {"job_id": job_id}
 
