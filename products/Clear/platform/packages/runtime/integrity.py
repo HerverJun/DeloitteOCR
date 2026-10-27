@@ -23,18 +23,71 @@ if os.name == 'nt':
     _kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     _kernel.GetFileInformationByHandleEx.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
     _kernel.GetFileInformationByHandleEx.restype = wintypes.BOOL
+    _kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+        ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    _kernel.CreateFileW.restype = wintypes.HANDLE
+    _kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    _kernel.CloseHandle.restype = wintypes.BOOL
+    _kernel.GetFinalPathNameByHandleW.argtypes = [wintypes.HANDLE, wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD]
+    _kernel.GetFinalPathNameByHandleW.restype = wintypes.DWORD
+
+
+def _normal_windows_name(value):
+    if value.startswith('\\\\?\\'):
+        value = value[4:]
+    return os.path.normcase(os.path.normpath(value))
+
+
+def _windows_change_time(path):
+    # Cached admission needs metadata, not a GENERIC_READ data handle. Opening
+    # every one of ~164k files for data can trigger AV/filter-driver work even
+    # when the content hash is reusable. Keep the same NTFS ChangeTime witness.
+    requested = os.path.abspath(path)
+    native = requested if requested.startswith('\\\\?\\') else '\\\\?\\' + requested
+    handle = _kernel.CreateFileW(native, 0x80, 7, None, 3, 0x00200000, None)
+    if handle in (None, ctypes.c_void_p(-1).value):
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        basic = _BasicInfo()
+        if not _kernel.GetFileInformationByHandleEx(handle, 0, ctypes.byref(basic), ctypes.sizeof(basic)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        if basic.FileAttributes & 0x400:
+            raise ValueError('Integrity metadata cannot follow a reparse point: ' + str(path))
+        buffer = ctypes.create_unicode_buffer(512)
+        length = _kernel.GetFinalPathNameByHandleW(handle, buffer, len(buffer), 0)
+        if length >= len(buffer):
+            buffer = ctypes.create_unicode_buffer(length+1)
+            length = _kernel.GetFinalPathNameByHandleW(handle, buffer, len(buffer), 0)
+        if not length or length >= len(buffer):
+            raise ctypes.WinError(ctypes.get_last_error())
+        if _normal_windows_name(buffer.value) != _normal_windows_name(requested):
+            raise ValueError('Integrity member changed or crosses a reparse target: ' + str(path))
+        return basic.ChangeTime
+    finally:
+        _kernel.CloseHandle(handle)
+
+
+def _legacy_windows_change_time(path):
+    basic = _BasicInfo()
+    with path.open('rb') as stream:
+        if not _kernel.GetFileInformationByHandleEx(wintypes.HANDLE(msvcrt.get_osfhandle(stream.fileno())),
+                0, ctypes.byref(basic), ctypes.sizeof(basic)):
+            raise ctypes.WinError(ctypes.get_last_error())
+    return basic.ChangeTime
 
 
 def signature(path):
     info = path.stat()
     change = info.st_ctime_ns
     if os.name == 'nt':
-        basic = _BasicInfo()
-        with path.open('rb') as stream:
-            if not _kernel.GetFileInformationByHandleEx(wintypes.HANDLE(msvcrt.get_osfhandle(stream.fileno())),
-                    0, ctypes.byref(basic), ctypes.sizeof(basic)):
-                raise ctypes.WinError(ctypes.get_last_error())
-        change = basic.ChangeTime
+        try:
+            change = _windows_change_time(path)
+        except OSError as error:
+            # Preserve the previous safe implementation on filesystems or
+            # Windows API variants without the required metadata operation.
+            if getattr(error, 'winerror', None) not in {1, 50, 87, 120}:
+                raise
+            change = _legacy_windows_change_time(path)
     return [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, change]
 
 
