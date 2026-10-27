@@ -20,9 +20,13 @@ OOM_MARKERS = ('out of memory', 'cuda_error_out_of_memory', 'resourceexhausteder
 def worker_environment(output, runtime, *, gpu=False, device_index=0):
     output, runtime = local_path(output), local_path(runtime)
     env = os.environ.copy()
-    directories = ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'HF_HOME', 'MODELSCOPE_CACHE',
-                   'TORCH_HOME', 'MPLCONFIGDIR', 'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME',
-                   'NUMBA_CACHE_DIR', 'PADDLE_PDX_CACHE_HOME', 'PADDLEOCR_HOME', 'CUDA_CACHE_PATH',
+    directories = ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'HF_HOME',
+                   'HF_HUB_CACHE', 'HUGGINGFACE_HUB_CACHE', 'HF_ASSETS_CACHE', 'HUGGINGFACE_ASSETS_CACHE',
+                   'HF_XET_CACHE', 'HF_MODULES_CACHE', 'TRANSFORMERS_CACHE',
+                   'PYTORCH_TRANSFORMERS_CACHE', 'PYTORCH_PRETRAINED_BERT_CACHE', 'MODELSCOPE_CACHE',
+                   'TORCH_HOME', 'TORCH_EXTENSIONS_DIR', 'MPLCONFIGDIR', 'XDG_CACHE_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME',
+                   'NUMBA_CACHE_DIR', 'PADDLE_PDX_CACHE_HOME', 'PADDLEOCR_HOME', 'PADDLE_HOME',
+                   'PADDLE_EXTENSION_DIR', 'CUDA_CACHE_PATH',
                    'TORCHINDUCTOR_CACHE_DIR', 'TRITON_CACHE_DIR', 'PIP_CACHE_DIR', 'JUPYTER_CONFIG_DIR')
     for name in directories:
         directory = local_path(output / 'runtime' / name.lower())

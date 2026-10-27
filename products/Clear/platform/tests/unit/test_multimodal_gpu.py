@@ -17,6 +17,22 @@ from workbench_platform.resources.gpu import GpuCoordinator, Owner, ResourceBusy
 from workbench_platform.resources.recovery import recover_owned, recovery_evidence, atomic_json, process_identity
 
 
+def test_worker_overrides_inherited_dependency_cache_locations(tmp_path, monkeypatch):
+    names = ('PADDLE_HOME', 'PADDLE_EXTENSION_DIR', 'HF_HUB_CACHE', 'HUGGINGFACE_HUB_CACHE',
+        'HF_ASSETS_CACHE', 'HUGGINGFACE_ASSETS_CACHE', 'HF_XET_CACHE', 'HF_MODULES_CACHE',
+        'TRANSFORMERS_CACHE', 'PYTORCH_TRANSFORMERS_CACHE', 'PYTORCH_PRETRAINED_BERT_CACHE',
+        'TORCH_EXTENSIONS_DIR')
+    for name in names:
+        monkeypatch.setenv(name, 'C:/unmanaged-cache')
+    before = {name: os.environ.get(name) for name in ('HOME', 'USERPROFILE', 'CODEX_HOME')}
+    output = tmp_path/'managed-worker'
+    environment = worker_environment(output, sys.executable, gpu=True)
+    for name in names:
+        assert Path(environment[name]).is_relative_to(output)
+        assert Path(environment[name]).is_dir()
+    assert before == {name: environment.get(name) for name in before}
+
+
 FAKE_WORKER = '''import hashlib,json,pathlib,subprocess,sys,time
 request=json.loads(pathlib.Path(sys.argv[1]).read_text())
 out=pathlib.Path(sys.argv[1]).parent

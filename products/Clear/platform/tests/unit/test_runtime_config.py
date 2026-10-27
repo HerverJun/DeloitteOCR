@@ -47,6 +47,25 @@ def test_managed_separates_immutable_resources_and_writable_data(installation):
     assert 'HOME' not in env and 'CODEX_HOME' not in env
 
 
+def test_managed_overrides_dependency_cache_aliases_and_preserves_user_home(installation, monkeypatch):
+    path, _value = installation
+    config = load_install(path)
+    names = ('PADDLE_HOME', 'PADDLE_EXTENSION_DIR', 'HF_HUB_CACHE', 'HUGGINGFACE_HUB_CACHE',
+        'HF_ASSETS_CACHE', 'HUGGINGFACE_ASSETS_CACHE', 'HF_XET_CACHE', 'HF_MODULES_CACHE',
+        'TRANSFORMERS_CACHE', 'PYTORCH_TRANSFORMERS_CACHE', 'PYTORCH_PRETRAINED_BERT_CACHE',
+        'TORCH_EXTENSIONS_DIR')
+    for name in names:
+        monkeypatch.setenv(name, 'C:/unmanaged-cache')
+    before = {name: os.environ.get(name) for name in ('HOME', 'USERPROFILE', 'CODEX_HOME')}
+    env = config.environment()
+    for name in names:
+        assert Path(env[name]).is_relative_to(config.roots['cache'])
+        assert Path(env[name]).is_dir()
+    assert env['HF_HUB_CACHE'] == env['HUGGINGFACE_HUB_CACHE'] == env['TRANSFORMERS_CACHE']
+    assert not set(before).intersection(env)
+    assert before == {name: os.environ.get(name) for name in before}
+
+
 @pytest.mark.parametrize('transport,origin,listen', [
     ('lan-http', 'http://192.168.1.9:18889', '0.0.0.0'),
     ('lan-http', 'http://8.8.8.8:18889', '8.8.8.8'),

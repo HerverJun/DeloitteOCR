@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -14,6 +15,79 @@ spec = importlib.util.spec_from_file_location('clear_test_portable_packager', SC
 packager = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = packager
 spec.loader.exec_module(packager)
+
+
+@pytest.fixture
+def vendor_patch(tmp_path, monkeypatch):
+    original = ("# Original Apache-2.0 license retained\r\nimport os\r\n"
+        "DATA_HOME = os.path.join(os.path.expanduser('~'), 'dataset')\r\n"
+        "os.makedirs(DATA_HOME, exist_ok=True)\r\n").encode()
+    patched = ("# Original Apache-2.0 license retained\r\nimport os\r\n"
+        + packager.PADDLE_CACHE_GUARD.replace('\n', '\r\n')
+        + "DATA_HOME = os.path.join(_CLEAR_PADDLE_CACHE, 'dataset')\r\n"
+        + "os.makedirs(DATA_HOME, exist_ok=True)\r\n").encode()
+    rule = {'upstream_sha256': hashlib.sha256(original).hexdigest(),
+        'patched_sha256': hashlib.sha256(patched).hexdigest(),
+        'replacements': [("DATA_HOME = os.path.join(os.path.expanduser('~'), 'dataset')",
+                          "DATA_HOME = os.path.join(_CLEAR_PADDLE_CACHE, 'dataset')")]}
+    monkeypatch.setattr(packager, 'PADDLE_CACHE_PATCHES', {'dataset/common.py': rule})
+    output = tmp_path/'Clear'
+    files = []
+    for route in ('ppocr', 'paddlevl'):
+        path = output/f'assets/program/bundles/ocr/runtimes/{route}/Lib/site-packages/paddle/dataset/common.py'
+        path.parent.mkdir(parents=True)
+        path.write_bytes(original)
+        files.append(path)
+    return output, files, original, patched, rule
+
+
+def test_vendor_cache_patch_is_pinned_idempotent_and_seals_transformed_bytes(vendor_patch, monkeypatch, tmp_path):
+    output, paths, original, patched, rule = vendor_patch
+    for path in paths:
+        info = path.stat()
+        packager._HASH_CACHE[(str(path), info.st_size, info.st_mtime_ns)] = {
+            'bytes': len(original), 'sha256': rule['upstream_sha256']}
+    records = packager.portable_vendor_compatibility(output)
+    assert all(path.read_bytes() == patched for path in paths)
+    assert packager.portable_vendor_compatibility(output) == records
+    assert {row['engine_id'] for row in records} == {'ppocr', 'paddlevl'}
+    assert all(row['resource_id'] == 'program_assets' for row in records)
+    assert str(tmp_path) not in json.dumps(records)
+    manifest = packager.seal(output)
+    for path in paths:
+        assert manifest['files'][path.relative_to(output).as_posix()] == {
+            'bytes': len(patched), 'sha256': rule['patched_sha256']}
+    monkeypatch.delenv('PADDLE_HOME', raising=False)
+    with pytest.raises(RuntimeError, match='absolute managed PADDLE_HOME'):
+        exec(compile(patched, str(paths[0]), 'exec'), {})
+    monkeypatch.setenv('PADDLE_HOME', str(tmp_path/'managed-cache'))
+    context = {}
+    exec(compile(patched, str(paths[0]), 'exec'), context)
+    assert Path(context['DATA_HOME']) == tmp_path/'managed-cache/dataset'
+    # A same-size changed vendor source is not silently accepted as a new pin.
+    paths[-1].write_bytes(patched.replace(b'Apache', b'Xxxxxx', 1))
+    with pytest.raises(ValueError, match='Unsupported or corrupted'):
+        packager.portable_vendor_compatibility(output)
+
+
+def test_vendor_patch_checks_all_inputs_before_first_write(vendor_patch):
+    output, paths, original, _patched, _rule = vendor_patch
+    paths[-1].write_bytes(b'unknown vendor version')
+    with pytest.raises(ValueError, match='Unsupported or corrupted'):
+        packager.portable_vendor_compatibility(output)
+    assert paths[0].read_bytes() == original
+    assert not (output/'manifests/vendor-compatibility.json').exists()
+
+
+def test_vendor_component_refresh_preserves_other_expected_asset_hashes():
+    prior = {'files': {'runtime/cache.py': {'bytes': 4, 'sha256': 'old'},
+                       'runtime/model.dat': {'bytes': 500, 'sha256': 'frozen-model'}}}
+    planned = [packager.Member(Path('unused'), name, 'runtime') for name in prior['files']]
+    result = packager.vendor_component_identities(prior, planned, [
+        {'member': 'runtime/cache.py', 'patched_bytes': 8, 'patched_sha256': 'patched'}])
+    assert result['runtime']['runtime/model.dat'] == prior['files']['runtime/model.dat']
+    assert result['runtime']['runtime/cache.py'] == {'bytes': 8, 'sha256': 'patched'}
+    assert prior['files']['runtime/cache.py']['sha256'] == 'old'
 
 
 @pytest.mark.parametrize('name', ['../escape', 'C:/data', '/root', 'a\\b', 'a//b', 'a/./b'])

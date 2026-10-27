@@ -55,6 +55,55 @@ RESOURCES = {
 _HASH_CACHE = {}
 _SCAN_STATS = {}
 
+# Paddle 3.3.1 CUDA 12.6, upstream commit
+# 7688495538f4d6c1893f084dd238a402e8f68ab6. These few upstream defaults ignore
+# PADDLE_HOME. Keep the licensed source intact except for its cache expressions;
+# never change HOME/USERPROFILE or accept a different upstream file implicitly.
+PADDLE_CACHE_GUARD = '''
+# Clear offline compatibility: cache stays in the launcher-registered root.
+_CLEAR_PADDLE_CACHE = os.environ.get('PADDLE_HOME')
+if not _CLEAR_PADDLE_CACHE or not os.path.isabs(_CLEAR_PADDLE_CACHE):
+    raise RuntimeError('Clear requires an absolute managed PADDLE_HOME; launch through clear.install.json')
+'''
+PADDLE_CACHE_PATCHES = {
+    'dataset/common.py': {
+        'upstream_sha256': '758b6a54576d065444a3569c98e26bc6759d43c263df3f273eeb824ea7204b7c',
+        'patched_sha256': '6ec95229e7320a6c93ce0eab45b07a63eddb00ae8b29f06a84cef4c8ef9e3500',
+        'replacements': [("DATA_HOME = os.path.join(HOME, '.cache', 'paddle', 'dataset')",
+                          "DATA_HOME = os.path.join(_CLEAR_PADDLE_CACHE, 'dataset')")],
+    },
+    'utils/download.py': {
+        'upstream_sha256': 'ab75fbf4ac1cb179ddcd1828594121fb5990ff971bb6aa743565cae78b6172ce',
+        'patched_sha256': 'ee51905262572834e63096c3fc11d995c2f74e5e3138df78d78890c9a2c4e9ee',
+        'replacements': [('WEIGHTS_HOME = osp.expanduser("~/.cache/paddle/hapi/weights")',
+                          'WEIGHTS_HOME = osp.join(_CLEAR_PADDLE_CACHE, "hapi", "weights")')],
+    },
+    'hapi/hub.py': {
+        'upstream_sha256': '2b545404056c4c0dcd8df5af81f37cb53f8698a80c12611f33d352065e83887d',
+        'patched_sha256': '6866910bd44964f189da1a72ca9f69f99a383a0a284024e6698b04975c98ae62',
+        'replacements': [("HUB_DIR: str = os.path.expanduser(os.path.join('~', '.cache', 'paddle', 'hub'))",
+                          "HUB_DIR: str = os.path.join(_CLEAR_PADDLE_CACHE, 'hub')")],
+    },
+    'jit/dy2static/utils.py': {
+        'upstream_sha256': '54032176e06bbcaaff9684c24e8df9e76b298e21ef41d4dc0a1f71387e62a060',
+        'patched_sha256': '5e740d2e26eb6368e3e0dc99e3895874abd7d61e6a2110a238862e4bb206ba7e',
+        'replacements': [("temp_dir = os.path.join(os.path.expanduser('~/.cache'), dir_name)",
+                          "temp_dir = os.path.join(_CLEAR_PADDLE_CACHE, 'to_static_tmp', str(os.getpid()))")],
+    },
+    'incubate/jit/inference_decorator.py': {
+        'upstream_sha256': '201d0b26e3dd38f7857ad36ce8577ed4e0858a0b453b5f0a2e8660c232583535',
+        'patched_sha256': '9c67aa208ad90aabcc25c98492f74b59c2e9d6a417d4683b9e97ec5f88ddcad3',
+        'replacements': [('Path.home(), ".cache", "paddle", "inference_models"',
+                          '_CLEAR_PADDLE_CACHE, "inference_models"')],
+    },
+    'tensorrt/util.py': {
+        'upstream_sha256': 'ca24618f049fec770ae1394eb4bd80176994a31768328b61bef10ea71523d934',
+        'patched_sha256': '4c57499ef9f7c3d339accec160bc15a597495e750534255164e9c3d6bbce65da',
+        'replacements': [('home_path = os.path.expanduser("~")\n        cache_path = os.path.join(home_path, ".pp_trt_cache")',
+                          'cache_path = os.path.join(_CLEAR_PADDLE_CACHE, "tensorrt")')],
+    },
+}
+
 
 def physical(value, *, exists=False):
     """This build machine is F-only, independently of target deployment policy."""
@@ -100,6 +149,84 @@ def save(path, value):
     path = physical(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n', 'utf-8')
+
+
+def patched_paddle_cache(content, rule, member):
+    """Only the exact pinned upstream or exact known patch may enter a build."""
+    current = hashlib.sha256(content).hexdigest()
+    if current == rule['patched_sha256']:
+        return content
+    if current != rule['upstream_sha256']:
+        raise ValueError('Unsupported or corrupted Paddle cache member: ' + member)
+    newline = '\r\n' if b'\r\n' in content else '\n'
+    text = content.decode('utf-8').replace('\r\n', '\n')
+    if text.count('import os\n') != 1:
+        raise ValueError('Pinned Paddle import signature changed: ' + member)
+    text = text.replace('import os\n', 'import os\n' + PADDLE_CACHE_GUARD, 1)
+    for before, after in rule['replacements']:
+        if text.count(before) != 1:
+            raise ValueError('Pinned Paddle cache signature changed: ' + member)
+        text = text.replace(before, after, 1)
+    patched = text.replace('\n', newline).encode('utf-8')
+    if hashlib.sha256(patched).hexdigest() != rule['patched_sha256']:
+        raise ValueError('Paddle cache transform differs from its fixed patch hash: ' + member)
+    compile(patched, member, 'exec')
+    return patched
+
+
+def portable_vendor_compatibility(output):
+    """Keep installed Paddle caches managed without touching its user HOME.
+
+    Validate every target before the first write. Source refresh must also run
+    this step before native/package seals: exact patches are idempotent, while
+    changed vendor files fail rather than being blessed by a fresh manifest.
+    """
+    output = physical(output, exists=True)
+    planned, records = [], []
+    for route in ('ppocr', 'paddlevl'):
+        root = output/'assets/program/bundles/ocr/runtimes'/route/'Lib/site-packages/paddle'
+        for name, rule in PADDLE_CACHE_PATCHES.items():
+            path = physical(root/name, exists=True)
+            member = path.relative_to(output).as_posix()
+            original = path.read_bytes()
+            patched = patched_paddle_cache(original, rule, member)
+            planned.append((path, original, patched))
+            records.append({'member': member, 'component': 'paddlepaddle-gpu', 'version': '3.3.1',
+                'resource_id': 'program_assets', 'engine_id': route,
+                'runtime_member': root.parent.parent.parent.relative_to(output).as_posix(),
+                'upstream_commit': '7688495538f4d6c1893f084dd238a402e8f68ab6',
+                'upstream_sha256': rule['upstream_sha256'], 'patched_sha256': rule['patched_sha256'],
+                'patched_bytes': len(patched),
+                'environment': 'PADDLE_HOME',
+                'reason': 'Route hardcoded user cache to the absolute launcher-registered Paddle cache; fail if missing',
+                'license': 'Apache-2.0; original upstream copyright/license header retained'})
+    for path, original, patched in planned:
+        if original != patched:
+            path.write_bytes(patched)
+        info = path.stat()
+        _HASH_CACHE[(str(path), info.st_size, info.st_mtime_ns)] = {
+            'bytes': len(patched), 'sha256': hashlib.sha256(patched).hexdigest()}
+    save(output/'manifests/vendor-compatibility.json', {
+        'format': 'clear-vendor-compatibility-v1', 'patch_set': 'paddle-managed-cache-v1',
+        'changes_home_or_userprofile': False, 'files': records})
+    return records
+
+
+def vendor_component_identities(prior_manifest, planned, records):
+    """Update affected component identities without rehashing unchanged models."""
+    by_member = {row.destination: row.component for row in planned}
+    affected = {by_member[row['member']] for row in records}
+    changed = {component: {} for component in affected}
+    for row in planned:
+        if row.component in affected:
+            expected = prior_manifest['files'].get(row.destination)
+            if expected is None:
+                raise ValueError('Prior runtime component member is missing: ' + row.destination)
+            changed[row.component][row.destination] = dict(expected)
+    for row in records:
+        changed[by_member[row['member']]][row['member']] = {
+            'bytes': row['patched_bytes'], 'sha256': row['patched_sha256']}
+    return changed
 
 
 def environment(work):
@@ -699,6 +826,7 @@ def refresh_sources(settings, work, output):
     save(output / 'manifests/resources.json', {'format': 'clear-portable-resources-v1', 'resources': RESOURCES})
     write_readme(output)
     portable_pdf_tables(output, settings)
+    vendor_records = portable_vendor_compatibility(output)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -709,12 +837,16 @@ def refresh_sources(settings, work, output):
         changed = {}
         for row in rows:
             changed.setdefault(row['component'], {})[row['destination']] = {key: row[key] for key in ('bytes', 'sha256')}
+        vendor_changes = vendor_component_identities(manifest, planned, vendor_records)
+        changed.update(vendor_changes)
         for component in component_manifest['components']:
             files = changed.get(component['id'])
             if files is not None:
                 component.update(version='sha256:' + hashlib.sha256(json.dumps(files, sort_keys=True,
                     separators=(',', ':')).encode()).hexdigest(), file_count=len(files),
                     bytes=sum(row['bytes'] for row in files.values()))
+            if component['id'] in vendor_changes:
+                component['build_transforms'] = ['manifests/vendor-compatibility.json']
         save(component_path, component_manifest)
     save(output / 'manifests/resource-scope.json', {'format': 'clear-portable-resource-scope-v1',
         'scope': 'All currently installed/selectable product routes; no research-only alternatives',
@@ -942,6 +1074,7 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
     write_readme(output)
     (output / 'Clear.cmd').write_text('@echo off\nsetlocal\n"%~dp0assets\\program\\runtimes\\platform\\python.exe" -I -B -X utf8 "%~dp0app\\platform\\scripts\\clear_portable.py" --package-root "%~dp0." %*\n', 'utf-8')
     portable_pdf_tables(output, settings)
+    vendor_records = portable_vendor_compatibility(output)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -954,6 +1087,8 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
             separators=(',', ':')).encode()).hexdigest()
         component['file_count'] = len(component['files'])
         component['bytes'] = sum(row['bytes'] for row in component['files'].values())
+        if any(row['member'] in component['files'] for row in vendor_records):
+            component['build_transforms'] = ['manifests/vendor-compatibility.json']
         del component['files']
     save(output / 'manifests/components.json', {'format': 'clear-portable-components-v1',
         'components': list(components.values()), 'upstream_provenance': 'Original model/source/license receipts are retained beside their assets',
