@@ -2,6 +2,8 @@
 
 离线目录的统一入口是 `Clear.cmd`，程序、运行时、模型、Node/DSH、PostgreSQL 和转换工具在同一个 `Clear` 文件夹。业务 DATA、凭据、缓存、临时、备份与 PostgreSQL 集群在初始化时选择，必须位于普通本地固定磁盘；不支持网络共享、映射网络盘或任意目录链接。本机开发与构建仍限定 F 盘。
 
+目标使用 Windows 10/11 x64，或在相应驱动与引擎上完成验收的 Windows Server。随包 VC++ 14.51 的上游支持范围包括 Server 2016/2019/2022/2025，不代表这些系统已在本轮实测。VC++ DLL 按固定来源放在实际 x64 程序旁，不需要执行系统运行库安装器；来源、许可证和绑定见 `manifests/vc-runtime.json`。GPU 驱动仍由目标 Windows 提供。
+
 GitHub 提供源码、依赖锁和构建工具，不存放大型模型及运行库。仅克隆源码不能代替完整离线包。构建器 `products/Clear/platform/scripts/package_portable.py` 使用明确输入映射和历史来源哈希；缺项报告为阻断，不会启动时下载。输入锁与来源报告属于构建证据，运行不读取旧工作目录。
 
 ## 首次使用
@@ -30,7 +32,7 @@ GitHub 提供源码、依赖锁和构建工具，不存放大型模型及运行�
 .\Clear.cmd --config "F:\Clear服务\DATA\clear.install.json" start
 ```
 
-把 `192.168.1.8` 换为服务器实际局域网 IP。HTTP 明文传输账号、会话及业务内容，使用者须了解此特性。该模式必须明确配置，Cookie 保留 HttpOnly、SameSite，HTTP 下 Secure 为 false；登录、权限、CSRF、精确 Host/Origin 检查继续生效。私有 worker 与 PostgreSQL 只监听 127.0.0.1，不向局域网开放。需要加密时选择 `https` 并配置证书和私钥。单机模式始终只允许回环地址，局域网共享必须使用多人模式。
+把 `192.168.1.8` 换为服务器实际局域网 IP，并让服务器网络与 Windows 防火墙允许客户端访问门户端口。HTTP 明文传输账号、会话及业务内容，使用者须了解此特性。该模式必须明确配置，Cookie 保留 HttpOnly、SameSite，HTTP 下 Secure 为 false；登录、权限、CSRF、精确 Host/Origin 检查继续生效。私有 worker 与 PostgreSQL 只监听 127.0.0.1，不向局域网开放。需要加密时选择 `https` 并配置证书和私钥。单机模式始终只允许回环地址，局域网共享必须使用多人模式。
 
 HTTPS 的证书和私钥须位于显式选择的凭据根；首次初始化可先把文件放在独立的凭据目录，再用 `--secrets 该目录 --certificate 目录内证书 --private-key 目录内私钥`。初始化会核对内容哈希，诊断与启动继续检查同一对文件；源程序包不携带目标机证书或私钥。
 
