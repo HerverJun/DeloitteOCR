@@ -3189,8 +3189,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 66365,
-          "sha256": "4c5bdcee15609baf89da84715eeeffbe3e37a8ca9319fae0fa99e17dc3850bdf"
+          "bytes": 66925,
+          "sha256": "a8724c0e62cb46db2bfd84e9e161625cf927740b61df9c030f3ba14515290931"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -6315,8 +6315,8 @@
         {
           "path": "platform/tests/unit/test_portable_packaging.py",
           "source_path": "tests/unit/test_portable_packaging.py",
-          "bytes": 12153,
-          "sha256": "a516eab0a36961007b57b34d522f174fe2b0751ac394e273905fe941334aadb4"
+          "bytes": 12433,
+          "sha256": "ebfc81235ad37fe46b97efabd4055e7d898375a68e58b441033622692181364a"
         },
         {
           "path": "platform/tests/unit/test_runtime_config.py",
