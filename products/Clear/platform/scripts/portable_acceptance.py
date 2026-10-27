@@ -63,8 +63,11 @@ with wave.open(str(root/'sample.wav'),'wb') as w:
 
 
 def run(command, log, environment, *, timeout=1800):
+    # Installation values are managed overrides, not a complete OS environment.
+    # Windows needs SystemRoot/WINDIR to initialize Winsock and native runtimes.
+    child_environment = {**os.environ, **environment}
     with log.open('wb') as stream:
-        result = subprocess.run(command, env=environment, cwd=log.parent, stdout=stream,
+        result = subprocess.run(command, env=child_environment, cwd=log.parent, stdout=stream,
             stderr=subprocess.STDOUT, timeout=timeout, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
         raise RuntimeError(f'Exit {result.returncode}; inspect {log}')
