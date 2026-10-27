@@ -31,6 +31,12 @@ REQUIRED_ENTRIES = (
 )
 
 
+def required_entries():
+    if os.environ.get('CLEAR_INSTALL_CONFIG'):
+        return ('runtimes/control/python.exe', 'src/ocr_workbench/service.py', *REQUIRED_ENTRIES[2:])
+    return REQUIRED_ENTRIES
+
+
 def startup_notice(reason):
     if reason in {"first_start", "installation_changed"}:
         return FIRST_START_NOTICE
@@ -112,7 +118,7 @@ def run_startup_checks(bundle, data, registry=None, *, policy="auto", review_onl
                     except OSError:
                         report["warnings"].append("校验已通过，但记录保存失败；下次启动会重新完整校验")
             else:
-                missing = [name for name in REQUIRED_ENTRIES if not (bundle / name).is_file()]
+                missing = [name for name in required_entries() if not (bundle / name).is_file()]
                 if missing:
                     cache.invalidate(identity)
                     raise ValueError("应用入口缺失，请重新解压完整包：" + "、".join(missing))
@@ -313,6 +319,8 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
             for engine, modules in imports.items():
                 publish("检查运行时依赖：" + engine + "…")
                 runtime = bundle / "runtimes" / engine / "python.exe"
+                if engine == 'service' and os.environ.get('CLEAR_INSTALL_CONFIG'):
+                    runtime = bundle / 'runtimes/control/python.exe'
                 if engine == 'mineru_pro' and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
                     runtime = Path(os.environ['CLEAR_MINERU_PRO_PYTHON'])
                 output = session / "dependency-probes" / engine

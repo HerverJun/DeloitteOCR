@@ -103,6 +103,34 @@ class StartupCacheTests(unittest.TestCase):
         self.bundle = moved
         self.assertEqual(self.run_check()["verification"], "full")
 
+    def test_managed_full_and_cached_gate_use_the_packaged_control_role(self):
+        for old, new in (('runtimes/service/python.exe','runtimes/control/python.exe'),
+                         ('app/ocr_workbench/service.py','src/ocr_workbench/service.py')):
+            target = self.bundle/new
+            target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.move(str(self.bundle/old),str(target))
+        self.manifest()
+        config = self.root/'clear.install.json'
+        paths = {name:str(self.bundle/name) for name in ('assets','runtimes','tools')}
+        paths.update(program=str(self.bundle),data=str(self.data),cache=str(self.cache_directory),
+            **{name:str(self.root/name) for name in ('temp','paddle_temp','secrets','backup','postgres')})
+        config.write_text(json.dumps({'schema_version':1,'installation_id':'00000000-0000-4000-8000-000000000001',
+            'mode':'single','paths':paths,'resources':{'platform_source':'.'},
+            'network':{'transport':'loopback-http','listen':'127.0.0.1','public_origin':'http://127.0.0.1:18889',
+                'portal_port':18889,'worker_port':18890,'postgres_port':15432}}),encoding='utf-8')
+        commands = []
+        def probe(command,**kwargs):
+            commands.append(command)
+            return self.probe(command,**kwargs)
+        with patch.dict(os.environ,{'CLEAR_INSTALL_CONFIG':str(config),
+            'LOCALAPPDATA':str(self.data/'native-local'),'CLEAR_PADDLE_TEMP':str(self.root/'paddle_temp')}),patch(
+            'ocr_workbench.startup.subprocess.run',side_effect=probe):
+            first = self.run_check()
+            self.assertEqual(first['status'],'passed',first)
+            self.assertEqual(self.run_check()['status'],'passed')
+        self.assertTrue(any(command[0]==str(self.bundle/'runtimes/control/python.exe') for command in commands))
+        self.assertFalse(any('runtimes/service' in command[0].replace('\\','/') for command in commands))
+
     def test_missing_malformed_incomplete_and_old_policy_receipts_fall_back(self):
         for invalid in (None, [], {"status": "passed"}, "broken"):
             self.run_check()
