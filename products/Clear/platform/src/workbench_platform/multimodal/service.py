@@ -616,11 +616,31 @@ class MultimodalService:
     def aigc_capability(self, model_binding=None):
         missing=[];gpu=False;binding=None;reason='整图 AIGC 检测需完成本机真实 CUDA 工程验证'
         try:
-            binding=model_binding or aigc_backend.bind(self)
-            if model_binding:aigc_backend.verify(self,binding)
-            identity=self.aigc_gpu_binding(binding)
-            gpu=self.aigc_qualification.ready('aigc_image',identity,
-                peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
+            if model_binding is None and not self._has_gpu_receipt(self.aigc_qualification,'aigc_image'):
+                # An absent qualification cannot become ready by hashing the
+                # entire inference runtime. Listing only checks installed
+                # prerequisites; actual bindings still verify every byte.
+                root=aigc_backend.asset_root(self.config)
+                inventory=json.loads(aigc_backend.member(root,'aigc-inventory.json').read_text('utf-8-sig'))
+                if not isinstance(inventory,dict) or inventory.get('format')!='clear-aigc-assets-v1':raise ValueError('Unknown AIGC asset inventory format')
+                engine=os.environ.get('WORKBENCH_AIGC_ENGINE',self.config.get('aigc_image',{}).get('default_engine',inventory.get('primary','community_forensics384')))
+                selected=inventory.get('engines',{}).get(engine)
+                if engine not in aigc_backend.ENGINES or not isinstance(selected,dict):raise ValueError('AIGC engine is not installed: '+str(engine))
+                runtime=local_path(selected.get('runtime',inventory.get('runtime','')))
+                if not runtime.is_file():raise ValueError('AIGC isolated runtime is missing')
+                resources=selected.get('resources')
+                if not isinstance(resources,dict) or not resources:raise ValueError('AIGC engine must pin its source and weight resources')
+                for name,identity in resources.items():
+                    path=aigc_backend.member(root,name)
+                    if not isinstance(identity,dict) or not path.is_file() or path.stat().st_size!=identity.get('bytes'):
+                        raise ValueError('AIGC resource is missing or changed: '+name)
+                binding={'engine':engine,'runtime':str(runtime),'calibration':None}
+            else:
+                binding=model_binding or aigc_backend.bind(self)
+                if model_binding:aigc_backend.verify(self,binding)
+                identity=self.aigc_gpu_binding(binding)
+                gpu=self.aigc_qualification.ready('aigc_image',identity,
+                    peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
             if not gpu:reason='本机模型、适配器、运行库或 GPU 身份尚无匹配的工程验证回执'
         except (OSError,ValueError,KeyError,TypeError) as error:
             missing.append(str(error));reason=str(error)
@@ -649,9 +669,17 @@ class MultimodalService:
     def safire_capability(self,kind,model_binding=None):
         missing=[];gpu=False;binding=None;reason='SAFIRE 需完成本机真实 CUDA 工程验证'
         try:
-            binding=model_binding or deep_backend.bind(self,'safire')
+            qualified=model_binding is not None or self._has_gpu_receipt(self.safire_qualification,kind)
+            if not qualified:
+                # Presence is sufficient to explain a not-yet-qualified tool.
+                # Model hashes and the runtime closure are checked whenever a
+                # qualification or a frozen task binding can actually be used.
+                deep_backend.assets(self.config,lambda _path:None)
+                binding={'runtime':str(deep_backend.runtime(self.config))}
+            else:
+                binding=model_binding or deep_backend.bind(self,'safire')
             if not Path(binding['runtime']).is_file():missing.append(binding['runtime'])
-            if not missing:
+            if not missing and qualified:
                 identity=self.safire_gpu_binding(kind,binding)
                 gpu=self.safire_qualification.ready(kind,identity,
                     peak_target_mib=self.config.get('gpu',{}).get('peak_target_mib',12288))
@@ -664,6 +692,15 @@ class MultimodalService:
             'missing':missing,'validation_source':'data_local','validation':{},
             'runtime':str(deep_backend.runtime(self.config)),'calibration':False,
             'business_accuracy_qualified':False,'operational_trigger':'any_candidate_region'}
+
+    @staticmethod
+    def _has_gpu_receipt(qualification,kind):
+        from .qualification import FORMAT
+        try:
+            record=json.loads(qualification.path.read_text('utf-8'))
+            return record.get('format')==FORMAT and isinstance(record.get('items',{}).get(kind),dict)
+        except (OSError,ValueError,TypeError,AttributeError):
+            return False
 
     def capability_for_item(self,item):
         if item['kind']=='aigc_image':

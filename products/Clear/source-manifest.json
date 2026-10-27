@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1010,
+      "file_count": 1011,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -4569,8 +4569,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
           "source_path": "src/workbench_platform/multimodal/service.py",
-          "bytes": 94196,
-          "sha256": "d4fcf86252f63125dbd7b76f92a0ad14d6a89f0855533f9c75b525ac90782564"
+          "bytes": 97014,
+          "sha256": "9fa0532f7be689c3fc921985de43e60c8c264b0cd117b50db30d31ec9454cca3"
         },
         {
           "path": "platform/src/workbench_platform/resources/gpu.py",
@@ -6119,6 +6119,12 @@
           "source_path": "tests/unit/test_health.py",
           "bytes": 628,
           "sha256": "9b03523f432c01527add8d4a4adb42a1f2b54fe94f5115062cb2c9d7a96492aa"
+        },
+        {
+          "path": "platform/tests/unit/test_multimodal_capability_listing.py",
+          "source_path": "tests/unit/test_multimodal_capability_listing.py",
+          "bytes": 5712,
+          "sha256": "15e8e1f0dfd2602a6c54d3d1f222fdbf4602340697dd8b9245011f3f2956722e"
         },
         {
           "path": "platform/tests/unit/test_multimodal_gpu.py",
