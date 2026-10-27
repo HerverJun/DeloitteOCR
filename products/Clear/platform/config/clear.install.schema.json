@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clear machine installation binding",
+  "type": "object",
+  "required": ["schema_version", "installation_id", "mode", "paths", "network", "resources"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "installation_id": {"type": "string", "format": "uuid"},
+    "mode": {"enum": ["single", "multi"]},
+    "paths": {
+      "type": "object",
+      "required": ["program", "assets", "runtimes", "tools", "data", "cache", "temp", "paddle_temp", "secrets", "backup"],
+      "additionalProperties": false,
+      "properties": {
+        "program": {"type": "string"}, "assets": {"type": "string"},
+        "runtimes": {"type": "string"}, "tools": {"type": "string"},
+        "data": {"type": "string"}, "cache": {"type": "string"},
+        "temp": {"type": "string"}, "paddle_temp": {"type": "string"},
+        "secrets": {"type": "string"}, "backup": {"type": "string"}, "postgres": {"type": "string"}
+      }
+    },
+    "network": {
+      "type": "object",
+      "required": ["transport", "listen", "public_origin", "portal_port", "worker_port", "postgres_port"],
+      "properties": {
+        "transport": {"enum": ["loopback-http", "lan-http", "https"]},
+        "listen": {"type": "string"}, "public_origin": {"type": "string", "format": "uri"},
+        "portal_port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "worker_port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "postgres_port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "certificate": {"type": "string"}, "private_key": {"type": "string"}
+      }
+    },
+    "resources": {"type": "object", "additionalProperties": {"type": "string"}},
+    "policy": {
+      "type": "object",
+      "properties": {
+        "allowed_drives": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z]:$"}},
+        "legacy_data_roots": {"type": "array", "items": {"type": "string"}},
+        "isolation_guard": {"type": "boolean"},
+        "deny_read_roots": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "model_mappings": {"type": "array", "items": {"type": "object", "required": ["link", "target"],
+      "properties": {"link": {"type": "string"}, "target": {"type": "string"}}}}
+  }
+}
