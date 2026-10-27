@@ -44,7 +44,7 @@ def command_for(value):
     payload=dict(options.get('payload',options))
     if tool in {'face','audio','seal','catnet','document_forensics','aigc_image'}:
         path=f'{P}/workspaces/{workspace}/multimodal/jobs'
-        payload={'schema_version':'1.0','kind':tool,'request_id':value['idempotency_key'],'inputs':value['inputs'],'options':options}
+        payload={'kind':tool,'request_id':value['idempotency_key'],'inputs':value['inputs'],'options':options}
     elif tool=='documents':
         path=f'{P}/workspaces/{workspace}/documents/parse'; payload.setdefault('request_id',value['idempotency_key']); payload.setdefault('schema_version','1.0')
         if value['inputs']: payload.update({name:value['inputs'][0][name] for name in ('asset_id','asset_revision','blob_hash')})
