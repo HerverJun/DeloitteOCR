@@ -4,8 +4,10 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
+import uuid
 import zipfile
 
 import pytest
@@ -247,3 +249,66 @@ def test_resume_preserves_expected_hash_for_later_independent_readback(tmp_path)
     assert packager.digest(target) != expected['sha256']
     with pytest.raises(ValueError, match='Checkpoint content differs'):
         packager.resume_member(member, target, prior, {source: {'sha256': '0' * 64}}, source.stat(), target.stat())
+
+
+def test_source_refresh_preserves_unchanged_file_timestamp_and_change_identity(tmp_path, monkeypatch):
+    from packages.runtime.integrity import signature
+    source=tmp_path/'source.py';source.write_bytes(b'current source')
+    output=tmp_path/'Clear';target=output/'app/source.py';target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes())
+    expected=packager.identity(source)
+    member=packager.Member(source,'app/source.py','platform-source')
+    prior=packager.seal(output)['files']['app/source.py']
+    before=signature(target)
+    def forbidden_copy(*args,**kwargs):
+        raise AssertionError('Unchanged sealed authored content must not be rewritten')
+    monkeypatch.setattr(packager.shutil,'copyfile',forbidden_copy)
+    assert packager.refresh_authored_member(member,expected,output,prior) is False
+    assert signature(target)==before
+    assert packager.identity(target)==expected
+
+
+@pytest.mark.parametrize('previous_bytes,new_bytes',[
+    (b'old source',b'new source'),
+    (b'{"runtime":"transformed VC binding"}',b'{"runtime":"raw current source"}'),
+])
+def test_source_refresh_copies_changed_or_previously_transformed_payloads(tmp_path, previous_bytes, new_bytes):
+    source=tmp_path/'source.py';source.write_bytes(new_bytes)
+    output=tmp_path/'Clear';target=output/'app/source.py';target.parent.mkdir(parents=True)
+    target.write_bytes(previous_bytes)
+    prior=packager.seal(output)['files']['app/source.py']
+    expected=packager.identity(source)
+    assert packager.refresh_authored_member(packager.Member(source,'app/source.py','platform-source'),
+        expected,output,prior) is True
+    assert target.read_bytes()==new_bytes and packager.identity(target)==expected
+    added=packager.Member(source,'app/new/source.py','platform-source')
+    assert packager.refresh_authored_member(added,expected,output,None) is True
+    assert (output/added.destination).read_bytes()==new_bytes
+
+
+def test_source_refresh_keeps_corruption_unblessed_for_independent_verification(tmp_path):
+    from packages.runtime import load_install
+    from packages.runtime.integrity import verify_content
+    source=tmp_path/'source.py';source.write_bytes(b'original')
+    output=tmp_path/'Clear';target=output/'app/platform/source.py';target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes())
+    prior=packager.seal(output)['files']['app/platform/source.py']
+    before=target.stat();target.write_bytes(b'corrupt!')
+    os.utime(target,ns=(before.st_atime_ns,before.st_mtime_ns))
+    assert target.stat().st_size==prior['bytes']
+    member=packager.Member(source,'app/platform/source.py','platform-source')
+    assert packager.refresh_authored_member(member,packager.identity(source),output,prior) is False
+    assert target.read_bytes()==b'corrupt!'
+    sealed=packager.seal(output)
+    assert sealed['files'][member.destination]==prior
+    paths={name:str(output/name) for name in ('assets','runtimes','tools')}
+    paths.update(program=str(output),**{name:str(tmp_path/name) for name in
+        ('data','cache','temp','paddle_temp','secrets','backup','postgres')})
+    configuration=tmp_path/'clear.install.json'
+    configuration.write_text(json.dumps({'schema_version':1,'installation_id':str(uuid.uuid4()),
+        'mode':'single','paths':paths,'resources':{'platform_source':'app/platform'},
+        'network':{'transport':'loopback-http','listen':'127.0.0.1','public_origin':'http://127.0.0.1:18889',
+            'portal_port':18889,'worker_port':18890,'postgres_port':15432}}),encoding='utf-8')
+    result=verify_content(load_install(configuration),use_cache=False)
+    assert not result['ok'] and any('checksum' in row['error'] for row in result['errors'])
+    assert result['files_cached']==0 and target.read_bytes()==b'corrupt!'

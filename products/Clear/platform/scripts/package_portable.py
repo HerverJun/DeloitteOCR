@@ -990,6 +990,28 @@ GPU 驱动及所选引擎的硬件要求需在目标机核实。跨机器、跨�
 ''', encoding='utf-8')
 
 
+def refresh_authored_member(member, row, output, previous):
+    """Preserve unchanged declared bytes without treating target reads as proof."""
+    target = physical(output / member.destination)
+    expected = {key: row[key] for key in ('bytes', 'sha256')}
+    if previous == expected:
+        # refresh_sources already checked existence, size and all reparse
+        # boundaries. Preserve the sealed expectation even if same-size bytes
+        # were corrupted; independent content verification must catch that.
+        info = target.stat()
+        if info.st_size != previous['bytes']:
+            raise ValueError('Unchanged authored payload size changed: ' + member.destination)
+        _HASH_CACHE[(str(target), info.st_size, info.st_mtime_ns)] = dict(previous)
+        return False
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(member.source, target)
+    info = target.stat()
+    _HASH_CACHE.pop((str(target), info.st_size, info.st_mtime_ns), None)
+    if identity(target) != expected:
+        raise ValueError('Refreshed authored payload changed during copy: ' + member.destination)
+    return True
+
+
 def refresh_sources(settings, work, output):
     """Refresh authored payload without rereading/copying 47 GB of fixed assets.
 
@@ -1031,12 +1053,9 @@ def refresh_sources(settings, work, output):
                 and not name.endswith('/platform_weights.py')):
             physical(output / name).unlink(missing_ok=True)
     rows = input_lock(selected, pins=source_provenance(settings))
+    authored_copied = 0
     for member, row in zip(selected, rows):
-        target = physical(output / member.destination)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(member.source, target)
-        if identity(target) != {key: row[key] for key in ('bytes', 'sha256')}:
-            raise ValueError('Refreshed authored payload changed during copy: ' + member.destination)
+        authored_copied += refresh_authored_member(member, row, output, manifest['files'].get(member.destination))
     save(output / 'manifests/resources.json', {'format': 'clear-portable-resources-v1', 'resources': RESOURCES})
     write_readme(output)
     portable_pdf_tables(output, settings)
@@ -1090,6 +1109,7 @@ def refresh_sources(settings, work, output):
     result = seal(output)
     report = {'status': 'sources_refreshed_unqualified', 'output': str(output),
         'authored_members': len(selected), 'files': result['file_count'], 'bytes': result['bytes'],
+        'authored_copied': authored_copied, 'authored_unchanged': len(selected)-authored_copied,
         'unchanged_asset_hashes': 'Prior expected hashes preserved; independent verify still required'}
     save(work / 'refresh-report.json', report)
     return report
