@@ -1,16 +1,22 @@
-"""Targeted in-memory Paddle cache overrides; never alter HOME or vendor files."""
+"""Use verified build cache patches; retain the standalone development adapter."""
 from __future__ import annotations
 import ast
 import hashlib
 import importlib.abc
 import importlib.machinery
 import importlib.util
+import json
+import os
 from pathlib import Path
 import sys
 
 SPECIFICATIONS={
     'paddle.dataset.common':('dataset/common.py','DATA_HOME',"os.path.join(HOME, '.cache', 'paddle', 'dataset')",'dataset'),
     'paddle.utils.download':('utils/download.py','WEIGHTS_HOME','osp.expanduser("~/.cache/paddle/hapi/weights")','hapi/weights'),
+}
+REVIEWED_BUILD_PATCHES={
+    'paddle.dataset.common':'6ec95229e7320a6c93ce0eab45b07a63eddb00ae8b29f06a84cef4c8ef9e3500',
+    'paddle.utils.download':'ee51905262572834e63096c3fc11d995c2f74e5e3138df78d78890c9a2c4e9ee',
 }
 
 
@@ -49,6 +55,10 @@ class _CacheLoader(importlib.machinery.SourceFileLoader):
         raw=self.get_data(self.path)
         if hashlib.sha256(raw).hexdigest()!=record['source_sha256']:
             raise ValueError('Paddle source changed after cache-adapter validation')
+        if not record['memory_ast_rewrite']:
+            if os.environ.get('PADDLE_HOME')!=str(self.adapter.cache_root):
+                raise ValueError('Managed PADDLE_HOME changed before the reviewed Paddle import')
+            return compile(raw,self.path,'exec',dont_inherit=True)
         return rewrite_cache_assignment(raw,fullname,record['target'],self.path)
 
     def exec_module(self,module):
@@ -64,15 +74,53 @@ class PaddleCacheAdapter(importlib.abc.MetaPathFinder):
         spec=importlib.machinery.PathFinder.find_spec('paddle')
         if spec is None or not spec.origin:raise ImportError('Bundled Paddle package is unavailable')
         package=checked_f(Path(spec.origin).parent)
+        from packages.runtime import current_install
+        config=current_install()
+        self.previous_paddle_home=os.environ.get('PADDLE_HOME')
+        self.managed=config is not None
+        self.manifest_sha256=None
+        declarations={}
+        if self.managed:
+            if self.previous_paddle_home:
+                # Inherited user overrides cannot become a cache escape. The
+                # actual selected worker cache is explicitly bound below.
+                config.check(self.previous_paddle_home,'Managed PADDLE_HOME',role='write')
+            manifest=checked_f(config.program/'manifests/vendor-compatibility.json')
+            raw_manifest=manifest.read_bytes()
+            declaration=json.loads(raw_manifest)
+            if (declaration.get('format')!='clear-vendor-compatibility-v1'
+                    or declaration.get('patch_set')!='paddle-managed-cache-v1'
+                    or declaration.get('changes_home_or_userprofile') is not False):
+                raise ValueError('Managed Paddle requires the reviewed fixed-build cache patch manifest')
+            for row in declaration.get('files',[]):
+                member=row.get('member')
+                if member in declarations:
+                    raise ValueError('Duplicate managed Paddle cache source declaration')
+                declarations[member]=row
+            self.manifest_sha256=hashlib.sha256(raw_manifest).hexdigest()
         self.records={}
         for fullname,(relative,variable,_,suffix) in SPECIFICATIONS.items():
             source=checked_f(package/relative)
             target=checked_f(self.cache_root/suffix,create=True)
             raw=source.read_bytes()
-            rewrite_cache_assignment(raw,fullname,target,str(source))
+            source_sha=hashlib.sha256(raw).hexdigest()
+            if self.managed:
+                try:member=source.relative_to(config.program).as_posix()
+                except ValueError:raise ValueError('Managed Paddle source is outside this offline package') from None
+                row=declarations.get(member,{})
+                expected=REVIEWED_BUILD_PATCHES[fullname]
+                if (source_sha!=expected or row.get('patched_sha256')!=expected
+                        or row.get('patched_bytes')!=len(raw) or row.get('version')!='3.3.1'
+                        or row.get('resource_id')!='program_assets' or row.get('environment')!='PADDLE_HOME'):
+                    raise ValueError('Managed Paddle cache source does not match the reviewed fixed-build patch: '+fullname)
+                compile(raw,str(source),'exec',dont_inherit=True)
+            else:
+                rewrite_cache_assignment(raw,fullname,target,str(source))
             self.records[fullname]={'module':fullname,'source_path':str(source),
-                'source_sha256':hashlib.sha256(raw).hexdigest(),'assignment':variable,
-                'target':str(target),'memory_ast_rewrite':True,'imported':False}
+                'source_sha256':source_sha,'assignment':variable,
+                'target':str(target),'memory_ast_rewrite':not self.managed,'imported':False}
+        if self.managed:
+            os.environ['PADDLE_HOME']=str(self.cache_root)
 
     def find_spec(self,fullname,path=None,target=None):
         if fullname not in self.records:return None
@@ -87,10 +135,14 @@ class PaddleCacheAdapter(importlib.abc.MetaPathFinder):
     def identity(self):
         return {'format':'clear-paddle-f-cache-adapter-v1','cache_root':str(self.cache_root),
             'vendor_files_modified':False,'home_environment_modified':False,
+            'verified_build_patch':self.managed,'build_patch_manifest_sha256':self.manifest_sha256,
             'modules':[dict(self.records[name]) for name in sorted(self.records)]}
 
     def close(self):
         if self in sys.meta_path:sys.meta_path.remove(self)
+        if self.managed:
+            if self.previous_paddle_home is None:os.environ.pop('PADDLE_HOME',None)
+            else:os.environ['PADDLE_HOME']=self.previous_paddle_home
 
 
 def install_paddle_cache(cache_root):
