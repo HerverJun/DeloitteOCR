@@ -49,7 +49,12 @@ def resolve(root,application,payload,path):
     for item in items.values():
         value=item.pop('_path');candidate=Path(value) if value else None
         if candidate and not candidate.is_absolute():candidate=root/'native'/application/candidate
-        item['size_bytes']=candidate.stat().st_size if candidate and candidate.resolve().drive.upper()=='F:' and candidate.is_file() else None
+        try:
+            from packages.runtime import require_path
+            checked=require_path(candidate,'Native original',role='read') if candidate else None
+            item['size_bytes']=checked.stat().st_size if checked and checked.is_file() else None
+        except (ValueError,OSError):
+            item['size_bytes']=None
     return list(items.values())
 
 

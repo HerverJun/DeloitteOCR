@@ -14,27 +14,19 @@ from sqlalchemy.engine import make_url
 from . import schema_v1 as s
 from .database import f_path,check_schema
 from .store import now,wire,key,TERMINAL
+from packages.runtime.snapshots import sqlite_snapshot, external_assets
 
-MEMBERS={'asset-blobs','asset-uploads','artifact-center','data-workbench','batches','audit','forensics','agent','manual-analysis','native','task-files','task-response-files','task-upload-inputs','native-requests','ai-credentials','task-command-secrets'}
+MEMBERS={'asset-blobs','asset-uploads','artifact-center','data-workbench','batches','audit','forensics','agent','manual-analysis','native','task-files','task-response-files','task-upload-inputs','native-requests','documents','comparisons','ai-credentials','task-command-secrets'}
 ROOT_FILES={'assets.sqlite3','workspaces.sqlite3','jobs.sqlite3','worker-commands.sqlite3','recent-work.sqlite3','ocr-handoffs.sqlite3','classification-handoffs.sqlite3','product-reader-requirements.json','central-db-identity.json','task-fingerprint.key'}
 def hash_file(path):
     with path.open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
-
-def sqlite_snapshot(source,target):
-    # The caller owns the global write barrier and has drained native work.
-    # mode=rw permits SQLite to roll back a hot journal left by a crashed
-    # process; mode=ro cannot recover it. It never creates a missing source.
-    with closing(sqlite3.connect(source.as_uri()+'?mode=rw',uri=True)) as src,closing(sqlite3.connect(target)) as dst:
-        if src.execute('PRAGMA quick_check').fetchone()[0]!='ok':raise ValueError('Source SQLite integrity failed')
-        src.backup(dst)
-        if dst.execute('PRAGMA quick_check').fetchone()[0]!='ok':raise ValueError('SQLite backup integrity failed')
 
 def relocate_artifact_paths(db,old,new):
     column=s.task_artifact_links.c.source_path
     # PostgreSQL LIKE treats backslashes as escapes. Match a complete path
     # prefix explicitly, including its separator, for Windows workspaces.
     owned=(column==old) | func.left(column,len(old)+1).in_([old+'\\',old+'/'])
-    db.execute(update(s.task_artifact_links).where(owned).values(source_path=func.replace(column,old,new)))
+    db.execute(update(s.task_artifact_links).where(owned).values(source_path=func.concat(new,func.substr(column,len(old)+1))))
 
 def relocate_native_request(root,command,relocate):
     """Move operational JSON paths while keeping task input snapshots intact.
@@ -57,8 +49,9 @@ def relocate_native_request(root,command,relocate):
         source.write_bytes(CredentialVault._crypt(raw) if native.get('body_encoding')=='dpapi' else raw)
     return {**command,'native':{**native,'body_hash':hashlib.sha256(raw).hexdigest()}}
 def postgres_bin():
-    path=f_path(os.environ['CLEAR_POSTGRES_BIN'])
-    if not (path/'pg_dump.exe').is_file():raise ValueError('Explicit F-drive PostgreSQL binaries are required')
+    from packages.runtime import require_path
+    path=require_path(os.environ['CLEAR_POSTGRES_BIN'], 'PostgreSQL binaries', role='read')
+    if not (path/'pg_dump.exe').is_file():raise ValueError('Explicit local PostgreSQL binaries are required')
     return path
 def pg_args(engine):
     url=engine.url
@@ -79,26 +72,20 @@ def shared_write_guard(engine):
             try:db.execute(text('SELECT pg_advisory_unlock_shared(:key)'),{'key':BACKUP_LOCK})
             except Exception:db.invalidate();raise
 
-def external_assets(root):
-    path=root/'native/classification/platform.sqlite3'
-    if not path.is_file():return []
-    with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)) as db:
-        names={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        paths=[r[0] for r in db.execute('SELECT DISTINCT path FROM assets')] if 'assets' in names else []
-    return [Path(value).resolve() for value in paths if value and Path(value).is_file() and not Path(value).resolve().is_relative_to(root)]
-
 def backup(engine,root):
     flag=maintenance_file(root)
     try:
         with flag.open('x',encoding='utf-8') as stream:json.dump({'phase':'draining','started_at':wire(now())},stream)
     except FileExistsError:raise RuntimeError('Another maintenance operation is active') from None
-    destination=root/'backups'/(now().strftime('%Y%m%dT%H%M%SZ')+'-'+key('b')[1:9])
+    backup_root=f_path(os.environ.get('CLEAR_BACKUP_ROOT') or root/'backups')
+    backup_root.mkdir(parents=True,exist_ok=True)
+    destination=backup_root/(now().strftime('%Y%m%dT%H%M%SZ')+'-'+key('b')[1:9])
     exclusive=None
     try:
         with engine.connect() as db:database_bytes=db.execute(text('SELECT pg_database_size(current_database())')).scalar_one()
         file_bytes=sum(path.stat().st_size for name in MEMBERS if (root/name).is_dir() for path in (root/name).rglob('*') if path.is_file() and not path.is_symlink())
         external=external_assets(root);file_bytes+=sum(path.stat().st_size for path in external)
-        if shutil.disk_usage(root).free<database_bytes+file_bytes+512*1024**2:raise RuntimeError('F drive has insufficient space for a consistent backup; no other drive will be used')
+        if shutil.disk_usage(backup_root).free<database_bytes+file_bytes+512*1024**2:raise RuntimeError('Configured backup drive has insufficient space for a consistent snapshot')
         deadline=time.monotonic()+300
         while True:
             with engine.connect() as db:active=db.execute(select(func.count()).select_from(s.task_dispatches.join(s.task_runs,s.task_dispatches.c.run_id==s.task_runs.c.id)).where(
@@ -141,7 +128,11 @@ def backup(engine,root):
             expected=hash_file(source)
             if hash_file(target)!=expected:raise ValueError('External source changed during backup')
             records.append({'path':relative.as_posix(),'sha256':expected,'size_bytes':target.stat().st_size});external_map[str(source)]=relative.as_posix()
+        from packages.runtime import current_install
+        installation=current_install()
+        policy=installation.policy if installation else {}
         manifest={'format':'clear-central-backup-v1','source_root':str(root),'created_at':wire(now()),'database':engine.url.database,'external_path_map':external_map,
+            'legacy_data_roots':policy.get('legacy_data_roots',[]),'legacy_file_map':policy.get('legacy_file_map',{}),
             'database_sha256':hash_file(destination/'central.pgdump'),'files':records}
         (destination/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),'utf-8')
         (root/'central-last-backup.json').write_text(json.dumps({'path':str(destination),'completed_at':wire(now())}),'utf-8')
@@ -178,48 +169,45 @@ def restore(engine,root,destination):
         run_pg('pg_restore.exe',[*args,'--no-owner','--no-privileges','--exit-on-error',str(root/'central.pgdump')],env)
         shutil.copytree(root/'files',destination)
         old=manifest['source_root'];new=str(destination)
-        def relocate(value):
-            if isinstance(value,dict):return {name:relocate(item) for name,item in value.items()}
-            if isinstance(value,list):return [relocate(item) for item in value]
-            if isinstance(value,str) and (value==old or value.startswith(old+'\\') or value.startswith(old+'/')):return new+value[len(old):]
-            return value
-        # Relocate operational paths only. Immutable request and evidence snapshots retain their original bytes.
+        from packages.runtime.migration import relocate_operational, relocate_sqlite
+        relocate=lambda value:relocate_operational(value,old,new,context='command')
+        migration_reports=[]
         for path in destination.rglob('*.sqlite3'):
             with closing(sqlite3.connect(path)) as db,db:
-                tables=[r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")]
-                for table in tables:
-                    columns=[r[1] for r in db.execute(f'PRAGMA table_info("{table}")')]
-                    for column in columns:
-                        if column in {'path','original_path','package_path','manifest_path','source_path'}:
-                            db.execute(f'UPDATE "{table}" SET "{column}"=replace("{column}",?,?) WHERE "{column}" LIKE ?', (old,new,old+'%'))
-                            for original,relative in manifest.get('external_path_map',{}).items():
-                                db.execute(f'UPDATE "{table}" SET "{column}"=? WHERE "{column}"=?',(str(destination/relative),original))
-                    if table=='operation_requests' and 'request' in columns:
-                        for identity,raw in db.execute('SELECT request_key,request FROM operation_requests').fetchall():
-                            value=json.loads(raw)
-                            if isinstance(value.get('session_dir'),str) and value['session_dir'].startswith(old):
-                                value['session_dir']=new+value['session_dir'][len(old):]
-                                db.execute('UPDATE operation_requests SET request=? WHERE request_key=?',(json.dumps(value,ensure_ascii=False),identity))
-                    if table=='command_receipts':
-                        for identifier,raw in db.execute('SELECT dispatch_id,receipt FROM command_receipts WHERE receipt IS NOT NULL').fetchall():
-                            db.execute('UPDATE command_receipts SET receipt=? WHERE dispatch_id=?',(json.dumps(relocate(json.loads(raw)),ensure_ascii=False),identifier))
+                report=relocate_sqlite(db,old,new,manifest.get('external_path_map',{}))
+                migration_reports.append({'database':path.relative_to(destination).as_posix(),**report})
+        # Encrypted source material is evidence only. Target-account credentials
+        # and service tokens are initialized independently by the installation CLI.
+        retained=destination/'migration'/'account-secrets-reenter'
+        for name in ('ai-credentials','task-command-secrets'):
+            original=destination/name
+            if original.exists():
+                retained.mkdir(parents=True,exist_ok=True)
+                original=f_path(original);target=f_path(retained/name)
+                if not original.is_relative_to(destination) or not target.is_relative_to(destination):
+                    raise ValueError('Retained credentials escape restored DATA')
+                shutil.move(str(original),str(target))
         with restored.begin() as db:
             relocate_artifact_paths(db,old,new)
             db.execute(update(s.task_dispatches).where(s.task_dispatches.c.state.in_(['leased','observing'])).values(state='needs_verification'))
             from sqlalchemy import delete
             db.execute(delete(s.user_sessions))
-            from workbench_platform.agent.credentials import CredentialVault,write_json
-            import base64
-            vault=CredentialVault(destination/'task-command-secrets')
-            for row in db.execute(select(s.task_dispatches.c.id,s.task_dispatches.c.command,s.task_dispatches.c.receipt)).mappings():
+            for row in db.execute(select(s.task_dispatches.c.id,s.task_dispatches.c.command,s.task_dispatches.c.receipt,s.task_dispatches.c.state)).mappings():
                 command=relocate(row['command'])
                 reference=command.get('private_payload_ref')
-                if reference:
-                    decoded=json.loads(vault.read(reference));relocated=relocate_native_request(destination,relocate(decoded),relocate)
-                    encrypted=CredentialVault._crypt(json.dumps(relocated,ensure_ascii=False).encode())
-                    write_json(vault._path(reference),{'dpapi':base64.b64encode(encrypted).decode()},durable=True)
-                else:command=relocate_native_request(destination,command,relocate)
-                db.execute(update(s.task_dispatches).where(s.task_dispatches.c.id==row['id']).values(command=command,receipt=relocate(row['receipt'])))
+                if not reference:
+                    command=relocate_native_request(destination,command,
+                        lambda value:relocate_operational(value,old,new,context='request'))
+                receipt=relocate_operational(row['receipt'],old,new,context='receipt')
+                values={'command':command,'receipt':receipt}
+                if reference and row['state'] in {'queued','leased','observing','needs_verification'}:
+                    values['state']='needs_verification'
+                db.execute(update(s.task_dispatches).where(s.task_dispatches.c.id==row['id']).values(**values))
+        (destination/'migration').mkdir(exist_ok=True)
+        (destination/'migration/path-map-v1.json').write_text(json.dumps({
+            'mapping_version':1,'source_root':old,'destination_root':new,
+            'sqlite':migration_reports,'credentials':'reenter_under_target_windows_account',
+            'frozen_requests_results_and_model_bindings':'preserved'},ensure_ascii=False,indent=2),'utf-8')
         check_schema(restored)
         from .directory import bind_directory,identity
         (destination/'central-db-identity.json').write_text(json.dumps(identity(restored)),'utf-8')

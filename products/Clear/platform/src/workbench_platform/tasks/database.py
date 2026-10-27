@@ -13,7 +13,7 @@ def engine_for(url=None):
     if url.drivername not in {'postgresql', 'postgresql+psycopg'}:
         raise ValueError('The central ledger requires PostgreSQL')
     if url.host not in {'127.0.0.1','localhost'}:
-        raise ValueError('This installation requires PostgreSQL on the local F-drive server')
+        raise ValueError('This installation requires PostgreSQL on the local server loopback interface')
     return create_engine(url.set(drivername='postgresql+psycopg'), pool_pre_ping=True,
                          pool_size=10, max_overflow=15, connect_args={'connect_timeout': 10})
 
@@ -38,8 +38,5 @@ def migrate(engine):
         command.upgrade(config, 'head')
 
 def f_path(value):
-    requested = Path(value).absolute()
-    actual = requested.resolve()
-    if requested.drive.upper() != 'F:' or actual.drive.upper() != 'F:':
-        raise ValueError('Project storage must remain on the local F drive')
-    return actual
+    from packages.runtime import require_path
+    return require_path(value, 'PostgreSQL storage', role='write')

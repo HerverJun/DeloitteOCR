@@ -12,7 +12,9 @@ def request_fingerprint(value):
     """Compare complete requests without persisting secrets or guessable hashes."""
     from .database import f_path
     configured=os.environ.get('WORKBENCH_DATA_DIR') or os.path.join(os.environ['CLEAR_TASK_ROOT'],'runs','workspace')
-    root=f_path(configured);root.mkdir(parents=True,exist_ok=True)
+    from packages.runtime import current_install
+    installation=current_install()
+    root=f_path(installation.roots['secrets'] if installation else configured);root.mkdir(parents=True,exist_ok=True)
     path=root/'task-fingerprint.key'
     if not path.exists():
         temporary=root/('fingerprint-'+secrets.token_hex(10)+'.new')
