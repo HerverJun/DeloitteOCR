@@ -2931,8 +2931,8 @@
         {
           "path": "platform/packages/runtime/integrity.py",
           "source_path": "packages/runtime/integrity.py",
-          "bytes": 6727,
-          "sha256": "13c3fefb82c6f9998cd8799cc9038a0c83f662c2fdf8f321c29b4957b24cc3eb"
+          "bytes": 6959,
+          "sha256": "1cf2065367c8fbac28c131e35ed4a32a99b6e73795562319a9cbe7cbb08ec842"
         },
         {
           "path": "platform/packages/runtime/io_guard.py",
@@ -6327,8 +6327,8 @@
         {
           "path": "platform/tests/unit/test_runtime_integrity.py",
           "source_path": "tests/unit/test_runtime_integrity.py",
-          "bytes": 2897,
-          "sha256": "dd35a04f182fa91fa2e2a45d246cbe78ce0c762ae4c906dcefbfb80aec41361f"
+          "bytes": 3369,
+          "sha256": "98d8f43fcb12ee7c596d5a1df1c1fffca3519f76e64cd7cfb71a92c07fd26ca2"
         },
         {
           "path": "platform/tests/unit/test_runtime_io_guard.py",
