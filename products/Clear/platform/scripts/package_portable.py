@@ -214,7 +214,7 @@ def portable_vendor_compatibility(output):
     return records
 
 
-def vendor_component_identities(prior_manifest, planned, records, *, generated=None):
+def vendor_component_identities(prior_manifest, planned, records, *, generated=None, refreshed=None):
     """Update affected component identities without rehashing unchanged models."""
     by_member = {row.destination: row.component for row in planned}
     affected = {by_member[row['member']] for row in records}
@@ -222,7 +222,7 @@ def vendor_component_identities(prior_manifest, planned, records, *, generated=N
     changed = {component: {} for component in affected}
     for row in planned:
         if row.component in affected:
-            expected = prior_manifest['files'].get(row.destination)
+            expected = (refreshed or {}).get(row.destination, prior_manifest['files'].get(row.destination))
             if expected is None:
                 raise ValueError('Prior runtime component member is missing: ' + row.destination)
             changed[row.component][row.destination] = dict(expected)
@@ -336,6 +336,101 @@ def portable_vc_runtime(output, settings, planned):
         'format': 'clear-portable-vc-runtime-v1', 'resource_id': 'vc_runtime',
         'strategy': 'App-local x64 CRT/OpenMP beside supported product entry points',
         'bindings': bindings, 'system_install_required': False})
+    return generated
+
+
+def portable_visual_review_vc(output, settings, vc_bindings):
+    """Merge only the fixed VC payload into the current visual-review lock.
+
+    Frozen business snapshots retain their old runtime identity. This changes
+    only the two newly built current configurations, with no DLL discovery or
+    wildcard allow-list and no model/profile/prompt changes.
+    """
+    source = physical(settings['source'])/'ocr/config/multimodal-review.json'
+    original = source.read_bytes()
+    baseline = json.loads(original)
+    runtime = baseline.get('runtime', {})
+    if (baseline.get('schema_version') != 1 or not isinstance(runtime, dict)
+            or runtime.get('binary') != 'runtimes/llama/llama-server.exe'
+            or not isinstance(runtime.get('version'), str) or not runtime['version']):
+        raise ValueError('Unsupported current visual-review runtime configuration')
+
+    def assets(config):
+        rows = config.get('runtime', {}).get('assets')
+        if not isinstance(rows, list):
+            raise ValueError('Visual-review runtime assets must be a fixed list')
+        result, folded = {}, set()
+        for row in rows:
+            if not isinstance(row, dict) or set(row) != {'path', 'bytes', 'sha256'}:
+                raise ValueError('Unknown visual-review runtime asset declaration')
+            member = relative_member(row['path'])
+            if (PurePosixPath(member).parent != PurePosixPath(runtime['binary']).parent
+                    or PurePosixPath(member).suffix.lower() not in {'.dll', '.exe'}
+                    or type(row['bytes']) is not int or row['bytes'] < 1
+                    or not isinstance(row['sha256'], str)
+                    or not re.fullmatch('[0-9a-f]{64}', row['sha256'])):
+                raise ValueError('Unpinned or unknown visual-review runtime asset: ' + member)
+            if member.casefold() in folded:
+                raise ValueError('Duplicate visual-review runtime asset: ' + member)
+            folded.add(member.casefold())
+            result[member] = dict(row)
+        if runtime['binary'] not in result:
+            raise ValueError('Visual-review executable is not pinned')
+        return result
+
+    merged = assets(baseline)
+    lock = vc_runtime_lock(settings)
+    bundle = output/'assets/program/bundles/ocr'
+    locked_vc = []
+    for name, expected in sorted(lock['files'].items()):
+        if not name.lower().endswith('.dll'):
+            continue
+        relative = 'runtimes/llama/' + name
+        member = 'assets/program/bundles/ocr/' + relative
+        path = physical(output/member, exists=True)
+        content = path.read_bytes()
+        if (vc_bindings.get(member) != expected
+                or {'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest()} != expected):
+            raise ValueError('Visual-review VC member differs from its fixed app-local binding: ' + name)
+        # Replace old-version entries, and append only fixed missing members.
+        merged = {key: row for key, row in merged.items() if key.casefold() != relative.casefold()}
+        row = {'path': relative, **expected}
+        merged[relative] = row
+        locked_vc.append(row)
+    transformed = {**baseline, 'runtime': {**runtime,
+        'assets': [merged[name] for name in sorted(merged)]}}
+    targets = [output/'app/ocr/config/multimodal-review.json', bundle/'config/multimodal-review.json']
+    # Do not adopt edits or extra assets from a previous output configuration.
+    for target in targets:
+        current = json.loads(physical(target, exists=True).read_bytes())
+        assets(current)
+        if current != baseline and current != transformed:
+            raise ValueError('Refusing an unreviewed output visual-review configuration: ' + str(target))
+    allowed = {name.casefold() for name in merged}
+    for path in (bundle/'runtimes/llama').glob('*.dll'):
+        if path.relative_to(bundle).as_posix().casefold() not in allowed:
+            raise ValueError('Unreviewed DLL in visual-review runtime: ' + path.name)
+    payload = (json.dumps(transformed, ensure_ascii=False, indent=2, allow_nan=False)+'\n').encode('utf-8')
+    expected = {'bytes': len(payload), 'sha256': hashlib.sha256(payload).hexdigest()}
+    generated = {}
+    for target in targets:
+        physical(target).write_bytes(payload)
+        info = target.stat()
+        _HASH_CACHE[(str(target), info.st_size, info.st_mtime_ns)] = dict(expected)
+        generated[target.relative_to(output).as_posix()] = dict(expected)
+    def content_sha(value):
+        return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    save(output/'manifests/visual-review-runtime.json', {
+        'format': 'clear-visual-review-vc-binding-v1', 'transform': 'fixed-app-local-vc-assets-v1',
+        'upstream_runtime_version': runtime['version'], 'vc_runtime_version': lock['version'],
+        'vc_runtime_resource': 'vc_runtime', 'vc_archive_sha256': lock['archive']['sha256'],
+        'upstream_config_sha256': hashlib.sha256(original).hexdigest(),
+        'upstream_runtime_sha256': content_sha(runtime),
+        'runtime_sha256': content_sha(transformed['runtime']),
+        'profiles_sha256': content_sha(baseline['profiles']),
+        'profiles_changed': False, 'frozen_task_bindings_rewritten': False,
+        'config_files': generated, 'vc_assets': locked_vc})
     return generated
 
 
@@ -947,6 +1042,7 @@ def refresh_sources(settings, work, output):
     portable_pdf_tables(output, settings)
     vendor_records = portable_vendor_compatibility(output)
     vc_bindings = portable_vc_runtime(output, settings, planned)
+    review_configs = portable_visual_review_vc(output, settings, vc_bindings)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -958,12 +1054,15 @@ def refresh_sources(settings, work, output):
         for row in rows:
             changed.setdefault(row['component'], {})[row['destination']] = {key: row[key] for key in ('bytes', 'sha256')}
         generated = dict(vc_bindings)
+        generated.update(review_configs)
         for family in ('ocr', 'classification'):
             for filename in ('manifest.json', 'bundle.manifest.json'):
                 path = output/'assets/program/bundles'/family/filename
                 if path.is_file():
                     generated[path.relative_to(output).as_posix()] = identity(path)
-        vendor_changes = vendor_component_identities(manifest, planned, vendor_records, generated=generated)
+        refreshed = {row['destination']: {key: row[key] for key in ('bytes', 'sha256')} for row in rows}
+        vendor_changes = vendor_component_identities(manifest, planned, vendor_records,
+            generated=generated, refreshed=refreshed)
         changed.update(vendor_changes)
         changed['microsoft-vc-app-local-bindings'] = vc_bindings
         known_components = {component['id'] for component in component_manifest['components']}
@@ -975,7 +1074,13 @@ def refresh_sources(settings, work, output):
                     separators=(',', ':')).encode()).hexdigest(), file_count=len(files),
                     bytes=sum(row['bytes'] for row in files.values()))
             if component['id'] in vendor_changes:
-                component['build_transforms'] = ['manifests/vendor-compatibility.json', 'manifests/vc-runtime.json']
+                component['build_transforms'] = []
+                if any(row['member'] in files for row in vendor_records):
+                    component['build_transforms'].append('manifests/vendor-compatibility.json')
+                if any(name in files for name in vc_bindings):
+                    component['build_transforms'].append('manifests/vc-runtime.json')
+                if any(name in files for name in review_configs):
+                    component['build_transforms'].append('manifests/visual-review-runtime.json')
             elif component['id'] == 'microsoft-vc-app-local-bindings':
                 component['build_transforms'] = ['manifests/vc-runtime.json']
         save(component_path, component_manifest)
@@ -1207,6 +1312,7 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
     portable_pdf_tables(output, settings)
     vendor_records = portable_vendor_compatibility(output)
     vc_bindings = portable_vc_runtime(output, settings, planned)
+    review_configs = portable_visual_review_vc(output, settings, vc_bindings)
     seal_native(output)
     portable_aigc(output, settings, mappings)
     portable_mineru(output)
@@ -1225,6 +1331,8 @@ def package(settings, work, output, *, inventory_only=False, refresh=False, resu
             component['build_transforms'] = ['manifests/vendor-compatibility.json']
         if any(name in component['files'] for name in vc_bindings):
             component.setdefault('build_transforms', []).append('manifests/vc-runtime.json')
+        if any(name in component['files'] for name in review_configs):
+            component.setdefault('build_transforms', []).append('manifests/visual-review-runtime.json')
         del component['files']
     save(output / 'manifests/components.json', {'format': 'clear-portable-components-v1',
         'components': list(components.values()), 'upstream_provenance': 'Original model/source/license receipts are retained beside their assets',
