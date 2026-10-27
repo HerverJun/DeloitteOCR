@@ -212,7 +212,7 @@ def portable_vendor_compatibility(output):
     return records
 
 
-def vendor_component_identities(prior_manifest, planned, records):
+def vendor_component_identities(prior_manifest, planned, records, *, generated=None):
     """Update affected component identities without rehashing unchanged models."""
     by_member = {row.destination: row.component for row in planned}
     affected = {by_member[row['member']] for row in records}
@@ -226,6 +226,10 @@ def vendor_component_identities(prior_manifest, planned, records):
     for row in records:
         changed[by_member[row['member']]][row['member']] = {
             'bytes': row['patched_bytes'], 'sha256': row['patched_sha256']}
+    for member, expected in (generated or {}).items():
+        component = by_member.get(member)
+        if component in affected:
+            changed[component][member] = dict(expected)
     return changed
 
 
@@ -837,7 +841,13 @@ def refresh_sources(settings, work, output):
         changed = {}
         for row in rows:
             changed.setdefault(row['component'], {})[row['destination']] = {key: row[key] for key in ('bytes', 'sha256')}
-        vendor_changes = vendor_component_identities(manifest, planned, vendor_records)
+        generated = {}
+        for family in ('ocr', 'classification'):
+            for filename in ('manifest.json', 'bundle.manifest.json'):
+                path = output/'assets/program/bundles'/family/filename
+                if path.is_file():
+                    generated[path.relative_to(output).as_posix()] = identity(path)
+        vendor_changes = vendor_component_identities(manifest, planned, vendor_records, generated=generated)
         changed.update(vendor_changes)
         for component in component_manifest['components']:
             files = changed.get(component['id'])

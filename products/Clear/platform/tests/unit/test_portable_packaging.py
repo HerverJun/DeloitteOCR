@@ -81,12 +81,15 @@ def test_vendor_patch_checks_all_inputs_before_first_write(vendor_patch):
 
 def test_vendor_component_refresh_preserves_other_expected_asset_hashes():
     prior = {'files': {'runtime/cache.py': {'bytes': 4, 'sha256': 'old'},
+                       'runtime/manifest.json': {'bytes': 30, 'sha256': 'old-manifest'},
                        'runtime/model.dat': {'bytes': 500, 'sha256': 'frozen-model'}}}
     planned = [packager.Member(Path('unused'), name, 'runtime') for name in prior['files']]
     result = packager.vendor_component_identities(prior, planned, [
-        {'member': 'runtime/cache.py', 'patched_bytes': 8, 'patched_sha256': 'patched'}])
+        {'member': 'runtime/cache.py', 'patched_bytes': 8, 'patched_sha256': 'patched'}],
+        generated={'runtime/manifest.json': {'bytes': 31, 'sha256': 'current-manifest'}})
     assert result['runtime']['runtime/model.dat'] == prior['files']['runtime/model.dat']
     assert result['runtime']['runtime/cache.py'] == {'bytes': 8, 'sha256': 'patched'}
+    assert result['runtime']['runtime/manifest.json'] == {'bytes': 31, 'sha256': 'current-manifest'}
     assert prior['files']['runtime/cache.py']['sha256'] == 'old'
 
 
