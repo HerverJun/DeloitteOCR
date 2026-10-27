@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1044,
+      "file_count": 1049,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -249,8 +249,8 @@
         {
           "path": "platform/apps/portal/src/App.tsx",
           "source_path": "apps/portal/src/App.tsx",
-          "bytes": 22331,
-          "sha256": "71aae77415cfa6971e3618ad7799562e1457099717b9f92e728c24b9c4e53b07"
+          "bytes": 22375,
+          "sha256": "7d476e02ba3e994db1367880f19bc1e3f281b39e14ae0bfe48aa06a795aed49d"
         },
         {
           "path": "platform/apps/portal/src/main.tsx",
@@ -299,6 +299,12 @@
           "source_path": "apps/portal/src/clear-ui/recentVisits.ts",
           "bytes": 2390,
           "sha256": "4be64fd694490ed3576644dc63b847509c9247703f6c01d24978d13b36f351fc"
+        },
+        {
+          "path": "platform/apps/portal/src/clear-ui/requestId.ts",
+          "source_path": "apps/portal/src/clear-ui/requestId.ts",
+          "bytes": 71,
+          "sha256": "0d9cac8a804c52af40afce2a08a5364d14049084a0c40f80c4bdfa811da0fb2f"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/theme.ts",
@@ -483,8 +489,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/api.ts",
           "source_path": "apps/portal/src/features/agent/api.ts",
-          "bytes": 8278,
-          "sha256": "d5a56440425fb70704b6ea699f93c39ee70fb0431ff31bce78d592a8fbfb30a1"
+          "bytes": 8326,
+          "sha256": "0517db4250217c6cc0110f1a5bf3cf756c3e772ebb49bc1bc4b86c5dca025a66"
         },
         {
           "path": "platform/apps/portal/src/features/agent/conversationMotion.tsx",
@@ -627,8 +633,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/BatchCenter.tsx",
           "source_path": "apps/portal/src/features/batches/BatchCenter.tsx",
-          "bytes": 49716,
-          "sha256": "8950bb9a50583d67934df9a2ca3243806658f5ad2f5b1d15b14d3bcf8bb05385"
+          "bytes": 49764,
+          "sha256": "ece203aa81e989c558776ef8ae533db9ac6d2905d813d283d89fa3eeaf502ed4"
         },
         {
           "path": "platform/apps/portal/src/features/batches/FirstDataSetup.tsx",
@@ -657,8 +663,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/api.ts",
           "source_path": "apps/portal/src/features/batches/api.ts",
-          "bytes": 8420,
-          "sha256": "c5d0155a076c48388b225345dde7d9b169dc7d0dbdc88ccda405e7917da380a4"
+          "bytes": 8461,
+          "sha256": "85022090c76fa47a3e64b02de9078b7deaa7f7c4c5795633009862cc19606ce4"
         },
         {
           "path": "platform/apps/portal/src/features/batches/batches.css",
@@ -669,8 +675,8 @@
         {
           "path": "platform/apps/portal/src/features/batches/fileHash.ts",
           "source_path": "apps/portal/src/features/batches/fileHash.ts",
-          "bytes": 1731,
-          "sha256": "9413c26cfe2de6e2021bb8ee30daa22d8d70a0ce023be92043c69289b101d3eb"
+          "bytes": 1808,
+          "sha256": "fe82e5babc133a48b28beed41c35fb6c36ebea8bdd33528ab72563146f63dbca"
         },
         {
           "path": "platform/apps/portal/src/features/batches/fileHash.worker.ts",
@@ -699,8 +705,8 @@
         {
           "path": "platform/apps/portal/src/features/catalog/ApplicationCards.tsx",
           "source_path": "apps/portal/src/features/catalog/ApplicationCards.tsx",
-          "bytes": 15863,
-          "sha256": "88925b5053e4f7ddb6a00a3e2ace0be745a802951c047870caa45dea266a3b50"
+          "bytes": 15911,
+          "sha256": "d36d006c3235cae8a88c16f06dcca9911103e1c87d9b01373de6534dac348657"
         },
         {
           "path": "platform/apps/portal/src/features/catalog/ApplicationDeclaration.tsx",
@@ -771,8 +777,8 @@
         {
           "path": "platform/apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
           "source_path": "apps/portal/src/features/comparisons/ComparisonWorkbench.tsx",
-          "bytes": 19472,
-          "sha256": "5228d2c1d13a6ae38a7907701c13cb74ee4d3b2555a797f7a917b884d97ab548"
+          "bytes": 19519,
+          "sha256": "73f06131059eb233d4d9943e1f16f9c960d919413a80cb496d8b3bef0a5f04c3"
         },
         {
           "path": "platform/apps/portal/src/features/comparisons/Configuration.tsx",
@@ -795,8 +801,8 @@
         {
           "path": "platform/apps/portal/src/features/data/DataWorkbench.tsx",
           "source_path": "apps/portal/src/features/data/DataWorkbench.tsx",
-          "bytes": 45711,
-          "sha256": "ea12c9c20f97dff44bdf8515d06a6abc11e3eb6fbb52264faf5a52ee9fefb803"
+          "bytes": 45758,
+          "sha256": "a4c9f56b526a8a3f6f5c60837680aaf55fa99909ade4247dc5c15959063f8de9"
         },
         {
           "path": "platform/apps/portal/src/features/data/data.css",
@@ -921,8 +927,8 @@
         {
           "path": "platform/apps/portal/src/features/ocr/LocalCandidates.tsx",
           "source_path": "apps/portal/src/features/ocr/LocalCandidates.tsx",
-          "bytes": 9491,
-          "sha256": "68c1554a674e7a744d2c66b64b5e3d0f0178f4b896e79880b9b02d6cec9de399"
+          "bytes": 9538,
+          "sha256": "8dadf2cfae046011ec71c3f1dd0b3f94e2545f5fc4504dd95bd2cc987438a5f5"
         },
         {
           "path": "platform/apps/portal/src/features/ocr/OcrWorkflow.tsx",
@@ -933,8 +939,8 @@
         {
           "path": "platform/apps/portal/src/features/ocr/ScreenBatch.tsx",
           "source_path": "apps/portal/src/features/ocr/ScreenBatch.tsx",
-          "bytes": 26550,
-          "sha256": "52e59f106138ad7f762bdc91a286a61d4a319af9404f19f641cc3f5db7061396"
+          "bytes": 26597,
+          "sha256": "e99cdc6f869e827702c21f2a99be9ef9891386a2a56c374cfdeef5c136916ad2"
         },
         {
           "path": "platform/apps/portal/src/features/ocr/ScreenDiagnostics.tsx",
@@ -975,8 +981,8 @@
         {
           "path": "platform/apps/portal/src/features/start/QuickNativeWorkbench.tsx",
           "source_path": "apps/portal/src/features/start/QuickNativeWorkbench.tsx",
-          "bytes": 9794,
-          "sha256": "77c127a66ea2f34e1c58d951f6fefcc1dc163373ccee9641d79fbd7be25a0873"
+          "bytes": 9842,
+          "sha256": "72ac520d1934e563b63baf164765a85d59f4368c572f270b24fa83eb1c6c689b"
         },
         {
           "path": "platform/apps/portal/src/features/start/QuickStart.tsx",
@@ -993,8 +999,8 @@
         {
           "path": "platform/apps/portal/src/features/tasks/TaskHistory.tsx",
           "source_path": "apps/portal/src/features/tasks/TaskHistory.tsx",
-          "bytes": 23311,
-          "sha256": "79e70f984c578edaf9f7fba20a450363de978fa88bc53b9331a50b6fb013b493"
+          "bytes": 23359,
+          "sha256": "6377bb39b5509f1550bfa50f664e3112fe2cb4fff29810d2083f838614eba2c1"
         },
         {
           "path": "platform/apps/portal/src/features/tasks/session.tsx",
@@ -1173,8 +1179,8 @@
         {
           "path": "platform/apps/portal/tests/file-hash.test.ts",
           "source_path": "apps/portal/tests/file-hash.test.ts",
-          "bytes": 2840,
-          "sha256": "7c6ec9767096894171e56705f111f4aa76a6504fb4eae167803c77b15476c75d"
+          "bytes": 3489,
+          "sha256": "e3649717a801218d8aff17da6d5aed31ef16e2758dd89e2398512cdec160e3a3"
         },
         {
           "path": "platform/apps/portal/tests/finding-transfer.test.tsx",
@@ -1291,6 +1297,12 @@
           "sha256": "af360eb7fc4272ce2257b4bf3e3f3ba661633799cbb0dcadc127dd4d40306c30"
         },
         {
+          "path": "platform/apps/portal/tests/secure-random.test.ts",
+          "source_path": "apps/portal/tests/secure-random.test.ts",
+          "bytes": 1185,
+          "sha256": "bee0b7abd1ae310ec4f377268ae3ce4ccad9f35f524ca513d7f15e22210e252f"
+        },
+        {
           "path": "platform/apps/portal/tests/specialized-agent-ui.test.tsx",
           "source_path": "apps/portal/tests/specialized-agent-ui.test.tsx",
           "bytes": 5763,
@@ -1341,8 +1353,8 @@
         {
           "path": "platform/config/clear.install.example.json",
           "source_path": "config/clear.install.example.json",
-          "bytes": 2331,
-          "sha256": "d6676277fab02508e520c3910fadbf06a6597a613cb60dbb4efa27b398502f32"
+          "bytes": 2373,
+          "sha256": "313b855f1c792bbdf6a2e1082f6137ebf1cb7122ea75ec776bf3082438df6bf5"
         },
         {
           "path": "platform/config/clear.install.schema.json",
@@ -1427,6 +1439,12 @@
           "source_path": "config/runtime-locks/portable-inputs.json",
           "bytes": 3292,
           "sha256": "f084fd9984d69bb972d18cbe740bed562c859f1228a80eb0d63e4f0af550bdb7"
+        },
+        {
+          "path": "platform/config/runtime-locks/vc-runtime.json",
+          "source_path": "config/runtime-locks/vc-runtime.json",
+          "bytes": 9585,
+          "sha256": "42e17acf7bd3d7302147449b97ca072db1ebf19b9d396d1a293a51d477ec9aa1"
         },
         {
           "path": "platform/config/skills/classification-training-preparation/SKILL.md",
@@ -1949,6 +1967,12 @@
           "source_path": "modules/manual_multimodal/worker_protocol.py",
           "bytes": 6687,
           "sha256": "27de1ff6f99ddd265a15977bba18042bf476ede72003e3424250dafbc1349df9"
+        },
+        {
+          "path": "platform/packages/browser/secureRandom.ts",
+          "source_path": "packages/browser/secureRandom.ts",
+          "bytes": 791,
+          "sha256": "9176e36230b4cbae261dd6c4619cdc07bdea4abc76629aa250aa97a071b62d4f"
         },
         {
           "path": "platform/packages/contracts/.gitignore",
@@ -3189,8 +3213,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 66925,
-          "sha256": "a8724c0e62cb46db2bfd84e9e161625cf927740b61df9c030f3ba14515290931"
+          "bytes": 74066,
+          "sha256": "5ca1f05183b168e287bd6711b49937a12a6fcf29aacdc65b94567c91e7a23478"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -6319,6 +6343,12 @@
           "sha256": "ebfc81235ad37fe46b97efabd4055e7d898375a68e58b441033622692181364a"
         },
         {
+          "path": "platform/tests/unit/test_portable_vc.py",
+          "source_path": "tests/unit/test_portable_vc.py",
+          "bytes": 5488,
+          "sha256": "5a7d82ac5e96dae618c1ad5e4b4a9a3286c7b888da7d7b9c57b47bccc4a45f89"
+        },
+        {
           "path": "platform/tests/unit/test_runtime_config.py",
           "source_path": "tests/unit/test_runtime_config.py",
           "bytes": 7956,
@@ -6377,7 +6407,7 @@
           "working_tree_status": []
         }
       ],
-      "file_count": 202,
+      "file_count": 203,
       "files": [
         {
           "path": "classification/.gitattributes.source",
@@ -6560,6 +6590,12 @@
           "sha256": "c6d6e32ef5bc44c8489b0fe57afd4178396a14f5a3706edaabb41d9fd7d712a8"
         },
         {
+          "path": "classification/apps/web/src/requestId.ts",
+          "source_path": "apps/web/src/requestId.ts",
+          "bytes": 80,
+          "sha256": "295be0bc9e32737aaf29c26a494f5d451c3f3fc6a1e851e46dfdbc62aaeb3c65"
+        },
+        {
           "path": "classification/apps/web/src/runtimeRequests.ts",
           "source_path": "apps/web/src/runtimeRequests.ts",
           "bytes": 4040,
@@ -6616,8 +6652,8 @@
         {
           "path": "classification/apps/web/src/views/jobs.tsx",
           "source_path": "apps/web/src/views/jobs.tsx",
-          "bytes": 20811,
-          "sha256": "f4007fe0b05634f9c037abd03667f1d84393f7f4bde7233658fa808aecdaa7a8"
+          "bytes": 20840,
+          "sha256": "83ed4b379bb9f39f6e972d6435365f67cec187db63a7bddc66fdb4f6e5e50443"
         },
         {
           "path": "classification/apps/web/src/views/models.tsx",
@@ -7639,7 +7675,7 @@
           ]
         }
       ],
-      "file_count": 1013,
+      "file_count": 1014,
       "files": [
         {
           "path": "ocr/.gitattributes.source",
@@ -8700,8 +8736,8 @@
         {
           "path": "ocr/frontend/src/EnhancedRecognition.tsx",
           "source_path": "frontend/src/EnhancedRecognition.tsx",
-          "bytes": 5662,
-          "sha256": "a1d271e3b3fb8cd63c36e5c14e01e77f9a411b0a8772cffbb61ebfe86a53eb0f"
+          "bytes": 5696,
+          "sha256": "dbc4c98047c8432f99dbf61c745df3672264417c17a1352f181c6b162b4d1cf9"
         },
         {
           "path": "ocr/frontend/src/ExternalReviewConnection.tsx",
@@ -8712,8 +8748,8 @@
         {
           "path": "ocr/frontend/src/FusionLauncher.tsx",
           "source_path": "frontend/src/FusionLauncher.tsx",
-          "bytes": 5468,
-          "sha256": "2b1959135387effa7e8db67c41a27ef44c499783ad4bab919a470171dc1d4518"
+          "bytes": 5502,
+          "sha256": "4837907fea2b275dc969e4534794acb29054f7062cd06ff6b6fb0f4e7450cc51"
         },
         {
           "path": "ocr/frontend/src/GeometryPanel.tsx",
@@ -8730,8 +8766,8 @@
         {
           "path": "ocr/frontend/src/MultimodalReview.tsx",
           "source_path": "frontend/src/MultimodalReview.tsx",
-          "bytes": 23248,
-          "sha256": "071087c66a1e8e2af3c76daef4c60ce176a993cf4836e54f9ac269a9c4d629da"
+          "bytes": 23275,
+          "sha256": "7ddeab023f015ad0d9167db37b01dee18e6a61be4910cb802a9c9ddff0e9897f"
         },
         {
           "path": "ocr/frontend/src/PhotoList.tsx",
@@ -8748,8 +8784,8 @@
         {
           "path": "ocr/frontend/src/QuickReview.tsx",
           "source_path": "frontend/src/QuickReview.tsx",
-          "bytes": 16212,
-          "sha256": "3174a3b1aff467f2205df0629e457ab6e7bcda55605178de31006efa8e1a2ec1"
+          "bytes": 16246,
+          "sha256": "6300936a1312ff7e9522b391c51729250fc89f2023836be09482386eade953fb"
         },
         {
           "path": "ocr/frontend/src/RecognitionBar.tsx",
@@ -8784,8 +8820,8 @@
         {
           "path": "ocr/frontend/src/ScreenBatchPanel.tsx",
           "source_path": "frontend/src/ScreenBatchPanel.tsx",
-          "bytes": 33626,
-          "sha256": "a129dc2113c18d70a2f108312283adb5ca0c8b9e337e976376229803fa2f8a13"
+          "bytes": 33660,
+          "sha256": "fed957d65358d17d53d1823fb58d4ca5d69ac8f838e030eb5b92543eca230a1e"
         },
         {
           "path": "ocr/frontend/src/ScreenBusinessMetadata.tsx",
@@ -8808,8 +8844,8 @@
         {
           "path": "ocr/frontend/src/StructureReview.tsx",
           "source_path": "frontend/src/StructureReview.tsx",
-          "bytes": 19302,
-          "sha256": "5fa7ec35a557355b8d2bb267ad7bd1297d94254ac22cf4902e4d96ca631cc9d4"
+          "bytes": 19329,
+          "sha256": "8e85a0f8bc2d02ce92944cfe8096f27462663d88a70b389748f12529f3410c2d"
         },
         {
           "path": "ocr/frontend/src/TableEditor.tsx",
@@ -8838,8 +8874,8 @@
         {
           "path": "ocr/frontend/src/agentApi.ts",
           "source_path": "frontend/src/agentApi.ts",
-          "bytes": 2181,
-          "sha256": "be47ce27aa76a16227b8baebbb3cf9d257c89965390c10480a0444e2bafea0b2"
+          "bytes": 2215,
+          "sha256": "b28aebac62e790143a22b575a227ee85f1c4e92652c6b99a21d39a85e593970a"
         },
         {
           "path": "ocr/frontend/src/agentNavigation.ts",
@@ -8928,8 +8964,8 @@
         {
           "path": "ocr/frontend/src/editorRecovery.ts",
           "source_path": "frontend/src/editorRecovery.ts",
-          "bytes": 2079,
-          "sha256": "3bc88e93d303ff3a779a45044709e6b3c9a70369e6da4824297a5d9907c68470"
+          "bytes": 2113,
+          "sha256": "6c05f6974fa2d016ad168f83eebf89bff3cd668af42e17874775013379deeeee"
         },
         {
           "path": "ocr/frontend/src/fusion.css",
@@ -9026,6 +9062,12 @@
           "source_path": "frontend/src/recognition.css",
           "bytes": 6393,
           "sha256": "44b151fd01be4a7a3a8e99d29fb7786532d22e7217cfa1161901b22ca12f73f2"
+        },
+        {
+          "path": "ocr/frontend/src/requestId.ts",
+          "source_path": "frontend/src/requestId.ts",
+          "bytes": 77,
+          "sha256": "cc99abe51e9f8244111f0e1b49567217808bd5f07c1b9e959049814fea2f4076"
         },
         {
           "path": "ocr/frontend/src/resultClipboard.test.ts",
