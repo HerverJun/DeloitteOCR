@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 export type AgentEvent = {
   seq: number; run_id: string | null; kind: string; payload: Record<string, unknown>; created: string
 }
@@ -61,7 +62,7 @@ export type AgentSkillContent = {
 export type AgentSkillUnsupportedResource = { name: string; version: string; path: string; kind: 'script'; unsupported: true; reason: string }
 export type AgentSkillResourceResponse = AgentSkillContent | AgentSkillUnsupportedResource
 export const agentBase = '/api/platform/v1'
-export const requestId = () => `r${crypto.randomUUID().replaceAll('-', '')}`
+export const requestId = () => `r${randomUUID().replaceAll('-', '')}`
 export class AgentRequestError extends Error { constructor(message: string, public readonly status: number) { super(message); this.name = 'AgentRequestError' } }
 export async function agentRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${agentBase}${path}`, init)

@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Checkbox, Descriptions, Drawer, Empty, Form, Input, Popconfirm, Select, Space, Table, Tabs, Tag, Timeline, Typography } from 'antd'
@@ -44,7 +45,7 @@ function TaskInspector({ id, close, inspect }: { id: string | null; close: () =>
     })
     return () => { mounted = false; source.close(); if (refreshTimer) clearTimeout(refreshTimer) }
   }, [id, client])
-  const control = useMutation({ mutationFn: (operation: string) => taskJson(`/api/platform/v2/tasks/${id}/controls`, postJson({ operation, expected_revision: task!.revision, idempotency_key: crypto.randomUUID() })),
+  const control = useMutation({ mutationFn: (operation: string) => taskJson(`/api/platform/v2/tasks/${id}/controls`, postJson({ operation, expected_revision: task!.revision, idempotency_key: randomUUID() })),
     onSuccess: () => { setNotice('操作已记录，等待执行端确认。'); void client.invalidateQueries({ queryKey: ['task-detail', id] }); void client.invalidateQueries({ queryKey: ['task-history'] }) },
     onError: failure => setNotice(failure.message) })
   const edit = useMutation({ mutationFn: (value: { name: string; description: string }) => taskJson(`/api/platform/v2/tasks/${id}`, { ...postJson({ ...value, expected_revision: task!.revision }), method: 'PATCH' }),

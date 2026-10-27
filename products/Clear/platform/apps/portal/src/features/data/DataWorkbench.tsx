@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { ToolIdentity } from '../catalog/ToolIdentity'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -353,7 +354,7 @@ export function DataWorkbench() {
     try {
       const pending = localStorage.getItem(key)
       const payload = pending ? JSON.parse(pending) : { name: projectName ? `${projectName.slice(0, 85)} · 表格比对` : name,
-        workspace_id: workspaceId, request_id: `s${crypto.randomUUID().replaceAll('-', '')}` }
+        workspace_id: workspaceId, request_id: `s${randomUUID().replaceAll('-', '')}` }
       localStorage.setItem(key, JSON.stringify(payload))
       const result = await post<Session>('/sessions', payload)
       localStorage.removeItem(key)

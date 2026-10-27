@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { api } from "./api";
@@ -120,7 +121,7 @@ export function QuickReview({ result, versionId, version, geometryRefresh = 0, a
     locking.current = true; setWorking(true); setError("");
     try {
       if (!intent.current) intent.current = { issueId: activeIssue.id, body: {
-        request_id: crypto.randomUUID(), action, basis: activeIssue.basis,
+        request_id: randomUUID(), action, basis: activeIssue.basis,
         current_fingerprint: activeIssue.current_fingerprint, version_id: versionId,
         ...(action === "candidate" ? { candidate_id: chosen, ...(activeIssue.target.kind === "unmatched_table" ? { placement } : {}) } : {}), ...(action === "manual" ? { value: manual } : {}),
       } };

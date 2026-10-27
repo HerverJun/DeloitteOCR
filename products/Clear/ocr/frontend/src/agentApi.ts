@@ -1,7 +1,8 @@
+import { randomUUID } from './requestId'
 import { request } from "./api";
 import type { AgentEvent } from "./agentTypes";
 
-export const agentRequestId = () => crypto.randomUUID();
+export const agentRequestId = () => randomUUID();
 
 export async function downloadAgentArtifact(projectId: string, artifactId: string, coverageManifest = false) {
   const response = await request(`/projects/${encodeURIComponent(projectId)}/agent/artifacts/${encodeURIComponent(artifactId)}/${coverageManifest ? "coverage-manifest" : "download"}`);

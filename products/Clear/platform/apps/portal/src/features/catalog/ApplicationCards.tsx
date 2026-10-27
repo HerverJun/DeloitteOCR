@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { ToolIdentity } from './ToolIdentity'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -24,7 +25,7 @@ function liveAddress(receipt: LaunchReceipt): string {
 }
 
 function pendingKey(appId: string) { return `workbench:pending-launch:${appId}` }
-function newLaunchId() { return `l${crypto.randomUUID().replaceAll('-', '')}` }
+function newLaunchId() { return `l${randomUUID().replaceAll('-', '')}` }
 function elapsed(seconds: number) {
   return `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`
 }

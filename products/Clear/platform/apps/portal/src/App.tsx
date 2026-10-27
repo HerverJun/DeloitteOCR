@@ -1,3 +1,4 @@
+import { randomUUID } from './clear-ui/requestId'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Card, Empty, Form, Input, Layout, Menu, Modal, Popover, Select, Skeleton, Space, Tag, Typography } from 'antd'
@@ -192,7 +193,7 @@ export function Workspaces({ continueTo }: { continueTo?: '/apps/forensics' | '/
   const create = useMutation({ mutationFn: async (name: string) => {
     const entryLocationKey = location.key
     const saved = localStorage.getItem(pendingKey)
-    const payload = saved ? JSON.parse(saved) : { schema_version: '1.0', name, request_id: `w${crypto.randomUUID().replaceAll('-', '')}` }
+    const payload = saved ? JSON.parse(saved) : { schema_version: '1.0', name, request_id: `w${randomUUID().replaceAll('-', '')}` }
     if (payload.name !== name) throw new Error('上次创建尚未确认，请使用原名称重试；确认后可修改项目名称。')
     localStorage.setItem(pendingKey, JSON.stringify(payload))
     const response = await fetch('/api/platform/v1/workspaces', { method: 'POST', headers: { 'Content-Type': 'application/json' },

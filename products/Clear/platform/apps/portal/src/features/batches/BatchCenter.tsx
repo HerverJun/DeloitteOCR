@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Empty, Input, Pagination, Select, Space, Table, Tag, Typography } from 'antd'
@@ -363,7 +364,7 @@ function NewBatch({ workspaceId, inputSetId, onCreated }: { workspaceId: string;
     if (!chosen || !library.data) return
     const roles = chosen.scenario === 'data_compare' ? [{ role: 'left', id: left }, { role: 'right', id: right }] : selected.map(id => ({ role: chosen.scenario === 'classification' ? 'images' : 'documents', id }))
     const inputs = roles.map(role => { const asset = library.data!.find(item => item.asset_id === role.id)!; return { role: role.role, asset_id: asset.asset_id, asset_revision: asset.revision, blob_hash: asset.blob_hash } })
-    run.mutate({ schema_version: '1.0', request_key: 'r' + crypto.randomUUID(), workspace_id: workspaceId, template_id: chosen.template_id, template_version: chosen.version, inputs })
+    run.mutate({ schema_version: '1.0', request_key: 'r' + randomUUID(), workspace_id: workspaceId, template_id: chosen.template_id, template_version: chosen.version, inputs })
   }
   const valid = chosen && (chosen.scenario === 'data_compare' ? left && right && left !== right : selected.length > 0)
   const saved = (item: Template) => {

@@ -23,6 +23,8 @@ export function fileSha256(file: Blob, progress?: (done: number, total: number) 
 }
 
 export async function chunkSha256(blob: Blob) {
-  const digest = await crypto.subtle.digest('SHA-256', await readBlob(blob))
+  const subtle = globalThis.crypto?.subtle
+  if (!subtle) return fileSha256(blob)
+  const digest = await subtle.digest('SHA-256', await readBlob(blob))
   return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('')
 }

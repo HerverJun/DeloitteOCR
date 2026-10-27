@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { expect, test, vi } from 'vitest'
 import { Sha256 } from '../src/features/batches/sha256'
 import { AUDIO_CHUNK_BYTES, hashFileSlices } from '../src/features/batches/fileHashSlices'
+import { chunkSha256 } from '../src/features/batches/fileHash'
 
 test.each([
   ['', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'],
@@ -48,3 +49,15 @@ test('aborted hashing stops before reading another slice', async () => {
   await expect(hashFileSlices(blob as unknown as Blob, () => controller.abort(), controller.signal)).rejects.toThrow()
   expect(slice).toHaveBeenCalledTimes(1)
 }, 15000)
+
+test('chunk upload SHA256 is unchanged when HTTP has no SubtleCrypto', async () => {
+  const bytes = Uint8Array.from({ length: 65537 }, (_, index) => (index * 37 + 13) & 255)
+  vi.stubGlobal('crypto', {})
+  vi.stubGlobal('Worker', undefined)
+  try {
+    expect(await chunkSha256(new NodeBlob([bytes]) as unknown as Blob))
+      .toBe(createHash('sha256').update(bytes).digest('hex'))
+    expect(await chunkSha256(new NodeBlob([]) as unknown as Blob))
+      .toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+  } finally { vi.unstubAllGlobals() }
+})

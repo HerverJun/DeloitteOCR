@@ -1,3 +1,4 @@
+import { randomUUID } from '../requestId'
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { App, Alert, Button, Card, Checkbox, Empty, Form, Input, Modal, Pagination, Progress, Select, Space, Table, Tabs, Tag, Typography, Spin } from 'antd';
@@ -123,8 +124,8 @@ function Results({ project, job }: { project: PanelProps['project']; job: Job })
       if (!requests[signature]) {
         const identity = await api<{ instance_id: string }>('/health');
         requests[signature] = { ...choice, expected_revisions: Object.fromEntries(rows.map(row => [row.id, row.disposition_revision])),
-          request_id: `request_${crypto.randomUUID().replaceAll('-', '')}`,
-          operation_id: `operation_${crypto.randomUUID().replaceAll('-', '')}`,
+          request_id: `request_${randomUUID().replaceAll('-', '')}`,
+          operation_id: `operation_${randomUUID().replaceAll('-', '')}`,
           instance_id: identity.instance_id, intent: 'manual' };
         sessionStorage.setItem(storageKey, JSON.stringify(requests));
       }

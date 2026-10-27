@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, InputNumber, Space, Tag, Typography } from 'antd'
@@ -8,7 +9,7 @@ type Submission = { request_id: string; budget_seconds: number; target: Target }
 type Command = { action: string; request_id: string }
 type Candidate = { task_id: string; status: string; candidate_state: string; current_binding: boolean; text: string | null; text_preview_only: boolean; content_status?: string | null; binding: { result_id: string; result_revision: number }; artifact?: Record<string, { sha256: string }> | null }
 type Receipt = { request_id: string; status: string; execution_status: string; reason?: string; target: Target; owned_task_ids: string[]; items: Candidate[]; values_modified: false; selection_applied: false; human_review: string }
-const id = () => 'r' + crypto.randomUUID().replaceAll('-', '')
+const id = () => 'r' + randomUUID().replaceAll('-', '')
 async function json<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined)
   if (!response.ok) throw new Error(response.status === 409 ? '原图、结果或原请求已变化，请重新核对' : '候选回执暂不可读，请沿原请求重试')

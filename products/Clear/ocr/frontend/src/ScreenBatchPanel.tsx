@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner } from "@fluentui/react-components";
 import { Download, ScanLine, X } from "lucide-react";
@@ -28,7 +29,7 @@ type ScreenDetail = ScreenItem & {
 type BatchListing = { batches: ScreenBatch[] } | ScreenBatch[];
 
 const activeStates = new Set(["queued", "running", "prepared", "awaiting_upgrade"]);
-const requestId = () => "screen-ui-" + crypto.randomUUID();
+const requestId = () => "screen-ui-" + randomUUID();
 
 function PreparedPreview({ path, name }: { path: string; name: string }) {
   const [url, setUrl] = useState("");

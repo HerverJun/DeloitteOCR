@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { api } from "./api";
@@ -34,7 +35,7 @@ export function FusionLauncher({ engines, tasks, versionId, selectedCount, disab
       result_ids: reuse ? sourceTasks.filter(t => t.status === "succeeded" && t.result_id).map(t => t.result_id!) : [],
       reuse, request_id: "" };
     const previous = request.current;
-    value.request_id = previous && JSON.stringify({ ...previous, request_id: "" }) === JSON.stringify(value) ? previous.request_id : crypto.randomUUID();
+    value.request_id = previous && JSON.stringify({ ...previous, request_id: "" }) === JSON.stringify(value) ? previous.request_id : randomUUID();
     request.current = value;
     try { await onStart(value); request.current = null; if (details.current) details.current.open = false; }
     catch (e) { setError(String(e)); }

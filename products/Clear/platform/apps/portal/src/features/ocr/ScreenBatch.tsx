@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Checkbox, Empty, Input, Modal, Progress, Select, Space, Table, Tag, Typography } from 'antd'
@@ -25,7 +26,7 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>
 }
 const post = (data: unknown): RequestInit => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-const requestId = () => 'r' + crypto.randomUUID().replaceAll('-', '')
+const requestId = () => 'r' + randomUUID().replaceAll('-', '')
 async function identified<T>(key: string, url: string, data: Record<string, unknown>) {
   const fingerprint = JSON.stringify(data)
   const old = JSON.parse(sessionStorage.getItem(key) || 'null') as { fingerprint: string; request_id: string } | null

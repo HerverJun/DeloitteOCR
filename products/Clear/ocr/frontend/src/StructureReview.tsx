@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { api } from "./api";
@@ -97,7 +98,7 @@ export function StructureReview({ result, version, busy, refreshKey, focusReques
   const decide = (action: string) => run(async () => {
     if (!active && !retry) return;
     const target = retry?.issueId || active!.id;
-    const body = retry?.body || { decision_kind: "structure", request_id: crypto.randomUUID(), action,
+    const body = retry?.body || { decision_kind: "structure", request_id: randomUUID(), action,
       revision: active!.revision, basis: active!.basis, version_id: active!.version_id, acknowledge_unverified_empty: acknowledged };
     clock.current.tick();
     await onDecision(target,body);
@@ -145,7 +146,7 @@ export function StructureReview({ result, version, busy, refreshKey, focusReques
         <Button disabled={!external?.available || !sendAcknowledged || busy || working || !!pending || arbitrationRunning || !view?.adopted || active.table_indices.length!==1 || !active.can_apply} onClick={()=>void run(async()=>{
           const saved=await onPrepare();
           if(saved.revision!==view?.revision) throw new Error("内容已保存，请重新检查结构候选后提交仲裁");
-          await api(`/results/${result.id}/multimodal`,"POST",{request_id:crypto.randomUUID(),model_id:external!.model_id,revision:saved.revision,version_id:version.id,scope:"table",review_kind:"structure",table:active.table_indices[0]});
+          await api(`/results/${result.id}/multimodal`,"POST",{request_id:randomUUID(),model_id:external!.model_id,revision:saved.revision,version_id:version.id,scope:"table",review_kind:"structure",table:active.table_indices[0]});
           setSendAcknowledged(false);await load();
         })}>提交结构仲裁</Button>
         {view?.arbitrations?.map(a=><div key={a.task_id} className="structure-source"><span>表 {a.table+1} · {a.stale ? "内容或候选已过期" : a.status==="succeeded" ? "已完成" : a.status==="running" ? "正在仲裁" : a.status==="queued" ? "等待仲裁" : a.status} · {a.summary}</span>

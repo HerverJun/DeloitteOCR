@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Select, Spinner } from "@fluentui/react-components";
 import { Download, LocateFixed, RefreshCw, ScanLine } from "lucide-react";
@@ -171,7 +172,7 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
     if (!isCurrent(context) || current.id !== result.id) return;
     const value: PendingMultimodalRequest = { kind: "submit", result_id: current.id, version_id: version.id,
       body: { revision: current.revision, version_id: version.id, model_id: modelId, scope,
-        ...(scope === "target" && target ? { target } : {}), request_id: crypto.randomUUID() } };
+        ...(scope === "target" && target ? { target } : {}), request_id: randomUUID() } };
     remember(value);
     await sendPending(value);
   });
@@ -181,7 +182,7 @@ export function MultimodalReview({ result, version, busy, adopted, target, refre
     const current = await beforeSubmit();
     if (!isCurrent(context) || current.id !== result.id) return;
     const value: PendingMultimodalRequest = { kind: "decision", result_id: current.id, version_id: version.id, proposal_id: active.id,
-      body: { action, revision: current.revision, version_id: version.id, request_id: crypto.randomUUID() } };
+      body: { action, revision: current.revision, version_id: version.id, request_id: randomUUID() } };
     remember(value);
     await sendPending(value);
   });

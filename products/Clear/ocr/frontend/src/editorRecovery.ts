@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import type { Edit } from "./types";
 
 export type Recovery = {
@@ -12,7 +13,7 @@ const prefix = "ocr-editor-recovery:";
 const tabKey = "ocr-editor-client";
 export function recoveryClient(): string {
   let value = sessionStorage.getItem(tabKey);
-  if (!value) { value = crypto.randomUUID(); sessionStorage.setItem(tabKey, value); }
+  if (!value) { value = randomUUID(); sessionStorage.setItem(tabKey, value); }
   return value;
 }
 export function writeRecovery(client: string, recovery: Recovery) {

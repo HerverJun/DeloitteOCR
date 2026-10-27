@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Alert, Button, Form, Input, Select, Space, Table, Tag, Typography } from 'antd'
@@ -113,7 +114,7 @@ export function ComparisonPanel({ workspace }: { workspace: string }) {
       <details className="comparison-profile-editor" open={profileDirty}><summary>调整比较要求与字段{profileDirty ? ' · 尚未保存' : ''}</summary><ProfileEditor key={profile.id} value={profile} onChange={setProfile} onValidityChange={setAliasesValid} />
       <Space wrap className="comparison-profile-actions"><Button loading={suggest.isPending} disabled={!provider || !profile.instructions.trim()} onClick={() => suggest.mutate()}>根据要求生成字段建议</Button>
         {savedProfile && <Tag>{profileDirty ? '存在未保存修改' : `已保存 v${savedProfile.version}`}</Tag>}
-        <Button onClick={() => { setProfile({ ...profile, id: `profile_${crypto.randomUUID().replaceAll('-', '')}`, version: 1, name: `${profile.name}（副本）` }); setSavedProfile(null); setAliasesValid(true) }}>另存为新配置</Button></Space></details>
+        <Button onClick={() => { setProfile({ ...profile, id: `profile_${randomUUID().replaceAll('-', '')}`, version: 1, name: `${profile.name}（副本）` }); setSavedProfile(null); setAliasesValid(true) }}>另存为新配置</Button></Space></details>
       {fieldsError && <Alert type="warning" title={fieldsError} />}
       <Paragraph type="secondary">比较模型接收两侧解析文字与表格。日期口径不同或解析不完整时，结果会注明信息不足。</Paragraph>
     </section>

@@ -1,3 +1,4 @@
+import { randomUUID } from './requestId'
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { api } from "./api";
@@ -22,7 +23,7 @@ export function EnhancedRecognition({ result, disabled, beforeRun, currentResult
       const latest = currentResult();
       if (!latest || latest.id !== result.id) throw Error("识别结果已切换，请重新选择增强范围。");
       if (scope === "region" && (!box.every(Number.isFinite) || box[0] < 0 || box[1] < 0 || box[2] > result.original.image.width || box[3] > result.original.image.height || box[2] <= box[0] || box[3] <= box[1])) throw Error("区域边界超出当前识别图像，或宽高为空。");
-      pending.current ||= { revision: latest.revision, request_id: crypto.randomUUID(), ...(scope === "region" ? { box } : {}) };
+      pending.current ||= { revision: latest.revision, request_id: randomUUID(), ...(scope === "region" ? { box } : {}) };
       const requestKey = `clear-pro-enhance:${result.id}:${pending.current.revision}`;
       localStorage.setItem(requestKey, JSON.stringify(pending.current));
       await api(`/results/${result.id}/enhance`, "POST", pending.current);

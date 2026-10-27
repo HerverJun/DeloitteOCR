@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import type { BatchCoverage, BatchDelivery, BatchDisposition, BatchHistoryPage, BatchNativeRevisionPage, BatchOperation, LocalActor, NativeAdoption, ReviewArtifactRequest, ReviewBundle } from '../../../../../packages/contracts/types.generated'
 export type { BatchCoverage, BatchDisposition, BatchHistoryPage, BatchNativeRevisionPage, BatchOperation, LocalActor, NativeAdoption, ReviewArtifactRequest, ReviewBundle }
 export const API = '/api/platform/v1'
@@ -32,13 +33,13 @@ export function persistRequest(workspaceId: string, value: RunRequest | null) {
   else localStorage.removeItem(pendingKey(workspaceId))
 }
 
-export function newRequestId() { return 'r' + crypto.randomUUID().replaceAll('-', '') }
+export function newRequestId() { return 'r' + randomUUID().replaceAll('-', '') }
 export function localReviewer(): LocalActor {
   try {
     const value = JSON.parse(localStorage.getItem('clear-local-reviewer') || 'null')
     if (value?.source === 'local' && typeof value.id === 'string' && /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(value.id) && typeof value.display_name === 'string') return value
   } catch { /* The user can supply a fresh explicit display name. */ }
-  const value: LocalActor = { id: 'u' + crypto.randomUUID().replaceAll('-', ''), display_name: '', source: 'local' }
+  const value: LocalActor = { id: 'u' + randomUUID().replaceAll('-', ''), display_name: '', source: 'local' }
   localStorage.setItem('clear-local-reviewer', JSON.stringify(value))
   return value
 }

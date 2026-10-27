@@ -1,3 +1,4 @@
+import { randomUUID } from '../../clear-ui/requestId'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Input, Select, Space, Typography } from 'antd'
@@ -63,7 +64,7 @@ function NativeProject({ workspaceId, appId }: { workspaceId: string; appId: 'oc
     if (!pending && chosen && !project) throw new Error('所选工具作业已变化，请刷新后继续。')
     if (!project) {
       if (legacyName) throw new Error('旧创建请求需要先在工具内核对。')
-      const intent = pending || { request_id: `n${crypto.randomUUID().replaceAll('-', '')}`, name: projectName.slice(0, 100),
+      const intent = pending || { request_id: `n${randomUUID().replaceAll('-', '')}`, name: projectName.slice(0, 100),
         ...(appId === 'classification' ? { categories: categoryNames } : {}) }
       localStorage.setItem(pendingKey, JSON.stringify(intent)); setPending(intent)
       project = await api<NativeProject>(`${base}/projects`, { method: 'POST', signal,
