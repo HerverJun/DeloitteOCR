@@ -84,18 +84,19 @@ class InstallConfig:
         # Frozen result/request snapshots keep their exact original bytes. Only
         # read views of a registered old DATA prefix follow a restore mapping;
         # old model/runtime references are never redirected to today's default.
-        if role == 'read' and '..' not in requested.parts and not any(requested.is_relative_to(root) for root in self.roots.values()):
+        if role == 'read' and '..' not in requested.parts:
             for original, member in self.policy.get('legacy_file_map', {}).items():
                 if requested == Path(original):
                     requested = self.data / member
                     break
-            for old in self.policy.get('legacy_data_roots', []):
-                try:
-                    relative = requested.relative_to(Path(old))
-                except ValueError:
-                    continue
-                requested = self.data / relative
-                break
+            if not any(requested.is_relative_to(root) for root in self.roots.values()):
+                for old in self.policy.get('legacy_data_roots', []):
+                    try:
+                        relative = requested.relative_to(Path(old))
+                    except ValueError:
+                        continue
+                    requested = self.data / relative
+                    break
         path = _local(requested, label)
         actual = _local(path.resolve(), label)
         allowed_drives = self.policy.get('allowed_drives')
@@ -165,6 +166,11 @@ class InstallConfig:
         if 'mineru_manifest' in self.resources and (strict_resources or self.resources['mineru_manifest'].is_file()):
             import hashlib
             values['CLEAR_MINERU_PRO_RUNTIME_MANIFEST_SHA256'] = hashlib.sha256(self.resource('mineru_manifest').read_bytes()).hexdigest()
+        if 'program_assets' in self.resources:
+            native = bound_resource('program_assets')
+            for family in ('ocr', 'classification'):
+                values['CLEAR_' + family.upper() + '_CONTROL_PYTHON'] = str(
+                    self.check(native/'bundles'/family/'runtimes/control/python.exe', 'Native control runtime', role='read'))
         if create:
             for key in _DIRECTORIES:
                 directory = self.check(values[key], key)
@@ -176,8 +182,21 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
     path = _local(Path(path), 'Installation configuration')
     _no_reparse(path, 'Installation configuration')
     value = json.loads(path.read_text(encoding='utf-8-sig'), object_pairs_hook=_pairs)
-    if value.get('schema_version') != 1:
+    if not isinstance(value, dict) or type(value.get('schema_version')) is not int or value.get('schema_version') != 1:
         raise ValueError('Unsupported clear.install.json schema_version (expected 1)')
+    for name in ('paths', 'network', 'resources'):
+        if not isinstance(value.get(name), dict):
+            raise ValueError(f'Installation {name} must be an object')
+    if not isinstance(value.get('policy', {}), dict):
+        raise ValueError('Installation policy must be an object')
+    if not isinstance(value.get('installation_id'), str):
+        raise ValueError('Installation installation_id must be a UUID string')
+    if any(not isinstance(member, str) or not member for member in value['paths'].values()):
+        raise ValueError('Installation paths must be nonempty local path strings')
+    if any(not isinstance(member, str) or not member for member in value['resources'].values()):
+        raise ValueError('Installation resources must be nonempty member strings')
+    if not isinstance(value.get('mode'), str):
+        raise ValueError('Installation mode must be single or multi')
     identity = str(uuid.UUID(value['installation_id']))
     paths = dict(value['paths'])
     paths.setdefault('postgres', str(Path(paths['data']) / '.postgres'))
@@ -199,6 +218,8 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
     if mode not in {'single', 'multi'}:
         raise ValueError('Installation mode must be single or multi')
     network = value['network']
+    if any(not isinstance(network.get(key), str) for key in ('public_origin','listen','transport')):
+        raise ValueError('Network listen, transport and public_origin must be strings')
     for port in ('portal_port', 'worker_port', 'postgres_port'):
         if type(network.get(port)) is not int or not 1 <= network[port] <= 65535:
             raise ValueError('Invalid network ' + port)
@@ -235,6 +256,8 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
     policy = value.get('policy', {})
     if 'allowed_drives' in policy:
         policy = {**policy, 'allowed_drives': [drive.upper() for drive in policy['allowed_drives']]}
+        if path.drive.upper() not in policy['allowed_drives']:
+            raise ValueError('Installation configuration is outside this installation drive policy')
     for old in policy.get('legacy_data_roots', []):
         source = Path(old)
         if not source.is_absolute() or len(source.drive) != 2 or '..' in source.parts:
@@ -246,6 +269,8 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
         if (not source.is_absolute() or len(source.drive) != 2 or '..' in source.parts
                 or relative.is_absolute() or relative.drive or '..' in relative.parts):
             raise ValueError('Legacy file mappings require an exact local source and a relative DATA member')
+        if any(source.is_relative_to(roots[key]) for key in (*READ_ROOTS, 'data')):
+            raise ValueError('Legacy file mappings cannot shadow current program or DATA members')
     mappings = []
     for item in value.get('model_mappings', []):
         link, target = Path(item['link']).absolute(), Path(item['target']).absolute()
@@ -325,7 +350,8 @@ _CACHE_VARIABLES = {
     'JUPYTER_DATA_DIR': 'jupyter-data', 'PLAYWRIGHT_BROWSERS_PATH': 'playwright',
     'CUDA_CACHE_PATH': 'cuda', 'TORCHINDUCTOR_CACHE_DIR': 'torchinductor',
     'TRITON_CACHE_DIR': 'triton', 'NUMBA_CACHE_DIR': 'numba', 'MODELSCOPE_CACHE': 'modelscope',
-    'DSH_HOME': 'dsh', 'NODE_COMPILE_CACHE': 'node-compile', 'UV_CACHE_DIR': 'uv',
+    'DSH_HOME': 'dsh', 'DSH_RESOURCE_CACHE': 'dsh-resources', 'NODE_COMPILE_CACHE': 'node-compile',
+    'UV_CACHE_DIR': 'uv', 'TIKTOKEN_CACHE_DIR': 'tiktoken',
 }
 _DIRECTORIES = (*_CACHE_VARIABLES, 'TEMP', 'TMP', 'TMPDIR', 'CLEAR_PADDLE_TEMP')
 
@@ -336,6 +362,8 @@ def _environment(data, cache, temporary, paddle):
         'CLEAR_PADDLE_TEMP': str(paddle), 'CLEAR_NATIVE_TEMP_ROOT': str(paddle),
         'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8',
         'PIP_DISABLE_PIP_VERSION_CHECK': '1', 'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD': '1',
+        'NODE_OPTIONS': '', 'NODE_PATH': '', 'DSH_PRIMARY_RUNTIME': '',
+        'PIP_NO_INDEX': '1', 'UV_OFFLINE': '1', 'npm_config_offline': 'true',
         'HF_HUB_OFFLINE': '1', 'TRANSFORMERS_OFFLINE': '1', 'HF_HUB_DISABLE_TELEMETRY': '1',
         'PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK': 'True', 'DO_NOT_TRACK': '1',
         'LANGSMITH_TRACING': 'false', 'LANGCHAIN_TRACING_V2': 'false'}

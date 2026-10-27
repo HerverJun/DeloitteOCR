@@ -587,7 +587,8 @@ class MultimodalService:
             if not isinstance(outcome,dict):outcome={}
             local_success=not local or (engineering.get('actual_device')=='cpu' and engineering.get('cleanup_confirmed') is True
                 and outcome.get('status')=='succeeded')
-            cpu=not missing and fresh and receipt.get('cpu') is True and local_success
+            from packages.runtime import current_install
+            cpu=not missing and fresh and receipt.get('cpu') is True and local_success and (current_install() is None or local)
             gpu=False;gpu_reason='需完成本机 GPU 工程推理验证'
             if kind not in GPU_KINDS or kind not in self.config.get('gpu',{}).get('enabled_kinds',[]):
                 gpu_reason='本阶段此能力使用 CPU'

@@ -10,15 +10,15 @@ from urllib.parse import urlsplit, parse_qs
 from urllib.request import url2pathname
 
 _installed = False
+_configuration = None
 
 
 def install(config):
-    global _installed
+    global _installed, _configuration
+    _configuration = config
     if _installed:
         return
     from .config import WRITE_ROOTS
-    writes = tuple(config.roots[key] for key in WRITE_ROOTS)
-    denied = tuple(Path(value).resolve() for value in config.policy.get('deny_read_roots', []))
     def inside(path, roots):
         return any(path.is_relative_to(root) for root in roots)
     def audit(event, fields):
@@ -40,6 +40,9 @@ def install(config):
             values, writing = fields[1:2], True
         else:
             return
+        active = _configuration
+        writes = tuple(active.roots[key] for key in WRITE_ROOTS)
+        denied = tuple(Path(value) for value in active.policy.get('deny_read_roots', []))
         for value in values:
             if not isinstance(value, (str, bytes, os.PathLike)):
                 continue

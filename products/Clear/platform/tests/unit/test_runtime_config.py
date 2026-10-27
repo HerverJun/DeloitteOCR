@@ -117,6 +117,15 @@ def test_managed_credentials_use_the_separate_account_secret_root(installation):
         CredentialVault(config.roots['backup']/'arbitrary-vault')
 
 
+@pytest.mark.parametrize('field,bad',[('paths',None),('resources',[]),('network',None),('mode',[]),('installation_id',123)])
+def test_malformed_binding_has_an_actionable_configuration_error(installation, field, bad):
+    path,value = installation
+    value[field] = bad
+    path.write_text(json.dumps(value),encoding='utf-8')
+    with pytest.raises(ValueError,match='Installation|installation'):
+        load_install(path)
+
+
 @pytest.mark.skipif(os.name != 'nt', reason='Windows junction boundary')
 def test_escape_junction_and_registered_paddle_alias(installation):
     path, _ = installation

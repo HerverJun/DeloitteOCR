@@ -204,14 +204,20 @@ class DataWorkbenchService:
         if not self.ready():
             raise DataError('数据分析环境尚未配置', 503)
         path = Path(path).resolve(strict=True)
-        if path.drive.upper() != 'F:':
-            raise DataError('资料必须位于受控 F 盘存储')
+        from packages.runtime import require_path
+        try:
+            path = require_path(path, 'Data analysis input', role='read')
+        except ValueError as exc:
+            raise DataError(str(exc)) from exc
         folder = self.root / 'inspection' / ('p' + uuid.uuid4().hex)
         folder.mkdir(parents=True)
         request, response = folder / 'request.json', folder / 'response.json'
         request.write_text(encode({'path': str(path), 'format': format, 'options': options or {}}), encoding='utf-8')
         environment = {key: value for key, value in os.environ.items() if key.upper() in
                        {'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATH', 'SYSTEMDRIVE'}}
+        for key in ('CLEAR_INSTALL_CONFIG', 'CLEAR_RUNTIME_PACKAGE_ROOT', 'CLEAR_INSTALLATION_ID', 'CLEAR_IO_GUARD'):
+            if key in os.environ:
+                environment[key] = os.environ[key]
         environment.update({name: str(folder) for name in ('TEMP', 'TMP', 'TMPDIR', 'APPDATA', 'LOCALAPPDATA', 'XDG_CACHE_HOME')})
         environment.update(PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1')
         environment.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1')

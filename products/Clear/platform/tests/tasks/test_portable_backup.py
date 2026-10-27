@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+from types import SimpleNamespace
+import pytest
 
 from sqlalchemy import create_engine, select, text
 
@@ -106,3 +108,42 @@ def test_consistent_restore_preserves_frozen_evidence_and_blocks_private_replay(
                 db.execute(text('DROP DATABASE "' + restored['database'] + '" WITH (FORCE)'))
         finally:
             disposable_admin.dispose()
+
+
+def test_stop_all_ignores_unissued_restored_dispatches_but_keeps_local_unknown_work(task_case, tmp_path, monkeypatch):
+    from packages.runtime import cli
+    from workbench_platform.tasks import database
+    from workbench_platform.tasks.schema_v3 import workers
+    from workbench_platform.tasks.store import digest, now
+    ledger, admin, editor, viewer, other, workspace = task_case
+    root = tmp_path / 'restored installation'
+    root.mkdir()
+    monkeypatch.delenv('CLEAR_INSTALL_CONFIG', raising=False)
+    monkeypatch.setenv('WORKBENCH_DATA_DIR', str(root))
+    config = SimpleNamespace(mode='multi', data=root, installation_id='test-restored-install',
+        policy={'postgres_owner_installation_id': 'original-install'},
+        check=lambda value, *args, **kwargs: Path(value))
+    tasks = [ledger.submit(editor, submission(workspace, 'stop-' + name), {}) for name in ('old', 'unissued', 'local')]
+    old_worker, local_worker = 'old-' + workspace, 'new-' + workspace
+    with ledger.engine.begin() as db:
+        for identifier, identity in ((old_worker, digest('F:/old-DATA')), (local_worker, digest(str(root)))):
+            db.execute(workers.insert().values(id=identifier, hostname='isolated-test', root_identity=identity,
+                started_at=now(), heartbeat_at=now(), concurrency=1))
+        db.execute(s.task_dispatches.update().where(s.task_dispatches.c.task_id == tasks[0]['id']).values(state='needs_verification', worker_id=old_worker))
+        db.execute(s.task_dispatches.update().where(s.task_dispatches.c.task_id == tasks[1]['id']).values(state='needs_verification', worker_id=None))
+        db.execute(s.task_dispatches.update().where(s.task_dispatches.c.task_id == tasks[2]['id']).values(state='done', worker_id=local_worker))
+    calls = []
+    monkeypatch.setattr(cli, '_read_secrets', lambda config: {'runtime_database_url': ledger.engine.url.render_as_string(hide_password=False)})
+    monkeypatch.setattr(cli, '_postgres_status', lambda config: {'running': True})
+    monkeypatch.setattr(cli, '_stop_role', lambda config, role, timeout: calls.append(role) or {'running': False})
+    monkeypatch.setattr(database, 'engine_for', lambda: ledger.engine)
+    result = cli.stop(config, SimpleNamespace(all=True, timeout=1))
+    assert calls == ['portal', 'worker']
+    assert result['postgres_retained_shared_owner'] == 'original-install'
+    calls.clear()
+    with ledger.engine.begin() as db:
+        db.execute(s.task_dispatches.update().where(s.task_dispatches.c.task_id == tasks[2]['id']).values(state='needs_verification'))
+    with pytest.raises(RuntimeError, match='not drained'):
+        cli.stop(config, SimpleNamespace(all=True, timeout=1))
+    assert calls == ['portal']
+    assert not (root / 'central-maintenance.json').exists()
