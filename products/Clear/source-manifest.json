@@ -2925,8 +2925,8 @@
         {
           "path": "platform/packages/runtime/config.py",
           "source_path": "packages/runtime/config.py",
-          "bytes": 21247,
-          "sha256": "ac80906b8e3f3221de5965c7c997e92f46523333aa67df35cf61289a23ed30a6"
+          "bytes": 21774,
+          "sha256": "413e63e2f244addd227600fdfa97846e70d796b6d1f41a564e7b516eb9169d33"
         },
         {
           "path": "platform/packages/runtime/integrity.py",
@@ -3189,8 +3189,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 58494,
-          "sha256": "08c69c0bd861155d2cf4bd6c507b0972ee320d10fd7f17bf4fe1022ddb1f8300"
+          "bytes": 66365,
+          "sha256": "4c5bdcee15609baf89da84715eeeffbe3e37a8ca9319fae0fa99e17dc3850bdf"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -4701,8 +4701,8 @@
         {
           "path": "platform/src/workbench_platform/multimodal/runner.py",
           "source_path": "src/workbench_platform/multimodal/runner.py",
-          "bytes": 14685,
-          "sha256": "e8f1c29f83cce03a94a871672e7047b067e46ed845746e8ea39d221204224ff4"
+          "bytes": 15037,
+          "sha256": "5723ace3961fb3aac7ee4e98fdb43de0ec56059529d666fd1b743caaca0e1dc3"
         },
         {
           "path": "platform/src/workbench_platform/multimodal/service.py",
@@ -6291,8 +6291,8 @@
         {
           "path": "platform/tests/unit/test_multimodal_gpu.py",
           "source_path": "tests/unit/test_multimodal_gpu.py",
-          "bytes": 12455,
-          "sha256": "9d54b551a72e28a5f63972ea7159f7c55a412422c7e01395c565a27ed0ed51c9"
+          "bytes": 13352,
+          "sha256": "ebbd6bccdfc9676cfa0a0a876070a80462cb1def9a717b1ee2ea57cc437f692d"
         },
         {
           "path": "platform/tests/unit/test_native_gpu_recovery.py",
@@ -6315,14 +6315,14 @@
         {
           "path": "platform/tests/unit/test_portable_packaging.py",
           "source_path": "tests/unit/test_portable_packaging.py",
-          "bytes": 8045,
-          "sha256": "2433c404c887887fb54dfc265644c545b5ce2a1c83a78762c02845f6828aaf8d"
+          "bytes": 12153,
+          "sha256": "a516eab0a36961007b57b34d522f174fe2b0751ac394e273905fe941334aadb4"
         },
         {
           "path": "platform/tests/unit/test_runtime_config.py",
           "source_path": "tests/unit/test_runtime_config.py",
-          "bytes": 6938,
-          "sha256": "a60f48c4ec93a9f9ea92f9c4aff3125e551f3e7ce9a04fe01dd4c9eebe13e445"
+          "bytes": 7956,
+          "sha256": "43d7d5cc06966066a8012c2e8db470a539e7420b4837fc456549774944192433"
         },
         {
           "path": "platform/tests/unit/test_runtime_integrity.py",
