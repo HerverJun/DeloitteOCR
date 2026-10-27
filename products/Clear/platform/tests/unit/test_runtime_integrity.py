@@ -57,3 +57,13 @@ def test_undeclared_import_and_package_manifest_change_invalidate_cache(tmp_path
     value['blockers'] = ['intentionally unavailable required resource']
     manifest.write_text(json.dumps(value), encoding='utf-8')
     assert not verify_content(config, use_cache=True)['ok']
+
+
+def test_same_program_can_reuse_verified_bytes_for_a_new_data_identity(tmp_path):
+    from dataclasses import replace
+    config,payload = make_package(tmp_path)
+    assert verify_content(config)['ok']
+    another = replace(config,installation_id=str(uuid.uuid4()))
+    result = verify_content(another,use_cache=True)
+    assert result['ok'] and result['files_cached'] == 1 and result['files_hashed'] == 0
+    assert result['installation_id'] == another.installation_id

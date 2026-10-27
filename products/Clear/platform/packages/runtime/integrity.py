@@ -65,7 +65,10 @@ def verify_content(config, *, use_cache=False):
         cached = {}
     cache_identity = {'format': 'clear-portable-integrity-v1', 'program': str(config.program),
         'installation_id': config.installation_id, 'package_sha256': manifest_sha}
-    if any(cached.get(key) != value for key, value in cache_identity.items()):
+    # Immutable content evidence belongs to this physical program tree. A
+    # second DATA on the same host may share that evidence; account/process/GPU
+    # qualification is separately bound to each installation by the CLI.
+    if any(cached.get(key) != cache_identity[key] for key in ('format','program')):
         cached = {}
     previous = cached.get('files', {}) if cached.get('ok') is True else {}
     errors, checked, hashed, reused, records = [], 0, 0, 0, {}
