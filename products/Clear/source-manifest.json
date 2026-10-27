@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1011,
+      "file_count": 1012,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -279,8 +279,8 @@
         {
           "path": "platform/apps/portal/src/clear-ui/navigation.ts",
           "source_path": "apps/portal/src/clear-ui/navigation.ts",
-          "bytes": 740,
-          "sha256": "ceab7ae7db433f641d326fbc5ee80536929d7bd8c6bae94dd1597f074b50659f"
+          "bytes": 1119,
+          "sha256": "5f4467a16cc16669aa0037bc4849b7e2ddb1771b910dc3cfcd94503c1aa7200f"
         },
         {
           "path": "platform/apps/portal/src/clear-ui/recentVisits.ts",
@@ -321,8 +321,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/AgentWorkbench.tsx",
           "source_path": "apps/portal/src/features/agent/AgentWorkbench.tsx",
-          "bytes": 50789,
-          "sha256": "1156fd189f6ea0c82cfac03465148d1c5dddf77b5a68c4e137859f93727bdc14"
+          "bytes": 51129,
+          "sha256": "1aa32669ba3858728e639e98c79d39b8a5158498b9f76c5b099be8e5062e4c83"
         },
         {
           "path": "platform/apps/portal/src/features/agent/AuditHelp.tsx",
@@ -411,8 +411,8 @@
         {
           "path": "platform/apps/portal/src/features/agent/PlatformSettings.tsx",
           "source_path": "apps/portal/src/features/agent/PlatformSettings.tsx",
-          "bytes": 5012,
-          "sha256": "3ab9f7a7c58537b5b55857c2d173193ea731e2dd407758321c25579b0d38b841"
+          "bytes": 5022,
+          "sha256": "63fa2aae0baa024c558e9d7e98d5a4d98be2aea4ce4f1026a1f2448fb09677e7"
         },
         {
           "path": "platform/apps/portal/src/features/agent/PlatformTools.tsx",
@@ -1077,8 +1077,8 @@
         {
           "path": "platform/apps/portal/tests/agent-usability-navigation.test.tsx",
           "source_path": "apps/portal/tests/agent-usability-navigation.test.tsx",
-          "bytes": 9352,
-          "sha256": "42ab6b3cda899eca3752d7ce255ba2dfd8feac4bdc73933862a7a179288ce184"
+          "bytes": 11303,
+          "sha256": "c9739e8c38f600bc89d3b137de4bf06c484b446b31bb9d0c70b365700fa78fc3"
         },
         {
           "path": "platform/apps/portal/tests/agent-workbench-visual.test.tsx",
@@ -1229,6 +1229,12 @@
           "source_path": "apps/portal/tests/native-window.test.tsx",
           "bytes": 3155,
           "sha256": "47a6e7933921bb43ab29ed8057607b4445e857a3b7063f9efa4335eea5f21dfd"
+        },
+        {
+          "path": "platform/apps/portal/tests/navigation-scope.test.ts",
+          "source_path": "apps/portal/tests/navigation-scope.test.ts",
+          "bytes": 1744,
+          "sha256": "392bd274fe98ee4a0a3b035478ec0ed122506b381b6e17445e9c72ee652bbae9"
         },
         {
           "path": "platform/apps/portal/tests/navigation.test.tsx",

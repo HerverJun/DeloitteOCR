@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeAll, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
@@ -131,4 +131,28 @@ test('a pre-upgrade pending project creation keeps its original fixed name and r
   fireEvent.click(screen.getByRole('button', { name: '添加文件' }))
   await waitFor(() => expect(writes).toHaveLength(1))
   expect(writes[0].body).toEqual({ schema_version: '1.0', name: '智能审计项目', request_id: 'original-request' })
+})
+
+test('selected library files must finish verification before sending and retain their fixed reference', async () => {
+  let finish!: (value: unknown) => void
+  const reference = { kind: 'asset_set', application: 'platform', workspace_id: 'project', object_id: 'selected-files', revision: 1,
+    sources: [{ kind: 'asset', workspace_id: 'project', object_id: 'original-csv', revision: 1 }] }
+  const { writes } = mount('/agent?workspace=project&asset_set=selected-files', (path, init) => {
+    if (path.endsWith('/agent/references')) return new Promise(resolve => { finish = resolve })
+    if (path.endsWith('/agent/sessions') && init?.method === 'POST') return ok({ id: 'conversation' })
+    if (path.endsWith('/messages') && init?.method === 'POST') return ok({ id: 'run', status: 'succeeded' })
+  })
+  const input = await screen.findByRole('textbox', { name: '任务或问题' })
+  fireEvent.change(input, { target: { value: '只核对这份采购台账' } })
+  expect(await screen.findByText('正在核实所选资料…')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '发送', exact: true })).toBeDisabled()
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(writes.some(item => item.path.endsWith('/agent/sessions'))).toBe(false)
+  await act(async () => { finish(ok({ reference })) })
+  expect(await screen.findByText('已核实所选资料，可继续处理或与其它资料比较')).toBeInTheDocument()
+  expect(screen.queryByText('已核实带入成果，可继续处理或与其它资料比较')).not.toBeInTheDocument()
+  await waitFor(() => expect(screen.getByRole('button', { name: '发送', exact: true })).toBeEnabled())
+  fireEvent.click(screen.getByRole('button', { name: '发送', exact: true }))
+  await waitFor(() => expect(writes.some(item => item.path.endsWith('/messages'))).toBe(true))
+  expect(writes.find(item => item.path.endsWith('/agent/sessions'))?.body.initial_refs).toEqual([reference])
 })

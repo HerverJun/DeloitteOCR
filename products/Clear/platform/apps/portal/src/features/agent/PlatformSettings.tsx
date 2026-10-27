@@ -7,6 +7,7 @@ import { agentRequest, type Controller } from './api'
 import { ControllerSettings } from './ControllerSettings'
 import { SkillsPanel } from './SkillsPanel'
 import { IntegrationSettings } from './IntegrationSettings'
+import { navigationHref } from '../../clear-ui/navigation'
 import './agent.css'
 
 export function PlatformSettings() {
@@ -19,7 +20,7 @@ export function PlatformSettings() {
     queryFn: () => agentRequest<Controller>('/agent/connection') })
   const capabilities = useQuery({ queryKey: ['audit-model-capabilities', workspace], enabled: !!workspace && health.data?.enabled,
     queryFn: () => agentRequest<{ tools: { name: string; availability: { state: string; reason?: string } }[] }>(`/workspaces/${workspace}/agent/capabilities`) })
-  const scoped = (path: string) => `${path}${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ''}`
+  const scoped = (path: string) => navigationHref(path, params.toString(), '', '/settings')
   return <div className="audit-settings"><div className="page-heading"><span className="eyebrow">PLATFORM SETTINGS</span><Typography.Title level={1}>模型与平台设置</Typography.Title></div>
     <Typography.Paragraph type="secondary">连接负责对话和安排任务的主控模型，专业工具继续使用已有的本地运行环境。</Typography.Paragraph>
     {!health.data?.enabled && health.data && <Alert type="warning" title="智能审计当前未启用" description={health.data.reason} />}
@@ -38,7 +39,7 @@ export function PlatformSettings() {
         const item = capabilities.data.tools.find(tool => tool.name === name)
         return <span key={name} className="audit-capability-status" title={item?.availability.reason} data-state={item?.availability.state || 'unknown'}>{({ ocr_run: 'OCR', data_compare: '数据处理', classification_infer: '分类', forensics_inspect: '取证' })[name]} · {item?.availability.state === 'ready' ? '可用' : item?.availability.state === 'preparable' ? '可按需启动' : item?.availability.state === 'unavailable' ? '不可用' : item?.availability.state === 'disabled' ? '未启用' : '未确认'}</span>
       })}</Space>}
-      <div className="audit-settings-links"><Link to={scoped('/apps')}>打开手动工具</Link><Link to={`/agent${params.toString() ? `?${params}` : ''}`}>返回智能审计</Link></div>
+      <div className="audit-settings-links"><Link to={scoped('/apps')}>打开手动工具</Link><Link to={scoped('/agent')}>返回智能审计</Link></div>
     </section>
     <section className="audit-settings-section"><Typography.Title level={3}>Agent 技能</Typography.Title><Typography.Paragraph>Agent 按目标选择已登记的方法。可以查看技能目录，在已有任务中调整采用的技能。</Typography.Paragraph><Button disabled={!health.data?.enabled} onClick={() => setSkills(true)}>浏览技能目录</Button></section>
     <ControllerSettings open={open} close={() => setOpen(false)} />

@@ -96,6 +96,7 @@ export function AgentWorkbench() {
   const [draftPolicy, setDraftPolicy] = useState<DeliveryPolicy>('auto')
   const assetSetSource = params.get('asset_set')
   const bundle = params.get('bundle'), sourceResult = params.get('result'), sourceSession = params.get('data_session'), sourceDocument = params.get('document')
+  const hasSource = !!(bundle || sourceResult || sourceDocument || assetSetSource)
   const [settings, setSettings] = useState(false), [skills, setSkills] = useState(false), [goal, setGoal] = useState('')
   const [preferences, setPreferences] = useState(false)
   const [directTools, setDirectTools] = useState(false)
@@ -276,11 +277,11 @@ export function AgentWorkbench() {
   const captureSend = (content: string, execute: boolean) => ({ content, execute, workspace, sessionId, scope: actionScope.current, draftKey, params: params.toString(),
     selectedAssets: [...selectedAssets], authorizedReferenceIds: [...authorizedReferenceIds], deliveryPolicy,
     references: source.data ? [structuredClone(source.data.reference)] : [], mismatch,
-    missingSource: !!((bundle || sourceResult || sourceDocument || assetSetSource) && !sessionId && !source.data) })
+    missingSource: hasSource && !sessionId && !source.data })
   const send = useMutation({ mutationFn: async (entry: ReturnType<typeof captureSend>) => {
     const { content, execute, workspace: entryWorkspace, sessionId: entrySession, selectedAssets: assets, authorizedReferenceIds: referenceIds, deliveryPolicy: policy, references } = entry
     if (entry.mismatch) throw new Error('会话属于其他项目，请重新选择会话')
-    if (entry.missingSource) throw new Error('先核实带入成果的来源和版本')
+    if (entry.missingSource) throw new Error(assetSetSource ? '先核实所选资料的来源和版本' : '先核实带入成果的来源和版本')
     const stamp = JSON.stringify([entryWorkspace, entrySession, assets, content, references, referenceIds, policy])
     const stored = sessionStorage.getItem('clear-agent-pending-send')
     let attempt = stored ? JSON.parse(stored) as { stamp: string; content: string; project: string | null; conversation: string | null; projectRequest: string; sessionRequest: string; messageRequest: string } : null
@@ -376,7 +377,7 @@ export function AgentWorkbench() {
   useEffect(() => {
     if (workspace && sessionId && task.data?.title) rememberVisit(user?.id || 'single', { href: '/agent?workspace=' + encodeURIComponent(workspace) + '&session=' + encodeURIComponent(sessionId), title: task.data.title, workspace })
   }, [workspace, sessionId, task.data?.title, user?.id])
-  const sendDisabled = !goal.trim() || controlling || !neutralAvailable || task.data?.manual || mismatch || !!((bundle || sourceResult || sourceDocument) && !sessionId && !source.data)
+  const sendDisabled = !goal.trim() || controlling || !neutralAvailable || task.data?.manual || mismatch || hasSource && !sessionId && !source.data
   const submitGoal = () => { if (!sendDisabled && !send.isPending) { setError(''); send.mutate(captureSend(goal.trim(), true)) } }
   const manualParams = new URLSearchParams(params)
   manualParams.delete('session')
@@ -398,8 +399,9 @@ export function AgentWorkbench() {
     {offeredIntent && <Alert type="info" title={`已保留未发送的草稿，可切换为“${offeredIntent.title}”示例。`} closable onClose={() => setOfferedIntent(null)}
       action={<Button onClick={() => { writeGoal(offeredIntent.draft); setOfferedIntent(null); goalInput.current?.focus() }}>使用所选示例</Button>} />}
     {mismatch && <Alert type="error" title="会话与当前项目不一致，请重新选择会话" />}
-    {source.error && <Alert type="error" title={`带入成果不可用：${source.error.message}`} />}
-    {source.data && !sessionId && <Alert type="info" title="已核实带入成果，可继续处理或与其它资料比较" />}
+    {hasSource && !sessionId && source.isPending && <Alert type="info" title={assetSetSource ? '正在核实所选资料…' : '正在核实带入成果…'} />}
+    {source.error && <Alert type="error" title={`${assetSetSource ? '所选资料' : '带入成果'}不可用：${source.error.message}`} />}
+    {source.data && !sessionId && <Alert type="info" title={assetSetSource ? '已核实所选资料，可继续处理或与其它资料比较' : '已核实带入成果，可继续处理或与其它资料比较'} />}
     {health.data?.enabled && !connection.data?.available && <Alert type="info" title="自由分析需要连接主控模型；图片文字提取可直接使用"
       action={<Button onClick={() => setSettings(true)}>打开主控设置</Button>} />}
     <div className={`agent-layout${wide && panelVisible ? ' has-task-panel' : ''}`}>
