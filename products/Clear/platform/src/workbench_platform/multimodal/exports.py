@@ -61,7 +61,7 @@ def export_files(service, workspace, job, *, destination=None):
     archive = destination / 'results.zip'
     required = sum(path.stat().st_size for path in files.values()) + 64 * 1024**2
     if shutil.disk_usage(destination).free < required:
-        raise DataError('F 盘可用空间不足以生成导出包；请保留任务并腾出空间后重试', 409)
+        raise DataError('资料磁盘可用空间不足以生成导出包；请保留任务并腾出空间后重试', 409)
     temporary = destination / ('results.' + uuid.uuid4().hex + '.tmp')
     try:
         with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as bundle:

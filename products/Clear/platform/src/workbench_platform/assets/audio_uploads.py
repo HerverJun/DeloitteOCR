@@ -176,7 +176,7 @@ class AudioUploadStore:
                 "WHERE json_extract(body,'$.status')='uploading'")
         )
         if shutil.disk_usage(self.root).free < outstanding + additional + SPACE_RESERVE_BYTES:
-            raise AudioUploadError('F 盘空间不足，请保留原文件与上传记录，释放空间后恢复',
+            raise AudioUploadError('资料磁盘空间不足，请保留原文件与上传记录，释放空间后恢复',
                                    status=507, code='RESOURCE_BUSY')
 
     def begin(self, binding: AudioUploadBinding):

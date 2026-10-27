@@ -15,7 +15,7 @@ def run(source_engine,root,count=1_000_000):
     if not 1<=count<=2_000_000:raise ValueError('Benchmark count must be between 1 and 2,000,000')
     root.mkdir(parents=True,exist_ok=True)
     import shutil
-    if shutil.disk_usage(root).free<4*1024**3:raise RuntimeError('Benchmark requires at least 4 GiB free on F:')
+    if shutil.disk_usage(root).free<4*1024**3:raise RuntimeError('Benchmark requires at least 4 GiB free on the configured local disk')
     database='clear_benchmark_'+secrets.token_hex(6)
     admin=create_engine(source_engine.url.set(database='postgres'),isolation_level='AUTOCOMMIT')
     with admin.connect() as db:db.execute(text(f'CREATE DATABASE "{database}"'))

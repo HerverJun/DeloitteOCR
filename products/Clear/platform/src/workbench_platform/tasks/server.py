@@ -422,7 +422,7 @@ def create_app(engine,worker_client=None):
             try:
                 with body_file.open('xb') as stream:
                     async for chunk in request.stream():
-                        if shutil.disk_usage(folder).free<256*1024**2:raise LedgerError('F 盘剩余空间不足，请联系管理员',507)
+                        if shutil.disk_usage(folder).free<256*1024**2:raise LedgerError('资料磁盘剩余空间不足，请联系管理员',507)
                         size+=len(chunk)
                         if size>128*1024**2:raise LedgerError('文件超过 128 MB',413)
                         stream.write(chunk);content_hash.update(chunk)
@@ -538,7 +538,7 @@ def create_app(engine,worker_client=None):
                     async for chunk in request.stream():
                         size+=len(chunk)
                         if size>128*1024**2:raise LedgerError('单次上传超过 128 MB，请分批上传',413)
-                        if shutil.disk_usage(folder).free<256*1024**2:raise LedgerError('F 盘剩余空间不足，请联系管理员',507)
+                        if shutil.disk_usage(folder).free<256*1024**2:raise LedgerError('资料磁盘剩余空间不足，请联系管理员',507)
                         stream.write(chunk)
                 envelope.pop('content_hex');envelope['staged_body_file']=str(staged)
             response=await request.app.state.worker.post('/internal/native',headers=worker_headers(user,workspace),json=envelope)

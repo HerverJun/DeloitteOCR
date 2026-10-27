@@ -413,7 +413,7 @@ class Supervisor:
                             "WORKBENCH_NONCE": nonce, "WORKBENCH_LAUNCH_ID": launch_id,
                             "WORKBENCH_PORT": "0", "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1"})
         if not self.data_root:
-            raise LaunchFailure("A verified F drive data directory is required for native launch")
+            raise LaunchFailure("A configured local data directory is required for native launch")
         if self.data_root:
             environment.update(storage_environment(self.data_root))
             environment.update({"WORKBENCH_GPU_LEDGER": str(require_f_path(self.data_root / "gpu.sqlite3")),

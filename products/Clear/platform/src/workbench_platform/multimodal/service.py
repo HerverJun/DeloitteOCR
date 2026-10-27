@@ -176,7 +176,7 @@ class MultimodalService:
                 reserved+=AUDIO_DISK_BUDGET
         needed=reserved+copy_bytes+DISK_MARGIN
         if shutil.disk_usage(self.root).free<needed:
-            raise DataError(f'F 盘可用空间不足：处理及并行音频需预留至少 {needed/1024**3:.2f} GiB；已有原件和检查点已保留',503)
+            raise DataError(f'资料磁盘可用空间不足：处理及并行音频需预留至少 {needed/1024**3:.2f} GiB；已有原件和检查点已保留',503)
 
     def _stage_input(self,db,source,destination,blob_hash):
         source,destination=local_path(source),local_path(destination)
