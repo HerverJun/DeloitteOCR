@@ -34,7 +34,7 @@
   "dispatch_poll_seconds": 0.25,
   "aigc_image": {
     "default_engine": "community_forensics384",
-    "asset_root": "F:/OCR/output/aigc-image-detection-20261022",
+    "asset_resource": "aigc",
     "feature_batch_size": 32,
     "reduced_feature_batch_size": 16,
     "qualification": "experimental",
@@ -42,8 +42,8 @@
   },
   "deep_forensics": {
     "default_backend": "safire",
-    "asset_root": "F:/OCR/output/forensics-effective-upgrade-20261020/safire-integration-20261021",
-    "runtime": "F:/OCR/release/Clear/versions/0.10.0/program/runtimes/catnet/python.exe",
+    "asset_resource": "safire",
+    "runtime_resource": "safire_python",
     "calibration": null,
     "operational_trigger": "any_candidate_region",
     "page_trigger_threshold": 0.0,

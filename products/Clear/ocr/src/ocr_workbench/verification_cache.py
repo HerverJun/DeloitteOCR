@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 
 from ocr_workbench.atomic_files import read_json, write_json
+from ocr_workbench.paths import require_path
 
 
 POLICY_VERSION = 1
@@ -19,7 +20,7 @@ def timestamp():
 
 class VerificationCache:
     def __init__(self, root, *, kind="bundle", directory=None):
-        self.root = Path(root).resolve()
+        self.root = require_path(root, 'OCR verification source', role='read')
         self.installation = os.path.normcase(str(self.root))
         self.manifest = self.root / (
             "manifest.json" if kind == "bundle" else "engine-package.json"
@@ -27,6 +28,7 @@ class VerificationCache:
         directory = Path(directory) if directory is not None else (
             Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/Verification"
         )
+        directory = require_path(directory, 'OCR verification cache')
         key = hashlib.sha256((kind + ":" + self.installation).encode()).hexdigest()
         self.path = directory / (key + ".json")
         self.lock_path = directory / (key + ".lock")

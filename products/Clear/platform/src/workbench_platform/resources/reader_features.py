@@ -10,8 +10,8 @@ LOCK=threading.RLock()
 
 
 def require_features(root, *features):
-    root=Path(root).absolute()
-    if root.drive.upper()!='F:' or root.resolve().drive.upper()!='F:':raise ValueError('Reader marker must stay on F:')
+    from packages.runtime import require_path
+    root=require_path(root, 'Reader marker', role='write')
     path=root/'product-reader-requirements.json'
     with LOCK:
         value=json.loads(path.read_text('utf-8')) if path.exists() else {'format':'clear-product-reader-requirements-v1','reader_features':[]}

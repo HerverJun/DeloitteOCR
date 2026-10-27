@@ -14,6 +14,7 @@ import zipfile
 from ocr_workbench.store import uid
 from ocr_workbench.atomic_files import read_json, write_json
 from ocr_workbench.verification_cache import VerificationCache
+from ocr_workbench.paths import require_path
 
 ID = re.compile(r"[a-z][a-z0-9_-]{1,63}")
 RESERVED = {
@@ -51,8 +52,8 @@ def read_manifest(root):
 
 class EnginePackages:
     def __init__(self, bundle, data):
-        self.bundle = Path(bundle).resolve()
-        self.root = Path(data).resolve() / "engine-packages"
+        self.bundle = require_path(bundle, 'OCR engine bundle', role='read')
+        self.root = require_path(Path(data) / 'engine-packages', 'OCR engine package storage')
         self.root.mkdir(parents=True, exist_ok=True)
         self.packages = self.root / "versions"
         self.packages.mkdir(exist_ok=True)

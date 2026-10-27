@@ -28,9 +28,9 @@ def worker_environment(output, runtime, *, gpu=False, device_index=0):
         directory = local_path(output / 'runtime' / name.lower())
         directory.mkdir(parents=True, exist_ok=True)
         env[name] = str(directory)
-    native_root = local_path(Path(env.get('CLEAR_NATIVE_TEMP_ROOT', 'F:/OCR/temp/manual')))
+    native_root = local_path(Path(env.get('CLEAR_NATIVE_TEMP_ROOT') or env.get('CLEAR_PADDLE_TEMP') or output / 'temp'))
     if not str(native_root).isascii():
-        raise ValueError('Native temporary root must be an ASCII path on F:')
+        raise ValueError('Configure an ASCII native temporary root in clear.install.json')
     temporary = local_path(native_root / hashlib.sha256(str(output).encode()).hexdigest()[:20])
     temporary.mkdir(parents=True, exist_ok=True)
     for name in ('TEMP', 'TMP', 'TMPDIR', 'CLEAR_PADDLE_TEMP'):

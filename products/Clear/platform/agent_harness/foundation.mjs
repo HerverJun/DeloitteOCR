@@ -27,6 +27,7 @@ import * as SpawnSubagent from '@deepseek-ai/dsh-subagent-spawn-in-process'
 import * as ToolSubagent from '@deepseek-ai/dsh-tool-subagent'
 import * as SubagentControl from '@deepseek-ai/dsh-tool-subagent-control'
 import { resolve, relative, isAbsolute } from 'node:path'
+import { requireStoragePathSync } from './storage.mjs'
 
 const childTools = new Set(['read', 'read_image', 'glob', 'grep', 'write', 'edit', 'pwsh',
   'job_list', 'job_output', 'job_kill', 'skill', 'web_fetch', 'send_message'])
@@ -42,8 +43,7 @@ class WorkspacePolicy extends SandboxPolicy {
 
 class WorkspacePwsh extends Pwsh {
   argv(spec) {
-    const directory = realpathSync(spec.workdir)
-    if (!/^f:\\/i.test(directory)) throw new Error('PowerShell working directory must resolve to local F drive')
+    const directory = requireStoragePathSync(spec.workdir)
     // Restricted Windows PowerShell can reset its initial location to PSHOME.
     // Set the real task location explicitly. Its language mode also rejects
     // UTF8Encoding::new(), used by the upstream optional encoding preamble.
@@ -107,12 +107,12 @@ export async function installFoundation(ctx, spec, rpc, flush) {
     if (!names.has(exec.name)) return
     const args = exec.arguments || {}
     if (exec.name === 'subagent' && args.cwd) {
-      const directory = realpathSync(resolve(cwd, args.cwd))
+      const directory = requireStoragePathSync(resolve(cwd, args.cwd))
       const path = relative(realpathSync(cwd), directory)
       if (path.startsWith('..') || isAbsolute(path)) return 'Child working directory must remain inside the parent task workspace.'
     }
     if (args.sandbox_permissions && args.sandbox_permissions !== 'use_default') {
-      return 'This workspace keeps file writes inside its F-drive task directory; escalation is unavailable.'
+      return 'This workspace keeps file writes inside its installation-authorized task directory; escalation is unavailable.'
     }
   })
   ctx.on('tools/execute', async (exec, next) => {

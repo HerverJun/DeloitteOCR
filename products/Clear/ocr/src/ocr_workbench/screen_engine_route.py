@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
+from ocr_workbench.paths import require_path
 
 from ocr_workbench.screen_diagnostics import observed_box, _area, _intersection
 
@@ -16,8 +17,8 @@ def _digest(value):
 
 def decide_engine_route(preparation,evidence,source_sha256,input_version_id):
     """No candidate, truth, filename, sample ID or prior score participates."""
-    path=Path(str(preparation.get('input_path') or '')).resolve()
-    if (path.drive.upper()!='F:' or preparation.get('input_sha256')!=source_sha256
+    path=require_path(str(preparation.get('input_path') or ''), '精度路线原图', role='read')
+    if (preparation.get('input_sha256')!=source_sha256
             or hashlib.sha256(path.read_bytes()).hexdigest()!=source_sha256):
         raise ValueError('精度路线缺少当前原图字节绑定')
     regions=[box for region in preparation.get('business_regions',[]) if isinstance(region,dict)

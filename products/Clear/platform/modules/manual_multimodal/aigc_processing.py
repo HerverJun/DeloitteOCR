@@ -30,9 +30,8 @@ def digest(path):
 
 
 def verified_assets(binding):
-    root = Path(binding['asset_root']).resolve()
-    if root.drive.upper() != 'F:':
-        raise ValueError('AIGC assets must remain on F:')
+    from runtime_paths import require_path
+    root = require_path(binding['asset_root'], 'AIGC assets', role='read')
     for name, identity in binding['resources'].items():
         path = (root / name).resolve()
         if not path.is_relative_to(root) or not path.is_file():

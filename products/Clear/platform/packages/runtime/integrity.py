@@ -96,7 +96,12 @@ def verify_content(config, *, use_cache=False):
                     or any(part in {'', '.', '..'} for part in member.split('/'))
                     or not isinstance(expected, dict) or not re.fullmatch('[0-9a-f]{64}', expected.get('sha256', ''))):
                 raise ValueError('Invalid relative content declaration')
-            path = config.check(config.program/relative, role='read')
+            # The exact physical tree above already checked every ancestor.
+            # Rechecking all ancestors for each of ~180k leaves magnifies NTFS
+            # metadata I/O without strengthening the immutable package boundary.
+            path = config.program/relative
+            if path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction()):
+                raise ValueError('Package member became a reparse point')
             before = signature(path)
             if before[2] != expected['bytes']:
                 raise ValueError('Missing or changed file size')

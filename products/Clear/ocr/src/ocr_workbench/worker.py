@@ -121,6 +121,10 @@ def paddle_engine(engine, models, image, pipe=None, loaded=None):
 
 def run_image(args, session=None):
     """Write one complete result, with optional resident model reuse."""
+    from ocr_workbench.paths import require_path
+    args.bundle = require_path(args.bundle, 'OCR worker bundle', role='read')
+    args.image = require_path(args.image, 'OCR worker input', role='read')
+    args.output = require_path(args.output, 'OCR worker output')
     from ocr_workbench.recognition_modes import validate_recognition_mode
     validate_recognition_mode(args.engine, getattr(args, 'recognition_mode', 'page'))
     faulthandler.enable()
@@ -162,6 +166,8 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     p.add_argument('--recognition-mode', choices=['page', 'local_text'], default='page')
     args = p.parse_args()
+    from ocr_workbench.paths import require_path
+    args.output = require_path(args.output, 'OCR worker output')
     from ocr_workbench.recognition_modes import validate_recognition_mode
     validate_recognition_mode(args.engine, args.recognition_mode)
     args.output.mkdir(parents=True, exist_ok=True)

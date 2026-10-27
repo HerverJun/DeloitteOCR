@@ -14,6 +14,7 @@ from contextlib import ExitStack
 from ocr_workbench.engine_packages import member_path
 from ocr_workbench.atomic_files import write_json
 from ocr_workbench.verification_cache import VerificationCache
+from ocr_workbench.paths import require_path
 
 
 FIRST_START_NOTICE = (
@@ -53,7 +54,8 @@ def run_startup_checks(bundle, data, registry=None, *, policy="auto", review_onl
     """Select a full check or a constant-size preflight; payload checks stay explicit."""
     if policy not in {"auto", "full"}:
         raise ValueError("未知启动校验策略")
-    bundle, data = Path(bundle).resolve(), Path(data).resolve()
+    bundle = require_path(bundle, 'OCR startup bundle', role='read')
+    data = require_path(data, 'OCR startup DATA')
     target = data / "launcher/startup-state.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
@@ -229,8 +231,8 @@ def verify_integrity(root, progress=lambda done, total: None, *, core_only=False
 
 
 def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *, context=None):
-    bundle = Path(bundle).resolve()
-    data = Path(data).resolve()
+    bundle = require_path(bundle, 'OCR startup bundle', role='read')
+    data = require_path(data, 'OCR startup DATA')
     data.mkdir(parents=True, exist_ok=True)
     session = data / "launcher"
     session.mkdir(exist_ok=True)
@@ -331,9 +333,11 @@ def run_checks(bundle, data, registry=None, integrity=True, review_only=False, *
                     "ALL_PROXY",
                 ]:
                     env.pop(key, None)
-                code = "import importlib,json,sys;from pathlib import Path;from ocr_workbench.offline import configure,install_guard;configure(Path(sys.argv[1]));install_guard(Path(sys.argv[1])/'blocked.log');[importlib.import_module(name) for name in json.loads(sys.argv[2])];print('imports-ok')"
+                code = ("import os,sys;from pathlib import Path;package=os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT');"
+                    "sys.path[:0]=[package,str(Path(package)/'src')] if package else [];"
+                    "sys.path.insert(0," + repr(str(Path(__file__).resolve().parents[1])) + ");"
+                    "import importlib,json;from ocr_workbench.offline import configure,install_guard;configure(Path(sys.argv[1]));install_guard(Path(sys.argv[1])/'blocked.log');[importlib.import_module(name) for name in json.loads(sys.argv[2])];print('imports-ok')")
                 if engine == 'mineru_pro':
-                    code = "import sys;sys.path.insert(0," + repr(str(Path(__file__).resolve().parents[1])) + ");" + code
                     env.update(HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
                 if engine in {"ppocr", "paddlevl"}:
                     code += ";import paddle;assert paddle.is_compiled_with_cuda() and paddle.device.cuda.device_count()>0"

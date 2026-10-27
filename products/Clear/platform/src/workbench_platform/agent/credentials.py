@@ -46,7 +46,15 @@ def normalize_url(value):
 class CredentialVault:
     """Current-user Windows DPAPI, platform storage, excluded from exports."""
     def __init__(self, root):
-        self.root = require_f_path(Path(root), 'Platform controller credentials')
+        from packages.runtime import current_install, require_path
+        configured = current_install()
+        requested = require_path(Path(root), 'Credential namespace', role='read')
+        if configured:
+            if requested.is_relative_to(configured.data):
+                requested = configured.roots['secrets'] / 'vaults' / requested.relative_to(configured.data)
+            elif not requested.is_relative_to(configured.roots['secrets']):
+                raise ValueError('Credentials must belong to this installation secrets root')
+        self.root = require_path(requested, 'Platform controller credentials', role='write')
 
     @staticmethod
     def _crypt(data, decrypt=False):

@@ -8,6 +8,7 @@ import re
 import time
 
 from ocr_workbench.store import Conflict, encoded, now, uid
+from ocr_workbench.paths import require_path
 
 VERSION = 'screen-local-candidates-v1'
 CONTROL_VERSION = 'screen-local-control-v1'
@@ -361,9 +362,7 @@ def prepare_local_input(store, task):
     scaled = crop.resize((crop.width * scale, crop.height * scale), Image.Resampling.LANCZOS)
     padded = Image.new('RGB', (scaled.width + border * 2, scaled.height + border * 2), 'white')
     padded.paste(scaled, (border, border))
-    folder = store.root / 'task-results' / task['id'] / ('crop-' + str(time.time_ns()))
-    if folder.absolute().drive.upper() != 'F:' or folder.resolve().drive.upper() != 'F:':
-        raise ValueError('局部候选输出只能保存在F盘')
+    folder = require_path(store.root / 'task-results' / task['id'] / ('crop-' + str(time.time_ns())), '局部候选输出')
     folder.mkdir(parents=True)
     path = folder / 'crop.png'
     padded.save(path)
@@ -385,8 +384,8 @@ def prepare_local_input(store, task):
 
 
 def retain_local_artifact(store, task, output):
-    output = Path(output).resolve()
-    if not output.is_relative_to((store.root / 'task-results' / task['id']).resolve()) or output.drive.upper() != 'F:':
+    output = require_path(output, '局部候选产物', role='read')
+    if not output.is_relative_to((store.root / 'task-results' / task['id']).resolve()):
         raise ValueError('局部候选产物不属于当前任务')
     paths = {name: output / name for name in ARTIFACT_NAMES - {'crop.png', 'crop-binding.json'}}
     rows = store.rows('SELECT metadata FROM screen_local_requests WHERE task_id=?', (task['id'],))
@@ -398,8 +397,8 @@ def retain_local_artifact(store, task, output):
     for name, path in paths.items():
         if not path.is_file():
             continue
-        resolved = path.resolve()
-        if not resolved.is_relative_to((store.root / 'task-results' / task['id']).resolve()) or resolved.drive.upper() != 'F:':
+        resolved = require_path(path, '局部候选产物', role='read')
+        if not resolved.is_relative_to((store.root / 'task-results' / task['id']).resolve()):
             raise ValueError('局部候选产物不属于当前任务')
         files[name] = {'path': str(resolved.relative_to(store.root)),
             'sha256': hashlib.sha256(resolved.read_bytes()).hexdigest()}
@@ -418,9 +417,9 @@ def local_candidate_file(manager, project_id, batch_id, request_id, task_id, fil
     artifact = files.get(file_id)
     if not artifact:
         raise KeyError('局部候选产物尚未生成')
-    path = manager.store.file(artifact['path']).resolve()
+    path = require_path(manager.store.file(artifact['path']), '局部候选产物', role='read')
     expected = (manager.store.root / 'task-results' / task_id).resolve()
-    if path.drive.upper() != 'F:' or not path.is_relative_to(expected):
+    if not path.is_relative_to(expected):
         raise Conflict('局部候选产物路径不属于当前任务')
     if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != artifact['sha256']:
         raise Conflict('局部候选产物已变化或不存在')

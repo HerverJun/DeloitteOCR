@@ -55,11 +55,18 @@ def normalize_url(value):
 class CredentialVault:
     """Current-user Windows DPAPI, stored outside projects and their exports."""
     def __init__(self, root=None):
+        from ocr_workbench.paths import require_path
         if root:
             self.root = Path(root)
+        elif os.environ.get('CLEAR_INSTALL_CONFIG'):
+            configured = os.environ.get('CLEAR_SECRETS_ROOT')
+            if not configured:
+                raise ValueError('Managed OCR is missing its installation secrets directory')
+            self.root = Path(configured) / 'ocr'
         else:
             local = os.environ.get('LOCALAPPDATA')
             self.root = Path(local if local is not None else Path.home()) / 'OfflineOCR' / 'Credentials'
+        self.root = require_path(self.root, 'OCR credentials')
 
     @staticmethod
     def _crypt(data, decrypt=False):

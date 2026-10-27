@@ -7,11 +7,12 @@ import numpy as np
 
 from .images import decode, file_sha
 from .store import dump, now, uid, fingerprint
+from .paths import require_path
 
 
 def register_asset(store, project_id, path, label_id=None, source_id="upload", group_id=None,
                    job=None, on_accept=None):
-    path = Path(path).resolve(strict=True)
+    path = require_path(path, 'Classification asset', role='read').resolve(strict=True)
     project = store.project(project_id)
     if label_id and label_id not in {x["label_id"] for x in project["labels"]}:
         raise ValueError("类别不属于该项目")
@@ -223,4 +224,5 @@ def load_dataset(store, dataset_id):
         raise LookupError("数据版本不存在")
     if file_sha(dataset["manifest_path"]) != dataset["manifest_sha256"]:
         raise ValueError("数据清单哈希不匹配，已拒绝读取")
-    return dataset, json.loads(Path(dataset["manifest_path"]).read_text(encoding="utf-8"))
+    manifest = require_path(dataset['manifest_path'], 'Frozen classification dataset', role='read')
+    return dataset, json.loads(manifest.read_text(encoding='utf-8'))

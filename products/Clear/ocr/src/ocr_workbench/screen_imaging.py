@@ -473,7 +473,9 @@ def prepare_screen_image(input_path, output_dir, evidence=None, *, max_regions=8
     """
     if not (1 <= max_regions <= 32 and 256 <= tile_size <= 4096 and 0 <= overlap < tile_size/2 and 0 <= max_tiles <= 64):
         raise ValueError("无效的表区/分块预算")
-    input_path, output_dir = Path(input_path).resolve(), Path(output_dir).resolve()
+    from ocr_workbench.paths import require_path
+    input_path = require_path(input_path, 'Screen image source', role='read')
+    output_dir = require_path(output_dir, 'Screen image preparation')
     if input_path == output_dir or input_path.is_relative_to(output_dir):
         raise ValueError("预处理输出目录不能包含原始输入")
     with Image.open(input_path) as opened:

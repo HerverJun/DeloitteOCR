@@ -10,17 +10,16 @@ import time
 # Embedded Windows Python uses ._pth isolation and does not add the script's
 # directory to sys.path. Keep the small sibling modules explicit in packaged runs.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runtime_paths import require_path
 
 def initialize_temporary_directory(output):
     import tempfile
     configured=os.environ.get('CLEAR_PADDLE_TEMP') or os.environ.get('TEMP','')
     if not configured or not str(configured).isascii():
-        configured='F:/OCR/temp/manual/'+hashlib.sha256(str(output).encode('utf-8')).hexdigest()[:20]
-    temporary=Path(configured).absolute()
-    if temporary.drive.upper()!='F:' or temporary.resolve().drive.upper()!='F:' or not str(temporary).isascii():
-        raise ValueError('Native libraries require an ASCII temporary directory on F:')
+        raise ValueError('Native libraries require a configured ASCII temporary directory')
+    temporary=require_path(configured, 'Native temporary directory', role='write')
     if any(p.is_symlink() or p.is_junction() for p in (temporary,*temporary.parents)):
-        raise ValueError('Temporary directory must be a real F: directory')
+        raise ValueError('Temporary directory cannot traverse a reparse point')
     temporary.mkdir(parents=True,exist_ok=True)
     for key in ('TEMP','TMP','TMPDIR','CLEAR_PADDLE_TEMP'):os.environ[key]=str(temporary)
     tempfile.tempdir=str(temporary)
@@ -253,7 +252,8 @@ def catnet(request):
 if __name__=='__main__':
     deny_network()
     input_path=Path(sys.argv[1]).resolve();OUT=input_path.parent
-    if input_path.drive.upper()!='F:' or OUT.resolve().drive.upper()!='F:':raise ValueError('worker output must be on F:')
+    require_path(input_path, 'Worker request', role='read')
+    require_path(OUT, 'Worker output', role='write')
     initialize_temporary_directory(OUT)
     request=json.loads(input_path.read_text('utf-8'))
     import faulthandler

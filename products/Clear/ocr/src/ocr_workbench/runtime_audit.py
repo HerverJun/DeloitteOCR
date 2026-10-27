@@ -7,6 +7,7 @@ import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import sys
+from ocr_workbench.paths import require_path
 
 
 def _relative(value):
@@ -40,20 +41,24 @@ def _mineru_sources(bundle):
     configured = os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST')
     if not configured:
         return []
-    requested = Path(configured).absolute()
-    path = requested.resolve(strict=True)
-    if requested.drive.upper() != 'F:' or path.drive.upper() != 'F:':
-        raise RuntimeError('MinerU runtime source manifest escaped local F drive')
+    path = require_path(configured, 'MinerU runtime source manifest', role='read').resolve(strict=True)
     record, payload = _read_json(path, 16_777_216)
     if (hashlib.sha256(payload).hexdigest() != os.environ.get('CLEAR_MINERU_PRO_RUNTIME_MANIFEST_SHA256')
-            or record.get('schema_version') != 1):
+            or record.get('schema_version') not in {1, 2}):
         raise RuntimeError('MinerU runtime source declaration differs from the pinned launcher identity')
+    if record['schema_version'] == 2 and record.get('root_base') != 'manifest':
+        raise RuntimeError('Portable MinerU runtime roots must be relative to their manifest')
     sources, seen = [], set()
     for source in record['sources']:
-        requested = Path(source['root']).absolute()
-        root = requested.resolve(strict=True)
-        if requested.drive.upper() != 'F:' or root.drive.upper() != 'F:' or str(root).casefold() in seen:
-            raise RuntimeError('MinerU runtime source escaped local F drive or is duplicated')
+        declared_root = source['root']
+        if record['schema_version'] == 2:
+            if (not isinstance(declared_root, str) or not declared_root or '\\' in declared_root
+                    or ':' in declared_root or PureWindowsPath(declared_root).is_absolute()):
+                raise RuntimeError('Portable MinerU runtime source must use a relative member root')
+            declared_root = path.parent / declared_root
+        root = require_path(declared_root, 'MinerU runtime source', role='read').resolve(strict=True)
+        if str(root).casefold() in seen:
+            raise RuntimeError('MinerU runtime source is duplicated')
         seen.add(str(root).casefold())
         files = source['files']
         if not isinstance(files, dict):
@@ -93,9 +98,9 @@ def _registered_sources(bundle):
                 raise ValueError('Registered runtime declaration changed')
             records[name] = record
         binding, record = records['native-binding.json'], records['runtime-sources.json']
-        asset = Path(binding['asset_bundle']).resolve(strict=True)
-        if (binding['app_id'] != 'ocr' or asset.drive.upper() != 'F:'
-                or bundle.drive.upper() != 'F:' or asset == bundle
+        asset = require_path(binding['asset_bundle'], 'OCR runtime assets', role='read').resolve(strict=True)
+        require_path(bundle, 'OCR private bundle', role='read')
+        if (binding['app_id'] != 'ocr' or asset == bundle
                 or asset.is_relative_to(bundle) or bundle.is_relative_to(asset)
                 or record['schema_version'] != 1
                 or Path(record['source_bundle']).resolve(strict=True) != asset

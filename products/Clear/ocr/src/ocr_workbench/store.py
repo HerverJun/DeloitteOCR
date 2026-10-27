@@ -13,6 +13,7 @@ import uuid
 import zlib
 from ocr_workbench.fusion_store import FusionStoreMixin
 from ocr_workbench.document_store import DocumentStoreMixin, migrate_v9
+from ocr_workbench.paths import require_path
 
 
 SCHEMA_VERSION = 22
@@ -62,12 +63,12 @@ def _migrate_engine_routes(db):
 
 class Store(DocumentStoreMixin, FusionStoreMixin):
     def __init__(self, root):
-        self.root = Path(root).resolve()
+        self.root = require_path(root, 'OCR DATA')
         self.root.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
         self.file_lock = threading.RLock()
         # A future schema must be rejected before WAL or any schema write occurs.
-        path = self.root / "workbench.sqlite3"
+        path = require_path(self.root / 'workbench.sqlite3', 'OCR database')
         exists = path.is_file()
         if exists:
             # A closed WAL database has no frames to replay. SQLite mode=ro
@@ -419,7 +420,7 @@ class Store(DocumentStoreMixin, FusionStoreMixin):
         return rows[0]
 
     def file(self, relative):
-        path = (self.root / relative).resolve()
+        path = require_path(self.root / relative, 'OCR project file', role='read')
         if not path.is_relative_to(self.root):
             raise ValueError("无效的项目文件路径")
         return path

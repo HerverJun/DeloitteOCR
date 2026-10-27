@@ -70,6 +70,37 @@ def test_binding_is_independent_and_rejects_weight_and_inventory_changes(pinned)
     with pytest.raises(ValueError,match='resource changed'):aigc_backend.verify(service,binding)
 
 
+def test_portable_frozen_identity_survives_package_move_without_following_a_new_model(pinned, monkeypatch):
+    import shutil
+    import uuid
+    service, root, _, inventory = pinned
+    inventory.update(format='clear-aigc-assets-v2', runtime_base='asset-root', runtime='runtime/python.exe',
+        runtime_closed_directories=['runtime'],
+        runtime_resources={Path(name).relative_to(root).as_posix(): value for name,value in inventory['runtime_resources'].items()})
+    (root/'aigc-inventory.json').write_text(json.dumps(inventory), encoding='utf-8')
+    original = aigc_backend.bind(service)
+    relocated = root.parent/(root.name+'-中文 程序')
+    shutil.copytree(root, relocated)
+    data = root.parent/(root.name+'-data')
+    paths = {name:str(relocated/name) for name in ('assets','runtimes','tools')}
+    paths.update(program=str(relocated), **{name:str(data/name) for name in
+        ('data','cache','temp','paddle_temp','secrets','backup','postgres')})
+    config_path = root.parent/(root.name+'.install.json')
+    config_path.write_text(json.dumps({'schema_version':1,'installation_id':str(uuid.uuid4()),
+        'mode':'single','paths':paths,'resources':{'platform_source':'.','aigc':'.'},
+        'network':{'transport':'loopback-http','listen':'127.0.0.1','public_origin':'http://127.0.0.1:18889',
+            'portal_port':18889,'worker_port':18890,'postgres_port':15432}}),encoding='utf-8')
+    monkeypatch.setenv('CLEAR_INSTALL_CONFIG',str(config_path))
+    moved = aigc_backend.item_binding({'model_binding':original})
+    aigc_backend.verify(service,moved)
+    assert moved['asset_root'] == str(relocated)
+    assert original['asset_root'] == str(root)
+    assert aigc_backend.public_identity(moved) == aigc_backend.public_identity(original)
+    (relocated/'aigc-inventory.json').write_text('{}',encoding='utf-8')
+    with pytest.raises(ValueError,match='frozen task'):
+        aigc_backend.item_binding({'model_binding':original})
+
+
 def test_persisted_binding_does_not_follow_new_default_or_root(pinned,monkeypatch):
     service,root,_,_=pinned
     binding=aigc_backend.bind(service)

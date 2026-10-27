@@ -18,10 +18,28 @@ import sys
 import threading
 import time
 import uuid
+from .paths import require_path
 
 _KEYS = ("WORKBENCH_APP_ID", "WORKBENCH_INSTANCE_ID", "WORKBENCH_LAUNCH_ID",
          "WORKBENCH_GPU_LEDGER")
 _ACTIVE = False
+
+_WORKER_BOOTSTRAP = '''import os,runpy,sys
+from pathlib import Path
+if os.environ.get('CLEAR_INSTALL_CONFIG'):
+    package_root=os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT')
+    if not package_root:
+        raise RuntimeError('Managed classification worker is missing the shared runtime package root')
+    sys.path.insert(0,package_root)
+    from packages.runtime import require_path
+    require_path(package_root,'Shared runtime package',role='read')
+    sys.path.insert(0,str(Path(package_root)/'src'))
+source=Path(sys.argv.pop(1)).resolve()
+if os.environ.get('CLEAR_INSTALL_CONFIG'):
+    require_path(source,'Classification worker source',role='read')
+sys.path.insert(0,str(source))
+runpy.run_module('image_platform.platform_resources',run_name='__main__')
+'''
 
 
 class ResourceUnavailable(RuntimeError):
@@ -75,6 +93,7 @@ def _identity():
 @contextmanager
 def _legacy_lock():
     root = Path(os.environ.get("LOCALAPPDATA", str(Path.cwd()))) / "OfflineOCR"
+    root = require_path(root, 'Classification compatibility GPU lock')
     root.mkdir(parents=True, exist_ok=True)
     with (root / "gpu.lock").open("a+b") as lock:
         if lock.tell() == 0:
@@ -265,7 +284,8 @@ class OwnedJob:
 
 def _run_gated(payload, reservation, control=None, lost=None):
     """Child waits on stdin until after assignment to the owned Job."""
-    command = [sys.executable, "-m", "image_platform.platform_resources"]
+    source = require_path(Path(__file__).resolve().parents[1], 'Classification worker source', role='read')
+    command = [sys.executable, '-B', '-X', 'utf8', '-I', '-c', _WORKER_BOOTSTRAP, str(source)]
     with OwnedJob() as job:
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)

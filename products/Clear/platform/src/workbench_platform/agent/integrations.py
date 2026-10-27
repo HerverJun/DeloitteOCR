@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from workbench_platform.supervisor.processes import require_f_path
+from packages.runtime import require_path
 from .credentials import CredentialVault
 from .store import canonical, Conflict
 
@@ -15,7 +15,7 @@ from packages.contracts.agent_integrations import McpServer, Integrations
 def validate_server(server):
     if server.transport != 'stdio':
         return
-    path = require_f_path(server.command)
+    path = require_path(server.command, 'MCP executable', role='read')
     if not path.is_file():
         raise ValueError('MCP可执行文件不存在')
     server.command = str(path)
@@ -36,7 +36,7 @@ def view(runtime):
     return {**value, 'mcp_servers': [{key: item for key, item in server.items() if key != 'secret_ref'} |
         {'credential_configured': bool(server.get('secret_ref'))} for server in value['mcp_servers']],
         'web': {'fetch': True, 'search': False, 'search_reason': '尚未配置搜索服务'},
-        'storage': '任务专用F盘目录；本地MCP进程使用DSH写入边界'}
+        'storage': '安装配置授权的任务专用目录；本地MCP进程使用DSH写入边界'}
 
 
 def save(runtime, draft):

@@ -16,8 +16,10 @@ from forensic_toolbox.review import render
 
 def main():
     source, output, tools, name = Path(sys.argv[1]), Path(sys.argv[2]), json.loads(sys.argv[3]), sys.argv[4]
-    if output.absolute().drive.upper() != 'F:' or output.resolve().drive.upper() != 'F:':
-        raise ValueError('Output must stay on F')
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from packages.runtime import require_path
+    source = require_path(source, 'Forensics input', role='read')
+    output = require_path(output, 'Forensics output', role='write')
     if set(tools) - {'metadata', 'noise', 'frequency', 'jpeg', 'jpeg_grid', 'copy_move'}:
         raise ValueError('Tool is not admitted')
     Image.MAX_IMAGE_PIXELS = 12_000_000

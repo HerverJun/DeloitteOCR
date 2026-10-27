@@ -29,6 +29,7 @@ class StartupCacheTests(unittest.TestCase):
             path = self.bundle / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"test payload")
+        (self.bundle / 'config/engines.json').write_text('{}', encoding='utf-8')
         self.manifest()
         self.probes = patch("ocr_workbench.startup.subprocess.run", side_effect=self.probe).start()
         self.addCleanup(patch.stopall)

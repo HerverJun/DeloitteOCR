@@ -7,11 +7,11 @@ import inspect
 import json
 import math
 import os
-from pathlib import Path
 import re
 
 from .providers import ProviderFault, SYSTEM, payload_for
 from .model_profiles import resolve_profile
+from packages.runtime import require_path
 
 
 CORE_TOOLS = (
@@ -48,8 +48,9 @@ class TokenEstimator:
         cache = os.environ.get('TIKTOKEN_CACHE_DIR')
         if not name or not cache:
             return
-        location = Path(cache)
-        if location.resolve().drive.casefold() != 'f:':
+        try:
+            location = require_path(cache, 'Tokenizer cache', role='read')
+        except (OSError, ValueError):
             return
         url = 'https://openaipublic.blob.core.windows.net/encodings/' + name + '.tiktoken'
         cache_file = location / hashlib.sha1(url.encode()).hexdigest()

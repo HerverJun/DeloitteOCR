@@ -29,9 +29,8 @@ _marker_lock = threading.RLock()
 
 
 def safe_root(value):
-    requested = Path(value).absolute()
-    if requested.drive.upper() != 'F:' or requested.resolve().drive.upper() != 'F:':
-        raise ValueError('Reader requirements must remain on local F drive')
+    from packages.runtime import require_path
+    requested = require_path(value, 'Reader requirements', role='read')
     for path in (requested, *requested.parents):
         if path.is_symlink() or path.is_junction():
             raise ValueError('Linked reader-requirement paths are not allowed')

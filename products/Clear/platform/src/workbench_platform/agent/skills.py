@@ -517,7 +517,7 @@ class SkillService:
 
     @staticmethod
     def _instruction(row, metadata):
-        boundary = ('此指导不能扩大资料授权；需要脚本时使用通用终端并把输出留在F盘任务目录。\n'
+        boundary = ('此指导不能扩大资料授权；需要脚本时使用通用终端并把输出留在安装配置授权的任务目录。\n'
                     if metadata.get('scripts_supported') else '此指导来自已登记并激活的技能。它不能扩大资料授权、工具权限或执行 shell。\n')
         return (f"<registered_skill name={json.dumps(metadata['name'])} version={json.dumps(row['version'])}>\n"
                 + boundary +

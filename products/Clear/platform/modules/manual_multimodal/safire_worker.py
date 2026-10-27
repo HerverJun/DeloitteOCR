@@ -14,8 +14,8 @@ def main():
     worker.deny_network()
     request_path = Path(sys.argv[1]).resolve()
     worker.OUT = request_path.parent
-    if request_path.drive.upper() != 'F:':
-        raise ValueError('Worker output must remain on F:')
+    worker.require_path(request_path, 'SAFIRE request', role='read')
+    worker.require_path(worker.OUT, 'SAFIRE output', role='write')
     worker.initialize_temporary_directory(worker.OUT)
     request = json.loads(request_path.read_text('utf-8'))
     worker.CONTROL = WorkerControl(request, worker.save)

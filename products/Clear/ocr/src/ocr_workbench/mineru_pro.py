@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import sys
 import time
+from ocr_workbench.paths import require_path
 
 MODEL = 'MinerU2.5-Pro-2605-1.2B'
 UTILS_VERSION = '2.0.5'
@@ -33,10 +34,7 @@ def engine_catalog(bundle):
 
 def model_directory(models):
     requested = Path(os.environ['CLEAR_MINERU_PRO_MODEL']) if os.environ.get('CLEAR_MINERU_PRO_MODEL') else Path(models) / MODEL
-    resolved = requested.resolve()
-    if requested.absolute().drive.upper() != 'F:' or resolved.drive.upper() != 'F:':
-        raise ValueError('MinerU Pro model must remain on local F drive')
-    return resolved
+    return require_path(requested, 'MinerU Pro model', role='read')
 
 
 def normalize_blocks(items, width, height):

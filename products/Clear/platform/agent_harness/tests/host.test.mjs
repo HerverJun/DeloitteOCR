@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const taskRoot = 'F:/OCR/output/agent-harness-upgrade-20261015'
+const taskRoot = resolve(process.env.CLEAR_HARNESS_TEST_ROOT || process.env.TEMP, 'clear-harness-tests')
 const fixtureRoot = resolve(taskRoot, 'evidence/host-tests')
 const hostPath = fileURLToPath(new URL('../host.mjs', import.meta.url))
 const tool = name => ({ name, description: `Declared ${name}`, parameters: { type: 'object', properties: {}, additionalProperties: false } })

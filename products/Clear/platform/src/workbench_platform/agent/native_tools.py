@@ -74,8 +74,9 @@ def environment(runtime, state, env):
                PYTHONUTF8='1', PYTHONIOENCODING='utf-8',
                PSModuleAnalysisCachePath=str(private / 'powershell-analysis'),
                POWERSHELL_TELEMETRY_OPTOUT='1', POWERSHELL_UPDATECHECK='Off')
-    python = Path(os.environ.get('CLEAR_GENERAL_PYTHON',
-        'F:/OCR/release/Clear/versions/0.10.0/program/runtimes/data/python.exe'))
+    from packages.runtime import resource_path
+    python = resource_path('data_python', environment=(
+        'CLEAR_GENERAL_PYTHON' if os.environ.get('CLEAR_GENERAL_PYTHON') else 'WORKBENCH_DATA_PYTHON'))
     python = require_f_path(python)
     if python.is_file():
         from .general_python import prepare

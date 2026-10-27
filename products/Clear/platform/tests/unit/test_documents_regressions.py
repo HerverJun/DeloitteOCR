@@ -167,7 +167,8 @@ def test_equal_table_coalescing_requires_the_same_source_structure_and_region():
 
 
 @pytest.mark.parametrize('suffix', ['png', 'pdf'])
-def test_cancel_then_immediate_resume_cancels_the_old_accepted_native_child(tmp_path, suffix):
+def test_cancel_then_immediate_resume_cancels_the_old_accepted_native_child(tmp_path, suffix, monkeypatch):
+    monkeypatch.setenv('WORKBENCH_DOCUMENTS_PYTHON', str(tmp_path/'explicit-document-python.exe'))
     sets, handoff, adapter, jobs, workspace = Mock(), Mock(), Mock(), Mock(), Mock()
     sets.create.return_value = SimpleNamespace(asset_set_id='set', revision=1)
     handoff.begin.return_value = {'handoff_id': 'handoff'}

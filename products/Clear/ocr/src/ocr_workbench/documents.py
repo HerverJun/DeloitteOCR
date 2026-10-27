@@ -29,8 +29,9 @@ class PdfCPU:
     gate = threading.BoundedSemaphore(2)
 
     def __init__(self, bundle, workspace):
-        self.runtime = Path(bundle) / 'runtimes/pdf/python.exe'
-        self.workspace = Path(workspace)
+        from ocr_workbench.paths import require_path
+        self.runtime = require_path(Path(bundle) / 'runtimes/pdf/python.exe', 'PDF runtime', role='read')
+        self.workspace = require_path(workspace, 'PDF workspace')
 
     def call(self, request, cancelled=lambda: False, timeout=300):
         from ocr_workbench.processes import ProcessJob
@@ -48,7 +49,10 @@ class PdfCPU:
                 job, process = ProcessJob(), None
                 try:
                     process = subprocess.Popen([str(self.runtime), '-B', '-X', 'utf8', '-I', '-c',
-                        'import sys;sys.path.insert(0,sys.argv[1]);from ocr_workbench.pdf_worker import main;main()',
+                        "import os,sys;from pathlib import Path;"
+                        "root=os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT');"
+                        "sys.path[:0]=[root,str(Path(root)/'src')] if root else [];"
+                        "sys.path.insert(0,sys.argv[1]);from ocr_workbench.pdf_worker import main;main()",
                         str(Path(__file__).resolve().parents[1])], stdin=subprocess.PIPE,
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                         creationflags=subprocess.CREATE_NO_WINDOW)

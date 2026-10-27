@@ -85,6 +85,10 @@ class InstallConfig:
         # read views of a registered old DATA prefix follow a restore mapping;
         # old model/runtime references are never redirected to today's default.
         if role == 'read' and '..' not in requested.parts and not any(requested.is_relative_to(root) for root in self.roots.values()):
+            for original, member in self.policy.get('legacy_file_map', {}).items():
+                if requested == Path(original):
+                    requested = self.data / member
+                    break
             for old in self.policy.get('legacy_data_roots', []):
                 try:
                     relative = requested.relative_to(Path(old))
@@ -101,7 +105,7 @@ class InstallConfig:
         if not any(path.is_relative_to(self.roots[key]) for key in roots) or not any(actual.is_relative_to(self.roots[key]) for key in roots):
             raise ValueError(f'{label} is outside registered {role} roots: {path}')
         # Only explicitly registered read-only Paddle aliases are permitted.
-        for ancestor in (path, *path.parents):
+        for ancestor in ((path, *path.parents) if path != actual else ()):
             if _reparse(ancestor):
                 permitted = role == 'read' and (any(ancestor == link and ancestor.resolve() == target
                     and actual.is_relative_to(target) for link, target in self.mappings)
@@ -237,6 +241,11 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
             raise ValueError('Legacy DATA mappings require an exact local absolute prefix')
         if any(roots[key].is_relative_to(source) for key in (*READ_ROOTS, 'data')):
             raise ValueError('Legacy DATA mapping cannot shadow current installation roots')
+    for original, member in policy.get('legacy_file_map', {}).items():
+        source, relative = Path(original), Path(member)
+        if (not source.is_absolute() or len(source.drive) != 2 or '..' in source.parts
+                or relative.is_absolute() or relative.drive or '..' in relative.parts):
+            raise ValueError('Legacy file mappings require an exact local source and a relative DATA member')
     mappings = []
     for item in value.get('model_mappings', []):
         link, target = Path(item['link']).absolute(), Path(item['target']).absolute()
@@ -254,11 +263,20 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
     return config
 
 
+_current_cache = None
+
+
 def current_install() -> InstallConfig | None:
+    global _current_cache
     configured = os.environ.get('CLEAR_INSTALL_CONFIG')
     if not configured:
         return None
-    return load_install(configured)
+    path = Path(configured).absolute()
+    info = path.stat()  # Missing bindings never fall back to development.
+    stamp = (str(path), info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+    if _current_cache is None or _current_cache[0] != stamp:
+        _current_cache = (stamp, load_install(path))
+    return _current_cache[1]
 
 
 def require_path(value, label='Project path', *, role='write') -> Path:

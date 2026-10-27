@@ -13,14 +13,27 @@ from ocr_workbench.processes import ProcessJob
 from ocr_workbench.engine_host import publish
 from ocr_workbench.atomic_files import read_json
 from ocr_workbench.errors import EngineFailure, EngineTimeout
+from ocr_workbench.paths import require_path
 
 
 WORKER_BOOTSTRAP = '''import hashlib,json,os,runpy,sys
 from pathlib import Path
+if os.environ.get('CLEAR_INSTALL_CONFIG'):
+    package_root=os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT')
+    if not package_root:
+        raise ValueError('Managed worker is missing the shared runtime package root')
+    sys.path.insert(0,package_root)
+    from packages.runtime import require_path
+    require_path(package_root,'Shared runtime package',role='read')
+    sys.path.insert(0,str(Path(package_root)/'src'))
 source=Path(sys.argv.pop(1)).resolve()
+if os.environ.get('CLEAR_INSTALL_CONFIG'):
+    source=require_path(source,'OCR worker source',role='read')
 if os.environ.get('CLEAR_OCR_WORKER_SOURCE_MANIFEST'):
     manifest=Path(os.environ['CLEAR_OCR_WORKER_SOURCE_MANIFEST']).resolve()
-    if source.drive.upper()!='F:' or manifest.drive.upper()!='F:':
+    if os.environ.get('CLEAR_INSTALL_CONFIG'):
+        manifest=require_path(manifest,'OCR worker binding',role='read')
+    elif source.drive.upper()!='F:' or manifest.drive.upper()!='F:':
         raise ValueError('Worker source escaped the local F drive')
     payload=manifest.read_bytes()
     if hashlib.sha256(payload).hexdigest()!=os.environ['CLEAR_OCR_WORKER_BINDING_SHA256']:
@@ -62,17 +75,14 @@ def loading_timeout(environ=None):
 
 
 def configured_worker_source(environ=None):
-    """Only an explicit F-drive binding can override the packaged worker."""
+    """Only a complete, hash-verified binding can override the packaged worker."""
     environ = os.environ if environ is None else environ
     if not environ.get('CLEAR_OCR_WORKER_SOURCE'):
         return None
     if not all(environ.get(key) for key in ('CLEAR_OCR_WORKER_SOURCE_MANIFEST', 'CLEAR_OCR_WORKER_BINDING_SHA256')):
         raise ValueError('OCR worker source requires a complete verified binding')
-    source_path = Path(environ['CLEAR_OCR_WORKER_SOURCE']).absolute()
-    manifest_path = Path(environ['CLEAR_OCR_WORKER_SOURCE_MANIFEST']).absolute()
-    source, manifest = source_path.resolve(), manifest_path.resolve()
-    if any(path.drive.upper() != 'F:' for path in (source_path, manifest_path, source, manifest)):
-        raise ValueError('OCR worker source and manifest must remain on local F drive')
+    source = require_path(environ['CLEAR_OCR_WORKER_SOURCE'], 'OCR worker source', role='read')
+    manifest = require_path(environ['CLEAR_OCR_WORKER_SOURCE_MANIFEST'], 'OCR worker binding', role='read')
     data = manifest.read_bytes()
     if hashlib.sha256(data).hexdigest() != environ['CLEAR_OCR_WORKER_BINDING_SHA256']:
         raise ValueError('OCR worker binding identity changed')
@@ -129,7 +139,7 @@ def check_recognition_result(result, *, allow_empty=False):
 class EngineAdapter:
     def __init__(self, bundle, engine, session_root, *, worker_source=None):
         self.load_timeout_seconds = loading_timeout()
-        self.bundle = Path(bundle).resolve()
+        self.bundle = require_path(bundle, 'OCR engine bundle', role='read')
         self.engine = engine
         self.worker_source = Path(worker_source).resolve() if worker_source else (configured_worker_source() or Path(__file__).resolve().parents[1])
         if engine == 'mineru_pro' and self.worker_source is None and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
@@ -140,7 +150,7 @@ class EngineAdapter:
             if engine in {"dewarp", "geometry"}
             else engine_catalog(self.bundle)[engine]["capabilities"]
         )
-        self.ipc = Path(session_root) / uuid.uuid4().hex
+        self.ipc = require_path(Path(session_root) / uuid.uuid4().hex, 'OCR engine session')
         self.ipc.mkdir(parents=True)
         self.process = None
         self.job = None
@@ -196,10 +206,7 @@ class EngineAdapter:
             runtime_name = provider_config(self.geometry_provider)['runtime']
         runtime = self.bundle / 'runtimes' / runtime_name / 'python.exe'
         if self.engine == 'mineru_pro' and os.environ.get('CLEAR_MINERU_PRO_PYTHON'):
-            requested_runtime = Path(os.environ['CLEAR_MINERU_PRO_PYTHON']).absolute()
-            runtime = requested_runtime.resolve()
-            if requested_runtime.drive.upper() != 'F:' or runtime.drive.upper() != 'F:':
-                raise ValueError('MinerU Pro runtime must remain on local F drive')
+            runtime = require_path(os.environ['CLEAR_MINERU_PRO_PYTHON'], 'MinerU Pro runtime', role='read')
         environment = os.environ.copy()
         environment.update(HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', HF_HUB_DISABLE_TELEMETRY='1')
         environment["PATH"] = runtime_path(runtime, os.environ["SystemRoot"])
@@ -241,7 +248,7 @@ class EngineAdapter:
         self.ready = True
 
     def _lock_legacy_gpu(self):
-        lock_path = Path(os.environ["LOCALAPPDATA"]) / "OfflineOCR/gpu.lock"
+        lock_path = require_path(Path(os.environ['LOCALAPPDATA']) / 'OfflineOCR/gpu.lock', 'OCR compatibility GPU lock')
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         self.gpu_lock = lock_path.open("a+b")
         if self.gpu_lock.tell() == 0:

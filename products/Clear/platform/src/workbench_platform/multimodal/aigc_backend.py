@@ -21,6 +21,7 @@ ENGINES = frozenset({'community_forensics384', 'spai', 'univfd'})
 SOURCE = Path(__file__).resolve().parents[3]
 INPUT_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tif', '.tiff'}
 PRODUCT_SOURCES = ('modules/manual_multimodal/aigc_worker.py',
+    'modules/manual_multimodal/runtime_paths.py', 'packages/runtime/config.py',
     'modules/manual_multimodal/aigc_processing.py', 'modules/manual_multimodal/worker_protocol.py',
     'modules/manual_multimodal/worker.py', 'modules/manual_multimodal/image_geometry.py',
     'packages/contracts/multimodal.py', 'src/workbench_platform/multimodal/aigc_backend.py',
@@ -29,8 +30,24 @@ PRODUCT_SOURCES = ('modules/manual_multimodal/aigc_worker.py',
 
 
 def asset_root(config):
-    return local_path(os.environ.get('WORKBENCH_AIGC_ROOT', config.get('aigc_image', {}).get(
-        'asset_root', 'F:/OCR/output/aigc-image-detection-20261022')))
+    from packages.runtime import current_install
+    if current_install():
+        return current_install().resource('aigc')
+    configured = os.environ.get('WORKBENCH_AIGC_ROOT') or config.get('aigc_image', {}).get('asset_root')
+    if not configured:
+        raise ValueError('Configure AIGC resources in clear.install.json')
+    return local_path(configured)
+
+
+def runtime_path(metadata, name):
+    """Resolve v2 content members against the bound root, never the process cwd."""
+    if metadata.get('runtime_base') == 'asset-root':
+        from packages.runtime import require_path
+        relative = Path(name)
+        if relative.is_absolute() or relative.drive or '\\' in str(name):
+            raise ValueError('Portable runtime member must be relative')
+        return require_path(Path(metadata['asset_root']) / relative, 'AIGC runtime member', role='read')
+    return local_path(name)
 
 
 def member(root, name):
@@ -75,10 +92,10 @@ def verify_runtime(service, metadata):
     directories=metadata.get('runtime_closed_directories')
     if not isinstance(resources,dict) or not resources or not isinstance(directories,list) or not directories:
         raise ValueError('AIGC transitive runtime closure has not been pinned')
-    closed=[local_path(name) for name in directories]
+    closed=[runtime_path(metadata,name) for name in directories]
     if len(closed)!=len(set(closed)):
         raise ValueError('Duplicate AIGC runtime closure root')
-    executable=local_path(metadata['runtime'])
+    executable=runtime_path(metadata,metadata.get('runtime_member') or metadata['runtime'])
     lines=[line.strip() for line in (executable.parent/'python312._pth').read_text('utf-8-sig').splitlines()
         if line.strip() and not line.lstrip().startswith('#')]
     if lines[:2]!=['python312.zip','.'] or lines[-1:]!=['import site'] or any(line.startswith('import ') for line in lines[:-1]):
@@ -87,7 +104,7 @@ def verify_runtime(service, metadata):
     if set(closed)!=imports:
         raise ValueError('AIGC runtime closure differs from its embedded Python import roots')
     actual={path:identity for root in closed for path,identity in runtime_entries(root)}
-    declared={Path(name).absolute():identity for name,identity in resources.items()}
+    declared={runtime_path(metadata,name):identity for name,identity in resources.items()}
     if set(actual)!=set(declared):
         raise ValueError('AIGC runtime closure has missing or undeclared files')
     uncached=[]
@@ -160,7 +177,7 @@ def bind(service, engine=None):
     root = asset_root(service.config)
     inventory_path = member(root, 'aigc-inventory.json')
     inventory = json.loads(inventory_path.read_text('utf-8-sig'))
-    if inventory.get('format') != 'clear-aigc-assets-v1':
+    if inventory.get('format') not in {'clear-aigc-assets-v1', 'clear-aigc-assets-v2'}:
         raise ValueError('Unknown AIGC asset inventory format')
     engine = engine or os.environ.get('WORKBENCH_AIGC_ENGINE', service.config.get('aigc_image', {}).get(
         'default_engine', inventory.get('primary', 'community_forensics384')))
@@ -186,19 +203,23 @@ def bind(service, engine=None):
     for name in settings.get('native_paths', {}).values():
         member(root, name)
     verify_source_closure(root,settings,resources)
-    executable = local_path(selected.get('runtime', inventory.get('runtime', '')))
+    metadata = {**inventory, 'asset_root': str(root), 'runtime': selected.get('runtime', inventory.get('runtime', ''))}
+    executable = runtime_path(metadata, metadata['runtime'])
     if not executable.is_file():
         raise ValueError('AIGC isolated runtime is missing')
-    verify_runtime(service,{**inventory,'runtime':str(executable)})
+    verify_runtime(service,metadata)
     calibration = None
     if settings.get('calibration_file'):
         calibration = json.loads(member(root, settings['calibration_file']).read_text('utf-8-sig'))
     binding={'engine': engine, 'version': selected['version'], 'code_revision': selected['code_revision'],
+        'resource_id': 'aigc' if inventory.get('format') == 'clear-aigc-assets-v2' else None,
         'preprocessing_version': selected['preprocessing_version'], 'asset_root': str(root),
         'inventory_sha256': service.qualification.file_hash(inventory_path),
         'runtime': str(executable), 'runtime_sha256': service.qualification.file_hash(executable),
         'runtime_resources':copy.deepcopy(inventory['runtime_resources']),
         'runtime_closed_directories':copy.deepcopy(inventory['runtime_closed_directories']),
+        'runtime_base': inventory.get('runtime_base'),
+        'runtime_member': metadata['runtime'] if inventory.get('runtime_base') == 'asset-root' else None,
         'product_source_hashes': {name: service.qualification.file_hash(SOURCE / name) for name in PRODUCT_SOURCES},
         'resources': copy.deepcopy(resources), 'settings': settings, 'calibration': calibration,
         'business_accuracy_qualified': False, 'qualification': 'experimental'}
@@ -210,7 +231,18 @@ def item_binding(item):
     value = item.get('model_binding')
     if not isinstance(value, dict) or value.get('engine') not in ENGINES:
         raise ValueError('AIGC task has no supported frozen detector identity')
-    return copy.deepcopy(value)
+    binding = copy.deepcopy(value)
+    from packages.runtime import current_install
+    installation = current_install()
+    if installation and binding.get('resource_id') == 'aigc' and binding.get('runtime_base') == 'asset-root':
+        root = installation.resource('aigc')
+        with (root/'aigc-inventory.json').open('rb') as stream:
+            inventory_sha = hashlib.file_digest(stream, 'sha256').hexdigest()
+        if inventory_sha != binding['inventory_sha256']:
+            raise ValueError('Installed AIGC resource identity differs from this frozen task')
+        binding['asset_root'] = str(root)
+        binding['runtime'] = str(runtime_path(binding,binding['runtime_member']))
+    return binding
 
 
 def verify(service, binding):

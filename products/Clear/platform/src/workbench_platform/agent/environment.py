@@ -11,7 +11,7 @@ def environment(config, *, workspace_id='', session_id='', scope_revision=0, man
                        'connection_revision': config.get('revision', 0),
                        'context_cap': config['context_cap'],
                        'model_identity': '配置ID不是供应商实际返回的模型身份；真实窗口以连接服务为准'},
-        'execution': {'os': 'Windows', 'location': '本机F盘业务服务',
+        'execution': {'os': 'Windows', 'location': '本机已登记安装的业务服务',
                       'interface': '只调用已注册工具；HTTP主控不直接执行cmd/PowerShell或任意脚本'},
         'professional_models': {
             'controller': '理解目标、选择工具、读取结果并决定下一步',
@@ -26,7 +26,7 @@ def environment(config, *, workspace_id='', session_id='', scope_revision=0, man
         'discovery': 'tools_list分页查询不激活工具；tools_describe显式加载。skills_list发现，skills_activate按需启用。',
     }
     if execution_contract == 'clear-general-agent-v1':
-        values['execution']['interface'] = 'DSH文件、搜索、PowerShell及Python工具与平台注册业务工具共同执行；写入限本机F盘任务目录'
+        values['execution']['interface'] = 'DSH文件、搜索、PowerShell及Python工具与平台注册业务工具共同执行；写入限安装配置授权的本机任务目录'
         values['discovery'] = '常用通用工具直接调用；tools_search一次搜索并加载专业工具，skill按需读取专业技能及其资源'
     return values
 

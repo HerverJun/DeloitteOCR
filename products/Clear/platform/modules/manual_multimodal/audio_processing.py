@@ -63,9 +63,8 @@ def atomic_json(path, value):
 
 
 def local_directory(path):
-    path = Path(path).absolute()
-    if path.drive.upper() != 'F:' or path.resolve().drive.upper() != 'F:':
-        raise ValueError('Audio outputs/checkpoints must be on F:')
+    from runtime_paths import require_path
+    path = require_path(path, 'Audio outputs/checkpoints', role='write')
     if any(p.is_symlink() or p.is_junction() for p in (path, *path.parents)):
         raise ValueError('Audio output/checkpoint path must not contain links')
     path.mkdir(parents=True, exist_ok=True)

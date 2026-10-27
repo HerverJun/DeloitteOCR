@@ -9,6 +9,7 @@ import time
 import traceback
 import faulthandler
 from types import SimpleNamespace
+from ocr_workbench.paths import require_path
 
 
 def publish(path, data):
@@ -26,10 +27,7 @@ class LoadProgress:
     """
 
     def __init__(self, ipc, engine, *, interval=2):
-        requested = Path(ipc).absolute()
-        resolved = requested.resolve()
-        if requested.drive.upper() != 'F:' or resolved.drive.upper() != 'F:':
-            raise ValueError('Engine loading receipts must remain on the local F drive')
+        resolved = require_path(ipc, 'Engine loading receipts')
         self.path = resolved / 'loading.json'
         self.engine = engine
         self.interval = interval
@@ -284,6 +282,8 @@ def main():
     p.add_argument("--ipc", type=Path, required=True)
     p.add_argument('--geometry-provider', choices=['paddle', 'tableformer-raw', 'rapidtable', 'context'], default='paddle')
     args = p.parse_args()
+    args.bundle = require_path(args.bundle, 'OCR engine bundle', role='read')
+    args.ipc = require_path(args.ipc, 'OCR engine IPC')
     progress = LoadProgress(args.ipc, args.engine)
     session = None
     try:
@@ -321,9 +321,11 @@ def main():
                     raise ValueError('Local text cannot use a geometry request')
 
                 if args.engine == "geometry":
-                    session.session.write(Path(data['image']), Path(data['output']), data['geometry_request'])
+                    session.session.write(require_path(data['image'], 'Geometry input', role='read'),
+                        require_path(data['output'], 'Geometry output'), data['geometry_request'])
                 elif args.engine == "dewarp":
-                    session.dewarp(Path(data["image"]), Path(data["output"]))
+                    session.dewarp(require_path(data['image'], 'Dewarp input', role='read'),
+                        require_path(data['output'], 'Dewarp output'))
                 else:
                     run_image(
                         SimpleNamespace(

@@ -15,9 +15,8 @@ SPECIFICATIONS={
 
 
 def checked_f(path, *, create=False):
-    path=Path(path).absolute()
-    if path.drive.upper()!='F:' or path.resolve().drive.upper()!='F:':
-        raise ValueError('Paddle cache/source path must resolve to local F: '+str(path))
+    from runtime_paths import require_path
+    path=require_path(path, 'Paddle cache/source', role='write' if create else 'read')
     if any(parent.is_symlink() or parent.is_junction() for parent in (path,*path.parents)):
         raise ValueError('Paddle cache/source path cannot use a redirected directory: '+str(path))
     if create:path.mkdir(parents=True,exist_ok=True)

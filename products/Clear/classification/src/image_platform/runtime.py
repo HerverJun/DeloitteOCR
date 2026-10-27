@@ -11,6 +11,7 @@ import numpy as np
 
 from .images import file_sha
 from .settings import REPO
+from .paths import require_path
 
 _CUDA_LIBRARY_HANDLES = []
 _CUDA_LIBRARY_DIRECTORIES = set()
@@ -83,7 +84,7 @@ def prepare_cuda_libraries():
             directory = str(Path(spec.origin).parent / 'lib')
     if not directory:
         return
-    root = Path(directory).resolve()
+    root = require_path(directory, 'Classification CUDA libraries', role='read')
     if not root.is_dir() or str(root) in _CUDA_LIBRARY_DIRECTORIES:
         return
     import ctypes
@@ -124,7 +125,7 @@ def decide(logits, metadata, auto_accept=False):
 
 
 def validate_package(directory):
-    directory = Path(directory)
+    directory = require_path(directory, 'Frozen classification model package', role='read')
     metadata = json.loads((directory / "metadata.json").read_text(encoding="utf-8"))
     schema = json.loads((REPO / "schemas" / "model-metadata.schema.json").read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker()).validate(metadata)
@@ -150,6 +151,7 @@ def validate_package(directory):
 
 
 def session_for(model_path, require_gpu=True, profiling=False):
+    model_path = require_path(model_path, 'Classification ONNX model', role='read')
     if require_gpu:
         from .platform_resources import require_gpu_context
         require_gpu_context()

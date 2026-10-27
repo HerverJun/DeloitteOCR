@@ -24,10 +24,11 @@ SOURCE_ROOT = Path(__file__).resolve().parents[3]
 
 
 def f_path(path):
-    value = Path(path).absolute()
-    if value.drive.upper() != 'F:' or value.resolve().drive.upper() != 'F:':
-        raise DataError('图像取证的运行、缓存与输出目录必须位于本机 F 盘', 503)
-    return value.resolve()
+    from packages.runtime import require_path
+    try:
+        return require_path(path, 'Forensics path', role='read')
+    except ValueError as exc:
+        raise DataError(str(exc), 503) from exc
 
 
 LEGACY_TOOLBOX_FILES = frozenset({'__init__.py','algorithms.py','catalog.py','core.py','model.py','review.py'})

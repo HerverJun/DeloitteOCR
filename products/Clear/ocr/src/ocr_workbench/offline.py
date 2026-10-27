@@ -3,14 +3,11 @@ import ipaddress
 import os
 from pathlib import Path
 import sys
+from ocr_workbench.paths import require_path
 
 
 def _f_cache_path(path: Path):
-    requested = path.absolute()
-    resolved = requested.resolve()
-    if requested.drive.upper() != 'F:' or resolved.drive.upper() != 'F:':
-        raise ValueError('OCR cache paths must remain on the local F drive')
-    return resolved
+    return require_path(path, 'OCR cache path')
 
 
 def configure(root: Path):

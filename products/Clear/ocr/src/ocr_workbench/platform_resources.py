@@ -161,7 +161,9 @@ def reserve(kind, cancelled=None):
 
 @contextmanager
 def _standalone_lock():
+    from ocr_workbench.paths import require_path
     root = Path(os.environ.get('LOCALAPPDATA', str(Path.cwd()))) / 'OfflineOCR'
+    root = require_path(root, 'OCR compatibility GPU lock')
     root.mkdir(parents=True, exist_ok=True)
     with (root / 'gpu.lock').open('a+b') as lock:
         if lock.tell() == 0:

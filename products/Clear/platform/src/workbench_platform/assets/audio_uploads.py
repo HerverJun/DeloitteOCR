@@ -47,9 +47,11 @@ class _UploadStopped(Exception):
 
 
 def _checked(path: Path) -> Path:
-    path = Path(path).absolute()
-    if path.drive.upper() != 'F:' or path.resolve().drive.upper() != 'F:':
-        raise AssetUnavailable('Audio upload storage must remain on the local F drive')
+    from packages.runtime import require_path
+    try:
+        path = require_path(path, 'Audio upload storage', role='write')
+    except ValueError as exc:
+        raise AssetUnavailable(str(exc)) from exc
     if any(parent.is_symlink() or (hasattr(parent, 'is_junction') and parent.is_junction())
            for parent in (path, *path.parents)):
         raise AssetUnavailable('Linked audio upload storage is not allowed')

@@ -18,7 +18,10 @@ def text(value):
 
 def inspect_input(request):
     path = Path(request['path']).resolve(strict=True)
-    if path.drive.upper() != 'F:' or path.stat().st_size > 64 * 1024 * 1024:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from packages.runtime import require_path
+    path = require_path(path, 'Data input', role='read')
+    if path.stat().st_size > 64 * 1024 * 1024:
         raise ValueError('Input storage or size is unsupported')
     options = request.get('options', {})
     header = options.get('header_row', 1)

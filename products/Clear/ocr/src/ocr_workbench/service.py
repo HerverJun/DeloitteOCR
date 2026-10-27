@@ -777,6 +777,8 @@ def main():
     p.add_argument("--review-only", action="store_true", help="Open existing projects for review and export without GPU inference")
     args = p.parse_args()
     if args.data is None:
+        if os.environ.get('CLEAR_INSTALL_CONFIG'):
+            raise ValueError('Managed OCR requires an explicit --data directory')
         local = os.environ.get("LOCALAPPDATA")
         if not local:
             raise ValueError("Standalone OCR data directory is unavailable; pass --data")
@@ -784,6 +786,8 @@ def main():
     token = args.token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
         raise ValueError("Session token is too short")
+    from ocr_workbench.paths import require_path
+    args.data = require_path(args.data, 'OCR DATA')
     args.data.mkdir(parents=True, exist_ok=True)
     with (args.data / "service.lock").open("a+b") as lock:
         if lock.tell() == 0:

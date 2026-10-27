@@ -60,7 +60,7 @@ def test_import_replay_keeps_two_sources_and_labels(store, client, settings):
         assert {row["name"] for row in assets["items"]} == {"来源1.png", "来源2.png"}
         assert {row["label_id"] for row in assets["items"]} == {"a", None}
         with Store(settings).connect() as db:
-            assert db.execute("PRAGMA user_version").fetchone()[0] == 3
+            assert db.execute("PRAGMA user_version").fetchone()[0] == 5
             assert db.execute("PRAGMA foreign_key_check").fetchall() == []
         with Store(settings).connect(write=True) as db:
             db.execute("UPDATE assets SET archived=1 WHERE id=?", (first_id,))

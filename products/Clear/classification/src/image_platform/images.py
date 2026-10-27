@@ -2,10 +2,10 @@ from hashlib import sha256
 from functools import lru_cache
 from io import BytesIO
 import math
-from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageOps
+from .paths import require_path
 
 SUPPORTED = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 PREPROCESS = {
@@ -20,7 +20,7 @@ PREPROCESS = {
 
 def file_sha(path):
     hasher = sha256()
-    with Path(path).open("rb") as stream:
+    with require_path(path, 'Classification input', role='read').open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
@@ -28,7 +28,7 @@ def file_sha(path):
 
 def decode(path, expected_sha=None, contract=None):
     contract = contract or PREPROCESS
-    with Path(path).open("rb") as stream:
+    with require_path(path, 'Classification image', role='read').open("rb") as stream:
         # A single read(100 MiB) reserves that buffer even for tiny JPEGs on
         # Windows. Bound each allocation while retaining the hard byte limit.
         chunks, total = [], 0
@@ -90,6 +90,7 @@ def preprocess(path, expected_sha=None, height=224, width=224, contract=None):
 
 
 def thumbnail(path, destination, expected_sha):
+    destination = require_path(destination, 'Classification thumbnail')
     image, _ = decode(path, expected_sha)
     image.thumbnail((480, 360), Image.Resampling.LANCZOS)
     destination.parent.mkdir(parents=True, exist_ok=True)

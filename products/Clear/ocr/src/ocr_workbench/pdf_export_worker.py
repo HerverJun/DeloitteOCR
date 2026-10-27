@@ -7,12 +7,13 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+from ocr_workbench.paths import require_path
 
 
 class OfflineFonts:
     def __init__(self, folder):
         from ocrmypdf.font.font_manager import FontManager
-        self.fonts = {name: FontManager(Path(folder) / (name+'.ttf')) for name in
+        self.fonts = {name: FontManager(require_path(Path(folder) / (name+'.ttf'), 'PDF font', role='read')) for name in
                       ('NotoSans-Regular', 'NotoSansSC-Regular', 'NotoSansSymbols2-Regular')}
 
     def get_font(self, name):
@@ -76,7 +77,7 @@ def text_page(spec, fonts, output, *, image=False):
             left = right
         page.children.append(OcrElement('ocr_line', bbox=BoundingBox(x0,y0,x1,y1), children=words))
     Fpdf2PdfRenderer(page, spec['dpi'], MultiFontManager(font_provider=fonts), invisible_text=True,
-                     image=Path(spec['image_path']) if image else None).render(output)
+                     image=require_path(spec['image_path'], 'PDF source image', role='read') if image else None).render(output)
 
 
 def clean_navigation(pdf, kept, rebuilt, report):
@@ -164,10 +165,10 @@ def clean_navigation(pdf, kept, rebuilt, report):
 def export_document(request):
     import pikepdf
     from ocrmypdf._graft import strip_invisible_text, _build_text_layer_ctm
-    doc, output = request['document'], Path(request['output'])
+    doc, output = request['document'], require_path(request['output'], 'PDF export')
     fonts = OfflineFonts(request['fonts'])
     original = doc['kind'] == 'pdf'
-    pdf = pikepdf.open(doc['source_path'], password=request.get('password') or '') if original else pikepdf.Pdf.new()
+    pdf = pikepdf.open(require_path(doc['source_path'], 'PDF original', role='read'), password=request.get('password') or '') if original else pikepdf.Pdf.new()
     report = {'schema_version': 1, 'document_id': doc['id'], 'name': doc['name'], 'source_sha256': doc['source_sha256'],
               'format': 'searchable PDF', 'renderer': 'OCRmyPDF 17.11.0 FPDF2', 'pages': [], 'removed_links': 0,
               'removed_bookmarks': 0, 'navigation_warnings': [], 'claims': {'pdf_a': False, 'pdf_ua': False, 'signature_validity': False}}
@@ -175,7 +176,7 @@ def export_document(request):
         kept, rebuilt = set(), set()
         with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
             for filename in doc['pages']:
-                spec = json.loads(Path(filename).read_text('utf-8'))
+                spec = json.loads(require_path(filename, 'PDF page specification', role='read').read_text('utf-8'))
                 layer_path = Path(temporary) / 'layer.pdf'
                 rebuild = bool(spec['rebuild_reasons'])
                 if rebuild or any(not u['native_preserved'] for u in spec['units']):

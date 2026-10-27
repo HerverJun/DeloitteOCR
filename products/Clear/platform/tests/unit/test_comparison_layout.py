@@ -13,7 +13,7 @@ import pytest
 
 from workbench_platform.comparisons.layout import (
     LAYOUT_SCHEMA, LayoutCancelled, assemble_document, document_markdown,
-    normalize_page, parse_page, prepare_pages, file_hash, RENDER_PYTHON,
+    normalize_page, parse_page, prepare_pages, file_hash,
 )
 from workbench_platform.multimodal.runner import worker_environment
 
@@ -26,6 +26,22 @@ def page(tmp_path):
     return {'image_path': str(path), 'image_sha256': file_hash(path), 'media_type': 'image/png',
             'width': 1000, 'height': 1000, 'page_number': 1, 'page_id': 'page1',
             'source': {'asset_id': 'a', 'asset_revision': 1, 'blob_hash': 'f'*64, 'original_name': 'input.pdf'}}
+
+
+@pytest.fixture
+def local_runtime_inputs(tmp_path, monkeypatch):
+    """Mocked runner tests must explicitly own their synthetic installation."""
+    program, source, mineru = tmp_path/'program', tmp_path/'ocr-source', tmp_path/'mineru'
+    members = [program/'bundles/ocr/runtimes/paddlevl/python.exe',
+        program/'bundles/ocr/models/PP-DocLayoutV3/source-manifest.json',
+        program/'bundles/ocr/models/PaddleOCR-VL-1.6/source-manifest.json',
+        source/'src/ocr_workbench/worker.py', mineru/'source-manifest.json']
+    for member in members:
+        member.parent.mkdir(parents=True, exist_ok=True)
+        member.write_text('synthetic fixture; never executed', encoding='utf-8')
+    for name,value in {'WORKBENCH_PROGRAM_ROOT':program, 'WORKBENCH_OCR_SOURCE':source,
+        'CLEAR_MINERU_PRO_PYTHON':tmp_path/'python.exe', 'CLEAR_MINERU_PRO_MODEL':mineru}.items():
+        monkeypatch.setenv(name,str(value))
 
 
 def data(text='Phase A complete'):
@@ -169,7 +185,7 @@ def test_document_revision_sources_and_markdown_keep_literal_text(page):
     assert 'parse_run_id' not in parsed['blocks'][0]['source']
 
 
-def test_local_worker_uses_explicit_engine_and_shared_gpu_runner(page, tmp_path):
+def test_local_worker_uses_explicit_engine_and_shared_gpu_runner(page, tmp_path, local_runtime_inputs):
     from workbench_platform.comparisons.local_ocr import LocalOcrParser
     from workbench_platform.multimodal.runner import Outcome
     coordinator = Mock()
@@ -200,7 +216,7 @@ def test_local_worker_uses_explicit_engine_and_shared_gpu_runner(page, tmp_path)
     assert '--worker' in command
 
 
-def test_local_batch_reuses_worker_commits_each_page_and_recovers_checkpoints(page, tmp_path):
+def test_local_batch_reuses_worker_commits_each_page_and_recovers_checkpoints(page, tmp_path, local_runtime_inputs):
     from workbench_platform.comparisons.local_ocr import LocalOcrParser
     from workbench_platform.comparisons.layout import fingerprint
     from workbench_platform.multimodal.runner import Outcome
@@ -241,7 +257,7 @@ def test_local_batch_reuses_worker_commits_each_page_and_recovers_checkpoints(pa
         local.parse_batch([{**page,'page_id':f'p{i}'} for i in range(21)], {'engine':'paddlevl'}, tmp_path/'too-large')
 
 
-def test_local_batch_gpu_yield_only_requeues_unfinished_pages(page, tmp_path):
+def test_local_batch_gpu_yield_only_requeues_unfinished_pages(page, tmp_path, local_runtime_inputs):
     from workbench_platform.comparisons.local_ocr import LocalOcrParser
     from workbench_platform.comparisons.layout import fingerprint
     from workbench_platform.multimodal.runner import Outcome
@@ -285,7 +301,7 @@ def test_renderer_releases_job_handle_even_when_drain_verification_fails(tmp_pat
     process.wait.assert_called_once()
 
 
-@pytest.mark.skipif(not Path(RENDER_PYTHON).is_file(), reason='Registered F: document runtime unavailable')
+@pytest.mark.skipif(not Path(os.environ.get('WORKBENCH_DOCUMENTS_PYTHON', '')).is_file(), reason='Explicit document runtime unavailable')
 def test_real_pdf_ppt_hidden_slide_and_ordered_image_rendering(tmp_path):
     # All fixture generation, Office profiles and PDFium outputs stay in pytest's F: base temp.
     fixture_script = '''
@@ -306,7 +322,7 @@ for number in range(2):
  s.notes_slide.notes_text_frame.text='PRIVATE NOTES MUST NOT APPEAR'
 p.save(root/'slides.pptx')
 '''
-    python = Path(RENDER_PYTHON)
+    python = Path(os.environ['WORKBENCH_DOCUMENTS_PYTHON'])
     env = worker_environment(tmp_path / 'generator', python)
     subprocess.run([str(python), '-B', '-c', fixture_script, str(tmp_path)], check=True, env=env, cwd=tmp_path)
     base = {'asset_id': 'asset1', 'asset_revision': 1, 'blob_hash': 'a'*64}

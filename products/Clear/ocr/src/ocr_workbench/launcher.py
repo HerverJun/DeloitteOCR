@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 )
 from ocr_workbench.processes import ProcessJob
 from ocr_workbench.atomic_files import read_json, write_json
+from ocr_workbench.paths import require_path
 
 
 def icon():
@@ -51,7 +52,8 @@ def icon():
 class Launcher(QWidget):
     def __init__(self, bundle, data, no_browser=False, review_only=False, verify_startup=False):
         super().__init__()
-        self.bundle, self.data = bundle, data
+        self.bundle = require_path(bundle, 'OCR launcher bundle', role='read')
+        self.data = require_path(data, 'OCR launcher DATA')
         self.no_browser = no_browser
         self.review_only = review_only
         self.ready = False
@@ -60,7 +62,7 @@ class Launcher(QWidget):
         self.job = None
         self.log = None
         self.token = secrets.token_urlsafe(36)
-        self.session = data / "launcher"
+        self.session = require_path(self.data / 'launcher', 'OCR launcher session')
         self.session.mkdir(parents=True, exist_ok=True)
         self.startup_file = self.session / "startup-state.json"
         self.startup_file.unlink(missing_ok=True)
@@ -336,6 +338,7 @@ def main():
     app = QApplication(sys.argv[:1])
     app.setQuitOnLastWindowClosed(False)
     app.setApplicationName("DeloitteOCR · 离线 OCR 工作台")
+    args.data = require_path(args.data, 'OCR launcher DATA')
     args.data.mkdir(parents=True, exist_ok=True)
     lock = QLockFile(str(args.data / "launcher.lock"))
     lock.setStaleLockTime(0)

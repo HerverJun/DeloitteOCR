@@ -15,6 +15,7 @@ from pathlib import Path
 import shutil
 import sqlite3
 import uuid
+from .paths import require_path
 
 
 EXCLUDED_DIRS = {"cache", "features", "thumbnails"}  # Regenerated as needed.
@@ -22,11 +23,7 @@ EXCLUDED_FILES = {"platform.sqlite3", "platform.sqlite3-wal", "platform.sqlite3-
 
 
 def _f_path(value, label):
-    requested = Path(value).absolute()
-    resolved = requested.resolve()
-    if requested.drive.upper() != "F:" or resolved.drive.upper() != "F:":
-        raise ValueError(f"{label} must remain on the local F drive: {requested}")
-    return resolved
+    return require_path(value, label)
 
 
 @contextmanager

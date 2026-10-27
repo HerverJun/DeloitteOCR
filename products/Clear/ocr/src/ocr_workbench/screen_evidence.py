@@ -867,9 +867,9 @@ def collect_screen_context(input_path, output_dir, adapter, *, image_version=Non
     from PIL import Image
     from ocr_workbench.image_utils import normalized_rgb
     from ocr_workbench.screen_imaging import prepare_screen_image
-    input_path,output_dir = Path(input_path).resolve(),Path(output_dir).resolve()
-    if output_dir.drive.upper() != "F:":
-        raise ValueError("屏拍上下文产物必须保存于 F 盘")
+    from ocr_workbench.paths import require_path
+    input_path=require_path(input_path, '屏拍上下文原图', role='read')
+    output_dir=require_path(output_dir, '屏拍上下文产物')
     if getattr(adapter,"engine",None) != "geometry" or getattr(adapter,"geometry_provider",None) != "context":
         raise ValueError("请提供已配置 context 的几何模型适配器")
     output_dir.mkdir(parents=True,exist_ok=True)

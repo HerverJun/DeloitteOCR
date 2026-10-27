@@ -22,9 +22,11 @@ NS = {'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
 
 
 def checked(path):
-    path = Path(path).absolute()
-    if path.drive.upper() != 'F:' or path.resolve().drive.upper() != 'F:':
-        raise ValueError('Page rendering requires the local F drive')
+    package = os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT')
+    if package and package not in sys.path:
+        sys.path.insert(0, package)
+    from packages.runtime import require_path
+    path = require_path(path, 'Page rendering', role='read')
     if any(p.is_symlink() or p.is_junction() for p in (path, *path.parents)):
         raise ValueError('Page rendering cannot traverse a reparse point')
     return path.resolve()
@@ -128,7 +130,7 @@ def encode_image(image, output, number, config):
 
 def convert_ppt(source, output, office):
     """LibreOffice profile internals exceed MAX_PATH under deep revision folders."""
-    short_root = checked(os.environ.get('CLEAR_LAYOUT_TEMP_ROOT', 'F:/OCR/temp/clear-layout'))
+    short_root = checked(os.environ.get('CLEAR_LAYOUT_TEMP_ROOT') or Path(os.environ['CLEAR_PADDLE_TEMP']) / 'layout')
     short_root.mkdir(parents=True, exist_ok=True)
     scratch = checked(short_root / uuid.uuid4().hex[:12])
     scratch.mkdir()

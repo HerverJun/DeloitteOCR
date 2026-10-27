@@ -44,10 +44,11 @@ def file_digest(path):
 def _native_temporary_root(temporary_root):
     configured = temporary_root or os.environ.get('CLEAR_NATIVE_TEMP_ROOT') or os.environ.get('CLEAR_PADDLE_TEMP') or os.environ.get('TEMP')
     if not configured:
-        raise ValueError('CAT-Net requires an explicit native temporary directory on F:')
-    root = Path(configured).absolute()
-    if root.drive.upper() != 'F:' or root.resolve().drive.upper() != 'F:' or not str(root).isascii():
-        raise ValueError('CAT-Net native temporary directory must be an ASCII path on F:')
+        raise ValueError('CAT-Net requires an explicit native temporary directory')
+    from runtime_paths import require_path
+    root = require_path(configured, 'CAT-Net native temporary directory', role='write')
+    if not str(root).isascii():
+        raise ValueError('CAT-Net native temporary directory must be an ASCII path')
     if any(parent.is_symlink() or parent.is_junction() for parent in (root, *root.parents)):
         raise ValueError('CAT-Net native temporary directory cannot be redirected')
     root.mkdir(parents=True, exist_ok=True)

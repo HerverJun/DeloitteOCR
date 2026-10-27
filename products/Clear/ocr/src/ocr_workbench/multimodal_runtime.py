@@ -511,7 +511,9 @@ class ReviewSession(ReviewPipeline):
             raise
 
     def _lock_legacy_gpu(self):
+        from ocr_workbench.paths import require_path
         lock_path = Path(os.environ.get('LOCALAPPDATA', str(self.bundle))) / 'OfflineOCR/gpu.lock'
+        lock_path = require_path(lock_path, 'OCR multimodal compatibility GPU lock')
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         self.gpu_lock = lock_path.open('a+b')
         if self.gpu_lock.tell() == 0:

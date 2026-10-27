@@ -273,10 +273,14 @@ def tiff_document(request):
 def main():
     request = json.load(sys.stdin)
     # No request echo, command-line password, or secret-bearing traceback.
-    output = Path(request.pop('response_path'))
+    from ocr_workbench.paths import require_path
+    output = require_path(request.pop('response_path'), 'PDF worker response')
     from ocr_workbench.offline import install_guard
     install_guard(output.parent / 'network-blocked.jsonl')
     try:
+        for key, role in (('path', 'read'), ('image_output', 'write'), ('output', 'write')):
+            if key in request:
+                request[key] = str(require_path(request[key], 'PDF worker ' + key, role=role))
         if request['operation'] == 'inspect':
             result = inspect_document(request)
         elif request['operation'] == 'render':

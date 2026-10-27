@@ -14,15 +14,16 @@ from .gpu import Owner, ResourceEvidence, ReleaseUnconfirmed
 
 
 def local_path(value):
-    path = Path(value).absolute()
-    if path.drive.upper() != 'F:' or path.resolve().drive.upper() != 'F:':
-        raise ValueError('GPU worker storage must remain on the local F drive')
+    from packages.runtime import require_path
+    path = require_path(value, 'GPU worker storage or resource', role='read')
     if any(p.is_symlink() or p.is_junction() for p in (path, *path.parents)):
         raise ValueError('GPU worker storage cannot traverse a reparse point')
     return path.resolve()
 
 
 def atomic_json(path, value):
+    from packages.runtime import require_path
+    require_path(path, 'GPU worker receipt', role='write')
     path = local_path(path)
     temporary = path.with_name(path.name + '.' + uuid.uuid4().hex + '.new')
     with temporary.open('w', encoding='utf-8') as stream:

@@ -185,9 +185,11 @@ def _grid_source(raw, info, text_evidence):
     evidence_version=text_evidence.get('provenance',{}).get('image_version') if isinstance(text_evidence,dict) else None
     if raw.get('project_image_version') and evidence_version!=raw['project_image_version']:
         return None,'auxiliary_image_version_unbound_or_conflicting'
-    if not candidate_sha or candidate_sha!=prepared_sha or path.resolve().drive.upper()!='F:':
+    if not candidate_sha or candidate_sha!=prepared_sha:
         return None,'missing_or_conflicting_source_binding'
     try:
+        from ocr_workbench.paths import require_path
+        path=require_path(path, '屏拍原图', role='read')
         from PIL import Image
         from ocr_workbench.image_utils import normalized_rgb
         data=path.read_bytes()

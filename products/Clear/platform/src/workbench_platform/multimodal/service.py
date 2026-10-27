@@ -928,7 +928,9 @@ class MultimodalService:
 
     def _accept_result(self,current,output):
         result=json.loads((output/'result.json').read_text('utf-8'))
-        if current.get('model_binding') and result.get('model_binding')!=current['model_binding']:
+        expected_binding = (aigc_backend.item_binding(current) if current['kind']=='aigc_image' else
+            deep_backend.item_binding(self,current) if current['kind'] in deep_backend.DEEP_KINDS else current.get('model_binding'))
+        if current.get('model_binding') and result.get('model_binding')!=expected_binding:
             raise DataError('实际检测器与任务冻结的模型身份不一致',409)
         actual=result.get('device')
         if actual!=current['options']['device']:raise DataError('模型实际执行设备与请求不一致',409)

@@ -10,8 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def tool_identity():
-    data = (ROOT / 'config/pdf-table-tool.json').read_bytes()
-    config = json.loads(data)
+    from ocr_workbench.pdf_tables import tool_config
+    path, _, config = tool_config()
+    data = path.read_bytes()
     contract = {'config': hashlib.sha256(data).hexdigest(), 'adapter_contract': 1,
                 'code': {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
                          for name in ('pdf_tables.py', 'coordinates.py')}}

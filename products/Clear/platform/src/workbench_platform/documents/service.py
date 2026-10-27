@@ -30,10 +30,11 @@ TERMINAL = {'succeeded', 'partial', 'failed', 'cancelled', 'needs_verification'}
 
 
 def fpath(path):
-    value = Path(path).absolute()
-    if value.drive.upper() != 'F:' or value.resolve().drive.upper() != 'F:':
-        raise DataError('文档运行、输出、模型与缓存必须位于本机 F 盘', 503)
-    return value.resolve()
+    from packages.runtime import require_path
+    try:
+        return require_path(path, 'Document path', role='read')
+    except ValueError as exc:
+        raise DataError(str(exc), 503) from exc
 
 
 class Cancelled(Exception):
@@ -182,8 +183,8 @@ class DocumentService:
         self.root.mkdir(parents=True, exist_ok=True)
         self.path = self.root / 'documents.sqlite3'
         self.registry = app.state.asset_library[0]
-        self.python = fpath(os.environ.get('WORKBENCH_DOCUMENTS_PYTHON',
-            'F:/OCR/output/clear-mineru-integration-20261021/dependencies/docvortex/python.exe'))
+        from packages.runtime import resource_path
+        self.python = resource_path('documents_python', environment='WORKBENCH_DOCUMENTS_PYTHON')
         self.lock, self.processes, self.stop = threading.RLock(), {}, threading.Event()
         self.execution = threading.local()
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='clear-documents')

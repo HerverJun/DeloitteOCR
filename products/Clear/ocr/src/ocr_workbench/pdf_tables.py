@@ -16,6 +16,23 @@ from ocr_workbench.coordinates import box_polygon, validate_polygon
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def tool_config():
+    """Managed PDF tooling is a stable, pinned package member."""
+    import os
+    if os.environ.get('CLEAR_INSTALL_CONFIG'):
+        from packages.runtime import resource_path
+        path = resource_path('pdf_table_config')
+        base = path.parent.parent
+        config = json.loads(path.read_text('utf-8'))
+        tool_root = resource_path('pdf_tables')
+        if (config.get('source') != 'resources/pdf-tables/site-packages'
+                or (base / config['source']).resolve() != tool_root):
+            raise ValueError('PDF table tool differs from its registered portable resource')
+        return path, base, config
+    path = ROOT / 'config/pdf-table-tool.json'
+    return path, ROOT, json.loads(path.read_text('utf-8'))
+
+
 def without_shading(obj):
     # Thin filled rectangles are genuine vector rules in many government PDFs.
     # Three PDF points is a fixed pre-evaluation bound, never document-tuned.
@@ -24,14 +41,16 @@ def without_shading(obj):
 
 
 def extract_tables(path, number, metadata, password=None):
-    config=json.loads((ROOT/'config/pdf-table-tool.json').read_text('utf-8'))
+    _, base, config = tool_config()
     for relative, expected in config['files'].items():
-        if hashlib.sha256((ROOT/relative).read_bytes()).hexdigest()!=expected:
+        from ocr_workbench.paths import require_path
+        member = require_path(base / relative, 'PDF table tool member', role='read')
+        if not member.is_relative_to(base) or hashlib.sha256(member.read_bytes()).hexdigest()!=expected:
             raise ValueError('PDF 表格工具文件与锁定版本不一致')
     for package, expected in config['dependencies'].items():
         if version(package)!=expected:
             raise ValueError('PDF 表格工具依赖与锁定版本不一致: '+package)
-    sys.path.insert(0,str(ROOT/config['source']))
+    sys.path.insert(0,str(base/config['source']))
     import pdfplumber
     if pdfplumber.__version__!=config['version']:
         raise ValueError('PDF 表格工具版本不一致')

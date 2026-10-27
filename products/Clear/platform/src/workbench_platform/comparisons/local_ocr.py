@@ -16,15 +16,12 @@ class LocalOcrParser:
         self.manual = getattr(app.state, 'multimodal_service', None)
         if self.manual is None:
             raise ValueError('平台共享 GPU 服务未配置，本地版面解析不可用')
-        self.program = local_path(os.environ.get('WORKBENCH_PROGRAM_ROOT',
-                                                 'F:/OCR/release/Clear/versions/0.10.0/program'))
+        from packages.runtime import resource_path
+        self.program = resource_path('program_assets', environment='WORKBENCH_PROGRAM_ROOT')
         self.bundle = local_path(self.program / 'bundles/ocr')
-        self.source = local_path(os.environ.get('WORKBENCH_OCR_SOURCE',
-                                  'F:/OCR/output/clear-automation-dev-20261002/worktrees/ocr'))
-        self.pro_python = local_path(os.environ.get('CLEAR_MINERU_PRO_PYTHON',
-                         'F:/OCR/output/clear-mineru-integration-20261021/dependencies/mineru_pro/python.exe'))
-        self.pro_model = local_path(os.environ.get('CLEAR_MINERU_PRO_MODEL',
-                        'F:/OCR/output/clear-mineru-integration-20261021/models/MinerU2.5-Pro-2605-1.2B'))
+        self.source = resource_path('ocr_source', environment='WORKBENCH_OCR_SOURCE')
+        self.pro_python = resource_path('mineru_python', environment='CLEAR_MINERU_PRO_PYTHON')
+        self.pro_model = resource_path('mineru_model', environment='CLEAR_MINERU_PRO_MODEL')
         paths = [Path(__file__), self.source / 'src/ocr_workbench/worker.py', self.source / 'src/ocr_workbench/engine_host.py',
                  self.source / 'src/ocr_workbench/mineru_pro.py',
                  self.bundle / 'models/PP-DocLayoutV3/source-manifest.json',
@@ -171,8 +168,8 @@ def worker_main(request_path):
         raise ValueError('Local batch exceeds 20 pages')
     for path in (output, source, bundle, Path(request['batch_root']), Path(request['pro_model']),
                  *(Path(page[key]) for page in pages for key in ('image', 'checkpoint'))):
-        if path.absolute().drive.upper() != 'F:' or path.resolve().drive.upper() != 'F:':
-            raise ValueError('Local OCR paths must remain on F:')
+        from packages.runtime import require_path
+        require_path(path, 'Local OCR path', role='read')
     frame = json.loads(sys.stdin.buffer.readline())
     if frame.get('command') != 'start' or frame.get('worker_epoch') != request['runner']['worker_epoch']:
         raise ValueError('Local OCR worker was not granted a GPU lease')

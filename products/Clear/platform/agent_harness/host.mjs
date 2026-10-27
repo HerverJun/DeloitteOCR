@@ -13,9 +13,10 @@ import { toolPairingBalancedBefore, toolPairingBalancedAfter } from '@deepseek-a
 import * as persistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { createInterface } from 'node:readline'
 import { randomUUID } from 'node:crypto'
-import { realpath, mkdir } from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { installFoundation } from './foundation.mjs'
+import { requireStoragePathSync } from './storage.mjs'
 
 const VERSION = 1
 const pending = new Map()
@@ -228,12 +229,10 @@ async function compactRange(range, agent, signal) {
   catch (error) { throw compactionFailure(error) }
 }
 
-async function requireF(path) {
-  const absolute = resolve(path)
-  if (!/^f:\\/i.test(absolute)) throw new Error('Harness path must be on local F drive')
+async function requireDirectory(path) {
+  const absolute = requireStoragePathSync(path)
   await mkdir(absolute, { recursive: true })
-  if (!/^f:\\/i.test(await realpath(absolute))) throw new Error('Harness path resolves outside F drive')
-  return absolute
+  return requireStoragePathSync(absolute)
 }
 
 function installTools(tools = []) {
@@ -426,8 +425,8 @@ async function boot(params) {
   if (ctx) throw new Error('already initialized')
   if (params.version !== VERSION) throw new Error('Clear host protocol version mismatch')
   spec = params
-  const root = await requireF(params.root)
-  await requireF(params.cwd)
+  const root = await requireDirectory(params.root)
+  await requireDirectory(params.cwd)
   ctx = new Context()
   for (const [plugin, config] of [
     [SessionProjections, {}], [SessionStore, {}], [LlmRuntime, {}], [AgentRegistry, {}],

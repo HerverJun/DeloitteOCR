@@ -142,9 +142,8 @@ class ScreenBatches:
         source = Path(__file__).resolve().parent
         self.model_identity = fingerprint({'configuration': hashlib.sha256(config.read_bytes()).hexdigest() if config.is_file() else None,
             'worker_source': [(p.name, hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted(source.glob('*.py'))]})
-        self.root = store.root / 'screen-batches'
-        if self.root.absolute().drive.upper() != 'F:' or self.root.resolve().drive.upper() != 'F:':
-            raise ValueError('屏拍批次数据必须保存于 F 盘')
+        from ocr_workbench.paths import require_path
+        self.root = require_path(store.root / 'screen-batches', '屏拍批次数据')
         self.root.mkdir(exist_ok=True)
         from ocr_workbench.screen_schema import migrate_screen_schema
         with store.transaction() as db:

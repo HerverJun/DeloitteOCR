@@ -43,53 +43,15 @@ class NotOwned(PermissionError):
 
 
 def require_f_path(value: Path, label: str = "Project path") -> Path:
-    """Check both the requested name and its real target before any write."""
-    path = Path(value).absolute()
-    resolved = path.resolve()
-    if path.drive.upper() != "F:" or resolved.drive.upper() != "F:":
-        raise ValueError(f"{label} must remain on the local F drive: {path}")
-    return resolved
+    """Compatibility name; managed installations use registered local roots."""
+    from packages.runtime import require_path
+    return require_path(value, label, role='read')
 
 
 def storage_environment(data_root: Path) -> dict[str, str]:
     """One explicit write boundary inherited by brokers and all native workers."""
-    data = require_f_path(data_root, "Data directory")
-    identity = hashlib.sha256(str(data).casefold().encode("utf-8")).hexdigest()[:20]
-    temporary = require_f_path(Path(os.environ.get("CLEAR_PADDLE_TEMP") or
-        f"F:/OCR/temp/paddle/{identity}"), "Paddle temporary directory")
-    if not str(temporary).isascii():
-        raise ValueError("Paddle temporary directory must be an ASCII F drive path")
-    directories = {
-        "TEMP": temporary, "TMP": temporary, "CLEAR_PADDLE_TEMP": temporary,
-        "APPDATA": data / "cache/appdata", "LOCALAPPDATA": data / "native-local",
-        "PIP_CACHE_DIR": data / "cache/pip", "npm_config_cache": data / "cache/npm",
-        "npm_config_store_dir": data / "cache/pnpm-store", "PNPM_HOME": data / "cache/pnpm",
-        "HF_HOME": data / "cache/huggingface", "TORCH_HOME": data / "cache/torch",
-        "XDG_CACHE_HOME": data / "cache", "XDG_CONFIG_HOME": data / "cache/config",
-        "XDG_DATA_HOME": data / "cache/data", "PADDLE_PDX_CACHE_HOME": data / "cache/paddlex",
-        "PADDLEOCR_HOME": data / "cache/paddleocr", "MPLCONFIGDIR": data / "cache/matplotlib",
-        "HYPOTHESIS_STORAGE_DIRECTORY": data / "cache/hypothesis",
-        "JUPYTER_CONFIG_DIR": data / "cache/jupyter", "JUPYTER_DATA_DIR": data / "cache/jupyter-data",
-        "PLAYWRIGHT_BROWSERS_PATH": data / "cache/playwright",
-        "CUDA_CACHE_PATH": data / "cache/cuda",
-        "TORCHINDUCTOR_CACHE_DIR": data / "cache/torchinductor",
-        "TRITON_CACHE_DIR": data / "cache/triton",
-        "NUMBA_CACHE_DIR": data / "cache/numba",
-        "MODELSCOPE_CACHE": data / "cache/modelscope",
-    }
-    # Validate every existing ancestor (including junctions) before creating any.
-    checked = {key: require_f_path(path, key) for key, path in directories.items()}
-    for directory in set(checked.values()):
-        directory.mkdir(parents=True, exist_ok=True)
-        probe = directory / (".write-check-" + uuid.uuid4().hex)
-        try:
-            with probe.open("xb") as stream:
-                stream.write(b"F")
-        finally:
-            probe.unlink(missing_ok=True)
-    return {**{key: str(path) for key, path in checked.items()},
-            "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "1",
-            "PIP_DISABLE_PIP_VERSION_CHECK": "1", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"}
+    from packages.runtime import storage_environment as configured_environment
+    return configured_environment(data_root)
 
 
 KERNEL = ctypes.WinDLL("kernel32", use_last_error=True)

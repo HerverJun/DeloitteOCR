@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 import uuid
+from ocr_workbench.paths import require_path
 
 ENGINES = {'ppocr': 'ppocr', 'paddlevl': 'paddlevl', 'glm': 'glm', 'hunyuan': 'hunyuan', 'mineru_pro': 'mineru_pro'}
 
@@ -20,6 +21,9 @@ def bundle_root():
 
 def run_engine(root, engine, image, output, timeout=900, *, reservation=None):
     from ocr_workbench.processes import ProcessJob
+    root = require_path(root, 'OCR CLI bundle', role='read')
+    image = require_path(image, 'OCR CLI input', role='read')
+    output = require_path(output, 'OCR CLI output')
     if not image.is_file():
         raise FileNotFoundError(image)
     runtime = root / 'runtimes' / ENGINES[engine] / 'python.exe'
@@ -34,7 +38,12 @@ def run_engine(root, engine, image, output, timeout=900, *, reservation=None):
     for name in list(env):
         if name.upper() in {'PYTHONPATH', 'PYTHONHOME', 'CUDA_PATH', 'CUDA_HOME'} or name.startswith('CUDA_PATH_V'):
             del env[name]
-    cmd = [str(runtime), '-X', 'utf8', '-I', '-m', 'ocr_workbench.worker', '--bundle', str(root),
+    bootstrap = ("import os,sys,runpy;from pathlib import Path;"
+        "package=os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT');"
+        "sys.path[:0]=[package,str(Path(package)/'src')] if package else [];"
+        "sys.path.insert(0,sys.argv.pop(1));"
+        "runpy.run_module('ocr_workbench.worker',run_name='__main__')")
+    cmd = [str(runtime), '-B', '-X', 'utf8', '-I', '-c', bootstrap, str(Path(__file__).resolve().parents[1]), '--bundle', str(root),
            '--engine', engine, '--image', str(image.resolve()), '--output', str(output.resolve())]
     with ProcessJob() as job, (output / 'worker.log').open('w', encoding='utf-8') as log:
         proc = subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT,
@@ -89,7 +98,7 @@ def main():
     run.add_argument('--output', type=Path, required=True)
     run.add_argument('--timeout', type=int, default=900)
     args = parser.parse_args()
-    root = args.bundle.resolve()
+    root = require_path(args.bundle, 'OCR CLI bundle', role='read')
     if args.command == 'doctor':
         missing = [str(root/'runtimes'/name/'python.exe') for name in ENGINES.values()
                    if not (root/'runtimes'/name/'python.exe').is_file()]
@@ -115,6 +124,7 @@ def main():
     reservation = reserve('cli-recognize')
     # A per-user lock also serializes separate relocated copies of the kit.
     lock_path = Path(os.environ.get('LOCALAPPDATA', str(root))) / 'OfflineOCR' / 'gpu.lock'
+    lock_path = require_path(lock_path, 'OCR CLI GPU lock')
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         with lock_path.open('a+b') as lock:

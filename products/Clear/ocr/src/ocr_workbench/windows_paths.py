@@ -10,31 +10,34 @@ import os
 from pathlib import Path
 import struct
 import tempfile
+from ocr_workbench.paths import require_path, require_model_mapping
 
 
 @contextmanager
 def ascii_model_directory(models):
-    requested=Path(models).absolute()
-    models=requested.resolve()
-    if requested.drive.upper()!='F:' or models.drive.upper()!='F:':
-        raise RuntimeError('Paddle model directory must remain on the local F drive')
+    try:
+        models=require_path(models, 'Paddle model directory', role='read')
+    except ValueError as error:
+        raise RuntimeError(str(error)) from error
     if str(models).isascii():
         yield models
         return
     configured=os.environ.get('CLEAR_PADDLE_TEMP') or os.environ.get('TEMP')
     if not configured:
-        raise RuntimeError('Paddle requires an explicitly registered ASCII F drive temporary directory')
-    requested_parent=Path(configured).absolute()
-    parent=requested_parent.resolve()
-    if (requested_parent.drive.upper()!='F:' or parent.drive.upper()!='F:'
-            or not str(parent).isascii()):
-        raise RuntimeError('Paddle temporary directory must be an ASCII local F drive path')
+        raise RuntimeError('Paddle requires an explicitly registered ASCII temporary directory')
+    try:
+        parent=require_path(configured, 'Paddle temporary directory')
+    except ValueError as error:
+        raise RuntimeError(str(error)) from error
+    if not str(parent).isascii():
+        raise RuntimeError('Paddle temporary directory must be an ASCII local drive path')
     try:
         parent.mkdir(parents=True,exist_ok=True)
         temporary=Path(tempfile.mkdtemp(prefix='offlineocr-paddle-',dir=parent))
     except OSError as error:
-        raise RuntimeError('Registered F drive Paddle temporary directory is not writable; no fallback is allowed') from error
+        raise RuntimeError('Registered Paddle temporary directory is not writable; no fallback is allowed') from error
     junction=temporary/'models'
+    require_model_mapping(junction, models)
     junction.mkdir()
     api=ctypes.WinDLL('kernel32',use_last_error=True)
     api.CreateFileW.argtypes=[wintypes.LPCWSTR,wintypes.DWORD,wintypes.DWORD,ctypes.c_void_p,

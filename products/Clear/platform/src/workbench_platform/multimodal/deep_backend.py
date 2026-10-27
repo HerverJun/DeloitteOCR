@@ -10,6 +10,7 @@ DEEP_KINDS = frozenset({'catnet','document_forensics'})
 INPUT_SUFFIXES = {'.jpg','.jpeg','.png','.webp','.bmp','.tif','.tiff'}
 SOURCE = Path(__file__).resolve().parents[3]
 PRODUCT_SOURCES = ('modules/manual_multimodal/safire_worker.py','modules/manual_multimodal/safire_processing.py',
+    'modules/manual_multimodal/runtime_paths.py', 'packages/runtime/config.py',
     'modules/manual_multimodal/worker.py','modules/manual_multimodal/worker_protocol.py',
     'modules/manual_multimodal/image_geometry.py','src/workbench_platform/multimodal/deep_backend.py',
     'src/workbench_platform/multimodal/service.py','src/workbench_platform/multimodal/runner.py',
@@ -25,11 +26,17 @@ def backend(config):
 
 
 def asset_root(config):
-    return local_path(os.environ.get('WORKBENCH_SAFIRE_ROOT',config['deep_forensics']['asset_root']))
+    from packages.runtime import resource_path, current_install
+    if not current_install() and config.get('deep_forensics', {}).get('asset_root') and not os.environ.get('WORKBENCH_SAFIRE_ROOT'):
+        return local_path(config['deep_forensics']['asset_root'])
+    return resource_path('safire', environment='WORKBENCH_SAFIRE_ROOT')
 
 
 def runtime(config):
-    return local_path(os.environ.get('WORKBENCH_SAFIRE_PYTHON',config['deep_forensics']['runtime']))
+    from packages.runtime import resource_path, current_install
+    if not current_install() and config.get('deep_forensics', {}).get('runtime') and not os.environ.get('WORKBENCH_SAFIRE_PYTHON'):
+        return local_path(config['deep_forensics']['runtime'])
+    return resource_path('safire_python', environment='WORKBENCH_SAFIRE_PYTHON')
 
 
 def assets(config, hash_file):
@@ -57,6 +64,7 @@ def bind(service, engine=None):
     engine = engine or backend(service.config)
     if engine == 'safire':
         return {'engine':'safire','version':'clear-safire-product-v1',
+            'resource_id':'safire',
             'asset_root':str(asset_root(service.config)),'runtime':str(runtime(service.config)),
             'runtime_sha256':service.qualification.file_hash(runtime(service.config)),
             'product_source_hashes':{name:service.qualification.file_hash(SOURCE/name) for name in PRODUCT_SOURCES},
@@ -71,7 +79,15 @@ def bind(service, engine=None):
 def item_binding(service, item):
     value = item.get('model_binding')
     # No engine binding in old persisted jobs means the historical CAT-Net route.
-    return copy.deepcopy(value) if value else bind(service, 'catnet')
+    binding=copy.deepcopy(value) if value else bind(service, 'catnet')
+    from packages.runtime import current_install
+    installation=current_install()
+    if installation and binding.get('engine')=='safire' and binding.get('resource_id')=='safire':
+        # All frozen resources, adapter hashes and executable hashes are still
+        # verified by verify(); only the local launch address is regenerated.
+        binding['asset_root']=str(installation.resource('safire'))
+        binding['runtime']=str(installation.resource('safire_python'))
+    return binding
 
 
 def verify(service, binding):

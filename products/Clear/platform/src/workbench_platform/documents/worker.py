@@ -15,8 +15,12 @@ def write(path, value):
 
 def main():
     source, output, suffix = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
-    if any(path.resolve().drive.upper() != 'F:' for path in (source, output)):
-        raise RuntimeError('Document worker paths must be on local F drive')
+    package = os.environ.get('CLEAR_RUNTIME_PACKAGE_ROOT')
+    if package:
+        sys.path.insert(0, package)
+    from packages.runtime import require_path
+    source = require_path(source, 'Document input', role='read')
+    output = require_path(output, 'Document output', role='write')
     # Native parsing must be offline even when an upstream optional helper is
     # accidentally reached. No access to document URLs or model endpoints.
     def offline(*args, **kwargs):

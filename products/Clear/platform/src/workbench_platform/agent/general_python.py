@@ -24,15 +24,18 @@ def prepare(root, base):
         destination = require_f_path(target / source.name)
         if not destination.is_file() or destination.stat().st_size != source.stat().st_size:
             shutil.copyfile(source, destination)
+    platform = Path(__file__).resolve().parents[3]
     config = '\n'.join([str(base / (version + '.zip')), str(base),
-                        str(base / 'Lib/site-packages'), '.', 'import site', ''])
+                        str(base / 'Lib/site-packages'), str(platform), '.', 'import site', ''])
     (target / (version + '._pth')).write_text(config, encoding='utf-8')
     (target / 'sitecustomize.py').write_text(
         'import os, sys\nfrom pathlib import Path\n'
         'cwd = Path.cwd().resolve()\n'
-        'if cwd.drive.lower() != "f:":\n    raise RuntimeError("Agent Python requires a local F-drive working directory")\n'
+        'from packages.runtime import require_path\n'
+        'require_path(cwd, "Agent working directory", role="write")\n'
         'sys.path[:0] = [str(cwd), str(cwd / ".clear" / "python")]\n'
         'if sys.argv and sys.argv[0] and not sys.argv[0].startswith("-"):\n'
         '    script = Path(sys.argv[0]).resolve().parent\n'
-        '    if script.drive.lower() == "f:":\n        sys.path.insert(0, str(script))\n', encoding='utf-8')
+        '    require_path(script, "Agent script directory", role="read")\n'
+        '    sys.path.insert(0, str(script))\n', encoding='utf-8')
     return target / 'python.exe'
