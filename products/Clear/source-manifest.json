@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1051,
+      "file_count": 1052,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -3213,8 +3213,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 80488,
-          "sha256": "17f421ec19fbff2c6fd8f3db008cc4a70734e17c56753530f67be5624ea466d0"
+          "bytes": 81520,
+          "sha256": "67508d72224eadd29eca60f8728552651ae5303aabd31a26ac48d38161c219b6"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -4899,8 +4899,8 @@
         {
           "path": "platform/src/workbench_platform/tasks/registry.py",
           "source_path": "src/workbench_platform/tasks/registry.py",
-          "bytes": 7056,
-          "sha256": "3c1183fc679c70d3882ffd118db166e8bff5a74151bd111d9446822da1869604"
+          "bytes": 7033,
+          "sha256": "034bfb4712196964153b9cbe65c4ef089c1355fc85d49535cad9995b7fdb5af6"
         },
         {
           "path": "platform/src/workbench_platform/tasks/scheduler.py",
@@ -6345,8 +6345,8 @@
         {
           "path": "platform/tests/unit/test_portable_packaging.py",
           "source_path": "tests/unit/test_portable_packaging.py",
-          "bytes": 12433,
-          "sha256": "ebfc81235ad37fe46b97efabd4055e7d898375a68e58b441033622692181364a"
+          "bytes": 16248,
+          "sha256": "0a2c05cbb16777897427848a512ce84efe47125124ec20d9e7ecfcddb69d4c6c"
         },
         {
           "path": "platform/tests/unit/test_portable_vc.py",
@@ -6389,6 +6389,12 @@
           "source_path": "tests/unit/test_safire_binding.py",
           "bytes": 2658,
           "sha256": "b9fec15e740db3480d176ee333e6418f82d781135eac3da222da14f0b58d7855"
+        },
+        {
+          "path": "platform/tests/unit/test_task_manual_commands.py",
+          "source_path": "tests/unit/test_task_manual_commands.py",
+          "bytes": 1339,
+          "sha256": "9eb72e8ee72a11fc3da7a1bb86fa293d64aebe771b496bfdafa5dea88da34cec"
         },
         {
           "path": "platform/tests/unit/test_workspaces.py",
