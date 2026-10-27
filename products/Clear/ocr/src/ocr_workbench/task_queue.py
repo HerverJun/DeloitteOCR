@@ -326,13 +326,7 @@ class TaskQueue:
                         complete_geometry(self.store, task, json.loads(artifact.read_text('utf-8')), artifact, candidate_cache_hit=True)
                         return True
             failure_stage = 'load'
-            resolved = (
-                self.registry.resolve(
-                    task["engine"], task.get("engine_package", "builtin")
-                )
-                if self.registry and task.get('kind') not in {'geometry', 'screen_context'}
-                else self.bundle
-            )
+            resolved = self.bundle
             if task.get('kind') == 'geometry' and geometry_provider != 'paddle':
                 regions = json.loads(self.store.rows('SELECT regions FROM geometry_requests WHERE task_id=?', (task['id'],))[0]['regions'])
                 if not geometry_snapshot.get('ocr_blocks') or not regions:
@@ -354,6 +348,11 @@ class TaskQueue:
             if engine_route:
                 load_event(self.store, task['id'], task['engine'], 'started')
             try:
+                # An optional Pro runtime can be absent from the registry.
+                # Resolve it within the same pre-inference fallback boundary as
+                # loading, so automatic selection can use its frozen fallback.
+                if self.registry and task.get('kind') not in {'geometry', 'screen_context'}:
+                    resolved = self.registry.resolve(task['engine'], task.get('engine_package', 'builtin'))
                 self._ensure_adapter(task, resolved, loading_progress, geometry_provider, budget_expired=budget_expired)
             except Cancelled:
                 raise

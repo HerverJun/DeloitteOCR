@@ -1,6 +1,8 @@
 """Deterministic queue race tests, complementing real GPU application acceptance."""
 
 from pathlib import Path
+import json
+import os
 import tempfile
 import threading
 import time
@@ -127,6 +129,39 @@ class QueueTests(unittest.TestCase):
             self.queue.wake.set()
             self.wait(lambda: self.store.one('tasks', key)['status'] == 'failed')
         self.assertEqual(self.factories, ['mineru_pro'])
+        self.assertEqual(self.store.rows('SELECT * FROM results'), [])
+
+    def legacy_registry(self):
+        from ocr_workbench.engine_packages import EnginePackages
+        config = self.queue.bundle / 'config'
+        config.mkdir(exist_ok=True)
+        (config / 'engines.json').write_text(json.dumps({'ppocr': {}, 'glm': {}}), encoding='utf-8')
+        with patch.dict(os.environ):
+            os.environ.pop('CLEAR_MINERU_PRO_PYTHON', None)
+            return EnginePackages(self.queue.bundle, self.store.root)
+
+    def test_auto_uses_frozen_fallback_when_optional_pro_is_not_registered(self):
+        self.queue.registry = self.legacy_registry()
+        self.release.set()
+        key = self.store.enqueue(self.project, [self.version], ['auto'], fallback_engine='glm')[0]
+        self.queue.wake.set()
+        self.wait(lambda: self.store.one('tasks', key)['status'] in {'succeeded', 'failed'})
+        task = self.store.one('tasks', key)
+        self.assertEqual(task['status'], 'succeeded', task['error'])
+        result = self.store.result(task['result_id'])['original']
+        self.assertEqual(self.factories, ['glm'])
+        self.assertEqual(task['engine'], 'auto')
+        self.assertEqual(result['engine'], 'glm')
+        self.assertTrue(result['engine_route']['fallback_used'])
+        self.assertIn('未知内置引擎', result['engine_route']['fallback_reason'])
+
+    def test_explicit_missing_pro_does_not_silently_use_a_fallback(self):
+        self.queue.registry = self.legacy_registry()
+        self.release.set()
+        key = self.store.enqueue(self.project, [self.version], ['mineru_pro'])[0]
+        self.queue.wake.set()
+        self.wait(lambda: self.store.one('tasks', key)['status'] == 'failed')
+        self.assertEqual(self.factories, [])
         self.assertEqual(self.store.rows('SELECT * FROM results'), [])
 
     def test_auto_route_is_frozen_in_idempotent_submission(self):

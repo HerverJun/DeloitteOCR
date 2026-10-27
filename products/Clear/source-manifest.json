@@ -1,6 +1,6 @@
 {
   "format": "clear-integrated-source-v1",
-  "captured_on": "2026-10-26",
+  "captured_on": "2026-10-27",
   "release_status": "development_unreleased",
   "release_pointer": null,
   "purpose": "Integrated authored sources under development on the single project branch; no finalized or published installation is declared.",
@@ -12366,8 +12366,8 @@
         {
           "path": "ocr/src/ocr_workbench/task_queue.py",
           "source_path": "src/ocr_workbench/task_queue.py",
-          "bytes": 42684,
-          "sha256": "2920478ad9058328ca9d275615202da477d7b599c63c45cd600ca82e00a15965"
+          "bytes": 42858,
+          "sha256": "20737a75c70128a12ca969eba5d0fcae0b0e39a272552b0e5997c2e203816b29"
         },
         {
           "path": "ocr/src/ocr_workbench/verification_cache.py",
@@ -13116,8 +13116,8 @@
         {
           "path": "ocr/tests/test_queue.py",
           "source_path": "tests/test_queue.py",
-          "bytes": 18204,
-          "sha256": "8650e0ea70cff89899b03a5df438ec89a9c0d3cfafcadd31fb85f9a349985e30"
+          "bytes": 19999,
+          "sha256": "25b9e6886655508d4ed0e98caa18198ae363715cf8569895cafab15a57e12b59"
         },
         {
           "path": "ocr/tests/test_result_text.py",
