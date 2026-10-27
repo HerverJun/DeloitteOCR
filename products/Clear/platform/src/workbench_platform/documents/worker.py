@@ -1,6 +1,7 @@
 """Fixed CPU parser entry. Never invoke PDF classification, OCR or downloads."""
 from dataclasses import asdict
 import importlib.metadata
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -28,6 +29,12 @@ def main():
         raise RuntimeError('docvortex 0.5.16 required')
     from docvortex.api import analyze, postprocess
     analysis = analyze(source, file_suffix=suffix, **({'parse_mode': 'txt'} if suffix == 'pdf' else {}))
+    if suffix == 'pdf':
+        # The fixed embedded runtime deliberately omits script directories.
+        spec = importlib.util.spec_from_file_location('clear_document_pdf_coverage', Path(__file__).with_name('pdf_coverage.py'))
+        coverage = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(coverage)
+        write(output / 'native-coverage.json', coverage.inspect_pdf(source))
     write(output / 'raw-model.json', analysis.model_json.model_dump(mode='json', by_alias=True))
     middle_pages = []
     metadata = None

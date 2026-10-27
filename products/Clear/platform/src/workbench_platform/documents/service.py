@@ -21,6 +21,7 @@ from workbench_platform.audit.service import validated
 from workbench_platform.batches.store import encoded, fingerprint, now
 from workbench_platform.data_api.service import DataError
 from .normalize import normalize
+from .pdf_coverage import verified_pages
 from .tables import export_xlsx, parse_tables
 
 SOURCE_ROOT = Path(__file__).resolve().parents[3]
@@ -364,14 +365,21 @@ class DocumentService:
             else:
                 document = normalize({'pages': [{'page_idx': 0, 'blocks': []}]}, value['source'], document_id, generation=generation)
             self.current(workspace_id, document_id)
-            # Native text alone does not prove that a PDF page has no scanned
-            # regions. The existing OCR page pipeline owns bitmap coverage and
-            # its native/region merge, including pages containing both kinds.
-            if value['ocr_policy'] == 'auto' and (suffix == '.pdf' or any(page['needs_ocr'] for page in document['pages'])):
+            # Only exact-source, text-only content-stream evidence can avoid
+            # native PDF coverage. A native heading alone cannot hide a scan.
+            if suffix == '.pdf' and value['ocr_policy'] == 'auto':
+                try:
+                    coverage = json.loads((output / 'native-coverage.json').read_text('utf-8'))
+                except (OSError, ValueError):
+                    coverage = None
+                complete_pages = verified_pages(document, coverage, value['blob_hash'])
+                for page in document['pages']:
+                    complete = page['page_number'] in complete_pages
+                    page.update(needs_ocr=not complete, coverage_check='complete' if complete else 'pending')
+                    if complete:
+                        page['coverage_source'] = 'pdf-native-text-operations'
+            if value['ocr_policy'] == 'auto' and (any(page['needs_ocr'] for page in document['pages']) or suffix == '.pdf' and not document['pages']):
                 self.update(workspace_id, document_id, stage='ocr')
-                if suffix == '.pdf':
-                    for page in document['pages']:
-                        page.update(needs_ocr=True, coverage_check='pending')
                 try:
                     self.ocr_pages(value, document)
                 except Cancelled:
@@ -396,7 +404,7 @@ class DocumentService:
                     for asset in sorted(bundle.rglob('*')):
                         if asset.is_file() and not asset.is_symlink() and asset.resolve().is_relative_to(output):
                             archive.write(asset, asset.relative_to(output).as_posix())
-                for name in ('document.json', 'document.md', 'raw-middle.json', 'raw-model.json', 'diagnostics.json'):
+                for name in ('document.json', 'document.md', 'raw-middle.json', 'raw-model.json', 'diagnostics.json', 'native-coverage.json'):
                     if (output / name).is_file():
                         archive.write(output / name, name)
             files = [{'name': name, 'sha256': hashlib.sha256((output / name).read_bytes()).hexdigest(),

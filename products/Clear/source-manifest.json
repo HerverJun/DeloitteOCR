@@ -94,7 +94,7 @@
           "integration": "three-way source merge with current business/runtime contracts retained"
         }
       ],
-      "file_count": 1008,
+      "file_count": 1010,
       "files": [
         {
           "path": "platform/.gitattributes.source",
@@ -4375,6 +4375,12 @@
           "sha256": "7821729fdaf0df80d0ba40914e3a6ef84f65ea70ab4f44f625a087a7d46e8e4a"
         },
         {
+          "path": "platform/src/workbench_platform/documents/pdf_coverage.py",
+          "source_path": "src/workbench_platform/documents/pdf_coverage.py",
+          "bytes": 6961,
+          "sha256": "dc518f070b5115e03c55013c77316ecc71d99eeb97ee369e9a48d63fb8a7dea9"
+        },
+        {
           "path": "platform/src/workbench_platform/documents/routes.py",
           "source_path": "src/workbench_platform/documents/routes.py",
           "bytes": 4844,
@@ -4383,8 +4389,8 @@
         {
           "path": "platform/src/workbench_platform/documents/service.py",
           "source_path": "src/workbench_platform/documents/service.py",
-          "bytes": 42260,
-          "sha256": "2db413c995a19bcd8146b697eabb6c585e4ad2a90b6cf608305a89c07b4c1421"
+          "bytes": 42797,
+          "sha256": "576f5804353aa4b22dde3fdc9ac9632d6b9f50bc067a21e4bdf7943bff9e0b24"
         },
         {
           "path": "platform/src/workbench_platform/documents/tables.py",
@@ -4395,8 +4401,8 @@
         {
           "path": "platform/src/workbench_platform/documents/worker.py",
           "source_path": "src/workbench_platform/documents/worker.py",
-          "bytes": 2456,
-          "sha256": "a4b1871bee41dc45764fe8905a5048afea89e5d7621c25c18c96821b5d2fa488"
+          "bytes": 2884,
+          "sha256": "835b214009e55ce065da7be4f2f8f5ea88d53623908e6c591918e1fc9b6b4604"
         },
         {
           "path": "platform/src/workbench_platform/forensics/__init__.py",
@@ -6071,6 +6077,12 @@
           "source_path": "tests/unit/test_document_comparison_service.py",
           "bytes": 15478,
           "sha256": "81eacebf07b87a03211fdd82bb23f2d21a6f691acc93f5e67603d96ed9033f2b"
+        },
+        {
+          "path": "platform/tests/unit/test_document_pdf_coverage.py",
+          "source_path": "tests/unit/test_document_pdf_coverage.py",
+          "bytes": 6207,
+          "sha256": "763b0241d9b1a617b9ffba84eb80aac15a5f46248ac5bf82efce17b678ef4b7d"
         },
         {
           "path": "platform/tests/unit/test_documents_regressions.py",
