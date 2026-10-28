@@ -18,6 +18,7 @@ import uuid
 READ_ROOTS = ('program', 'assets', 'runtimes', 'tools')
 WRITE_ROOTS = ('data', 'cache', 'temp', 'paddle_temp', 'secrets', 'backup', 'postgres')
 ALL_ROOTS = READ_ROOTS + WRITE_ROOTS
+PADDLE_MODEL_RESOURCES = ('ocr_models', 'seal_models')
 
 
 def _pairs(items):
@@ -116,10 +117,12 @@ class InstallConfig:
         return actual
 
     def trusted_model_alias(self, link, target):
-        model_root = self.resources.get('ocr_models')
-        return bool(model_root and link.is_relative_to(self.roots['paddle_temp'])
+        model_roots = (self.resources.get(name) for name in PADDLE_MODEL_RESOURCES)
+        return bool(link.is_relative_to(self.roots['paddle_temp'])
             and link.name == 'models' and link.parent.name.startswith('offlineocr-paddle-')
-            and target == model_root.resolve() and not any(_reparse(p) for p in (target, *target.parents)))
+            and link.parent.resolve().is_relative_to(self.roots['paddle_temp'])
+            and any(root is not None and target == root.resolve() for root in model_roots)
+            and not any(_reparse(p) for p in (link.parent, *link.parent.parents, target, *target.parents)))
 
     def resource(self, name: str) -> Path:
         if name not in self.resources:
@@ -272,10 +275,14 @@ def load_install(path, *, package_root: Path | None = None) -> InstallConfig:
         if any(source.is_relative_to(roots[key]) for key in (*READ_ROOTS, 'data')):
             raise ValueError('Legacy file mappings cannot shadow current program or DATA members')
     mappings = []
+    model_roots = {resources[name].resolve() for name in PADDLE_MODEL_RESOURCES if name in resources}
     for item in value.get('model_mappings', []):
         link, target = Path(item['link']).absolute(), Path(item['target']).absolute()
-        if not link.is_relative_to(roots['paddle_temp']) or not target.is_relative_to(roots['assets']):
-            raise ValueError('Model aliases require a Paddle temp link and registered assets target')
+        if (not link.is_relative_to(roots['paddle_temp'])
+                or not link.parent.resolve().is_relative_to(roots['paddle_temp'])
+                or not target.is_relative_to(roots['assets']) or target.resolve() not in model_roots):
+            raise ValueError('Model aliases require a Paddle temp link and exact registered model root')
+        _no_reparse(link.parent, 'Model alias parent')
         _no_reparse(target, 'Model target')
         if link.exists() and link.resolve() != target.resolve():
             raise ValueError('Registered model alias target differs')

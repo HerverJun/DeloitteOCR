@@ -40,6 +40,7 @@ RESOURCES = {
     'mineru_python': 'runtimes/mineru-pro/python.exe',
     'mineru_model': 'assets/mineru/MinerU2.5-Pro-2605-1.2B',
     'ocr_models': 'assets/program/bundles/ocr/models',
+    'seal_models': 'assets/program/models/multimodal/seal',
     'libreoffice': 'tools/libreoffice/program/soffice.com',
     'node': 'tools/node/node.exe', 'agent_layer': 'runtimes/agent',
     'task_layer': 'runtimes/task-layer', 'postgres_bin': 'tools/postgresql/bin',

@@ -171,3 +171,86 @@ def test_escape_junction_and_registered_paddle_alias(installation):
             require_path(alias / 'write.json')
     finally:
         alias.rmdir()
+
+
+def test_seal_alias_requires_an_exact_registered_root_and_preserves_old_config(installation):
+    path, value = installation
+    original = load_install(path)
+    seal = original.program / 'assets/program/models/multimodal/seal'
+    adjacent = seal.parent / 'audio'
+    child = seal / 'sub-model'
+    for directory in (original.resources['ocr_models'], seal, adjacent, child):
+        directory.mkdir(parents=True, exist_ok=True)
+    alias = original.roots['paddle_temp'] / 'offlineocr-paddle-models/models'
+    # Older configs remain readable, but an absent resource ID grants no alias.
+    with pytest.raises(ValueError, match='not registered'):
+        require_model_mapping(alias, seal)
+    value['resources']['seal_models'] = 'assets/program/models/multimodal/seal'
+    path.write_text(json.dumps(value), encoding='utf-8')
+    config = load_install(path)
+    for target in (config.resources['ocr_models'], seal):
+        assert require_model_mapping(alias, target) == (alias, target)
+    for target in (adjacent, child, seal.parent):
+        with pytest.raises(ValueError, match='not registered'):
+            require_model_mapping(alias, target)
+
+
+def test_explicit_model_mapping_cannot_authorize_other_assets(installation):
+    path, value = installation
+    config = load_install(path)
+    seal = config.program / 'assets/program/models/multimodal/seal'
+    value['resources']['seal_models'] = 'assets/program/models/multimodal/seal'
+    alias = config.roots['paddle_temp'] / 'explicit-seal'
+    for target in (seal.parent / 'audio', seal / 'sub-model', seal.parent):
+        target.mkdir(parents=True, exist_ok=True)
+        value['model_mappings'] = [{'link': str(alias), 'target': str(target)}]
+        path.write_text(json.dumps(value), encoding='utf-8')
+        with pytest.raises(ValueError, match='exact registered model root'):
+            load_install(path)
+    # Explicit aliases can retain their own names, while targets stay exact.
+    value['model_mappings'] = [{'link': str(alias), 'target': str(seal)}]
+    path.write_text(json.dumps(value), encoding='utf-8')
+    assert load_install(path).mappings == ((alias, seal),)
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows model resource junction boundary')
+@pytest.mark.parametrize('member', ['assets/linked-seal', 'assets/linked-seal/seal'])
+def test_registered_seal_resource_cannot_follow_a_junction(installation, member):
+    path, value = installation
+    config = load_install(path)
+    actual = config.program / 'assets/real-models'
+    (actual / 'seal').mkdir(parents=True)
+    link = config.program / 'assets/linked-seal'
+    subprocess.run(['cmd.exe', '/c', 'mklink', '/J', str(link), str(actual)], check=True, capture_output=True)
+    value['resources']['seal_models'] = member
+    path.write_text(json.dumps(value), encoding='utf-8')
+    try:
+        with pytest.raises(ValueError, match='unregistered reparse'):
+            load_install(path)
+    finally:
+        link.rmdir()
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows Paddle alias parent junction boundary')
+def test_dynamic_and_explicit_alias_reject_a_parent_junction_escape(installation):
+    path, value = installation
+    config = load_install(path)
+    seal = config.program / 'assets/program/models/multimodal/seal'
+    seal.mkdir(parents=True)
+    value['resources']['seal_models'] = 'assets/program/models/multimodal/seal'
+    outside = path.parent / 'outside-paddle'
+    outside.mkdir()
+    parent = config.roots['paddle_temp'] / 'offlineocr-paddle-escape'
+    parent.parent.mkdir()
+    subprocess.run(['cmd.exe', '/c', 'mklink', '/J', str(parent), str(outside)], check=True, capture_output=True)
+    path.write_text(json.dumps(value), encoding='utf-8')
+    try:
+        with pytest.raises(ValueError, match='not registered'):
+            require_model_mapping(parent / 'models', seal)
+        value['model_mappings'] = [{'link': str(parent / 'models'), 'target': str(seal)}]
+        path.write_text(json.dumps(value), encoding='utf-8')
+        with pytest.raises(ValueError, match='Paddle temp link'):
+            load_install(path)
+        assert list(outside.iterdir()) == []
+    finally:
+        parent.rmdir()

@@ -31,7 +31,14 @@
         "certificate": {"type": "string"}, "private_key": {"type": "string"}
       }
     },
-    "resources": {"type": "object", "additionalProperties": {"type": "string"}},
+    "resources": {
+      "type": "object",
+      "properties": {
+        "ocr_models": {"type": "string", "description": "Exact registered OCR model root permitted for a managed read-only Paddle alias"},
+        "seal_models": {"type": "string", "description": "Exact registered seal model root permitted for a managed read-only Paddle alias"}
+      },
+      "additionalProperties": {"type": "string"}
+    },
     "policy": {
       "type": "object",
       "properties": {

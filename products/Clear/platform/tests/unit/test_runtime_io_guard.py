@@ -7,25 +7,27 @@ import sys
 import pytest
 
 
-def _windows_case(tmp_path, body):
+def _windows_case(tmp_path, body, *, model_resource='ocr_models'):
     platform = Path(__file__).resolve().parents[2]
     ocr = platform.parent / 'ocr/src'
     setup = r'''import hashlib,json,os,subprocess,sys,uuid
 from pathlib import Path
 sys.path[:0]=[sys.argv[1],sys.argv[2]]
-from packages.runtime import load_install,require_model_mapping
+from packages.runtime import load_install,require_model_mapping,require_path
 from packages.runtime.io_guard import install
 root=Path(sys.argv[3]);program=root/'程序 models'
 paths={key:root/key for key in ('data','cache','temp','paddle_temp','secrets','backup','postgres')}
 paths.update(program=program,assets=program/'assets',runtimes=program/'runtimes',tools=program/'tools')
 for path in paths.values():path.mkdir(parents=True,exist_ok=True)
-models=paths['assets']/'ocr/models';models.mkdir(parents=True)
+resources={'ocr_models':'assets/ocr/models'}
+if sys.argv[4]=='seal_models':resources['seal_models']='assets/program/models/multimodal/seal'
+models=program/resources[sys.argv[4]];models.mkdir(parents=True)
 model=models/'model.bin';model.write_bytes(b'fixed-model-bytes')
 before=hashlib.sha256(model.read_bytes()).hexdigest()
 config_path=root/'clear.install.json'
 config_path.write_text(json.dumps({'schema_version':1,'installation_id':str(uuid.uuid4()),
  'mode':'single','paths':{name:str(path) for name,path in paths.items()},
- 'resources':{'ocr_models':'assets/ocr/models'},
+ 'resources':resources,
  'network':{'transport':'loopback-http','listen':'127.0.0.1','public_origin':'http://127.0.0.1:18889',
  'portal_port':18889,'worker_port':18890,'postgres_port':15432},'policy':{'allowed_drives':['F:']}}))
 os.environ['CLEAR_INSTALL_CONFIG']=str(config_path)
@@ -41,7 +43,7 @@ def rejected(action,exception=PermissionError):
     environment = {**os.environ, 'CLEAR_IO_GUARD': '0'}
     environment.pop('CLEAR_INSTALL_CONFIG', None)
     result = subprocess.run([sys.executable, '-I', '-B', '-c', setup + body,
-        str(platform), str(ocr), str(tmp_path)], cwd=tmp_path, env=environment,
+        str(platform), str(ocr), str(tmp_path), model_resource], cwd=tmp_path, env=environment,
         capture_output=True, text=True, timeout=40)
     assert result.returncode == 0, result.stdout + result.stderr
     values = json.loads(result.stdout)
@@ -51,10 +53,12 @@ def rejected(action,exception=PermissionError):
 
 @pytest.mark.skipif(os.name != 'nt', reason='Real Windows Paddle junction cleanup')
 @pytest.mark.parametrize('exceptional', [False, True])
-def test_guard_allows_registered_paddle_alias_cleanup_without_model_writes(tmp_path, exceptional):
+@pytest.mark.parametrize('model_resource', ['ocr_models', 'seal_models'])
+def test_guard_allows_registered_paddle_alias_cleanup_without_model_writes(tmp_path, exceptional, model_resource):
     _windows_case(tmp_path, r'''
 from ocr_workbench.windows_paths import ascii_model_directory
 other=paths['assets']/'other-models';other.mkdir()
+child=models/'sub-models';child.mkdir()
 install(config)
 class StopSample(Exception):pass
 checks={}
@@ -62,18 +66,21 @@ try:
  with ascii_model_directory(models) as alias:
   checks['real_junction']=alias.is_junction() and alias.resolve()==models
   checks['read_model']=(alias/'model.bin').read_bytes()==b'fixed-model-bytes'
+  checks['read_path_resolves']=require_path(alias/'model.bin',role='read')==model
+  checks['write_path_denied']=rejected(lambda:require_path(alias/'model.bin',role='write'),ValueError)
   checks['write_denied']=rejected(lambda:(alias/'model.bin').write_bytes(b'bad'))
   checks['remove_model_denied']=rejected(lambda:os.remove(alias/'model.bin'))
   checks['chmod_denied']=rejected(lambda:os.chmod(alias/'model.bin',0o600))
   checks['utime_denied']=rejected(lambda:os.utime(alias/'model.bin',(1,1)))
   checks['wrong_target_denied']=rejected(lambda:require_model_mapping(alias.parent/'models',other),ValueError)
+  checks['child_target_denied']=rejected(lambda:require_model_mapping(alias.parent/'models',child),ValueError)
   checks['wrong_location_denied']=rejected(lambda:require_model_mapping(paths['data']/'offlineocr-paddle-test/models',models),ValueError)
   if EXCEPTIONAL:raise StopSample()
 except StopSample:pass
 checks['alias_and_parent_removed']=not alias.exists() and not alias.parent.exists()
 checks['model_unchanged']=model.is_file() and hashlib.sha256(model.read_bytes()).hexdigest()==before
 print(json.dumps(checks))
-'''.replace('EXCEPTIONAL', str(exceptional)))
+'''.replace('EXCEPTIONAL', str(exceptional)), model_resource=model_resource)
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='Real Windows junction parent escape')
