@@ -1353,14 +1353,14 @@
         {
           "path": "platform/config/clear.install.example.json",
           "source_path": "config/clear.install.example.json",
-          "bytes": 2373,
-          "sha256": "313b855f1c792bbdf6a2e1082f6137ebf1cb7122ea75ec776bf3082438df6bf5"
+          "bytes": 2434,
+          "sha256": "61aae0680666a9fd86e31f1e2aae5805f9be47ca0f362634f4e2a4a0baf013e0"
         },
         {
           "path": "platform/config/clear.install.schema.json",
           "source_path": "config/clear.install.schema.json",
-          "bytes": 2384,
-          "sha256": "f4365331853c323d7208476f70a524659ea6a94a33a1e988cbd5c23c848ec689"
+          "bytes": 2712,
+          "sha256": "dd047181f7efa6ea2399eece18780637b46b5fa5a9682f3e68ab3196fb82f74f"
         },
         {
           "path": "platform/config/forensics.json",
@@ -2949,8 +2949,8 @@
         {
           "path": "platform/packages/runtime/config.py",
           "source_path": "packages/runtime/config.py",
-          "bytes": 21774,
-          "sha256": "413e63e2f244addd227600fdfa97846e70d796b6d1f41a564e7b516eb9169d33"
+          "bytes": 22314,
+          "sha256": "b53486f119e50dd8ae7adc4aef09e25183117f08429406f383436c0ac6cf1200"
         },
         {
           "path": "platform/packages/runtime/integrity.py",
@@ -3213,8 +3213,8 @@
         {
           "path": "platform/scripts/package_portable.py",
           "source_path": "scripts/package_portable.py",
-          "bytes": 81520,
-          "sha256": "67508d72224eadd29eca60f8728552651ae5303aabd31a26ac48d38161c219b6"
+          "bytes": 81580,
+          "sha256": "d2a2641703c39bf8b6fc9f414af6369229d699101d781040c3cffa4194250710"
         },
         {
           "path": "platform/scripts/package_task_candidate.py",
@@ -6363,8 +6363,8 @@
         {
           "path": "platform/tests/unit/test_runtime_config.py",
           "source_path": "tests/unit/test_runtime_config.py",
-          "bytes": 7956,
-          "sha256": "43d7d5cc06966066a8012c2e8db470a539e7420b4837fc456549774944192433"
+          "bytes": 12133,
+          "sha256": "75110723befe29a906395a9e086da3d1c9ed15e386f3687d0f3bb55736656a27"
         },
         {
           "path": "platform/tests/unit/test_runtime_integrity.py",
@@ -6375,8 +6375,8 @@
         {
           "path": "platform/tests/unit/test_runtime_io_guard.py",
           "source_path": "tests/unit/test_runtime_io_guard.py",
-          "bytes": 8512,
-          "sha256": "665b5e488024d9dd2de02c491097bdbace8405b592d638c26f356d1f52b19016"
+          "bytes": 9147,
+          "sha256": "29a5b6edbe6da6a0f14fb2867b09e5223e527e26cb6571b6cd7f9d5c11e94417"
         },
         {
           "path": "platform/tests/unit/test_runtime_migration.py",
