@@ -56,7 +56,24 @@ def install(config):
                 options = parse_qs(uri.query)
                 writing = not (options.get('mode') == ['ro'] or options.get('immutable') == ['1'])
                 name = url2pathname(uri.path)
-            path = Path(name).absolute().resolve()
+            requested = Path(name).absolute()
+            if event == 'os.rmdir':
+                # RemoveDirectory unlinks a junction/symlink itself. Resolving
+                # its leaf would mistake Paddle alias cleanup for a model
+                # write. Keep both the supplied and physical parent inside a
+                # write root; traversing a parent junction grants no access.
+                leaf = name.replace('\\', '/').rstrip('/').rsplit('/', 1)[-1]
+                if leaf in {'.', '..'}:
+                    raise PermissionError('Ambiguous directory removal is not permitted: ' + name)
+                is_junction = getattr(requested, 'is_junction', lambda: False)
+                if requested.is_symlink() or is_junction():
+                    if '..' in requested.parts or not inside(requested, writes):
+                        raise PermissionError('Installation write escaped registered roots: ' + str(requested))
+                    path = requested.parent.resolve() / requested.name
+                else:
+                    path = requested.resolve()
+            else:
+                path = requested.resolve()
             if writing and not inside(path, writes):
                 raise PermissionError('Installation write escaped registered roots: ' + str(path))
             if not writing and inside(path, denied):
