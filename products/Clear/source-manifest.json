@@ -1,6 +1,6 @@
 {
   "format": "clear-integrated-source-v1",
-  "captured_on": "2026-10-27",
+  "captured_on": "2026-10-28",
   "release_status": "development_unreleased",
   "release_pointer": null,
   "purpose": "Integrated authored sources under development on the single project branch; no finalized or published installation is declared.",
@@ -2961,8 +2961,8 @@
         {
           "path": "platform/packages/runtime/io_guard.py",
           "source_path": "packages/runtime/io_guard.py",
-          "bytes": 2829,
-          "sha256": "3554451de30bb431c8ba532970bcccc7597180cbf28823fc3a761cff071f5e06"
+          "bytes": 3917,
+          "sha256": "4cc45a6b96d05401cb388bb396bea0f4884d64d26d2312ac7a492e6974ff8ded"
         },
         {
           "path": "platform/packages/runtime/migration.py",
@@ -6375,8 +6375,8 @@
         {
           "path": "platform/tests/unit/test_runtime_io_guard.py",
           "source_path": "tests/unit/test_runtime_io_guard.py",
-          "bytes": 2069,
-          "sha256": "75d0798c2313b10bfcd19c0196ae331e055c420d022b033a260e40c0c95f4811"
+          "bytes": 8512,
+          "sha256": "665b5e488024d9dd2de02c491097bdbace8405b592d638c26f356d1f52b19016"
         },
         {
           "path": "platform/tests/unit/test_runtime_migration.py",
